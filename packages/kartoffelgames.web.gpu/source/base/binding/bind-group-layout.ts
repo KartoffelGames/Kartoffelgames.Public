@@ -4,8 +4,8 @@ import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
@@ -13,15 +13,15 @@ import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memo
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
-import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
 import { BindGroup } from './bind-group';
+import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
 
 // TODO: Find a good way to create new binding groups.
 
 /**
  * Bind group layout. Fixed at creation. 
  */
-export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
+export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayoutInvalidationType, BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
 
@@ -283,7 +283,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
             // Register change listener for layout changes.
             lBinding.layout.addInvalidationListener(() => {
-                this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+                this.invalidate(BindGroupLayoutInvalidationType.Layout);
             });
 
             // Validate dublicate indices.
@@ -316,3 +316,8 @@ export type BindLayout = {
     visibility: ComputeStage;
     accessMode: AccessMode;
 };
+
+export enum BindGroupLayoutInvalidationType {
+    Layout = 'LayoutChange',
+    Setting = 'BindingSettingChange'
+}

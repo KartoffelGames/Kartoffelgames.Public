@@ -1,10 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject } from '../../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 
 /**
  * Vertex parameter layout.

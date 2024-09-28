@@ -1,8 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -10,7 +10,7 @@ import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-bu
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
+export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, GpuBufferInvalidationType> implements IGpuObjectNative<GPUBuffer> {
     private mCopyType: MemoryCopyType;
     private readonly mDataType: PrimitiveBufferFormat;
     private mInitialDataCallback: (() => TType) | null;
@@ -110,7 +110,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+            this.invalidate(GpuBufferInvalidationType.Layout);
         });
     }
 
@@ -124,7 +124,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         this.mInitialDataCallback = pDataCallback;
 
         // Trigger update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Data);
+        this.invalidate(GpuBufferInvalidationType.InitialData);
 
         return this;
     }
@@ -277,7 +277,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
             const lMappedBuffer: TypedArray = this.createTypedArray(lBuffer.getMappedRange());
 
             // Validate buffer and initial data length.
-            if(lMappedBuffer.length !== lInitalData.length) {
+            if (lMappedBuffer.length !== lInitalData.length) {
                 throw new Exception(`Initial buffer data (length: ${lInitalData.length}) does not fit into buffer (length: ${lMappedBuffer.length}). `, this);
             }
 
@@ -327,7 +327,13 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         if ((this.mCopyType & pCopyType) === 0) {
             this.mCopyType |= pCopyType;
 
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+            this.invalidate(GpuBufferInvalidationType.CopyType);
         }
     }
+}
+
+export enum GpuBufferInvalidationType {
+    Layout = 'LayoutChange',
+    InitialData = 'InitialDataChange',
+    CopyType = 'CopyTypeChange'
 }

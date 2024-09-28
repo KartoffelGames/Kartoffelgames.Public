@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 
-export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
+export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
@@ -77,13 +77,14 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
-        });
+            this.invalidate(ImageTextureInvalidationType.Layout);
+        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format, TextureMemoryLayoutInvalidationType.Usage]);
     }
 
     /**
      * Load image into texture.
      * Images needs to have the same dimensions.
+     * 
      * @param pSorceList - Source for each depth layer.
      */
     public async load(...pSourceList: Array<string>): Promise<void> {
@@ -120,7 +121,7 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
         this.mDepth = pSourceList.length;
 
         // Trigger change.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Data);
+        this.invalidate(ImageTextureInvalidationType.ImageBinary);
     }
 
     /**
@@ -192,4 +193,9 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
             dimension: this.memoryLayout.dimension
         });
     }
+}
+
+export enum ImageTextureInvalidationType {
+    Layout = 'LayoutChange',
+    ImageBinary = 'ImageBinaryChange'
 }

@@ -1,21 +1,21 @@
-import { Exception, IDeconstructable, Writeable } from '@kartoffelgames/core';
+import { Dictionary, Exception, IDeconstructable, Writeable } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
-import { GpuObjectInvalidationReason, GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
+import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
 import { GpuObjectLifeTime } from './gpu-object-life-time.enum';
 import { GpuObjectSetup } from './gpu-object-setup';
 
 /**
  * Gpu object with a native internal object.
  */
-export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType extends string = GpuObjectInvalidationReason, TSetupObject extends GpuObjectSetup<any> | null = null> implements IDeconstructable {
+export abstract class GpuObject<TNativeObject = null, TInvalidationType extends string = '', TSetupObject extends GpuObjectSetup<any> | null = null> implements IDeconstructable {
     private mDeconstructed: boolean;
     private readonly mDevice: GpuDevice;
-    private readonly mInvalidationReasons: GpuObjectInvalidationReasons<GpuObjectInvalidationReason | TNativeInvalidationType>;
+    private readonly mInvalidationReasons: GpuObjectInvalidationReasons<TInvalidationType>;
     private mIsSetup: boolean;
     private mLastGeneratedFrame: number;
     private readonly mNativeLifeTime: GpuObjectLifeTime;
     private mNativeObject: TNativeObject | null;
-    private readonly mUpdateListenerList: Set<GpuObjectUpdateListener<GpuObjectInvalidationReason | TNativeInvalidationType>>;
+    private readonly mUpdateListenerList: Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>;
 
     /**
      * Gpu Device.
@@ -55,23 +55,25 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
         this.mLastGeneratedFrame = 0;
 
         // Init lists.
-        this.mUpdateListenerList = new Set<GpuObjectUpdateListener<GpuObjectInvalidationReason | TNativeInvalidationType>>();
-        this.mInvalidationReasons = new GpuObjectInvalidationReasons<GpuObjectInvalidationReason | TNativeInvalidationType>();
+        this.mUpdateListenerList = new Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>();
+        this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
     }
 
     /**
      * Add invalidation listener.
+     * 
      * @param pListener - Listener.
+     * @param pAffected - Trigger listener only on those reasons.
      */
-    public addInvalidationListener(pListener: GpuObjectUpdateListener<GpuObjectInvalidationReason | TNativeInvalidationType>): void {
-        this.mUpdateListenerList.add(pListener);
+    public addInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>, pAffected?: Array<TInvalidationType>): void {
+        this.mUpdateListenerList.set(pListener, pAffected ? new Set(pAffected) : null);
     }
 
     /**
      * Deconstruct native object.
      */
     public deconstruct(): void {
-        this.invalidate(GpuObjectInvalidationReason.Deconstruct);
+        this.mInvalidationReasons.deconstruct = true;
 
         // Clear and destroy old native when any update reason exists.
         if (this.mNativeObject !== null) {
@@ -85,13 +87,16 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
     /**
      * Invalidate native gpu object so it will be created again.
      */
-    public invalidate(pReason: GpuObjectInvalidationReason | TNativeInvalidationType): void {
+    public invalidate(pReason: TInvalidationType): void {
         // Add invalidation reason.
         this.mInvalidationReasons.add(pReason);
 
         // Call parent update listerner.
-        for (const lInvalidationListener of this.mUpdateListenerList) {
-            lInvalidationListener(pReason);
+        for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
+            // Call listener only when is has a affected reason.
+            if (!lAffected || lAffected.has(pReason)) {
+                lInvalidationListener(pReason);
+            }
         }
     }
 
@@ -99,7 +104,7 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
      * Add invalidation listener.
      * @param pListener - Listener.
      */
-    public removeInvalidationListener(pListener: GpuObjectUpdateListener<GpuObjectInvalidationReason | TNativeInvalidationType>): void {
+    public removeInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>): void {
         this.mUpdateListenerList.delete(pListener);
     }
 
@@ -109,7 +114,7 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
      * @param _pNative - Native object.
      * @param _pReasons - Reason why it should be destroyed. 
      */
-    protected destroyNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<GpuObjectInvalidationReason | TNativeInvalidationType>): void {
+    protected destroyNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<TInvalidationType>): void {
         return;
     }
 
@@ -125,8 +130,10 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
     /**
      * Generate new native object.
      * Return null when no native can be generated.
+     * 
+     * @param _pReasons - Reason why it should be newly generated. 
      */
-    protected generateNative(): TNativeObject | null {
+    protected generateNative(_pReasons: GpuObjectInvalidationReasons<TInvalidationType>): TNativeObject | null {
         return null;
     }
 
@@ -200,7 +207,7 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
      * 
      * @returns true when native element was updated, false when it should be created anew.
      */
-    protected updateNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<GpuObjectInvalidationReason | TNativeInvalidationType>): boolean {
+    protected updateNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<TInvalidationType>): boolean {
         return false;
     }
 
@@ -230,20 +237,20 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
             }
             case GpuObjectLifeTime.Single: {
                 // Invalidate every time.
-                this.invalidate(GpuObjectInvalidationReason.LifeTime);
+                this.mInvalidationReasons.lifeTimeReached = true;
                 break;
             }
             case GpuObjectLifeTime.Frame: {
                 // Invalidate on different frame till last generated.
                 if (this.device.frameCount !== this.mLastGeneratedFrame) {
-                    this.invalidate(GpuObjectInvalidationReason.LifeTime);
+                    this.mInvalidationReasons.lifeTimeReached = true;
                 }
                 break;
             }
         }
 
         // When native is generated and is invalid, try to update it.
-        if (this.mNativeObject !== null && this.mInvalidationReasons.any()) {
+        if (this.mNativeObject !== null && (this.mInvalidationReasons.any())) {
             // Try to update native.
             const lUpdateSuccessfull: boolean = this.updateNative(this.mNativeObject, this.mInvalidationReasons);
             if (lUpdateSuccessfull) {
@@ -260,7 +267,7 @@ export abstract class GpuObject<TNativeObject = null, TNativeInvalidationType ex
             }
 
             // Generate new native.
-            this.mNativeObject = this.generateNative();
+            this.mNativeObject = this.generateNative(this.mInvalidationReasons);
             if (this.mNativeObject === null) {
                 throw new Exception(`No gpu native object can be generated.`, this);
             }

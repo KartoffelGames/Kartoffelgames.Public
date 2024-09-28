@@ -2,7 +2,8 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroupLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -12,7 +13,7 @@ import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
 
-export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
+export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
     private mPipelineLayout: PipelineLayout | null;
@@ -65,6 +66,8 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
             vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
             fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
         };
+
+        // TODO: PipelineLayout invalidation listener.
     }
 
     /**

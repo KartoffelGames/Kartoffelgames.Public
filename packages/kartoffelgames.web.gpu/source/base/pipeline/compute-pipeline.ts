@@ -1,10 +1,10 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
-export class ComputePipeline extends GpuObject<GPUComputePipeline> implements IGpuObjectNative<GPUComputePipeline> {
+export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline> {
     private readonly mShaderModule: ShaderComputeModule;
 
     /**
@@ -32,8 +32,11 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline> implements IG
         this.mShaderModule = pShader;
 
         // Listen for shader changes.
-        pShader.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+        this.mShaderModule.shader.addInvalidationListener(() => {
+            this.invalidate(ComputePipelineInvalidationType.Shader);
+        });
+        this.mShaderModule.shader.layout.addInvalidationListener(() => {
+            this.invalidate(ComputePipelineInvalidationType.Shader);
         });
     }
 
@@ -54,4 +57,9 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline> implements IG
         // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
         return this.device.gpu.createComputePipeline(lPipelineDescriptor);
     }
+}
+
+export enum ComputePipelineInvalidationType {
+    Shader = 'ShaderChange',
+    Config = 'ConfigChange'
 }

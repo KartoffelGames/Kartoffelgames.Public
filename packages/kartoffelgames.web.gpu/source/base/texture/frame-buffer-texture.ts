@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 
-export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
+export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private readonly mMemoryLayout: TextureMemoryLayout;
@@ -22,8 +22,8 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
     } set depth(pValue: number) {
         this.mDepth = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native.
+        this.invalidate(FrameBufferTextureInvalidationType.Size);
     }
 
     /**
@@ -34,8 +34,8 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
     } set height(pValue: number) {
         this.mHeight = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native.
+        this.invalidate(FrameBufferTextureInvalidationType.Size);
     }
 
     /**
@@ -46,15 +46,15 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
     }
 
     /**
-     * Texture multi sample level. // TODO: Move into layout.
+     * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
      */
     public get multiSampleLevel(): number {
         return this.mMultiSampleLevel;
     } set multiSampleLevel(pValue: number) {
         this.mMultiSampleLevel = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native.
+        this.invalidate(FrameBufferTextureInvalidationType.MultiSampleLevel);
     }
 
     /**
@@ -72,8 +72,8 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
     } set width(pValue: number) {
         this.mWidth = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native.
+        this.invalidate(FrameBufferTextureInvalidationType.Size);
     }
 
     /**
@@ -98,8 +98,8 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
-        });
+            this.invalidate(FrameBufferTextureInvalidationType.Layout);
+        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format, TextureMemoryLayoutInvalidationType.Usage]);
     }
 
     /**
@@ -117,23 +117,20 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
     protected override generateNative(): GPUTextureView {
         // TODO: Validate format based on layout. Maybe replace used format.
 
-        // Configure context.
-        if (!this.mTexture) {
-            // Validate two dimensional texture.
-            if (this.memoryLayout.dimension !== TextureDimension.TwoDimension) {
-                throw new Exception('Frame buffers must be two dimensional.', this);
-            }
-
-            // Create and configure canvas context.
-            this.mTexture = this.device.gpu.createTexture({
-                label: 'Frame-Buffer-Texture',
-                size: [this.width, this.height, 1], // Force 2d texture.
-                format: this.memoryLayout.format as GPUTextureFormat,
-                usage: this.memoryLayout.usage,
-                dimension: '2d',
-                sampleCount: this.multiSampleLevel
-            });
+        // Validate two dimensional texture.
+        if (this.memoryLayout.dimension !== TextureDimension.TwoDimension) {
+            throw new Exception('Frame buffers must be two dimensional.', this);
         }
+
+        // Create and configure canvas context.
+        this.mTexture = this.device.gpu.createTexture({
+            label: 'Frame-Buffer-Texture',
+            size: [this.width, this.height, 1], // Force 2d texture.
+            format: this.memoryLayout.format as GPUTextureFormat,
+            usage: this.memoryLayout.usage,
+            dimension: '2d',
+            sampleCount: this.multiSampleLevel
+        });
 
         // Force a 2d view.
         return this.mTexture.createView({
@@ -141,4 +138,10 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGp
             dimension: '2d'
         });
     }
+}
+
+export enum FrameBufferTextureInvalidationType {
+    Layout = 'LayoutChange',
+    Size = 'SizeChange',
+    MultiSampleLevel = 'MultiSampleLevel'
 }

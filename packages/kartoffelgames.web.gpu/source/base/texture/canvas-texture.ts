@@ -1,10 +1,11 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReasons, GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 
-export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
+export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
     private readonly mMemoryLayout: TextureMemoryLayout;
@@ -22,10 +23,8 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
     public get height(): number {
         return this.mCanvas.height;
     } set height(pValue: number) {
+        // Height autoapplies. No need to trigger invalidation.
         this.mCanvas.height = pValue;
-
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -48,10 +47,8 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
     public get width(): number {
         return this.mCanvas.width;
     } set width(pValue: number) {
+        // Width autoapplies. No need to trigger invalidation.
         this.mCanvas.width = pValue;
-
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -74,33 +71,41 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
-        });
+            this.invalidate(CanvasTextureInvalidationType.Layout);
+        }, [TextureMemoryLayoutInvalidationType.Usage, TextureMemoryLayoutInvalidationType.Format]);
     }
 
     /**
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroyNative(_pNativeObject: GPUTextureView, pReasons: GpuObjectInvalidationReasons): void {
+    protected override destroyNative(_pNativeObject: GPUTextureView, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
+        // Context is only invalid on deconstruct or layout has changes.
+        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout);
+
         // Only destroy context when child data/layout has changes.
-        if (pReasons.has(GpuObjectInvalidationReason.ChildData)) {
+        if (lContextInvalid) {
             // Destory context.
-            this.mContext?.unconfigure();
+            this.mContext!.unconfigure();
             this.mContext = null;
         }
 
-        // Nothing else to destroy.
+        // Native view can not be destroyed.
     }
 
     /**
      * Generate native canvas texture view.
      */
-    protected override generateNative(): GPUTextureView {
-        // TODO: Add invalidation context to generate to better understand new generating.
+    protected override generateNative(pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): GPUTextureView {
+        // Invalidate for frame change.
+        if (pReasons.lifeTimeReached) {
+            this.invalidate(CanvasTextureInvalidationType.Frame);
+        }
+
+        // Read canvas format.
         const lFormat: GPUTextureFormat = this.memoryLayout.format as GPUTextureFormat;
 
-        // Configure context.
+        // Configure new context when not alread configured or destroyed.
         if (!this.mContext) {
             // Create and configure canvas context.
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
@@ -112,7 +117,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
             });
         }
 
-        // Create texture and save it for destorying later.
+        // Read current texture of canvas. Needs to be retrieved for each frame.
         const lTexture: GPUTexture = this.mContext.getCurrentTexture();
 
         // force a two dimensional view.
@@ -121,4 +126,9 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
             dimension: '2d'
         });
     }
+}
+
+export enum CanvasTextureInvalidationType {
+    Layout = 'LayoutChange',
+    Frame = 'FrameChange'
 }

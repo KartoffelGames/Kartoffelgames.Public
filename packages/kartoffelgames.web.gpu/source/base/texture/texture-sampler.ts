@@ -4,12 +4,12 @@ import { FilterMode } from '../../constant/filter-mode.enum';
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
+import { SamplerMemoryLayout, SamplerMemoryLayoutInvalidationType } from '../memory_layout/texture/sampler-memory-layout';
 
-export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectNative<GPUSampler> {
+export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalidationType> implements IGpuObjectNative<GPUSampler> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;
@@ -28,8 +28,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set compare(pValue: CompareFunction | null) {
         this.mCompare = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -40,8 +40,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set lodMaxClamp(pValue: number) {
         this.mLodMaxClamp = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -52,8 +52,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set lodMinClamp(pValue: number) {
         this.mLodMinClamp = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -64,8 +64,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set magFilter(pValue: FilterMode) {
         this.mMagFilter = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -76,8 +76,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set maxAnisotropy(pValue: number) {
         this.mMaxAnisotropy = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -95,8 +95,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set minFilter(pValue: FilterMode) {
         this.mMinFilter = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -107,8 +107,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set mipmapFilter(pValue: FilterMode) {
         this.mMipmapFilter = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -126,8 +126,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
     } set wrapMode(pValue: WrappingMode) {
         this.mWrapMode = pValue;
 
-        // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidate native object.
+        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
     }
 
     /**
@@ -152,8 +152,8 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
-        });
+            this.invalidate(TextureSamplerInvalidationType.Layout);
+        }, [SamplerMemoryLayoutInvalidationType.SamplerType]);
     }
 
     /**
@@ -184,4 +184,9 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
 
         return this.device.gpu.createSampler(lSamplerOptions);
     }
+}
+
+export enum TextureSamplerInvalidationType {
+    Layout = 'LayoutChange',
+    SamplerConfig = 'SamplerConfigChange'
 }

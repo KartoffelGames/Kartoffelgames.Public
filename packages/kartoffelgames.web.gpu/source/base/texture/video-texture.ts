@@ -1,10 +1,10 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuObjectNative<GPUExternalTexture> {
+export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInvalidationType> implements IGpuObjectNative<GPUExternalTexture> {
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -69,8 +69,8 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuO
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
-        });
+            this.invalidate(VideoTextureInvalidationType.Layout);
+        }, [/* Layout is not used in generation. */]);
     }
 
     /**
@@ -97,4 +97,8 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuO
             colorSpace: 'srgb'
         });
     }
+}
+
+export enum VideoTextureInvalidationType {
+    Layout = 'LayoutChange'
 }

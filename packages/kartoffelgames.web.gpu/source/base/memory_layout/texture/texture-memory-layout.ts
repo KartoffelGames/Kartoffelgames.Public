@@ -3,10 +3,9 @@ import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
-import { BaseMemoryLayout} from '../base-memory-layout';
+import { BaseMemoryLayout } from '../base-memory-layout';
 
-export class TextureMemoryLayout extends BaseMemoryLayout {
+export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInvalidationType> {
     private readonly mBindType: TextureBindType;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
@@ -32,7 +31,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
      */
     public get format(): TextureFormat {
         return this.mFormat;
-    }
+    } // TODO: Format-Change
 
     /**
      * Texture uses multisample.
@@ -49,10 +48,8 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     } set usage(pValue: TextureUsage) {
         this.mUsage = pValue;
 
-        // TODO: Updateable property of everything.
-
         // Invalidate layout on setting changes.
-        this.invalidate(GpuObjectInvalidationReason.Setting);
+        this.invalidate(TextureMemoryLayoutInvalidationType.Usage);
     }
 
     /**
@@ -78,4 +75,10 @@ export interface TextureMemoryLayoutParameter {
     format: TextureFormat;
     bindType: TextureBindType;
     multisampled: boolean;
+}
+
+export enum TextureMemoryLayoutInvalidationType {
+    Usage = 'UsageChange',
+    Format = 'FormatChange',
+    Dimension = 'DimensionChange'
 }

@@ -1,8 +1,7 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
@@ -14,8 +13,9 @@ import { VideoTexture } from '../texture/video-texture';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 
-export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNative<GPUBindGroup> {
+export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
     private readonly mLayout: BindGroupLayout;
 
@@ -45,7 +45,7 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
 
         // Register change listener for layout changes.
         pBindGroupLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+            this.invalidate(BindGroupInvalidationType.Layout);
         });
     }
 
@@ -104,7 +104,7 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
             this.mBindData.set(pBindName, pData);
 
             // Trigger update on data change. 
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+            this.invalidate(BindGroupInvalidationType.Data);
         });
     }
 
@@ -186,3 +186,8 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
 }
 
 type BindData = GpuBuffer<TypedArray> | TextureSampler | ImageTexture | FrameBufferTexture | VideoTexture | CanvasTexture;
+
+export enum BindGroupInvalidationType {
+    Layout = 'LayoutChange',
+    Data = 'DataChange'
+}

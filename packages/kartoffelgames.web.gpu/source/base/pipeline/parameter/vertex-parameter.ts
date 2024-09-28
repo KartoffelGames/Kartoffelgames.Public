@@ -2,15 +2,16 @@ import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject } from '../../gpu/object/gpu-object';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
 import { VertexBufferMemoryLayout } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 
-export class VertexParameter extends GpuObject {
+export class VertexParameter extends GpuObject<null, VertexParameterInvalidationType> {
     private readonly mData: Dictionary<string, GpuBuffer<TypedArray>>;
     private readonly mIndexBuffer: GpuBuffer<Uint32Array>;
     private readonly mLayout: VertexParameterLayout;
@@ -41,6 +42,11 @@ export class VertexParameter extends GpuObject {
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;
         this.mData = new Dictionary<string, GpuBuffer<TypedArray>>();
+
+        // Invalidate on layout change.
+        this.mLayout.addInvalidationListener(() => {
+            this.invalidate(VertexParameterInvalidationType.Data);
+        });
 
         // Create index layout.
         const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
@@ -120,6 +126,14 @@ export class VertexParameter extends GpuObject {
         // Save gpu buffer in correct index.
         this.mData.set(pName, lParameterBuffer);
 
+        // Invalidate on data set.
+        this.invalidate(VertexParameterInvalidationType.Data);
+
         return lParameterBuffer;
     }
+}
+
+export enum VertexParameterInvalidationType {
+    Data = 'DataChange',
+    Layout = 'LayoutChange'
 }

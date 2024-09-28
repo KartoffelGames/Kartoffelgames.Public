@@ -1,10 +1,9 @@
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
-export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
+export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<BaseBufferMemoryLayoutInvalidationType, TSetupObject> {
     private mUsage: BufferUsage;
 
     /**
@@ -31,7 +30,7 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
         this.mUsage = pUsage;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        this.invalidate(BaseBufferMemoryLayoutInvalidationType.Usage);
     }
 
     /**
@@ -62,3 +61,7 @@ export type BufferLayoutLocation = {
     offset: number;
     size: number;
 };
+
+export enum BaseBufferMemoryLayoutInvalidationType {
+    Usage = 'UsageChange',
+}

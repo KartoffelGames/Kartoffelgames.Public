@@ -1,11 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 
 export class GpuExecution extends GpuObject {
     private mEncoder: GPUCommandEncoder | null;
     private readonly mExecutionFunction: GpuExecutionFunction;
-    
+
     /**
      * GPU command encoder.
      */

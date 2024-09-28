@@ -1,11 +1,11 @@
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { ComputePipeline } from '../pipeline/compute-pipeline';
 import { Shader } from './shader';
 
-export class ShaderComputeModule extends GpuObject {
+export class ShaderComputeModule extends GpuObject<null, ShaderComputeModuleInvalidationType> {
     private readonly mEntryPoint: string;
     private readonly mShader: Shader;
     private readonly mSize: [number, number, number];
@@ -69,7 +69,7 @@ export class ShaderComputeModule extends GpuObject {
 
         // Update on shader update.
         pShader.addInvalidationListener(() => {
-            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
+            this.invalidate(ShaderComputeModuleInvalidationType.Shader);
         });
     }
 
@@ -81,4 +81,8 @@ export class ShaderComputeModule extends GpuObject {
     public create(): ComputePipeline {
         return new ComputePipeline(this.device, this);
     }
+}
+
+export enum ShaderComputeModuleInvalidationType {
+    Shader = 'ShaderChange',
 }

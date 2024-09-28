@@ -1,21 +1,22 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureAspect } from '../../../constant/texture-aspect.enum';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
+import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
-import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../../gpu/object/gpu-object-invalidation-reasons';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
-import { TextureUsage } from '../../../constant/texture-usage.enum';
 
 /**
  * Group of textures with the same size and multisample level.
  */
-export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTargetsSetup> implements IGpuObjectSetup<RenderTargetsSetup>, IGpuObjectNative<GPURenderPassDescriptor> {
+export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTargetsInvalidationType, RenderTargetsSetup> implements IGpuObjectSetup<RenderTargetsSetup>, IGpuObjectNative<GPURenderPassDescriptor> {
     private readonly mColorTextures: Dictionary<string, RenderTargetsColorTarget>; // TODO: Maybe use a ordered array for that.
     private mDepthStencilTexture: RenderTargetsDepthStencilTexture | null;
     private readonly mSize: TextureSize;
@@ -114,6 +115,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @returns this. 
      */
     public resize(pHeight: number, pWidth: number, pMultisampleLevel: number | null = null): this {
+        // Set 2D size dimensions
         this.mSize.width = pWidth;
         this.mSize.height = pHeight;
 
@@ -126,8 +128,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             this.mSize.multisampleLevel = pMultisampleLevel;
         }
 
-        // Retrigger update.
-        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
+        // Invalidations happends for every texture.
 
         return this;
     }
@@ -250,6 +251,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 target: pReferenceData.depthStencil.texture
             };
 
+            // Passthrough depth stencil texture changes.
+            pReferenceData.depthStencil.texture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.Texture);
+            });
+
             // Add render attachment texture usage to depth stencil texture.
             pReferenceData.depthStencil.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
 
@@ -301,6 +307,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
             }
 
+            // Passthrough color texture changes. Any change.
+            lAttachment.texture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.Texture);
+            });
+
             // Add render attachment texture usage to color texture.
             lAttachment.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
 
@@ -334,6 +345,56 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<RenderTargetSetupData>): RenderTargetsSetup {
         return new RenderTargetsSetup(pReferences);
+    }
+
+    /**
+     * Try to update views of pass descriptor.
+     * 
+     * @param pNative - Native pass descriptor.
+     * @param pReasons - Update reason.
+     * 
+     * @returns true when native was updated.
+     */
+    protected override updateNative(pNative: GPURenderPassDescriptor, pReasons: GpuObjectInvalidationReasons<RenderTargetsInvalidationType>): boolean {
+        // Native can not be updated on any config changes.
+        if (pReasons.has(RenderTargetsInvalidationType.Config)) {
+            return false;
+        }
+
+        // TODO: Make it more performant.
+
+        // Update only views of descriptor. 
+        if (pNative.depthStencilAttachment) {
+            pNative.depthStencilAttachment.view = this.mDepthStencilTexture!.target.native;
+        }
+
+        // Create color attachment list in order.
+        const lColorAttachmentList: Array<RenderTargetsColorTarget> = new Array<RenderTargetsColorTarget>();
+        for (const lColorAttachment of this.mColorTextures.values()) {
+            lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
+        }
+
+        // Create color attachments.
+        for (let lColorAttachmentIndex: number = 0; lColorAttachmentIndex < lColorAttachmentList.length; lColorAttachmentIndex++) {
+            // Read current attachment.
+            const lCurrentAttachment: GPURenderPassColorAttachment | null = (<Array<GPURenderPassColorAttachment | null>>pNative.colorAttachments)[lColorAttachmentIndex];
+            if (lCurrentAttachment === null) {
+                continue;
+            }
+
+            // Read setup attachments.
+            const lColorAttachment = lColorAttachmentList[lColorAttachmentIndex];
+
+            // Update view.
+            lCurrentAttachment.view = lColorAttachment.texture.target.native;
+
+            // Update optional resolve target.
+            if (lCurrentAttachment.resolveTarget && lColorAttachment.texture.resolve) {
+                lCurrentAttachment.resolveTarget = lColorAttachment.texture.resolve.native;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -423,3 +484,8 @@ export type RenderTargetsColorTarget = {
     storeOperation: TextureOperation;
     texture: RenderTargetsColorTexture;
 };
+
+export enum RenderTargetsInvalidationType {
+    Config = 'ConfigChange',
+    Texture = 'TextureChange'
+}

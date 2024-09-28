@@ -2,9 +2,10 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject } from '../../gpu/object/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { GpuExecution } from '../gpu-execution';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 
 export class ComputePass extends GpuObject {
     private readonly mInstructionList: Array<ComputeInstruction>;

@@ -2,14 +2,18 @@ import { SamplerType } from '../../../constant/sampler-type.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
-export class SamplerMemoryLayout extends BaseMemoryLayout {
-    private readonly mSamplerType: SamplerType;
+export class SamplerMemoryLayout extends BaseMemoryLayout<SamplerMemoryLayoutInvalidationType> {
+    private mSamplerType: SamplerType;
 
     /**
      * Sampler type.
      */
     public get samplerType(): SamplerType {
         return this.mSamplerType;
+    } set samplerType(pType: SamplerType) {
+        this.mSamplerType = pType;
+
+        this.invalidate(SamplerMemoryLayoutInvalidationType.SamplerType);
     }
 
     /**
@@ -27,4 +31,8 @@ export class SamplerMemoryLayout extends BaseMemoryLayout {
 
 export interface SamplerMemoryLayoutParameter {
     samplerType: SamplerType;
+}
+
+export enum SamplerMemoryLayoutInvalidationType {
+    SamplerType = 'SamplerTypeChange'
 }

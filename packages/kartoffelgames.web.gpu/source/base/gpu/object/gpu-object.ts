@@ -12,8 +12,6 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     private readonly mDevice: GpuDevice;
     private readonly mInvalidationReasons: GpuObjectInvalidationReasons<TInvalidationType>;
     private mIsSetup: boolean;
-    private mLastGeneratedFrame: number;
-    private readonly mNativeLifeTime: GpuObjectLifeTime;
     private mNativeObject: TNativeObject | null;
     private readonly mUpdateListenerList: Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>;
 
@@ -47,21 +45,17 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         // Save static settings.
         this.mDevice = pDevice;
         this.mIsSetup = false;
-        this.mNativeLifeTime = pNativeLifeTime;
-
-        // TODO: On FrameLifetime add gpudevice callback for frame change and invalidate.
 
         // Init default settings and config.
         this.mDeconstructed = false;
         this.mNativeObject = null;
-        this.mLastGeneratedFrame = 0;
 
         // Init lists.
         this.mUpdateListenerList = new Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>();
         this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
 
         // Validate life time.
-        switch (this.mNativeLifeTime) {
+        switch (pNativeLifeTime) {
             case GpuObjectLifeTime.Persistent: {
                 // Do nothing.
                 break;
@@ -274,9 +268,6 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
             // Reset all update reasons.
             this.mInvalidationReasons.clear();
         }
-
-        // Save current frame count. Used for Native lifetime check.
-        this.mLastGeneratedFrame = this.device.frameCount;
 
         return this.mNativeObject;
     }

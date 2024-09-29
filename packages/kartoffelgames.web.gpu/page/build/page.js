@@ -4034,17 +4034,14 @@ class GpuObject {
     // Save static settings.
     this.mDevice = pDevice;
     this.mIsSetup = false;
-    this.mNativeLifeTime = pNativeLifeTime;
-    // TODO: On FrameLifetime add gpudevice callback for frame change and invalidate.
     // Init default settings and config.
     this.mDeconstructed = false;
     this.mNativeObject = null;
-    this.mLastGeneratedFrame = 0;
     // Init lists.
     this.mUpdateListenerList = new core_1.Dictionary();
     this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
     // Validate life time.
-    switch (this.mNativeLifeTime) {
+    switch (pNativeLifeTime) {
       case gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent:
         {
           // Do nothing.
@@ -4232,8 +4229,6 @@ class GpuObject {
       // Reset all update reasons.
       this.mInvalidationReasons.clear();
     }
-    // Save current frame count. Used for Native lifetime check.
-    this.mLastGeneratedFrame = this.device.frameCount;
     return this.mNativeObject;
   }
 }
@@ -13548,7 +13543,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("444a94360f6a73cd752b")
+/******/ 		__webpack_require__.h = () => ("229b8a27078c23e0a6cd")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

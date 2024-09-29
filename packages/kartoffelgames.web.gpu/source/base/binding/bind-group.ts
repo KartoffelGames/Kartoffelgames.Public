@@ -1,4 +1,7 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { StorageBindingType } from '../../constant/storage-binding-type.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
@@ -14,9 +17,6 @@ import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { StorageBindingType } from '../../constant/storage-binding-type.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
 
 export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
@@ -71,8 +71,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
         };
 
         return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: BindData) => {
-            // TODO: Extend usage types. for uniform or storage
-
+            // Validate if layout fits bind data and dynamicly extend usage type of bind data.
             switch (true) {
                 // Textures must use a buffer memory layout.
                 case pData instanceof GpuBuffer: {
@@ -122,6 +121,11 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
             // Set data.
             this.mBindData.set(pBindName, pData);
+
+            // Trigger update data is invalid.
+            pData.addInvalidationListener(() => {
+                this.invalidate(BindGroupInvalidationType.Data);
+            });
 
             // Trigger update on data change. 
             this.invalidate(BindGroupInvalidationType.Data);

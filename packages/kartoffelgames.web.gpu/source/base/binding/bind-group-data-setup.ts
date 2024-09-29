@@ -173,14 +173,14 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * @throws {@link Exception}
      * When no data was set.
      */
-    public get(): BindData {
+    public get<T extends BindData>(): T {
         // Validate existance.
         if (!this.mCurrentData) {
             throw new Exception('No binding data was set.', this);
         }
 
         // Return current set data.
-        return this.mCurrentData;
+        return this.mCurrentData as T;
     }
 
     /**

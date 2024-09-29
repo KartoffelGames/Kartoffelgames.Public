@@ -1,3 +1,4 @@
+import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
 import { GpuExecution } from '../../source/base/execution/gpu-execution';
 import { RenderPass } from '../../source/base/execution/pass/render-pass';
@@ -21,10 +22,84 @@ import { AmbientLight } from './something_better/light/ambient-light';
 import { Transform, TransformMatrix } from './something_better/transform';
 import { PerspectiveProjection } from './something_better/view_projection/projection/perspective-projection';
 import { CameraMatrix, ViewProjection } from './something_better/view_projection/view-projection';
+import { Dictionary } from '@kartoffelgames/core';
+import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
 const gDepth: number = 10;
+
+const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBuffer<Float32Array>) => {
+    // Register keyboard mouse movements.
+    const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
+    lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
+    lDefaultConfiguaration.addAction('Back', [KeyboardButton.KeyS]);
+    lDefaultConfiguaration.addAction('Left', [KeyboardButton.KeyA]);
+    lDefaultConfiguaration.addAction('Right', [KeyboardButton.KeyD]);
+    lDefaultConfiguaration.addAction('Up', [KeyboardButton.ShiftLeft]);
+    lDefaultConfiguaration.addAction('Down', [KeyboardButton.ControlLeft]);
+    lDefaultConfiguaration.addAction('RotateLeft', [KeyboardButton.KeyQ]);
+    lDefaultConfiguaration.addAction('RotateRight', [KeyboardButton.KeyE]);
+    lDefaultConfiguaration.addAction('Yaw', [MouseButton.Xaxis]);
+    lDefaultConfiguaration.addAction('Pitch', [MouseButton.Yaxis]);
+    lDefaultConfiguaration.triggerTolerance = 0.2;
+    const lInputConfiguration: InputConfiguration = new InputConfiguration(lDefaultConfiguaration);
+    const lInputDevices: InputDevices = new InputDevices(lInputConfiguration);
+    lInputDevices.registerConnector(new MouseKeyboardConnector());
+
+    const lCurrentActionValue: Dictionary<string, number> = new Dictionary<string, number>();
+    const lKeyboard: BaseInputDevice = lInputDevices.devices[0];
+    lKeyboard.addEventListener('actionstatechange', (pEvent) => {
+        lCurrentActionValue.set(pEvent.action, pEvent.state);
+    });
+    window.setInterval(() => {
+        const lSpeed = 1;
+
+        // Z Axis
+        if (lCurrentActionValue.get('Forward')! > 0) {
+            pCamera.transformation.translateInDirection((lCurrentActionValue.get('Forward')! / 50) * lSpeed, 0, 0);
+        }
+        if (lCurrentActionValue.get('Back')! > 0) {
+            pCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back')! / 50) * lSpeed, 0, 0);
+        }
+
+        // X Axis
+        if (lCurrentActionValue.get('Right')! > 0) {
+            pCamera.transformation.translateInDirection(0, (lCurrentActionValue.get('Right')! / 50) * lSpeed, 0);
+        }
+        if (lCurrentActionValue.get('Left')! > 0) {
+            pCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left')! / 50) * lSpeed, 0);
+        }
+
+        // Y Axis
+        if (lCurrentActionValue.get('Up')! > 0) {
+            pCamera.transformation.translateInDirection(0, 0, (lCurrentActionValue.get('Up')! / 50) * lSpeed);
+        }
+        if (lCurrentActionValue.get('Down')! > 0) {
+            pCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down')! / 50) * lSpeed);
+        }
+
+        // Rotation.
+        if (lCurrentActionValue.get('Yaw')! > 0 || lCurrentActionValue.get('Yaw')! < 0) {
+            pCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw')! * lSpeed, 0);
+        }
+        if (lCurrentActionValue.get('Pitch')! > 0 || lCurrentActionValue.get('Pitch')! < 0) {
+            pCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch')! * lSpeed, 0, 0);
+        }
+        if (lCurrentActionValue.get('RotateLeft')! > 0) {
+            pCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft')! * lSpeed);
+        }
+        if (lCurrentActionValue.get('RotateRight')! > 0) {
+            pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')! * lSpeed);
+        }
+
+        // Update transformation buffer.
+        pCameraBuffer.writeRaw(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray);
+    }, 8);
+    pCanvas.addEventListener('click', () => {
+        pCanvas.requestPointerLock();
+    });
+};
 
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
@@ -166,6 +241,11 @@ const gDepth: number = 10;
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
     lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
+
+    /**
+     * Controls
+     */
+    gInitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('viewProjectionMatrix').get());
 
     /*
      * Execution 

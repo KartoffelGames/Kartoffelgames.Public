@@ -25,9 +25,9 @@ import { CameraMatrix, ViewProjection } from './something_better/view_projection
 import { Dictionary } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 
-const gHeight: number = 10;
-const gWidth: number = 10;
-const gDepth: number = 10;
+const gHeight: number = 100;
+const gWidth: number = 100;
+const gDepth: number = 100;
 
 const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBuffer<Float32Array>) => {
     // Register keyboard mouse movements.
@@ -116,7 +116,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         // Add depth texture and init new texture.    
         pSetup.addDepthStencil(true, 1)
             .new(TextureFormat.Depth24plus);
-    }).resize(640, 800, 4);
+    }).resize(1200, 1800, 4);
 
     // Create shader.
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
@@ -236,7 +236,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRenderTargets);
-    lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+    lPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
@@ -254,6 +254,8 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         lRenderPass.execute(pExecutor);
     });
 
+    const lFpsLabel = document.getElementById('fpsCounter')!;
+
     // Actual execute.
     let lLastTime: number = 0;
     const lRender = (pTime: number) => {
@@ -266,6 +268,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         const lFps: number = 1000 / (pTime - lLastTime);
         (<any>window).currentFps = lFps;
         lLastTime = pTime;
+
+        // Update FPS counter.
+        lFpsLabel.textContent = lFps.toString();
 
         // Refresh canvas
         requestAnimationFrame(lRender);

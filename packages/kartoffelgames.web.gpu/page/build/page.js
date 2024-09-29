@@ -295,9 +295,9 @@ const transform_1 = __webpack_require__(/*! ./something_better/transform */ "./p
 const perspective_projection_1 = __webpack_require__(/*! ./something_better/view_projection/projection/perspective-projection */ "./page/source/something_better/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./something_better/view_projection/view-projection */ "./page/source/something_better/view_projection/view-projection.ts");
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gHeight = 10;
-const gWidth = 10;
-const gDepth = 10;
+const gHeight = 100;
+const gWidth = 100;
+const gDepth = 100;
 const gInitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
   // Register keyboard mouse movements.
   const lDefaultConfiguaration = new web_game_input_1.DeviceConfiguration();
@@ -378,7 +378,7 @@ _asyncToGenerator(function* () {
     }).use(lCanvasTexture);
     // Add depth texture and init new texture.    
     pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
-  }).resize(640, 800, 4);
+  }).resize(1200, 1800, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
     pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
@@ -461,7 +461,7 @@ _asyncToGenerator(function* () {
   lMesh.set('normal', cube_1.CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
   // Create pipeline.
   const lPipeline = lRenderModule.create(lRenderTargets);
-  lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
+  lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
   lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
@@ -475,6 +475,7 @@ _asyncToGenerator(function* () {
   const lRenderExecutor = lGpu.executor(pExecutor => {
     lRenderPass.execute(pExecutor);
   });
+  const lFpsLabel = document.getElementById('fpsCounter');
   // Actual execute.
   let lLastTime = 0;
   const lRender = pTime => {
@@ -485,6 +486,8 @@ _asyncToGenerator(function* () {
     const lFps = 1000 / (pTime - lLastTime);
     window.currentFps = lFps;
     lLastTime = pTime;
+    // Update FPS counter.
+    lFpsLabel.textContent = lFps.toString();
     // Refresh canvas
     requestAnimationFrame(lRender);
   };
@@ -14833,7 +14836,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("38fa8fd1b51d5c4f8f6f")
+/******/ 		__webpack_require__.h = () => ("024a99075769fbdc0e16")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

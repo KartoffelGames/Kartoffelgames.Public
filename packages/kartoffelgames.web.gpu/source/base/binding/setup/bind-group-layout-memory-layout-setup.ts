@@ -1,5 +1,4 @@
 import { SamplerType } from '../../../constant/sampler-type.enum';
-import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
@@ -99,9 +98,8 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * @param pTextureBindType - Texture binding.
      * @param pMultisampled  - Is texture multisampled. 
      */
-    public withTexture(pTextureDimension: TextureDimension, pTextureFormat: TextureFormat, pTextureBindType: TextureBindType, pMultisampled: boolean): void {
+    public withTexture(pTextureDimension: TextureDimension, pTextureFormat: TextureFormat, pMultisampled: boolean): void {
         const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
-            bindType: pTextureBindType,
             dimension: pTextureDimension,
             format: pTextureFormat,
             multisampled: pMultisampled

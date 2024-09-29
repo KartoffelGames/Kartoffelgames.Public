@@ -1,4 +1,3 @@
-import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
@@ -18,7 +17,6 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
             dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
-            bindType: TextureBindType.RenderTarget,
             multisampled: false // Should be set in render target generation.
         });
 

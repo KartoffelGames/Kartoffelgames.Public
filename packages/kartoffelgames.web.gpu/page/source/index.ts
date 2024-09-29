@@ -13,7 +13,6 @@ import { ComputeStage } from '../../source/constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { SamplerType } from '../../source/constant/sampler-type.enum';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
-import { TextureBindType } from '../../source/constant/texture-bind-type.enum';
 import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
@@ -87,7 +86,7 @@ const gDepth: number = 10;
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment)
-                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm, TextureBindType.Image, false);
+                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm, false);
         }));
     });
 

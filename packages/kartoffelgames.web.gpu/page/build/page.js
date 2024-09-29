@@ -285,7 +285,6 @@ const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compu
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const texture_bind_type_enum_1 = __webpack_require__(/*! ../../source/constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const cube_1 = __webpack_require__(/*! ./cube/cube */ "./page/source/cube/cube.ts");
@@ -337,7 +336,7 @@ _asyncToGenerator(function* () {
     // User bind group
     pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(lGpu, 'user').setup(pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm, texture_bind_type_enum_1.TextureBindType.Image, false);
+      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm, false);
     }));
   });
   // Create render module from shader.
@@ -2751,9 +2750,8 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    * @param pTextureBindType - Texture binding.
    * @param pMultisampled  - Is texture multisampled.
    */
-  withTexture(pTextureDimension, pTextureFormat, pTextureBindType, pMultisampled) {
+  withTexture(pTextureDimension, pTextureFormat, pMultisampled) {
     const lLayout = new texture_memory_layout_1.TextureMemoryLayout(this.device, {
-      bindType: pTextureBindType,
       dimension: pTextureDimension,
       format: pTextureFormat,
       multisampled: pMultisampled
@@ -3606,7 +3604,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuDevice = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_bind_type_enum_1 = __webpack_require__(/*! ../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/base/execution/gpu-execution.ts");
 const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/base/execution/pass/compute-pass.ts");
@@ -3709,8 +3706,6 @@ class GpuDevice {
     const lLayout = new texture_memory_layout_1.TextureMemoryLayout(this, {
       dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
       format: this.formatValidator.preferredCanvasFormat,
-      bindType: texture_bind_type_enum_1.TextureBindType.RenderTarget,
-      // TODO: Also let auto config handle this.
       multisampled: false
     });
     return new canvas_texture_1.CanvasTexture(this, lLayout, lCanvas);
@@ -5058,12 +5053,6 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Texture dimension.
    */
-  get bindType() {
-    return this.mBindType;
-  }
-  /**
-   * Texture dimension.
-   */
   get dimension() {
     return this.mDimension;
   }
@@ -5087,7 +5076,6 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
    */
   constructor(pDevice, pParameter) {
     super(pDevice);
-    this.mBindType = pParameter.bindType;
     this.mDimension = pParameter.dimension;
     this.mFormat = pParameter.format;
     this.mMultisampled = pParameter.multisampled;
@@ -5541,7 +5529,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.RenderTargetTextureSetup = void 0;
-const texture_bind_type_enum_1 = __webpack_require__(/*! ../../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
@@ -5557,7 +5544,6 @@ class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSe
       dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
       format: pFormat,
       // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
-      bindType: texture_bind_type_enum_1.TextureBindType.RenderTarget,
       multisampled: false // Should be set in render target generation.
     });
     // Callback texture.
@@ -9249,28 +9235,6 @@ var TextureAspect;
   TextureAspect["Stencil"] = "stencil";
   TextureAspect["Depth"] = "depth";
 })(TextureAspect || (exports.TextureAspect = TextureAspect = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-bind-type.enum.ts":
-/*!***************************************************!*\
-  !*** ./source/constant/texture-bind-type.enum.ts ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureBindType = void 0;
-var TextureBindType;
-(function (TextureBindType) {
-  TextureBindType["Image"] = "Image-Texture";
-  TextureBindType["Storage"] = "Storage-Texture";
-  TextureBindType["RenderTarget"] = "Render-Texture";
-})(TextureBindType || (exports.TextureBindType = TextureBindType = {}));
 
 /***/ }),
 
@@ -13567,7 +13531,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("8486038be3d5c117d234")
+/******/ 		__webpack_require__.h = () => ("d74d75e29caaf1a69c26")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

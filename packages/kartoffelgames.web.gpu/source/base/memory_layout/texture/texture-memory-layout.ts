@@ -1,21 +1,12 @@
-import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
 export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInvalidationType> {
-    private readonly mBindType: TextureBindType;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
     private readonly mMultisampled: boolean;
-
-    /**
-     * Texture dimension.
-     */
-    public get bindType(): TextureBindType { // TODO: Do we need bind type when we have usage.
-        return this.mBindType;
-    }
 
     /**
      * Texture dimension.
@@ -47,7 +38,6 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
     public constructor(pDevice: GpuDevice, pParameter: TextureMemoryLayoutParameter) {
         super(pDevice);
 
-        this.mBindType = pParameter.bindType;
         this.mDimension = pParameter.dimension;
         this.mFormat = pParameter.format;
         this.mMultisampled = pParameter.multisampled;
@@ -57,7 +47,6 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
 export interface TextureMemoryLayoutParameter {
     dimension: TextureDimension;
     format: TextureFormat;
-    bindType: TextureBindType;
     multisampled: boolean;
 }
 

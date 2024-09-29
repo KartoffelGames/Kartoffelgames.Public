@@ -1,5 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass } from '../execution/pass/compute-pass';
@@ -120,7 +119,6 @@ export class GpuDevice {
         const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this, {
             dimension: TextureDimension.TwoDimension,
             format: this.formatValidator.preferredCanvasFormat,
-            bindType: TextureBindType.RenderTarget, // TODO: Also let auto config handle this.
             multisampled: false
         });
 

@@ -13,7 +13,7 @@ import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
 
-export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
+export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
     private mPipelineLayout: PipelineLayout | null;
@@ -66,8 +66,6 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
             vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
             fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
         };
-
-        // TODO: PipelineLayout invalidation listener.
     }
 
     /**
@@ -142,11 +140,22 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
      * Generate shader module.
      */
     protected override generateNative(): GPUShaderModule {
-        // TODO: Create compilationHints for every entry point?
+        // Read pipeline for compilation hints.
+        const lPipelineLayout = this.mPipelineLayout!.native;
+
+        // Create compilationHints for every entry point
+        const lCompilationHints: Array<GPUShaderModuleCompilationHint> = new Array<GPUShaderModuleCompilationHint>();
+        for (const lEntryName of [...this.mEntryPoints.vertex.keys(), ...this.mEntryPoints.fragment.keys(), ...this.mEntryPoints.compute.keys()]) {
+            lCompilationHints.push({
+                entryPoint: lEntryName,
+                layout: lPipelineLayout
+            });
+        }
 
         // Create shader module use hints to speed up compilation on safari.
         return this.device.gpu.createShaderModule({
             code: this.mSource,
+            compilationHints: lCompilationHints
             // TODO: sourceMap: undefined
         });
     }
@@ -271,6 +280,11 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
             lInitialPipelineLayout.set(lGroup.index, lGroup.group);
         }
         this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
+
+        // Invalidate shader every time the pipeline layout changes.
+        this.mPipelineLayout.addInvalidationListener(() => {
+            this.invalidate(ShaderInvalidationType.PipelineLayout);
+        });
     }
 
     /**
@@ -313,3 +327,7 @@ type ShaderModuleEntryPoints = {
     vertex: Dictionary<string, ShaderModuleEntryPointVertex>,
     fragment: Dictionary<string, ShaderModuleEntryPointFragment>,
 };
+
+export enum ShaderInvalidationType {
+    PipelineLayout = 'PipelineLayoutChange',
+}

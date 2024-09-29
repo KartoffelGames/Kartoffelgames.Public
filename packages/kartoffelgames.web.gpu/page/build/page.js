@@ -6614,7 +6614,7 @@ var ShaderRenderModuleInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Shader = void 0;
+exports.ShaderInvalidationType = exports.Shader = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
@@ -6664,7 +6664,6 @@ class Shader extends gpu_object_1.GpuObject {
       vertex: new core_1.Dictionary(),
       fragment: new core_1.Dictionary()
     };
-    // TODO: PipelineLayout invalidation listener.
   }
   /**
    * Create a compute module from shader entry point.
@@ -6728,10 +6727,20 @@ class Shader extends gpu_object_1.GpuObject {
    * Generate shader module.
    */
   generateNative() {
-    // TODO: Create compilationHints for every entry point?
+    // Read pipeline for compilation hints.
+    const lPipelineLayout = this.mPipelineLayout.native;
+    // Create compilationHints for every entry point
+    const lCompilationHints = new Array();
+    for (const lEntryName of [...this.mEntryPoints.vertex.keys(), ...this.mEntryPoints.fragment.keys(), ...this.mEntryPoints.compute.keys()]) {
+      lCompilationHints.push({
+        entryPoint: lEntryName,
+        layout: lPipelineLayout
+      });
+    }
     // Create shader module use hints to speed up compilation on safari.
     return this.device.gpu.createShaderModule({
-      code: this.mSource
+      code: this.mSource,
+      compilationHints: lCompilationHints
       // TODO: sourceMap: undefined
     });
   }
@@ -6839,6 +6848,10 @@ class Shader extends gpu_object_1.GpuObject {
       lInitialPipelineLayout.set(lGroup.index, lGroup.group);
     }
     this.mPipelineLayout = new pipeline_layout_1.PipelineLayout(this.device, lInitialPipelineLayout);
+    // Invalidate shader every time the pipeline layout changes.
+    this.mPipelineLayout.addInvalidationListener(() => {
+      this.invalidate(ShaderInvalidationType.PipelineLayout);
+    });
   }
   /**
    * Create setup object. Return null to skip any setups.
@@ -6852,6 +6865,10 @@ class Shader extends gpu_object_1.GpuObject {
   }
 }
 exports.Shader = Shader;
+var ShaderInvalidationType;
+(function (ShaderInvalidationType) {
+  ShaderInvalidationType["PipelineLayout"] = "PipelineLayoutChange";
+})(ShaderInvalidationType || (exports.ShaderInvalidationType = ShaderInvalidationType = {}));
 
 /***/ }),
 
@@ -13531,7 +13548,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("d74d75e29caaf1a69c26")
+/******/ 		__webpack_require__.h = () => ("444a94360f6a73cd752b")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

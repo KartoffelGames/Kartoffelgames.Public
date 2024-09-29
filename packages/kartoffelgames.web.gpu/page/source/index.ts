@@ -1,5 +1,7 @@
+import { Dictionary } from '@kartoffelgames/core';
 import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
+import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 import { GpuExecution } from '../../source/base/execution/gpu-execution';
 import { RenderPass } from '../../source/base/execution/pass/render-pass';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
@@ -16,14 +18,13 @@ import { SamplerType } from '../../source/constant/sampler-type.enum';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
 import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
 import { Transform, TransformMatrix } from './something_better/transform';
 import { PerspectiveProjection } from './something_better/view_projection/projection/perspective-projection';
 import { CameraMatrix, ViewProjection } from './something_better/view_projection/view-projection';
-import { Dictionary } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 
 const gHeight: number = 100;
 const gWidth: number = 100;
@@ -121,9 +122,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     // Create shader.
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
         pShaderSetup.vertexEntryPoint('vertex_main')
-            .addParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4)
-            .addParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2)
-            .addParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            .addParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4, VertexParameterStepMode.Index)
+            .addParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2, VertexParameterStepMode.Vertex)
+            .addParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4, VertexParameterStepMode.Vertex);
 
         pShaderSetup.fragmentEntryPoint('fragment_main')
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
@@ -208,7 +209,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
-    lAmbientLight.setColor(0.1, 0.1, 0.1);
+    lAmbientLight.setColor(0.3, 0.3, 0.3);
     lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
 
     // Create point lights.

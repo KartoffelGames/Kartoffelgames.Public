@@ -1,25 +1,27 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
+import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step-mode.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
-import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
 import { VertexBufferMemoryLayout } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
+import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
 
 export class VertexParameter extends GpuObject<null, VertexParameterInvalidationType> {
     private readonly mData: Dictionary<string, GpuBuffer<TypedArray>>;
-    private readonly mIndexBuffer: GpuBuffer<Uint32Array>;
+    private readonly mIndexBuffer: GpuBuffer<Uint32Array> | null;
+    private readonly mIndices: Array<number>;
     private readonly mLayout: VertexParameterLayout;
 
     /**
      * Get index buffer.
      */
-    public get indexBuffer(): GpuBuffer<Uint32Array> {
+    public get indexBuffer(): GpuBuffer<Uint32Array> | null {
         return this.mIndexBuffer;
     }
 
@@ -28,6 +30,13 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
      */
     public get layout(): VertexParameterLayout {
         return this.mLayout;
+    }
+
+    /**
+     * Vertex count.
+     */
+    public get vertexCount(): number {
+        return this.mIndices.length;
     }
 
     /**
@@ -61,9 +70,15 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         });
 
         // Create index buffer.
-        this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
-            return new Uint32Array(pIndices);
-        }).extendUsage(BufferUsage.Index);
+        this.mIndexBuffer = null;
+        if (this.mLayout.indexable) {
+            this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
+                return new Uint32Array(pIndices);
+            }).extendUsage(BufferUsage.Index);
+        }
+
+        // Save index information.
+        this.mIndices = pIndices;
     }
 
     /**
@@ -93,25 +108,45 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
             primitiveMultiplier: lParameterLayout.multiplier,
         });
 
+        // Calculate primitive format byte count. // TODO: How to support other than 32bit types.
+        const lPrimitiveByteCount: number = 4;
+
+        // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
+        let lData: Array<number> = pData;
+        if (!this.mLayout.indexable && lParameterLayout.stepMode === VertexParameterStepMode.Index) {
+            // Calculate how many items represent one parameter.
+            const lStepCount: number = lBufferLayout.variableSize / lPrimitiveByteCount;
+
+            // Dublicate dependent on index information.
+            lData = new Array<number>();
+            for (const lIndex of this.mIndices) {
+                const lDataStart: number = lIndex * lStepCount;
+                const lDataEnd: number = lDataStart + lStepCount;
+
+                // Copy vertex parameter data.
+                lData.push(...pData.slice(lDataStart, lDataEnd));
+            }
+        }
+
         // Calculate vertex parameter count.
-        const lVertexParameterItemCount: number = (pData.length * 4) / (lBufferLayout.variableSize); // TODO: How to support other than 32bit types.
+        const lVertexParameterItemCount: number = (lData.length * lPrimitiveByteCount) / (lBufferLayout.variableSize);
 
         // Load typed array from layout format.
         const lParameterBuffer: GpuBuffer<TypedArray> = (() => {
             switch (lParameterLayout.format) {
                 case PrimitiveBufferFormat.Float32: {
                     return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
-                        return new Float32Array(pData);
+                        return new Float32Array(lData);
                     });
                 }
                 case PrimitiveBufferFormat.Sint32: {
                     return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
-                        return new Int32Array(pData);
+                        return new Int32Array(lData);
                     });
                 }
                 case PrimitiveBufferFormat.Uint32: {
                     return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
-                        return new Uint32Array(pData);
+                        return new Uint32Array(lData);
                     });
                 }
                 default: {

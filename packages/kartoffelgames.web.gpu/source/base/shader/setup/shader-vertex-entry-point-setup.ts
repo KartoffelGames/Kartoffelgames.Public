@@ -1,3 +1,4 @@
+import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step-mode.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
@@ -7,7 +8,7 @@ export class ShaderVertexEntryPointSetup extends GpuObjectChildSetup<ShaderSetup
     /**
      * Setup vertex parameter.
      */
-    public addParameter(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): this {
+    public addParameter(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier, pStepMode: VertexParameterStepMode): this {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -15,7 +16,8 @@ export class ShaderVertexEntryPointSetup extends GpuObjectChildSetup<ShaderSetup
             name: pName,
             location: pLocationIndex,
             format: pDataFormat,
-            multiplier: pDataMultiplier
+            multiplier: pDataMultiplier,
+            stepMode: pStepMode
         };
 
         // Callback size.
@@ -30,6 +32,7 @@ export type VertexEntryPointParameterSetupData = {
     location: number;
     format: PrimitiveBufferFormat;
     multiplier: PrimitiveBufferMultiplier;
-}
+    stepMode: VertexParameterStepMode;
+};
 
 type VertexParameterCallback = (pVertexParameter: VertexEntryPointParameterSetupData) => void;

@@ -140,11 +140,18 @@ export class RenderPass extends GpuObject {
                 }
             }
 
-            // Set indexbuffer.
-            lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32');
+            // Draw indexed when parameters are indexable.
+            if (lInstruction.parameter.layout.indexable) {
+                // Set indexbuffer.
+                lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.native, 'uint32');
 
-            // Create draw call.
-            lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
+                // Create draw call.
+                lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer!.length, lInstruction.instanceCount);
+            } else {
+                // Create draw call.
+                lRenderPassEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
+            }
+
         }
 
         lRenderPassEncoder.end();

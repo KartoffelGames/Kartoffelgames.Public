@@ -1,16 +1,18 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step-mode.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
+import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
-import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 
 /**
  * Vertex parameter layout.
  */
 export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>> implements IGpuObjectNative<Array<GPUVertexBufferLayout>> {
+    private readonly mIndexable: boolean;
     private readonly mParameter: Dictionary<string, VertexParameterLayoutDefinition>;
 
     /**
@@ -19,7 +21,16 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     public get count(): number {
         return this.mParameter.size;
     }
-    
+
+    /**
+     * If parameters are indexable.
+     * Meanins every parameter is eighter stepmode index or instance.
+     * When even one parameter has a stepmode of vertex, any index parameters must be converted. 
+     */
+    public get indexable(): boolean {
+        return this.mIndexable;
+    }
+
     /**
      * Native gpu object.
      */
@@ -43,10 +54,17 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     public constructor(pDevice: GpuDevice, pLayout: Array<VertexParameterLayoutDefinition>) {
         super(pDevice, GpuObjectLifeTime.Persistent);
 
+        this.mIndexable = true;
+
         // Convert layout list into name key values.
         this.mParameter = new Dictionary<string, VertexParameterLayoutDefinition>();
         for (const lLayoutDefintion of pLayout) {
             this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
+
+            // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
+            if (lLayoutDefintion.stepMode === VertexParameterStepMode.Vertex) {
+                this.mIndexable = false;
+            }
         }
     }
 
@@ -95,10 +113,16 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
                 lFormat = 'float32';
             }
 
+            // Convert stepmode.
+            let lStepmode: GPUVertexStepMode = 'vertex';
+            if (lParameter.stepMode === VertexParameterStepMode.Instance) {
+                lStepmode = 'instance';
+            }
+
             // Create buffer layout.
             lLayoutList[lParameter.location] = {
                 arrayStride: 4 * lByteMultiplier, // 32Bit-Number * (single, vector or matrix number count) 
-                stepMode: 'vertex',
+                stepMode: lStepmode,
                 attributes: [{
                     format: lFormat,
                     offset: 0,
@@ -120,6 +144,7 @@ export type VertexParameterLayoutDefinition = {
     name: string;
     location: number;
     format: PrimitiveBufferFormat;
-    multiplier: PrimitiveBufferMultiplier;
-}
+    multiplier: PrimitiveBufferMultiplier; // TODO: Change to bufferLayout to allow different vertex layouts.
+    stepMode: VertexParameterStepMode;
+};
 

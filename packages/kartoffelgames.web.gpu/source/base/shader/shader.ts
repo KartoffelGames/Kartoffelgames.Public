@@ -245,7 +245,8 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
                     name: lParameter.name,
                     location: lParameter.location,
                     format: lParameter.format,
-                    multiplier: lParameter.multiplier
+                    multiplier: lParameter.multiplier,
+                    stepMode: lParameter.stepMode
                 });
             }
 

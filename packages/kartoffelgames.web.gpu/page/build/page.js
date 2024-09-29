@@ -277,6 +277,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
 const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
 const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
@@ -288,13 +289,13 @@ const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sample
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const cube_1 = __webpack_require__(/*! ./cube/cube */ "./page/source/cube/cube.ts");
 const shader_wgsl_1 = __webpack_require__(/*! ./shader.wgsl */ "./page/source/shader.wgsl");
 const ambient_light_1 = __webpack_require__(/*! ./something_better/light/ambient-light */ "./page/source/something_better/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./something_better/transform */ "./page/source/something_better/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./something_better/view_projection/projection/perspective-projection */ "./page/source/something_better/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./something_better/view_projection/view-projection */ "./page/source/something_better/view_projection/view-projection.ts");
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gHeight = 100;
 const gWidth = 100;
 const gDepth = 100;
@@ -381,7 +382,7 @@ _asyncToGenerator(function* () {
   }).resize(1200, 1800, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
-    pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex);
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
@@ -442,7 +443,7 @@ _asyncToGenerator(function* () {
   lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
   // Create ambient light.
   const lAmbientLight = new ambient_light_1.AmbientLight();
-  lAmbientLight.setColor(0.1, 0.1, 0.1);
+  lAmbientLight.setColor(0.3, 0.3, 0.3);
   lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
   // Create point lights.
   lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0]));
@@ -3540,10 +3541,16 @@ class RenderPass extends gpu_object_1.GpuObject {
           lRenderPassEncoder.setVertexBuffer(lAttributeLocation, lNewAttributeBuffer.native);
         }
       }
-      // Set indexbuffer.
-      lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32');
-      // Create draw call.
-      lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
+      // Draw indexed when parameters are indexable.
+      if (lInstruction.parameter.layout.indexable) {
+        // Set indexbuffer.
+        lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32');
+        // Create draw call.
+        lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
+      } else {
+        // Create draw call.
+        lRenderPassEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
+      }
     }
     lRenderPassEncoder.end();
   }
@@ -5289,10 +5296,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/base/pipeline/parameter/vertex-parameter.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 /**
  * Vertex parameter layout.
  */
@@ -5302,6 +5310,14 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    */
   get count() {
     return this.mParameter.size;
+  }
+  /**
+   * If parameters are indexable.
+   * Meanins every parameter is eighter stepmode index or instance.
+   * When even one parameter has a stepmode of vertex, any index parameters must be converted.
+   */
+  get indexable() {
+    return this.mIndexable;
   }
   /**
    * Native gpu object.
@@ -5323,10 +5339,15 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pLayout) {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    this.mIndexable = true;
     // Convert layout list into name key values.
     this.mParameter = new core_1.Dictionary();
     for (const lLayoutDefintion of pLayout) {
       this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
+      // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
+      if (lLayoutDefintion.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
+        this.mIndexable = false;
+      }
     }
   }
   /**
@@ -5368,11 +5389,16 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
       if (lParameter.multiplier === primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single) {
         lFormat = 'float32';
       }
+      // Convert stepmode.
+      let lStepmode = 'vertex';
+      if (lParameter.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Instance) {
+        lStepmode = 'instance';
+      }
       // Create buffer layout.
       lLayoutList[lParameter.location] = {
         arrayStride: 4 * lByteMultiplier,
         // 32Bit-Number * (single, vector or matrix number count) 
-        stepMode: 'vertex',
+        stepMode: lStepmode,
         attributes: [{
           format: lFormat,
           offset: 0,
@@ -5406,14 +5432,15 @@ Object.defineProperty(exports, "__esModule", ({
 exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class VertexParameter extends gpu_object_1.GpuObject {
   /**
    * Get index buffer.
@@ -5426,6 +5453,12 @@ class VertexParameter extends gpu_object_1.GpuObject {
    */
   get layout() {
     return this.mLayout;
+  }
+  /**
+   * Vertex count.
+   */
+  get vertexCount() {
+    return this.mIndices.length;
   }
   /**
    * Constructor.
@@ -5453,9 +5486,14 @@ class VertexParameter extends gpu_object_1.GpuObject {
       innerType: lIndexLayout
     });
     // Create index buffer.
-    this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
-      return new Uint32Array(pIndices);
-    }).extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+    this.mIndexBuffer = null;
+    if (this.mLayout.indexable) {
+      this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
+        return new Uint32Array(pIndices);
+      }).extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+    }
+    // Save index information.
+    this.mIndices = pIndices;
   }
   /**
    * Get parameter buffer.
@@ -5480,27 +5518,43 @@ class VertexParameter extends gpu_object_1.GpuObject {
       primitiveFormat: lParameterLayout.format,
       primitiveMultiplier: lParameterLayout.multiplier
     });
+    // Calculate primitive format byte count. // TODO: How to support other than 32bit types.
+    const lPrimitiveByteCount = 4;
+    // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
+    let lData = pData;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      // Calculate how many items represent one parameter.
+      const lStepCount = lBufferLayout.variableSize / lPrimitiveByteCount;
+      // Dublicate dependent on index information.
+      lData = new Array();
+      for (const lIndex of this.mIndices) {
+        const lDataStart = lIndex * lStepCount;
+        const lDataEnd = lDataStart + lStepCount;
+        // Copy vertex parameter data.
+        lData.push(...pData.slice(lDataStart, lDataEnd));
+      }
+    }
     // Calculate vertex parameter count.
-    const lVertexParameterItemCount = pData.length * 4 / lBufferLayout.variableSize; // TODO: How to support other than 32bit types.
+    const lVertexParameterItemCount = lData.length * lPrimitiveByteCount / lBufferLayout.variableSize;
     // Load typed array from layout format.
     const lParameterBuffer = (() => {
       switch (lParameterLayout.format) {
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
           {
             return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
-              return new Float32Array(pData);
+              return new Float32Array(lData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
           {
             return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
-              return new Int32Array(pData);
+              return new Int32Array(lData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
           {
             return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
-              return new Uint32Array(pData);
+              return new Uint32Array(lData);
             });
           }
         default:
@@ -6520,14 +6574,15 @@ class ShaderVertexEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChil
   /**
    * Setup vertex parameter.
    */
-  addParameter(pName, pLocationIndex, pDataFormat, pDataMultiplier) {
+  addParameter(pName, pLocationIndex, pDataFormat, pDataMultiplier, pStepMode) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     const lVertexParameter = {
       name: pName,
       location: pLocationIndex,
       format: pDataFormat,
-      multiplier: pDataMultiplier
+      multiplier: pDataMultiplier,
+      stepMode: pStepMode
     };
     // Callback size.
     this.sendData(lVertexParameter);
@@ -6931,7 +6986,8 @@ class Shader extends gpu_object_1.GpuObject {
           name: lParameter.name,
           location: lParameter.location,
           format: lParameter.format,
-          multiplier: lParameter.multiplier
+          multiplier: lParameter.multiplier,
+          stepMode: lParameter.stepMode
         });
       }
       // Set vertex entry point definition. 
@@ -9589,6 +9645,28 @@ var TextureUsage;
   TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
   TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
 })(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
+
+/***/ }),
+
+/***/ "./source/constant/vertex-parameter-step-mode.enum.ts":
+/*!************************************************************!*\
+  !*** ./source/constant/vertex-parameter-step-mode.enum.ts ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterStepMode = void 0;
+var VertexParameterStepMode;
+(function (VertexParameterStepMode) {
+  VertexParameterStepMode["Vertex"] = "vertex-step";
+  VertexParameterStepMode["Index"] = "index-step";
+  VertexParameterStepMode["Instance"] = "instance-step";
+})(VertexParameterStepMode || (exports.VertexParameterStepMode = VertexParameterStepMode = {}));
 
 /***/ }),
 
@@ -14836,7 +14914,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("024a99075769fbdc0e16")
+/******/ 		__webpack_require__.h = () => ("7d0bbfd058ee66a9d54f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

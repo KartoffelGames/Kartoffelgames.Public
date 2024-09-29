@@ -16,9 +16,8 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
     private mInitialDataCallback: (() => TType) | null;
     private readonly mItemCount: number;
     private readonly mLayout: BaseBufferMemoryLayout;
-    private readonly mReadyBufferList: Array<GPUBuffer>;
-    private readonly mWavingBufferLimitation: number;
-    private readonly mWavingBufferList: Array<GPUBuffer>;
+    private mReadBuffer: GPUBuffer | null;
+    private readonly mWriteBuffer: GpuBufferWriteBuffer;
 
     /**
      * Data type of buffer.
@@ -57,6 +56,16 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
     }
 
     /**
+     * Write buffer limitation.
+     * Limiting the amount of created staging buffer to perform reads.
+     */
+    public get writeBufferLimitation(): number {
+        return this.mWriteBuffer.limitation;
+    } set writeBufferLimitation(pLimit: number) {
+        this.mWriteBuffer.limitation = pLimit;
+    }
+
+    /**
      * Byte per buffer element.
      */
     private get bytePerElement(): number {
@@ -85,15 +94,18 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         this.mLayout = pLayout;
 
         // Set config.
-        this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
         this.mDataType = pDataType;
 
         // At default buffer can not be read and not be written to.
         this.mBufferUsage = BufferUsage.None;
 
-        // Waving buffer list.
-        this.mReadyBufferList = new Array<GPUBuffer>();
-        this.mWavingBufferList = new Array<GPUBuffer>();
+        // Read and write buffers.
+        this.mWriteBuffer = {
+            limitation: Number.MAX_SAFE_INTEGER,
+            ready: new Array<GPUBuffer>(),
+            buffer: new Array<GPUBuffer>()
+        };
+        this.mReadBuffer = null;
 
         if (pLayout.variableSize !== 0 && pVariableSizeCount === null) {
             throw new Exception('Variable size must be set for gpu buffers with variable memory layouts.', this);
@@ -168,16 +180,32 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
 
-        // TODO: Buffer cant be used as binding or anything else when it has MAP_READ
-        // TODO: Create a read buffer. Copy native information into it and than map it.
-        // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
+        // Create a new buffer when it is not already created.
+        if (this.mReadBuffer === null) {
+            this.mReadBuffer = this.device.gpu.createBuffer({
+                label: `ReadWaveBuffer`,
+                size: this.size,
+                usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: false,
+            });
+        }
+
+        // Copy buffer data from native into staging.
+        const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
+        lCommandDecoder.copyBufferToBuffer(this.native, lOffset, this.mReadBuffer, lOffset, lSize);
+        this.device.gpu.queue.submit([lCommandDecoder.finish()]);
 
         // Get buffer and map data.
-        const lBuffer: GPUBuffer = this.native;
-        await lBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
+        await this.mReadBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
+
+        // Read result from mapped range and copy it with slice.
+        const lBufferReadResult: TType = this.createTypedArray(this.mReadBuffer.getMappedRange().slice(0)) as TType;
+
+        // Map read buffer again.
+        this.mReadBuffer.unmap();
 
         // Get mapped data and force it into typed array.
-        return this.createTypedArray(lBuffer.getMappedRange()) as TType;
+        return lBufferReadResult;
     }
 
     /**
@@ -206,21 +234,21 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
 
         // Try to read a mapped buffer from waving list.
         let lStagingBuffer: GPUBuffer | null = null;
-        if (this.mReadyBufferList.length === 0) {
+        if (this.mWriteBuffer.ready.length === 0) {
             // Create new buffer when limitation is not meet.
-            if (this.mWavingBufferList.length < this.mWavingBufferLimitation) {
+            if (this.mWriteBuffer.buffer.length < this.mWriteBuffer.limitation) {
                 lStagingBuffer = this.device.gpu.createBuffer({
-                    label: `RingBuffer-WaveBuffer-${this.mWavingBufferList.length}`,
+                    label: `RingBuffer-WriteWaveBuffer-${this.mWriteBuffer.buffer.length}`,
                     size: this.size,
                     usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
                     mappedAtCreation: true,
                 });
 
                 // Add new buffer to complete list.
-                this.mWavingBufferList.push(lStagingBuffer);
+                this.mWriteBuffer.buffer.push(lStagingBuffer);
             }
         } else {
-            lStagingBuffer = this.mReadyBufferList.pop()!;
+            lStagingBuffer = this.mWriteBuffer.ready.pop()!;
         }
 
         // Get byte length of data to write.
@@ -243,12 +271,12 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
 
         // Copy buffer data from staging into wavig buffer.
         const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
-        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native, 0, this.size);
+        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, lOffset, this.native, lOffset, lDataByteLength);
         this.device.gpu.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.
         lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
-            this.mReadyBufferList.push(lStagingBuffer);
+            this.mWriteBuffer.ready.push(lStagingBuffer);
         });
     }
 
@@ -259,14 +287,14 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         pNativeObject.destroy();
 
         // Destroy all wave buffer and clear list.
-        while (this.mWavingBufferList.length > 0) {
-            this.mWavingBufferList.pop()!.destroy();
+        while (this.mWriteBuffer.buffer.length > 0) {
+            this.mWriteBuffer.buffer.pop()!.destroy();
         }
 
         // Clear ready buffer list.
-        while (this.mReadyBufferList.length > 0) {
+        while (this.mWriteBuffer.ready.length > 0) {
             // No need to destroy. All buffers have already destroyed.
-            this.mReadyBufferList.pop();
+            this.mWriteBuffer.ready.pop();
         }
     }
 
@@ -331,6 +359,12 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         return new lArrayBufferConstructor(pArrayBuffer);
     }
 }
+
+type GpuBufferWriteBuffer = {
+    buffer: Array<GPUBuffer>;
+    ready: Array<GPUBuffer>;
+    limitation: number;
+};
 
 export enum GpuBufferInvalidationType {
     Layout = 'LayoutChange',

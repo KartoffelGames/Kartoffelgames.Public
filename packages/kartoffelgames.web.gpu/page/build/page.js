@@ -2877,6 +2877,16 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     return this.mItemCount * this.bytePerElement + 3 & ~3;
   }
   /**
+   * Write buffer limitation.
+   * Limiting the amount of created staging buffer to perform reads.
+   */
+  get writeBufferLimitation() {
+    return this.mWriteBuffer.limitation;
+  }
+  set writeBufferLimitation(pLimit) {
+    this.mWriteBuffer.limitation = pLimit;
+  }
+  /**
    * Byte per buffer element.
    */
   get bytePerElement() {
@@ -2903,13 +2913,16 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
     this.mLayout = pLayout;
     // Set config.
-    this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
     this.mDataType = pDataType;
     // At default buffer can not be read and not be written to.
     this.mBufferUsage = buffer_usage_enum_1.BufferUsage.None;
-    // Waving buffer list.
-    this.mReadyBufferList = new Array();
-    this.mWavingBufferList = new Array();
+    // Read and write buffers.
+    this.mWriteBuffer = {
+      limitation: Number.MAX_SAFE_INTEGER,
+      ready: new Array(),
+      buffer: new Array()
+    };
+    this.mReadBuffer = null;
     if (pLayout.variableSize !== 0 && pVariableSizeCount === null) {
       throw new core_1.Exception('Variable size must be set for gpu buffers with variable memory layouts.', this);
     }
@@ -2974,14 +2987,27 @@ class GpuBuffer extends gpu_object_1.GpuObject {
       _this2.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
       const lOffset = pOffset ?? 0;
       const lSize = pSize ?? _this2.size;
-      // TODO: Buffer cant be used as binding or anything else when it has MAP_READ
-      // TODO: Create a read buffer. Copy native information into it and than map it.
-      // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
+      // Create a new buffer when it is not already created.
+      if (_this2.mReadBuffer === null) {
+        _this2.mReadBuffer = _this2.device.gpu.createBuffer({
+          label: `ReadWaveBuffer`,
+          size: _this2.size,
+          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+          mappedAtCreation: false
+        });
+      }
+      // Copy buffer data from native into staging.
+      const lCommandDecoder = _this2.device.gpu.createCommandEncoder();
+      lCommandDecoder.copyBufferToBuffer(_this2.native, lOffset, _this2.mReadBuffer, lOffset, lSize);
+      _this2.device.gpu.queue.submit([lCommandDecoder.finish()]);
       // Get buffer and map data.
-      const lBuffer = _this2.native;
-      yield lBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
+      yield _this2.mReadBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
+      // Read result from mapped range and copy it with slice.
+      const lBufferReadResult = _this2.createTypedArray(_this2.mReadBuffer.getMappedRange().slice(0));
+      // Map read buffer again.
+      _this2.mReadBuffer.unmap();
       // Get mapped data and force it into typed array.
-      return _this2.createTypedArray(lBuffer.getMappedRange());
+      return lBufferReadResult;
     })();
   }
   /**
@@ -3011,20 +3037,20 @@ class GpuBuffer extends gpu_object_1.GpuObject {
       const lOffset = pOffset ?? 0;
       // Try to read a mapped buffer from waving list.
       let lStagingBuffer = null;
-      if (_this4.mReadyBufferList.length === 0) {
+      if (_this4.mWriteBuffer.ready.length === 0) {
         // Create new buffer when limitation is not meet.
-        if (_this4.mWavingBufferList.length < _this4.mWavingBufferLimitation) {
+        if (_this4.mWriteBuffer.buffer.length < _this4.mWriteBuffer.limitation) {
           lStagingBuffer = _this4.device.gpu.createBuffer({
-            label: `RingBuffer-WaveBuffer-${_this4.mWavingBufferList.length}`,
+            label: `RingBuffer-WriteWaveBuffer-${_this4.mWriteBuffer.buffer.length}`,
             size: _this4.size,
             usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
             mappedAtCreation: true
           });
           // Add new buffer to complete list.
-          _this4.mWavingBufferList.push(lStagingBuffer);
+          _this4.mWriteBuffer.buffer.push(lStagingBuffer);
         }
       } else {
-        lStagingBuffer = _this4.mReadyBufferList.pop();
+        lStagingBuffer = _this4.mWriteBuffer.ready.pop();
       }
       // Get byte length of data to write.
       const lDataByteLength = pData.length * _this4.bytePerElement;
@@ -3041,11 +3067,11 @@ class GpuBuffer extends gpu_object_1.GpuObject {
       lStagingBuffer.unmap();
       // Copy buffer data from staging into wavig buffer.
       const lCommandDecoder = _this4.device.gpu.createCommandEncoder();
-      lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, _this4.native, 0, _this4.size);
+      lCommandDecoder.copyBufferToBuffer(lStagingBuffer, lOffset, _this4.native, lOffset, lDataByteLength);
       _this4.device.gpu.queue.submit([lCommandDecoder.finish()]);
       // Shedule staging buffer remaping.
       lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
-        _this4.mReadyBufferList.push(lStagingBuffer);
+        _this4.mWriteBuffer.ready.push(lStagingBuffer);
       });
     })();
   }
@@ -3055,13 +3081,13 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   destroyNative(pNativeObject) {
     pNativeObject.destroy();
     // Destroy all wave buffer and clear list.
-    while (this.mWavingBufferList.length > 0) {
-      this.mWavingBufferList.pop().destroy();
+    while (this.mWriteBuffer.buffer.length > 0) {
+      this.mWriteBuffer.buffer.pop().destroy();
     }
     // Clear ready buffer list.
-    while (this.mReadyBufferList.length > 0) {
+    while (this.mWriteBuffer.ready.length > 0) {
       // No need to destroy. All buffers have already destroyed.
-      this.mReadyBufferList.pop();
+      this.mWriteBuffer.ready.pop();
     }
   }
   /**
@@ -13543,7 +13569,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("229b8a27078c23e0a6cd")
+/******/ 		__webpack_require__.h = () => ("378cfafac152bb739686")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

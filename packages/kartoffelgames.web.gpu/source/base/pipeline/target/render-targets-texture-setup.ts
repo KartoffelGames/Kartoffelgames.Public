@@ -1,7 +1,6 @@
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
-import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
 import { CanvasTexture } from '../../texture/canvas-texture';
@@ -17,7 +16,6 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
         this.ensureThatInSetup();
 
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
-            usage: TextureUsage.None,
             dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
             bindType: TextureBindType.RenderTarget,

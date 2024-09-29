@@ -2,18 +2,21 @@ import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
+import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { BaseTexture } from '../texture/base-texture';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
-import { VideoTexture } from '../texture/video-texture';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { StorageBindingType } from '../../constant/storage-binding-type.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 
 export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
@@ -68,36 +71,53 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
         };
 
         return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: BindData) => {
-            // Validate bind data based on layout.
-            const lBindDataValid: boolean = (() => {
-                switch (true) {
-                    // Textures must use a buffer memory layout.
-                    case pData instanceof GpuBuffer: {
-                        return lBindLayout.layout instanceof BaseBufferMemoryLayout;
+            // TODO: Extend usage types. for uniform or storage
+
+            switch (true) {
+                // Textures must use a buffer memory layout.
+                case pData instanceof GpuBuffer: {
+                    if (!(lBindLayout.layout instanceof BaseBufferMemoryLayout)) {
+                        throw new Exception(`Buffer added to bind data "${pBindName}" but binding does not expect a buffer.`, this);
                     }
 
-                    // Samplers must use a texture sampler memory layout.
-                    case pData instanceof TextureSampler: {
-                        return lBindLayout.layout instanceof SamplerMemoryLayout;
+                    // Extend buffer usage based on if it is a storage or not.
+                    if (lBindLayout.storageType !== StorageBindingType.None) {
+                        pData.extendUsage(BufferUsage.Storage);
+                    } else {
+                        pData.extendUsage(BufferUsage.Uniform);
                     }
 
-                    // Textures must use a texture memory layout.
-                    case pData instanceof ImageTexture:
-                    case pData instanceof FrameBufferTexture:
-                    case pData instanceof VideoTexture:
-                    case pData instanceof CanvasTexture: {
-                        return lBindLayout.layout instanceof TextureMemoryLayout;
-                    }
-
-                    default: {
-                        return false;
-                    }
+                    break;
                 }
-            })();
 
-            // Apply validation.
-            if (!lBindDataValid) {
-                throw new Exception(`Bind data for "${pBindName}" not valid for its layout.`, this);
+                // Samplers must use a texture sampler memory layout.
+                case pData instanceof TextureSampler: {
+                    if (!(lBindLayout.layout instanceof SamplerMemoryLayout)) {
+                        throw new Exception(`Texture sampler added to bind data "${pBindName}" but binding does not expect a texture sampler.`, this);
+                    }
+
+                    break;
+                }
+
+                // Textures must use a texture memory layout.
+                case pData instanceof BaseTexture: {
+                    if (!(lBindLayout.layout instanceof TextureMemoryLayout)) {
+                        throw new Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
+                    }
+
+                    // Extend buffer usage based on if it is a storage or not.
+                    if (lBindLayout.storageType !== StorageBindingType.None) {
+                        pData.extendUsage(TextureUsage.Storage);
+                    } else {
+                        pData.extendUsage(TextureUsage.Texture);
+                    }
+
+                    break;
+                }
+
+                default: {
+                    throw new Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
+                }
             }
 
             // Set data.
@@ -130,14 +150,6 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             // Buffer bind.
             if (lBindData instanceof GpuBuffer) {
                 lGroupEntry.resource = { buffer: lBindData.native };
-
-                lEntryList.push(lGroupEntry);
-                continue;
-            }
-
-            // External/Video texture bind
-            if (lBindData instanceof VideoTexture) {
-                lGroupEntry.resource = lBindData.native;
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -185,7 +197,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
     }
 }
 
-type BindData = GpuBuffer<TypedArray> | TextureSampler | ImageTexture | FrameBufferTexture | VideoTexture | CanvasTexture;
+export type BindData = GpuBuffer<TypedArray> | TextureSampler | BaseTexture;
 
 export enum BindGroupInvalidationType {
     Layout = 'LayoutChange',

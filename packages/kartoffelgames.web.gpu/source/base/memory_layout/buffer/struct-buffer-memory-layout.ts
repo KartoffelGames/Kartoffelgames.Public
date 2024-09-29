@@ -1,12 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
 
-export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
+export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<any, StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
     private mFixedSize: number;
     private mInnerProperties: Array<StructBufferMemoryLayoutProperty>;
@@ -58,8 +57,8 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
      * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pDevice: GpuDevice, pUsage: BufferUsage) {
-        super(pDevice, { usage: pUsage });
+    public constructor(pDevice: GpuDevice) {
+        super(pDevice);
 
         // Calculated properties.
         this.mAlignment = 0;
@@ -199,8 +198,6 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
         return new StructBufferMemoryLayoutSetup(pReferences);
     }
 }
-
-export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter { }
 
 type StructBufferMemoryLayoutProperty = {
     orderIndex: number,

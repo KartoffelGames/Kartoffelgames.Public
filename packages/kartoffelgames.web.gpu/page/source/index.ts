@@ -9,11 +9,10 @@ import { RenderTargets } from '../../source/base/pipeline/target/render-targets'
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { CanvasTexture } from '../../source/base/texture/canvas-texture';
-import { AccessMode } from '../../source/constant/access-mode.enum';
-import { BufferUsage } from '../../source/constant/buffer-usage.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { SamplerType } from '../../source/constant/sampler-type.enum';
+import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
 import { TextureBindType } from '../../source/constant/texture-bind-type.enum';
 import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
@@ -57,24 +56,24 @@ const gDepth: number = 10;
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(lGpu, 'object').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding(0, 'transformationMatrix', BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+            pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-            pBindGroupSetup.binding(1, 'instancePositions', BufferUsage.Storage, ComputeStage.Vertex, AccessMode.Read)
+            pBindGroupSetup.binding(1, 'instancePositions', ComputeStage.Vertex, StorageBindingType.Read)
                 .withArray().withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
         }));
 
         // World bind group.
         pShaderSetup.group(1, new BindGroupLayout(lGpu, 'world').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding(0, 'viewProjectionMatrix', BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+            pBindGroupSetup.binding(0, 'viewProjectionMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-            pBindGroupSetup.binding(1, 'ambientLight', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+            pBindGroupSetup.binding(1, 'ambientLight', ComputeStage.Fragment)
                 .withStruct((pStruct) => {
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 });
 
-            pBindGroupSetup.binding(2, 'pointLights', BufferUsage.Storage, ComputeStage.Fragment, AccessMode.Read)
+            pBindGroupSetup.binding(2, 'pointLights', ComputeStage.Fragment, StorageBindingType.Read)
                 .withArray().withStruct((pStruct) => {
                     pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
@@ -84,11 +83,11 @@ const gDepth: number = 10;
 
         // User bind group
         pShaderSetup.group(2, new BindGroupLayout(lGpu, 'user').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding(0, 'cubeTextureSampler', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+            pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .withSampler(SamplerType.Filter);
 
-            pBindGroupSetup.binding(1, 'cubeTexture', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
-                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8snorm, TextureBindType.Image, false);
+            pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment)
+                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm, TextureBindType.Image, false);
         }));
     });
 

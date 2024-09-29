@@ -176,8 +176,8 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
             }
 
             // Must share the same access mode.
-            if ((lReplacementBinding.accessMode & lInitialBinding.accessMode) !== lReplacementBinding.accessMode) {
-                throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial access mode.`, this);
+            if (lReplacementBinding.storageType !== lReplacementBinding.storageType) {
+                throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same storage type.`, this);
             }
 
             // Must share the same visibility.

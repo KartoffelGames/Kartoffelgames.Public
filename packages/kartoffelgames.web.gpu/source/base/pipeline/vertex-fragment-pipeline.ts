@@ -164,7 +164,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
             for (const lRenderTarget of this.renderTargets.colorTextures) {
                 lFragmentTargetList.push({
-                    format: lRenderTarget.memoryLayout.format as GPUTextureFormat,
+                    format: lRenderTarget.layout.format as GPUTextureFormat,
                     // blend?: GPUBlendState;   // TODO: GPUBlendState
                     // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
                 });
@@ -183,7 +183,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.writeDepth,
                 depthCompare: this.depthCompare,
-                format: this.renderTargets.depthTexture.memoryLayout.format as GPUTextureFormat,
+                format: this.renderTargets.depthTexture.layout.format as GPUTextureFormat,
             };
         }
 

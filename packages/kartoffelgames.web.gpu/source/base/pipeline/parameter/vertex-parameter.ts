@@ -51,21 +51,19 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         // Create index layout.
         const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: PrimitiveBufferFormat.Uint32,
-            usage: BufferUsage.Index,
             primitiveMultiplier: PrimitiveBufferMultiplier.Single,
         });
 
         // Create index buffer layout.
         const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
             arraySize: pIndices.length,
-            innerType: lIndexLayout,
-            usage: BufferUsage.Index,
+            innerType: lIndexLayout
         });
 
         // Create index buffer.
         this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
             return new Uint32Array(pIndices);
-        });
+        }).extendUsage(BufferUsage.Index);
     }
 
     /**
@@ -92,7 +90,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         // Create buffer layout.
         const lBufferLayout: VertexBufferMemoryLayout = new VertexBufferMemoryLayout(this.device, {
             primitiveFormat: lParameterLayout.format,
-            usage: BufferUsage.Vertex,
             primitiveMultiplier: lParameterLayout.multiplier,
         });
 
@@ -122,6 +119,9 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 }
             }
         })();
+
+        // Extend buffer to be a vertex buffer.
+        lParameterBuffer.extendUsage(BufferUsage.Vertex);
 
         // Save gpu buffer in correct index.
         this.mData.set(pName, lParameterBuffer);

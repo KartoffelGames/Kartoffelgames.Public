@@ -1,6 +1,5 @@
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { StorageBindingType } from '../../../constant/storage-binding-type.enum';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
 import { BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup';
@@ -15,7 +14,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
      * @param pVisibility - Visibility.
      * @param pAccessMode - Access mode.
      */
-    public binding(pIndex: number, pName: string, pUsage: BufferUsage, pVisibility: ComputeStage, pAccessMode: AccessMode): BindGroupLayoutMemoryLayoutSetup {
+    public binding(pIndex: number, pName: string, pVisibility: ComputeStage, pStorageBinding?: StorageBindingType): BindGroupLayoutMemoryLayoutSetup {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -24,15 +23,15 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
             name: pName,
             index: pIndex,
             visibility: pVisibility,
-            accessMode: pAccessMode,
-            layout: null
+            layout: null,
+            storageType: pStorageBinding ?? StorageBindingType.None
         };
 
         // Set layout.
         this.setupData.bindings.push(lBind);
 
         // Create layout memory layout.
-        return new BindGroupLayoutMemoryLayoutSetup(pUsage, this.setupReferences, (pMemoryLayout: BaseMemoryLayout) => {
+        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, (pMemoryLayout: BaseMemoryLayout) => {
             lBind.layout = pMemoryLayout;
         });
     }
@@ -52,7 +51,7 @@ type BindLayoutSetupData = {
     index: number;
     layout: BaseMemoryLayout | null;
     visibility: ComputeStage;
-    accessMode: AccessMode;
+    storageType: StorageBindingType;
 };
 
 export type BindGroupLayoutSetupData = {

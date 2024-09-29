@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
 
@@ -36,7 +36,7 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pDevice: GpuDevice, pParameter: LinearBufferMemoryLayoutParameter) {
-        super(pDevice, pParameter);
+        super(pDevice);
 
         // Set default size by format.
         this.mSize = ((): number => {
@@ -100,7 +100,7 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 }
 
-export interface LinearBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
+export interface LinearBufferMemoryLayoutParameter {
     overrideAlignment?: number;
     overrideSize?: number;
     primitiveFormat: PrimitiveBufferFormat;

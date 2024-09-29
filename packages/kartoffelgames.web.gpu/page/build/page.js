@@ -281,11 +281,10 @@ const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bi
 const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const access_mode_enum_1 = __webpack_require__(/*! ../../source/constant/access-mode.enum */ "./source/constant/access-mode.enum.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const texture_bind_type_enum_1 = __webpack_require__(/*! ../../source/constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
@@ -320,16 +319,16 @@ _asyncToGenerator(function* () {
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', buffer_usage_enum_1.BufferUsage.Uniform, compute_stage_enum_1.ComputeStage.Vertex, access_mode_enum_1.AccessMode.Read).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'instancePositions', buffer_usage_enum_1.BufferUsage.Storage, compute_stage_enum_1.ComputeStage.Vertex, access_mode_enum_1.AccessMode.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     }));
     // World bind group.
     pShaderSetup.group(1, new bind_group_layout_1.BindGroupLayout(lGpu, 'world').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'viewProjectionMatrix', buffer_usage_enum_1.BufferUsage.Uniform, compute_stage_enum_1.ComputeStage.Vertex, access_mode_enum_1.AccessMode.Read).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'ambientLight', buffer_usage_enum_1.BufferUsage.Uniform, compute_stage_enum_1.ComputeStage.Fragment, access_mode_enum_1.AccessMode.Read).withStruct(pStruct => {
+      pBindGroupSetup.binding(0, 'viewProjectionMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
         pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
       });
-      pBindGroupSetup.binding(2, 'pointLights', buffer_usage_enum_1.BufferUsage.Storage, compute_stage_enum_1.ComputeStage.Fragment, access_mode_enum_1.AccessMode.Read).withArray().withStruct(pStruct => {
+      pBindGroupSetup.binding(2, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
         pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
         pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
         pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
@@ -337,8 +336,8 @@ _asyncToGenerator(function* () {
     }));
     // User bind group
     pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(lGpu, 'user').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'cubeTextureSampler', buffer_usage_enum_1.BufferUsage.Uniform, compute_stage_enum_1.ComputeStage.Fragment, access_mode_enum_1.AccessMode.Read).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeTexture', buffer_usage_enum_1.BufferUsage.Uniform, compute_stage_enum_1.ComputeStage.Fragment, access_mode_enum_1.AccessMode.Read).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8snorm, texture_bind_type_enum_1.TextureBindType.Image, false);
+      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm, texture_bind_type_enum_1.TextureBindType.Image, false);
     }));
   });
   // Create render module from shader.
@@ -1915,9 +1914,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupLayoutInvalidationType = exports.BindGroupLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const access_mode_enum_1 = __webpack_require__(/*! ../../constant/access-mode.enum */ "./source/constant/access-mode.enum.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const texture_bind_type_enum_1 = __webpack_require__(/*! ../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
@@ -2026,22 +2023,18 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
           {
             // Convert bind type info bufer binding type.
             const lBufferBindingType = (() => {
-              switch (lEntry.layout.usage) {
-                case buffer_usage_enum_1.BufferUsage.Uniform:
+              switch (lEntry.storageType) {
+                case storage_binding_type_enum_1.StorageBindingType.None:
                   {
                     return 'uniform';
                   }
-                case buffer_usage_enum_1.BufferUsage.Storage:
+                case storage_binding_type_enum_1.StorageBindingType.Read:
                   {
-                    // Read only access. No bit compare.
-                    if (lEntry.accessMode === access_mode_enum_1.AccessMode.Read) {
-                      return 'read-only-storage';
-                    }
-                    return 'storage';
+                    return 'read-only-storage';
                   }
                 default:
                   {
-                    throw new core_1.Exception('Can only bind buffers of bind type storage or uniform.', this);
+                    return 'storage';
                   }
               }
             })();
@@ -2065,68 +2058,43 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         // Texture layouts.
         case lEntry.layout instanceof texture_memory_layout_1.TextureMemoryLayout:
           {
-            switch (lEntry.layout.bindType) {
-              case texture_bind_type_enum_1.TextureBindType.Image:
+            // Uniform bind when without storage binding.
+            if (lEntry.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              // Read texture capabilities.
+              const lTextureFormatCapabilities = this.device.formatValidator.capabilityOf(lEntry.layout.format);
+              // Create image texture bind information.
+              lLayoutEntry.texture = {
+                sampleType: lTextureFormatCapabilities.type[0],
+                multisampled: lEntry.layout.multisampled,
+                viewDimension: lEntry.layout.dimension
+              };
+              break;
+            }
+            // Storage textures need to be write only.
+            let lStorageAccess;
+            switch (lEntry.storageType) {
+              case storage_binding_type_enum_1.StorageBindingType.ReadWrite:
                 {
-                  // Image textures need to be read only.
-                  if (lEntry.accessMode !== access_mode_enum_1.AccessMode.Read) {
-                    throw new core_1.Exception('Image textures must have access mode read.', this);
-                  }
-                  // Read texture capabilities.
-                  const lTextureFormatCapabilities = this.device.formatValidator.capabilityOf(lEntry.layout.format);
-                  // Create image texture bind information.
-                  lLayoutEntry.texture = {
-                    sampleType: lTextureFormatCapabilities.type[0],
-                    multisampled: lEntry.layout.multisampled,
-                    viewDimension: lEntry.layout.dimension
-                  };
+                  lStorageAccess = 'read-write';
                   break;
                 }
-              case texture_bind_type_enum_1.TextureBindType.External:
+              case storage_binding_type_enum_1.StorageBindingType.Write:
                 {
-                  // External textures need to be read only.
-                  if (lEntry.accessMode !== access_mode_enum_1.AccessMode.Read) {
-                    throw new core_1.Exception('External textures must have access mode read.', this);
-                  }
-                  // Create external texture bind information.
-                  lLayoutEntry.externalTexture = {};
+                  lStorageAccess = 'write-only';
                   break;
                 }
-              case texture_bind_type_enum_1.TextureBindType.Storage:
+              case storage_binding_type_enum_1.StorageBindingType.Read:
                 {
-                  // Storage textures need to be write only.
-                  let lStorageAccess;
-                  switch (lEntry.accessMode) {
-                    case access_mode_enum_1.AccessMode.Write & access_mode_enum_1.AccessMode.Read:
-                      {
-                        lStorageAccess = 'read-write';
-                        break;
-                      }
-                    case access_mode_enum_1.AccessMode.Write:
-                      {
-                        lStorageAccess = 'write-only';
-                        break;
-                      }
-                    case access_mode_enum_1.AccessMode.Read:
-                      {
-                        lStorageAccess = 'read-only';
-                        break;
-                      }
-                  }
-                  // Create storage texture bind information.
-                  lLayoutEntry.storageTexture = {
-                    access: lStorageAccess,
-                    format: lEntry.layout.format,
-                    viewDimension: lEntry.layout.dimension
-                  };
+                  lStorageAccess = 'read-only';
                   break;
-                }
-              default:
-                {
-                  throw new core_1.Exception('Cant bind attachment textures.', this);
                 }
             }
-            break;
+            // Create storage texture bind information.
+            lLayoutEntry.storageTexture = {
+              access: lStorageAccess,
+              format: lEntry.layout.format,
+              viewDimension: lEntry.layout.dimension
+            };
           }
       }
       // Add binding entry to bindings.
@@ -2159,7 +2127,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         index: lBinding.index,
         layout: lBinding.layout,
         visibility: lBinding.visibility,
-        accessMode: lBinding.accessMode
+        storageType: lBinding.storageType
       });
       // Register change listener for layout changes.
       lBinding.layout.addInvalidationListener(() => {
@@ -2210,16 +2178,19 @@ exports.BindGroupInvalidationType = exports.BindGroup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
+const base_texture_1 = __webpack_require__(/*! ../texture/base-texture */ "./source/base/texture/base-texture.ts");
 const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
 const frame_buffer_texture_1 = __webpack_require__(/*! ../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
 const image_texture_1 = __webpack_require__(/*! ../texture/image-texture */ "./source/base/texture/image-texture.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/base/texture/texture-sampler.ts");
-const video_texture_1 = __webpack_require__(/*! ../texture/video-texture */ "./source/base/texture/video-texture.ts");
 const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/base/binding/bind-group-data-setup.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 class BindGroup extends gpu_object_1.GpuObject {
   /**
    * Layout of bind group.
@@ -2264,36 +2235,48 @@ class BindGroup extends gpu_object_1.GpuObject {
       data: null
     };
     return new bind_group_data_setup_1.BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, pData => {
-      // Validate bind data based on layout.
-      const lBindDataValid = (() => {
-        switch (true) {
-          // Textures must use a buffer memory layout.
-          case pData instanceof gpu_buffer_1.GpuBuffer:
-            {
-              return lBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout;
+      // TODO: Extend usage types. for uniform or storage
+      switch (true) {
+        // Textures must use a buffer memory layout.
+        case pData instanceof gpu_buffer_1.GpuBuffer:
+          {
+            if (!(lBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+              throw new core_1.Exception(`Buffer added to bind data "${pBindName}" but binding does not expect a buffer.`, this);
             }
-          // Samplers must use a texture sampler memory layout.
-          case pData instanceof texture_sampler_1.TextureSampler:
-            {
-              return lBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout;
+            // Extend buffer usage based on if it is a storage or not.
+            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
+              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Storage);
+            } else {
+              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Uniform);
             }
-          // Textures must use a texture memory layout.
-          case pData instanceof image_texture_1.ImageTexture:
-          case pData instanceof frame_buffer_texture_1.FrameBufferTexture:
-          case pData instanceof video_texture_1.VideoTexture:
-          case pData instanceof canvas_texture_1.CanvasTexture:
-            {
-              return lBindLayout.layout instanceof texture_memory_layout_1.TextureMemoryLayout;
+            break;
+          }
+        // Samplers must use a texture sampler memory layout.
+        case pData instanceof texture_sampler_1.TextureSampler:
+          {
+            if (!(lBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
+              throw new core_1.Exception(`Texture sampler added to bind data "${pBindName}" but binding does not expect a texture sampler.`, this);
             }
-          default:
-            {
-              return false;
+            break;
+          }
+        // Textures must use a texture memory layout.
+        case pData instanceof base_texture_1.BaseTexture:
+          {
+            if (!(lBindLayout.layout instanceof texture_memory_layout_1.TextureMemoryLayout)) {
+              throw new core_1.Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
             }
-        }
-      })();
-      // Apply validation.
-      if (!lBindDataValid) {
-        throw new core_1.Exception(`Bind data for "${pBindName}" not valid for its layout.`, this);
+            // Extend buffer usage based on if it is a storage or not.
+            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
+              pData.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
+            } else {
+              pData.extendUsage(texture_usage_enum_1.TextureUsage.Texture);
+            }
+            break;
+          }
+        default:
+          {
+            throw new core_1.Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
+          }
       }
       // Set data.
       this.mBindData.set(pBindName, pData);
@@ -2324,12 +2307,6 @@ class BindGroup extends gpu_object_1.GpuObject {
         lGroupEntry.resource = {
           buffer: lBindData.native
         };
-        lEntryList.push(lGroupEntry);
-        continue;
-      }
-      // External/Video texture bind
-      if (lBindData instanceof video_texture_1.VideoTexture) {
-        lGroupEntry.resource = lBindData.native;
         lEntryList.push(lGroupEntry);
         continue;
       }
@@ -2529,8 +2506,8 @@ class PipelineLayout extends gpu_object_1.GpuObject {
         throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must be named "${lInitialBinding.name}"`, this);
       }
       // Must share the same access mode.
-      if ((lReplacementBinding.accessMode & lInitialBinding.accessMode) !== lReplacementBinding.accessMode) {
-        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial access mode.`, this);
+      if (lReplacementBinding.storageType !== lReplacementBinding.storageType) {
+        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same storage type.`, this);
       }
       // Must share the same visibility.
       if ((lReplacementBinding.visibility & lInitialBinding.visibility) !== lReplacementBinding.visibility) {
@@ -2629,7 +2606,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutArrayMemoryLayoutSetup = void 0;
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
@@ -2646,7 +2622,6 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
     return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
-        usage: buffer_usage_enum_1.BufferUsage.Undefined,
         innerType: pMemoryLayout
       });
       this.sendData(lLayout);
@@ -2661,8 +2636,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
   withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
     const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
       primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier,
-      usage: buffer_usage_enum_1.BufferUsage.Undefined
+      primitiveMultiplier: pPrimitiveMultiplier
     });
     // Send created data.
     this.sendData(lLayout);
@@ -2674,7 +2648,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
    */
   withStruct(pSetupCall) {
     // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, buffer_usage_enum_1.BufferUsage.Undefined);
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
     lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
@@ -2697,8 +2671,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutMemoryLayoutSetup = void 0;
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
@@ -2714,9 +2686,8 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    * @param pSetupReference - Setup references.
    * @param pDataCallback - Data callback.
    */
-  constructor(pUsage, pSetupReference, pDataCallback) {
+  constructor(pSetupReference, pDataCallback) {
     super(pSetupReference, pDataCallback);
-    this.mUsage = pUsage;
   }
   /**
    * Buffer as array.
@@ -2729,7 +2700,6 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
     return new bind_group_layout_array_memory_layout_setup_1.BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
-        usage: this.mUsage,
         innerType: pMemoryLayout
       });
       this.sendData(lLayout);
@@ -2744,8 +2714,7 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
   withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
     const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
       primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier,
-      usage: this.mUsage
+      primitiveMultiplier: pPrimitiveMultiplier
     });
     // Send created data.
     this.sendData(lLayout);
@@ -2769,7 +2738,7 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    */
   withStruct(pSetupCall) {
     // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mUsage);
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
     lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
@@ -2787,7 +2756,6 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
       bindType: pTextureBindType,
       dimension: pTextureDimension,
       format: pTextureFormat,
-      usage: this.mUsage === buffer_usage_enum_1.BufferUsage.Storage ? texture_usage_enum_1.TextureUsage.StorageBinding : texture_usage_enum_1.TextureUsage.TextureBinding,
       multisampled: pMultisampled
     });
     // Send created data.
@@ -2811,6 +2779,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutSetup = void 0;
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
 const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/base/binding/setup/bind-group-layout-memory-layout-setup.ts");
 class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
@@ -2823,7 +2792,7 @@ class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
    * @param pVisibility - Visibility.
    * @param pAccessMode - Access mode.
    */
-  binding(pIndex, pName, pUsage, pVisibility, pAccessMode) {
+  binding(pIndex, pName, pVisibility, pStorageBinding) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     // Create empty bind layout.
@@ -2831,13 +2800,13 @@ class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
       name: pName,
       index: pIndex,
       visibility: pVisibility,
-      accessMode: pAccessMode,
-      layout: null
+      layout: null,
+      storageType: pStorageBinding ?? storage_binding_type_enum_1.StorageBindingType.None
     };
     // Set layout.
     this.setupData.bindings.push(lBind);
     // Create layout memory layout.
-    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(pUsage, this.setupReferences, pMemoryLayout => {
+    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
       lBind.layout = pMemoryLayout;
     });
   }
@@ -2870,7 +2839,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuBufferInvalidationType = exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const memory_copy_type_enum_1 = __webpack_require__(/*! ../../constant/memory-copy-type.enum */ "./source/constant/memory-copy-type.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
@@ -2939,7 +2908,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
     this.mDataType = pDataType;
     // At default buffer can not be read and not be written to.
-    this.mCopyType = memory_copy_type_enum_1.MemoryCopyType.None;
+    this.mBufferUsage = buffer_usage_enum_1.BufferUsage.None;
     // Waving buffer list.
     this.mReadyBufferList = new Array();
     this.mWavingBufferList = new Array();
@@ -2956,6 +2925,20 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     pLayout.addInvalidationListener(() => {
       this.invalidate(GpuBufferInvalidationType.Layout);
     });
+  }
+  /**
+   * Extend usage of buffer.
+   * Might trigger a buffer rebuild.
+   *
+   * @param pUsage - Buffer usage.
+   */
+  extendUsage(pUsage) {
+    // Update only when not already set.
+    if ((this.mBufferUsage & pUsage) === 0) {
+      this.mBufferUsage |= pUsage;
+      this.invalidate(GpuBufferInvalidationType.Usage);
+    }
+    return this;
   }
   /**
    * Set new initial data before the buffer is created.
@@ -2990,7 +2973,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     var _this2 = this;
     return _asyncToGenerator(function* () {
       // Set buffer as writeable.
-      _this2.updateCopyType(memory_copy_type_enum_1.MemoryCopyType.CopySource);
+      _this2.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
       const lOffset = pOffset ?? 0;
       const lSize = pSize ?? _this2.size;
       // TODO: Buffer cant be used as binding or anything else when it has MAP_READ
@@ -3026,7 +3009,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     var _this4 = this;
     return _asyncToGenerator(function* () {
       // Set buffer as writeable.
-      _this4.updateCopyType(memory_copy_type_enum_1.MemoryCopyType.CopyDestination);
+      _this4.extendUsage(buffer_usage_enum_1.BufferUsage.CopyDestination);
       const lOffset = pOffset ?? 0;
       // Try to read a mapped buffer from waving list.
       let lStagingBuffer = null;
@@ -3089,13 +3072,11 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   generateNative() {
     // Read optional initial data.
     const lInitalData = this.mInitialDataCallback?.();
-    // Append usage type from abstract usage type.
-    const lUsage = this.mLayout.usage | this.mCopyType;
     // Create gpu buffer mapped
     const lBuffer = this.device.gpu.createBuffer({
       label: 'Ring-Buffer-Static-Buffer',
       size: this.size,
-      usage: lUsage,
+      usage: this.mBufferUsage,
       mappedAtCreation: !!lInitalData
     });
     // Write data. Is completly async.
@@ -3137,25 +3118,13 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     })();
     return new lArrayBufferConstructor(pArrayBuffer);
   }
-  /**
-   * Update copy type of core buffer.
-   *
-   * @param pCopyType - Requested copy type.
-   */
-  updateCopyType(pCopyType) {
-    // Update onyl when not already set.
-    if ((this.mCopyType & pCopyType) === 0) {
-      this.mCopyType |= pCopyType;
-      this.invalidate(GpuBufferInvalidationType.CopyType);
-    }
-  }
 }
 exports.GpuBuffer = GpuBuffer;
 var GpuBufferInvalidationType;
 (function (GpuBufferInvalidationType) {
   GpuBufferInvalidationType["Layout"] = "LayoutChange";
   GpuBufferInvalidationType["InitialData"] = "InitialDataChange";
-  GpuBufferInvalidationType["CopyType"] = "CopyTypeChange";
+  GpuBufferInvalidationType["Usage"] = "UsageChange";
 })(GpuBufferInvalidationType || (exports.GpuBufferInvalidationType = GpuBufferInvalidationType = {}));
 
 /***/ }),
@@ -3637,6 +3606,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuDevice = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const texture_bind_type_enum_1 = __webpack_require__(/*! ../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/base/execution/gpu-execution.ts");
 const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/base/execution/pass/compute-pass.ts");
 const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/base/execution/pass/render-pass.ts");
@@ -3646,9 +3617,6 @@ const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/base/shad
 const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
 const texture_format_capabilities_1 = __webpack_require__(/*! ../texture/texture-format-capabilities */ "./source/base/texture/texture-format-capabilities.ts");
 const gpu_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-capabilities */ "./source/base/gpu/capabilities/gpu-capabilities.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const texture_bind_type_enum_1 = __webpack_require__(/*! ../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 class GpuDevice {
   static {
     this.mAdapters = new core_1.Dictionary();
@@ -3739,8 +3707,6 @@ class GpuDevice {
     const lCanvas = pCanvas ?? document.createElement('canvas');
     // Create basic canvas layout.
     const lLayout = new texture_memory_layout_1.TextureMemoryLayout(this, {
-      usage: texture_usage_enum_1.TextureUsage.RenderAttachment,
-      // TODO: Make it none and let auto config handle it.
       dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
       format: this.formatValidator.preferredCanvasFormat,
       bindType: texture_bind_type_enum_1.TextureBindType.RenderTarget,
@@ -4368,7 +4334,7 @@ class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemo
    * @param pParameter - Parameter.
    */
   constructor(pDevice, pParameter) {
-    super(pDevice, pParameter);
+    super(pDevice);
     // Static properties.
     this.mArraySize = pParameter.arraySize;
     this.mInnerType = pParameter.innerType;
@@ -4432,37 +4398,19 @@ exports.ArrayBufferMemoryLayout = ArrayBufferMemoryLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.BaseBufferMemoryLayoutInvalidationType = exports.BaseBufferMemoryLayout = void 0;
+exports.BaseBufferMemoryLayout = void 0;
 const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/base/memory_layout/base-memory-layout.ts");
 class BaseBufferMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
-  /**
-   * Buffer usage. Bitmask.
-   */
-  get usage() {
-    return this.mUsage;
-  }
-  set usage(pUsage) {
-    this.mUsage = pUsage;
-    // Trigger auto update.
-    this.invalidate(BaseBufferMemoryLayoutInvalidationType.Usage);
-  }
   /**
    * Constructor.
    *
    * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
    */
-  constructor(pDevice, pParameter) {
+  constructor(pDevice) {
     super(pDevice);
-    // Settings.
-    this.mUsage = pParameter.usage;
   }
 }
 exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
-var BaseBufferMemoryLayoutInvalidationType;
-(function (BaseBufferMemoryLayoutInvalidationType) {
-  BaseBufferMemoryLayoutInvalidationType["Usage"] = "UsageChange";
-})(BaseBufferMemoryLayoutInvalidationType || (exports.BaseBufferMemoryLayoutInvalidationType = BaseBufferMemoryLayoutInvalidationType = {}));
 
 /***/ }),
 
@@ -4567,7 +4515,7 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
    * @param pParameter - Parameter.
    */
   constructor(pDevice, pParameter) {
-    super(pDevice, pParameter);
+    super(pDevice);
     // Set default size by format.
     this.mSize = (() => {
       switch (pParameter.primitiveFormat) {
@@ -4659,7 +4607,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.StructBufferMemoryLayoutPropertySetup = void 0;
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ./array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
@@ -4676,7 +4623,6 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
     return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
-        usage: buffer_usage_enum_1.BufferUsage.Undefined,
         innerType: pMemoryLayout
       });
       this.sendData(lLayout);
@@ -4691,8 +4637,7 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
   asPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
     const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
       primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier,
-      usage: buffer_usage_enum_1.BufferUsage.Undefined
+      primitiveMultiplier: pPrimitiveMultiplier
     });
     // Send created data.
     this.sendData(lLayout);
@@ -4704,7 +4649,7 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
    */
   asStruct(pSetupCall) {
     // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, buffer_usage_enum_1.BufferUsage.Undefined);
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
     lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
@@ -4819,10 +4764,8 @@ class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
    * @param pDevice - Device reference.
    * @param pParameter - Parameter.
    */
-  constructor(pDevice, pUsage) {
-    super(pDevice, {
-      usage: pUsage
-    });
+  constructor(pDevice) {
+    super(pDevice);
     // Calculated properties.
     this.mAlignment = 0;
     this.mFixedSize = 0;
@@ -4988,7 +4931,7 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
    * @param pParameter - Parameter.
    */
   constructor(pDevice, pParameter) {
-    super(pDevice, pParameter);
+    super(pDevice);
     // Set default size by format.
     const lPrimitiveByteCount = (() => {
       switch (pParameter.primitiveFormat) {
@@ -5137,17 +5080,6 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
     return this.mMultisampled;
   }
   /**
-   * Texture usage.
-   */
-  get usage() {
-    return this.mUsage;
-  }
-  set usage(pValue) {
-    this.mUsage = pValue;
-    // Invalidate layout on setting changes.
-    this.invalidate(TextureMemoryLayoutInvalidationType.Usage);
-  }
-  /**
    * Constructor.
    *
    * @param pDevice - Device reference.
@@ -5158,14 +5090,12 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
     this.mBindType = pParameter.bindType;
     this.mDimension = pParameter.dimension;
     this.mFormat = pParameter.format;
-    this.mUsage = pParameter.usage;
     this.mMultisampled = pParameter.multisampled;
   }
 }
 exports.TextureMemoryLayout = TextureMemoryLayout;
 var TextureMemoryLayoutInvalidationType;
 (function (TextureMemoryLayoutInvalidationType) {
-  TextureMemoryLayoutInvalidationType["Usage"] = "UsageChange";
   TextureMemoryLayoutInvalidationType["Format"] = "FormatChange";
   TextureMemoryLayoutInvalidationType["Dimension"] = "DimensionChange";
 })(TextureMemoryLayoutInvalidationType || (exports.TextureMemoryLayoutInvalidationType = TextureMemoryLayoutInvalidationType = {}));
@@ -5413,19 +5343,17 @@ class VertexParameter extends gpu_object_1.GpuObject {
     // Create index layout.
     const lIndexLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
       primitiveFormat: primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32,
-      usage: buffer_usage_enum_1.BufferUsage.Index,
       primitiveMultiplier: primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single
     });
     // Create index buffer layout.
     const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
       arraySize: pIndices.length,
-      innerType: lIndexLayout,
-      usage: buffer_usage_enum_1.BufferUsage.Index
+      innerType: lIndexLayout
     });
     // Create index buffer.
     this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
       return new Uint32Array(pIndices);
-    });
+    }).extendUsage(buffer_usage_enum_1.BufferUsage.Index);
   }
   /**
    * Get parameter buffer.
@@ -5448,7 +5376,6 @@ class VertexParameter extends gpu_object_1.GpuObject {
     // Create buffer layout.
     const lBufferLayout = new vertex_buffer_memory_layout_1.VertexBufferMemoryLayout(this.device, {
       primitiveFormat: lParameterLayout.format,
-      usage: buffer_usage_enum_1.BufferUsage.Vertex,
       primitiveMultiplier: lParameterLayout.multiplier
     });
     // Calculate vertex parameter count.
@@ -5480,6 +5407,8 @@ class VertexParameter extends gpu_object_1.GpuObject {
           }
       }
     })();
+    // Extend buffer to be a vertex buffer.
+    lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
     // Save gpu buffer in correct index.
     this.mData.set(pName, lParameterBuffer);
     // Invalidate on data set.
@@ -5614,7 +5543,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.RenderTargetTextureSetup = void 0;
 const texture_bind_type_enum_1 = __webpack_require__(/*! ../../../constant/texture-bind-type.enum */ "./source/constant/texture-bind-type.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
@@ -5626,7 +5554,6 @@ class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSe
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     const lMemoryLayout = new texture_memory_layout_1.TextureMemoryLayout(this.device, {
-      usage: texture_usage_enum_1.TextureUsage.None,
       dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
       format: pFormat,
       // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
@@ -5879,9 +5806,9 @@ class RenderTargets extends gpu_object_1.GpuObject {
         this.invalidate(RenderTargetsInvalidationType.Texture);
       });
       // Add render attachment texture usage to depth stencil texture.
-      pReferenceData.depthStencil.texture.memoryLayout.usage |= texture_usage_enum_1.TextureUsage.RenderAttachment;
+      pReferenceData.depthStencil.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Read capability of used depth stencil texture format.
-      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
+      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
       // Setup depth texture.
       if (pReferenceData.depthStencil.depth) {
         // Validate if depth texture
@@ -5925,7 +5852,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
         this.invalidate(RenderTargetsInvalidationType.Texture);
       });
       // Add render attachment texture usage to color texture.
-      lAttachment.texture.memoryLayout.usage |= texture_usage_enum_1.TextureUsage.RenderAttachment;
+      lAttachment.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Buffer used location index.
       lAttachmentLocations[lAttachment.index] = true;
       // Convert setup into storage data.
@@ -6016,7 +5943,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
           // Move target into resolve.
           lAttachment.texture.resolve = lAttachment.texture.target;
           // Create new texture from canvas texture.
-          lAttachment.texture.target = new frame_buffer_texture_1.FrameBufferTexture(this.device, lAttachment.texture.resolve.memoryLayout);
+          lAttachment.texture.target = new frame_buffer_texture_1.FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
+          lAttachment.texture.target.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
         }
       }
       // Add multisample level only to frame buffers as canvas does not support any mutisampling.
@@ -6204,7 +6132,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       const lFragmentTargetList = new Array();
       for (const lRenderTarget of this.renderTargets.colorTextures) {
         lFragmentTargetList.push({
-          format: lRenderTarget.memoryLayout.format
+          format: lRenderTarget.layout.format
           // blend?: GPUBlendState;   // TODO: GPUBlendState
           // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
         });
@@ -6221,7 +6149,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       lPipelineDescriptor.depthStencil = {
         depthWriteEnabled: this.writeDepth,
         depthCompare: this.depthCompare,
-        format: this.renderTargets.depthTexture.memoryLayout.format
+        format: this.renderTargets.depthTexture.layout.format
       };
     }
     // TODO: Stencil.
@@ -6941,6 +6869,68 @@ exports.Shader = Shader;
 
 /***/ }),
 
+/***/ "./source/base/texture/base-texture.ts":
+/*!*********************************************!*\
+  !*** ./source/base/texture/base-texture.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BaseTexture = void 0;
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+class BaseTexture extends gpu_object_1.GpuObject {
+  /**
+   * Texture memory layout.
+   */
+  get layout() {
+    return this.mMemoryLayout;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  get usage() {
+    return this.mTextureUsage;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   * @param pLayout - Texture layout.
+   * @param pCanvas - Canvas of texture.
+   */
+  constructor(pDevice, pLayout, pLifeTime) {
+    super(pDevice, pLifeTime);
+    // Set layout.
+    this.mMemoryLayout = pLayout;
+    this.mTextureUsage = texture_usage_enum_1.TextureUsage.None;
+  }
+  /**
+   * Extend usage of texture.
+   * Might trigger a texture rebuild.
+   *
+   * @param pUsage - Texture usage.
+   */
+  extendUsage(pUsage) {
+    // Update onyl when not already set.
+    if ((this.mTextureUsage & pUsage) === 0) {
+      this.mTextureUsage |= pUsage;
+      this.onUsageExtend();
+    }
+    return this;
+  }
+}
+exports.BaseTexture = BaseTexture;
+
+/***/ }),
+
 /***/ "./source/base/texture/canvas-texture.ts":
 /*!***********************************************!*\
   !*** ./source/base/texture/canvas-texture.ts ***!
@@ -6954,10 +6944,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-class CanvasTexture extends gpu_object_1.GpuObject {
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+class CanvasTexture extends base_texture_1.BaseTexture {
   /**
    * HTML canvas element.
    */
@@ -6973,18 +6963,6 @@ class CanvasTexture extends gpu_object_1.GpuObject {
   set height(pValue) {
     // Height autoapplies. No need to trigger invalidation.
     this.mCanvas.height = pValue;
-  }
-  /**
-   * Textures memory layout.
-   */
-  get memoryLayout() {
-    return this.mMemoryLayout;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
   }
   /**
    * Texture width.
@@ -7003,10 +6981,9 @@ class CanvasTexture extends gpu_object_1.GpuObject {
    * @param pCanvas - Canvas of texture.
    */
   constructor(pDevice, pLayout, pCanvas) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
+    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
     // Set canvas reference.
     this.mCanvas = pCanvas;
-    this.mMemoryLayout = pLayout;
     this.mContext = null;
     // Set defaults.
     this.height = 1;
@@ -7014,7 +6991,7 @@ class CanvasTexture extends gpu_object_1.GpuObject {
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
       this.invalidate(CanvasTextureInvalidationType.Layout);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Usage, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
   }
   /**
    * Destory texture object.
@@ -7022,7 +6999,7 @@ class CanvasTexture extends gpu_object_1.GpuObject {
    */
   destroyNative(_pNativeObject, pReasons) {
     // Context is only invalid on deconstruct or layout has changes.
-    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout);
+    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout) || pReasons.has(CanvasTextureInvalidationType.Usage);
     // Only destroy context when child data/layout has changes.
     if (lContextInvalid) {
       // Destory context.
@@ -7040,7 +7017,7 @@ class CanvasTexture extends gpu_object_1.GpuObject {
       this.invalidate(CanvasTextureInvalidationType.Frame);
     }
     // Read canvas format.
-    const lFormat = this.memoryLayout.format;
+    const lFormat = this.layout.format;
     // Configure new context when not alread configured or destroyed.
     if (!this.mContext) {
       // Create and configure canvas context.
@@ -7048,7 +7025,7 @@ class CanvasTexture extends gpu_object_1.GpuObject {
       this.mContext.configure({
         device: this.device.gpu,
         format: lFormat,
-        usage: this.memoryLayout.usage,
+        usage: this.usage,
         alphaMode: 'opaque'
       });
     }
@@ -7060,12 +7037,19 @@ class CanvasTexture extends gpu_object_1.GpuObject {
       dimension: '2d'
     });
   }
+  /**
+   * On usage extened. Triggers a texture rebuild.
+   */
+  onUsageExtend() {
+    this.invalidate(CanvasTextureInvalidationType.Usage);
+  }
 }
 exports.CanvasTexture = CanvasTexture;
 var CanvasTextureInvalidationType;
 (function (CanvasTextureInvalidationType) {
   CanvasTextureInvalidationType["Layout"] = "LayoutChange";
   CanvasTextureInvalidationType["Frame"] = "FrameChange";
+  CanvasTextureInvalidationType["Usage"] = "UsageChange";
 })(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
 
 /***/ }),
@@ -7085,10 +7069,10 @@ Object.defineProperty(exports, "__esModule", ({
 exports.FrameBufferTextureInvalidationType = exports.FrameBufferTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-class FrameBufferTexture extends gpu_object_1.GpuObject {
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+class FrameBufferTexture extends base_texture_1.BaseTexture {
   /**
    * Texture depth.
    */
@@ -7112,12 +7096,6 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
     this.invalidate(FrameBufferTextureInvalidationType.Size);
   }
   /**
-   * Textures memory layout.
-   */
-  get memoryLayout() {
-    return this.mMemoryLayout;
-  }
-  /**
    * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
    */
   get multiSampleLevel() {
@@ -7127,12 +7105,6 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
     this.mMultiSampleLevel = pValue;
     // Invalidate native.
     this.invalidate(FrameBufferTextureInvalidationType.MultiSampleLevel);
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
   }
   /**
    * Texture width.
@@ -7149,13 +7121,10 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
    * Constructor.
    * @param pDevice - Device.
    * @param pLayout - Texture memory layout.
-   * @param pDepth - Texture depth.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
+    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
     this.mTexture = null;
-    // Fixed values.
-    this.mMemoryLayout = pLayout;
     // Set defaults.
     this.mDepth = 1;
     this.mHeight = 1;
@@ -7164,7 +7133,7 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
       this.invalidate(FrameBufferTextureInvalidationType.Layout);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Usage]);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
   }
   /**
    * Destory texture object.
@@ -7180,7 +7149,7 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
   generateNative() {
     // TODO: Validate format based on layout. Maybe replace used format.
     // Validate two dimensional texture.
-    if (this.memoryLayout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
+    if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
       throw new core_1.Exception('Frame buffers must be two dimensional.', this);
     }
     // Create and configure canvas context.
@@ -7188,16 +7157,22 @@ class FrameBufferTexture extends gpu_object_1.GpuObject {
       label: 'Frame-Buffer-Texture',
       size: [this.width, this.height, 1],
       // Force 2d texture.
-      format: this.memoryLayout.format,
-      usage: this.memoryLayout.usage,
+      format: this.layout.format,
+      usage: this.usage,
       dimension: '2d',
       sampleCount: this.multiSampleLevel
     });
     // Force a 2d view.
     return this.mTexture.createView({
-      format: this.memoryLayout.format,
+      format: this.layout.format,
       dimension: '2d'
     });
+  }
+  /**
+   * On usage extened. Triggers a texture rebuild.
+   */
+  onUsageExtend() {
+    this.invalidate(FrameBufferTextureInvalidationType.Usage);
   }
 }
 exports.FrameBufferTexture = FrameBufferTexture;
@@ -7206,6 +7181,7 @@ var FrameBufferTextureInvalidationType;
   FrameBufferTextureInvalidationType["Layout"] = "LayoutChange";
   FrameBufferTextureInvalidationType["Size"] = "SizeChange";
   FrameBufferTextureInvalidationType["MultiSampleLevel"] = "MultiSampleLevel";
+  FrameBufferTextureInvalidationType["Usage"] = "UsageChange";
 })(FrameBufferTextureInvalidationType || (exports.FrameBufferTextureInvalidationType = FrameBufferTextureInvalidationType = {}));
 
 /***/ }),
@@ -7227,10 +7203,11 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-class ImageTexture extends gpu_object_1.GpuObject {
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+class ImageTexture extends base_texture_1.BaseTexture {
   /**
    * Texture depth.
    */
@@ -7250,18 +7227,6 @@ class ImageTexture extends gpu_object_1.GpuObject {
     return this.mImageList;
   }
   /**
-   * Textures memory layout.
-   */
-  get memoryLayout() {
-    return this.mMemoryLayout;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
    * Texture width.
    */
   get width() {
@@ -7273,10 +7238,8 @@ class ImageTexture extends gpu_object_1.GpuObject {
    * @param pLayout - Texture memory layout.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
     this.mTexture = null;
-    // Fixed values.
-    this.mMemoryLayout = pLayout;
     // Set defaults.
     this.mDepth = 1;
     this.mHeight = 1;
@@ -7285,7 +7248,7 @@ class ImageTexture extends gpu_object_1.GpuObject {
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
       this.invalidate(ImageTextureInvalidationType.Layout);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Usage]);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
   }
   /**
    * Load image into texture.
@@ -7345,7 +7308,7 @@ class ImageTexture extends gpu_object_1.GpuObject {
     // TODO: Validate format based on layout. Maybe replace used format.
     // Generate gpu dimension from memory layout dimension.
     const lGpuDimension = (() => {
-      switch (this.memoryLayout.dimension) {
+      switch (this.layout.dimension) {
         case texture_dimension_enum_1.TextureDimension.OneDimension:
           {
             return '1d';
@@ -7372,12 +7335,18 @@ class ImageTexture extends gpu_object_1.GpuObject {
           }
       }
     })();
+    // To copy images, the texture needs to be a render attachment and copy destination.
+    // Extend usage before texture creation.
+    if (this.images.length > 0) {
+      this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
+    }
     // Create texture with set size, format and usage. Save it for destorying later.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
       size: [this.width, this.height, this.depth],
-      format: this.memoryLayout.format,
-      usage: this.memoryLayout.usage,
+      format: this.layout.format,
+      usage: this.usage,
       dimension: lGpuDimension
     });
     // Load images into texture. // TODO: Make it somewhat comnpletly async.
@@ -7395,9 +7364,15 @@ class ImageTexture extends gpu_object_1.GpuObject {
     // TODO: ArrayLayer based on dimension.
     // TODO: View descriptor.
     return this.mTexture.createView({
-      format: this.memoryLayout.format,
-      dimension: this.memoryLayout.dimension
+      format: this.layout.format,
+      dimension: this.layout.dimension
     });
+  }
+  /**
+   * On usage extened. Triggers a texture rebuild.
+   */
+  onUsageExtend() {
+    this.invalidate(ImageTextureInvalidationType.Usage);
   }
 }
 exports.ImageTexture = ImageTexture;
@@ -7405,6 +7380,7 @@ var ImageTextureInvalidationType;
 (function (ImageTextureInvalidationType) {
   ImageTextureInvalidationType["Layout"] = "LayoutChange";
   ImageTextureInvalidationType["ImageBinary"] = "ImageBinaryChange";
+  ImageTextureInvalidationType["Usage"] = "UsageChange";
 })(ImageTextureInvalidationType || (exports.ImageTextureInvalidationType = ImageTextureInvalidationType = {}));
 
 /***/ }),
@@ -8888,9 +8864,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VideoTextureInvalidationType = exports.VideoTexture = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
-class VideoTexture extends gpu_object_1.GpuObject {
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+class VideoTexture extends base_texture_1.BaseTexture {
   /**
    * Texture height.
    */
@@ -8905,12 +8883,6 @@ class VideoTexture extends gpu_object_1.GpuObject {
   }
   set loop(pValue) {
     this.mVideo.loop = pValue;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
   }
   /**
    * Video source.
@@ -8940,7 +8912,8 @@ class VideoTexture extends gpu_object_1.GpuObject {
    * @param pDepth - Texture depth.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    this.mTexture = null;
     // Create video.
     this.mVideo = new HTMLVideoElement();
     this.mVideo.loop = false;
@@ -8948,7 +8921,13 @@ class VideoTexture extends gpu_object_1.GpuObject {
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
       this.invalidate(VideoTextureInvalidationType.Layout);
-    }, [/* Layout is not used in generation. */]);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    // Update video texture on every frame.
+    this.device.addFrameChangeListener(() => {
+      if (this.mTexture) {
+        // TODO: Load current view image into texture.
+      }
+    });
   }
   /**
    * Pause video.
@@ -8963,43 +8942,74 @@ class VideoTexture extends gpu_object_1.GpuObject {
     this.mVideo.play();
   }
   /**
+   * Destory texture object.
+   * @param _pNativeObject - Native canvas texture.
+   */
+  destroyNative(_pNativeObject) {
+    this.mTexture?.destroy();
+    this.mTexture = null;
+  }
+  /**
    * Generate native canvas texture view.
    */
   generateNative() {
-    return this.device.gpu.importExternalTexture({
-      label: 'External-Texture',
-      source: this.video,
-      colorSpace: 'srgb'
+    // TODO: Validate format based on layout. Maybe replace used format.
+    // Generate gpu dimension from memory layout dimension.
+    const lGpuDimension = (() => {
+      switch (this.layout.dimension) {
+        case texture_dimension_enum_1.TextureDimension.OneDimension:
+          {
+            return '1d';
+          }
+        case texture_dimension_enum_1.TextureDimension.TwoDimension:
+          {
+            return '2d';
+          }
+        case texture_dimension_enum_1.TextureDimension.TwoDimensionArray:
+          {
+            return '2d';
+          }
+        case texture_dimension_enum_1.TextureDimension.Cube:
+          {
+            return '2d';
+          }
+        case texture_dimension_enum_1.TextureDimension.CubeArray:
+          {
+            return '2d';
+          }
+        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
+          {
+            return '3d';
+          }
+      }
+    })();
+    // Create texture with set size, format and usage. Save it for destorying later.
+    this.mTexture = this.device.gpu.createTexture({
+      label: 'Frame-Buffer-Texture',
+      size: [this.width, this.height, 1],
+      format: this.layout.format,
+      usage: this.usage,
+      dimension: lGpuDimension
     });
+    // TODO: View descriptor.
+    return this.mTexture.createView({
+      format: this.layout.format,
+      dimension: this.layout.dimension
+    });
+  }
+  /**
+   * On usage extened. Triggers a texture rebuild.
+   */
+  onUsageExtend() {
+    this.invalidate(VideoTextureInvalidationType.Usage);
   }
 }
 exports.VideoTexture = VideoTexture;
 var VideoTextureInvalidationType;
 (function (VideoTextureInvalidationType) {
   VideoTextureInvalidationType["Layout"] = "LayoutChange";
+  VideoTextureInvalidationType["Usage"] = "UsageChange";
 })(VideoTextureInvalidationType || (exports.VideoTextureInvalidationType = VideoTextureInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/constant/access-mode.enum.ts":
-/*!*********************************************!*\
-  !*** ./source/constant/access-mode.enum.ts ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.AccessMode = void 0;
-var AccessMode;
-(function (AccessMode) {
-  AccessMode[AccessMode["None"] = 0] = "None";
-  AccessMode[AccessMode["Read"] = 1] = "Read";
-  AccessMode[AccessMode["Write"] = 2] = "Write";
-})(AccessMode || (exports.AccessMode = AccessMode = {}));
 
 /***/ }),
 
@@ -9018,11 +9028,18 @@ Object.defineProperty(exports, "__esModule", ({
 exports.BufferUsage = void 0;
 var BufferUsage;
 (function (BufferUsage) {
-  BufferUsage[BufferUsage["Undefined"] = 0] = "Undefined";
+  BufferUsage[BufferUsage["None"] = 0] = "None";
   BufferUsage[BufferUsage["Index"] = GPUBufferUsage.INDEX] = "Index";
   BufferUsage[BufferUsage["Vertex"] = GPUBufferUsage.VERTEX] = "Vertex";
   BufferUsage[BufferUsage["Uniform"] = GPUBufferUsage.UNIFORM] = "Uniform";
   BufferUsage[BufferUsage["Storage"] = GPUBufferUsage.STORAGE] = "Storage";
+  BufferUsage[BufferUsage["Indirect"] = GPUBufferUsage.INDIRECT] = "Indirect";
+  BufferUsage[BufferUsage["CopySource"] = GPUBufferUsage.COPY_SRC] = "CopySource";
+  BufferUsage[BufferUsage["CopyDestination"] = GPUBufferUsage.COPY_DST] = "CopyDestination";
+  // No public available
+  // MapWrite = GPUBufferUsage.MAP_WRITE,
+  // MapRead = GPUBufferUsage.MAP_READ,
+  // QueryResolve = GPUBufferUsage.QUERY_RESOLVE
 })(BufferUsage || (exports.BufferUsage = BufferUsage = {}));
 
 /***/ }),
@@ -9095,28 +9112,6 @@ var FilterMode;
   FilterMode["Nearest"] = "nearest";
   FilterMode["Linear"] = "linear";
 })(FilterMode || (exports.FilterMode = FilterMode = {}));
-
-/***/ }),
-
-/***/ "./source/constant/memory-copy-type.enum.ts":
-/*!**************************************************!*\
-  !*** ./source/constant/memory-copy-type.enum.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.MemoryCopyType = void 0;
-var MemoryCopyType;
-(function (MemoryCopyType) {
-  MemoryCopyType[MemoryCopyType["None"] = 0] = "None";
-  MemoryCopyType[MemoryCopyType["CopySource"] = GPUBufferUsage.COPY_SRC] = "CopySource";
-  MemoryCopyType[MemoryCopyType["CopyDestination"] = GPUBufferUsage.COPY_DST] = "CopyDestination";
-})(MemoryCopyType || (exports.MemoryCopyType = MemoryCopyType = {}));
 
 /***/ }),
 
@@ -9209,6 +9204,29 @@ var SamplerType;
 
 /***/ }),
 
+/***/ "./source/constant/storage-binding-type.enum.ts":
+/*!******************************************************!*\
+  !*** ./source/constant/storage-binding-type.enum.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StorageBindingType = void 0;
+var StorageBindingType;
+(function (StorageBindingType) {
+  StorageBindingType[StorageBindingType["None"] = 0] = "None";
+  StorageBindingType[StorageBindingType["Read"] = 1] = "Read";
+  StorageBindingType[StorageBindingType["Write"] = 2] = "Write";
+  StorageBindingType[StorageBindingType["ReadWrite"] = 4] = "ReadWrite";
+})(StorageBindingType || (exports.StorageBindingType = StorageBindingType = {}));
+
+/***/ }),
+
 /***/ "./source/constant/texture-aspect.enum.ts":
 /*!************************************************!*\
   !*** ./source/constant/texture-aspect.enum.ts ***!
@@ -9250,7 +9268,6 @@ exports.TextureBindType = void 0;
 var TextureBindType;
 (function (TextureBindType) {
   TextureBindType["Image"] = "Image-Texture";
-  TextureBindType["External"] = "External-Texture";
   TextureBindType["Storage"] = "Storage-Texture";
   TextureBindType["RenderTarget"] = "Render-Texture";
 })(TextureBindType || (exports.TextureBindType = TextureBindType = {}));
@@ -9471,8 +9488,10 @@ exports.TextureUsage = void 0;
 var TextureUsage;
 (function (TextureUsage) {
   TextureUsage[TextureUsage["None"] = 0] = "None";
-  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
-  TextureUsage[TextureUsage["StorageBinding"] = GPUTextureUsage.STORAGE_BINDING] = "StorageBinding";
+  TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
+  TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
+  TextureUsage[TextureUsage["Texture"] = GPUTextureUsage.TEXTURE_BINDING] = "Texture";
+  TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
   TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
 })(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
 
@@ -13548,7 +13567,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("9692a936c245778dacd5")
+/******/ 		__webpack_require__.h = () => ("8486038be3d5c117d234")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

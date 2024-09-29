@@ -1,16 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { BaseTexture } from './base-texture';
 
-export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
+export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
-    private readonly mMemoryLayout: TextureMemoryLayout;
     private mTexture: GPUTexture | null;
     private mWidth: number;
 
@@ -36,20 +35,6 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
     }
 
     /**
-     * Textures memory layout.
-     */
-    public get memoryLayout(): TextureMemoryLayout {
-        return this.mMemoryLayout;
-    }
-
-    /**
-     * Native gpu object.
-     */
-    public override get native(): GPUTextureView {
-        return super.native;
-    }
-
-    /**
      * Texture width.
      */
     public get width(): number {
@@ -62,12 +47,9 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice, pLayout, GpuObjectLifeTime.Persistent);
 
         this.mTexture = null;
-
-        // Fixed values.
-        this.mMemoryLayout = pLayout;
 
         // Set defaults.
         this.mDepth = 1;
@@ -78,7 +60,7 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.invalidate(ImageTextureInvalidationType.Layout);
-        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format, TextureMemoryLayoutInvalidationType.Usage]);
+        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
     }
 
     /**
@@ -141,7 +123,7 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
 
         // Generate gpu dimension from memory layout dimension.
         const lGpuDimension: GPUTextureDimension = (() => {
-            switch (this.memoryLayout.dimension) {
+            switch (this.layout.dimension) {
                 case TextureDimension.OneDimension: {
                     return '1d';
                 }
@@ -163,12 +145,19 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
             }
         })();
 
+        // To copy images, the texture needs to be a render attachment and copy destination.
+        // Extend usage before texture creation.
+        if (this.images.length > 0) {
+            this.extendUsage(TextureUsage.RenderAttachment);
+            this.extendUsage(TextureUsage.CopyDestination);
+        }
+
         // Create texture with set size, format and usage. Save it for destorying later.
         this.mTexture = this.device.gpu.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
-            format: this.memoryLayout.format as GPUTextureFormat,
-            usage: this.memoryLayout.usage,
+            format: this.layout.format as GPUTextureFormat,
+            usage: this.usage,
             dimension: lGpuDimension
         });
 
@@ -189,13 +178,21 @@ export class ImageTexture extends GpuObject<GPUTextureView, ImageTextureInvalida
 
         // TODO: View descriptor.
         return this.mTexture.createView({
-            format: this.memoryLayout.format as GPUTextureFormat,
-            dimension: this.memoryLayout.dimension
+            format: this.layout.format as GPUTextureFormat,
+            dimension: this.layout.dimension
         });
+    }
+
+    /**
+     * On usage extened. Triggers a texture rebuild.
+     */
+    protected override onUsageExtend(): void {
+        this.invalidate(ImageTextureInvalidationType.Usage);
     }
 }
 
 export enum ImageTextureInvalidationType {
     Layout = 'LayoutChange',
-    ImageBinary = 'ImageBinaryChange'
+    ImageBinary = 'ImageBinaryChange',
+    Usage = 'UsageChange'
 }

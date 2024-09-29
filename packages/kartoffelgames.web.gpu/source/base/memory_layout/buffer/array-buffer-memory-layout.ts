@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 
 export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mArraySize: number;
@@ -56,7 +56,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pDevice: GpuDevice, pParameter: ArrayBufferMemoryLayoutParameter) {
-        super(pDevice, pParameter);
+        super(pDevice);
 
         // Static properties.
         this.mArraySize = pParameter.arraySize;
@@ -105,7 +105,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 }
 
-export interface ArrayBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
+export interface ArrayBufferMemoryLayoutParameter {
     arraySize: number;
     innerType: BaseBufferMemoryLayout;
 }

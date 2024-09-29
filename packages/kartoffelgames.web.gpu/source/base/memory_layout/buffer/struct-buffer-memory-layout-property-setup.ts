@@ -1,4 +1,3 @@
-import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { ArrayBufferMemoryLayout } from './array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from './base-buffer-memory-layout';
@@ -20,7 +19,6 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
         return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, (pMemoryLayout: BaseBufferMemoryLayout) => {
             const lLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
                 arraySize: pSize,
-                usage: BufferUsage.Undefined,
                 innerType: pMemoryLayout
             });
 
@@ -38,7 +36,6 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
         const lLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: pPrimitiveFormat,
             primitiveMultiplier: pPrimitiveMultiplier,
-            usage: BufferUsage.Undefined,
         });
 
         // Send created data.
@@ -52,7 +49,7 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
      */
     public asStruct(pSetupCall: (pSetup: StructBufferMemoryLayoutSetup) => void): void {
         // Create and setup struct buffer memory layout.
-        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device, BufferUsage.Undefined);
+        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device);
         lLayout.setup(pSetupCall);
 
         // Send created data.

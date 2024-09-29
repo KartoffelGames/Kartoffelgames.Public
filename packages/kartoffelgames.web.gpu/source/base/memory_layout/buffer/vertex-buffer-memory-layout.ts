@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
 
@@ -35,7 +35,7 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pDevice: GpuDevice, pParameter: VertexBufferMemoryLayoutParameter) {
-        super(pDevice, pParameter);
+        super(pDevice);
 
         // Set default size by format.
         const lPrimitiveByteCount = ((): number => {
@@ -82,7 +82,7 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 }
 
-export interface VertexBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
+export interface VertexBufferMemoryLayoutParameter {
     primitiveFormat: PrimitiveBufferFormat;
     primitiveMultiplier: PrimitiveBufferMultiplier;
 }

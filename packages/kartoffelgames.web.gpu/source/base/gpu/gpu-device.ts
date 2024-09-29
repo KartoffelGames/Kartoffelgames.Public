@@ -1,4 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { TextureBindType } from '../../constant/texture-bind-type.enum';
+import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass } from '../execution/pass/compute-pass';
 import { RenderPass } from '../execution/pass/render-pass';
@@ -8,9 +10,6 @@ import { Shader } from '../shader/shader';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -119,7 +118,6 @@ export class GpuDevice {
 
         // Create basic canvas layout.
         const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this, {
-            usage: TextureUsage.RenderAttachment, // TODO: Make it none and let auto config handle it.
             dimension: TextureDimension.TwoDimension,
             format: this.formatValidator.preferredCanvasFormat,
             bindType: TextureBindType.RenderTarget, // TODO: Also let auto config handle this.

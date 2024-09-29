@@ -257,10 +257,10 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             });
 
             // Add render attachment texture usage to depth stencil texture.
-            pReferenceData.depthStencil.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
+            pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Read capability of used depth stencil texture format.
-            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
+            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
 
             // Setup depth texture.
             if (pReferenceData.depthStencil.depth) {
@@ -313,7 +313,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             });
 
             // Add render attachment texture usage to color texture.
-            lAttachment.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
+            lAttachment.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Buffer used location index.
             lAttachmentLocations[lAttachment.index] = true;
@@ -420,7 +420,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     lAttachment.texture.resolve = lAttachment.texture.target;
 
                     // Create new texture from canvas texture.
-                    lAttachment.texture.target = new FrameBufferTexture(this.device, lAttachment.texture.resolve.memoryLayout);
+                    lAttachment.texture.target = new FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
+                    lAttachment.texture.target.extendUsage(TextureUsage.RenderAttachment);
                 }
             }
 

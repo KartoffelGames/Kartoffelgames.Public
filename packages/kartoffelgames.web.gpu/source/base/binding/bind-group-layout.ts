@@ -1,8 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { AccessMode } from '../../constant/access-mode.enum';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
+import { StorageBindingType } from '../../constant/storage-binding-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
@@ -138,20 +136,15 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
                 case lEntry.layout instanceof BaseBufferMemoryLayout: {
                     // Convert bind type info bufer binding type.
                     const lBufferBindingType: GPUBufferBindingType = (() => {
-                        switch (lEntry.layout.usage) {
-                            case BufferUsage.Uniform: {
+                        switch (lEntry.storageType) {
+                            case StorageBindingType.None: {
                                 return 'uniform';
                             }
-                            case BufferUsage.Storage: {
-                                // Read only access. No bit compare.
-                                if (lEntry.accessMode === AccessMode.Read) {
-                                    return 'read-only-storage';
-                                }
-
-                                return 'storage';
+                            case StorageBindingType.Read: {
+                                return 'read-only-storage';
                             }
                             default: {
-                                throw new Exception('Can only bind buffers of bind type storage or uniform.', this);
+                                return 'storage';
                             }
                         }
                     })();
@@ -178,69 +171,44 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
                 // Texture layouts.
                 case lEntry.layout instanceof TextureMemoryLayout: {
-                    switch (lEntry.layout.bindType) {
-                        case TextureBindType.Image: {
-                            // Image textures need to be read only.
-                            if (lEntry.accessMode !== AccessMode.Read) {
-                                throw new Exception('Image textures must have access mode read.', this);
-                            }
+                    // Uniform bind when without storage binding.
+                    if (lEntry.storageType === StorageBindingType.None) {
+                        // Read texture capabilities.
+                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.layout.format);
 
-                            // Read texture capabilities.
-                            const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.layout.format);
+                        // Create image texture bind information.
+                        lLayoutEntry.texture = {
+                            sampleType: lTextureFormatCapabilities.type[0],
+                            multisampled: lEntry.layout.multisampled,
+                            viewDimension: lEntry.layout.dimension
+                        } satisfies Required<GPUTextureBindingLayout>;
 
-                            // Create image texture bind information.
-                            lLayoutEntry.texture = {
-                                sampleType: lTextureFormatCapabilities.type[0],
-                                multisampled: lEntry.layout.multisampled,
-                                viewDimension: lEntry.layout.dimension
-                            } satisfies Required<GPUTextureBindingLayout>;
+                        break;
+                    }
 
+                    // Storage textures need to be write only.
+                    let lStorageAccess: GPUStorageTextureAccess;
+                    switch (lEntry.storageType) {
+                        case StorageBindingType.ReadWrite: {
+                            lStorageAccess = 'read-write';
                             break;
                         }
-                        case TextureBindType.External: {
-                            // External textures need to be read only.
-                            if (lEntry.accessMode !== AccessMode.Read) {
-                                throw new Exception('External textures must have access mode read.', this);
-                            }
-
-                            // Create external texture bind information.
-                            lLayoutEntry.externalTexture = {} satisfies Required<GPUExternalTextureBindingLayout>;
-
+                        case StorageBindingType.Write: {
+                            lStorageAccess = 'write-only';
                             break;
                         }
-                        case TextureBindType.Storage: {
-                            // Storage textures need to be write only.
-                            let lStorageAccess: GPUStorageTextureAccess;
-                            switch (lEntry.accessMode) {
-                                case AccessMode.Write & AccessMode.Read: {
-                                    lStorageAccess = 'read-write';
-                                    break;
-                                }
-                                case AccessMode.Write: {
-                                    lStorageAccess = 'write-only';
-                                    break;
-                                }
-                                case AccessMode.Read: {
-                                    lStorageAccess = 'read-only';
-                                    break;
-                                }
-                            }
-
-                            // Create storage texture bind information.
-                            lLayoutEntry.storageTexture = {
-                                access: lStorageAccess!,
-                                format: lEntry.layout.format as GPUTextureFormat,
-                                viewDimension: lEntry.layout.dimension
-                            } satisfies Required<GPUStorageTextureBindingLayout>;
-
+                        case StorageBindingType.Read: {
+                            lStorageAccess = 'read-only';
                             break;
-                        }
-                        default: {
-                            throw new Exception('Cant bind attachment textures.', this);
                         }
                     }
 
-                    break;
+                    // Create storage texture bind information.
+                    lLayoutEntry.storageTexture = {
+                        access: lStorageAccess!,
+                        format: lEntry.layout.format as GPUTextureFormat,
+                        viewDimension: lEntry.layout.dimension
+                    } satisfies Required<GPUStorageTextureBindingLayout>;
                 }
             }
 
@@ -278,7 +246,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
                 index: lBinding.index,
                 layout: lBinding.layout,
                 visibility: lBinding.visibility,
-                accessMode: lBinding.accessMode
+                storageType: lBinding.storageType
             });
 
             // Register change listener for layout changes.
@@ -314,7 +282,7 @@ export type BindLayout = {
     index: number,
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
-    accessMode: AccessMode;
+    storageType: StorageBindingType;
 };
 
 export enum BindGroupLayoutInvalidationType {

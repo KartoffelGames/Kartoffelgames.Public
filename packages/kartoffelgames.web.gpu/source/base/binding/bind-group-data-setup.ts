@@ -6,11 +6,10 @@ import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memo
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
+import { BindData } from './bind-group';
 import { BindLayout } from './bind-group-layout';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
@@ -194,5 +193,4 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
     }
 }
 
-type BindData = GpuBuffer<TypedArray> | TextureSampler | ImageTexture | FrameBufferTexture | VideoTexture | CanvasTexture;
 type BindGroupDataCallback = (pData: BindData) => void;

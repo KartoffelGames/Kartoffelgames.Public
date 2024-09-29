@@ -1,5 +1,5 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
-import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
@@ -11,7 +11,7 @@ import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-bu
  * GpuBuffer. Uses local and native gpu buffers.
  */
 export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, GpuBufferInvalidationType> implements IGpuObjectNative<GPUBuffer> {
-    private mCopyType: MemoryCopyType;
+    private mBufferUsage: number;
     private readonly mDataType: PrimitiveBufferFormat;
     private mInitialDataCallback: (() => TType) | null;
     private readonly mItemCount: number;
@@ -89,7 +89,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         this.mDataType = pDataType;
 
         // At default buffer can not be read and not be written to.
-        this.mCopyType = MemoryCopyType.None;
+        this.mBufferUsage = BufferUsage.None;
 
         // Waving buffer list.
         this.mReadyBufferList = new Array<GPUBuffer>();
@@ -112,6 +112,23 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         pLayout.addInvalidationListener(() => {
             this.invalidate(GpuBufferInvalidationType.Layout);
         });
+    }
+
+    /**
+     * Extend usage of buffer.
+     * Might trigger a buffer rebuild.
+     * 
+     * @param pUsage - Buffer usage. 
+     */
+    public extendUsage(pUsage: BufferUsage): this {
+        // Update only when not already set.
+        if ((this.mBufferUsage & pUsage) === 0) {
+            this.mBufferUsage |= pUsage;
+
+            this.invalidate(GpuBufferInvalidationType.Usage);
+        }
+
+        return this;
     }
 
     /**
@@ -146,7 +163,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
      */
     public async readRaw(pOffset?: number | undefined, pSize?: number | undefined): Promise<TType> {
         // Set buffer as writeable.
-        this.updateCopyType(MemoryCopyType.CopySource);
+        this.extendUsage(BufferUsage.CopySource);
 
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
@@ -183,7 +200,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
      */
     public async writeRaw(pData: ArrayLike<number>, pOffset?: number): Promise<void> {
         // Set buffer as writeable.
-        this.updateCopyType(MemoryCopyType.CopyDestination);
+        this.extendUsage(BufferUsage.CopyDestination);
 
         const lOffset: number = pOffset ?? 0;
 
@@ -260,14 +277,11 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
         // Read optional initial data.
         const lInitalData: TType | undefined = this.mInitialDataCallback?.();
 
-        // Append usage type from abstract usage type.
-        const lUsage: number = this.mLayout.usage | this.mCopyType;
-
         // Create gpu buffer mapped
         const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
-            usage: lUsage,
+            usage: this.mBufferUsage,
             mappedAtCreation: !!lInitalData
         });
 
@@ -316,24 +330,10 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, Gp
 
         return new lArrayBufferConstructor(pArrayBuffer);
     }
-
-    /**
-     * Update copy type of core buffer.
-     * 
-     * @param pCopyType - Requested copy type.
-     */
-    private updateCopyType(pCopyType: MemoryCopyType): void {
-        // Update onyl when not already set.
-        if ((this.mCopyType & pCopyType) === 0) {
-            this.mCopyType |= pCopyType;
-
-            this.invalidate(GpuBufferInvalidationType.CopyType);
-        }
-    }
 }
 
 export enum GpuBufferInvalidationType {
     Layout = 'LayoutChange',
     InitialData = 'InitialDataChange',
-    CopyType = 'CopyTypeChange'
+    Usage = 'UsageChange'
 }

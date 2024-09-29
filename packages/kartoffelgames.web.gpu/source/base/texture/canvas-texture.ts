@@ -1,14 +1,13 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { BaseTexture } from './base-texture';
 
-export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
+export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
-    private readonly mMemoryLayout: TextureMemoryLayout;
 
     /**
      * HTML canvas element.
@@ -28,20 +27,6 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
     }
 
     /**
-     * Textures memory layout.
-     */
-    public get memoryLayout(): TextureMemoryLayout {
-        return this.mMemoryLayout;
-    }
-
-    /**
-     * Native gpu object.
-     */
-    public override get native(): GPUTextureView {
-        return super.native;
-    }
-
-    /**
      * Texture width.
      */
     public get width(): number {
@@ -58,11 +43,10 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
      * @param pCanvas - Canvas of texture.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pCanvas: HTMLCanvasElement) {
-        super(pDevice, GpuObjectLifeTime.Frame);
+        super(pDevice, pLayout, GpuObjectLifeTime.Frame);
 
         // Set canvas reference.
         this.mCanvas = pCanvas;
-        this.mMemoryLayout = pLayout;
         this.mContext = null;
 
         // Set defaults.
@@ -72,7 +56,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.invalidate(CanvasTextureInvalidationType.Layout);
-        }, [TextureMemoryLayoutInvalidationType.Usage, TextureMemoryLayoutInvalidationType.Format]);
+        }, [TextureMemoryLayoutInvalidationType.Format]);
     }
 
     /**
@@ -81,7 +65,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
      */
     protected override destroyNative(_pNativeObject: GPUTextureView, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
         // Context is only invalid on deconstruct or layout has changes.
-        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout);
+        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout) || pReasons.has(CanvasTextureInvalidationType.Usage);
 
         // Only destroy context when child data/layout has changes.
         if (lContextInvalid) {
@@ -103,7 +87,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
         }
 
         // Read canvas format.
-        const lFormat: GPUTextureFormat = this.memoryLayout.format as GPUTextureFormat;
+        const lFormat: GPUTextureFormat = this.layout.format as GPUTextureFormat;
 
         // Configure new context when not alread configured or destroyed.
         if (!this.mContext) {
@@ -112,7 +96,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
             this.mContext.configure({
                 device: this.device.gpu,
                 format: lFormat,
-                usage: this.memoryLayout.usage,
+                usage: this.usage,
                 alphaMode: 'opaque'
             });
         }
@@ -126,9 +110,17 @@ export class CanvasTexture extends GpuObject<GPUTextureView, CanvasTextureInvali
             dimension: '2d'
         });
     }
+
+    /**
+     * On usage extened. Triggers a texture rebuild.
+     */
+    protected override onUsageExtend(): void {
+        this.invalidate(CanvasTextureInvalidationType.Usage);
+    }
 }
 
 export enum CanvasTextureInvalidationType {
     Layout = 'LayoutChange',
-    Frame = 'FrameChange'
+    Frame = 'FrameChange',
+    Usage = 'UsageChange'
 }

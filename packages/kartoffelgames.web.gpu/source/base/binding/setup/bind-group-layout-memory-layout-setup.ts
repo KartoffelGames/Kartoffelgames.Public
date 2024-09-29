@@ -1,9 +1,7 @@
-import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
-import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
@@ -20,8 +18,6 @@ import { BindGroupLayoutArrayMemoryLayoutSetup } from './bind-group-layout-array
 import { BindGroupLayoutSetupData } from './bind-group-layout-setup';
 
 export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGroupLayoutSetupData, MemoryLayoutCallback> {
-    private readonly mUsage: BufferUsage;
-
     /**
      * Constructor.
      * 
@@ -29,10 +25,8 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * @param pSetupReference - Setup references.
      * @param pDataCallback - Data callback.
      */
-    public constructor(pUsage: BufferUsage, pSetupReference: GpuObjectSetupReferences<BindGroupLayoutSetupData>, pDataCallback: MemoryLayoutCallback) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<BindGroupLayoutSetupData>, pDataCallback: MemoryLayoutCallback) {
         super(pSetupReference, pDataCallback);
-
-        this.mUsage = pUsage;
     }
 
     /**
@@ -46,7 +40,6 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
         return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, (pMemoryLayout: BaseBufferMemoryLayout) => {
             const lLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
                 arraySize: pSize,
-                usage: this.mUsage,
                 innerType: pMemoryLayout
             });
 
@@ -64,7 +57,6 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
         const lLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: pPrimitiveFormat,
             primitiveMultiplier: pPrimitiveMultiplier,
-            usage: this.mUsage
         });
 
         // Send created data.
@@ -92,7 +84,7 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      */
     public withStruct(pSetupCall: (pSetup: StructBufferMemoryLayoutSetup) => void): void {
         // Create and setup struct buffer memory layout.
-        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device, this.mUsage);
+        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device);
         lLayout.setup(pSetupCall);
 
         // Send created data.
@@ -112,7 +104,6 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
             bindType: pTextureBindType,
             dimension: pTextureDimension,
             format: pTextureFormat,
-            usage: (this.mUsage === BufferUsage.Storage) ? TextureUsage.StorageBinding : TextureUsage.TextureBinding,
             multisampled: pMultisampled
         });
 

@@ -1,10 +1,11 @@
+import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { BaseTexture } from './base-texture';
 
-export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInvalidationType> implements IGpuObjectNative<GPUExternalTexture> {
+export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
+    private mTexture: GPUTexture | null;
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -21,13 +22,6 @@ export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInva
         return this.mVideo.loop;
     } set loop(pValue: boolean) {
         this.mVideo.loop = pValue;
-    }
-
-    /**
-     * Native gpu object.
-     */
-    public override get native(): GPUExternalTexture {
-        return super.native;
     }
 
     /**
@@ -60,7 +54,9 @@ export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInva
      * @param pDepth - Texture depth.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice, pLayout, GpuObjectLifeTime.Persistent);
+
+        this.mTexture = null;
 
         // Create video.
         this.mVideo = new HTMLVideoElement();
@@ -70,7 +66,14 @@ export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInva
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.invalidate(VideoTextureInvalidationType.Layout);
-        }, [/* Layout is not used in generation. */]);
+        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
+
+        // Update video texture on every frame.
+        this.device.addFrameChangeListener(() => {
+            if (this.mTexture) {
+                // TODO: Load current view image into texture.
+            }
+        });
     }
 
     /**
@@ -88,17 +91,69 @@ export class VideoTexture extends GpuObject<GPUExternalTexture, VideoTextureInva
     }
 
     /**
+     * Destory texture object.
+     * @param _pNativeObject - Native canvas texture.
+     */
+    protected override destroyNative(_pNativeObject: GPUTextureView): void {
+        this.mTexture?.destroy();
+        this.mTexture = null;
+    }
+
+    /**
      * Generate native canvas texture view.
      */
-    protected override generateNative(): GPUExternalTexture {
-        return this.device.gpu.importExternalTexture({
-            label: 'External-Texture',
-            source: this.video,
-            colorSpace: 'srgb'
+    protected override generateNative(): GPUTextureView {
+        // TODO: Validate format based on layout. Maybe replace used format.
+
+        // Generate gpu dimension from memory layout dimension.
+        const lGpuDimension: GPUTextureDimension = (() => {
+            switch (this.layout.dimension) {
+                case TextureDimension.OneDimension: {
+                    return '1d';
+                }
+                case TextureDimension.TwoDimension: {
+                    return '2d';
+                }
+                case TextureDimension.TwoDimensionArray: {
+                    return '2d';
+                }
+                case TextureDimension.Cube: {
+                    return '2d';
+                }
+                case TextureDimension.CubeArray: {
+                    return '2d';
+                }
+                case TextureDimension.ThreeDimension: {
+                    return '3d';
+                }
+            }
+        })();
+
+        // Create texture with set size, format and usage. Save it for destorying later.
+        this.mTexture = this.device.gpu.createTexture({
+            label: 'Frame-Buffer-Texture',
+            size: [this.width, this.height, 1],
+            format: this.layout.format as GPUTextureFormat,
+            usage: this.usage,
+            dimension: lGpuDimension
         });
+
+        // TODO: View descriptor.
+        return this.mTexture.createView({
+            format: this.layout.format as GPUTextureFormat,
+            dimension: this.layout.dimension
+        });
+    }
+
+    /**
+     * On usage extened. Triggers a texture rebuild.
+     */
+    protected override onUsageExtend(): void {
+        this.invalidate(VideoTextureInvalidationType.Usage);
     }
 }
 
 export enum VideoTextureInvalidationType {
-    Layout = 'LayoutChange'
+    Layout = 'LayoutChange',
+    Usage = 'UsageChange'
 }

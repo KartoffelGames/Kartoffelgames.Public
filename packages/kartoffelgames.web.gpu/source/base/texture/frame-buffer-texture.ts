@@ -1,15 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { BaseTexture } from './base-texture';
 
-export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
+export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidationType> {
     private mDepth: number;
     private mHeight: number;
-    private readonly mMemoryLayout: TextureMemoryLayout;
     private mMultiSampleLevel: number;
     private mTexture: GPUTexture | null;
     private mWidth: number;
@@ -39,13 +37,6 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
     }
 
     /**
-     * Textures memory layout.
-     */
-    public get memoryLayout(): TextureMemoryLayout {
-        return this.mMemoryLayout;
-    }
-
-    /**
      * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
      */
     public get multiSampleLevel(): number {
@@ -55,13 +46,6 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
 
         // Invalidate native.
         this.invalidate(FrameBufferTextureInvalidationType.MultiSampleLevel);
-    }
-
-    /**
-     * Native gpu object.
-     */
-    public override get native(): GPUTextureView {
-        return super.native;
     }
 
     /**
@@ -80,15 +64,11 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
      * Constructor.
      * @param pDevice - Device.
      * @param pLayout - Texture memory layout.
-     * @param pDepth - Texture depth.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, GpuObjectLifeTime.Frame);
+        super(pDevice, pLayout, GpuObjectLifeTime.Frame);
 
         this.mTexture = null;
-
-        // Fixed values.
-        this.mMemoryLayout = pLayout;
 
         // Set defaults.
         this.mDepth = 1;
@@ -99,7 +79,7 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.invalidate(FrameBufferTextureInvalidationType.Layout);
-        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format, TextureMemoryLayoutInvalidationType.Usage]);
+        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
     }
 
     /**
@@ -118,7 +98,7 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Validate two dimensional texture.
-        if (this.memoryLayout.dimension !== TextureDimension.TwoDimension) {
+        if (this.layout.dimension !== TextureDimension.TwoDimension) {
             throw new Exception('Frame buffers must be two dimensional.', this);
         }
 
@@ -126,22 +106,30 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView, FrameBufferTex
         this.mTexture = this.device.gpu.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, 1], // Force 2d texture.
-            format: this.memoryLayout.format as GPUTextureFormat,
-            usage: this.memoryLayout.usage,
+            format: this.layout.format as GPUTextureFormat,
+            usage: this.usage,
             dimension: '2d',
             sampleCount: this.multiSampleLevel
         });
 
         // Force a 2d view.
         return this.mTexture.createView({
-            format: this.memoryLayout.format as GPUTextureFormat,
+            format: this.layout.format as GPUTextureFormat,
             dimension: '2d'
         });
+    }
+
+    /**
+     * On usage extened. Triggers a texture rebuild.
+     */
+    protected override onUsageExtend(): void {
+        this.invalidate(FrameBufferTextureInvalidationType.Usage);
     }
 }
 
 export enum FrameBufferTextureInvalidationType {
     Layout = 'LayoutChange',
     Size = 'SizeChange',
-    MultiSampleLevel = 'MultiSampleLevel'
+    MultiSampleLevel = 'MultiSampleLevel',
+    Usage = 'UsageChange'
 }

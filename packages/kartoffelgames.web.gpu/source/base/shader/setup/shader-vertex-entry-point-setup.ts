@@ -5,6 +5,9 @@ import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primi
 import { ShaderSetupReferenceData } from './shader-setup';
 
 export class ShaderVertexEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, VertexParameterCallback> {
+
+    // TODO: something like => addBuffer('i dont know').value(name, index, format...) // Maybe instead of format use a layout.
+    
     /**
      * Setup vertex parameter.
      */

@@ -1,10 +1,11 @@
 import { BindGroupLayout } from '../../binding/bind-group-layout';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
+import { VertexParameterLayout } from '../../pipeline/parameter/vertex-parameter-layout';
+import { VertexParameterLayoutSetup } from '../../pipeline/parameter/vertex-parameter-layout-setup';
 import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
 import { ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
-import { ShaderVertexEntryPointSetup, VertexEntryPointParameterSetupData } from './shader-vertex-entry-point-setup';
 
 export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
     /**
@@ -101,23 +102,24 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * 
      * @param pName - Vertex entry name.
      */
-    public vertexEntryPoint(pName: string): ShaderVertexEntryPointSetup {
+    public vertexEntryPoint(pName: string, pSetupCallback: (pSetup: VertexParameterLayoutSetup) => void): VertexParameterLayout {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
+
+        // Create and setup vertex parameter.
+        const lVertexParameterLayout: VertexParameterLayout = new VertexParameterLayout(this.device)
+            .setup(pSetupCallback);
 
         // Create empty fragment entry point.
         const lEntryPoint: ShaderEntryPointVertexSetupData = {
             name: pName,
-            parameter: new Array<VertexEntryPointParameterSetupData>()
+            parameter: lVertexParameterLayout
         };
 
         // Append compute entry.
         this.setupData.vertexEntrypoints.push(lEntryPoint);
 
-        // Return fragment entry setup object.
-        return new ShaderVertexEntryPointSetup(this.setupReferences, (pRenderTarget: VertexEntryPointParameterSetupData) => {
-            lEntryPoint.parameter.push(pRenderTarget);
-        });
+        return lVertexParameterLayout;
     }
 
     /**
@@ -156,7 +158,7 @@ type ShaderEntryPointComputeSetupData = {
 
 type ShaderEntryPointVertexSetupData = {
     name: string;
-    parameter: Array<VertexEntryPointParameterSetupData>;
+    parameter: VertexParameterLayout;
 };
 
 type ShaderEntryPointFragmentSetupData = {

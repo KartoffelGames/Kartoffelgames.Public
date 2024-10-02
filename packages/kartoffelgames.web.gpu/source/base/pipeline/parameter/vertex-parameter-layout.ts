@@ -1,17 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step-mode.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/object/gpu-object';
+import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
+import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
+import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
 
 /**
  * Vertex parameter layout.
  */
-export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>> implements IGpuObjectNative<Array<GPUVertexBufferLayout>> {
+export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>, '', VertexParameterLayoutSetup> implements IGpuObjectNative<Array<GPUVertexBufferLayout>>, IGpuObjectSetup<VertexParameterLayoutSetup> {
     private readonly mIndexable: boolean;
     private readonly mParameter: Dictionary<string, VertexParameterLayoutDefinition>;
 
@@ -51,21 +53,11 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * @param pDevice - Device reference.
      * @param pLayout - Simple layout of parameter.
      */
-    public constructor(pDevice: GpuDevice, pLayout: Array<VertexParameterLayoutDefinition>) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice, GpuObjectLifeTime.Persistent);
 
-        this.mIndexable = true;
-
-        // Convert layout list into name key values.
+        this.mIndexable = false;
         this.mParameter = new Dictionary<string, VertexParameterLayoutDefinition>();
-        for (const lLayoutDefintion of pLayout) {
-            this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
-
-            // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
-            if (lLayoutDefintion.stepMode === VertexParameterStepMode.Vertex) {
-                this.mIndexable = false;
-            }
-        }
     }
 
     /**
@@ -88,6 +80,17 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
         }
 
         return lLayout;
+    }
+
+    /**
+     * Call setup.
+     * 
+     * @param pSetupCallback - Setup callback.
+     *
+     * @returns — this.
+     */
+    public override setup(pSetupCallback?: ((pSetup: VertexParameterLayoutSetup) => void)): this {
+        return super.setup(pSetupCallback);
     }
 
     /**
@@ -137,6 +140,34 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
         }
 
         return lLayoutList;
+    }
+
+    /**
+     * Setup with setup object.
+     * 
+     * @param pReferences - Used references.
+     */
+    protected override onSetup(pReferences: VertexParameterLayoutSetupData): void {
+        // Convert layout list into name key values.
+        for (const lLayoutDefintion of pLayout) {
+            this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
+
+            // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
+            if (lLayoutDefintion.stepMode === VertexParameterStepMode.Vertex) {
+                this.mIndexable = false;
+            }
+        }
+    }
+
+    /**
+     * Create setup object. Return null to skip any setups.
+     * 
+     * @param pReferences - Setup references.
+     * 
+     * @returns created setup. 
+     */
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<VertexParameterLayoutSetupData>): VertexParameterLayoutSetup {
+        return new VertexParameterLayoutSetup(pReferences);
     }
 }
 

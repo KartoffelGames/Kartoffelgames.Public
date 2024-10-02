@@ -8,7 +8,7 @@ import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
-import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
+import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
@@ -223,36 +223,9 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
                 throw new Exception(`Vertex entry "${lVertexEntry.name}" was setup more than once.`, this);
             }
 
-            // Convert all render attachments to a location mapping. 
-            const lVertexParameterLocations: Set<number> = new Set<number>();
-            const lVertexParameter: Dictionary<string, VertexParameterLayoutDefinition> = new Dictionary<string, VertexParameterLayoutDefinition>();
-            for (const lParameter of lVertexEntry.parameter) {
-                // Restrict doublicate vertex entry parameter names.
-                if (lVertexParameter.has(lParameter.name)) {
-                    throw new Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter name "${lParameter.name}".`, this);
-                }
-
-                // Restrict doublicate vertex entry parameter locations.
-                if (lVertexParameterLocations.has(lParameter.location)) {
-                    throw new Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter location index "${lParameter.location}".`, this);
-                }
-
-                // Add location to location index buffer. Used for finding dublicates.
-                lVertexParameterLocations.add(lParameter.location);
-
-                // Add parameter to list.
-                lVertexParameter.add(lParameter.name, {
-                    name: lParameter.name,
-                    location: lParameter.location,
-                    format: lParameter.format,
-                    multiplier: lParameter.multiplier,
-                    stepMode: lParameter.stepMode
-                });
-            }
-
             // Set vertex entry point definition. 
             this.mEntryPoints.vertex.set(lVertexEntry.name, {
-                parameter: new VertexParameterLayout(this.device, [...lVertexParameter.values()])
+                parameter: lVertexEntry.parameter
             });
         }
 

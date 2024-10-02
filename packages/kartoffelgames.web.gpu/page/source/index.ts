@@ -121,11 +121,19 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Create shader.
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
-        pShaderSetup.vertexEntryPoint('vertex_main')
-            .addParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4, VertexParameterStepMode.Index)
-            .addParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2, VertexParameterStepMode.Vertex)
-            .addParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4, VertexParameterStepMode.Vertex);
+        // Vertex entry.
+        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
+            pVertexParameterSetup.buffer(VertexParameterStepMode.Index)
+                .withParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
+            pVertexParameterSetup.buffer(VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2);
+
+            pVertexParameterSetup.buffer(VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+        });
+
+        // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main')
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 

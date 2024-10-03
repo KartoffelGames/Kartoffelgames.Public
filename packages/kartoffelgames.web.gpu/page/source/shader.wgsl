@@ -6,18 +6,21 @@
 
 // ------------------------- World Values ---------------------- //
 @group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;
+@group(1) @binding(1) var<uniform> timestamp: u32;
 
 struct AmbientLight {
     color: vec4<f32>
 }
-@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;
+@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;
 
 struct PointLight {
     position: vec4<f32>,
     color: vec4<f32>,
     range: f32
 }
-@group(1) @binding(2) var<storage, read> pointLights: array<PointLight>;
+@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;
+
+@group(1) @binding(4) var<storage, read_write> debugValue: f32;
 // -------------------------------------------------------------- //
 
 
@@ -64,6 +67,17 @@ fn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>
 }
 // -------------------------------------------------------------- //
 
+fn hash(x: u32) -> u32
+{
+    var result: u32 = x;
+    result ^= result >> 16;
+    result *= 0x7feb352du;
+    result ^= result >> 15;
+    result *= 0x846ca68bu;
+    result ^= result >> 16;
+    return result;
+}
+
 struct VertexOut {
     @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>,
@@ -80,14 +94,35 @@ struct VertexIn {
 
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
-    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];
-    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
+    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;
+
+    // Generate 4 random numbers.
+    var hash1: u32 = hash(vertex.instanceId + 1);
+    var hash2: u32 = hash(hash1);
+    var hash3: u32 = hash(hash2);
+    var hash4: u32 = hash(hash3);
+
+    // Convert into normals.
+    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);
+    var randomNormalPosition: vec3<f32> = vec3<f32>(
+        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),
+        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),
+        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)
+    );
+
+    // Calculate random position and animate a 100m spread. 
+    var randPosition: vec4<f32> = instancePosition; // Current start.
+    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.
+    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / 3000) + (hashStartDisplacement * 100)) * 100;
+    randPosition[3] = 1; // Reset w coord.
+
+    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;
 
     var out: VertexOut;
-    out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;
+    out.position = viewProjectionMatrix * transformedInstancePosition;
     out.uv = vertex.uv;
     out.normal = vertex.normal;
-    out.fragmentPosition = transformationMatrix * instancePositionMatrix * vertex.position;
+    out.fragmentPosition = transformedInstancePosition;
 
     return out;
 }

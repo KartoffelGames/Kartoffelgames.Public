@@ -54,7 +54,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         lCurrentActionValue.set(pEvent.action, pEvent.state);
     });
     window.setInterval(() => {
-        const lSpeed = 1;
+        const lSpeed = 10;
 
         // Z Axis
         if (lCurrentActionValue.get('Forward')! > 0) {
@@ -82,16 +82,16 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
         // Rotation.
         if (lCurrentActionValue.get('Yaw')! > 0 || lCurrentActionValue.get('Yaw')! < 0) {
-            pCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw')! * lSpeed, 0);
+            pCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw')!, 0);
         }
         if (lCurrentActionValue.get('Pitch')! > 0 || lCurrentActionValue.get('Pitch')! < 0) {
-            pCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch')! * lSpeed, 0, 0);
+            pCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch')!, 0, 0);
         }
         if (lCurrentActionValue.get('RotateLeft')! > 0) {
-            pCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft')! * lSpeed);
+            pCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft')!);
         }
         if (lCurrentActionValue.get('RotateRight')! > 0) {
-            pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')! * lSpeed);
+            pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')!);
         }
 
         // Update transformation buffer.
@@ -151,17 +151,24 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
             pBindGroupSetup.binding(0, 'viewProjectionMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-            pBindGroupSetup.binding(1, 'ambientLight', ComputeStage.Fragment)
+            pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
+                .withPrimitive(PrimitiveBufferFormat.Uint32, PrimitiveBufferMultiplier.Single);
+
+            pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
                 .withStruct((pStruct) => {
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 });
 
-            pBindGroupSetup.binding(2, 'pointLights', ComputeStage.Fragment, StorageBindingType.Read)
+            pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment, StorageBindingType.Read)
                 .withArray().withStruct((pStruct) => {
                     pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                     pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
                 });
+
+            pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+
         }));
 
         // User bind group
@@ -184,7 +191,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Create transformation.
     const lCubeTransform: Transform = new Transform();
-    lCubeTransform.setScale(0.1, 0.1, 0.1);
+    lCubeTransform.setScale(1, 1, 1);
     lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray));
 
     // Create instance positions.
@@ -192,7 +199,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     for (let lWidthIndex: number = 0; lWidthIndex < gWidth; lWidthIndex++) {
         for (let lHeightIndex: number = 0; lHeightIndex < gHeight; lHeightIndex++) {
             for (let lDepthIndex: number = 0; lDepthIndex < gDepth; lDepthIndex++) {
-                lCubeInstanceTransformationData.push(lWidthIndex, lHeightIndex, lDepthIndex, 1);
+                lCubeInstanceTransformationData.push(lWidthIndex * 3, lHeightIndex * 3, lDepthIndex * 3, 1);
             }
         }
     }
@@ -225,6 +232,20 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
         /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0
     ]));
+
+    // Create timestamp.
+    lWorldGroup.data('timestamp').createBuffer(new Uint32Array(1));
+    const lTimestampBuffer: GpuBuffer<Uint32Array> = lWorldGroup.data('timestamp').get();
+
+    // Create debug value.
+    lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+    const lDebugBuffer: GpuBuffer<Uint32Array> = lWorldGroup.data('debugValue').get();
+    (<any>window).debugBuffer = () => {
+        lDebugBuffer.readRaw(0, 4).then((pResulto) => {
+            // eslint-disable-next-line no-console
+            console.log(pResulto);
+        });
+    };
 
     /*
      * User defined group.
@@ -270,6 +291,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     const lRender = (pTime: number) => {
         // Start new frame.
         lGpu.startNewFrame();
+
+        // Update time stamp data.
+        lTimestampBuffer.write([pTime], []);
 
         // Generate encoder and add render commands.
         lRenderExecutor.execute();

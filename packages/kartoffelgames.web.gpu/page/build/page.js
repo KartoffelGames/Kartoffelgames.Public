@@ -382,7 +382,13 @@ _asyncToGenerator(function* () {
   }).resize(1200, 1800, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
-    pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex);
+    // Vertex entry.
+    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    });
+    // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
@@ -3531,14 +3537,15 @@ class RenderPass extends gpu_object_1.GpuObject {
         }
       }
       // Add vertex attribute buffer.
-      for (const lAttributeName of lInstruction.pipeline.module.vertexParameter.parameterNames) {
-        const lNewAttributeBuffer = lInstruction.parameter.get(lAttributeName);
-        const lAttributeLocation = lInstruction.pipeline.module.vertexParameter.parameter(lAttributeName).location;
-        const lCurrentAttributeBuffer = lVertexBufferList.get(lAttributeLocation);
+      const lBufferNames = lInstruction.pipeline.module.vertexParameter.bufferNames;
+      for (let lBufferIndex = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
+        // Read buffer information.
+        const lAttributeBufferName = lBufferNames[lBufferIndex];
+        const lNewAttributeBuffer = lInstruction.parameter.get(lAttributeBufferName);
         // Use cached vertex buffer or use new.
-        if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
-          lVertexBufferList.set(lAttributeLocation, lNewAttributeBuffer);
-          lRenderPassEncoder.setVertexBuffer(lAttributeLocation, lNewAttributeBuffer.native);
+        if (lNewAttributeBuffer !== lVertexBufferList.get(lBufferIndex)) {
+          lVertexBufferList.set(lBufferIndex, lNewAttributeBuffer);
+          lRenderPassEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
         }
       }
       // Draw indexed when parameters are indexable.
@@ -5035,6 +5042,18 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
     return 0;
   }
   /**
+   * Underlying format of all parameters.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Byte count of underlying format.
+   */
+  get formatByteCount() {
+    return this.mFormatByteCount;
+  }
+  /**
    * Buffer size in bytes.
    */
   get variableSize() {
@@ -5050,7 +5069,7 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
     super(pDevice);
     // Set default size by format.
     const lPrimitiveByteCount = (() => {
-      switch (pParameter.primitiveFormat) {
+      switch (pParameter.format) {
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float16:
           return 2;
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
@@ -5061,37 +5080,46 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
           return 4;
       }
     })();
-    // Calculate alignment and size.
-    this.mSize = (() => {
-      switch (pParameter.primitiveMultiplier) {
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
-          return lPrimitiveByteCount;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2:
-          return lPrimitiveByteCount * 2;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector3:
-          return lPrimitiveByteCount * 3;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4:
-          return lPrimitiveByteCount * 4;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix22:
-          return lPrimitiveByteCount * 2 * 2;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix23:
-          return lPrimitiveByteCount * 2 * 3;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix24:
-          return lPrimitiveByteCount * 2 * 4;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix32:
-          return lPrimitiveByteCount * 3 * 2;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix33:
-          return lPrimitiveByteCount * 3 * 3;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix34:
-          return lPrimitiveByteCount * 3 * 4;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix42:
-          return lPrimitiveByteCount * 4 * 2;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix43:
-          return lPrimitiveByteCount * 4 * 3;
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44:
-          return lPrimitiveByteCount * 4 * 4;
-      }
-    })();
+    // Set default size and init format values.
+    this.mSize = 0;
+    this.mFormat = pParameter.format;
+    this.mFormatByteCount = lPrimitiveByteCount;
+    // Calculate size of all parameter.
+    for (const lParameter of pParameter.parameter) {
+      // Calculate alignment and size.
+      const lParameterSize = (() => {
+        switch (lParameter.primitiveMultiplier) {
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
+            return lPrimitiveByteCount;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2:
+            return lPrimitiveByteCount * 2;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector3:
+            return lPrimitiveByteCount * 3;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4:
+            return lPrimitiveByteCount * 4;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix22:
+            return lPrimitiveByteCount * 2 * 2;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix23:
+            return lPrimitiveByteCount * 2 * 3;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix24:
+            return lPrimitiveByteCount * 2 * 4;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix32:
+            return lPrimitiveByteCount * 3 * 2;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix33:
+            return lPrimitiveByteCount * 3 * 3;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix34:
+            return lPrimitiveByteCount * 3 * 4;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix42:
+            return lPrimitiveByteCount * 4 * 2;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix43:
+            return lPrimitiveByteCount * 4 * 3;
+          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44:
+            return lPrimitiveByteCount * 4 * 4;
+        }
+      })();
+      // Extend buffer size.
+      this.mSize = lParameterSize + lParameter.offset;
+    }
   }
   /**
    * Get location of path.
@@ -5282,6 +5310,97 @@ var ComputePipelineInvalidationType;
 
 /***/ }),
 
+/***/ "./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts":
+/*!********************************************************************************!*\
+  !*** ./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterBufferLayoutSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
+class VertexParameterBufferLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Add new parameter to vertex layout.
+   *
+   * @param pName - Parameter name.
+   * @param pLocation - Parameter location.
+   * @param pFormat - Parameter data format.
+   * @param pMultiplier - Data multiplication.
+   * @param pAdditionalOffset - Additional offset. Offset 0 aligns right after the last parameter.
+   * @returns
+   */
+  withParameter(pName, pLocation, pMultiplier, pAdditionalOffset = 0) {
+    // Send layout data.
+    this.sendData({
+      name: pName,
+      location: pLocation,
+      multiplier: pMultiplier,
+      offset: pAdditionalOffset
+    });
+    return this;
+  }
+}
+exports.VertexParameterBufferLayoutSetup = VertexParameterBufferLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts":
+/*!*************************************************************************!*\
+  !*** ./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterLayoutSetup = void 0;
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
+const vertex_parameter_buffer_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-buffer-layout-setup */ "./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts");
+class VertexParameterLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Add a new buffer layout to vertex parameter layout.
+   *
+   * @param pStepMode - Buffer step mode.
+   *
+   * @returns vertex buffer layout setup
+   */
+  buffer(pBufferName, pFormat, pStepMode) {
+    // Create buffer.
+    const lBuffer = {
+      name: pBufferName,
+      stepMode: pStepMode,
+      format: pFormat,
+      parameter: new Array()
+    };
+    // Add buffer to result.
+    this.setupData.buffer.push(lBuffer);
+    // Create and return buffer setup.
+    return new vertex_parameter_buffer_layout_setup_1.VertexParameterBufferLayoutSetup(this.setupReferences, pLayout => {
+      lBuffer.parameter.push(pLayout);
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.buffer = new Array();
+  }
+}
+exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
+
+/***/ }),
+
 /***/ "./source/base/pipeline/parameter/vertex-parameter-layout.ts":
 /*!*******************************************************************!*\
   !*** ./source/base/pipeline/parameter/vertex-parameter-layout.ts ***!
@@ -5301,15 +5420,19 @@ const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./s
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/base/pipeline/parameter/vertex-parameter.ts");
+const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts");
+const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 /**
  * Vertex parameter layout.
  */
 class VertexParameterLayout extends gpu_object_1.GpuObject {
   /**
-   * Parameter count.
+   * Get all parameter buffer names.
    */
-  get count() {
-    return this.mParameter.size;
+  get bufferNames() {
+    // Setup must be called.
+    this.ensureSetup();
+    return [...this.mBuffer.keys()];
   }
   /**
    * If parameters are indexable.
@@ -5317,6 +5440,8 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    * When even one parameter has a stepmode of vertex, any index parameters must be converted.
    */
   get indexable() {
+    // Setup must be called.
+    this.ensureSetup();
     return this.mIndexable;
   }
   /**
@@ -5329,6 +5454,8 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    * Get all parameter names.
    */
   get parameterNames() {
+    // Setup must be called.
+    this.ensureSetup();
     return [...this.mParameter.keys()];
   }
   /**
@@ -5337,18 +5464,11 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    * @param pDevice - Device reference.
    * @param pLayout - Simple layout of parameter.
    */
-  constructor(pDevice, pLayout) {
+  constructor(pDevice) {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
-    this.mIndexable = true;
-    // Convert layout list into name key values.
+    this.mIndexable = false;
+    this.mBuffer = new core_1.Dictionary();
     this.mParameter = new core_1.Dictionary();
-    for (const lLayoutDefintion of pLayout) {
-      this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
-      // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
-      if (lLayoutDefintion.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
-        this.mIndexable = false;
-      }
-    }
   }
   /**
    * Create vertex parameters from layout.
@@ -5358,7 +5478,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
     return new vertex_parameter_1.VertexParameter(this.device, this, pIndexData);
   }
   /**
-   * Get vertex parameter layout definition of name.
+   * Get vertex parameter layout definition by name.
    *
    * @param pName - Parameter name.
    */
@@ -5370,47 +5490,142 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
     return lLayout;
   }
   /**
+   * Get vertex parameter layout definition by name.
+   *
+   * @param pBufferName - Parameter name.
+   */
+  parameterBuffer(pBufferName) {
+    const lLayout = this.mBuffer.get(pBufferName);
+    if (!lLayout) {
+      throw new core_1.Exception(`Vertex parameter buffer "${pBufferName}" is not defined.`, this);
+    }
+    return lLayout;
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns — this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
    * Generate new native object.
    */
   generateNative() {
     // Create vertex buffer layout for each parameter.
     const lLayoutList = new Array();
-    for (const lParameter of this.mParameter.values()) {
-      // Convert multiplier to value.
-      const lByteMultiplier = lParameter.multiplier.split('').reduce((pPreviousNumber, pCurrentValue) => {
-        const lCurrentNumber = parseInt(pCurrentValue);
-        if (isNaN(lCurrentNumber)) {
-          return pPreviousNumber;
+    const lParameterIndicies = new Array();
+    for (const lBuffer of this.mBuffer.values()) {
+      // Create parameter layouts.
+      const lVertexAttributes = new Array();
+      let lCurrentByteLength = 0;
+      for (const lParameter of lBuffer.parameter) {
+        // No double locations.
+        if (lParameterIndicies[lParameter.location]) {
+          throw new core_1.Exception(`Vertex parameter location "${lParameter.location}" can't be defined twice.`, this);
         }
-        return pPreviousNumber * lCurrentNumber;
-      }, 1);
-      // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
-      let lFormat = `float32x${lByteMultiplier}`;
-      if (lParameter.multiplier === primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single) {
-        lFormat = 'float32';
+        // Convert multiplier to value.
+        const lByteMultiplier = lParameter.multiplier.split('').reduce((pPreviousNumber, pCurrentValue) => {
+          const lCurrentNumber = parseInt(pCurrentValue);
+          if (isNaN(lCurrentNumber)) {
+            return pPreviousNumber;
+          }
+          return pPreviousNumber * lCurrentNumber;
+        }, 1);
+        // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
+        let lFormat = `${lBuffer.format}x${lByteMultiplier}`;
+        if (lParameter.multiplier === primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single) {
+          lFormat = lBuffer.format;
+        }
+        // Create buffer layout.
+        lVertexAttributes.push({
+          format: lFormat,
+          offset: lCurrentByteLength + lParameter.offset,
+          shaderLocation: lParameter.location
+        });
+        // Increment current byte length.
+        lCurrentByteLength += 4 * lByteMultiplier + lParameter.offset; // 32Bit-Number * (single, vector or matrix number count) 
+        // Save location index for checkind double
+        lParameterIndicies[lParameter.location] = true;
       }
       // Convert stepmode.
       let lStepmode = 'vertex';
-      if (lParameter.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Instance) {
+      if (lBuffer.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Instance) {
         lStepmode = 'instance';
       }
-      // Create buffer layout.
-      lLayoutList[lParameter.location] = {
-        arrayStride: 4 * lByteMultiplier,
-        // 32Bit-Number * (single, vector or matrix number count) 
+      lLayoutList.push({
         stepMode: lStepmode,
-        attributes: [{
-          format: lFormat,
-          offset: 0,
-          shaderLocation: lParameter.location
-        }]
-      };
+        arrayStride: lBuffer.layout.variableSize,
+        attributes: lVertexAttributes
+      });
     }
     // Validate continuity of parameter locations.
-    if (lLayoutList.length !== this.mParameter.size) {
+    if (lParameterIndicies.length !== this.mParameter.size) {
       throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
     }
     return lLayoutList;
+  }
+  /**
+   * Setup with setup object.
+   *
+   * @param pReferences - Used references.
+   */
+  onSetup(pReferences) {
+    let lCanBeIndexed = true;
+    // Create each buffer.
+    for (const lBufferSetupData of pReferences.buffer) {
+      // Add each parameter to parameter list.
+      const lParameterList = new Array();
+      const lParameterlayoutList = new Array();
+      for (const lParameterSetupData of lBufferSetupData.parameter) {
+        // Create parameter list for the vertex buffer memory layout.
+        lParameterlayoutList.push({
+          primitiveMultiplier: lParameterSetupData.multiplier,
+          offset: lParameterSetupData.offset
+        });
+        // Create vertex parameter.
+        const lParameterLayout = {
+          name: lParameterSetupData.name,
+          location: lParameterSetupData.location,
+          multiplier: lParameterSetupData.multiplier,
+          offset: lParameterSetupData.offset,
+          bufferName: lBufferSetupData.name
+        };
+        // Add to parameter list and mapping.
+        lParameterList.push(lParameterLayout);
+        this.mParameter.set(lParameterLayout.name, lParameterLayout);
+      }
+      // Create empty buffer.
+      const lBufferLayout = {
+        name: lBufferSetupData.name,
+        stepMode: lBufferSetupData.stepMode,
+        format: lBufferSetupData.format,
+        parameter: lParameterList,
+        layout: new vertex_buffer_memory_layout_1.VertexBufferMemoryLayout(this.device, {
+          format: lBufferSetupData.format,
+          parameter: lParameterlayoutList
+        })
+      };
+      this.mBuffer.set(lBufferLayout.name, lBufferLayout);
+      // When one buffer is not indexable than no buffer is it.
+      if (lBufferLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
+        lCanBeIndexed = false;
+      }
+    }
+    this.mIndexable = lCanBeIndexed;
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns created setup.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new vertex_parameter_layout_setup_1.VertexParameterLayoutSetup(pReferences);
   }
 }
 exports.VertexParameterLayout = VertexParameterLayout;
@@ -5440,7 +5655,6 @@ const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 class VertexParameter extends gpu_object_1.GpuObject {
   /**
    * Get index buffer.
@@ -5508,23 +5722,16 @@ class VertexParameter extends gpu_object_1.GpuObject {
   }
   /**
    * Set parameter data.
-   * @param pName - Parameter name.
+   * @param pName - parameter buffer name.
    * @param pData - Parameter data.
    */
-  set(pName, pData) {
-    const lParameterLayout = this.mLayout.parameter(pName);
-    // Create buffer layout.
-    const lBufferLayout = new vertex_buffer_memory_layout_1.VertexBufferMemoryLayout(this.device, {
-      primitiveFormat: lParameterLayout.format,
-      primitiveMultiplier: lParameterLayout.multiplier
-    });
-    // Calculate primitive format byte count. // TODO: How to support other than 32bit types.
-    const lPrimitiveByteCount = 4;
+  set(pBufferName, pData) {
+    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
     // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
     let lData = pData;
     if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
       // Calculate how many items represent one parameter.
-      const lStepCount = lBufferLayout.variableSize / lPrimitiveByteCount;
+      const lStepCount = lParameterLayout.layout.variableSize / lParameterLayout.layout.formatByteCount;
       // Dublicate dependent on index information.
       lData = new Array();
       for (const lIndex of this.mIndices) {
@@ -5535,25 +5742,26 @@ class VertexParameter extends gpu_object_1.GpuObject {
       }
     }
     // Calculate vertex parameter count.
-    const lVertexParameterItemCount = lData.length * lPrimitiveByteCount / lBufferLayout.variableSize;
+    const lVertexParameterItemCount = lData.length * lParameterLayout.layout.formatByteCount / lParameterLayout.layout.variableSize;
     // Load typed array from layout format.
     const lParameterBuffer = (() => {
       switch (lParameterLayout.format) {
+        // TODO. Support all 8 16 and 32 formats. 
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
               return new Float32Array(lData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
               return new Int32Array(lData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
               return new Uint32Array(lData);
             });
           }
@@ -5566,7 +5774,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
     // Extend buffer to be a vertex buffer.
     lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
     // Save gpu buffer in correct index.
-    this.mData.set(pName, lParameterBuffer);
+    this.mData.set(pBufferName, lParameterBuffer);
     // Invalidate on data set.
     this.invalidate(VertexParameterInvalidationType.Data);
     return lParameterBuffer;
@@ -6433,9 +6641,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ShaderSetup = void 0;
 const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
+const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
 const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/base/shader/setup/shader-compute-entry-point-setup.ts");
 const shader_fragment_entry_point_setup_1 = __webpack_require__(/*! ./shader-fragment-entry-point-setup */ "./source/base/shader/setup/shader-fragment-entry-point-setup.ts");
-const shader_vertex_entry_point_setup_1 = __webpack_require__(/*! ./shader-vertex-entry-point-setup */ "./source/base/shader/setup/shader-vertex-entry-point-setup.ts");
 class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Setup compute entry point.
@@ -6521,20 +6729,19 @@ class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
    *
    * @param pName - Vertex entry name.
    */
-  vertexEntryPoint(pName) {
+  vertexEntryPoint(pName, pSetupCallback) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
+    // Create and setup vertex parameter.
+    const lVertexParameterLayout = new vertex_parameter_layout_1.VertexParameterLayout(this.device).setup(pSetupCallback);
     // Create empty fragment entry point.
     const lEntryPoint = {
       name: pName,
-      parameter: new Array()
+      parameter: lVertexParameterLayout
     };
     // Append compute entry.
     this.setupData.vertexEntrypoints.push(lEntryPoint);
-    // Return fragment entry setup object.
-    return new shader_vertex_entry_point_setup_1.ShaderVertexEntryPointSetup(this.setupReferences, pRenderTarget => {
-      lEntryPoint.parameter.push(pRenderTarget);
-    });
+    return lVertexParameterLayout;
   }
   /**
    * Fill in default data before the setup starts.
@@ -6553,43 +6760,6 @@ class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
   }
 }
 exports.ShaderSetup = ShaderSetup;
-
-/***/ }),
-
-/***/ "./source/base/shader/setup/shader-vertex-entry-point-setup.ts":
-/*!*********************************************************************!*\
-  !*** ./source/base/shader/setup/shader-vertex-entry-point-setup.ts ***!
-  \*********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderVertexEntryPointSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-class ShaderVertexEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Setup vertex parameter.
-   */
-  addParameter(pName, pLocationIndex, pDataFormat, pDataMultiplier, pStepMode) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    const lVertexParameter = {
-      name: pName,
-      location: pLocationIndex,
-      format: pDataFormat,
-      multiplier: pDataMultiplier,
-      stepMode: pStepMode
-    };
-    // Callback size.
-    this.sendData(lVertexParameter);
-    return this;
-  }
-}
-exports.ShaderVertexEntryPointSetup = ShaderVertexEntryPointSetup;
 
 /***/ }),
 
@@ -6788,7 +6958,6 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
-const vertex_parameter_layout_1 = __webpack_require__(/*! ../pipeline/parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
 const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/base/shader/setup/shader-setup.ts");
 const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/base/shader/shader-compute-module.ts");
 const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/base/shader/shader-render-module.ts");
@@ -6967,32 +7136,9 @@ class Shader extends gpu_object_1.GpuObject {
       if (this.mEntryPoints.vertex.has(lVertexEntry.name)) {
         throw new core_1.Exception(`Vertex entry "${lVertexEntry.name}" was setup more than once.`, this);
       }
-      // Convert all render attachments to a location mapping. 
-      const lVertexParameterLocations = new Set();
-      const lVertexParameter = new core_1.Dictionary();
-      for (const lParameter of lVertexEntry.parameter) {
-        // Restrict doublicate vertex entry parameter names.
-        if (lVertexParameter.has(lParameter.name)) {
-          throw new core_1.Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter name "${lParameter.name}".`, this);
-        }
-        // Restrict doublicate vertex entry parameter locations.
-        if (lVertexParameterLocations.has(lParameter.location)) {
-          throw new core_1.Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter location index "${lParameter.location}".`, this);
-        }
-        // Add location to location index buffer. Used for finding dublicates.
-        lVertexParameterLocations.add(lParameter.location);
-        // Add parameter to list.
-        lVertexParameter.add(lParameter.name, {
-          name: lParameter.name,
-          location: lParameter.location,
-          format: lParameter.format,
-          multiplier: lParameter.multiplier,
-          stepMode: lParameter.stepMode
-        });
-      }
       // Set vertex entry point definition. 
       this.mEntryPoints.vertex.set(lVertexEntry.name, {
-        parameter: new vertex_parameter_layout_1.VertexParameterLayout(this.device, [...lVertexParameter.values()])
+        parameter: lVertexEntry.parameter
       });
     }
     // Convert compute entry point informations
@@ -14914,7 +15060,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("7d0bbfd058ee66a9d54f")
+/******/ 		__webpack_require__.h = () => ("b9fe296a97712d0a4a00")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

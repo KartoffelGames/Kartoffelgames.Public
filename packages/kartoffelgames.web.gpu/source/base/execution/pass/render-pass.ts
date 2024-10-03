@@ -127,16 +127,16 @@ export class RenderPass extends GpuObject {
             }
 
             // Add vertex attribute buffer.
-            for (const lAttributeName of lInstruction.pipeline.module.vertexParameter.parameterNames) {
-                const lNewAttributeBuffer: GpuBuffer<TypedArray> = lInstruction.parameter.get(lAttributeName);
-
-                const lAttributeLocation: number = lInstruction.pipeline.module.vertexParameter.parameter(lAttributeName).location;
-                const lCurrentAttributeBuffer: GpuBuffer<TypedArray> | undefined = lVertexBufferList.get(lAttributeLocation);
+            const lBufferNames: Array<string> = lInstruction.pipeline.module.vertexParameter.bufferNames;
+            for (let lBufferIndex: number = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
+                // Read buffer information.
+                const lAttributeBufferName: string = lBufferNames[lBufferIndex];
+                const lNewAttributeBuffer: GpuBuffer<TypedArray> = lInstruction.parameter.get(lAttributeBufferName);
 
                 // Use cached vertex buffer or use new.
-                if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
-                    lVertexBufferList.set(lAttributeLocation, lNewAttributeBuffer);
-                    lRenderPassEncoder.setVertexBuffer(lAttributeLocation, lNewAttributeBuffer.native);
+                if (lNewAttributeBuffer !== lVertexBufferList.get(lBufferIndex)) {
+                    lVertexBufferList.set(lBufferIndex, lNewAttributeBuffer);
+                    lRenderPassEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
                 }
             }
 

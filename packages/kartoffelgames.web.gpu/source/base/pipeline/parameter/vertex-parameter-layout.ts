@@ -9,19 +9,24 @@ import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
 import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
+import { VertexBufferMemoryLayout, VertexBufferMemoryLayoutParameterParameter } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
 
 /**
  * Vertex parameter layout.
  */
 export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>, '', VertexParameterLayoutSetup> implements IGpuObjectNative<Array<GPUVertexBufferLayout>>, IGpuObjectSetup<VertexParameterLayoutSetup> {
-    private readonly mIndexable: boolean;
-    private readonly mParameter: Dictionary<string, VertexParameterLayoutDefinition>;
+    private readonly mBuffer: Dictionary<string, VertexParameterLayoutBuffer>;
+    private mIndexable: boolean;
+    private readonly mParameter: Dictionary<string, VertexParameterLayoutBufferParameter>;
 
     /**
-     * Parameter count.
+     * Get all parameter buffer names.
      */
-    public get count(): number {
-        return this.mParameter.size;
+    public get bufferNames(): Array<string> {
+        // Setup must be called.
+        this.ensureSetup();
+
+        return [...this.mBuffer.keys()];
     }
 
     /**
@@ -30,6 +35,9 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * When even one parameter has a stepmode of vertex, any index parameters must be converted. 
      */
     public get indexable(): boolean {
+        // Setup must be called.
+        this.ensureSetup();
+
         return this.mIndexable;
     }
 
@@ -44,6 +52,9 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * Get all parameter names.
      */
     public get parameterNames(): Array<string> {
+        // Setup must be called.
+        this.ensureSetup();
+
         return [...this.mParameter.keys()];
     }
 
@@ -57,7 +68,8 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
         super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mIndexable = false;
-        this.mParameter = new Dictionary<string, VertexParameterLayoutDefinition>();
+        this.mBuffer = new Dictionary<string, VertexParameterLayoutBuffer>();
+        this.mParameter = new Dictionary<string, VertexParameterLayoutBufferParameter>();
     }
 
     /**
@@ -69,14 +81,28 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     }
 
     /**
-     * Get vertex parameter layout definition of name.
+     * Get vertex parameter layout definition by name.
      * 
      * @param pName - Parameter name.
      */
-    public parameter(pName: string): Readonly<VertexParameterLayoutDefinition> {
-        const lLayout: VertexParameterLayoutDefinition | undefined = this.mParameter.get(pName);
+    public parameter(pName: string): Readonly<VertexParameterLayoutBufferParameter> {
+        const lLayout: VertexParameterLayoutBufferParameter | undefined = this.mParameter.get(pName);
         if (!lLayout) {
             throw new Exception(`Vertex parameter "${pName}" is not defined.`, this);
+        }
+
+        return lLayout;
+    }
+
+    /**
+     * Get vertex parameter layout definition by name.
+     * 
+     * @param pBufferName - Parameter name.
+     */
+    public parameterBuffer(pBufferName: string): Readonly<VertexParameterLayoutBuffer> {
+        const lLayout: VertexParameterLayoutBuffer | undefined = this.mBuffer.get(pBufferName);
+        if (!lLayout) {
+            throw new Exception(`Vertex parameter buffer "${pBufferName}" is not defined.`, this);
         }
 
         return lLayout;
@@ -99,43 +125,62 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     protected override generateNative(): Array<GPUVertexBufferLayout> {
         // Create vertex buffer layout for each parameter.
         const lLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
-        for (const lParameter of this.mParameter.values()) {
-            // Convert multiplier to value.
-            const lByteMultiplier = lParameter.multiplier.split('').reduce<number>((pPreviousNumber: number, pCurrentValue: string) => {
-                const lCurrentNumber: number = parseInt(pCurrentValue);
-                if (isNaN(lCurrentNumber)) {
-                    return pPreviousNumber;
+        const lParameterIndicies: Array<true> = new Array<true>();
+        for (const lBuffer of this.mBuffer.values()) {
+            // Create parameter layouts.
+            const lVertexAttributes: Array<GPUVertexAttribute> = new Array<GPUVertexAttribute>();
+            let lCurrentByteLength: number = 0;
+            for (const lParameter of lBuffer.parameter) {
+                // No double locations.
+                if (lParameterIndicies[lParameter.location]) {
+                    throw new Exception(`Vertex parameter location "${lParameter.location}" can't be defined twice.`, this);
                 }
 
-                return pPreviousNumber * lCurrentNumber;
-            }, 1);
+                // Convert multiplier to value.
+                const lByteMultiplier = lParameter.multiplier.split('').reduce<number>((pPreviousNumber: number, pCurrentValue: string) => {
+                    const lCurrentNumber: number = parseInt(pCurrentValue);
+                    if (isNaN(lCurrentNumber)) {
+                        return pPreviousNumber;
+                    }
 
-            // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
-            let lFormat: GPUVertexFormat = `float32x${lByteMultiplier}` as GPUVertexFormat;
-            if (lParameter.multiplier === PrimitiveBufferMultiplier.Single) {
-                lFormat = 'float32';
+                    return pPreviousNumber * lCurrentNumber;
+                }, 1);
+
+                // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
+                let lFormat: GPUVertexFormat = `${lBuffer.format}x${lByteMultiplier}` as GPUVertexFormat;
+                if (lParameter.multiplier === PrimitiveBufferMultiplier.Single) {
+                    lFormat = lBuffer.format as GPUVertexFormat;
+                }
+
+                // Create buffer layout.
+                lVertexAttributes.push({
+                    format: lFormat,
+                    offset: lCurrentByteLength + lParameter.offset,
+                    shaderLocation: lParameter.location
+                });
+
+                // Increment current byte length.
+                lCurrentByteLength += 4 * lByteMultiplier + lParameter.offset; // 32Bit-Number * (single, vector or matrix number count) 
+
+                // Save location index for checkind double
+                lParameterIndicies[lParameter.location] = true;
             }
 
             // Convert stepmode.
             let lStepmode: GPUVertexStepMode = 'vertex';
-            if (lParameter.stepMode === VertexParameterStepMode.Instance) {
+            if (lBuffer.stepMode === VertexParameterStepMode.Instance) {
                 lStepmode = 'instance';
             }
 
-            // Create buffer layout.
-            lLayoutList[lParameter.location] = {
-                arrayStride: 4 * lByteMultiplier, // 32Bit-Number * (single, vector or matrix number count) 
+            lLayoutList.push({
                 stepMode: lStepmode,
-                attributes: [{
-                    format: lFormat,
-                    offset: 0,
-                    shaderLocation: lParameter.location
-                }]
-            };
+                arrayStride: lBuffer.layout.variableSize,
+                attributes: lVertexAttributes
+            });
         }
 
         // Validate continuity of parameter locations.
-        if (lLayoutList.length !== this.mParameter.size) {
+        if (lParameterIndicies.length !== this.mParameter.size) {
             throw new Exception(`Vertex parameter locations need to be in continious order.`, this);
         }
 
@@ -148,15 +193,55 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * @param pReferences - Used references.
      */
     protected override onSetup(pReferences: VertexParameterLayoutSetupData): void {
-        // Convert layout list into name key values.
-        for (const lLayoutDefintion of pLayout) {
-            this.mParameter.set(lLayoutDefintion.name, lLayoutDefintion);
+        let lCanBeIndexed: boolean = true;
 
-            // When any of the parameters stepmode is vertex, no parameter can be used with indicies.
-            if (lLayoutDefintion.stepMode === VertexParameterStepMode.Vertex) {
-                this.mIndexable = false;
+        // Create each buffer.
+        for (const lBufferSetupData of pReferences.buffer) {
+            // Add each parameter to parameter list.
+            const lParameterList: Array<VertexParameterLayoutBufferParameter> = new Array<VertexParameterLayoutBufferParameter>();
+            const lParameterlayoutList: Array<VertexBufferMemoryLayoutParameterParameter> = new Array<VertexBufferMemoryLayoutParameterParameter>();
+            for (const lParameterSetupData of lBufferSetupData.parameter) {
+                // Create parameter list for the vertex buffer memory layout.
+                lParameterlayoutList.push({
+                    primitiveMultiplier: lParameterSetupData.multiplier,
+                    offset: lParameterSetupData.offset
+                });
+
+                // Create vertex parameter.
+                const lParameterLayout: VertexParameterLayoutBufferParameter = {
+                    name: lParameterSetupData.name,
+                    location: lParameterSetupData.location,
+                    multiplier: lParameterSetupData.multiplier,
+                    offset: lParameterSetupData.offset,
+                    bufferName: lBufferSetupData.name
+                };
+
+                // Add to parameter list and mapping.
+                lParameterList.push(lParameterLayout);
+                this.mParameter.set(lParameterLayout.name, lParameterLayout);
+            }
+
+            // Create empty buffer.
+            const lBufferLayout: VertexParameterLayoutBuffer = {
+                name: lBufferSetupData.name,
+                stepMode: lBufferSetupData.stepMode,
+                format: lBufferSetupData.format,
+                parameter: lParameterList,
+                layout: new VertexBufferMemoryLayout(this.device, {
+                    format: lBufferSetupData.format,
+                    parameter: lParameterlayoutList
+                })
+            };
+
+            this.mBuffer.set(lBufferLayout.name, lBufferLayout);
+
+            // When one buffer is not indexable than no buffer is it.
+            if (lBufferLayout.stepMode === VertexParameterStepMode.Vertex) {
+                lCanBeIndexed = false;
             }
         }
+
+        this.mIndexable = lCanBeIndexed;
     }
 
     /**
@@ -171,11 +256,18 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     }
 }
 
-export type VertexParameterLayoutDefinition = {
+export type VertexParameterLayoutBuffer = {
     name: string;
-    location: number;
-    format: PrimitiveBufferFormat;
-    multiplier: PrimitiveBufferMultiplier; // TODO: Change to bufferLayout to allow different vertex layouts.
     stepMode: VertexParameterStepMode;
+    format: PrimitiveBufferFormat;
+    layout: VertexBufferMemoryLayout;
+    parameter: Array<VertexParameterLayoutBufferParameter>;
 };
 
+export type VertexParameterLayoutBufferParameter = {
+    name: string;
+    location: number;
+    multiplier: PrimitiveBufferMultiplier;
+    offset: number;
+    bufferName: string;
+};

@@ -123,14 +123,14 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer(VertexParameterStepMode.Index)
-                .withParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
+                .withParameter('position', 0, PrimitiveBufferMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer(VertexParameterStepMode.Vertex)
-                .withParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2);
+            pVertexParameterSetup.buffer('uv', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, PrimitiveBufferMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer(VertexParameterStepMode.Vertex)
-                .withParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            pVertexParameterSetup.buffer('normal', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, PrimitiveBufferMultiplier.Vector4);
         });
 
         // Fragment entry.

@@ -12,10 +12,11 @@ import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-la
 import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 
 export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
-    private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
+    private readonly mParameter: Dictionary<string, Set<ComputeStage>>;
     private mPipelineLayout: PipelineLayout | null;
     private readonly mSource: string;
 
@@ -37,16 +38,6 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
     }
 
     /**
-     * Shader pipeline parameters.
-     */
-    public get parameter(): Dictionary<string, PrimitiveBufferFormat> {
-        // Ensure setup is called.
-        this.ensureSetup();
-
-        return this.mParameter;
-    }
-
-    /**
      * Constructor.
      * @param pDevice - Gpu Device reference.
      * @param pSource - Shader source as wgsl code.
@@ -59,7 +50,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
         this.mSource = pSource;
 
         // Init default unset values.
-        this.mParameter = new Dictionary<string, PrimitiveBufferFormat>();
+        this.mParameter = new Dictionary<string, Set<ComputeStage>>();
         this.mPipelineLayout = null;
         this.mEntryPoints = {
             compute: new Dictionary<string, ShaderModuleEntryPointCompute>(),
@@ -125,6 +116,24 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
     }
 
     /**
+     * Get shader pipeline parameters.
+     * 
+     * @param pParameterName - Parameter name.
+     */
+    public parameter(pParameterName: string): Set<ComputeStage> {
+        // Ensure setup is called.
+        this.ensureSetup();
+
+        // Try to read parameter type.
+        const lParameterType: Set<ComputeStage> | undefined = this.mParameter.get(pParameterName);
+        if (!lParameterType) {
+            throw new Exception(`Shader has parameter "${pParameterName}" not defined.`, this);
+        }
+
+        return new Set(lParameterType);
+    }
+
+    /**
      * Setup render targets.
      * Can only be called once and is the only way to create or add target textures.
      * 
@@ -174,7 +183,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
             }
 
             // Add parameter.
-            this.mParameter.set(lParameter.name, lParameter.format);
+            this.mParameter.set(lParameter.name, new Set<ComputeStage>(lParameter.usage));
         }
 
         // Convert fragment entry point informations

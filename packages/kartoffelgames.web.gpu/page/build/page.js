@@ -382,6 +382,8 @@ _asyncToGenerator(function* () {
   }).resize(1200, 1800, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
+    // Set parameter.
+    pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
       pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
@@ -478,11 +480,12 @@ _asyncToGenerator(function* () {
   // Generate render parameter from parameter layout.
   const lMesh = lRenderModule.vertexParameter.create(cube_1.CubeVertexIndices);
   lMesh.set('position', cube_1.CubeVertexPositionData);
-  lMesh.set('uv', cube_1.CubeVertexUvData); // TODO: Convert to Indexbased parameter.
-  lMesh.set('normal', cube_1.CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
+  lMesh.set('uv', cube_1.CubeVertexUvData);
+  lMesh.set('normal', cube_1.CubeVertexNormalData);
   // Create pipeline.
   const lPipeline = lRenderModule.create(lRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
+  lPipeline.setParameter('animationSeconds', 3);
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
   lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
@@ -5268,8 +5271,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -5292,6 +5297,8 @@ class ComputePipeline extends gpu_object_1.GpuObject {
   constructor(pDevice, pShader) {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
     this.mShaderModule = pShader;
+    // Pipeline constants.
+    this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
     this.mShaderModule.shader.addInvalidationListener(() => {
       this.invalidate(ComputePipelineInvalidationType.Shader);
@@ -5299,6 +5306,29 @@ class ComputePipeline extends gpu_object_1.GpuObject {
     this.mShaderModule.shader.layout.addInvalidationListener(() => {
       this.invalidate(ComputePipelineInvalidationType.Shader);
     });
+  }
+  /**
+   * Set optional parameter of pipeline.
+   *
+   * @param pParameterName - name of parameter.
+   * @param pValue - Value.
+   *
+   * @returns this.
+   */
+  setParameter(pParameterName, pValue) {
+    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
+    // Set parameter for each assigned compute stage.
+    for (const lUsage of lParameterUsage) {
+      // Init parameters for computestage when not set.
+      if (!this.mParameter.has(lUsage)) {
+        this.mParameter.set(lUsage, {});
+      }
+      // Set value for compute stage.
+      this.mParameter.get(lUsage)[pParameterName] = pValue;
+    }
+    // Generate pipeline anew.
+    this.invalidate(ComputePipelineInvalidationType.Parameter);
+    return this;
   }
   /**
    * Generate native gpu pipeline data layout.
@@ -5309,8 +5339,8 @@ class ComputePipeline extends gpu_object_1.GpuObject {
       layout: this.mShaderModule.shader.layout.native,
       compute: {
         module: this.mShaderModule.shader.native,
-        entryPoint: this.mShaderModule.entryPoint
-        // TODO: Constants. Yes.
+        entryPoint: this.mShaderModule.entryPoint,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Compute) ?? {}
       }
     };
     // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
@@ -5322,6 +5352,7 @@ var ComputePipelineInvalidationType;
 (function (ComputePipelineInvalidationType) {
   ComputePipelineInvalidationType["Shader"] = "ShaderChange";
   ComputePipelineInvalidationType["Config"] = "ConfigChange";
+  ComputePipelineInvalidationType["Parameter"] = "ParameterChange";
 })(ComputePipelineInvalidationType || (exports.ComputePipelineInvalidationType = ComputePipelineInvalidationType = {}));
 
 /***/ }),
@@ -6372,7 +6403,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const compare_function_enum_1 = __webpack_require__(/*! ../../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
 const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
@@ -6465,6 +6498,8 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     // Set config objects.
     this.mShaderModule = pShaderRenderModule;
     this.mRenderTargets = pRenderTargets;
+    // Pipeline constants.
+    this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
     this.mShaderModule.shader.addInvalidationListener(() => {
       this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
@@ -6488,6 +6523,29 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     this.mPrimitiveFrontFace = primitive_front_face_enum_1.PrimitiveFrontFace.ClockWise;
   }
   /**
+   * Set optional parameter of pipeline.
+   *
+   * @param pParameterName - name of parameter.
+   * @param pValue - Value.
+   *
+   * @returns this.
+   */
+  setParameter(pParameterName, pValue) {
+    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
+    // Set parameter for each assigned compute stage.
+    for (const lUsage of lParameterUsage) {
+      // Init parameters for computestage when not set.
+      if (!this.mParameter.has(lUsage)) {
+        this.mParameter.set(lUsage, {});
+      }
+      // Set value for compute stage.
+      this.mParameter.get(lUsage)[pParameterName] = pValue;
+    }
+    // Generate pipeline anew.
+    this.invalidate(VertexFragmentPipelineInvalidationType.Parameter);
+    return this;
+  }
+  /**
    * Generate native gpu pipeline data layout.
    */
   generateNative() {
@@ -6499,8 +6557,8 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       vertex: {
         module: this.mShaderModule.shader.native,
         entryPoint: this.mShaderModule.vertexEntryPoint,
-        buffers: this.mShaderModule.vertexParameter.native
-        // TODO: Yes constants.
+        buffers: this.mShaderModule.vertexParameter.native,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Vertex) ?? {}
       },
       primitive: this.generatePrimitive()
     };
@@ -6518,8 +6576,8 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       lPipelineDescriptor.fragment = {
         module: this.mShaderModule.shader.native,
         entryPoint: this.module.fragmentEntryPoint,
-        targets: lFragmentTargetList
-        // TODO: constants
+        targets: lFragmentTargetList,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Fragment) ?? {}
       };
     }
     // Setup optional depth attachment.
@@ -6574,6 +6632,7 @@ var VertexFragmentPipelineInvalidationType;
   VertexFragmentPipelineInvalidationType["Shader"] = "ShaderChange";
   VertexFragmentPipelineInvalidationType["RenderTargets"] = "RenderTargetsChange";
   VertexFragmentPipelineInvalidationType["Config"] = "ConfigChange";
+  VertexFragmentPipelineInvalidationType["Parameter"] = "ParameterChange";
 })(VertexFragmentPipelineInvalidationType || (exports.VertexFragmentPipelineInvalidationType = VertexFragmentPipelineInvalidationType = {}));
 
 /***/ }),
@@ -6730,13 +6789,13 @@ class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
    *
    * @returns this.
    */
-  parameter(pName, pFormat) {
+  parameter(pName, ...pStageUsage) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     // Add parameter.
     this.setupData.parameter.push({
       name: pName,
-      format: pFormat
+      usage: pStageUsage
     });
     return this;
   }
@@ -6993,14 +7052,6 @@ class Shader extends gpu_object_1.GpuObject {
     return super.native;
   }
   /**
-   * Shader pipeline parameters.
-   */
-  get parameter() {
-    // Ensure setup is called.
-    this.ensureSetup();
-    return this.mParameter;
-  }
-  /**
    * Constructor.
    * @param pDevice - Gpu Device reference.
    * @param pSource - Shader source as wgsl code.
@@ -7067,6 +7118,21 @@ class Shader extends gpu_object_1.GpuObject {
     return new shader_render_module_1.ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName);
   }
   /**
+   * Get shader pipeline parameters.
+   *
+   * @param pParameterName - Parameter name.
+   */
+  parameter(pParameterName) {
+    // Ensure setup is called.
+    this.ensureSetup();
+    // Try to read parameter type.
+    const lParameterType = this.mParameter.get(pParameterName);
+    if (!lParameterType) {
+      throw new core_1.Exception(`Shader has parameter "${pParameterName}" not defined.`, this);
+    }
+    return new Set(lParameterType);
+  }
+  /**
    * Setup render targets.
    * Can only be called once and is the only way to create or add target textures.
    *
@@ -7111,7 +7177,7 @@ class Shader extends gpu_object_1.GpuObject {
         throw new core_1.Exception(`Can't add parameter "${lParameter.name}" more than once.`, this);
       }
       // Add parameter.
-      this.mParameter.set(lParameter.name, lParameter.format);
+      this.mParameter.set(lParameter.name, new Set(lParameter.usage));
     }
     // Convert fragment entry point informations
     for (const lFragmentEntry of pReferences.fragmentEntrypoints) {
@@ -10421,7 +10487,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / 3000) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / (1000 * f32(animationSeconds))) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);\r\n}");
 
 /***/ }),
 
@@ -15076,7 +15142,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("cd19c986fa66ee93f992")
+/******/ 		__webpack_require__.h = () => ("944df380311bce3250a4")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

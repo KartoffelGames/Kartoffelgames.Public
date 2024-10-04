@@ -121,6 +121,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Create shader.
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
+        // Set parameter.
+        pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
+
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
             pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
@@ -261,12 +264,13 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lRenderModule.vertexParameter.create(CubeVertexIndices);
     lMesh.set('position', CubeVertexPositionData);
-    lMesh.set('uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
-    lMesh.set('normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
+    lMesh.set('uv', CubeVertexUvData);
+    lMesh.set('normal', CubeVertexNormalData);
 
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.Front;
+    lPipeline.setParameter('animationSeconds', 3);
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);

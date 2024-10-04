@@ -1,6 +1,6 @@
+import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { BindGroupLayout } from '../../binding/bind-group-layout';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { VertexParameterLayout } from '../../pipeline/parameter/vertex-parameter-layout';
 import { VertexParameterLayoutSetup } from '../../pipeline/parameter/vertex-parameter-layout-setup';
 import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader';
@@ -87,12 +87,12 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * 
      * @returns this. 
      */
-    public parameter(pName: string, pFormat: PrimitiveBufferFormat): this {
+    public parameter(pName: string, ...pStageUsage: Array<ComputeStage>): this {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
         // Add parameter.
-        this.setupData.parameter.push({ name: pName, format: pFormat });
+        this.setupData.parameter.push({ name: pName, usage: pStageUsage });
 
         return this;
     }
@@ -136,7 +136,7 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
         // Parameter.
         pDataReference.parameter = new Array<{
             name: string;
-            format: PrimitiveBufferFormat;
+            usage: Array<ComputeStage>;
         }>();
 
         // Bind groups.
@@ -174,8 +174,8 @@ export type ShaderSetupReferenceData = {
 
     // Parameter.
     parameter: Array<{
-        name: string; format:
-        PrimitiveBufferFormat;
+        name: string;
+        usage: Array<ComputeStage>;
     }>;
 
     // Bind groups.

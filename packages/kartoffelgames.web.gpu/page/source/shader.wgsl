@@ -92,6 +92,8 @@ struct VertexIn {
     @location(2) normal: vec4<f32>
 }
 
+override animationSeconds: f32 = 3; 
+
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
     var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;
@@ -113,7 +115,7 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
     // Calculate random position and animate a 100m spread. 
     var randPosition: vec4<f32> = instancePosition; // Current start.
     randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.
-    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / 3000) + (hashStartDisplacement * 100)) * 100;
+    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / (1000 * f32(animationSeconds))) + (hashStartDisplacement * 100)) * 100;
     randPosition[3] = 1; // Reset w coord.
 
     var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;

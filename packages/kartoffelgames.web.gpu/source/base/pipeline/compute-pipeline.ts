@@ -1,3 +1,5 @@
+import { Dictionary } from '@kartoffelgames/core';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
@@ -5,6 +7,7 @@ import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
 export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline> {
+    private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private readonly mShaderModule: ShaderComputeModule;
 
     /**
@@ -31,6 +34,9 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
         super(pDevice, GpuObjectLifeTime.Persistent);
         this.mShaderModule = pShader;
 
+        // Pipeline constants.
+        this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
+
         // Listen for shader changes.
         this.mShaderModule.shader.addInvalidationListener(() => {
             this.invalidate(ComputePipelineInvalidationType.Shader);
@@ -38,6 +44,34 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
         this.mShaderModule.shader.layout.addInvalidationListener(() => {
             this.invalidate(ComputePipelineInvalidationType.Shader);
         });
+    }
+
+    /**
+     * Set optional parameter of pipeline.
+     * 
+     * @param pParameterName - name of parameter.
+     * @param pValue - Value.
+     * 
+     * @returns this. 
+     */
+    public setParameter(pParameterName: string, pValue: number): this {
+        const lParameterUsage: Set<ComputeStage> | undefined = this.mShaderModule.shader.parameter(pParameterName);
+
+        // Set parameter for each assigned compute stage.
+        for (const lUsage of lParameterUsage) {
+            // Init parameters for computestage when not set.
+            if (!this.mParameter.has(lUsage)) {
+                this.mParameter.set(lUsage, {});
+            }
+
+            // Set value for compute stage.
+            this.mParameter.get(lUsage)![pParameterName] = pValue;
+        }
+
+        // Generate pipeline anew.
+        this.invalidate(ComputePipelineInvalidationType.Parameter);
+
+        return this;
     }
 
     /**
@@ -50,7 +84,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
             compute: {
                 module: this.mShaderModule.shader.native,
                 entryPoint: this.mShaderModule.entryPoint,
-                // TODO: Constants. Yes.
+                constants: this.mParameter.get(ComputeStage.Compute) ?? {}
             }
         };
 
@@ -61,5 +95,6 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
 
 export enum ComputePipelineInvalidationType {
     Shader = 'ShaderChange',
-    Config = 'ConfigChange'
+    Config = 'ConfigChange',
+    Parameter = 'ParameterChange'
 }

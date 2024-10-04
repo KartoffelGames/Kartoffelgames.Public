@@ -1,4 +1,6 @@
+import { Dictionary } from '@kartoffelgames/core';
 import { CompareFunction } from '../../constant/compare-function.enum';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
@@ -12,11 +14,13 @@ import { RenderTargets, RenderTargetsInvalidationType } from './target/render-ta
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline> {
     private mDepthCompare: CompareFunction;
     private mDepthWriteEnabled: boolean;
+    private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private mPrimitiveCullMode: PrimitiveCullMode;
     private mPrimitiveFrontFace: PrimitiveFrontFace;
     private mPrimitiveTopology: PrimitiveTopology;
     private readonly mRenderTargets: RenderTargets;
     private readonly mShaderModule: ShaderRenderModule;
+
 
     /**
      * Set depth compare function.
@@ -113,6 +117,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mShaderModule = pShaderRenderModule;
         this.mRenderTargets = pRenderTargets;
 
+        // Pipeline constants.
+        this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
+
         // Listen for shader changes.
         this.mShaderModule.shader.addInvalidationListener(() => {
             this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
@@ -140,6 +147,34 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
     }
 
     /**
+     * Set optional parameter of pipeline.
+     * 
+     * @param pParameterName - name of parameter.
+     * @param pValue - Value.
+     * 
+     * @returns this. 
+     */
+    public setParameter(pParameterName: string, pValue: number): this {
+        const lParameterUsage: Set<ComputeStage> | undefined = this.mShaderModule.shader.parameter(pParameterName);
+
+        // Set parameter for each assigned compute stage.
+        for (const lUsage of lParameterUsage) {
+            // Init parameters for computestage when not set.
+            if (!this.mParameter.has(lUsage)) {
+                this.mParameter.set(lUsage, {});
+            }
+
+            // Set value for compute stage.
+            this.mParameter.get(lUsage)![pParameterName] = pValue;
+        }
+        
+        // Generate pipeline anew.
+        this.invalidate(VertexFragmentPipelineInvalidationType.Parameter);
+
+        return this;
+    }
+
+    /**
      * Generate native gpu pipeline data layout.
      */
     protected override generateNative(): GPURenderPipeline {
@@ -152,8 +187,8 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             vertex: {
                 module: this.mShaderModule.shader.native,
                 entryPoint: this.mShaderModule.vertexEntryPoint,
-                buffers: this.mShaderModule.vertexParameter.native
-                // TODO: Yes constants.
+                buffers: this.mShaderModule.vertexParameter.native,
+                constants: this.mParameter.get(ComputeStage.Vertex) ?? {}
             },
             primitive: this.generatePrimitive()
         };
@@ -173,8 +208,8 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             lPipelineDescriptor.fragment = {
                 module: this.mShaderModule.shader.native,
                 entryPoint: this.module.fragmentEntryPoint,
-                targets: lFragmentTargetList
-                // TODO: constants
+                targets: lFragmentTargetList,
+                constants: this.mParameter.get(ComputeStage.Fragment) ?? {}
             };
         }
 
@@ -235,5 +270,6 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 export enum VertexFragmentPipelineInvalidationType {
     Shader = 'ShaderChange',
     RenderTargets = 'RenderTargetsChange',
-    Config = 'ConfigChange'
+    Config = 'ConfigChange',
+    Parameter = 'ParameterChange'
 }

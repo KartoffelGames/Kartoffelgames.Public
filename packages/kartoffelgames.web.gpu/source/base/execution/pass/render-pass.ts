@@ -73,7 +73,7 @@ export class RenderPass extends GpuObject {
             // Validate same layout bind layout.
             const lBindGroupLayout = lPipelineLayout.getGroupLayout(lGroupName);
             if (lBindDataGroup.layout !== lBindGroupLayout) {
-                throw new Exception('Source bind group layout does not match target layout.', this);
+                throw new Exception(`Source bind group layout for "${lGroupName}" does not match target layout.`, this);
             }
 
             lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;

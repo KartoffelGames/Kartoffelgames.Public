@@ -291,6 +291,7 @@ const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/t
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const cube_1 = __webpack_require__(/*! ./cube/cube */ "./page/source/cube/cube.ts");
+const light_box_shader_wgsl_1 = __webpack_require__(/*! ./light-box-shader.wgsl */ "./page/source/light-box-shader.wgsl");
 const shader_wgsl_1 = __webpack_require__(/*! ./shader.wgsl */ "./page/source/shader.wgsl");
 const ambient_light_1 = __webpack_require__(/*! ./something_better/light/ambient-light */ "./page/source/something_better/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./something_better/transform */ "./page/source/something_better/transform.ts");
@@ -381,7 +382,7 @@ _asyncToGenerator(function* () {
     pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
   }).resize(1200, 1800, 4);
   // Create shader.
-  const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
+  const lWoodBoxShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
     // Set parameter.
     pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
     // Vertex entry.
@@ -404,7 +405,7 @@ _asyncToGenerator(function* () {
       pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
         pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
       });
-      pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
+      pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
         pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
         pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
         pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
@@ -417,16 +418,34 @@ _asyncToGenerator(function* () {
       pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm, false);
     }));
   });
+  // Create shader.
+  const lLightBoxShader = lGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
+    // Vertex entry.
+    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    });
+    // Fragment entry.
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    // Object bind group.
+    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+    }));
+    // World bind group.
+    pShaderSetup.group(1, lWoodBoxShader.layout.getGroupLayout('world'));
+  });
   // Create render module from shader.
-  const lRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
+  const lWoodBoxRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
+  const lLightBoxRenderModule = lLightBoxShader.createRenderModule('vertex_main', 'fragment_main');
   /*
    * Transformation and position group.
    */
-  const lTransformationGroup = lRenderModule.layout.getGroupLayout('object').create();
+  const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
   // Create transformation.
-  const lCubeTransform = new transform_1.Transform();
-  lCubeTransform.setScale(1, 1, 1);
-  lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+  const lWoodBoxTransform = new transform_1.Transform();
+  lWoodBoxTransform.setScale(1, 1, 1);
+  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
   // Create instance positions.
   const lCubeInstanceTransformationData = new Array();
   for (let lWidthIndex = 0; lWidthIndex < gWidth; lWidthIndex++) {
@@ -436,11 +455,19 @@ _asyncToGenerator(function* () {
       }
     }
   }
-  lTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+  lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+  /*
+   * Transformation and position group.
+   */
+  const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
+  // Create transformation.
+  const lLightBoxTransform = new transform_1.Transform();
+  lLightBoxTransform.setScale(1, 1, 1);
+  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
   /*
    * Camera and world group.
    */
-  const lWorldGroup = lRenderModule.layout.getGroupLayout('world').create();
+  const lWorldGroup = lWoodBoxRenderModule.layout.getGroupLayout('world').create();
   // Create camera perspective.
   const lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
   lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
@@ -472,23 +499,26 @@ _asyncToGenerator(function* () {
   /*
    * User defined group.
    */
-  const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
+  const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
   // Setup cube texture.
-  yield lUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
+  yield lWoodBoxUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
   // Setup Sampler.
-  lUserGroup.data('cubeTextureSampler').createSampler();
+  lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
-  const lMesh = lRenderModule.vertexParameter.create(cube_1.CubeVertexIndices);
+  const lMesh = lWoodBoxRenderModule.vertexParameter.create(cube_1.CubeVertexIndices);
   lMesh.set('position', cube_1.CubeVertexPositionData);
   lMesh.set('uv', cube_1.CubeVertexUvData);
   lMesh.set('normal', cube_1.CubeVertexNormalData);
   // Create pipeline.
-  const lPipeline = lRenderModule.create(lRenderTargets);
-  lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
-  lPipeline.setParameter('animationSeconds', 3);
+  const lWoodBoxPipeline = lWoodBoxRenderModule.create(lRenderTargets);
+  lWoodBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
+  lWoodBoxPipeline.setParameter('animationSeconds', 3);
+  const lLightBoxPipeline = lLightBoxRenderModule.create(lRenderTargets);
+  lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
-  lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
+  lRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, lWorldGroup, lWoodBoxUserGroup], gWidth * gHeight * gDepth);
+  lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], 2);
   /**
    * Controls
    */
@@ -3514,7 +3544,7 @@ class RenderPass extends gpu_object_1.GpuObject {
       // Validate same layout bind layout.
       const lBindGroupLayout = lPipelineLayout.getGroupLayout(lGroupName);
       if (lBindDataGroup.layout !== lBindGroupLayout) {
-        throw new core_1.Exception('Source bind group layout does not match target layout.', this);
+        throw new core_1.Exception(`Source bind group layout for "${lGroupName}" does not match target layout.`, this);
       }
       lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;
     }
@@ -5272,9 +5302,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
-const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -10476,6 +10506,21 @@ Object.defineProperty(exports, "__esModule", ({value:true}));exports.fromCodePoi
 
 /***/ }),
 
+/***/ "./page/source/light-box-shader.wgsl":
+/*!*******************************************!*\
+  !*** ./page/source/light-box-shader.wgsl ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
+
+/***/ }),
+
 /***/ "./page/source/shader.wgsl":
 /*!*********************************!*\
   !*** ./page/source/shader.wgsl ***!
@@ -15142,7 +15187,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("944df380311bce3250a4")
+/******/ 		__webpack_require__.h = () => ("a549d8aa44e943ef442c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

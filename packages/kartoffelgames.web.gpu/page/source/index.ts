@@ -20,6 +20,7 @@ import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
+import lightBoxShader from './light-box-shader.wgsl';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
 import { Transform, TransformMatrix } from './something_better/transform';
@@ -120,7 +121,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     }).resize(1200, 1800, 4);
 
     // Create shader.
-    const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
+    const lWoodBoxShader = lGpu.shader(shader).setup((pShaderSetup) => {
         // Set parameter.
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
@@ -162,7 +163,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 });
 
-            pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment, StorageBindingType.Read)
+            pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
                 .withArray().withStruct((pStruct) => {
                     pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                     pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
@@ -184,18 +185,47 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         }));
     });
 
+    // Create shader.
+    const lLightBoxShader = lGpu.shader(lightBoxShader).setup((pShaderSetup) => {
+        // Vertex entry.
+        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
+            pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
+                .withParameter('position', 0, PrimitiveBufferMultiplier.Vector4);
+
+            pVertexParameterSetup.buffer('uv', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, PrimitiveBufferMultiplier.Vector2);
+
+            pVertexParameterSetup.buffer('normal', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, PrimitiveBufferMultiplier.Vector4);
+        });
+
+        // Fragment entry.
+        pShaderSetup.fragmentEntryPoint('fragment_main')
+            .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+
+        // Object bind group.
+        pShaderSetup.group(0, new BindGroupLayout(lGpu, 'object').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        }));
+
+        // World bind group.
+        pShaderSetup.group(1, lWoodBoxShader.layout.getGroupLayout('world'));
+    });
+
     // Create render module from shader.
-    const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
+    const lWoodBoxRenderModule: ShaderRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
+    const lLightBoxRenderModule = lLightBoxShader.createRenderModule('vertex_main', 'fragment_main');
 
     /*
      * Transformation and position group. 
      */
-    const lTransformationGroup = lRenderModule.layout.getGroupLayout('object').create();
+    const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    const lCubeTransform: Transform = new Transform();
-    lCubeTransform.setScale(1, 1, 1);
-    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+    const lWoodBoxTransform: Transform = new Transform();
+    lWoodBoxTransform.setScale(1, 1, 1);
+    lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -206,12 +236,22 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
             }
         }
     }
-    lTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+    lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+
+    /*
+     * Transformation and position group. 
+     */
+    const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
+
+    // Create transformation.
+    const lLightBoxTransform: Transform = new Transform();
+    lLightBoxTransform.setScale(1, 1, 1);
+    lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
 
     /*
      * Camera and world group. 
      */
-    const lWorldGroup = lRenderModule.layout.getGroupLayout('world').create();
+    const lWorldGroup = lWoodBoxRenderModule.layout.getGroupLayout('world').create();
 
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
@@ -253,28 +293,32 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     /*
      * User defined group.
      */
-    const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
+    const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    await lUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
+    await lWoodBoxUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
 
     // Setup Sampler.
-    lUserGroup.data('cubeTextureSampler').createSampler();
+    lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
 
     // Generate render parameter from parameter layout.
-    const lMesh: VertexParameter = lRenderModule.vertexParameter.create(CubeVertexIndices);
+    const lMesh: VertexParameter = lWoodBoxRenderModule.vertexParameter.create(CubeVertexIndices);
     lMesh.set('position', CubeVertexPositionData);
     lMesh.set('uv', CubeVertexUvData);
     lMesh.set('normal', CubeVertexNormalData);
 
     // Create pipeline.
-    const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRenderTargets);
-    lPipeline.primitiveCullMode = PrimitiveCullMode.Front;
-    lPipeline.setParameter('animationSeconds', 3);
+    const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(lRenderTargets);
+    lWoodBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
+    lWoodBoxPipeline.setParameter('animationSeconds', 3);
+
+    const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(lRenderTargets);
+    lLightBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
-    lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
+    lRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, lWorldGroup, lWoodBoxUserGroup], gWidth * gHeight * gDepth);
+    lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], 2);
 
     /**
      * Controls

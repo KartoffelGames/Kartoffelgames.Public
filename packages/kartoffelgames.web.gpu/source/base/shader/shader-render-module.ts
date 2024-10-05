@@ -1,7 +1,6 @@
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
@@ -57,7 +56,7 @@ export class ShaderRenderModule extends GpuObject<null, ShaderRenderModuleInvali
      * @param pSize - Workgroup size.
      */
     public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName?: string) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mVertexEntryPoint = pVertexEntryPointName;
         this.mVertexParameter = pVertexParameter;

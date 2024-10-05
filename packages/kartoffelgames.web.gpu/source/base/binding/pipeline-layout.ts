@@ -1,7 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectUpdateListener } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout, BindGroupLayoutInvalidationType, BindLayout } from './bind-group-layout';
 
@@ -32,7 +31,7 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
      * @param pInitialGroups - Initial groups.
      */
     public constructor(pDevice: GpuDevice, pInitialGroups: Dictionary<number, BindGroupLayout>) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Init storages.
         this.mBindGroupNames = new Dictionary<string, number>();

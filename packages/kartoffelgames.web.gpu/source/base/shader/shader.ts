@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BindGroupLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -12,7 +12,6 @@ import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-la
 import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
-import { ComputeStage } from '../../constant/compute-stage.enum';
 
 export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
@@ -44,7 +43,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
      * @param pLayout - Shader layout information.
      */
     public constructor(pDevice: GpuDevice, pSource: string) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Create shader information for source.
         this.mSource = pSource;

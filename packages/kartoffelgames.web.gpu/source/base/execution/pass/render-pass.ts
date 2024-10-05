@@ -1,10 +1,9 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BindGroup, BindGroupInvalidationType } from '../../binding/bind-group';
-import { GpuDevice } from '../../gpu/gpu-device';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
+import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
@@ -23,7 +22,7 @@ export class RenderPass extends GpuObject {
      * @param pStaticBundle - Bundle is static and does not update very often.
      */
     public constructor(pDevice: GpuDevice, pRenderTargets: RenderTargets, pStaticBundle: boolean) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mInstructionList = new Array<RenderInstruction>();
         this.mRenderTargets = pRenderTargets;
@@ -37,7 +36,12 @@ export class RenderPass extends GpuObject {
         // Update bundle when render target has changed.
         pRenderTargets.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        }, [RenderTargetsInvalidationType.Config]);  // TODO: Update pipeline on format change.
+        }, [
+            RenderTargetsInvalidationType.TextureFormatChange,
+            RenderTargetsInvalidationType.DescriptorRebuild,
+            RenderTargetsInvalidationType.Resize,
+            RenderTargetsInvalidationType.MultisampleChange
+        ]);
     }
 
     /**

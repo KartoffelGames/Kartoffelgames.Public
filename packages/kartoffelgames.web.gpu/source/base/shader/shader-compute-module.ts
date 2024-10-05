@@ -1,7 +1,6 @@
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { ComputePipeline } from '../pipeline/compute-pipeline';
 import { Shader } from './shader';
 
@@ -61,7 +60,7 @@ export class ShaderComputeModule extends GpuObject<null, ShaderComputeModuleInva
      * @param pSize - Workgroup size.
      */
     public constructor(pDevice: GpuDevice, pShader: Shader, pEntryPointName: string, pSize?: [number, number, number]) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mEntryPoint = pEntryPointName;
         this.mShader = pShader;

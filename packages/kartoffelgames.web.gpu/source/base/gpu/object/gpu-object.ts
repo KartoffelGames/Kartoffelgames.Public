@@ -1,7 +1,6 @@
 import { Dictionary, Exception, IDeconstructable, Writeable } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
 import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
-import { GpuObjectLifeTime } from './gpu-object-life-time.enum';
 import { GpuObjectSetup } from './gpu-object-setup';
 
 /**
@@ -41,7 +40,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * @param pDevice - Gpu device.
      * @param pNativeLifeTime - Lifetime of native object.
      */
-    public constructor(pDevice: GpuDevice, pNativeLifeTime: GpuObjectLifeTime) {
+    public constructor(pDevice: GpuDevice) {
         // Save static settings.
         this.mDevice = pDevice;
         this.mIsSetup = false;
@@ -53,23 +52,6 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         // Init lists.
         this.mUpdateListenerList = new Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>();
         this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
-
-        // Validate life time.
-        switch (pNativeLifeTime) {
-            case GpuObjectLifeTime.Persistent: {
-                // Do nothing.
-                break;
-            }
-            case GpuObjectLifeTime.Frame: {
-                // TODO: Remove it on deconstruct.
-                this.mDevice.addFrameChangeListener(() => {
-                    this.mInvalidationReasons.lifeTimeReached = true;
-
-                    this.invalidate('' as any);
-                });
-                break;
-            }
-        }
     }
 
     /**
@@ -77,9 +59,13 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * 
      * @param pListener - Listener.
      * @param pAffected - Trigger listener only on those reasons.
+     * 
+     * @returns this.
      */
-    public addInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>, pAffected?: Array<TInvalidationType>): void {
+    public addInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>, pAffected?: Array<TInvalidationType>): this {
         this.mUpdateListenerList.set(pListener, pAffected ? new Set(pAffected) : null);
+
+        return this;
     }
 
     /**
@@ -100,15 +86,22 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     /**
      * Invalidate native gpu object so it will be created again.
      */
-    public invalidate(pReason: TInvalidationType): void {
-        // Add invalidation reason.
-        this.mInvalidationReasons.add(pReason);
+    public invalidate(...pReasons: Array<TInvalidationType>): void {
+        // TODO: This must have a good performance. 
+        // On length = exec in single mode, else use iterator. 
+        // Pregroup listener with dictionary so iterator only needs to iterate needed. May worse remove listener behaviour.
 
-        // Call parent update listerner.
-        for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
-            // Call listener only when is has a affected reason.
-            if (!lAffected || lAffected.has(pReason)) {
-                lInvalidationListener(pReason);
+        // Invalidate for each reason.
+        for (const lReason of pReasons) {
+            // Add invalidation reason.
+            this.mInvalidationReasons.add(lReason);
+
+            // Call parent update listerner.
+            for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
+                // Call listener only when is has a affected reason.
+                if (!lAffected || lAffected.has(lReason)) {
+                    lInvalidationListener(lReason);
+                }
             }
         }
     }
@@ -243,7 +236,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         }
 
         // When native is generated and is invalid, try to update it.
-        if (this.mNativeObject !== null && (this.mInvalidationReasons.any())) {
+        if (this.mNativeObject !== null && this.mInvalidationReasons.any()) {
             // Try to update native.
             const lUpdateSuccessfull: boolean = this.updateNative(this.mNativeObject, this.mInvalidationReasons);
             if (lUpdateSuccessfull) {

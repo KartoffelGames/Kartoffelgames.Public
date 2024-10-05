@@ -5,11 +5,10 @@ import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectInvalidationReasons } from '../../gpu/object/gpu-object-invalidation-reasons';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
-import { CanvasTexture } from '../../texture/canvas-texture';
-import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { CanvasTexture, CanvasTextureInvalidationType } from '../../texture/canvas-texture';
+import { FrameBufferTexture, FrameBufferTextureInvalidationType } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
 
@@ -95,7 +94,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @param pDevice - Gpu device reference.
      */
     public constructor(pDevice: GpuDevice) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Set "fixed" 
         this.mSize = { width: 1, height: 1, multisampleLevel: 1 };
@@ -131,6 +130,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Apply resize for all textures.
         this.applyResize();
 
+        // Invalidation triggers through each texture.
+
         return this;
     }
 
@@ -150,6 +151,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * Generate native gpu bind data group.
      */
     protected override generateNative(): GPURenderPassDescriptor {
+        // Invalidate bc. descriptor is rebuilding.
+        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+
         // Create color attachment list in order.
         const lColorAttachmentList: Array<RenderTargetsColorTarget> = new Array<RenderTargetsColorTarget>();
         for (const lColorAttachment of this.mColorTextures.values()) {
@@ -250,9 +254,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             };
 
             // Passthrough depth stencil texture changes.
-            pReferenceData.depthStencil.texture.addInvalidationListener(() => {
-                this.invalidate(RenderTargetsInvalidationType.Texture);
-            });
+            this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
 
             // Add render attachment texture usage to depth stencil texture.
             pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
@@ -306,9 +308,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             }
 
             // Passthrough color texture changes. Any change.
-            lAttachment.texture.addInvalidationListener(() => {
-                this.invalidate(RenderTargetsInvalidationType.Texture);
-            });
+            this.setTextureInvalidationListener(lAttachment.texture);
 
             // Add render attachment texture usage to color texture.
             lAttachment.texture.extendUsage(TextureUsage.RenderAttachment);
@@ -355,7 +355,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     protected override updateNative(pNative: GPURenderPassDescriptor, pReasons: GpuObjectInvalidationReasons<RenderTargetsInvalidationType>): boolean {
         // Native can not be updated on any config changes.
-        if (pReasons.has(RenderTargetsInvalidationType.Config)) {
+        if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
             return false;
         }
 
@@ -451,6 +451,74 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             this.mDepthStencilTexture.target.width = this.mSize.width;
         }
     }
+
+    /**
+     * Add all needed texture invalidation listener for passthrow and descriptor invalidation. 
+     * 
+     * @param pTexture - Texture. 
+     */
+    private setTextureInvalidationListener(pTexture: FrameBufferTexture | CanvasTexture): void {
+        // Frame buffer texture invalidation listener.
+        if (pTexture instanceof FrameBufferTexture) {
+            // Rebuild descriptor only on view changes.
+            pTexture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+            }, [FrameBufferTextureInvalidationType.ViewRebuild]);
+
+            // Passthough other invalidations.
+            pTexture.addInvalidationListener((pType: FrameBufferTextureInvalidationType) => {
+                switch (pType) {
+                    case FrameBufferTextureInvalidationType.Resize: {
+                        this.invalidate(RenderTargetsInvalidationType.Resize);
+                        break;
+                    }
+                    case FrameBufferTextureInvalidationType.MultisampleChange: {
+                        this.invalidate(RenderTargetsInvalidationType.MultisampleChange);
+                        break;
+                    }
+                    case FrameBufferTextureInvalidationType.FormatChange: {
+                        this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
+                        break;
+                    }
+                }
+
+            }, [
+                FrameBufferTextureInvalidationType.Resize,
+                FrameBufferTextureInvalidationType.MultisampleChange,
+                FrameBufferTextureInvalidationType.FormatChange
+            ]);
+
+            return;
+        }
+
+        // Frame buffer texture invalidation listener.
+        if (pTexture instanceof CanvasTexture) {
+            // Rebuild descriptor only on view changes.
+            pTexture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+            }, [CanvasTextureInvalidationType.ViewRebuild]);
+
+            // Passthough other invalidations.
+            pTexture.addInvalidationListener((pType: CanvasTextureInvalidationType) => {
+                switch (pType) {
+                    case CanvasTextureInvalidationType.Resize: {
+                        this.invalidate(RenderTargetsInvalidationType.Resize);
+                        break;
+                    }
+                    case CanvasTextureInvalidationType.FormatChange: {
+                        this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
+                        break;
+                    }
+                }
+
+            }, [
+                CanvasTextureInvalidationType.Resize,
+                CanvasTextureInvalidationType.FormatChange
+            ]);
+
+            return;
+        }
+    }
 }
 
 type TextureSize = {
@@ -485,6 +553,9 @@ export type RenderTargetsColorTarget = {
 };
 
 export enum RenderTargetsInvalidationType {
-    Config = 'ConfigChange',
-    Texture = 'TextureChange'
+    Resize = 'Resize',
+    MultisampleChange = 'MultisampleChange',
+    TextureFormatChange = 'LayoutChange',
+    ViewRebuild = 'ViewRebuild',
+    DescriptorRebuild = 'DescriptorRebuild'
 }

@@ -283,6 +283,7 @@ const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bi
 const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const render_targets_1 = __webpack_require__(/*! ../../source/base/pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
@@ -484,16 +485,9 @@ _asyncToGenerator(function* () {
   lPerspectiveProjection.angleOfView = 72;
   lPerspectiveProjection.near = 0.1;
   lPerspectiveProjection.far = 9999999;
-  // Resize canvas.
-  (() => {
-    const lCanvasWrapper = document.querySelector('.canvas-wrapper');
-    new ResizeObserver(() => {
-      const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
-      const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
-      // Resize displayed render targets.
-      lPerspectiveProjection.aspectRatio = lNewCanvasWidth / lNewCanvasHeight;
-    }).observe(lCanvasWrapper);
-  })();
+  lRenderTargets.addInvalidationListener(() => {
+    lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
+  }, [render_targets_1.RenderTargetsInvalidationType.Resize]);
   // Create camera.
   const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
   lCamera.transformation.setTranslation(0, 0, -4);
@@ -2068,7 +2062,6 @@ exports.BindGroupLayoutInvalidationType = exports.BindGroupLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
@@ -2118,7 +2111,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
    * @param pName - Name of binding group.
    */
   constructor(pDevice, pName) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Set binding group name.
     this.mName = pName;
     // Init bindings.
@@ -2333,7 +2326,6 @@ const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/stora
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
@@ -2361,7 +2353,7 @@ class BindGroup extends gpu_object_1.GpuObject {
    * @param pDevice - Gpu Device reference.
    */
   constructor(pDevice, pBindGroupLayout) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mLayout = pBindGroupLayout;
     this.mBindData = new core_1.Dictionary();
     // Register change listener for layout changes.
@@ -2523,7 +2515,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.PipelineLayoutInvalidationType = exports.PipelineLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class PipelineLayout extends gpu_object_1.GpuObject {
   /**
    * Bind group names.
@@ -2544,7 +2535,7 @@ class PipelineLayout extends gpu_object_1.GpuObject {
    * @param pInitialGroups - Initial groups.
    */
   constructor(pDevice, pInitialGroups) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Init storages.
     this.mBindGroupNames = new core_1.Dictionary();
     this.mInitialBindGroups = new core_1.Dictionary();
@@ -2996,7 +2987,6 @@ exports.GpuBufferInvalidationType = exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -3067,7 +3057,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
    * @param pInitialData  - Inital data. Can be empty. Or Buffer size.
    */
   constructor(pDevice, pLayout, pDataType, pVariableSizeCount = null) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mLayout = pLayout;
     // Set config.
     this.mDataType = pDataType;
@@ -3340,7 +3330,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.GpuExecution = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class GpuExecution extends gpu_object_1.GpuObject {
   /**
    * GPU command encoder.
@@ -3352,7 +3341,7 @@ class GpuExecution extends gpu_object_1.GpuObject {
     return this.mEncoder;
   }
   constructor(pDevice, pExecution) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mExecutionFunction = pExecution;
     this.mEncoder = null;
   }
@@ -3386,14 +3375,13 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ComputePass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class ComputePass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
    * @param pDevice - Device reference.
    */
   constructor(pDevice) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mInstructionList = new Array();
   }
   /**
@@ -3531,7 +3519,6 @@ exports.RenderPass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/base/binding/bind-group.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
 class RenderPass extends gpu_object_1.GpuObject {
   /**
@@ -3542,7 +3529,7 @@ class RenderPass extends gpu_object_1.GpuObject {
    * @param pStaticBundle - Bundle is static and does not update very often.
    */
   constructor(pDevice, pRenderTargets, pStaticBundle) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mInstructionList = new Array();
     this.mRenderTargets = pRenderTargets;
     this.mBundleConfig = {
@@ -3554,7 +3541,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Update bundle when render target has changed.
     pRenderTargets.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    }, [render_targets_1.RenderTargetsInvalidationType.Config]); // TODO: Update pipeline on format change.
+    }, [render_targets_1.RenderTargetsInvalidationType.TextureFormatChange, render_targets_1.RenderTargetsInvalidationType.DescriptorRebuild, render_targets_1.RenderTargetsInvalidationType.Resize, render_targets_1.RenderTargetsInvalidationType.MultisampleChange]);
   }
   /**
    * Add instruction step.
@@ -4211,20 +4198,10 @@ class GpuObjectInvalidationReasons {
     this.mDeconstruct = pDeconstruct;
   }
   /**
-   * Life time was reached.
-   */
-  get lifeTimeReached() {
-    return this.mLifeTimeReached;
-  }
-  set lifeTimeReached(pLifeTimeReached) {
-    this.mLifeTimeReached = pLifeTimeReached;
-  }
-  /**
    * Constructor.
    */
   constructor() {
     this.mReasons = new Set();
-    this.mLifeTimeReached = false;
     this.mDeconstruct = false;
   }
   /**
@@ -4238,13 +4215,12 @@ class GpuObjectInvalidationReasons {
    * If update reason has any existing reason.
    */
   any() {
-    return this.mReasons.size > 0 || this.mLifeTimeReached || this.mDeconstruct;
+    return this.mReasons.size > 0 || this.mDeconstruct;
   }
   /**
    * Clear all reasons.
    */
   clear() {
-    this.mLifeTimeReached = false;
     this.mReasons.clear();
   }
   /**
@@ -4256,27 +4232,6 @@ class GpuObjectInvalidationReasons {
   }
 }
 exports.GpuObjectInvalidationReasons = GpuObjectInvalidationReasons;
-
-/***/ }),
-
-/***/ "./source/base/gpu/object/gpu-object-life-time.enum.ts":
-/*!*************************************************************!*\
-  !*** ./source/base/gpu/object/gpu-object-life-time.enum.ts ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuObjectLifeTime = void 0;
-var GpuObjectLifeTime;
-(function (GpuObjectLifeTime) {
-  GpuObjectLifeTime[GpuObjectLifeTime["Persistent"] = 0] = "Persistent";
-  GpuObjectLifeTime[GpuObjectLifeTime["Frame"] = 1] = "Frame";
-})(GpuObjectLifeTime || (exports.GpuObjectLifeTime = GpuObjectLifeTime = {}));
 
 /***/ }),
 
@@ -4353,7 +4308,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.GpuObject = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/base/gpu/object/gpu-object-invalidation-reasons.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ./gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 /**
  * Gpu object with a native internal object.
  */
@@ -4381,7 +4335,7 @@ class GpuObject {
    * @param pDevice - Gpu device.
    * @param pNativeLifeTime - Lifetime of native object.
    */
-  constructor(pDevice, pNativeLifeTime) {
+  constructor(pDevice) {
     // Save static settings.
     this.mDevice = pDevice;
     this.mIsSetup = false;
@@ -4391,32 +4345,18 @@ class GpuObject {
     // Init lists.
     this.mUpdateListenerList = new core_1.Dictionary();
     this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
-    // Validate life time.
-    switch (pNativeLifeTime) {
-      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent:
-        {
-          // Do nothing.
-          break;
-        }
-      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame:
-        {
-          // TODO: Remove it on deconstruct.
-          this.mDevice.addFrameChangeListener(() => {
-            this.mInvalidationReasons.lifeTimeReached = true;
-            this.invalidate('');
-          });
-          break;
-        }
-    }
   }
   /**
    * Add invalidation listener.
    *
    * @param pListener - Listener.
    * @param pAffected - Trigger listener only on those reasons.
+   *
+   * @returns this.
    */
   addInvalidationListener(pListener, pAffected) {
     this.mUpdateListenerList.set(pListener, pAffected ? new Set(pAffected) : null);
+    return this;
   }
   /**
    * Deconstruct native object.
@@ -4433,14 +4373,20 @@ class GpuObject {
   /**
    * Invalidate native gpu object so it will be created again.
    */
-  invalidate(pReason) {
-    // Add invalidation reason.
-    this.mInvalidationReasons.add(pReason);
-    // Call parent update listerner.
-    for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
-      // Call listener only when is has a affected reason.
-      if (!lAffected || lAffected.has(pReason)) {
-        lInvalidationListener(pReason);
+  invalidate(...pReasons) {
+    // TODO: This must have a good performance. 
+    // On length = exec in single mode, else use iterator. 
+    // Pregroup listener with dictionary so iterator only needs to iterate needed. May worse remove listener behaviour.
+    // Invalidate for each reason.
+    for (const lReason of pReasons) {
+      // Add invalidation reason.
+      this.mInvalidationReasons.add(lReason);
+      // Call parent update listerner.
+      for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
+        // Call listener only when is has a affected reason.
+        if (!lAffected || lAffected.has(lReason)) {
+          lInvalidationListener(lReason);
+        }
       }
     }
   }
@@ -4602,14 +4548,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BaseMemoryLayout = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class BaseMemoryLayout extends gpu_object_1.GpuObject {
   /**
    * Constuctor.
    * @param pDevice - Device reference.
    */
   constructor(pDevice) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
   }
 }
 exports.BaseMemoryLayout = BaseMemoryLayout;
@@ -5473,7 +5418,6 @@ exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -5494,7 +5438,7 @@ class ComputePipeline extends gpu_object_1.GpuObject {
    * @param pShader - Pipeline shader.
    */
   constructor(pDevice, pShader) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mShaderModule = pShader;
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
@@ -5663,11 +5607,10 @@ exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/base/pipeline/parameter/vertex-parameter.ts");
 const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts");
-const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 /**
  * Vertex parameter layout.
  */
@@ -5711,7 +5654,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    * @param pLayout - Simple layout of parameter.
    */
   constructor(pDevice) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mIndexable = false;
     this.mBuffer = new core_1.Dictionary();
     this.mParameter = new core_1.Dictionary();
@@ -5896,7 +5839,6 @@ const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usa
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
@@ -5927,7 +5869,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
    * @param pIndices - Index buffer data.
    */
   constructor(pDevice, pVertexParameterLayout, pIndices) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Set vertex parameter layout.
     this.mLayout = pVertexParameterLayout;
     this.mData = new core_1.Dictionary();
@@ -6205,7 +6147,6 @@ const texture_aspect_enum_1 = __webpack_require__(/*! ../../../constant/texture-
 const texture_operation_enum_1 = __webpack_require__(/*! ../../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
 const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
 const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/base/pipeline/target/render-targets-setup.ts");
@@ -6275,7 +6216,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @param pDevice - Gpu device reference.
    */
   constructor(pDevice) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Set "fixed" 
     this.mSize = {
       width: 1,
@@ -6308,6 +6249,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     }
     // Apply resize for all textures.
     this.applyResize();
+    // Invalidation triggers through each texture.
     return this;
   }
   /**
@@ -6325,6 +6267,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * Generate native gpu bind data group.
    */
   generateNative() {
+    // Invalidate bc. descriptor is rebuilding.
+    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
     // Create color attachment list in order.
     const lColorAttachmentList = new Array();
     for (const lColorAttachment of this.mColorTextures.values()) {
@@ -6409,9 +6353,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
         target: pReferenceData.depthStencil.texture
       };
       // Passthrough depth stencil texture changes.
-      pReferenceData.depthStencil.texture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.Texture);
-      });
+      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
       // Add render attachment texture usage to depth stencil texture.
       pReferenceData.depthStencil.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Read capability of used depth stencil texture format.
@@ -6455,9 +6397,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
         throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
       }
       // Passthrough color texture changes. Any change.
-      lAttachment.texture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.Texture);
-      });
+      this.setTextureInvalidationListener(lAttachment.texture);
       // Add render attachment texture usage to color texture.
       lAttachment.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Buffer used location index.
@@ -6498,7 +6438,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   updateNative(pNative, pReasons) {
     // Native can not be updated on any config changes.
-    if (pReasons.has(RenderTargetsInvalidationType.Config)) {
+    if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
       return false;
     }
     // TODO: Make it more performant.
@@ -6578,12 +6518,73 @@ class RenderTargets extends gpu_object_1.GpuObject {
       this.mDepthStencilTexture.target.width = this.mSize.width;
     }
   }
+  /**
+   * Add all needed texture invalidation listener for passthrow and descriptor invalidation.
+   *
+   * @param pTexture - Texture.
+   */
+  setTextureInvalidationListener(pTexture) {
+    // Frame buffer texture invalidation listener.
+    if (pTexture instanceof frame_buffer_texture_1.FrameBufferTexture) {
+      // Rebuild descriptor only on view changes.
+      pTexture.addInvalidationListener(() => {
+        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.ViewRebuild]);
+      // Passthough other invalidations.
+      pTexture.addInvalidationListener(pType => {
+        switch (pType) {
+          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.Resize:
+            {
+              this.invalidate(RenderTargetsInvalidationType.Resize);
+              break;
+            }
+          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.MultisampleChange:
+            {
+              this.invalidate(RenderTargetsInvalidationType.MultisampleChange);
+              break;
+            }
+          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.FormatChange:
+            {
+              this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
+              break;
+            }
+        }
+      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.Resize, frame_buffer_texture_1.FrameBufferTextureInvalidationType.MultisampleChange, frame_buffer_texture_1.FrameBufferTextureInvalidationType.FormatChange]);
+      return;
+    }
+    // Frame buffer texture invalidation listener.
+    if (pTexture instanceof canvas_texture_1.CanvasTexture) {
+      // Rebuild descriptor only on view changes.
+      pTexture.addInvalidationListener(() => {
+        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+      }, [canvas_texture_1.CanvasTextureInvalidationType.ViewRebuild]);
+      // Passthough other invalidations.
+      pTexture.addInvalidationListener(pType => {
+        switch (pType) {
+          case canvas_texture_1.CanvasTextureInvalidationType.Resize:
+            {
+              this.invalidate(RenderTargetsInvalidationType.Resize);
+              break;
+            }
+          case canvas_texture_1.CanvasTextureInvalidationType.FormatChange:
+            {
+              this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
+              break;
+            }
+        }
+      }, [canvas_texture_1.CanvasTextureInvalidationType.Resize, canvas_texture_1.CanvasTextureInvalidationType.FormatChange]);
+      return;
+    }
+  }
 }
 exports.RenderTargets = RenderTargets;
 var RenderTargetsInvalidationType;
 (function (RenderTargetsInvalidationType) {
-  RenderTargetsInvalidationType["Config"] = "ConfigChange";
-  RenderTargetsInvalidationType["Texture"] = "TextureChange";
+  RenderTargetsInvalidationType["Resize"] = "Resize";
+  RenderTargetsInvalidationType["MultisampleChange"] = "MultisampleChange";
+  RenderTargetsInvalidationType["TextureFormatChange"] = "LayoutChange";
+  RenderTargetsInvalidationType["ViewRebuild"] = "ViewRebuild";
+  RenderTargetsInvalidationType["DescriptorRebuild"] = "DescriptorRebuild";
 })(RenderTargetsInvalidationType || (exports.RenderTargetsInvalidationType = RenderTargetsInvalidationType = {}));
 
 /***/ }),
@@ -6608,7 +6609,6 @@ const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primiti
 const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
 const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
 class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   /**
@@ -6692,7 +6692,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
    * @param pShaderRenderModule - Pipeline shader.
    */
   constructor(pDevice, pShaderRenderModule, pRenderTargets) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Set config objects.
     this.mShaderModule = pShaderRenderModule;
     this.mRenderTargets = pRenderTargets; // TODO: Update pipeline on format change.
@@ -6711,7 +6711,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     // Listen for render target changes.
     this.mRenderTargets.addInvalidationListener(() => {
       this.invalidate(VertexFragmentPipelineInvalidationType.RenderTargets);
-    }, [render_targets_1.RenderTargetsInvalidationType.Config]);
+    }, [render_targets_1.RenderTargetsInvalidationType.TextureFormatChange, render_targets_1.RenderTargetsInvalidationType.Resize, render_targets_1.RenderTargetsInvalidationType.MultisampleChange]);
     // Depth default settings.
     this.mDepthCompare = compare_function_enum_1.CompareFunction.Less;
     this.mDepthWriteEnabled = true; // TODO: Default based on render target. 
@@ -6764,7 +6764,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     if (this.module.fragmentEntryPoint) {
       // Generate fragment targets only when fragment state is needed.
       const lFragmentTargetList = new Array();
-      for (const lRenderTarget of this.renderTargets.colorTextures) {
+      for (const lRenderTarget of this.mRenderTargets.colorTextures) {
         lFragmentTargetList.push({
           format: lRenderTarget.layout.format
           // blend?: GPUBlendState;   // TODO: GPUBlendState
@@ -6779,18 +6779,18 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       };
     }
     // Setup optional depth attachment.
-    if (this.renderTargets.depthTexture) {
+    if (this.mRenderTargets.depthTexture) {
       lPipelineDescriptor.depthStencil = {
         depthWriteEnabled: this.writeDepth,
         depthCompare: this.depthCompare,
-        format: this.renderTargets.depthTexture.layout.format
+        format: this.mRenderTargets.depthTexture.layout.format
       };
     }
     // TODO: Stencil.
     // Set multisample count.
-    if (this.renderTargets.multiSampleLevel > 1) {
+    if (this.mRenderTargets.multiSampleLevel > 1) {
       lPipelineDescriptor.multisample = {
-        count: this.renderTargets.multiSampleLevel
+        count: this.mRenderTargets.multiSampleLevel
       };
     }
     // Async is none GPU stalling.
@@ -7050,7 +7050,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ShaderComputeModuleInvalidationType = exports.ShaderComputeModule = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/base/pipeline/compute-pipeline.ts");
 class ShaderComputeModule extends gpu_object_1.GpuObject {
   /**
@@ -7098,7 +7097,7 @@ class ShaderComputeModule extends gpu_object_1.GpuObject {
    * @param pSize - Workgroup size.
    */
   constructor(pDevice, pShader, pEntryPointName, pSize) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mEntryPoint = pEntryPointName;
     this.mShader = pShader;
     this.mSize = pSize ?? [-1, -1, -1];
@@ -7138,7 +7137,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ShaderRenderModuleInvalidationType = exports.ShaderRenderModule = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/base/pipeline/vertex-fragment-pipeline.ts");
 class ShaderRenderModule extends gpu_object_1.GpuObject {
   /**
@@ -7180,7 +7178,7 @@ class ShaderRenderModule extends gpu_object_1.GpuObject {
    * @param pSize - Workgroup size.
    */
   constructor(pDevice, pShader, pVertexEntryPointName, pVertexParameter, pFragmentEntryPointName) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mVertexEntryPoint = pVertexEntryPointName;
     this.mVertexParameter = pVertexParameter;
     this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
@@ -7230,7 +7228,6 @@ exports.ShaderInvalidationType = exports.Shader = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/base/shader/setup/shader-setup.ts");
 const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/base/shader/shader-compute-module.ts");
 const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/base/shader/shader-render-module.ts");
@@ -7256,7 +7253,7 @@ class Shader extends gpu_object_1.GpuObject {
    * @param pLayout - Shader layout information.
    */
   constructor(pDevice, pSource) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     // Create shader information for source.
     this.mSource = pSource;
     // Init default unset values.
@@ -7505,8 +7502,8 @@ class BaseTexture extends gpu_object_1.GpuObject {
    * @param pLayout - Texture layout.
    * @param pCanvas - Canvas of texture.
    */
-  constructor(pDevice, pLayout, pLifeTime) {
-    super(pDevice, pLifeTime);
+  constructor(pDevice, pLayout) {
+    super(pDevice);
     // Set layout.
     this.mMemoryLayout = pLayout;
     this.mTextureUsage = texture_usage_enum_1.TextureUsage.None;
@@ -7543,7 +7540,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class CanvasTexture extends base_texture_1.BaseTexture {
@@ -7560,8 +7556,9 @@ class CanvasTexture extends base_texture_1.BaseTexture {
     return this.mCanvas.height;
   }
   set height(pValue) {
-    // Height autoapplies. No need to trigger invalidation.
     this.mCanvas.height = pValue;
+    // Invalidate size.
+    this.invalidate(CanvasTextureInvalidationType.Resize);
   }
   /**
    * Texture width.
@@ -7570,8 +7567,9 @@ class CanvasTexture extends base_texture_1.BaseTexture {
     return this.mCanvas.width;
   }
   set width(pValue) {
-    // Width autoapplies. No need to trigger invalidation.
     this.mCanvas.width = pValue;
+    // Invalidate size.
+    this.invalidate(CanvasTextureInvalidationType.Resize);
   }
   /**
    * Constructor.
@@ -7580,7 +7578,7 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    * @param pCanvas - Canvas of texture.
    */
   constructor(pDevice, pLayout, pCanvas) {
-    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
+    super(pDevice, pLayout);
     // Set canvas reference.
     this.mCanvas = pCanvas;
     this.mContext = null;
@@ -7589,8 +7587,13 @@ class CanvasTexture extends base_texture_1.BaseTexture {
     this.width = 1;
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(CanvasTextureInvalidationType.Layout);
+      this.invalidate(CanvasTextureInvalidationType.FormatChange);
     }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    // TODO: Remove it on deconstruct.
+    // Rebuild view on every frame.
+    this.device.addFrameChangeListener(() => {
+      this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
+    });
   }
   /**
    * Destory texture object.
@@ -7598,7 +7601,7 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    */
   destroyNative(_pNativeObject, pReasons) {
     // Context is only invalid on deconstruct or layout has changes.
-    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.Layout) || pReasons.has(CanvasTextureInvalidationType.Usage);
+    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.FormatChange) || pReasons.has(CanvasTextureInvalidationType.UsageExtended);
     // Only destroy context when child data/layout has changes.
     if (lContextInvalid) {
       // Destory context.
@@ -7610,15 +7613,15 @@ class CanvasTexture extends base_texture_1.BaseTexture {
   /**
    * Generate native canvas texture view.
    */
-  generateNative(pReasons) {
+  generateNative(_pReasons) {
     // Invalidate for frame change.
-    if (pReasons.lifeTimeReached) {
-      this.invalidate(CanvasTextureInvalidationType.Frame);
-    }
+    this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
     // Read canvas format.
     const lFormat = this.layout.format;
     // Configure new context when not alread configured or destroyed.
     if (!this.mContext) {
+      // Invalidate bc. context neeeded to rebuild.
+      this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
       // Create and configure canvas context.
       this.mContext = this.canvas.getContext('webgpu');
       this.mContext.configure({
@@ -7640,15 +7643,29 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(CanvasTextureInvalidationType.Usage);
+    this.invalidate(CanvasTextureInvalidationType.UsageExtended);
+  }
+  /**
+   * Do nothing when view and context does not need to be updated.
+   *
+   * @param _pNative - Native
+   * @param pReasons - Invalidation reason.
+   *
+   * @returns true when nothing was done.
+   */
+  updateNative(_pNative, pReasons) {
+    // Literally only "update" on resize.
+    return pReasons.has(CanvasTextureInvalidationType.Resize) && !pReasons.has(CanvasTextureInvalidationType.ViewRebuild) && !pReasons.has(CanvasTextureInvalidationType.UsageExtended) && !pReasons.has(CanvasTextureInvalidationType.FormatChange) && !pReasons.deconstruct;
   }
 }
 exports.CanvasTexture = CanvasTexture;
 var CanvasTextureInvalidationType;
 (function (CanvasTextureInvalidationType) {
-  CanvasTextureInvalidationType["Layout"] = "LayoutChange";
-  CanvasTextureInvalidationType["Frame"] = "FrameChange";
-  CanvasTextureInvalidationType["Usage"] = "UsageChange";
+  CanvasTextureInvalidationType["ContextRebuild"] = "ContextRebuild";
+  CanvasTextureInvalidationType["ViewRebuild"] = "ViewRebuild";
+  CanvasTextureInvalidationType["Resize"] = "Resize";
+  CanvasTextureInvalidationType["UsageExtended"] = "UsageChange";
+  CanvasTextureInvalidationType["FormatChange"] = "FormatChange";
 })(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
 
 /***/ }),
@@ -7668,7 +7685,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.FrameBufferTextureInvalidationType = exports.FrameBufferTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class FrameBufferTexture extends base_texture_1.BaseTexture {
@@ -7681,7 +7697,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set depth(pValue) {
     this.mDepth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Size);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize);
   }
   /**
    * Texture height.
@@ -7692,7 +7708,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set height(pValue) {
     this.mHeight = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Size);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize);
   }
   /**
    * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
@@ -7703,7 +7719,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set multiSampleLevel(pValue) {
     this.mMultiSampleLevel = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.MultiSampleLevel);
+    this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
   }
   /**
    * Texture width.
@@ -7714,7 +7730,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set width(pValue) {
     this.mWidth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Size);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize);
   }
   /**
    * Constructor.
@@ -7722,17 +7738,21 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * @param pLayout - Texture memory layout.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice, pLayout);
     this.mTexture = null;
     // Set defaults.
     this.mDepth = 1;
     this.mHeight = 1;
     this.mWidth = 1;
     this.mMultiSampleLevel = 1;
-    // Register change listener for layout changes.
+    // Trigger Texture rebuild on dimension for format changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(FrameBufferTextureInvalidationType.Layout);
+      this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild);
     }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    // Trigger format change on formats.
+    pLayout.addInvalidationListener(() => {
+      this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
   }
   /**
    * Destory texture object.
@@ -7746,6 +7766,8 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * Generate native canvas texture view.
    */
   generateNative() {
+    // Invalidate texture and view.
+    this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
     // TODO: Validate format based on layout. Maybe replace used format.
     // Validate two dimensional texture.
     if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
@@ -7771,16 +7793,18 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(FrameBufferTextureInvalidationType.Usage);
+    this.invalidate(FrameBufferTextureInvalidationType.UsageExtended);
   }
 }
 exports.FrameBufferTexture = FrameBufferTexture;
 var FrameBufferTextureInvalidationType;
 (function (FrameBufferTextureInvalidationType) {
-  FrameBufferTextureInvalidationType["Layout"] = "LayoutChange";
-  FrameBufferTextureInvalidationType["Size"] = "SizeChange";
-  FrameBufferTextureInvalidationType["MultiSampleLevel"] = "MultiSampleLevel";
-  FrameBufferTextureInvalidationType["Usage"] = "UsageChange";
+  FrameBufferTextureInvalidationType["TextureRebuild"] = "TextureRebuild";
+  FrameBufferTextureInvalidationType["ViewRebuild"] = "ViewRebuild";
+  FrameBufferTextureInvalidationType["Resize"] = "Resize";
+  FrameBufferTextureInvalidationType["MultisampleChange"] = "MultisampleChange";
+  FrameBufferTextureInvalidationType["UsageExtended"] = "UsageChange";
+  FrameBufferTextureInvalidationType["FormatChange"] = "FormatChange";
 })(FrameBufferTextureInvalidationType || (exports.FrameBufferTextureInvalidationType = FrameBufferTextureInvalidationType = {}));
 
 /***/ }),
@@ -7803,7 +7827,6 @@ exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class ImageTexture extends base_texture_1.BaseTexture {
@@ -7837,7 +7860,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
    * @param pLayout - Texture memory layout.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice, pLayout);
     this.mTexture = null;
     // Set defaults.
     this.mDepth = 1;
@@ -9289,7 +9312,6 @@ const filter_mode_enum_1 = __webpack_require__(/*! ../../constant/filter-mode.en
 const sampler_type_enum_1 = __webpack_require__(/*! ../../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const wrapping_mode_enum_1 = __webpack_require__(/*! ../../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
 class TextureSampler extends gpu_object_1.GpuObject {
   /**
@@ -9398,7 +9420,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
    * @param pLayout - Sampler memory layout.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice);
     this.mMemoryLayout = pLayout;
     // Set defaults.
     this.mCompare = null;
@@ -9464,7 +9486,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VideoTextureInvalidationType = exports.VideoTexture = void 0;
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class VideoTexture extends base_texture_1.BaseTexture {
@@ -9511,7 +9532,7 @@ class VideoTexture extends base_texture_1.BaseTexture {
    * @param pDepth - Texture depth.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
+    super(pDevice, pLayout);
     this.mTexture = null;
     // Create video.
     this.mVideo = new HTMLVideoElement();
@@ -15355,7 +15376,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("ee35dccab9575c5c5d65")
+/******/ 		__webpack_require__.h = () => ("325bdb35ce06e623a3f9")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

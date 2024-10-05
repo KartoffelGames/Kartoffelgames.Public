@@ -6,7 +6,6 @@ import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
@@ -111,7 +110,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
      * @param pShaderRenderModule - Pipeline shader.
      */
     public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargets: RenderTargets) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Set config objects.
         this.mShaderModule = pShaderRenderModule;
@@ -134,7 +133,11 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         // Listen for render target changes.
         this.mRenderTargets.addInvalidationListener(() => {
             this.invalidate(VertexFragmentPipelineInvalidationType.RenderTargets);
-        }, [RenderTargetsInvalidationType.Config]);
+        }, [
+            RenderTargetsInvalidationType.TextureFormatChange,
+            RenderTargetsInvalidationType.Resize,
+            RenderTargetsInvalidationType.MultisampleChange
+        ]);
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;
@@ -167,7 +170,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             // Set value for compute stage.
             this.mParameter.get(lUsage)![pParameterName] = pValue;
         }
-        
+
         // Generate pipeline anew.
         this.invalidate(VertexFragmentPipelineInvalidationType.Parameter);
 
@@ -197,7 +200,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         if (this.module.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTarget of this.renderTargets.colorTextures) {
+            for (const lRenderTarget of this.mRenderTargets.colorTextures) {
                 lFragmentTargetList.push({
                     format: lRenderTarget.layout.format as GPUTextureFormat,
                     // blend?: GPUBlendState;   // TODO: GPUBlendState
@@ -214,20 +217,20 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         }
 
         // Setup optional depth attachment.
-        if (this.renderTargets.depthTexture) {
+        if (this.mRenderTargets.depthTexture) {
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.writeDepth,
                 depthCompare: this.depthCompare,
-                format: this.renderTargets.depthTexture.layout.format as GPUTextureFormat,
+                format: this.mRenderTargets.depthTexture.layout.format as GPUTextureFormat,
             };
         }
 
         // TODO: Stencil.
 
         // Set multisample count.
-        if (this.renderTargets.multiSampleLevel > 1) {
+        if (this.mRenderTargets.multiSampleLevel > 1) {
             lPipelineDescriptor.multisample = {
-                count: this.renderTargets.multiSampleLevel
+                count: this.mRenderTargets.multiSampleLevel
             };
         }
 

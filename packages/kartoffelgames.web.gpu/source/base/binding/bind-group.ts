@@ -5,7 +5,6 @@ import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
@@ -41,7 +40,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
      * @param pDevice - Gpu Device reference.
      */
     public constructor(pDevice: GpuDevice, pBindGroupLayout: BindGroupLayout) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mLayout = pBindGroupLayout;
         this.mBindData = new Dictionary<string, BindData>();

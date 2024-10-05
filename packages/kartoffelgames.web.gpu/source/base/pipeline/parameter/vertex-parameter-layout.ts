@@ -2,14 +2,13 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step-mode.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { VertexBufferMemoryLayout, VertexBufferMemoryLayoutParameterParameter } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
 import { VertexParameter } from './vertex-parameter';
 import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
-import { VertexBufferMemoryLayout, VertexBufferMemoryLayoutParameterParameter } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
 
 /**
  * Vertex parameter layout.
@@ -65,7 +64,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * @param pLayout - Simple layout of parameter.
      */
     public constructor(pDevice: GpuDevice) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mIndexable = false;
         this.mBuffer = new Dictionary<string, VertexParameterLayoutBuffer>();

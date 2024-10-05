@@ -4,7 +4,6 @@ import { VertexParameterStepMode } from '../../../constant/vertex-parameter-step
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
@@ -45,7 +44,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
      * @param pIndices - Index buffer data.
      */
     public constructor(pDevice: GpuDevice, pVertexParameterLayout: VertexParameterLayout, pIndices: Array<number>) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;

@@ -271,17 +271,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     lPerspectiveProjection.angleOfView = 72;
     lPerspectiveProjection.near = 0.1;
     lPerspectiveProjection.far = 9999999;
-    // Resize canvas.
-    (() => {
-        const lCanvasWrapper: HTMLDivElement = document.querySelector('.canvas-wrapper') as HTMLDivElement;
-        new ResizeObserver(() => {
-            const lNewCanvasHeight: number = Math.max(0, lCanvasWrapper.clientHeight - 20);
-            const lNewCanvasWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
-
-            // Resize displayed render targets.
-            lPerspectiveProjection.aspectRatio = lNewCanvasWidth / lNewCanvasHeight;
-        }).observe(lCanvasWrapper);
-    })();
+    lRenderTargets.addInvalidationListener(() => {
+        lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
+    }, [RenderTargetsInvalidationType.Resize]);
 
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);

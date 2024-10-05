@@ -3,7 +3,6 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
@@ -69,7 +68,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
      * @param pName - Name of binding group.
      */
     public constructor(pDevice: GpuDevice, pName: string) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         // Set binding group name.
         this.mName = pName;

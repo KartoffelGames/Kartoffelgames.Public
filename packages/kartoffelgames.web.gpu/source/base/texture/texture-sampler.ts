@@ -5,7 +5,6 @@ import { SamplerType } from '../../constant/sampler-type.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { SamplerMemoryLayout, SamplerMemoryLayoutInvalidationType } from '../memory_layout/texture/sampler-memory-layout';
 
@@ -136,7 +135,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
      * @param pLayout - Sampler memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mMemoryLayout = pLayout;
 

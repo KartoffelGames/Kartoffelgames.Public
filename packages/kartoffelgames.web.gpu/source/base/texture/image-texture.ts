@@ -2,7 +2,6 @@ import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 
@@ -47,7 +46,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, pLayout, GpuObjectLifeTime.Persistent);
+        super(pDevice, pLayout);
 
         this.mTexture = null;
 

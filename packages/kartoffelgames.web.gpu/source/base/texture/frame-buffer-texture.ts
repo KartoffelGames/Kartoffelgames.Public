@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 
@@ -21,7 +20,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mDepth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Size);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize);
     }
 
     /**
@@ -33,7 +32,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mHeight = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Size);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize);
     }
 
     /**
@@ -45,7 +44,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mMultiSampleLevel = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.MultiSampleLevel);
+        this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
     }
 
     /**
@@ -57,7 +56,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mWidth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Size);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize);
     }
 
     /**
@@ -66,7 +65,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, pLayout, GpuObjectLifeTime.Persistent);
+        super(pDevice, pLayout);
 
         this.mTexture = null;
 
@@ -76,10 +75,15 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mWidth = 1;
         this.mMultiSampleLevel = 1;
 
-        // Register change listener for layout changes.
+        // Trigger Texture rebuild on dimension for format changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(FrameBufferTextureInvalidationType.Layout);
+            this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild);
         }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
+
+        // Trigger format change on formats.
+        pLayout.addInvalidationListener(() => {
+            this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
+        }, [TextureMemoryLayoutInvalidationType.Format]);
     }
 
     /**
@@ -95,6 +99,9 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * Generate native canvas texture view.
      */
     protected override generateNative(): GPUTextureView {
+        // Invalidate texture and view.
+        this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
+
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Validate two dimensional texture.
@@ -123,13 +130,15 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * On usage extened. Triggers a texture rebuild.
      */
     protected override onUsageExtend(): void {
-        this.invalidate(FrameBufferTextureInvalidationType.Usage);
+        this.invalidate(FrameBufferTextureInvalidationType.UsageExtended);
     }
 }
 
 export enum FrameBufferTextureInvalidationType {
-    Layout = 'LayoutChange',
-    Size = 'SizeChange',
-    MultiSampleLevel = 'MultiSampleLevel',
-    Usage = 'UsageChange'
+    TextureRebuild = 'TextureRebuild',
+    ViewRebuild = 'ViewRebuild',
+    Resize = 'Resize',
+    MultisampleChange = 'MultisampleChange',
+    UsageExtended = 'UsageChange',
+    FormatChange = 'FormatChange'
 }

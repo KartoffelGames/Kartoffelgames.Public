@@ -5,7 +5,6 @@ import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { GpuExecution } from '../gpu-execution';
-import { GpuObjectLifeTime } from '../../gpu/object/gpu-object-life-time.enum';
 
 export class ComputePass extends GpuObject {
     private readonly mInstructionList: Array<ComputeInstruction>;
@@ -15,7 +14,7 @@ export class ComputePass extends GpuObject {
      * @param pDevice - Device reference.
      */
     public constructor(pDevice: GpuDevice) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
 
         this.mInstructionList = new Array<ComputeInstruction>();
     }
@@ -78,7 +77,7 @@ export class ComputePass extends GpuObject {
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;
-        
+
         // Buffer for current set bind groups.
         const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
         let lHighestBindGroupListIndex: number = -1;

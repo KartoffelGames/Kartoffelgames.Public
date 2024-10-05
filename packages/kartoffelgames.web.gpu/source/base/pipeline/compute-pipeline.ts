@@ -2,7 +2,6 @@ import { Dictionary } from '@kartoffelgames/core';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
@@ -31,7 +30,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
      * @param pShader - Pipeline shader.
      */
     public constructor(pDevice: GpuDevice, pShader: ShaderComputeModule) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
         this.mShaderModule = pShader;
 
         // Pipeline constants.

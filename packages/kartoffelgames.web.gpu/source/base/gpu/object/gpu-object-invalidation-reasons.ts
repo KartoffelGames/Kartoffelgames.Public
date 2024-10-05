@@ -2,7 +2,6 @@ import { Exception } from '@kartoffelgames/core';
 
 export class GpuObjectInvalidationReasons<TReasons extends string> {
     private mDeconstruct: boolean;
-    private mLifeTimeReached: boolean;
     private readonly mReasons: Set<TReasons>;
 
     /**
@@ -19,20 +18,10 @@ export class GpuObjectInvalidationReasons<TReasons extends string> {
     }
 
     /**
-     * Life time was reached.
-     */
-    public get lifeTimeReached(): boolean {
-        return this.mLifeTimeReached;
-    } set lifeTimeReached(pLifeTimeReached: boolean) {
-        this.mLifeTimeReached = pLifeTimeReached;
-    }
-
-    /**
      * Constructor.
      */
     public constructor() {
         this.mReasons = new Set<TReasons>();
-        this.mLifeTimeReached = false;
         this.mDeconstruct = false;
     }
 
@@ -48,14 +37,13 @@ export class GpuObjectInvalidationReasons<TReasons extends string> {
      * If update reason has any existing reason.
      */
     public any(): boolean {
-        return this.mReasons.size > 0 || this.mLifeTimeReached || this.mDeconstruct;
+        return this.mReasons.size > 0  || this.mDeconstruct;
     }
 
     /**
      * Clear all reasons.
      */
     public clear(): void {
-        this.mLifeTimeReached = false;
         this.mReasons.clear();
     }
 

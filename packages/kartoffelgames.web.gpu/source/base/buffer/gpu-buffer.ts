@@ -2,11 +2,10 @@ import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -91,7 +90,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
     public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pDataType: PrimitiveBufferFormat, pVariableSizeCount: number | null = null) {
-        super(pDevice, GpuObjectLifeTime.Persistent);
+        super(pDevice);
         this.mLayout = pLayout;
 
         // Set config.

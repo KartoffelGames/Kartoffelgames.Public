@@ -1,7 +1,6 @@
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectLifeTime } from '../gpu/object/gpu-object-life-time.enum';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
@@ -33,8 +32,8 @@ export abstract class BaseTexture<TInvalidationType extends string = any> extend
      * @param pLayout - Texture layout.
      * @param pCanvas - Canvas of texture.
      */
-    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pLifeTime: GpuObjectLifeTime) {
-        super(pDevice, pLifeTime);
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
+        super(pDevice);
 
         // Set layout.
         this.mMemoryLayout = pLayout;

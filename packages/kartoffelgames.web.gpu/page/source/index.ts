@@ -8,7 +8,7 @@ import { GpuDevice } from '../../source/base/gpu/gpu-device';
 import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
-import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
+import { RenderTargets, RenderTargetsInvalidationType } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { CanvasTexture } from '../../source/base/texture/canvas-texture';
@@ -118,7 +118,19 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         // Add depth texture and init new texture.    
         pSetup.addDepthStencil(true, 1)
             .new(TextureFormat.Depth24plus);
-    }).resize(1200, 1800, 4);
+    });
+
+    // Resize canvas.
+    (() => {
+        const lCanvasWrapper: HTMLDivElement = document.querySelector('.canvas-wrapper') as HTMLDivElement;
+        new ResizeObserver(() => {
+            const lNewCanvasHeight: number = Math.max(0, lCanvasWrapper.clientHeight - 20);
+            const lNewCanvasWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+
+            // Resize displayed render targets.
+            lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
+        }).observe(lCanvasWrapper);
+    })();
 
     // Create shader.
     const lWoodBoxShader = lGpu.shader(shader).setup((pShaderSetup) => {
@@ -259,6 +271,17 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     lPerspectiveProjection.angleOfView = 72;
     lPerspectiveProjection.near = 0.1;
     lPerspectiveProjection.far = 9999999;
+    // Resize canvas.
+    (() => {
+        const lCanvasWrapper: HTMLDivElement = document.querySelector('.canvas-wrapper') as HTMLDivElement;
+        new ResizeObserver(() => {
+            const lNewCanvasHeight: number = Math.max(0, lCanvasWrapper.clientHeight - 20);
+            const lNewCanvasWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+
+            // Resize displayed render targets.
+            lPerspectiveProjection.aspectRatio = lNewCanvasWidth / lNewCanvasHeight;
+        }).observe(lCanvasWrapper);
+    })();
 
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);

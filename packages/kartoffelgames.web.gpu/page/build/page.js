@@ -380,7 +380,17 @@ _asyncToGenerator(function* () {
     }).use(lCanvasTexture);
     // Add depth texture and init new texture.    
     pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
-  }).resize(1200, 1800, 4);
+  });
+  // Resize canvas.
+  (() => {
+    const lCanvasWrapper = document.querySelector('.canvas-wrapper');
+    new ResizeObserver(() => {
+      const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
+      const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+      // Resize displayed render targets.
+      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
+    }).observe(lCanvasWrapper);
+  })();
   // Create shader.
   const lWoodBoxShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
     // Set parameter.
@@ -474,6 +484,16 @@ _asyncToGenerator(function* () {
   lPerspectiveProjection.angleOfView = 72;
   lPerspectiveProjection.near = 0.1;
   lPerspectiveProjection.far = 9999999;
+  // Resize canvas.
+  (() => {
+    const lCanvasWrapper = document.querySelector('.canvas-wrapper');
+    new ResizeObserver(() => {
+      const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
+      const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+      // Resize displayed render targets.
+      lPerspectiveProjection.aspectRatio = lNewCanvasWidth / lNewCanvasHeight;
+    }).observe(lCanvasWrapper);
+  })();
   // Create camera.
   const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
   lCamera.transformation.setTranslation(0, 0, -4);
@@ -6286,7 +6306,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
       }
       this.mSize.multisampleLevel = pMultisampleLevel;
     }
-    // Invalidations happends for every texture.
+    // Apply resize for all textures.
+    this.applyResize();
     return this;
   }
   /**
@@ -6304,8 +6325,6 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * Generate native gpu bind data group.
    */
   generateNative() {
-    // Apply all resize and multisample changes.
-    this.applyResize();
     // Create color attachment list in order.
     const lColorAttachmentList = new Array();
     for (const lColorAttachment of this.mColorTextures.values()) {
@@ -15336,7 +15355,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("f3060039f2ff7f3e5e27")
+/******/ 		__webpack_require__.h = () => ("ee35dccab9575c5c5d65")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

@@ -6,3 +6,12 @@ body {
 p {
     color: red;
 }
+
+.canvas-wrapper {
+    overflow: hidden;
+    resize: both;
+
+    /* Initial size */
+    height: 1200px;
+    width: 1800px;
+}

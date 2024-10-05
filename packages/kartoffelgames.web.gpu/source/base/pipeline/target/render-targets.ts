@@ -128,7 +128,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             this.mSize.multisampleLevel = pMultisampleLevel;
         }
 
-        // Invalidations happends for every texture.
+        // Apply resize for all textures.
+        this.applyResize();
 
         return this;
     }
@@ -149,9 +150,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * Generate native gpu bind data group.
      */
     protected override generateNative(): GPURenderPassDescriptor {
-        // Apply all resize and multisample changes.
-        this.applyResize();
-
         // Create color attachment list in order.
         const lColorAttachmentList: Array<RenderTargetsColorTarget> = new Array<RenderTargetsColorTarget>();
         for (const lColorAttachment of this.mColorTextures.values()) {

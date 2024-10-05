@@ -66,7 +66,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, pLayout, GpuObjectLifeTime.Frame);
+        super(pDevice, pLayout, GpuObjectLifeTime.Persistent);
 
         this.mTexture = null;
 

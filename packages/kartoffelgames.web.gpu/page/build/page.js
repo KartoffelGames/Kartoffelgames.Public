@@ -518,7 +518,7 @@ _asyncToGenerator(function* () {
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
   lRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, lWorldGroup, lWoodBoxUserGroup], gWidth * gHeight * gDepth);
-  lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], 2);
+  lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], lWorldGroup.data('pointLights').get().length / 12);
   /**
    * Controls
    */
@@ -3422,30 +3422,45 @@ class ComputePass extends gpu_object_1.GpuObject {
     const lComputePassEncoder = pExecution.encoder.beginComputePass();
     // Instruction cache.
     let lPipeline = null;
+    // Buffer for current set bind groups.
     const lBindGroupList = new Array();
+    let lHighestBindGroupListIndex = -1;
     // Execute instructions.
     for (const lInstruction of this.mInstructionList) {
+      // Cache for bind group length of this instruction.
+      let lLocalHighestBindGroupListIndex = -1;
+      // Add bind groups.
+      const lPipelineLayout = lInstruction.pipeline.module.shader.layout;
+      for (const lBindGroupName of lPipelineLayout.groups) {
+        const lBindGroupIndex = lPipelineLayout.groupIndex(lBindGroupName);
+        const lNewBindGroup = lInstruction.bindData[lBindGroupIndex];
+        const lCurrentBindGroup = lBindGroupList[lBindGroupIndex];
+        // Extend group list length.
+        if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+          lLocalHighestBindGroupListIndex = lBindGroupIndex;
+        }
+        // Use cached bind group or use new.
+        if (lNewBindGroup !== lCurrentBindGroup) {
+          // Set bind group buffer to cache current set bind groups.
+          lBindGroupList[lBindGroupIndex] = lNewBindGroup;
+          // Set bind group to gpu.
+          lComputePassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+        }
+      }
       // Use cached pipeline or use new.
       if (lInstruction.pipeline !== lPipeline) {
         lPipeline = lInstruction.pipeline;
         // Generate and set new pipeline.
         lComputePassEncoder.setPipeline(lPipeline.native);
-      }
-      // Add bind groups.
-      const lPipelineLayout = lInstruction.pipeline.module.shader.layout;
-      for (const lBindGroupName of lPipelineLayout.groups) {
-        const lBindGroupLayout = lPipelineLayout.groupIndex(lBindGroupName);
-        const lNewBindGroup = lInstruction.bindData[lBindGroupLayout];
-        const lCurrentBindGroup = lBindGroupList[lBindGroupLayout];
-        // Use cached bind group or use new.
-        if (lNewBindGroup !== lCurrentBindGroup) {
-          lBindGroupList[lBindGroupLayout] = lNewBindGroup;
-          if (lNewBindGroup) {
-            lComputePassEncoder.setBindGroup(lBindGroupLayout, lNewBindGroup.native);
+        // Only clear bind buffer when a new pipeline is set.
+        // Same pipelines must have set the same bind group layouts.
+        if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+          for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < lHighestBindGroupListIndex + 1; lBindGroupIndex++) {
+            lComputePassEncoder.setBindGroup(lBindGroupIndex, null);
           }
-          // TODO: Unset bind group.
-          // lComputePassEncoder.setBindGroup(1, null)
         }
+        // Update global bind group list length.
+        lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
       }
       // Start compute groups.
       lComputePassEncoder.dispatchWorkgroups(...lInstruction.workGroupSizes);
@@ -3559,30 +3574,30 @@ class RenderPass extends gpu_object_1.GpuObject {
     const lRenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
     // Instruction cache.
     let lPipeline = null;
-    const lBindGroupList = new Array();
     const lVertexBufferList = new core_1.Dictionary();
+    // Buffer for current set bind groups.
+    const lBindGroupList = new Array();
+    let lHighestBindGroupListIndex = -1;
     // Execute instructions.
     for (const lInstruction of this.mInstructionList) {
-      // Use cached pipeline or use new.
-      if (lInstruction.pipeline !== lPipeline) {
-        lPipeline = lInstruction.pipeline;
-        // Generate and set new pipeline.
-        lRenderPassEncoder.setPipeline(lPipeline.native);
-      }
+      // Cache for bind group length of this instruction.
+      let lLocalHighestBindGroupListIndex = -1;
       // Add bind groups.
       const lPipelineLayout = lInstruction.pipeline.module.shader.layout;
       for (const lBindGroupName of lPipelineLayout.groups) {
-        const lBindGroupLayout = lPipelineLayout.groupIndex(lBindGroupName);
-        const lNewBindGroup = lInstruction.bindData[lBindGroupLayout];
-        const lCurrentBindGroup = lBindGroupList[lBindGroupLayout];
+        const lBindGroupIndex = lPipelineLayout.groupIndex(lBindGroupName);
+        const lNewBindGroup = lInstruction.bindData[lBindGroupIndex];
+        const lCurrentBindGroup = lBindGroupList[lBindGroupIndex];
+        // Extend group list length.
+        if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+          lLocalHighestBindGroupListIndex = lBindGroupIndex;
+        }
         // Use cached bind group or use new.
         if (lNewBindGroup !== lCurrentBindGroup) {
-          lBindGroupList[lBindGroupLayout] = lNewBindGroup;
-          if (lNewBindGroup) {
-            lRenderPassEncoder.setBindGroup(lBindGroupLayout, lNewBindGroup.native);
-          }
-          // TODO: Unset bind group.
-          // lRenderPassEncoder.setBindGroup(1, null)
+          // Set bind group buffer to cache current set bind groups.
+          lBindGroupList[lBindGroupIndex] = lNewBindGroup;
+          // Set bind group to gpu.
+          lRenderPassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
         }
       }
       // Add vertex attribute buffer.
@@ -3596,17 +3611,38 @@ class RenderPass extends gpu_object_1.GpuObject {
           lVertexBufferList.set(lBufferIndex, lNewAttributeBuffer);
           lRenderPassEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
         }
+        // TODO: Clear unset buffer.
+      }
+      // Use cached pipeline or use new.
+      if (lInstruction.pipeline !== lPipeline) {
+        lPipeline = lInstruction.pipeline;
+        // Generate and set new pipeline.
+        lRenderPassEncoder.setPipeline(lPipeline.native);
+        // Only clear bind buffer when a new pipeline is set.
+        // Same pipelines must have set the same bind group layouts.
+        if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+          for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < lHighestBindGroupListIndex + 1; lBindGroupIndex++) {
+            lRenderPassEncoder.setBindGroup(lBindGroupIndex, null);
+          }
+        }
+        // Update global bind group list length.
+        lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+        // Only clear vertex buffer when a new pipeline is set.
+        // Same pipeline must have the same vertex parameter layout.
+        // TODO: Clear vertex buffer,
+        // lRenderPassEncoder.setVertexBuffer(1, null);
       }
       // Draw indexed when parameters are indexable.
       if (lInstruction.parameter.layout.indexable) {
         // Set indexbuffer.
-        lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32');
+        lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
         // Create draw call.
         lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
       } else {
         // Create draw call.
         lRenderPassEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
       }
+      // TODO: Indirect dispatch.
     }
     lRenderPassEncoder.end();
   }
@@ -7554,7 +7590,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * @param pLayout - Texture memory layout.
    */
   constructor(pDevice, pLayout) {
-    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame);
+    super(pDevice, pLayout, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
     this.mTexture = null;
     // Set defaults.
     this.mDepth = 1;
@@ -15187,7 +15223,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("a549d8aa44e943ef442c")
+/******/ 		__webpack_require__.h = () => ("1b79a7371815a50e9caf")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

@@ -93,7 +93,9 @@ export class RenderPass extends GpuObject {
         // Instruction cache.
         let lPipeline: VertexFragmentPipeline | null = null;
 
+        // Buffer for current set vertex buffer.
         const lVertexBufferList: Dictionary<number, GpuBuffer<TypedArray>> = new Dictionary<number, GpuBuffer<TypedArray>>();
+        let lHighestVertexParameterListIndex: number = -1;
 
         // Buffer for current set bind groups.
         const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
@@ -127,12 +129,20 @@ export class RenderPass extends GpuObject {
                 }
             }
 
+            // Cache for bind group length of this instruction.
+            let lLocalHighestVertexParameterListIndex: number = -1;
+
             // Add vertex attribute buffer.
             const lBufferNames: Array<string> = lInstruction.pipeline.module.vertexParameter.bufferNames;
             for (let lBufferIndex: number = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
                 // Read buffer information.
                 const lAttributeBufferName: string = lBufferNames[lBufferIndex];
                 const lNewAttributeBuffer: GpuBuffer<TypedArray> = lInstruction.parameter.get(lAttributeBufferName);
+
+                // Extend group list length.
+                if (lBufferIndex > lLocalHighestVertexParameterListIndex) {
+                    lLocalHighestVertexParameterListIndex = lBufferIndex;
+                }
 
                 // Use cached vertex buffer or use new.
                 if (lNewAttributeBuffer !== lVertexBufferList.get(lBufferIndex)) {
@@ -163,8 +173,14 @@ export class RenderPass extends GpuObject {
 
                 // Only clear vertex buffer when a new pipeline is set.
                 // Same pipeline must have the same vertex parameter layout.
-                // TODO: Clear vertex buffer,
-                // lRenderPassEncoder.setVertexBuffer(1, null);
+                if (lHighestVertexParameterListIndex > lLocalHighestVertexParameterListIndex) {
+                    for (let lVertexParameterBufferIndex: number = (lLocalHighestVertexParameterListIndex + 1); lVertexParameterBufferIndex < (lHighestVertexParameterListIndex + 1); lVertexParameterBufferIndex++) {
+                        lRenderPassEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
+                    }
+                }
+
+                // Update global bind group list length.
+                lHighestVertexParameterListIndex = lLocalHighestVertexParameterListIndex;
             }
 
             // Draw indexed when parameters are indexable.

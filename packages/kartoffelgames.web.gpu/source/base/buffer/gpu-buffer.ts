@@ -11,7 +11,7 @@ import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidat
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer, GpuBufferInvalidationType> implements IGpuObjectNative<GPUBuffer> {
+export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<GPUBuffer, GpuBufferInvalidationType> implements IGpuObjectNative<GPUBuffer> {
     private mBufferUsage: number;
     private readonly mDataType: PrimitiveBufferFormat;
     private mInitialDataCallback: (() => TType) | null;

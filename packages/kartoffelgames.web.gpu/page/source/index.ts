@@ -311,6 +311,9 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(lRenderTargets);
     lWoodBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
     lWoodBoxPipeline.setParameter('animationSeconds', 3);
+    (<any>window).animationSpeed = (pSeconds: number) => {
+        lWoodBoxPipeline.setParameter('animationSeconds', pSeconds);
+    };
 
     const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(lRenderTargets);
     lLightBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;

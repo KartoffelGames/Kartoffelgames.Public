@@ -147,11 +147,12 @@ export class GpuDevice {
      * Create new render pass.
      * 
      * @param pRenderTargets - Render targets of pass.
+     * @param pStaticBundle - Bundle is static and does not update very often.
      * 
      * @returns new render pass. 
      */
-    public renderPass(pRenderTargets: RenderTargets): RenderPass {
-        return new RenderPass(this, pRenderTargets);
+    public renderPass(pRenderTargets: RenderTargets, pStaticBundle: boolean = true): RenderPass {
+        return new RenderPass(this, pRenderTargets, pStaticBundle);
     }
 
     /**

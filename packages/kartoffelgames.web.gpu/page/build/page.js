@@ -513,6 +513,9 @@ _asyncToGenerator(function* () {
   const lWoodBoxPipeline = lWoodBoxRenderModule.create(lRenderTargets);
   lWoodBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   lWoodBoxPipeline.setParameter('animationSeconds', 3);
+  window.animationSpeed = pSeconds => {
+    lWoodBoxPipeline.setParameter('animationSeconds', pSeconds);
+  };
   const lLightBoxPipeline = lLightBoxRenderModule.create(lRenderTargets);
   lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Create instruction.
@@ -3506,22 +3509,36 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderPass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/base/binding/bind-group.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_life_time_enum_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-life-time.enum */ "./source/base/gpu/object/gpu-object-life-time.enum.ts");
+const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
 class RenderPass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
+   *
    * @param pDevice - Device reference.
    * @param pRenderTargets - Render targets.
+   * @param pStaticBundle - Bundle is static and does not update very often.
    */
-  constructor(pDevice, pRenderTargets) {
+  constructor(pDevice, pRenderTargets, pStaticBundle) {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
-    // TODO: Cache with a render bundle.
     this.mInstructionList = new Array();
     this.mRenderTargets = pRenderTargets;
+    this.mBundleConfig = {
+      enabled: pStaticBundle,
+      writeDepth: false,
+      writeStencil: false,
+      bundle: null
+    };
+    // Update bundle when render target has changed.
+    pRenderTargets.addInvalidationListener(() => {
+      this.mBundleConfig.bundle = null;
+    }, [render_targets_1.RenderTargetsInvalidationType.Config]); // TODO: Update pipeline on format change.
   }
   /**
    * Add instruction step.
+   *
    * @param pPipeline - Pipeline.
    * @param pParameter - Pipeline parameter.
    * @param pBindData - Pipline bind data groups.
@@ -3564,17 +3581,103 @@ class RenderPass extends gpu_object_1.GpuObject {
       lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;
     }
     this.mInstructionList.push(lStep);
+    // Update bundle write depth config.
+    if (pPipeline.writeDepth) {
+      this.mBundleConfig.writeDepth = true;
+    }
+    // Clear bundle when adding new steps.
+    this.mBundleConfig.bundle = null;
+    // Clear bundle when anything has changes.
+    pPipeline.addInvalidationListener(() => {
+      this.mBundleConfig.bundle = null;
+    });
+    pParameter.addInvalidationListener(() => {
+      this.mBundleConfig.bundle = null;
+    });
+    // Clear bundle on any bindgroup change.
+    for (const lGroupName of lPipelineLayout.groups) {
+      lBindGroups.get(lGroupName).addInvalidationListener(() => {
+        this.mBundleConfig.bundle = null;
+      }, [bind_group_1.BindGroupInvalidationType.Data]);
+    }
   }
   /**
    * Execute steps in a row.
+   *
    * @param pExecutor - Executor context.
    */
   execute(pExecution) {
-    // Pass descriptor is set, when the pipeline ist set.
+    // Execute cached or execute direct based on static or variable bundles.
+    if (this.mBundleConfig.enabled) {
+      this.cachedExecute(pExecution);
+    } else {
+      this.directExecute(pExecution);
+    }
+  }
+  /**
+   * Execute render pass as cached bundle.
+   *
+   * @param pExecutor - Executor context.
+   */
+  cachedExecute(pExecution) {
+    // Generate new bundle when not already cached or render target got changed.
+    if (!this.mBundleConfig.bundle) {
+      // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
+      const lRenderBundleEncoderDescriptor = {
+        colorFormats: this.mRenderTargets.colorTextures.map(pRenderTarget => {
+          return pRenderTarget.layout.format;
+        }),
+        // Render target multisample level.
+        sampleCount: this.mRenderTargets.multiSampleLevel,
+        // Enable depth or stencil write.
+        depthReadOnly: !this.mBundleConfig.writeDepth,
+        stencilReadOnly: !this.mBundleConfig.writeStencil
+      };
+      // Optional depth stencil.
+      if (this.mRenderTargets.depthTexture) {
+        lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthTexture.layout.format;
+      }
+      // Create render bundle.
+      const lRenderBundleEncoder = this.device.gpu.createRenderBundleEncoder(lRenderBundleEncoderDescriptor);
+      // Fill render queue.
+      this.setRenderQueue(lRenderBundleEncoder);
+      // Save render bundle.
+      this.mBundleConfig.bundle = {
+        bundle: lRenderBundleEncoder.finish(),
+        descriptor: this.mRenderTargets.native
+      };
+    }
+    // Pass descriptor is set, when the pipeline is set.
     const lRenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
+    // Add cached render bundle.
+    lRenderPassEncoder.executeBundles([this.mBundleConfig.bundle?.bundle]);
+    // End render queue.
+    lRenderPassEncoder.end();
+  }
+  /**
+   * Execute steps in a row without caching.
+   *
+   * @param pExecutor - Executor context.
+   */
+  directExecute(pExecution) {
+    // Pass descriptor is set, when the pipeline is set.
+    const lRenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
+    // Fill render queue.
+    this.setRenderQueue(lRenderPassEncoder);
+    // End render queue.
+    lRenderPassEncoder.end();
+  }
+  /**
+   * Fill encoder with each render step.
+   *
+   * @param pEncoder - Render encoder.
+   */
+  setRenderQueue(pEncoder) {
     // Instruction cache.
     let lPipeline = null;
+    // Buffer for current set vertex buffer.
     const lVertexBufferList = new core_1.Dictionary();
+    let lHighestVertexParameterListIndex = -1;
     // Buffer for current set bind groups.
     const lBindGroupList = new Array();
     let lHighestBindGroupListIndex = -1;
@@ -3597,54 +3700,63 @@ class RenderPass extends gpu_object_1.GpuObject {
           // Set bind group buffer to cache current set bind groups.
           lBindGroupList[lBindGroupIndex] = lNewBindGroup;
           // Set bind group to gpu.
-          lRenderPassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+          pEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
         }
       }
+      // Cache for bind group length of this instruction.
+      let lLocalHighestVertexParameterListIndex = -1;
       // Add vertex attribute buffer.
       const lBufferNames = lInstruction.pipeline.module.vertexParameter.bufferNames;
       for (let lBufferIndex = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
         // Read buffer information.
         const lAttributeBufferName = lBufferNames[lBufferIndex];
         const lNewAttributeBuffer = lInstruction.parameter.get(lAttributeBufferName);
+        // Extend group list length.
+        if (lBufferIndex > lLocalHighestVertexParameterListIndex) {
+          lLocalHighestVertexParameterListIndex = lBufferIndex;
+        }
         // Use cached vertex buffer or use new.
         if (lNewAttributeBuffer !== lVertexBufferList.get(lBufferIndex)) {
           lVertexBufferList.set(lBufferIndex, lNewAttributeBuffer);
-          lRenderPassEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
+          pEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
         }
-        // TODO: Clear unset buffer.
       }
       // Use cached pipeline or use new.
       if (lInstruction.pipeline !== lPipeline) {
         lPipeline = lInstruction.pipeline;
         // Generate and set new pipeline.
-        lRenderPassEncoder.setPipeline(lPipeline.native);
+        pEncoder.setPipeline(lPipeline.native);
         // Only clear bind buffer when a new pipeline is set.
         // Same pipelines must have set the same bind group layouts.
         if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
           for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < lHighestBindGroupListIndex + 1; lBindGroupIndex++) {
-            lRenderPassEncoder.setBindGroup(lBindGroupIndex, null);
+            pEncoder.setBindGroup(lBindGroupIndex, null);
           }
         }
         // Update global bind group list length.
         lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
         // Only clear vertex buffer when a new pipeline is set.
         // Same pipeline must have the same vertex parameter layout.
-        // TODO: Clear vertex buffer,
-        // lRenderPassEncoder.setVertexBuffer(1, null);
+        if (lHighestVertexParameterListIndex > lLocalHighestVertexParameterListIndex) {
+          for (let lVertexParameterBufferIndex = lLocalHighestVertexParameterListIndex + 1; lVertexParameterBufferIndex < lHighestVertexParameterListIndex + 1; lVertexParameterBufferIndex++) {
+            pEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
+          }
+        }
+        // Update global bind group list length.
+        lHighestVertexParameterListIndex = lLocalHighestVertexParameterListIndex;
       }
       // Draw indexed when parameters are indexable.
       if (lInstruction.parameter.layout.indexable) {
         // Set indexbuffer.
-        lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
+        pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
         // Create draw call.
-        lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
+        pEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
       } else {
         // Create draw call.
-        lRenderPassEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
+        pEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
       }
       // TODO: Indirect dispatch.
     }
-    lRenderPassEncoder.end();
   }
 }
 exports.RenderPass = RenderPass;
@@ -3948,11 +4060,12 @@ class GpuDevice {
    * Create new render pass.
    *
    * @param pRenderTargets - Render targets of pass.
+   * @param pStaticBundle - Bundle is static and does not update very often.
    *
    * @returns new render pass.
    */
-  renderPass(pRenderTargets) {
-    return new render_pass_1.RenderPass(this, pRenderTargets);
+  renderPass(pRenderTargets, pStaticBundle = true) {
+    return new render_pass_1.RenderPass(this, pRenderTargets, pStaticBundle);
   }
   /**
    * Create render target object.
@@ -6563,7 +6676,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     super(pDevice, gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent);
     // Set config objects.
     this.mShaderModule = pShaderRenderModule;
-    this.mRenderTargets = pRenderTargets;
+    this.mRenderTargets = pRenderTargets; // TODO: Update pipeline on format change.
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
@@ -15223,7 +15336,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("1b79a7371815a50e9caf")
+/******/ 		__webpack_require__.h = () => ("f3060039f2ff7f3e5e27")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

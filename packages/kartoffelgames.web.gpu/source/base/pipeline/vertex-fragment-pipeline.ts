@@ -115,7 +115,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 
         // Set config objects.
         this.mShaderModule = pShaderRenderModule;
-        this.mRenderTargets = pRenderTargets;
+        this.mRenderTargets = pRenderTargets; // TODO: Update pipeline on format change.
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();

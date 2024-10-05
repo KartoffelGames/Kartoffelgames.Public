@@ -92,37 +92,38 @@ export class RenderPass extends GpuObject {
 
         // Instruction cache.
         let lPipeline: VertexFragmentPipeline | null = null;
-        const lBindGroupList: Array<BindGroup | null> = new Array<BindGroup | null>();
+
         const lVertexBufferList: Dictionary<number, GpuBuffer<TypedArray>> = new Dictionary<number, GpuBuffer<TypedArray>>();
+
+        // Buffer for current set bind groups.
+        const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
+        let lHighestBindGroupListIndex: number = -1;
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
-            // Use cached pipeline or use new.
-            if (lInstruction.pipeline !== lPipeline) {
-                lPipeline = lInstruction.pipeline;
-
-                // Generate and set new pipeline.
-                lRenderPassEncoder.setPipeline(lPipeline.native);
-            }
+            // Cache for bind group length of this instruction.
+            let lLocalHighestBindGroupListIndex: number = -1;
 
             // Add bind groups.
             const lPipelineLayout: PipelineLayout = lInstruction.pipeline.module.shader.layout;
             for (const lBindGroupName of lPipelineLayout.groups) {
-                const lBindGroupLayout: number = lPipelineLayout.groupIndex(lBindGroupName);
+                const lBindGroupIndex: number = lPipelineLayout.groupIndex(lBindGroupName);
 
-                const lNewBindGroup: BindGroup | undefined = lInstruction.bindData[lBindGroupLayout];
-                const lCurrentBindGroup: BindGroup | null = lBindGroupList[lBindGroupLayout];
+                const lNewBindGroup: BindGroup | undefined = lInstruction.bindData[lBindGroupIndex];
+                const lCurrentBindGroup: BindGroup | null = lBindGroupList[lBindGroupIndex];
+
+                // Extend group list length.
+                if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+                    lLocalHighestBindGroupListIndex = lBindGroupIndex;
+                }
 
                 // Use cached bind group or use new.
                 if (lNewBindGroup !== lCurrentBindGroup) {
-                    lBindGroupList[lBindGroupLayout] = lNewBindGroup;
+                    // Set bind group buffer to cache current set bind groups.
+                    lBindGroupList[lBindGroupIndex] = lNewBindGroup;
 
-                    if (lNewBindGroup) {
-                        lRenderPassEncoder.setBindGroup(lBindGroupLayout, lNewBindGroup.native);
-                    }
-
-                    // TODO: Unset bind group.
-                    // lRenderPassEncoder.setBindGroup(1, null)
+                    // Set bind group to gpu.
+                    lRenderPassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
                 }
             }
 
@@ -138,12 +139,38 @@ export class RenderPass extends GpuObject {
                     lVertexBufferList.set(lBufferIndex, lNewAttributeBuffer);
                     lRenderPassEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
                 }
+
+                // TODO: Clear unset buffer.
+            }
+
+            // Use cached pipeline or use new.
+            if (lInstruction.pipeline !== lPipeline) {
+                lPipeline = lInstruction.pipeline;
+
+                // Generate and set new pipeline.
+                lRenderPassEncoder.setPipeline(lPipeline.native);
+
+                // Only clear bind buffer when a new pipeline is set.
+                // Same pipelines must have set the same bind group layouts.
+                if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+                    for (let lBindGroupIndex: number = (lLocalHighestBindGroupListIndex + 1); lBindGroupIndex < (lHighestBindGroupListIndex + 1); lBindGroupIndex++) {
+                        lRenderPassEncoder.setBindGroup(lBindGroupIndex, null);
+                    }
+                }
+
+                // Update global bind group list length.
+                lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+
+                // Only clear vertex buffer when a new pipeline is set.
+                // Same pipeline must have the same vertex parameter layout.
+                // TODO: Clear vertex buffer,
+                // lRenderPassEncoder.setVertexBuffer(1, null);
             }
 
             // Draw indexed when parameters are indexable.
             if (lInstruction.parameter.layout.indexable) {
                 // Set indexbuffer.
-                lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.native, 'uint32');
+                lRenderPassEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
 
                 // Create draw call.
                 lRenderPassEncoder.drawIndexed(lInstruction.parameter.indexBuffer!.length, lInstruction.instanceCount);
@@ -152,6 +179,7 @@ export class RenderPass extends GpuObject {
                 lRenderPassEncoder.draw(lInstruction.parameter.vertexCount, lInstruction.instanceCount);
             }
 
+            // TODO: Indirect dispatch.
         }
 
         lRenderPassEncoder.end();

@@ -78,37 +78,56 @@ export class ComputePass extends GpuObject {
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;
-        const lBindGroupList: Array<BindGroup | null> = new Array<BindGroup | null>();
+        
+        // Buffer for current set bind groups.
+        const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
+        let lHighestBindGroupListIndex: number = -1;
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
+            // Cache for bind group length of this instruction.
+            let lLocalHighestBindGroupListIndex: number = -1;
+
+            // Add bind groups.
+            const lPipelineLayout: PipelineLayout = lInstruction.pipeline.module.shader.layout;
+            for (const lBindGroupName of lPipelineLayout.groups) {
+                const lBindGroupIndex: number = lPipelineLayout.groupIndex(lBindGroupName);
+
+                const lNewBindGroup: BindGroup | undefined = lInstruction.bindData[lBindGroupIndex];
+                const lCurrentBindGroup: BindGroup | null = lBindGroupList[lBindGroupIndex];
+
+                // Extend group list length.
+                if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+                    lLocalHighestBindGroupListIndex = lBindGroupIndex;
+                }
+
+                // Use cached bind group or use new.
+                if (lNewBindGroup !== lCurrentBindGroup) {
+                    // Set bind group buffer to cache current set bind groups.
+                    lBindGroupList[lBindGroupIndex] = lNewBindGroup;
+
+                    // Set bind group to gpu.
+                    lComputePassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+                }
+            }
+
             // Use cached pipeline or use new.
             if (lInstruction.pipeline !== lPipeline) {
                 lPipeline = lInstruction.pipeline;
 
                 // Generate and set new pipeline.
                 lComputePassEncoder.setPipeline(lPipeline.native);
-            }
 
-            // Add bind groups.
-            const lPipelineLayout: PipelineLayout = lInstruction.pipeline.module.shader.layout;
-            for (const lBindGroupName of lPipelineLayout.groups) {
-                const lBindGroupLayout: number = lPipelineLayout.groupIndex(lBindGroupName);
-
-                const lNewBindGroup: BindGroup | undefined = lInstruction.bindData[lBindGroupLayout];
-                const lCurrentBindGroup: BindGroup | null = lBindGroupList[lBindGroupLayout];
-
-                // Use cached bind group or use new.
-                if (lNewBindGroup !== lCurrentBindGroup) {
-                    lBindGroupList[lBindGroupLayout] = lNewBindGroup;
-
-                    if (lNewBindGroup) {
-                        lComputePassEncoder.setBindGroup(lBindGroupLayout, lNewBindGroup.native);
+                // Only clear bind buffer when a new pipeline is set.
+                // Same pipelines must have set the same bind group layouts.
+                if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+                    for (let lBindGroupIndex: number = (lLocalHighestBindGroupListIndex + 1); lBindGroupIndex < (lHighestBindGroupListIndex + 1); lBindGroupIndex++) {
+                        lComputePassEncoder.setBindGroup(lBindGroupIndex, null);
                     }
-
-                    // TODO: Unset bind group.
-                    // lComputePassEncoder.setBindGroup(1, null)
                 }
+
+                // Update global bind group list length.
+                lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
             }
 
             // Start compute groups.

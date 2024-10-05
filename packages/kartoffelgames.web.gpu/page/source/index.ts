@@ -318,7 +318,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
     lRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, lWorldGroup, lWoodBoxUserGroup], gWidth * gHeight * gDepth);
-    lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], 2);
+    lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], lWorldGroup.data('pointLights').get<GpuBuffer>().length / 12);
 
     /**
      * Controls

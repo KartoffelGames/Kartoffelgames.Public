@@ -117,7 +117,7 @@ export class RenderPass extends GpuObject {
         for (const lGroupName of lPipelineLayout.groups) {
             lBindGroups.get(lGroupName)!.addInvalidationListener(() => {
                 this.mBundleConfig.bundle = null;
-            }, [BindGroupInvalidationType.Data]);
+            }, [BindGroupInvalidationType.BindGroupRebuild]);
         }
     }
 

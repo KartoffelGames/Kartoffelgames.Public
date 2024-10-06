@@ -47,7 +47,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
         // Register change listener for layout changes.
         pBindGroupLayout.addInvalidationListener(() => {
-            this.invalidate(BindGroupInvalidationType.Layout);
+            this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
         });
     }
 
@@ -123,11 +123,11 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
             // Trigger update data is invalid.
             pData.addInvalidationListener(() => {
-                this.invalidate(BindGroupInvalidationType.Data);
-            });
+                this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+            }); // TODO: Distinct and only update when necessary.
 
             // Trigger update on data change. 
-            this.invalidate(BindGroupInvalidationType.Data);
+            this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
         });
     }
 
@@ -135,6 +135,9 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
      * Generate native gpu bind data group.
      */
     protected override generateNative(): GPUBindGroup {
+        // Invalidate group.
+        this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
         for (const lBindname of this.layout.bindingNames) {
@@ -203,6 +206,5 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 export type BindData = GpuBuffer<TypedArray> | TextureSampler | BaseTexture;
 
 export enum BindGroupInvalidationType {
-    Layout = 'LayoutChange',
-    Data = 'DataChange'
+    BindGroupRebuild = 'GroupRebuild',
 }

@@ -34,13 +34,6 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
     }
 
     /**
-     * Buffer layout.
-     */
-    public get memoryLayout(): BaseBufferMemoryLayout {
-        return this.mLayout;
-    }
-
-    /**
      * Native gpu object.
      */
     public override get native(): GPUBuffer {
@@ -122,7 +115,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(GpuBufferInvalidationType.Layout);
+            this.invalidate(GpuBufferInvalidationType.BufferRebuild);
         });
     }
 
@@ -137,7 +130,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         if ((this.mBufferUsage & pUsage) === 0) {
             this.mBufferUsage |= pUsage;
 
-            this.invalidate(GpuBufferInvalidationType.Usage);
+            this.invalidate(GpuBufferInvalidationType.BufferRebuild);
         }
 
         return this;
@@ -153,7 +146,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         this.mInitialDataCallback = pDataCallback;
 
         // Trigger update.
-        this.invalidate(GpuBufferInvalidationType.InitialData);
+        this.invalidate(GpuBufferInvalidationType.BufferRebuild);
 
         return this;
     }
@@ -382,7 +375,5 @@ type GpuBufferWriteBuffer = {
 };
 
 export enum GpuBufferInvalidationType {
-    Layout = 'LayoutChange',
-    InitialData = 'InitialDataChange',
-    Usage = 'UsageChange'
+    BufferRebuild = 'BufferRebuild',
 }

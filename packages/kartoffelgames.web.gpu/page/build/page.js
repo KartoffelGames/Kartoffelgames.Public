@@ -2358,7 +2358,7 @@ class BindGroup extends gpu_object_1.GpuObject {
     this.mBindData = new core_1.Dictionary();
     // Register change listener for layout changes.
     pBindGroupLayout.addInvalidationListener(() => {
-      this.invalidate(BindGroupInvalidationType.Layout);
+      this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
     });
   }
   /**
@@ -2426,16 +2426,18 @@ class BindGroup extends gpu_object_1.GpuObject {
       this.mBindData.set(pBindName, pData);
       // Trigger update data is invalid.
       pData.addInvalidationListener(() => {
-        this.invalidate(BindGroupInvalidationType.Data);
-      });
+        this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+      }); // TODO: Distinct and only update when necessary.
       // Trigger update on data change. 
-      this.invalidate(BindGroupInvalidationType.Data);
+      this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
     });
   }
   /**
    * Generate native gpu bind data group.
    */
   generateNative() {
+    // Invalidate group.
+    this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
     const lEntryList = new Array();
     for (const lBindname of this.layout.bindingNames) {
       // Read bind data.
@@ -2494,8 +2496,7 @@ class BindGroup extends gpu_object_1.GpuObject {
 exports.BindGroup = BindGroup;
 var BindGroupInvalidationType;
 (function (BindGroupInvalidationType) {
-  BindGroupInvalidationType["Layout"] = "LayoutChange";
-  BindGroupInvalidationType["Data"] = "DataChange";
+  BindGroupInvalidationType["BindGroupRebuild"] = "GroupRebuild";
 })(BindGroupInvalidationType || (exports.BindGroupInvalidationType = BindGroupInvalidationType = {}));
 
 /***/ }),
@@ -3005,12 +3006,6 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     return this.mItemCount;
   }
   /**
-   * Buffer layout.
-   */
-  get memoryLayout() {
-    return this.mLayout;
-  }
-  /**
    * Native gpu object.
    */
   get native() {
@@ -3081,7 +3076,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     this.mInitialDataCallback = null;
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(GpuBufferInvalidationType.Layout);
+      this.invalidate(GpuBufferInvalidationType.BufferRebuild);
     });
   }
   /**
@@ -3094,7 +3089,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     // Update only when not already set.
     if ((this.mBufferUsage & pUsage) === 0) {
       this.mBufferUsage |= pUsage;
-      this.invalidate(GpuBufferInvalidationType.Usage);
+      this.invalidate(GpuBufferInvalidationType.BufferRebuild);
     }
     return this;
   }
@@ -3107,7 +3102,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     // Set new initial data, set on creation.
     this.mInitialDataCallback = pDataCallback;
     // Trigger update.
-    this.invalidate(GpuBufferInvalidationType.InitialData);
+    this.invalidate(GpuBufferInvalidationType.BufferRebuild);
     return this;
   }
   /**
@@ -3308,9 +3303,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
 exports.GpuBuffer = GpuBuffer;
 var GpuBufferInvalidationType;
 (function (GpuBufferInvalidationType) {
-  GpuBufferInvalidationType["Layout"] = "LayoutChange";
-  GpuBufferInvalidationType["InitialData"] = "InitialDataChange";
-  GpuBufferInvalidationType["Usage"] = "UsageChange";
+  GpuBufferInvalidationType["BufferRebuild"] = "BufferRebuild";
 })(GpuBufferInvalidationType || (exports.GpuBufferInvalidationType = GpuBufferInvalidationType = {}));
 
 /***/ }),
@@ -3605,7 +3598,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     for (const lGroupName of lPipelineLayout.groups) {
       lBindGroups.get(lGroupName).addInvalidationListener(() => {
         this.mBundleConfig.bundle = null;
-      }, [bind_group_1.BindGroupInvalidationType.Data]);
+      }, [bind_group_1.BindGroupInvalidationType.BindGroupRebuild]);
     }
   }
   /**
@@ -15376,7 +15369,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("325bdb35ce06e623a3f9")
+/******/ 		__webpack_require__.h = () => ("43f92cd0f02250bbd859")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

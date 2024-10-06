@@ -155,6 +155,8 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
 
         return lParameterBuffer;
     }
+
+    // TODO: Add own buffer. Rename current set() to createBuffer or something.
 }
 
 export enum VertexParameterInvalidationType {

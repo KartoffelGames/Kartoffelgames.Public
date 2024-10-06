@@ -89,7 +89,7 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
     /**
      * Generate native canvas texture view.
      */
-    protected override generateNative(_pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): GPUTextureView {
+    protected override generateNative(): GPUTextureView {
         // Invalidate for frame change.
         this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
 

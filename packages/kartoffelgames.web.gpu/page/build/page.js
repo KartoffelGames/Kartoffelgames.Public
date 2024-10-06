@@ -4451,9 +4451,10 @@ class GpuObject {
    * Generate new native object.
    * Return null when no native can be generated.
    *
+   * @param _pCurrentNative - Current native element.
    * @param _pReasons - Reason why it should be newly generated.
    */
-  generateNative(_pReasons) {
+  generateNative(_pCurrentNative, _pReasons) {
     return null;
   }
   /**
@@ -4546,15 +4547,16 @@ class GpuObject {
     }
     // When no native is generated or update was not successfull.
     if (this.mNativeObject === null || this.mInvalidationReasons.any()) {
-      // Destroy native when existing.
-      if (this.mNativeObject !== null) {
-        this.destroyNative(this.mNativeObject, this.mInvalidationReasons);
-        this.mNativeObject = null;
-      }
+      // Save current native.
+      const lCurrentNative = this.mNativeObject;
       // Generate new native.
-      this.mNativeObject = this.generateNative(this.mInvalidationReasons);
+      this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
       if (this.mNativeObject === null) {
         throw new core_1.Exception(`No gpu native object can be generated.`, this);
+      }
+      // Destroy old native when existing.
+      if (lCurrentNative !== null) {
+        this.destroyNative(lCurrentNative, this.mInvalidationReasons);
       }
       // Reset all update reasons.
       this.mInvalidationReasons.clear();
@@ -7650,7 +7652,7 @@ class CanvasTexture extends base_texture_1.BaseTexture {
   /**
    * Generate native canvas texture view.
    */
-  generateNative(_pReasons) {
+  generateNative() {
     // Invalidate for frame change.
     this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
     // Read canvas format.
@@ -7866,12 +7868,98 @@ const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+const _2d_mip_map_compute_wgsl_1 = __webpack_require__(/*! ./2d-mip-map-compute.wgsl */ "./source/base/texture/2d-mip-map-compute.wgsl");
 class ImageTexture extends base_texture_1.BaseTexture {
+  /**
+   * Create mips for texture.
+   *
+   * @param pTexture - Target texture.
+   */
+  static generateMips(pGpuDevice, pTexture, pMipCount) {
+    if (pTexture.dimension === '2d') {
+      const lShader = pGpuDevice.createShaderModule({
+        code: _2d_mip_map_compute_wgsl_1.default
+      });
+      const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
+        entries: [{
+          binding: 0,
+          visibility: GPUShaderStage.COMPUTE,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d'
+          }
+        }, {
+          binding: 1,
+          visibility: GPUShaderStage.COMPUTE,
+          storageTexture: {
+            access: 'write-only',
+            format: 'rgba8unorm',
+            viewDimension: '2d'
+          }
+        }]
+      });
+      const lPipelineLayout = pGpuDevice.createPipelineLayout({
+        bindGroupLayouts: [lBindGroupLayout]
+      });
+      const lPipeline = pGpuDevice.createComputePipeline({
+        layout: lPipelineLayout,
+        compute: {
+          module: lShader,
+          entryPoint: 'computeMipMap'
+        }
+      });
+      const lCommandEncoder = pGpuDevice.createCommandEncoder();
+      const lComputePass = lCommandEncoder.beginComputePass();
+      lComputePass.setPipeline(lPipeline);
+      for (let lMipLevel = 1; lMipLevel < pMipCount; lMipLevel++) {
+        const lBindGroup = pGpuDevice.createBindGroup({
+          layout: lBindGroupLayout,
+          entries: [{
+            binding: 0,
+            resource: pTexture.createView({
+              format: 'rgba8unorm',
+              dimension: '2d',
+              baseMipLevel: lMipLevel - 1,
+              mipLevelCount: 1
+            })
+          }, {
+            binding: 1,
+            resource: pTexture.createView({
+              format: 'rgba8unorm',
+              dimension: '2d',
+              baseMipLevel: lMipLevel,
+              mipLevelCount: 1
+            })
+          }]
+        });
+        lComputePass.setBindGroup(0, lBindGroup);
+        const invocationCountX = Math.floor(pTexture.width / Math.pow(2, lMipLevel));
+        const invocationCountY = Math.floor(pTexture.height / Math.pow(2, lMipLevel));
+        const workgroupSizePerDim = 8;
+        // This ceils invocationCountX / workgroupSizePerDim
+        const workgroupCountX = Math.ceil((invocationCountX + workgroupSizePerDim - 1) / workgroupSizePerDim);
+        const workgroupCountY = Math.ceil((invocationCountY + workgroupSizePerDim - 1) / workgroupSizePerDim);
+        console.log(workgroupCountX, workgroupCountY);
+        lComputePass.dispatchWorkgroups(workgroupCountX, workgroupCountY, 1);
+      }
+      lComputePass.end();
+      pGpuDevice.queue.submit([lCommandEncoder.finish()]);
+    }
+  }
   /**
    * Texture depth.
    */
   get depth() {
     return this.mDepth;
+  }
+  /**
+   * Enable mip maps.
+   */
+  get enableMips() {
+    return this.mEnableMips;
+  }
+  set enableMips(pEnable) {
+    this.mEnableMips = pEnable;
   }
   /**
    * Texture height.
@@ -7900,6 +7988,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
     super(pDevice, pLayout);
     this.mTexture = null;
     // Set defaults.
+    this.mEnableMips = true;
     this.mDepth = 1;
     this.mHeight = 1;
     this.mWidth = 1;
@@ -7908,6 +7997,8 @@ class ImageTexture extends base_texture_1.BaseTexture {
     pLayout.addInvalidationListener(() => {
       this.invalidate(ImageTextureInvalidationType.Layout);
     }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    // Allways a copy destination.
+    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
   }
   /**
    * Load image into texture.
@@ -7963,7 +8054,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
   /**
    * Generate native canvas texture view.
    */
-  generateNative() {
+  generateNative(_pCurrentNative, pInvalidationReasons) {
     // TODO: Validate format based on layout. Maybe replace used format.
     // Generate gpu dimension from memory layout dimension.
     const lGpuDimension = (() => {
@@ -7996,32 +8087,94 @@ class ImageTexture extends base_texture_1.BaseTexture {
     })();
     // To copy images, the texture needs to be a render attachment and copy destination.
     // Extend usage before texture creation.
+    // TextureUsage.CopyDestination set in constructor.
     if (this.images.length > 0) {
       this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-      this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
+      // Usages needed for mip generation.
+      if (this.mEnableMips) {
+        this.extendUsage(texture_usage_enum_1.TextureUsage.Texture);
+        this.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
+      }
     }
+    // Calculate mip count on 3D images the depth affects mips.
+    let lMipCount = 1;
+    if (this.mEnableMips) {
+      if (lGpuDimension === '3d') {
+        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+      } else {
+        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height)));
+      }
+    }
+    // Save last used texture.
+    const lLastTexture = this.mTexture;
     // Create texture with set size, format and usage. Save it for destorying later.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
       size: [this.width, this.height, this.depth],
       format: this.layout.format,
       usage: this.usage,
-      dimension: lGpuDimension
+      dimension: lGpuDimension,
+      mipLevelCount: this.enableMips ? lMipCount : 1
     });
-    // Load images into texture. // TODO: Make it somewhat comnpletly async.
-    for (let lImageIndex = 0; lImageIndex < this.images.length; lImageIndex++) {
-      const lBitmap = this.images[lImageIndex];
-      // Copy image into depth layer.
-      this.device.gpu.queue.copyExternalImageToTexture({
-        source: lBitmap
-      }, {
+    // Copy current native data into new texture.
+    if (lLastTexture !== null && !pInvalidationReasons.has(ImageTextureInvalidationType.ImageBinary)) {
+      // Create target copy texture.
+      const lDestination = {
         texture: this.mTexture,
-        origin: [0, 0, lImageIndex]
-      }, [lBitmap.width, lBitmap.height]);
+        mipLevel: 0
+      };
+      // Create source copy texture.
+      const lSource = {
+        texture: lLastTexture,
+        mipLevel: 0
+      };
+      // Clamp copy sizes to lowest.
+      const lLevelOneCopySize = {
+        width: Math.min(lLastTexture.width, this.mTexture.width),
+        height: Math.min(lLastTexture.height, this.mTexture.height),
+        depthOrArrayLayers: Math.min(lLastTexture.depthOrArrayLayers, this.mTexture.depthOrArrayLayers)
+      };
+      // Create copy command encoder to store copy actions.
+      const lCommandDecoder = this.device.gpu.createCommandEncoder();
+      // Copy each mipmap.
+      const lCopyMipCount = Math.min(lLastTexture.mipLevelCount, this.mTexture.mipLevelCount);
+      for (let lMipLevel = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
+        // Calculate mip level copy sizes.
+        const lMipCopySize = {
+          width: Math.floor(lLevelOneCopySize.width / Math.pow(2, lMipLevel)),
+          height: Math.floor(lLevelOneCopySize.height / Math.pow(2, lMipLevel)),
+          depthOrArrayLayers: 0
+        };
+        // On 3D images the depth count to the mip.
+        if (lGpuDimension === '3d') {
+          lMipCopySize.depthOrArrayLayers = Math.floor(lLevelOneCopySize.depthOrArrayLayers / Math.pow(2, lMipLevel));
+        } else {
+          lMipCopySize.depthOrArrayLayers = lLevelOneCopySize.depthOrArrayLayers;
+        }
+        // Add copy action to command queue.
+        lCommandDecoder.copyTextureToTexture(lSource, lDestination, lMipCopySize);
+      }
+      // Submit copy actions.
+      this.device.gpu.queue.submit([lCommandDecoder.finish()]);
     }
-    // TODO: mipLevel??
+    // Only reload when binary data has changed.
+    if (pInvalidationReasons.has(ImageTextureInvalidationType.ImageBinary)) {
+      // Load images into texture.
+      for (let lImageIndex = 0; lImageIndex < this.images.length; lImageIndex++) {
+        const lBitmap = this.images[lImageIndex];
+        // Copy image into depth layer.
+        this.device.gpu.queue.copyExternalImageToTexture({
+          source: lBitmap
+        }, {
+          texture: this.mTexture,
+          origin: [0, 0, lImageIndex]
+        }, [lBitmap.width, lBitmap.height]);
+      }
+      // Generate mips for texture.
+      ImageTexture.generateMips(this.device.gpu, this.mTexture, lMipCount);
+    }
     // TODO: ArrayLayer based on dimension.
-    // TODO: View descriptor.
+    // View descriptor.
     return this.mTexture.createView({
       format: this.layout.format,
       dimension: this.layout.dimension
@@ -10759,6 +10912,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / (1000 * f32(animationSeconds))) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);\r\n}");
+
+/***/ }),
+
+/***/ "./source/base/texture/2d-mip-map-compute.wgsl":
+/*!*****************************************************!*\
+  !*** ./source/base/texture/2d-mip-map-compute.wgsl ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("@group(0) @binding(0) var previousMipLevel: texture_2d<f32>;\r\n@group(0) @binding(1) var nextMipLevel: texture_storage_2d<rgba8unorm,write>;\r\n\r\n@compute @workgroup_size(8, 8)\r\nfn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {\r\n    let offset = vec2<u32>(0u, 1u);\r\n    let color = (\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.xx, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.xy, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.yx, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.yy, 0)\r\n    ) * 0.25;\r\n    textureStore(nextMipLevel, id.xy, color);\r\n}");
 
 /***/ }),
 
@@ -15413,7 +15581,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("327b1177512f86b3ce18")
+/******/ 		__webpack_require__.h = () => ("d5c305f2baaf1b2a2690")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

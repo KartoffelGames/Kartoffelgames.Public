@@ -137,9 +137,10 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * Generate new native object.
      * Return null when no native can be generated.
      * 
+     * @param _pCurrentNative - Current native element.
      * @param _pReasons - Reason why it should be newly generated. 
      */
-    protected generateNative(_pReasons: GpuObjectInvalidationReasons<TInvalidationType>): TNativeObject | null {
+    protected generateNative(_pCurrentNative: TNativeObject | null, _pReasons: GpuObjectInvalidationReasons<TInvalidationType>): TNativeObject | null {
         return null;
     }
 
@@ -246,16 +247,18 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
 
         // When no native is generated or update was not successfull.
         if (this.mNativeObject === null || this.mInvalidationReasons.any()) {
-            // Destroy native when existing.
-            if (this.mNativeObject !== null) {
-                this.destroyNative(this.mNativeObject, this.mInvalidationReasons);
-                this.mNativeObject = null;
-            }
+            // Save current native.
+            const lCurrentNative: TNativeObject | null = this.mNativeObject;
 
             // Generate new native.
-            this.mNativeObject = this.generateNative(this.mInvalidationReasons);
+            this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
             if (this.mNativeObject === null) {
                 throw new Exception(`No gpu native object can be generated.`, this);
+            }
+
+            // Destroy old native when existing.
+            if (lCurrentNative !== null) {
+                this.destroyNative(lCurrentNative, this.mInvalidationReasons);
             }
 
             // Reset all update reasons.

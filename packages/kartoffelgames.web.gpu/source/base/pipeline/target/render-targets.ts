@@ -410,6 +410,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
                     // Use resolve as target.
                     lAttachment.texture.target = lAttachment.texture.resolve;
+
+                    // Update descriptor on texture changes.
+                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
                 }
             } else {
                 // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
@@ -420,6 +423,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     // Create new texture from canvas texture.
                     lAttachment.texture.target = new FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
                     lAttachment.texture.target.extendUsage(TextureUsage.RenderAttachment);
+
+                    // Update descriptor on texture changes.
+                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
                 }
             }
 
@@ -462,7 +468,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         if (pTexture instanceof FrameBufferTexture) {
             // Rebuild descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
-                this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+                this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
             }, [FrameBufferTextureInvalidationType.ViewRebuild]);
 
             // Passthough other invalidations.
@@ -495,7 +501,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         if (pTexture instanceof CanvasTexture) {
             // Rebuild descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
-                this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+                this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
             }, [CanvasTextureInvalidationType.ViewRebuild]);
 
             // Passthough other invalidations.

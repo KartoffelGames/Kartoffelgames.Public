@@ -148,11 +148,6 @@ const gUpdateFpsDisplay = (() => {
     };
 })();
 
-
-
-
-
-
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 

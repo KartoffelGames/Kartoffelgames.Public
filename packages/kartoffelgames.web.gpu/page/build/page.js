@@ -6516,6 +6516,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
           lAttachment.texture.target.deconstruct();
           // Use resolve as target.
           lAttachment.texture.target = lAttachment.texture.resolve;
+          // Update descriptor on texture changes.
+          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
         }
       } else {
         // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
@@ -6525,6 +6527,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
           // Create new texture from canvas texture.
           lAttachment.texture.target = new frame_buffer_texture_1.FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
           lAttachment.texture.target.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+          // Update descriptor on texture changes.
+          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
         }
       }
       // Add multisample level only to frame buffers as canvas does not support any mutisampling.
@@ -6561,7 +6565,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     if (pTexture instanceof frame_buffer_texture_1.FrameBufferTexture) {
       // Rebuild descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+        this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
       }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.ViewRebuild]);
       // Passthough other invalidations.
       pTexture.addInvalidationListener(pType => {
@@ -6589,7 +6593,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     if (pTexture instanceof canvas_texture_1.CanvasTexture) {
       // Rebuild descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild, RenderTargetsInvalidationType.ViewRebuild);
+        this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
       }, [canvas_texture_1.CanvasTextureInvalidationType.ViewRebuild]);
       // Passthough other invalidations.
       pTexture.addInvalidationListener(pType => {
@@ -15409,7 +15413,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c1916118606d3cf86e3e")
+/******/ 		__webpack_require__.h = () => ("327b1177512f86b3ce18")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

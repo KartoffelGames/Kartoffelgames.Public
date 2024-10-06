@@ -103,6 +103,56 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
     });
 };
 
+
+const gUpdateFpsDisplay = (() => {
+    let lMaxFps: number = 0;
+
+    return (pFps: number, pWidth: number): void => {
+
+        const lCanvas: HTMLCanvasElement = document.getElementById('fps-display') as HTMLCanvasElement;
+        const lCanvasContext: CanvasRenderingContext2D = lCanvas.getContext('2d', { willReadFrequently: true })!;
+
+        // Update canvas width.
+        if (pWidth !== lCanvas.width) {
+            lCanvas.width = pWidth;
+            lCanvas.height = 30;
+        }
+
+        // Get current fps image data except the first pixel column.
+        const lLastFpsData: ImageData = lCanvasContext.getImageData(1, 0, lCanvas.width - 1, lCanvas.height);
+
+        // Adjust to new fps scaling.
+        let lScaling: number = 1;
+        if (lMaxFps < pFps) {
+            lScaling = lMaxFps / pFps;
+            lMaxFps = pFps;
+        }
+
+        // now clear the right-most pixels:
+        if (lScaling === 1) {
+            lCanvasContext.clearRect(lCanvas.width - 1, 0, 1, lCanvas.height);
+        } else {
+            lCanvasContext.clearRect(0, 0, lCanvas.width, lCanvas.height);
+        }
+
+        // Put image data to left.
+        const lScalingSize: number = Math.floor(lCanvas.height * lScaling);
+        lCanvasContext.putImageData(lLastFpsData, 0, lCanvas.height - (lScalingSize), 0, 0, lCanvas.width - 1, lScalingSize);
+
+        // Calculate heigt of rect.
+        const lRectHeight: number = (pFps / lMaxFps) * lCanvas.height;
+
+        // Draw current fps.
+        lCanvasContext.fillStyle = '#87beee';
+        lCanvasContext.fillRect(lCanvas.width - 1, lCanvas.height - lRectHeight, 1, lRectHeight);
+    };
+})();
+
+
+
+
+
+
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
@@ -354,6 +404,7 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
 
     // Actual execute.
     let lLastTime: number = 0;
+    let lCurrentFps: number = 0;
     const lRender = (pTime: number) => {
         // Start new frame.
         lGpu.startNewFrame();
@@ -364,12 +415,16 @@ const gInitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection
         // Generate encoder and add render commands.
         lRenderExecutor.execute();
 
+        // Generate fps and smooth fps numbers.
         const lFps: number = 1000 / (pTime - lLastTime);
-        (<any>window).currentFps = lFps;
+        lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
         lLastTime = pTime;
 
+        // Update fps display.
+        gUpdateFpsDisplay(lFps, lRenderTargets.width);
+
         // Update FPS counter.
-        lFpsLabel.textContent = lFps.toString();
+        lFpsLabel.textContent = lCurrentFps.toFixed(0);
 
         // Refresh canvas
         requestAnimationFrame(lRender);

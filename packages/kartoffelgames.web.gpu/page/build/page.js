@@ -366,6 +366,42 @@ const gInitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
     pCanvas.requestPointerLock();
   });
 };
+const gUpdateFpsDisplay = (() => {
+  let lMaxFps = 0;
+  return (pFps, pWidth) => {
+    const lCanvas = document.getElementById('fps-display');
+    const lCanvasContext = lCanvas.getContext('2d', {
+      willReadFrequently: true
+    });
+    // Update canvas width.
+    if (pWidth !== lCanvas.width) {
+      lCanvas.width = pWidth;
+      lCanvas.height = 30;
+    }
+    // Get current fps image data except the first pixel column.
+    const lLastFpsData = lCanvasContext.getImageData(1, 0, lCanvas.width - 1, lCanvas.height);
+    // Adjust to new fps scaling.
+    let lScaling = 1;
+    if (lMaxFps < pFps) {
+      lScaling = lMaxFps / pFps;
+      lMaxFps = pFps;
+    }
+    // now clear the right-most pixels:
+    if (lScaling === 1) {
+      lCanvasContext.clearRect(lCanvas.width - 1, 0, 1, lCanvas.height);
+    } else {
+      lCanvasContext.clearRect(0, 0, lCanvas.width, lCanvas.height);
+    }
+    // Put image data to left.
+    const lScalingSize = Math.floor(lCanvas.height * lScaling);
+    lCanvasContext.putImageData(lLastFpsData, 0, lCanvas.height - lScalingSize, 0, 0, lCanvas.width - 1, lScalingSize);
+    // Calculate heigt of rect.
+    const lRectHeight = pFps / lMaxFps * lCanvas.height;
+    // Draw current fps.
+    lCanvasContext.fillStyle = '#87beee';
+    lCanvasContext.fillRect(lCanvas.width - 1, lCanvas.height - lRectHeight, 1, lRectHeight);
+  };
+})();
 _asyncToGenerator(function* () {
   const lGpu = yield gpu_device_1.GpuDevice.request('high-performance');
   // Create canvas.
@@ -549,6 +585,7 @@ _asyncToGenerator(function* () {
   const lFpsLabel = document.getElementById('fpsCounter');
   // Actual execute.
   let lLastTime = 0;
+  let lCurrentFps = 0;
   const lRender = pTime => {
     // Start new frame.
     lGpu.startNewFrame();
@@ -556,11 +593,14 @@ _asyncToGenerator(function* () {
     lTimestampBuffer.write([pTime], []);
     // Generate encoder and add render commands.
     lRenderExecutor.execute();
+    // Generate fps and smooth fps numbers.
     const lFps = 1000 / (pTime - lLastTime);
-    window.currentFps = lFps;
+    lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
     lLastTime = pTime;
+    // Update fps display.
+    gUpdateFpsDisplay(lFps, lRenderTargets.width);
     // Update FPS counter.
-    lFpsLabel.textContent = lFps.toString();
+    lFpsLabel.textContent = lCurrentFps.toFixed(0);
     // Refresh canvas
     requestAnimationFrame(lRender);
   };
@@ -15369,7 +15409,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("43f92cd0f02250bbd859")
+/******/ 		__webpack_require__.h = () => ("c1916118606d3cf86e3e")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

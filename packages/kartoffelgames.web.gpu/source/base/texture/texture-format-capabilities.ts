@@ -1387,6 +1387,7 @@ export class TextureFormatCapabilities {
             format: lCapabilityDefinition.format,
             textureUsages: lTextureUsages,
             dimensions: new Set<TextureDimension>(lCapabilityDefinition.dimensions),
+            aspects: new Set<TextureAspect>(lCapabilityDefinition.aspect.types),
             sampleTypes: {
                 primary: lSampleTypes[1],
                 all: lSampleTypes[0]
@@ -1428,6 +1429,9 @@ export type TextureFormatCapability = {
 
     // Usable dimensions. When multisample is used only 2d is allowed. 
     dimensions: Set<TextureDimension>;
+
+    // All aspects for format.
+    aspects: Set<TextureAspect>;
 
     // Usable sample types.
     sampleTypes: {

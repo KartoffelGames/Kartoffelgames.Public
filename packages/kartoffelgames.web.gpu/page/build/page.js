@@ -2249,7 +2249,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
               const lTextureFormatCapabilities = this.device.formatValidator.capabilityOf(lEntry.layout.format);
               // Create image texture bind information.
               lLayoutEntry.texture = {
-                sampleType: lTextureFormatCapabilities.type[0],
+                sampleType: lTextureFormatCapabilities.sampleTypes.primary,
                 multisampled: lEntry.layout.multisampled,
                 viewDimension: lEntry.layout.dimension
               };
@@ -2453,7 +2453,7 @@ class BindGroup extends gpu_object_1.GpuObject {
             if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
               pData.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
             } else {
-              pData.extendUsage(texture_usage_enum_1.TextureUsage.Texture);
+              pData.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
             }
             break;
           }
@@ -6396,7 +6396,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
       // Setup depth texture.
       if (pReferenceData.depthStencil.depth) {
         // Validate if depth texture
-        if (!lFormatCapability.aspect.types.includes(texture_aspect_enum_1.TextureAspect.Depth)) {
+        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Depth)) {
           throw new core_1.Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
         }
         this.mDepthStencilTexture.depth = {
@@ -6407,7 +6407,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
       // Setup stencil texture.
       if (pReferenceData.depthStencil.stencil) {
         // Validate if depth texture
-        if (!lFormatCapability.aspect.types.includes(texture_aspect_enum_1.TextureAspect.Stencil)) {
+        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Stencil)) {
           throw new core_1.Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
         }
         this.mDepthStencilTexture.stencil = {
@@ -7865,85 +7865,150 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
-const _2d_mip_map_compute_wgsl_1 = __webpack_require__(/*! ./2d-mip-map-compute.wgsl */ "./source/base/texture/2d-mip-map-compute.wgsl");
 class ImageTexture extends base_texture_1.BaseTexture {
   /**
-   * Create mips for texture.
+   * Create mips for texture with compute shader.
    *
    * @param pTexture - Target texture.
    */
-  static generateMips(pGpuDevice, pTexture, pMipCount) {
-    if (pTexture.dimension === '2d') {
-      const lShader = pGpuDevice.createShaderModule({
-        code: _2d_mip_map_compute_wgsl_1.default
-      });
-      const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
-        entries: [{
-          binding: 0,
-          visibility: GPUShaderStage.COMPUTE,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d'
+  static {
+    this.mGenerateMipsWithCompute = (() => {
+      // Global storages for 2d generation.
+      const lFormatPipelines2d = new core_1.Dictionary();
+      const lFormatBindGroupsLayouts2d = new core_1.Dictionary();
+      // Static config values.
+      const lWorkgroupSizePerDimension = 8;
+      return (pGpuDevice, pTexture, pFormat) => {
+        // Different Dimensions need different pipelines.
+        if (pTexture.dimension === '2d') {
+          // Generate cache when missed.
+          if (!lFormatPipelines2d.has(pTexture.format)) {
+            const lSampleTypeName = (() => {
+              switch (pFormat.sampleTypes.primary) {
+                case texture_sample_type_enum_1.TextureSampleType.Float:
+                  return 'f32';
+                case texture_sample_type_enum_1.TextureSampleType.UnsignedInteger:
+                  return 'u32';
+                case texture_sample_type_enum_1.TextureSampleType.SignedInteger:
+                  return 'i32';
+                default:
+                  {
+                    throw new core_1.Exception(`Can't generate mip for textures that cant be filtered.`, this);
+                  }
+              }
+            })();
+            // Shader code. Insert format.
+            const lShader = pGpuDevice.createShaderModule({
+              code: `
+                            @group(0) @binding(0) var previousMipLevel: texture_2d<${lSampleTypeName}>;
+                            @group(0) @binding(1) var nextMipLevel: texture_storage_2d<${pFormat.format}, write>;
+
+                            @compute @workgroup_size(${lWorkgroupSizePerDimension}, ${lWorkgroupSizePerDimension})
+                            fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
+                                let lOffset = vec2<u32>(0u, 1u);
+                                let lColor = (
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, 0)
+                                ) * 0.25;
+                                textureStore(nextMipLevel, id.xy, lColor);
+                            }
+                        `
+            });
+            // Generate bind group layout.
+            const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
+              entries: [{
+                binding: 0,
+                visibility: GPUShaderStage.COMPUTE,
+                texture: {
+                  sampleType: pFormat.sampleTypes.primary,
+                  viewDimension: '2d'
+                }
+              }, {
+                binding: 1,
+                visibility: GPUShaderStage.COMPUTE,
+                storageTexture: {
+                  access: 'write-only',
+                  format: pFormat.format,
+                  viewDimension: '2d'
+                }
+              }]
+            });
+            // Create pipeline.
+            const lPipeline = pGpuDevice.createComputePipeline({
+              layout: pGpuDevice.createPipelineLayout({
+                bindGroupLayouts: [lBindGroupLayout]
+              }),
+              compute: {
+                module: lShader,
+                entryPoint: 'computeMipMap'
+              }
+            });
+            // Safe pipeline and bind group layout.
+            lFormatPipelines2d.set(pFormat.format, lPipeline);
+            lFormatBindGroupsLayouts2d.set(pFormat.format, lBindGroupLayout);
           }
-        }, {
-          binding: 1,
-          visibility: GPUShaderStage.COMPUTE,
-          storageTexture: {
-            access: 'write-only',
-            format: 'rgba8unorm',
-            viewDimension: '2d'
+          // Calulate mip count.
+          const lMipCount = 1 + Math.floor(Math.log2(Math.max(pTexture.width, pTexture.height)));
+          // Read cached pipeline and layout.
+          const lPipeline = lFormatPipelines2d.get(pFormat.format);
+          const lBindGroupLayout = lFormatBindGroupsLayouts2d.get(pFormat.format);
+          // Create command encoder.
+          const lCommandEncoder = pGpuDevice.createCommandEncoder();
+          const lComputePass = lCommandEncoder.beginComputePass();
+          lComputePass.setPipeline(lPipeline);
+          for (let lMipLevel = 1; lMipLevel < lMipCount; lMipLevel++) {
+            // Create and add bind group with needed texture resources.
+            lComputePass.setBindGroup(0, pGpuDevice.createBindGroup({
+              layout: lBindGroupLayout,
+              entries: [{
+                binding: 0,
+                resource: pTexture.createView({
+                  format: pFormat.format,
+                  dimension: '2d',
+                  baseMipLevel: lMipLevel - 1,
+                  mipLevelCount: 1
+                })
+              }, {
+                binding: 1,
+                resource: pTexture.createView({
+                  format: pFormat.format,
+                  dimension: '2d',
+                  baseMipLevel: lMipLevel,
+                  mipLevelCount: 1
+                })
+              }]
+            }));
+            // Calculate needed single pixel invocations to cover complete mipmap level texture.
+            const lNeededInvocationCountForX = Math.floor(pTexture.width / Math.pow(2, lMipLevel));
+            const lNeededInvocationCountForY = Math.floor(pTexture.height / Math.pow(2, lMipLevel));
+            // Calculate needed compute workgroup invocations to cover complete mipmap level texture.
+            const lWorkgroupCountForX = Math.ceil((lNeededInvocationCountForX + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
+            const lWorkgroupCountForY = Math.ceil((lNeededInvocationCountForY + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
+            lComputePass.dispatchWorkgroups(lWorkgroupCountForX, lWorkgroupCountForY, 1);
           }
-        }]
-      });
-      const lPipelineLayout = pGpuDevice.createPipelineLayout({
-        bindGroupLayouts: [lBindGroupLayout]
-      });
-      const lPipeline = pGpuDevice.createComputePipeline({
-        layout: lPipelineLayout,
-        compute: {
-          module: lShader,
-          entryPoint: 'computeMipMap'
+          // End computepass after all mips are generated.
+          lComputePass.end();
+          // Push all commands to gpu queue.
+          pGpuDevice.queue.submit([lCommandEncoder.finish()]);
         }
-      });
-      const lCommandEncoder = pGpuDevice.createCommandEncoder();
-      const lComputePass = lCommandEncoder.beginComputePass();
-      lComputePass.setPipeline(lPipeline);
-      for (let lMipLevel = 1; lMipLevel < pMipCount; lMipLevel++) {
-        const lBindGroup = pGpuDevice.createBindGroup({
-          layout: lBindGroupLayout,
-          entries: [{
-            binding: 0,
-            resource: pTexture.createView({
-              format: 'rgba8unorm',
-              dimension: '2d',
-              baseMipLevel: lMipLevel - 1,
-              mipLevelCount: 1
-            })
-          }, {
-            binding: 1,
-            resource: pTexture.createView({
-              format: 'rgba8unorm',
-              dimension: '2d',
-              baseMipLevel: lMipLevel,
-              mipLevelCount: 1
-            })
-          }]
-        });
-        lComputePass.setBindGroup(0, lBindGroup);
-        const invocationCountX = Math.floor(pTexture.width / Math.pow(2, lMipLevel));
-        const invocationCountY = Math.floor(pTexture.height / Math.pow(2, lMipLevel));
-        const workgroupSizePerDim = 8;
-        // This ceils invocationCountX / workgroupSizePerDim
-        const workgroupCountX = Math.ceil((invocationCountX + workgroupSizePerDim - 1) / workgroupSizePerDim);
-        const workgroupCountY = Math.ceil((invocationCountY + workgroupSizePerDim - 1) / workgroupSizePerDim);
-        console.log(workgroupCountX, workgroupCountY);
-        lComputePass.dispatchWorkgroups(workgroupCountX, workgroupCountY, 1);
-      }
-      lComputePass.end();
-      pGpuDevice.queue.submit([lCommandEncoder.finish()]);
+        // TODO: 3D
+        // lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+      };
+    })();
+  }
+  static generateMips(pDevice, pTexture) {
+    const lTextureCapability = pDevice.formatValidator.capabilityOf(pTexture.format);
+    // Use compute shader or fallback to cpu generation of mips.
+    if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(texture_usage_enum_1.TextureUsage.TextureBinding)) {
+      ImageTexture.mGenerateMipsWithCompute(pDevice.gpu, pTexture, lTextureCapability);
+    } else {
+      // Fallback CPU generation.
     }
   }
   /**
@@ -8092,7 +8157,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
       this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Usages needed for mip generation.
       if (this.mEnableMips) {
-        this.extendUsage(texture_usage_enum_1.TextureUsage.Texture);
+        this.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
         this.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
       }
     }
@@ -8171,7 +8236,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
         }, [lBitmap.width, lBitmap.height]);
       }
       // Generate mips for texture.
-      ImageTexture.generateMips(this.device.gpu, this.mTexture, lMipCount);
+      ImageTexture.generateMips(this.device, this.mTexture);
     }
     // TODO: ArrayLayer based on dimension.
     // View descriptor.
@@ -8215,6 +8280,7 @@ const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-asp
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_feature_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-feature.enum */ "./source/base/gpu/capabilities/gpu-feature.enum.ts");
 class TextureFormatCapabilities {
   /**
@@ -8235,6 +8301,7 @@ class TextureFormatCapabilities {
     this.mFormatCapabilitys = new core_1.Dictionary();
     // 8-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8unorm, {
+      format: texture_format_enum_1.TextureFormat.R8unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
@@ -8251,14 +8318,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8snorm, {
+      format: texture_format_enum_1.TextureFormat.R8snorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
@@ -8271,14 +8339,15 @@ class TextureFormatCapabilities {
         renderAttachment: false,
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8uint, {
+      format: texture_format_enum_1.TextureFormat.R8uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
@@ -8295,14 +8364,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8sint, {
+      format: texture_format_enum_1.TextureFormat.R8sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
@@ -8319,15 +8389,16 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     // 16-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16uint, {
+      format: texture_format_enum_1.TextureFormat.R16uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
@@ -8344,14 +8415,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16sint, {
+      format: texture_format_enum_1.TextureFormat.R16sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
@@ -8368,14 +8440,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16float, {
+      format: texture_format_enum_1.TextureFormat.R16float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
@@ -8392,14 +8465,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8unorm, {
+      format: texture_format_enum_1.TextureFormat.Rg8unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
@@ -8416,14 +8490,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8snorm, {
+      format: texture_format_enum_1.TextureFormat.Rg8snorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
@@ -8436,14 +8511,15 @@ class TextureFormatCapabilities {
         renderAttachment: false,
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8uint, {
+      format: texture_format_enum_1.TextureFormat.Rg8uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
@@ -8460,14 +8536,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8sint, {
+      format: texture_format_enum_1.TextureFormat.Rg8sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
@@ -8484,15 +8561,16 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     // 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32uint, {
+      format: texture_format_enum_1.TextureFormat.R32uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
@@ -8509,9 +8587,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8521,6 +8599,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32sint, {
+      format: texture_format_enum_1.TextureFormat.R32sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
@@ -8537,9 +8616,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8549,6 +8628,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32float, {
+      format: texture_format_enum_1.TextureFormat.R32float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
@@ -8565,9 +8645,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8577,6 +8657,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16uint, {
+      format: texture_format_enum_1.TextureFormat.Rg16uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
@@ -8593,14 +8674,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16sint, {
+      format: texture_format_enum_1.TextureFormat.Rg16sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
@@ -8617,14 +8699,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16float, {
+      format: texture_format_enum_1.TextureFormat.Rg16float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
@@ -8641,14 +8724,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unorm, {
+      format: texture_format_enum_1.TextureFormat.Rgba8unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8665,9 +8749,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8677,6 +8761,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unormSrgb, {
+      format: texture_format_enum_1.TextureFormat.Rgba8unormSrgb,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8693,14 +8778,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8snorm, {
+      format: texture_format_enum_1.TextureFormat.Rgba8snorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8713,9 +8799,9 @@ class TextureFormatCapabilities {
         renderAttachment: false,
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8725,6 +8811,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8uint, {
+      format: texture_format_enum_1.TextureFormat.Rgba8uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8741,9 +8828,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8753,6 +8840,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8sint, {
+      format: texture_format_enum_1.TextureFormat.Rgba8sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8769,9 +8857,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8781,6 +8869,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unorm, {
+      format: texture_format_enum_1.TextureFormat.Bgra8unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8797,9 +8886,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.Bgra8unormStorage),
@@ -8809,6 +8898,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unormSrgb, {
+      format: texture_format_enum_1.TextureFormat.Bgra8unormSrgb,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8825,15 +8915,16 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     // Packed 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb9e5ufloat, {
+      format: texture_format_enum_1.TextureFormat.Rgb9e5ufloat,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
@@ -8846,14 +8937,15 @@ class TextureFormatCapabilities {
         renderAttachment: false,
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2uint, {
+      format: texture_format_enum_1.TextureFormat.Rgb10a2uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -8870,14 +8962,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2unorm, {
+      format: texture_format_enum_1.TextureFormat.Rgb10a2unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -8894,14 +8987,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg11b10ufloat, {
+      format: texture_format_enum_1.TextureFormat.Rg11b10ufloat,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -8918,15 +9012,16 @@ class TextureFormatCapabilities {
         } : false,
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     // 64-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32uint, {
+      format: texture_format_enum_1.TextureFormat.Rg32uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
@@ -8943,9 +9038,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8955,6 +9050,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32sint, {
+      format: texture_format_enum_1.TextureFormat.Rg32sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
@@ -8971,9 +9067,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -8983,6 +9079,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32float, {
+      format: texture_format_enum_1.TextureFormat.Rg32float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
@@ -8999,9 +9096,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9011,6 +9108,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16uint, {
+      format: texture_format_enum_1.TextureFormat.Rgba16uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -9027,9 +9125,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9039,6 +9137,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16sint, {
+      format: texture_format_enum_1.TextureFormat.Rgba16sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -9055,9 +9154,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9067,6 +9166,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16float, {
+      format: texture_format_enum_1.TextureFormat.Rgba16float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
@@ -9083,9 +9183,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9096,6 +9196,7 @@ class TextureFormatCapabilities {
     });
     // 128-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32uint, {
+      format: texture_format_enum_1.TextureFormat.Rgba32uint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
@@ -9112,9 +9213,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9124,6 +9225,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32sint, {
+      format: texture_format_enum_1.TextureFormat.Rgba32sint,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
@@ -9140,9 +9242,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9152,6 +9254,7 @@ class TextureFormatCapabilities {
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32float, {
+      format: texture_format_enum_1.TextureFormat.Rgba32float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
@@ -9168,9 +9271,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: {
           readonly: true,
@@ -9181,6 +9284,7 @@ class TextureFormatCapabilities {
     });
     // Depth/stencil formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Stencil8, {
+      format: texture_format_enum_1.TextureFormat.Stencil8,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 1
@@ -9197,14 +9301,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth16unorm, {
+      format: texture_format_enum_1.TextureFormat.Depth16unorm,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 2
@@ -9221,14 +9326,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: true
+          imageDestination: true
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plus, {
+      format: texture_format_enum_1.TextureFormat.Depth24plus,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
@@ -9245,14 +9351,15 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: false,
-          imageTarget: false
+          imageDestination: false
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plusStencil8, {
+      format: texture_format_enum_1.TextureFormat.Depth24plusStencil8,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 2
@@ -9269,15 +9376,16 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: false,
           // Stencil supports image copy but depth does not.
-          imageTarget: false // Stencil supports image copy but depth does not.
+          imageDestination: false // Stencil supports image copy but depth does not.
         },
         storage: false
       }
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32float, {
+      format: texture_format_enum_1.TextureFormat.Depth32float,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
@@ -9294,9 +9402,9 @@ class TextureFormatCapabilities {
         },
         copy: {
           textureSource: true,
-          textureTarget: true,
+          textureDestination: true,
           imageSource: true,
-          imageTarget: false
+          imageDestination: false
         },
         storage: false
       }
@@ -9304,6 +9412,7 @@ class TextureFormatCapabilities {
     // "depth32float-stencil8" feature
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.Depth32floatStencil8)) {
       this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32floatStencil8, {
+        format: texture_format_enum_1.TextureFormat.Depth32floatStencil8,
         aspect: {
           types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
           byteCost: 4
@@ -9320,9 +9429,9 @@ class TextureFormatCapabilities {
           },
           copy: {
             textureSource: true,
-            textureTarget: true,
+            textureDestination: true,
             imageSource: true,
-            imageTarget: false
+            imageDestination: false
           },
           storage: false
         }
@@ -9330,8 +9439,9 @@ class TextureFormatCapabilities {
     }
     // BC compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionBc)) {
-      const lBcTextureFormatCapability = (pAspects, pByteOfAspect) => {
+      const lBcTextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
+          format: pFormat,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
@@ -9344,9 +9454,9 @@ class TextureFormatCapabilities {
             renderAttachment: false,
             copy: {
               textureSource: true,
-              textureTarget: true,
+              textureDestination: true,
               imageSource: true,
-              imageTarget: true
+              imageDestination: true
             },
             storage: false
           }
@@ -9356,25 +9466,26 @@ class TextureFormatCapabilities {
         }
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Runorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Runorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Runorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Rsnorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgSnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
     }
     // ETC2 compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionEtc2)) {
-      const lEtc2TextureFormatCapability = (pAspects, pByteOfAspect) => {
+      const lEtc2TextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
+          format: pFormat,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
@@ -9387,30 +9498,31 @@ class TextureFormatCapabilities {
             renderAttachment: false,
             copy: {
               textureSource: true,
-              textureTarget: true,
+              textureDestination: true,
               imageSource: true,
-              imageTarget: true
+              imageDestination: true
             },
             storage: false
           }
         };
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11unorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11snorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11unorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11snorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11snorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
     }
     // ASTC compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionAstc)) {
-      const lAstcTextureFormatCapability = pCompressionLevel => {
+      const lAstcTextureFormatCapability = (pFormat, pCompressionLevel) => {
         const lFormat = {
+          format: pFormat,
           aspect: {
             types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
             byteCost: 4
@@ -9423,43 +9535,43 @@ class TextureFormatCapabilities {
             renderAttachment: false,
             copy: {
               textureSource: true,
-              textureTarget: true,
+              textureDestination: true,
               imageSource: true,
-              imageTarget: true
+              imageDestination: true
             },
             storage: false
           }
         };
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(16));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(16));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(20));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(20));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(25));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(25));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(30));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(330));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(36));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(36));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(40));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(40));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(48));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(48));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(64));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(64));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(50));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(50));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(60));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(60));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(80));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(80));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(100));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(100));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(120));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(120));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(144));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(144));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unorm, 16));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, 16));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unorm, 20));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, 20));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unorm, 25));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, 25));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unorm, 30));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, 330));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unorm, 36));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, 36));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unorm, 40));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, 40));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unorm, 48));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, 48));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unorm, 64));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, 64));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unorm, 50));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, 50));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unorm, 60));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, 60));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unorm, 80));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, 80));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unorm, 100));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, 100));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unorm, 120));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, 120));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unorm, 144));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, 144));
     }
   }
   /**
@@ -9470,7 +9582,78 @@ class TextureFormatCapabilities {
    * @returns capabilities of format.
    */
   capabilityOf(pFormat) {
-    return this.mFormatCapabilitys.get(pFormat);
+    const lCapabilityDefinition = this.mFormatCapabilitys.get(pFormat);
+    if (!lCapabilityDefinition) {
+      throw new core_1.Exception(`Format "${pFormat}" has no capabilities.`, this);
+    }
+    // Gather all texture usages.
+    const lTextureUsages = new Set();
+    if (lCapabilityDefinition.usage.copy) {
+      // Can be copied.
+      if (lCapabilityDefinition.usage.copy.imageSource || lCapabilityDefinition.usage.copy.textureSource) {
+        lTextureUsages.add(texture_usage_enum_1.TextureUsage.CopySource);
+      }
+      // Can be copied into.
+      if (lCapabilityDefinition.usage.copy.imageDestination || lCapabilityDefinition.usage.copy.textureDestination) {
+        lTextureUsages.add(texture_usage_enum_1.TextureUsage.CopyDestination);
+      }
+    }
+    if (lCapabilityDefinition.usage.textureBinding) {
+      lTextureUsages.add(texture_usage_enum_1.TextureUsage.TextureBinding);
+    }
+    if (lCapabilityDefinition.usage.storage) {
+      lTextureUsages.add(texture_usage_enum_1.TextureUsage.Storage);
+    }
+    if (lCapabilityDefinition.usage.renderAttachment) {
+      lTextureUsages.add(texture_usage_enum_1.TextureUsage.RenderAttachment);
+    }
+    // All sample types and primary filterable.
+    const lSampleTypes = (() => {
+      const lAllSampleTypes = new Set(lCapabilityDefinition.type);
+      if (lAllSampleTypes.has(texture_sample_type_enum_1.TextureSampleType.Float)) {
+        return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.Float];
+      }
+      if (lAllSampleTypes.has(texture_sample_type_enum_1.TextureSampleType.UnsignedInteger)) {
+        return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.UnsignedInteger];
+      }
+      if (lAllSampleTypes.has(texture_sample_type_enum_1.TextureSampleType.SignedInteger)) {
+        return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.SignedInteger];
+      }
+      if (lAllSampleTypes.has(texture_sample_type_enum_1.TextureSampleType.SignedInteger)) {
+        return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.SignedInteger];
+      }
+      if (lAllSampleTypes.has(texture_sample_type_enum_1.TextureSampleType.Depth)) {
+        return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.Depth];
+      }
+      // Default
+      return [lAllSampleTypes, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat];
+    })();
+    return {
+      format: lCapabilityDefinition.format,
+      textureUsages: lTextureUsages,
+      dimensions: new Set(lCapabilityDefinition.dimensions),
+      aspects: new Set(lCapabilityDefinition.aspect.types),
+      sampleTypes: {
+        primary: lSampleTypes[1],
+        all: lSampleTypes[0]
+      },
+      renderAttachment: {
+        resolveTarget: lCapabilityDefinition.usage.renderAttachment ? lCapabilityDefinition.usage.renderAttachment.resolveTarget : false,
+        multisample: lCapabilityDefinition.usage.renderAttachment ? lCapabilityDefinition.usage.renderAttachment.multisample : false,
+        blendable: lCapabilityDefinition.usage.renderAttachment ? lCapabilityDefinition.usage.renderAttachment.blendable : false
+      },
+      storage: {
+        readonly: lCapabilityDefinition.usage.storage ? lCapabilityDefinition.usage.storage.readonly : false,
+        writeonly: lCapabilityDefinition.usage.storage ? lCapabilityDefinition.usage.storage.writeonly : false,
+        readwrite: lCapabilityDefinition.usage.storage ? lCapabilityDefinition.usage.storage.readwrite : false
+      },
+      copy: {
+        textureSource: lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.textureSource : false,
+        textureTarget: lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.textureDestination : false,
+        imageSource: lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.imageSource : false,
+        imageTarget: lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.imageDestination : false
+      }
+    };
   }
   /**
    * Find right format for used capability.
@@ -10278,7 +10461,7 @@ var TextureUsage;
   TextureUsage[TextureUsage["None"] = 0] = "None";
   TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
   TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
-  TextureUsage[TextureUsage["Texture"] = GPUTextureUsage.TEXTURE_BINDING] = "Texture";
+  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
   TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
   TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
 })(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
@@ -10912,21 +11095,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / (1000 * f32(animationSeconds))) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);\r\n}");
-
-/***/ }),
-
-/***/ "./source/base/texture/2d-mip-map-compute.wgsl":
-/*!*****************************************************!*\
-  !*** ./source/base/texture/2d-mip-map-compute.wgsl ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("@group(0) @binding(0) var previousMipLevel: texture_2d<f32>;\r\n@group(0) @binding(1) var nextMipLevel: texture_storage_2d<rgba8unorm,write>;\r\n\r\n@compute @workgroup_size(8, 8)\r\nfn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {\r\n    let offset = vec2<u32>(0u, 1u);\r\n    let color = (\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.xx, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.xy, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.yx, 0) +\r\n        textureLoad(previousMipLevel, 2u * id.xy + offset.yy, 0)\r\n    ) * 0.25;\r\n    textureStore(nextMipLevel, id.xy, color);\r\n}");
 
 /***/ }),
 
@@ -15581,7 +15749,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("d5c305f2baaf1b2a2690")
+/******/ 		__webpack_require__.h = () => ("daa6013ab474b0d27119")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

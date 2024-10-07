@@ -1,117 +1,178 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
+import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureSampleType } from '../../constant/texture-sample-type.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
-import mipMap2dGenerate from './2d-mip-map-compute.wgsl';
+import { TextureFormatCapability } from './texture-format-capabilities';
 
 export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
     /**
-     * Create mips for texture.
+     * Create mips for texture with compute shader.
      * 
      * @param pTexture - Target texture.
      */
-    private static generateMips(pGpuDevice: GPUDevice, pTexture: GPUTexture, pMipCount: number): void {
+    private static readonly mGenerateMipsWithCompute = (() => {
+        // Global storages for 2d generation.
+        const lFormatPipelines2d: Dictionary<GPUTextureFormat, GPUComputePipeline> = new Dictionary<GPUTextureFormat, GPUComputePipeline>();
+        const lFormatBindGroupsLayouts2d: Dictionary<GPUTextureFormat, GPUBindGroupLayout> = new Dictionary<GPUTextureFormat, GPUBindGroupLayout>();
 
+        // Static config values.
+        const lWorkgroupSizePerDimension = 8;
 
-
-        if (pTexture.dimension === '2d') {
-            const lShader: GPUShaderModule = pGpuDevice.createShaderModule({
-                code: mipMap2dGenerate
-            });
-
-            const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
-                entries: [
-                    {
-                        binding: 0,
-                        visibility: GPUShaderStage.COMPUTE,
-                        texture: {
-                            sampleType: 'float',
-                            viewDimension: '2d'
+        return (pGpuDevice: GPUDevice, pTexture: GPUTexture, pFormat: TextureFormatCapability): void => {
+            // Different Dimensions need different pipelines.
+            if (pTexture.dimension === '2d') {
+                // Generate cache when missed.
+                if (!lFormatPipelines2d.has(pTexture.format)) {
+                    const lSampleTypeName: 'f32' | 'u32' | 'i32' = (() => {
+                        switch (pFormat.sampleTypes.primary) {
+                            case TextureSampleType.Float: return 'f32';
+                            case TextureSampleType.UnsignedInteger: return 'u32';
+                            case TextureSampleType.SignedInteger: return 'i32';
+                            default: {
+                                throw new Exception(`Can't generate mip for textures that cant be filtered.`, this);
+                            }
                         }
-                    },
-                    {
-                        binding: 1,
-                        visibility: GPUShaderStage.COMPUTE,
-                        storageTexture: {
-                            access: 'write-only',
-                            format: 'rgba8unorm',
-                            viewDimension: '2d'
+                    })();
+
+                    // Shader code. Insert format.
+                    const lShader: GPUShaderModule = pGpuDevice.createShaderModule({
+                        code: `
+                            @group(0) @binding(0) var previousMipLevel: texture_2d<${lSampleTypeName}>;
+                            @group(0) @binding(1) var nextMipLevel: texture_storage_2d<${pFormat.format}, write>;
+
+                            @compute @workgroup_size(${lWorkgroupSizePerDimension}, ${lWorkgroupSizePerDimension})
+                            fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
+                                let lOffset = vec2<u32>(0u, 1u);
+                                let lColor = (
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, 0)
+                                ) * 0.25;
+                                textureStore(nextMipLevel, id.xy, lColor);
+                            }
+                        `
+                    });
+
+                    // Generate bind group layout.
+                    const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
+                        entries: [
+                            {
+                                binding: 0,
+                                visibility: GPUShaderStage.COMPUTE,
+                                texture: {
+                                    sampleType: pFormat.sampleTypes.primary,
+                                    viewDimension: '2d'
+                                }
+                            },
+                            {
+                                binding: 1,
+                                visibility: GPUShaderStage.COMPUTE,
+                                storageTexture: {
+                                    access: 'write-only',
+                                    format: pFormat.format as GPUTextureFormat,
+                                    viewDimension: '2d'
+                                }
+                            }
+                        ]
+                    });
+
+                    // Create pipeline.
+                    const lPipeline: GPUComputePipeline = pGpuDevice.createComputePipeline({
+                        layout: pGpuDevice.createPipelineLayout({
+                            bindGroupLayouts: [lBindGroupLayout]
+                        }),
+                        compute: {
+                            module: lShader,
+                            entryPoint: 'computeMipMap'
                         }
-                    }
-                ]
-            });
+                    });
 
-            const lPipelineLayout: GPUPipelineLayout = pGpuDevice.createPipelineLayout({
-                bindGroupLayouts: [lBindGroupLayout]
-            });
-
-            const lPipeline: GPUComputePipeline = pGpuDevice.createComputePipeline({
-                layout: lPipelineLayout,
-                compute: {
-                    module: lShader,
-                    entryPoint: 'computeMipMap'
+                    // Safe pipeline and bind group layout.
+                    lFormatPipelines2d.set(pFormat.format as GPUTextureFormat, lPipeline);
+                    lFormatBindGroupsLayouts2d.set(pFormat.format as GPUTextureFormat, lBindGroupLayout);
                 }
-            });
+
+                // Calulate mip count.
+                const lMipCount = 1 + Math.floor(Math.log2(Math.max(pTexture.width, pTexture.height)));
+
+                // Read cached pipeline and layout.
+                const lPipeline: GPUComputePipeline = lFormatPipelines2d.get(pFormat.format as GPUTextureFormat)!;
+                const lBindGroupLayout: GPUBindGroupLayout = lFormatBindGroupsLayouts2d.get(pFormat.format as GPUTextureFormat)!;
 
 
+                // Create command encoder.
+                const lCommandEncoder: GPUCommandEncoder = pGpuDevice.createCommandEncoder();
 
-            const lCommandEncoder: GPUCommandEncoder = pGpuDevice.createCommandEncoder();
+                const lComputePass: GPUComputePassEncoder = lCommandEncoder.beginComputePass();
+                lComputePass.setPipeline(lPipeline);
 
-            const lComputePass: GPUComputePassEncoder = lCommandEncoder.beginComputePass();
-            lComputePass.setPipeline(lPipeline);
+                for (let lMipLevel: number = 1; lMipLevel < lMipCount; lMipLevel++) {
+                    // Create and add bind group with needed texture resources.
+                    lComputePass.setBindGroup(0, pGpuDevice.createBindGroup({
+                        layout: lBindGroupLayout,
+                        entries: [
+                            {
+                                binding: 0,
+                                resource: pTexture.createView({
+                                    format: pFormat.format as GPUTextureFormat,
+                                    dimension: '2d',
+                                    baseMipLevel: lMipLevel - 1,
+                                    mipLevelCount: 1,
+                                })
+                            },
+                            {
+                                binding: 1,
+                                resource: pTexture.createView({
+                                    format: pFormat.format as GPUTextureFormat,
+                                    dimension: '2d',
+                                    baseMipLevel: lMipLevel,
+                                    mipLevelCount: 1
+                                })
+                            }
+                        ]
+                    }));
 
-            for (let lMipLevel: number = 1; lMipLevel < pMipCount; lMipLevel++) {
-                const lBindGroup: GPUBindGroup = pGpuDevice.createBindGroup({
-                    layout: lBindGroupLayout,
-                    entries: [
-                        {
-                            binding: 0,
-                            resource: pTexture.createView({
-                                format: 'rgba8unorm',
-                                dimension: '2d',
-                                baseMipLevel: lMipLevel - 1,
-                                mipLevelCount: 1
-                            })
-                        },
-                        {
-                            binding: 1,
-                            resource: pTexture.createView({
-                                format: 'rgba8unorm',
-                                dimension: '2d',
-                                baseMipLevel: lMipLevel,
-                                mipLevelCount: 1
-                            })
-                        }
-                    ]
-                });
+                    // Calculate needed single pixel invocations to cover complete mipmap level texture.
+                    const lNeededInvocationCountForX: number = Math.floor(pTexture.width / Math.pow(2, lMipLevel));
+                    const lNeededInvocationCountForY: number = Math.floor(pTexture.height / Math.pow(2, lMipLevel));
 
-                lComputePass.setBindGroup(0, lBindGroup);
+                    // Calculate needed compute workgroup invocations to cover complete mipmap level texture.
+                    const lWorkgroupCountForX = Math.ceil((lNeededInvocationCountForX + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
+                    const lWorkgroupCountForY = Math.ceil((lNeededInvocationCountForY + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
 
+                    lComputePass.dispatchWorkgroups(lWorkgroupCountForX, lWorkgroupCountForY, 1);
+                }
 
-                const invocationCountX: number = Math.floor(pTexture.width / Math.pow(2, lMipLevel))
-                const invocationCountY: number = Math.floor(pTexture.height / Math.pow(2, lMipLevel))
+                // End computepass after all mips are generated.
+                lComputePass.end();
 
-                const workgroupSizePerDim = 8;
-
-                // This ceils invocationCountX / workgroupSizePerDim
-                const workgroupCountX = Math.ceil((invocationCountX + workgroupSizePerDim - 1) / workgroupSizePerDim);
-                const workgroupCountY = Math.ceil((invocationCountY + workgroupSizePerDim - 1) / workgroupSizePerDim);
-
-                console.log(workgroupCountX, workgroupCountY);
-
-                lComputePass.dispatchWorkgroups(workgroupCountX, workgroupCountY, 1);
+                // Push all commands to gpu queue.
+                pGpuDevice.queue.submit([lCommandEncoder.finish()]);
             }
 
-            lComputePass.end();
+            // TODO: 3D
+            // lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+        };
+    })();
 
-            pGpuDevice.queue.submit([lCommandEncoder.finish()]);
+    private static generateMips(pDevice: GpuDevice, pTexture: GPUTexture) {
+        const lTextureCapability: TextureFormatCapability = pDevice.formatValidator.capabilityOf(pTexture.format as TextureFormat);
 
-            
+        // Use compute shader or fallback to cpu generation of mips.
+        if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(TextureUsage.TextureBinding)) {
+            ImageTexture.mGenerateMipsWithCompute(pDevice.gpu, pTexture, lTextureCapability);
+        } else {
+            // Fallback CPU generation.
         }
     }
+
+
 
     private mDepth: number;
     private mEnableMips: boolean;
@@ -273,7 +334,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
 
             // Usages needed for mip generation.
             if (this.mEnableMips) {
-                this.extendUsage(TextureUsage.Texture);
+                this.extendUsage(TextureUsage.TextureBinding);
                 this.extendUsage(TextureUsage.Storage);
             }
         }
@@ -365,7 +426,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
             }
 
             // Generate mips for texture.
-            ImageTexture.generateMips(this.device.gpu, this.mTexture, lMipCount);
+            ImageTexture.generateMips(this.device, this.mTexture);
         }
 
         // TODO: ArrayLayer based on dimension.

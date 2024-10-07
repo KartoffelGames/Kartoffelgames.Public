@@ -9,7 +9,7 @@ import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture, CanvasTextureInvalidationType } from '../../texture/canvas-texture';
 import { FrameBufferTexture, FrameBufferTextureInvalidationType } from '../../texture/frame-buffer-texture';
-import { TextureFormatCapabilityDefinition } from '../../texture/texture-format-capabilities';
+import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
 
 /**
@@ -260,12 +260,12 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Read capability of used depth stencil texture format.
-            const lFormatCapability: TextureFormatCapabilityDefinition = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
+            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
 
             // Setup depth texture.
             if (pReferenceData.depthStencil.depth) {
                 // Validate if depth texture
-                if (!lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
+                if (!lFormatCapability.aspects.has(TextureAspect.Depth)) {
                     throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
                 }
 
@@ -278,7 +278,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             // Setup stencil texture.
             if (pReferenceData.depthStencil.stencil) {
                 // Validate if depth texture
-                if (!lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
+                if (!lFormatCapability.aspects.has(TextureAspect.Stencil)) {
                     throw new Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
                 }
 

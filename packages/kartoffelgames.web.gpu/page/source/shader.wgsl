@@ -26,7 +26,7 @@ struct PointLight {
 
 // ------------------------- User Inputs ------------------------ //
 @group(2) @binding(0) var cubeTextureSampler: sampler;
-@group(2) @binding(1) var cubeTexture: texture_2d<f32>;
+@group(2) @binding(1) var cubeTexture: texture_2d_array<f32>;
 // -------------------------------------------------------------- //
 
 
@@ -82,7 +82,8 @@ struct VertexOut {
     @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>,
     @location(1) normal: vec4<f32>,
-    @location(2) fragmentPosition: vec4<f32>
+    @location(2) fragmentPosition: vec4<f32>,
+    @interpolate(flat) @location(3) textureLayer: u32
 }
 
 struct VertexIn {
@@ -120,11 +121,14 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
 
     var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;
 
+    var textureLayer: u32 = u32(ceil(f32(vertex.instanceId) % 2));
+
     var out: VertexOut;
     out.position = viewProjectionMatrix * transformedInstancePosition;
     out.uv = vertex.uv;
     out.normal = vertex.normal;
     out.fragmentPosition = transformedInstancePosition;
+    out.textureLayer = textureLayer;
 
     return out;
 }
@@ -132,10 +136,11 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
 struct FragmentIn {
     @location(0) uv: vec2<f32>,
     @location(1) normal: vec4<f32>,
-    @location(2) fragmentPosition: vec4<f32>
+    @location(2) fragmentPosition: vec4<f32>,
+    @interpolate(flat) @location(3) textureLayer: u32
 }
 
 @fragment
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
-    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
+    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv, fragment.textureLayer), fragment.fragmentPosition, fragment.normal);
 }

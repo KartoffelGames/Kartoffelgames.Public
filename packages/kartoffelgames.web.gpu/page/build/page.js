@@ -7904,19 +7904,25 @@ class ImageTexture extends base_texture_1.BaseTexture {
             // Shader code. Insert format.
             const lShader = pGpuDevice.createShaderModule({
               code: `
-                            @group(0) @binding(0) var previousMipLevel: texture_2d<${lSampleTypeName}>;
-                            @group(0) @binding(1) var nextMipLevel: texture_storage_2d<${pFormat.format}, write>;
+                            @group(0) @binding(0) var previousMipLevel: texture_2d_array<${lSampleTypeName}>;
+                            @group(0) @binding(1) var nextMipLevel: texture_storage_2d_array<${pFormat.format}, write>;
 
                             @compute @workgroup_size(${lWorkgroupSizePerDimension}, ${lWorkgroupSizePerDimension})
                             fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
-                                let lOffset = vec2<u32>(0u, 1u);
-                                let lColor = (
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, 0)
-                                ) * 0.25;
-                                textureStore(nextMipLevel, id.xy, lColor);
+                                const lOffset: vec2<u32> = vec2<u32>(0u, 1u);
+
+                                let lTextureLayerCount: u32 = textureNumLayers(previousMipLevel);
+
+                                var lColor: vec4<${lSampleTypeName}>;
+                                for(var lArrayLayer = 0u; lArrayLayer < lTextureLayerCount; lArrayLayer++){
+                                    lColor = (
+                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, lArrayLayer, 0) +
+                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, lArrayLayer, 0) +
+                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, lArrayLayer, 0) +
+                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, lArrayLayer, 0)
+                                    ) * 0.25;
+                                    textureStore(nextMipLevel, id.xy, lArrayLayer, lColor);
+                                }
                             }
                         `
             });
@@ -7927,7 +7933,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
                 visibility: GPUShaderStage.COMPUTE,
                 texture: {
                   sampleType: pFormat.sampleTypes.primary,
-                  viewDimension: '2d'
+                  viewDimension: '2d-array'
                 }
               }, {
                 binding: 1,
@@ -7935,7 +7941,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
                 storageTexture: {
                   access: 'write-only',
                   format: pFormat.format,
-                  viewDimension: '2d'
+                  viewDimension: '2d-array'
                 }
               }]
             });
@@ -7970,7 +7976,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
                 binding: 0,
                 resource: pTexture.createView({
                   format: pFormat.format,
-                  dimension: '2d',
+                  dimension: '2d-array',
                   baseMipLevel: lMipLevel - 1,
                   mipLevelCount: 1
                 })
@@ -7978,7 +7984,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
                 binding: 1,
                 resource: pTexture.createView({
                   format: pFormat.format,
-                  dimension: '2d',
+                  dimension: '2d-array',
                   baseMipLevel: lMipLevel,
                   mipLevelCount: 1
                 })
@@ -15749,7 +15755,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("daa6013ab474b0d27119")
+/******/ 		__webpack_require__.h = () => ("b6c211196b36ceee22ef")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

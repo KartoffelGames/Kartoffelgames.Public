@@ -1,14 +1,15 @@
-import { DeepPartial, Dictionary } from '@kartoffelgames/core';
+import { DeepPartial, Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureAspect } from '../../constant/texture-aspect.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureSampleType } from '../../constant/texture-sample-type.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuFeature } from '../gpu/capabilities/gpu-feature.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 
 export class TextureFormatCapabilities {
     private readonly mDevice: GpuDevice;
-    private readonly mFormatCapabilitys: Dictionary<TextureFormat, TextureFormatCapability>;
+    private readonly mFormatCapabilitys: Dictionary<TextureFormat, TextureFormatCapabilityDefinition>;
 
     /**
      * Get prefered canvas format.
@@ -29,7 +30,7 @@ export class TextureFormatCapabilities {
         }
 
         // Setup any format with its capabilities.
-        this.mFormatCapabilitys = new Dictionary<TextureFormat, TextureFormatCapability>();
+        this.mFormatCapabilitys = new Dictionary<TextureFormat, TextureFormatCapabilityDefinition>();
 
         // 8-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R8unorm, {
@@ -50,9 +51,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false,
             }
@@ -71,9 +72,9 @@ export class TextureFormatCapabilities {
                 renderAttachment: false,
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -96,9 +97,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -121,9 +122,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -148,9 +149,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -173,9 +174,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -198,9 +199,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -223,9 +224,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -244,9 +245,9 @@ export class TextureFormatCapabilities {
                 renderAttachment: false,
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -269,9 +270,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -294,9 +295,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -321,9 +322,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -350,9 +351,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -379,9 +380,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -408,9 +409,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -433,9 +434,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -458,9 +459,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -483,9 +484,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -512,9 +513,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -533,9 +534,9 @@ export class TextureFormatCapabilities {
                 renderAttachment: false,
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -562,9 +563,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -591,9 +592,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -620,9 +621,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: pDevice.capabilities.hasFeature(GpuFeature.Bgra8unormStorage),
@@ -649,9 +650,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -672,9 +673,9 @@ export class TextureFormatCapabilities {
                 renderAttachment: false,
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -697,9 +698,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -722,9 +723,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -747,9 +748,9 @@ export class TextureFormatCapabilities {
                 } : false,
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -774,9 +775,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -803,9 +804,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -832,9 +833,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -861,9 +862,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -890,9 +891,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -919,9 +920,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -950,9 +951,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -979,9 +980,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -1008,9 +1009,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: {
                     readonly: true,
@@ -1039,9 +1040,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -1064,9 +1065,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: true
+                    imageDestination: true
                 },
                 storage: false
             }
@@ -1089,9 +1090,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: false,
-                    imageTarget: false
+                    imageDestination: false
                 },
                 storage: false
             }
@@ -1114,9 +1115,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: false, // Stencil supports image copy but depth does not.
-                    imageTarget: false // Stencil supports image copy but depth does not.
+                    imageDestination: false // Stencil supports image copy but depth does not.
                 },
                 storage: false
             }
@@ -1139,9 +1140,9 @@ export class TextureFormatCapabilities {
                 },
                 copy: {
                     textureSource: true,
-                    textureTarget: true,
+                    textureDestination: true,
                     imageSource: true,
-                    imageTarget: false
+                    imageDestination: false
                 },
                 storage: false
             }
@@ -1167,9 +1168,9 @@ export class TextureFormatCapabilities {
                     },
                     copy: {
                         textureSource: true,
-                        textureTarget: true,
+                        textureDestination: true,
                         imageSource: true,
-                        imageTarget: false
+                        imageDestination: false
                     },
                     storage: false
                 }
@@ -1179,7 +1180,7 @@ export class TextureFormatCapabilities {
         // BC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionBc)) {
             const lBcTextureFormatCapability = (pFormat: TextureFormat, pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
-                const lFormat: TextureFormatCapability = {
+                const lFormat: TextureFormatCapabilityDefinition = {
                     format: pFormat,
                     aspect: {
                         types: pAspects,
@@ -1193,9 +1194,9 @@ export class TextureFormatCapabilities {
                         renderAttachment: false,
                         copy: {
                             textureSource: true,
-                            textureTarget: true,
+                            textureDestination: true,
                             imageSource: true,
-                            imageTarget: true
+                            imageDestination: true
                         },
                         storage: false
                     }
@@ -1227,7 +1228,7 @@ export class TextureFormatCapabilities {
         // ETC2 compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionEtc2)) {
             const lEtc2TextureFormatCapability = (pFormat: TextureFormat, pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
-                const lFormat: TextureFormatCapability = {
+                const lFormat: TextureFormatCapabilityDefinition = {
                     format: pFormat,
                     aspect: {
                         types: pAspects,
@@ -1241,9 +1242,9 @@ export class TextureFormatCapabilities {
                         renderAttachment: false,
                         copy: {
                             textureSource: true,
-                            textureTarget: true,
+                            textureDestination: true,
                             imageSource: true,
-                            imageTarget: true
+                            imageDestination: true
                         },
                         storage: false
                     }
@@ -1267,7 +1268,7 @@ export class TextureFormatCapabilities {
         // ASTC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionAstc)) {
             const lAstcTextureFormatCapability = (pFormat: TextureFormat, pCompressionLevel: number) => {
-                const lFormat: TextureFormatCapability = {
+                const lFormat: TextureFormatCapabilityDefinition = {
                     format: pFormat,
                     aspect: {
                         types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
@@ -1281,9 +1282,9 @@ export class TextureFormatCapabilities {
                         renderAttachment: false,
                         copy: {
                             textureSource: true,
-                            textureTarget: true,
+                            textureDestination: true,
                             imageSource: true,
-                            imageTarget: true
+                            imageDestination: true
                         },
                         storage: false
                     }
@@ -1332,19 +1333,132 @@ export class TextureFormatCapabilities {
      * @returns capabilities of format. 
      */
     public capabilityOf(pFormat: TextureFormat): TextureFormatCapability {
-        return this.mFormatCapabilitys.get(pFormat)!;
+        const lCapabilityDefinition: TextureFormatCapabilityDefinition | undefined = this.mFormatCapabilitys.get(pFormat);
+        if (!lCapabilityDefinition) {
+            throw new Exception(`Format "${pFormat}" has no capabilities.`, this);
+        }
+
+        // Gather all texture usages.
+        const lTextureUsages: Set<TextureUsage> = new Set<TextureUsage>();
+        if (lCapabilityDefinition.usage.copy) {
+            // Can be copied.
+            if (lCapabilityDefinition.usage.copy.imageSource || lCapabilityDefinition.usage.copy.textureSource) {
+                lTextureUsages.add(TextureUsage.CopySource);
+            }
+            // Can be copied into.
+            if (lCapabilityDefinition.usage.copy.imageDestination || lCapabilityDefinition.usage.copy.textureDestination) {
+                lTextureUsages.add(TextureUsage.CopyDestination);
+            }
+        }
+        if (lCapabilityDefinition.usage.textureBinding) {
+            lTextureUsages.add(TextureUsage.TextureBinding);
+        }
+        if (lCapabilityDefinition.usage.storage) {
+            lTextureUsages.add(TextureUsage.Storage);
+        }
+        if (lCapabilityDefinition.usage.renderAttachment) {
+            lTextureUsages.add(TextureUsage.RenderAttachment);
+        }
+
+        // All sample types and primary filterable.
+        const lSampleTypes: [Set<TextureSampleType>, TextureSampleType] = (() => {
+            const lAllSampleTypes: Set<TextureSampleType> = new Set<TextureSampleType>(lCapabilityDefinition.type);
+            if (lAllSampleTypes.has(TextureSampleType.Float)) {
+                return [lAllSampleTypes, TextureSampleType.Float];
+            }
+            if (lAllSampleTypes.has(TextureSampleType.UnsignedInteger)) {
+                return [lAllSampleTypes, TextureSampleType.UnsignedInteger];
+            }
+            if (lAllSampleTypes.has(TextureSampleType.SignedInteger)) {
+                return [lAllSampleTypes, TextureSampleType.SignedInteger];
+            }
+            if (lAllSampleTypes.has(TextureSampleType.SignedInteger)) {
+                return [lAllSampleTypes, TextureSampleType.SignedInteger];
+            }
+            if (lAllSampleTypes.has(TextureSampleType.Depth)) {
+                return [lAllSampleTypes, TextureSampleType.Depth];
+            }
+
+            // Default
+            return [lAllSampleTypes, TextureSampleType.UnfilterableFloat];
+        })();
+
+        return {
+            format: lCapabilityDefinition.format,
+            textureUsages: lTextureUsages,
+            dimensions: new Set<TextureDimension>(lCapabilityDefinition.dimensions),
+            sampleTypes: {
+                primary: lSampleTypes[1],
+                all: lSampleTypes[0]
+            },
+            renderAttachment: {
+                resolveTarget: (lCapabilityDefinition.usage.renderAttachment) ? lCapabilityDefinition.usage.renderAttachment.resolveTarget : false,
+                multisample: (lCapabilityDefinition.usage.renderAttachment) ? lCapabilityDefinition.usage.renderAttachment.multisample : false,
+                blendable: (lCapabilityDefinition.usage.renderAttachment) ? lCapabilityDefinition.usage.renderAttachment.blendable : false,
+            },
+            storage: {
+                readonly: (lCapabilityDefinition.usage.storage) ? lCapabilityDefinition.usage.storage.readonly : false,
+                writeonly: (lCapabilityDefinition.usage.storage) ? lCapabilityDefinition.usage.storage.writeonly : false,
+                readwrite: (lCapabilityDefinition.usage.storage) ? lCapabilityDefinition.usage.storage.readwrite : false,
+            },
+            copy: {
+                textureSource: (lCapabilityDefinition.usage.copy) ? lCapabilityDefinition.usage.copy.textureSource : false,
+                textureTarget: (lCapabilityDefinition.usage.copy) ? lCapabilityDefinition.usage.copy.textureDestination : false,
+                imageSource: (lCapabilityDefinition.usage.copy) ? lCapabilityDefinition.usage.copy.imageSource : false,
+                imageTarget: (lCapabilityDefinition.usage.copy) ? lCapabilityDefinition.usage.copy.imageDestination : false,
+            }
+        };
     }
 
     /**
      * Find right format for used capability.
      */
-    public formatSuggestion(_pCapability: DeepPartial<TextureFormatCapability>): Array<TextureFormat> {
+    public formatSuggestion(_pCapability: DeepPartial<TextureFormatCapabilityDefinition>): Array<TextureFormat> {
         // TODO: Find right suggestion for parameters.
         return [];
     }
 }
 
 export type TextureFormatCapability = {
+    // Format.
+    format: TextureFormat;
+
+    // Usages.
+    textureUsages: Set<TextureUsage>;
+
+    // Usable dimensions. When multisample is used only 2d is allowed. 
+    dimensions: Set<TextureDimension>;
+
+    // Usable sample types.
+    sampleTypes: {
+        primary: TextureSampleType,
+        all: Set<TextureSampleType>;
+    },
+
+    // Usage as render attachment.
+    renderAttachment: {
+        resolveTarget: boolean;
+        multisample: boolean;
+        blendable: boolean;
+    };
+
+    // Usages as storage.
+    storage: {
+        readonly: boolean;
+        writeonly: boolean;
+        readwrite: boolean;
+    };
+
+    // Usages as copy target or destination.
+    copy: {
+        textureSource: boolean;
+        textureTarget: boolean;
+        imageSource: boolean;
+        imageTarget: boolean;
+    };
+};
+
+type TextureFormatCapabilityDefinition = {
     // Format.
     format: TextureFormat;
 
@@ -1378,9 +1492,9 @@ export type TextureFormatCapability = {
         // Can be used to copy textures.
         copy: {
             textureSource: boolean;
-            textureTarget: boolean;
+            textureDestination: boolean;
             imageSource: boolean;
-            imageTarget: boolean;
+            imageDestination: boolean;
         } | false;
 
         // Can be used as a storage.

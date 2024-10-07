@@ -9,7 +9,7 @@ import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture, CanvasTextureInvalidationType } from '../../texture/canvas-texture';
 import { FrameBufferTexture, FrameBufferTextureInvalidationType } from '../../texture/frame-buffer-texture';
-import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
+import { TextureFormatCapabilityDefinition } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
 
 /**
@@ -260,7 +260,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Read capability of used depth stencil texture format.
-            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
+            const lFormatCapability: TextureFormatCapabilityDefinition = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
 
             // Setup depth texture.
             if (pReferenceData.depthStencil.depth) {

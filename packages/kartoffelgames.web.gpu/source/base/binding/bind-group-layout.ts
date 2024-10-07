@@ -9,7 +9,7 @@ import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { TextureFormatCapability } from '../texture/texture-format-capabilities';
+import { TextureFormatCapabilityDefinition } from '../texture/texture-format-capabilities';
 import { BindGroup } from './bind-group';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
 
@@ -173,7 +173,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
                     // Uniform bind when without storage binding.
                     if (lEntry.storageType === StorageBindingType.None) {
                         // Read texture capabilities.
-                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.layout.format);
+                        const lTextureFormatCapabilities: TextureFormatCapabilityDefinition = this.device.formatValidator.capabilityOf(lEntry.layout.format);
 
                         // Create image texture bind information.
                         lLayoutEntry.texture = {

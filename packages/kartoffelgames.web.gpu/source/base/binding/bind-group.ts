@@ -107,7 +107,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
                     if (lBindLayout.storageType !== StorageBindingType.None) {
                         pData.extendUsage(TextureUsage.Storage);
                     } else {
-                        pData.extendUsage(TextureUsage.Texture);
+                        pData.extendUsage(TextureUsage.TextureBinding);
                     }
 
                     break;

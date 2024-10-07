@@ -33,6 +33,7 @@ export class TextureFormatCapabilities {
 
         // 8-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R8unorm, {
+            format: TextureFormat.R8unorm,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
@@ -57,6 +58,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8snorm, {
+            format: TextureFormat.R8snorm,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
@@ -77,6 +79,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8uint, {
+            format: TextureFormat.R8uint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
@@ -101,6 +104,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8sint, {
+            format: TextureFormat.R8sint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
@@ -127,6 +131,7 @@ export class TextureFormatCapabilities {
 
         // 16-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R16uint, {
+            format: TextureFormat.R16uint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
@@ -151,6 +156,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R16sint, {
+            format: TextureFormat.R16sint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
@@ -175,6 +181,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R16float, {
+            format: TextureFormat.R16float,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
@@ -199,6 +206,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8unorm, {
+            format: TextureFormat.Rg8unorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
@@ -223,6 +231,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8snorm, {
+            format: TextureFormat.Rg8snorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
@@ -243,6 +252,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8uint, {
+            format: TextureFormat.Rg8uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
@@ -267,6 +277,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8sint, {
+            format: TextureFormat.Rg8sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
@@ -293,6 +304,7 @@ export class TextureFormatCapabilities {
 
         // 32-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R32uint, {
+            format: TextureFormat.R32uint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
@@ -321,6 +333,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R32sint, {
+            format: TextureFormat.R32sint,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
@@ -349,6 +362,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R32float, {
+            format: TextureFormat.R32float,
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
@@ -377,6 +391,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16uint, {
+            format: TextureFormat.Rg16uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
@@ -401,6 +416,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16sint, {
+            format: TextureFormat.Rg16sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
@@ -425,6 +441,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16float, {
+            format: TextureFormat.Rg16float,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
@@ -449,6 +466,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8unorm, {
+            format: TextureFormat.Rgba8unorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -477,6 +495,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8unormSrgb, {
+            format: TextureFormat.Rgba8unormSrgb,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -501,6 +520,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8snorm, {
+            format: TextureFormat.Rgba8snorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -525,6 +545,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8uint, {
+            format: TextureFormat.Rgba8uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -553,6 +574,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8sint, {
+            format: TextureFormat.Rgba8sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -581,6 +603,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Bgra8unorm, {
+            format: TextureFormat.Bgra8unorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -609,6 +632,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Bgra8unormSrgb, {
+            format: TextureFormat.Bgra8unormSrgb,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -635,6 +659,7 @@ export class TextureFormatCapabilities {
 
         // Packed 32-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rgb9e5ufloat, {
+            format: TextureFormat.Rgb9e5ufloat,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
@@ -655,6 +680,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgb10a2uint, {
+            format: TextureFormat.Rgb10a2uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -679,6 +705,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgb10a2unorm, {
+            format: TextureFormat.Rgb10a2unorm,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -703,6 +730,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg11b10ufloat, {
+            format: TextureFormat.Rg11b10ufloat,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -729,6 +757,7 @@ export class TextureFormatCapabilities {
 
         // 64-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rg32uint, {
+            format: TextureFormat.Rg32uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
@@ -757,6 +786,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg32sint, {
+            format: TextureFormat.Rg32sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
@@ -785,6 +815,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg32float, {
+            format: TextureFormat.Rg32float,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
@@ -813,6 +844,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16uint, {
+            format: TextureFormat.Rgba16uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -841,6 +873,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16sint, {
+            format: TextureFormat.Rgba16sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -869,6 +902,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16float, {
+            format: TextureFormat.Rgba16float,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
@@ -899,6 +933,7 @@ export class TextureFormatCapabilities {
 
         // 128-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rgba32uint, {
+            format: TextureFormat.Rgba32uint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
@@ -927,6 +962,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba32sint, {
+            format: TextureFormat.Rgba32sint,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
@@ -955,6 +991,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba32float, {
+            format: TextureFormat.Rgba32float,
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
@@ -985,6 +1022,7 @@ export class TextureFormatCapabilities {
 
         // Depth/stencil formats
         this.mFormatCapabilitys.set(TextureFormat.Stencil8, {
+            format: TextureFormat.Stencil8,
             aspect: {
                 types: [TextureAspect.Stencil],
                 byteCost: 1
@@ -1009,6 +1047,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth16unorm, {
+            format: TextureFormat.Depth16unorm,
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 2
@@ -1033,6 +1072,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth24plus, {
+            format: TextureFormat.Depth24plus,
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 4
@@ -1057,6 +1097,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth24plusStencil8, {
+            format: TextureFormat.Depth24plusStencil8,
             aspect: {
                 types: [TextureAspect.Depth, TextureAspect.Stencil],
                 byteCost: 2
@@ -1081,6 +1122,7 @@ export class TextureFormatCapabilities {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth32float, {
+            format: TextureFormat.Depth32float,
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 4
@@ -1108,6 +1150,7 @@ export class TextureFormatCapabilities {
         // "depth32float-stencil8" feature
         if (pDevice.capabilities.hasFeature(GpuFeature.Depth32floatStencil8)) {
             this.mFormatCapabilitys.set(TextureFormat.Depth32floatStencil8, {
+                format: TextureFormat.Depth32floatStencil8,
                 aspect: {
                     types: [TextureAspect.Depth, TextureAspect.Stencil],
                     byteCost: 4
@@ -1135,8 +1178,9 @@ export class TextureFormatCapabilities {
 
         // BC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionBc)) {
-            const lBcTextureFormatCapability = (pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
+            const lBcTextureFormatCapability = (pFormat: TextureFormat, pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
                 const lFormat: TextureFormatCapability = {
+                    format: pFormat,
                     aspect: {
                         types: pAspects,
                         byteCost: pByteOfAspect
@@ -1164,26 +1208,27 @@ export class TextureFormatCapabilities {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Runorm, lBcTextureFormatCapability([TextureAspect.Red], 8));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability([TextureAspect.Red], 8));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc1RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc1RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc2RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc2RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc3RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc3RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc4Runorm, lBcTextureFormatCapability(TextureFormat.Bc4Runorm, [TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability(TextureFormat.Bc4Rsnorm, [TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability(TextureFormat.Bc5RgUnorm, [TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability(TextureFormat.Bc5RgSnorm, [TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability(TextureFormat.Bc6hRgbUfloat, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability(TextureFormat.Bc6hRgbFloat, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc7RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc7RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
         }
 
         // ETC2 compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionEtc2)) {
-            const lEtc2TextureFormatCapability = (pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
+            const lEtc2TextureFormatCapability = (pFormat: TextureFormat, pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
                 const lFormat: TextureFormatCapability = {
+                    format: pFormat,
                     aspect: {
                         types: pAspects,
                         byteCost: pByteOfAspect
@@ -1207,22 +1252,23 @@ export class TextureFormatCapabilities {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11unorm, lEtc2TextureFormatCapability([TextureAspect.Red], 8));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11snorm, lEtc2TextureFormatCapability([TextureAspect.Red], 8));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8a1unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8a1unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgba8unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgba8unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.EacR11unorm, lEtc2TextureFormatCapability(TextureFormat.EacR11unorm, [TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacR11snorm, lEtc2TextureFormatCapability(TextureFormat.EacR11snorm, [TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability(TextureFormat.EacRg11unorm, [TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability(TextureFormat.EacRg11snorm, [TextureAspect.Red, TextureAspect.Green], 8));
         }
 
         // ASTC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionAstc)) {
-            const lAstcTextureFormatCapability = (pCompressionLevel: number) => {
+            const lAstcTextureFormatCapability = (pFormat: TextureFormat, pCompressionLevel: number) => {
                 const lFormat: TextureFormatCapability = {
+                    format: pFormat,
                     aspect: {
                         types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                         byteCost: 4
@@ -1246,34 +1292,34 @@ export class TextureFormatCapabilities {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(16));
-            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(16));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(20));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(20));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(25));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(25));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(30));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(330));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(36));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(36));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(40));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(40));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(48));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(48));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(64));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(64));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(50));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(50));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(60));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(60));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(80));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(80));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(100));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(100));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(120));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(120));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(144));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(144));
+            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(TextureFormat.Astc4x4unorm, 16));
+            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc4x4unormSrgb, 16));
+            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(TextureFormat.Astc5x4unorm, 20));
+            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc5x4unormSrgb, 20));
+            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc5x5unorm, 25));
+            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc5x5unormSrgb, 25));
+            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc6x5unorm, 30));
+            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc6x5unormSrgb, 330));
+            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc6x6unorm, 36));
+            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc6x6unormSrgb, 36));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x5unorm, 40));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x5unormSrgb, 40));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x6unorm, 48));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x6unormSrgb, 48));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x8unorm, 64));
+            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x8unormSrgb, 64));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x5unorm, 50));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x5unormSrgb, 50));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x6unorm, 60));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x6unormSrgb, 60));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x8unorm, 80));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x8unormSrgb, 80));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x10unorm, 100));
+            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x10unormSrgb, 100));
+            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(TextureFormat.Astc12x10unorm, 120));
+            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc12x10unormSrgb, 120));
+            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(TextureFormat.Astc12x12unorm, 144));
+            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc12x12unormSrgb, 144));
         }
 
     }
@@ -1299,6 +1345,9 @@ export class TextureFormatCapabilities {
 }
 
 export type TextureFormatCapability = {
+    // Format.
+    format: TextureFormat;
+
     // Compression level. Higher level means higher compression.
     compressionLevel: number;
 

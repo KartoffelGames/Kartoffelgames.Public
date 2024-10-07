@@ -97,6 +97,8 @@ override animationSeconds: f32 = 3;
 
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
+    let textureLayers: f32 = f32(textureNumLayers(cubeTexture));
+
     var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;
 
     // Generate 4 random numbers.
@@ -121,7 +123,7 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
 
     var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;
 
-    var textureLayer: u32 = u32(ceil(f32(vertex.instanceId) % 2));
+    var textureLayer: u32 = u32(floor(f32(vertex.instanceId) % textureLayers));
 
     var out: VertexOut;
     out.position = viewProjectionMatrix * transformedInstancePosition;

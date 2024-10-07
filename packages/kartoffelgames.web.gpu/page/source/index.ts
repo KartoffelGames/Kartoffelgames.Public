@@ -237,7 +237,7 @@ const gUpdateFpsDisplay = (() => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .withSampler(SamplerType.Filter);
 
-            pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment)
+            pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
                 .withTexture(TextureDimension.TwoDimensionArray, TextureFormat.Rgba8unorm, false);
         }));
     });
@@ -356,7 +356,7 @@ const gUpdateFpsDisplay = (() => {
     const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    await lWoodBoxUserGroup.data('cubeTexture').createImage('/source/cube/texture_one/cube-texture.png', '/source/cube/texture_two/cube-texture.png');
+    await lWoodBoxUserGroup.data('cubeTexture').createImage('/source/cube/texture_one/cube-texture.png', '/source/cube/texture_two/cube-texture.png', '/source/cube/texture_three/cube-texture.png');
 
     // Setup Sampler.
     lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();

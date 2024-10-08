@@ -253,11 +253,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 target: pReferenceData.depthStencil.texture
             };
 
-            // Passthrough depth stencil texture changes.
-            this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
-
             // Add render attachment texture usage to depth stencil texture.
             pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
+
+            // Passthrough depth stencil texture changes.
+            this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
 
             // Read capability of used depth stencil texture format.
             const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);

@@ -520,7 +520,7 @@ _asyncToGenerator(function* () {
   lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
   lPerspectiveProjection.angleOfView = 72;
   lPerspectiveProjection.near = 0.1;
-  lPerspectiveProjection.far = 9999999;
+  lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
   lRenderTargets.addInvalidationListener(() => {
     lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
   }, [render_targets_1.RenderTargetsInvalidationType.Resize]);
@@ -6387,10 +6387,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
       this.mDepthStencilTexture = {
         target: pReferenceData.depthStencil.texture
       };
-      // Passthrough depth stencil texture changes.
-      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
       // Add render attachment texture usage to depth stencil texture.
       pReferenceData.depthStencil.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      // Passthrough depth stencil texture changes.
+      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
       // Read capability of used depth stencil texture format.
       const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
       // Setup depth texture.
@@ -7736,7 +7736,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set depth(pValue) {
     this.mDepth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
   }
   /**
    * Texture height.
@@ -7747,7 +7747,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set height(pValue) {
     this.mHeight = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
   }
   /**
    * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
@@ -7758,7 +7758,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set multiSampleLevel(pValue) {
     this.mMultiSampleLevel = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
+    this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange, FrameBufferTextureInvalidationType.TextureRebuild);
   }
   /**
    * Texture width.
@@ -7769,7 +7769,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set width(pValue) {
     this.mWidth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize);
+    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
   }
   /**
    * Constructor.
@@ -7795,11 +7795,16 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   }
   /**
    * Destory texture object.
+   *
    * @param _pNativeObject - Native canvas texture.
+   * @param pInvalidationReason - Invalidation reasons.
    */
-  destroyNative(_pNativeObject) {
-    this.mTexture?.destroy();
-    this.mTexture = null;
+  destroyNative(_pNativeObject, pInvalidationReason) {
+    // Desconstruct current texture only on deconstruction calls.
+    if (pInvalidationReason.deconstruct) {
+      this.mTexture?.destroy();
+      this.mTexture = null;
+    }
   }
   /**
    * Generate native canvas texture view.
@@ -7812,6 +7817,9 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
       throw new core_1.Exception('Frame buffers must be two dimensional.', this);
     }
+    // Any change triggers a texture rebuild.
+    this.mTexture?.destroy();
+    this.mTexture = null;
     // Create and configure canvas context.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
@@ -15755,7 +15763,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("0bdcafe1a63dc8e66d6e")
+/******/ 		__webpack_require__.h = () => ("82e8402b60b4d9a18a25")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

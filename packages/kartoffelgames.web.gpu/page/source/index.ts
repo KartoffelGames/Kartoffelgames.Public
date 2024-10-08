@@ -315,7 +315,7 @@ const gUpdateFpsDisplay = (() => {
     lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
     lPerspectiveProjection.angleOfView = 72;
     lPerspectiveProjection.near = 0.1;
-    lPerspectiveProjection.far = 9999999;
+    lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
     lRenderTargets.addInvalidationListener(() => {
         lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
     }, [RenderTargetsInvalidationType.Resize]);

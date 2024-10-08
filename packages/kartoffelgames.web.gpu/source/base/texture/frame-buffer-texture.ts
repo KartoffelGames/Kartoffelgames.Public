@@ -3,6 +3,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 
 export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidationType> {
     private mDepth: number;
@@ -20,7 +21,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mDepth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
     }
 
     /**
@@ -32,7 +33,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mHeight = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
     }
 
     /**
@@ -44,7 +45,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mMultiSampleLevel = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
+        this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange, FrameBufferTextureInvalidationType.TextureRebuild);
     }
 
     /**
@@ -56,7 +57,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mWidth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize);
+        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
     }
 
     /**
@@ -88,11 +89,16 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
 
     /**
      * Destory texture object.
+     * 
      * @param _pNativeObject - Native canvas texture.
+     * @param pInvalidationReason - Invalidation reasons.
      */
-    protected override destroyNative(_pNativeObject: GPUTextureView): void {
-        this.mTexture?.destroy();
-        this.mTexture = null;
+    protected override destroyNative(_pNativeObject: GPUTextureView, pInvalidationReason: GpuObjectInvalidationReasons<FrameBufferTextureInvalidationType>): void {
+        // Desconstruct current texture only on deconstruction calls.
+        if (pInvalidationReason.deconstruct) {
+            this.mTexture?.destroy();
+            this.mTexture = null;
+        }
     }
 
     /**
@@ -108,6 +114,10 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         if (this.layout.dimension !== TextureDimension.TwoDimension) {
             throw new Exception('Frame buffers must be two dimensional.', this);
         }
+
+        // Any change triggers a texture rebuild.
+        this.mTexture?.destroy();
+        this.mTexture = null;
 
         // Create and configure canvas context.
         this.mTexture = this.device.gpu.createTexture({

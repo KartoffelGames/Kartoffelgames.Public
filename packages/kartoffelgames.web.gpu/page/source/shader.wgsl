@@ -6,7 +6,7 @@
 
 // ------------------------- World Values ---------------------- //
 @group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;
-@group(1) @binding(1) var<uniform> timestamp: u32;
+@group(1) @binding(1) var<uniform> timestamp: f32;
 
 struct AmbientLight {
     color: vec4<f32>
@@ -118,7 +118,7 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
     // Calculate random position and animate a 100m spread. 
     var randPosition: vec4<f32> = instancePosition; // Current start.
     randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.
-    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((f32(timestamp) / (1000 * f32(animationSeconds))) + (hashStartDisplacement * 100)) * 100;
+    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;
     randPosition[3] = 1; // Reset w coord.
 
     var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;

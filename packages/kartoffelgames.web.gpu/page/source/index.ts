@@ -213,7 +213,7 @@ const gUpdateFpsDisplay = (() => {
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
             pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
-                .withPrimitive(PrimitiveBufferFormat.Uint32, PrimitiveBufferMultiplier.Single);
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
             pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
                 .withStruct((pStruct) => {
@@ -337,8 +337,8 @@ const gUpdateFpsDisplay = (() => {
     ]));
 
     // Create timestamp.
-    lWorldGroup.data('timestamp').createBuffer(new Uint32Array(1));
-    const lTimestampBuffer: GpuBuffer<Uint32Array> = lWorldGroup.data('timestamp').get();
+    lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+    const lTimestampBuffer: GpuBuffer<Float32Array> = lWorldGroup.data('timestamp').get();
 
     // Create debug value.
     lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
@@ -405,7 +405,7 @@ const gUpdateFpsDisplay = (() => {
         lGpu.startNewFrame();
 
         // Update time stamp data.
-        lTimestampBuffer.write([pTime], []);
+        lTimestampBuffer.write([pTime / 1000], []);
 
         // Generate encoder and add render commands.
         lRenderExecutor.execute();

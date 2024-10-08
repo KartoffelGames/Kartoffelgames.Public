@@ -142,12 +142,12 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         // Set defaults.
         this.mCompare = null;
         this.mWrapMode = WrappingMode.ClampToEdge;
-        this.mMagFilter = FilterMode.Nearest;
-        this.mMinFilter = FilterMode.Nearest;
-        this.mMipmapFilter = FilterMode.Nearest;
+        this.mMagFilter = FilterMode.Linear;
+        this.mMinFilter = FilterMode.Linear;
+        this.mMipmapFilter = FilterMode.Linear;
         this.mLodMinClamp = 0;
         this.mLodMaxClamp = 32;
-        this.mMaxAnisotropy = 1;
+        this.mMaxAnisotropy = 16;
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {

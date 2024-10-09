@@ -3436,7 +3436,7 @@ class ComputePass extends gpu_object_1.GpuObject {
       bindData: new Array(),
       workGroupSizes: pWorkGroupSizes
     };
-    // TODO: Enforce maxComputeWorkgroupsPerDimension
+    // TODO: Enforce maxComputeInvocationsPerWorkgroup
     // Write bind groups into searchable structure.
     const lBindGroups = new core_1.Dictionary();
     for (const lBindGroup of pBindData) {
@@ -7881,160 +7881,11 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
 class ImageTexture extends base_texture_1.BaseTexture {
-  /**
-   * Create mips for texture with compute shader.
-   *
-   * @param pTexture - Target texture.
-   */
-  static {
-    this.mGenerateMipsWithCompute = (() => {
-      // Global storages for 2d generation.
-      const lFormatPipelines2d = new core_1.Dictionary();
-      const lFormatBindGroupsLayouts2d = new core_1.Dictionary();
-      const lFormatPipelines3d = new core_1.Dictionary();
-      const lFormatBindGroupsLayouts3d = new core_1.Dictionary();
-      // Static config values.
-      const lWorkgroupSizePerDimension = 8;
-      return (pGpuDevice, pTexture, pFormat) => {
-        // Different Dimensions need different pipelines.
-        if (pTexture.dimension === '2d') {
-          // Generate cache when missed.
-          if (!lFormatPipelines2d.has(pTexture.format)) {
-            const lSampleTypeName = (() => {
-              switch (pFormat.sampleTypes.primary) {
-                case texture_sample_type_enum_1.TextureSampleType.Float:
-                  return 'f32';
-                case texture_sample_type_enum_1.TextureSampleType.UnsignedInteger:
-                  return 'u32';
-                case texture_sample_type_enum_1.TextureSampleType.SignedInteger:
-                  return 'i32';
-                default:
-                  {
-                    throw new core_1.Exception(`Can't generate mip for textures that cant be filtered.`, this);
-                  }
-              }
-            })();
-            // Shader code. Insert format.
-            const lShader = pGpuDevice.createShaderModule({
-              code: `
-                            @group(0) @binding(0) var previousMipLevel: texture_2d_array<${lSampleTypeName}>;
-                            @group(0) @binding(1) var nextMipLevel: texture_storage_2d_array<${pFormat.format}, write>;
-
-                            @compute @workgroup_size(${lWorkgroupSizePerDimension}, ${lWorkgroupSizePerDimension})
-                            fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
-                                const lOffset: vec2<u32> = vec2<u32>(0u, 1u);
-
-                                let lTextureLayerCount: u32 = textureNumLayers(previousMipLevel);
-
-                                var lColor: vec4<${lSampleTypeName}>;
-                                for(var lArrayLayer = 0u; lArrayLayer < lTextureLayerCount; lArrayLayer++){
-                                    lColor = (
-                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, lArrayLayer, 0) +
-                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, lArrayLayer, 0) +
-                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, lArrayLayer, 0) +
-                                        textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, lArrayLayer, 0)
-                                    ) * 0.25;
-                                    textureStore(nextMipLevel, id.xy, lArrayLayer, lColor);
-                                }
-                            }
-                        `
-            });
-            // Generate bind group layout.
-            const lBindGroupLayout = pGpuDevice.createBindGroupLayout({
-              entries: [{
-                binding: 0,
-                visibility: GPUShaderStage.COMPUTE,
-                texture: {
-                  sampleType: pFormat.sampleTypes.primary,
-                  viewDimension: '2d-array'
-                }
-              }, {
-                binding: 1,
-                visibility: GPUShaderStage.COMPUTE,
-                storageTexture: {
-                  access: 'write-only',
-                  format: pFormat.format,
-                  viewDimension: '2d-array'
-                }
-              }]
-            });
-            // Create pipeline.
-            const lPipeline = pGpuDevice.createComputePipeline({
-              layout: pGpuDevice.createPipelineLayout({
-                bindGroupLayouts: [lBindGroupLayout]
-              }),
-              compute: {
-                module: lShader,
-                entryPoint: 'computeMipMap'
-              }
-            });
-            // Safe pipeline and bind group layout.
-            lFormatPipelines2d.set(pFormat.format, lPipeline);
-            lFormatBindGroupsLayouts2d.set(pFormat.format, lBindGroupLayout);
-          }
-          // Calulate mip count.
-          const lMipCount = 1 + Math.floor(Math.log2(Math.max(pTexture.width, pTexture.height)));
-          // Read cached pipeline and layout.
-          const lPipeline = lFormatPipelines2d.get(pFormat.format);
-          const lBindGroupLayout = lFormatBindGroupsLayouts2d.get(pFormat.format);
-          // Create command encoder.
-          const lCommandEncoder = pGpuDevice.createCommandEncoder();
-          const lComputePass = lCommandEncoder.beginComputePass();
-          lComputePass.setPipeline(lPipeline);
-          for (let lMipLevel = 1; lMipLevel < lMipCount; lMipLevel++) {
-            // Create and add bind group with needed texture resources.
-            lComputePass.setBindGroup(0, pGpuDevice.createBindGroup({
-              layout: lBindGroupLayout,
-              entries: [{
-                binding: 0,
-                resource: pTexture.createView({
-                  format: pFormat.format,
-                  dimension: '2d-array',
-                  baseMipLevel: lMipLevel - 1,
-                  mipLevelCount: 1
-                })
-              }, {
-                binding: 1,
-                resource: pTexture.createView({
-                  format: pFormat.format,
-                  dimension: '2d-array',
-                  baseMipLevel: lMipLevel,
-                  mipLevelCount: 1
-                })
-              }]
-            }));
-            // Calculate needed single pixel invocations to cover complete mipmap level texture.
-            const lNeededInvocationCountForX = Math.floor(pTexture.width / Math.pow(2, lMipLevel));
-            const lNeededInvocationCountForY = Math.floor(pTexture.height / Math.pow(2, lMipLevel));
-            // Calculate needed compute workgroup invocations to cover complete mipmap level texture.
-            const lWorkgroupCountForX = Math.ceil((lNeededInvocationCountForX + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
-            const lWorkgroupCountForY = Math.ceil((lNeededInvocationCountForY + lWorkgroupSizePerDimension - 1) / lWorkgroupSizePerDimension);
-            lComputePass.dispatchWorkgroups(lWorkgroupCountForX, lWorkgroupCountForY, 1);
-          }
-          // End computepass after all mips are generated.
-          lComputePass.end();
-          // Push all commands to gpu queue.
-          pGpuDevice.queue.submit([lCommandEncoder.finish()]);
-        }
-        // TODO: 3D
-        // lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
-      };
-    })();
-  }
-  static generateMips(pDevice, pTexture) {
-    const lTextureCapability = pDevice.formatValidator.capabilityOf(pTexture.format);
-    // Use compute shader or fallback to cpu generation of mips.
-    if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(texture_usage_enum_1.TextureUsage.TextureBinding)) {
-      ImageTexture.mGenerateMipsWithCompute(pDevice.gpu, pTexture, lTextureCapability);
-    } else {
-      // TODO: Fallback CPU generation.
-    }
-  }
   /**
    * Texture depth.
    */
@@ -8075,6 +7926,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
    */
   constructor(pDevice, pLayout) {
     super(pDevice, pLayout);
+    this.mMipGenerator = new texture_mip_generator_1.TextureMipGenerator(pDevice);
     this.mTexture = null;
     // Set defaults.
     this.mEnableMips = true;
@@ -8283,7 +8135,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
         }, [lBitmap.width, lBitmap.height]);
       }
       // Generate mips for texture.
-      ImageTexture.generateMips(this.device, this.mTexture);
+      this.mMipGenerator.generateMips(this.mTexture);
     }
     // View descriptor.
     return this.mTexture.createView({
@@ -9710,6 +9562,215 @@ class TextureFormatCapabilities {
   }
 }
 exports.TextureFormatCapabilities = TextureFormatCapabilities;
+
+/***/ }),
+
+/***/ "./source/base/texture/texture-mip-generator.ts":
+/*!******************************************************!*\
+  !*** ./source/base/texture/texture-mip-generator.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureMipGenerator = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+class TextureMipGenerator {
+  static {
+    this.WORKGROUP_SIZE_PER_DIMENSION = 8;
+  }
+  constructor(pDevice) {
+    this.mFormatBindGroupsLayouts2d = new core_1.Dictionary();
+    this.mFormatBindGroupsLayouts3d = new core_1.Dictionary();
+    this.mFormatPipelines2d = new core_1.Dictionary();
+    this.mFormatPipelines3d = new core_1.Dictionary();
+    this.mDevice = pDevice;
+    this.mFormatPipelines2d = new core_1.Dictionary();
+    this.mFormatBindGroupsLayouts2d = new core_1.Dictionary();
+    this.mFormatPipelines3d = new core_1.Dictionary();
+    this.mFormatBindGroupsLayouts3d = new core_1.Dictionary();
+  }
+  /**
+   * Generate mips for textures.
+   *
+   * @param pDevice - Device reference.
+   * @param pTexture - Filled texture.sdsd
+   */
+  generateMips(pTexture) {
+    const lTextureCapability = this.mDevice.formatValidator.capabilityOf(pTexture.format);
+    // Use compute shader or fallback to cpu generation of mips.
+    if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(texture_usage_enum_1.TextureUsage.TextureBinding)) {
+      switch (pTexture.dimension) {
+        case '1d':
+          {
+            break; // TODO;
+          }
+        case '2d':
+          {
+            this.initComputeShader2d(lTextureCapability);
+            this.generateMipsWithCompute2d(this.mDevice.gpu, pTexture, lTextureCapability);
+            break;
+          }
+        case '3d':
+          {
+            break; // TODO;
+          }
+      }
+    } else {
+      // TODO: Fallback CPU generation.
+      switch (pTexture.dimension) {
+        case '1d':
+          {
+            break; // TODO;
+          }
+        case '2d':
+          {
+            break; // TODO;
+          }
+        case '3d':
+          {
+            break; // TODO;
+          }
+      }
+    }
+  }
+  /**
+   * Create mips for texture with compute shader.
+   *
+   * @param pTexture - Target texture.
+   */
+  generateMipsWithCompute2d(pGpuDevice, pTexture, pFormat) {
+    // Calulate mip count.
+    const lMipCount = 1 + Math.floor(Math.log2(Math.max(pTexture.width, pTexture.height)));
+    // Read cached pipeline and layout.
+    const lPipeline = this.mFormatPipelines2d.get(pFormat.format);
+    const lBindGroupLayout = this.mFormatBindGroupsLayouts2d.get(pFormat.format);
+    // Create command encoder.
+    const lCommandEncoder = pGpuDevice.createCommandEncoder();
+    const lComputePass = lCommandEncoder.beginComputePass();
+    lComputePass.setPipeline(lPipeline);
+    for (let lMipLevel = 1; lMipLevel < lMipCount; lMipLevel++) {
+      // Create and add bind group with needed texture resources.
+      lComputePass.setBindGroup(0, pGpuDevice.createBindGroup({
+        layout: lBindGroupLayout,
+        entries: [{
+          binding: 0,
+          resource: pTexture.createView({
+            format: pFormat.format,
+            dimension: '2d-array',
+            baseMipLevel: lMipLevel - 1,
+            mipLevelCount: 1
+          })
+        }, {
+          binding: 1,
+          resource: pTexture.createView({
+            format: pFormat.format,
+            dimension: '2d-array',
+            baseMipLevel: lMipLevel,
+            mipLevelCount: 1
+          })
+        }]
+      }));
+      // Calculate needed single pixel invocations to cover complete mipmap level texture. 
+      // Prevent dimension from becoming zero.
+      const lMipMapDimensionX = Math.floor(pTexture.width / Math.pow(2, lMipLevel)) || 1;
+      const lMipMapDimensionY = Math.floor(pTexture.height / Math.pow(2, lMipLevel)) || 1;
+      // Calculate needed compute workgroup invocations to cover complete mipmap level texture.
+      const lWorkgroupCountForX = Math.ceil(lMipMapDimensionX / TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION);
+      const lWorkgroupCountForY = Math.ceil(lMipMapDimensionY / TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION);
+      lComputePass.dispatchWorkgroups(lWorkgroupCountForX, lWorkgroupCountForY, 1);
+    }
+    // End computepass after all mips are generated.
+    lComputePass.end();
+    // Push all commands to gpu queue.
+    pGpuDevice.queue.submit([lCommandEncoder.finish()]);
+  }
+  // TODO: 3D
+  // lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+  initComputeShader2d(pFormat) {
+    // Generate cache when missed.
+    if (!this.mFormatPipelines2d.has(pFormat.format)) {
+      const lSampleTypeName = (() => {
+        switch (pFormat.sampleTypes.primary) {
+          case texture_sample_type_enum_1.TextureSampleType.Float:
+            return 'f32';
+          case texture_sample_type_enum_1.TextureSampleType.UnsignedInteger:
+            return 'u32';
+          case texture_sample_type_enum_1.TextureSampleType.SignedInteger:
+            return 'i32';
+          default:
+            {
+              throw new core_1.Exception(`Can't generate mip for textures that cant be filtered.`, this);
+            }
+        }
+      })();
+      // Shader code. Insert format.
+      const lShader = this.mDevice.gpu.createShaderModule({
+        code: `
+                        @group(0) @binding(0) var previousMipLevel: texture_2d_array<${lSampleTypeName}>;
+                        @group(0) @binding(1) var nextMipLevel: texture_storage_2d_array<${pFormat.format}, write>;
+
+                        @compute @workgroup_size(${TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION}, ${TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION})
+                        fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
+                            const lOffset: vec2<u32> = vec2<u32>(0u, 1u);
+
+                            let lTextureLayerCount: u32 = textureNumLayers(previousMipLevel);
+
+                            var lColor: vec4<${lSampleTypeName}>;
+                            for(var lArrayLayer = 0u; lArrayLayer < lTextureLayerCount; lArrayLayer++){
+                                lColor = (
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, lArrayLayer, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, lArrayLayer, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, lArrayLayer, 0) +
+                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, lArrayLayer, 0)
+                                ) * 0.25;
+                                textureStore(nextMipLevel, id.xy, lArrayLayer, lColor);
+                            }
+                        }
+                    `
+      });
+      // Generate bind group layout.
+      const lBindGroupLayout = this.mDevice.gpu.createBindGroupLayout({
+        entries: [{
+          binding: 0,
+          visibility: GPUShaderStage.COMPUTE,
+          texture: {
+            sampleType: pFormat.sampleTypes.primary,
+            viewDimension: '2d-array'
+          }
+        }, {
+          binding: 1,
+          visibility: GPUShaderStage.COMPUTE,
+          storageTexture: {
+            access: 'write-only',
+            format: pFormat.format,
+            viewDimension: '2d-array'
+          }
+        }]
+      });
+      // Create pipeline.
+      const lPipeline = this.mDevice.gpu.createComputePipeline({
+        layout: this.mDevice.gpu.createPipelineLayout({
+          bindGroupLayouts: [lBindGroupLayout]
+        }),
+        compute: {
+          module: lShader,
+          entryPoint: 'computeMipMap'
+        }
+      });
+      // Safe pipeline and bind group layout.
+      this.mFormatPipelines2d.set(pFormat.format, lPipeline);
+      this.mFormatBindGroupsLayouts2d.set(pFormat.format, lBindGroupLayout);
+    }
+  }
+}
+exports.TextureMipGenerator = TextureMipGenerator;
 
 /***/ }),
 
@@ -15795,7 +15856,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("f73fbab3455c25262d98")
+/******/ 		__webpack_require__.h = () => ("bfb4d550899864013f44")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

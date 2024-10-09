@@ -2152,6 +2152,8 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pName) {
     super(pDevice);
+    // TODO: Enforce limits.
+    // maxBindingsPerBindGroup
     // Set binding group name.
     this.mName = pName;
     // Init bindings.
@@ -2584,6 +2586,11 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     this.mBindGroupInvalidationListener = new WeakMap();
     // TODO: Check gpu restriction.
     //this.device.gpu.limits.maxBindGroups
+    // maxSampledTexturesPerShaderStage;
+    // maxSamplersPerShaderStage;
+    // maxStorageBuffersPerShaderStage;
+    // maxStorageTexturesPerShaderStage;
+    // maxUniformBuffersPerShaderStage;
     // Set initial work groups.
     for (const [lGroupIndex, lGroup] of pInitialGroups) {
       // Restrict dublicate names.
@@ -3429,6 +3436,7 @@ class ComputePass extends gpu_object_1.GpuObject {
       bindData: new Array(),
       workGroupSizes: pWorkGroupSizes
     };
+    // TODO: Enforce maxComputeWorkgroupsPerDimension
     // Write bind groups into searchable structure.
     const lBindGroups = new core_1.Dictionary();
     for (const lBindGroup of pBindData) {
@@ -7888,6 +7896,8 @@ class ImageTexture extends base_texture_1.BaseTexture {
       // Global storages for 2d generation.
       const lFormatPipelines2d = new core_1.Dictionary();
       const lFormatBindGroupsLayouts2d = new core_1.Dictionary();
+      const lFormatPipelines3d = new core_1.Dictionary();
+      const lFormatBindGroupsLayouts3d = new core_1.Dictionary();
       // Static config values.
       const lWorkgroupSizePerDimension = 8;
       return (pGpuDevice, pTexture, pFormat) => {
@@ -8022,7 +8032,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
     if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(texture_usage_enum_1.TextureUsage.TextureBinding)) {
       ImageTexture.mGenerateMipsWithCompute(pDevice.gpu, pTexture, lTextureCapability);
     } else {
-      // Fallback CPU generation.
+      // TODO: Fallback CPU generation.
     }
   }
   /**
@@ -8118,6 +8128,11 @@ class ImageTexture extends base_texture_1.BaseTexture {
       _this.mWidth = lWidth;
       _this.mHeight = lHeight;
       _this.mDepth = pSourceList.length;
+      // TODO: Enforce limits.
+      // maxTextureDimension1D
+      // maxTextureDimension2D
+      // maxTextureDimension3D
+      // maxTextureArrayLayers
       // Trigger change.
       _this.invalidate(ImageTextureInvalidationType.ImageBinary);
     })();
@@ -8136,31 +8151,49 @@ class ImageTexture extends base_texture_1.BaseTexture {
   generateNative(_pCurrentNative, pInvalidationReasons) {
     // TODO: Validate format based on layout. Maybe replace used format.
     // Generate gpu dimension from memory layout dimension.
-    const lGpuDimension = (() => {
+    const lTextureDimensions = (() => {
       switch (this.layout.dimension) {
         case texture_dimension_enum_1.TextureDimension.OneDimension:
           {
-            return '1d';
+            return {
+              textureDimension: '1d',
+              clampedDimensions: [this.mWidth, 1, 1]
+            };
           }
         case texture_dimension_enum_1.TextureDimension.TwoDimension:
           {
-            return '2d';
+            return {
+              textureDimension: '2d',
+              clampedDimensions: [this.mWidth, this.mHeight, 1]
+            };
           }
         case texture_dimension_enum_1.TextureDimension.TwoDimensionArray:
           {
-            return '2d';
+            return {
+              textureDimension: '2d',
+              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+            };
           }
         case texture_dimension_enum_1.TextureDimension.Cube:
           {
-            return '2d';
+            return {
+              textureDimension: '2d',
+              clampedDimensions: [this.mWidth, this.mHeight, 6]
+            };
           }
         case texture_dimension_enum_1.TextureDimension.CubeArray:
           {
-            return '2d';
+            return {
+              textureDimension: '2d',
+              clampedDimensions: [this.mWidth, this.mHeight, Math.ceil(this.mDepth / 6) * 6]
+            };
           }
         case texture_dimension_enum_1.TextureDimension.ThreeDimension:
           {
-            return '3d';
+            return {
+              textureDimension: '3d',
+              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+            };
           }
       }
     })();
@@ -8178,10 +8211,10 @@ class ImageTexture extends base_texture_1.BaseTexture {
     // Calculate mip count on 3D images the depth affects mips.
     let lMipCount = 1;
     if (this.mEnableMips) {
-      if (lGpuDimension === '3d') {
-        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+      if (lTextureDimensions.textureDimension === '3d') {
+        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
       } else {
-        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height)));
+        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
       }
     }
     // Save last used texture.
@@ -8189,10 +8222,10 @@ class ImageTexture extends base_texture_1.BaseTexture {
     // Create texture with set size, format and usage. Save it for destorying later.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
-      size: [this.width, this.height, this.depth],
+      size: lTextureDimensions.clampedDimensions,
       format: this.layout.format,
       usage: this.usage,
-      dimension: lGpuDimension,
+      dimension: lTextureDimensions.textureDimension,
       mipLevelCount: this.enableMips ? lMipCount : 1
     });
     // Copy current native data into new texture.
@@ -8225,7 +8258,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
           depthOrArrayLayers: 0
         };
         // On 3D images the depth count to the mip.
-        if (lGpuDimension === '3d') {
+        if (this.mTexture.dimension === '3d') {
           lMipCopySize.depthOrArrayLayers = Math.floor(lLevelOneCopySize.depthOrArrayLayers / Math.pow(2, lMipLevel));
         } else {
           lMipCopySize.depthOrArrayLayers = lLevelOneCopySize.depthOrArrayLayers;
@@ -8252,7 +8285,6 @@ class ImageTexture extends base_texture_1.BaseTexture {
       // Generate mips for texture.
       ImageTexture.generateMips(this.device, this.mTexture);
     }
-    // TODO: ArrayLayer based on dimension.
     // View descriptor.
     return this.mTexture.createView({
       format: this.layout.format,
@@ -15763,7 +15795,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("82e8402b60b4d9a18a25")
+/******/ 		__webpack_require__.h = () => ("f73fbab3455c25262d98")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

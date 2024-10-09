@@ -19,6 +19,8 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // Global storages for 2d generation.
         const lFormatPipelines2d: Dictionary<GPUTextureFormat, GPUComputePipeline> = new Dictionary<GPUTextureFormat, GPUComputePipeline>();
         const lFormatBindGroupsLayouts2d: Dictionary<GPUTextureFormat, GPUBindGroupLayout> = new Dictionary<GPUTextureFormat, GPUBindGroupLayout>();
+        const lFormatPipelines3d: Dictionary<GPUTextureFormat, GPUComputePipeline> = new Dictionary<GPUTextureFormat, GPUComputePipeline>();
+        const lFormatBindGroupsLayouts3d: Dictionary<GPUTextureFormat, GPUBindGroupLayout> = new Dictionary<GPUTextureFormat, GPUBindGroupLayout>();
 
         // Static config values.
         const lWorkgroupSizePerDimension = 8;
@@ -174,11 +176,9 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(TextureUsage.TextureBinding)) {
             ImageTexture.mGenerateMipsWithCompute(pDevice.gpu, pTexture, lTextureCapability);
         } else {
-            // Fallback CPU generation.
+            // TODO: Fallback CPU generation.
         }
     }
-
-
 
     private mDepth: number;
     private mEnableMips: boolean;
@@ -289,6 +289,12 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         this.mHeight = lHeight;
         this.mDepth = pSourceList.length;
 
+        // TODO: Enforce limits.
+        // maxTextureDimension1D
+        // maxTextureDimension2D
+        // maxTextureDimension3D
+        // maxTextureArrayLayers
+
         // Trigger change.
         this.invalidate(ImageTextureInvalidationType.ImageBinary);
     }
@@ -309,25 +315,43 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Generate gpu dimension from memory layout dimension.
-        const lGpuDimension: GPUTextureDimension = (() => {
+        const lTextureDimensions: { textureDimension: GPUTextureDimension, clampedDimensions: [number, number, number]; } = (() => {
             switch (this.layout.dimension) {
                 case TextureDimension.OneDimension: {
-                    return '1d';
+                    return {
+                        textureDimension: '1d',
+                        clampedDimensions: [this.mWidth, 1, 1]
+                    };
                 }
                 case TextureDimension.TwoDimension: {
-                    return '2d';
+                    return {
+                        textureDimension: '2d',
+                        clampedDimensions: [this.mWidth, this.mHeight, 1]
+                    };
                 }
                 case TextureDimension.TwoDimensionArray: {
-                    return '2d';
+                    return {
+                        textureDimension: '2d',
+                        clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+                    };
                 }
                 case TextureDimension.Cube: {
-                    return '2d';
+                    return {
+                        textureDimension: '2d',
+                        clampedDimensions: [this.mWidth, this.mHeight, 6]
+                    };
                 }
                 case TextureDimension.CubeArray: {
-                    return '2d';
+                    return {
+                        textureDimension: '2d',
+                        clampedDimensions: [this.mWidth, this.mHeight, Math.ceil(this.mDepth / 6) * 6]
+                    };
                 }
                 case TextureDimension.ThreeDimension: {
-                    return '3d';
+                    return {
+                        textureDimension: '3d',
+                        clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+                    };
                 }
             }
         })();
@@ -348,10 +372,10 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // Calculate mip count on 3D images the depth affects mips.
         let lMipCount = 1;
         if (this.mEnableMips) {
-            if (lGpuDimension === '3d') {
-                lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
+            if (lTextureDimensions.textureDimension === '3d') {
+                lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
             } else {
-                lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height)));
+                lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
             }
         }
 
@@ -361,10 +385,10 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // Create texture with set size, format and usage. Save it for destorying later.
         this.mTexture = this.device.gpu.createTexture({
             label: 'Frame-Buffer-Texture',
-            size: [this.width, this.height, this.depth],
+            size: lTextureDimensions.clampedDimensions,
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,
-            dimension: lGpuDimension,
+            dimension: lTextureDimensions.textureDimension,
             mipLevelCount: (this.enableMips) ? lMipCount : 1
         });
 
@@ -403,7 +427,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
                 };
 
                 // On 3D images the depth count to the mip.
-                if (lGpuDimension === '3d') {
+                if (this.mTexture.dimension === '3d') {
                     lMipCopySize.depthOrArrayLayers = Math.floor(lLevelOneCopySize.depthOrArrayLayers! / Math.pow(2, lMipLevel));
                 } else {
                     lMipCopySize.depthOrArrayLayers = lLevelOneCopySize.depthOrArrayLayers!;
@@ -434,8 +458,6 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
             // Generate mips for texture.
             ImageTexture.generateMips(this.device, this.mTexture);
         }
-
-        // TODO: ArrayLayer based on dimension.
 
         // View descriptor.
         return this.mTexture.createView({

@@ -70,6 +70,9 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
     public constructor(pDevice: GpuDevice, pName: string) {
         super(pDevice);
 
+        // TODO: Enforce limits.
+        // maxBindingsPerBindGroup
+
         // Set binding group name.
         this.mName = pName;
 

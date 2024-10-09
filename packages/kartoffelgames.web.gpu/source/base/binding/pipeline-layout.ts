@@ -41,6 +41,11 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
 
         // TODO: Check gpu restriction.
         //this.device.gpu.limits.maxBindGroups
+        // maxSampledTexturesPerShaderStage;
+        // maxSamplersPerShaderStage;
+        // maxStorageBuffersPerShaderStage;
+        // maxStorageTexturesPerShaderStage;
+        // maxUniformBuffersPerShaderStage;
 
         // Set initial work groups.
         for (const [lGroupIndex, lGroup] of pInitialGroups) {

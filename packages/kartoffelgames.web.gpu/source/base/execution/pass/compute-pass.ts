@@ -32,6 +32,8 @@ export class ComputePass extends GpuObject {
             workGroupSizes: pWorkGroupSizes
         };
 
+        // TODO: Enforce maxComputeInvocationsPerWorkgroup
+
         // Write bind groups into searchable structure.
         const lBindGroups: Dictionary<string, BindGroup> = new Dictionary<string, BindGroup>();
         for (const lBindGroup of pBindData) {

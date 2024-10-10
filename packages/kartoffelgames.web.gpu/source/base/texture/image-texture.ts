@@ -133,9 +133,12 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroyNative(_pNativeObject: GPUTextureView): void {
-        this.mTexture?.destroy();
-        this.mTexture = null;
+    protected override destroyNative(_pNativeObject: GPUTextureView, pInvalidationReason: GpuObjectInvalidationReasons<ImageTextureInvalidationType>): void {
+        // Desconstruct current texture only on deconstruction calls.
+        if (pInvalidationReason.deconstruct) {
+            this.mTexture?.destroy();
+            this.mTexture = null;
+        }
     }
 
     /**
@@ -212,9 +215,12 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // Save last used texture.
         const lLastTexture: GPUTexture | null = this.mTexture;
 
+        // Destroy old texture. // TODO: Only destroy when format usage or dimension has changed.
+        this.mTexture?.destroy();
+
         // Create texture with set size, format and usage. Save it for destorying later.
         this.mTexture = this.device.gpu.createTexture({
-            label: 'Frame-Buffer-Texture',
+            label: 'Image-Buffer-Texture',
             size: lTextureDimensions.clampedDimensions,
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,

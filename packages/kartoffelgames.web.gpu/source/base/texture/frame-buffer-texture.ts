@@ -105,9 +105,6 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * Generate native canvas texture view.
      */
     protected override generateNative(): GPUTextureView {
-        // Invalidate texture and view.
-        this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
-
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Validate two dimensional texture.
@@ -118,6 +115,9 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         // Any change triggers a texture rebuild.
         this.mTexture?.destroy();
         this.mTexture = null;
+
+        // Invalidate texture and view.
+        this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
 
         // Create and configure canvas context.
         this.mTexture = this.device.gpu.createTexture({

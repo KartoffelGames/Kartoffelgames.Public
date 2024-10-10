@@ -1703,6 +1703,44 @@ const gAddLightBoxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
   pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], pWorldGroup.data('pointLights').get().length / 12);
 };
+const gGenerateWorldBindGroup = (pGpu, pCamera) => {
+  const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(pGpu, 'world').setup(pBindGroupSetup => {
+    pBindGroupSetup.binding(0, 'viewProjectionMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
+      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    });
+    pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
+      pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    });
+    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+  });
+  /*
+   * Camera and world group.
+   */
+  const lWorldGroup = lWorldGroupLayout.create();
+  lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
+  // Create ambient light.
+  const lAmbientLight = new ambient_light_1.AmbientLight();
+  lAmbientLight.setColor(0.3, 0.3, 0.3);
+  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
+  // Create point lights.
+  lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200, 0, 0, 0]));
+  // Create timestamp.
+  lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+  // Create debug value.
+  lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+  const lDebugBuffer = lWorldGroup.data('debugValue').get();
+  window.debugBuffer = () => {
+    lDebugBuffer.readRaw(0, 4).then(pResulto => {
+      // eslint-disable-next-line no-console
+      console.log(pResulto);
+    });
+  };
+  return lWorldGroup;
+};
 _asyncToGenerator(function* () {
   const lGpu = yield gpu_device_1.GpuDevice.request('high-performance');
   // Create canvas.
@@ -1729,23 +1767,6 @@ _asyncToGenerator(function* () {
       lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
     }).observe(lCanvasWrapper);
   })();
-  const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(lGpu, 'world').setup(pBindGroupSetup => {
-    pBindGroupSetup.binding(0, 'viewProjectionMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-    pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
-      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    });
-    pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
-      pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-    });
-    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-  });
-  /*
-   * Camera and world group.
-   */
-  const lWorldGroup = lWorldGroupLayout.create();
   // Create camera perspective.
   const lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
   lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
@@ -1758,28 +1779,11 @@ _asyncToGenerator(function* () {
   // Create camera.
   const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
   lCamera.transformation.setTranslation(0, 0, -4);
-  lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
-  // Create ambient light.
-  const lAmbientLight = new ambient_light_1.AmbientLight();
-  lAmbientLight.setColor(0.3, 0.3, 0.3);
-  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
-  // Create point lights.
-  lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200, 0, 0, 0]));
-  // Create timestamp.
-  lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+  const lWorldGroup = gGenerateWorldBindGroup(lGpu, lCamera);
   const lTimestampBuffer = lWorldGroup.data('timestamp').get();
-  // Create debug value.
-  lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
-  const lDebugBuffer = lWorldGroup.data('debugValue').get();
-  window.debugBuffer = () => {
-    lDebugBuffer.readRaw(0, 4).then(pResulto => {
-      // eslint-disable-next-line no-console
-      console.log(pResulto);
-    });
-  };
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
-  yield gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+  gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
   gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
   /**
    * Controls
@@ -7854,8 +7858,6 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * Generate native canvas texture view.
    */
   generateNative() {
-    // Invalidate texture and view.
-    this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
     // TODO: Validate format based on layout. Maybe replace used format.
     // Validate two dimensional texture.
     if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
@@ -7864,6 +7866,8 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     // Any change triggers a texture rebuild.
     this.mTexture?.destroy();
     this.mTexture = null;
+    // Invalidate texture and view.
+    this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
     // Create and configure canvas context.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
@@ -8029,9 +8033,12 @@ class ImageTexture extends base_texture_1.BaseTexture {
    * Destory texture object.
    * @param _pNativeObject - Native canvas texture.
    */
-  destroyNative(_pNativeObject) {
-    this.mTexture?.destroy();
-    this.mTexture = null;
+  destroyNative(_pNativeObject, pInvalidationReason) {
+    // Desconstruct current texture only on deconstruction calls.
+    if (pInvalidationReason.deconstruct) {
+      this.mTexture?.destroy();
+      this.mTexture = null;
+    }
   }
   /**
    * Generate native canvas texture view.
@@ -8107,9 +8114,11 @@ class ImageTexture extends base_texture_1.BaseTexture {
     }
     // Save last used texture.
     const lLastTexture = this.mTexture;
+    // Destroy old texture. // TODO: Only destroy when format usage or dimension has changed.
+    this.mTexture?.destroy();
     // Create texture with set size, format and usage. Save it for destorying later.
     this.mTexture = this.device.gpu.createTexture({
-      label: 'Frame-Buffer-Texture',
+      label: 'Image-Buffer-Texture',
       size: lTextureDimensions.clampedDimensions,
       format: this.layout.format,
       usage: this.usage,
@@ -15892,7 +15901,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("6dbc255f65efef3e73cd")
+/******/ 		__webpack_require__.h = () => ("4e451688658fead6f450")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

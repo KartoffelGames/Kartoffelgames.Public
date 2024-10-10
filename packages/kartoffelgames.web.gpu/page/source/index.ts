@@ -78,7 +78,6 @@ const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRen
     // Create render module from shader.
     const lWoodBoxRenderModule: ShaderRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
 
-
     // Transformation and position group. 
     const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
@@ -178,6 +177,67 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
     pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], pWorldGroup.data('pointLights').get<GpuBuffer>().length / 12);
 };
 
+const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): BindGroup => {
+    const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
+        pBindGroupSetup.binding(0, 'viewProjectionMatrix', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+
+        pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
+            .withStruct((pStruct) => {
+                pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            });
+
+        pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
+            .withArray().withStruct((pStruct) => {
+                pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+            });
+
+        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+
+    });
+
+    /*
+     * Camera and world group. 
+     */
+    const lWorldGroup: BindGroup = lWorldGroupLayout.create();
+
+    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
+
+    // Create ambient light.
+    const lAmbientLight: AmbientLight = new AmbientLight();
+    lAmbientLight.setColor(0.3, 0.3, 0.3);
+    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
+
+    // Create point lights.
+    lWorldGroup.data('pointLights').createBuffer(new Float32Array([
+        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
+        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0,
+        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200, 0, 0, 0
+    ]));
+
+    // Create timestamp.
+    lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+
+
+    // Create debug value.
+    lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+    const lDebugBuffer: GpuBuffer<Uint32Array> = lWorldGroup.data('debugValue').get();
+    (<any>window).debugBuffer = () => {
+        lDebugBuffer.readRaw(0, 4).then((pResulto) => {
+            // eslint-disable-next-line no-console
+            console.log(pResulto);
+        });
+    };
+
+    return lWorldGroup;
+};
+
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
@@ -207,41 +267,6 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
         }).observe(lCanvasWrapper);
     })();
 
-
-    const lWorldGroupLayout = new BindGroupLayout(lGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'viewProjectionMatrix', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
-
-        pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
-            .withStruct((pStruct) => {
-                pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-            });
-
-        pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
-            .withArray().withStruct((pStruct) => {
-                pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-                pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-                pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
-            });
-
-        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
-
-    });
-
-
-
-
-
-
-    /*
-     * Camera and world group. 
-     */
-    const lWorldGroup: BindGroup = lWorldGroupLayout.create();
-
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
     lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
@@ -255,43 +280,14 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
-    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
 
-    // Create ambient light.
-    const lAmbientLight: AmbientLight = new AmbientLight();
-    lAmbientLight.setColor(0.3, 0.3, 0.3);
-    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
-
-    // Create point lights.
-    lWorldGroup.data('pointLights').createBuffer(new Float32Array([
-        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
-        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0,
-        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200, 0, 0, 0
-    ]));
-
-    // Create timestamp.
-    lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+    const lWorldGroup: BindGroup = gGenerateWorldBindGroup(lGpu, lCamera);
     const lTimestampBuffer: GpuBuffer<Float32Array> = lWorldGroup.data('timestamp').get();
-
-    // Create debug value.
-    lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
-    const lDebugBuffer: GpuBuffer<Uint32Array> = lWorldGroup.data('debugValue').get();
-    (<any>window).debugBuffer = () => {
-        lDebugBuffer.readRaw(0, 4).then((pResulto) => {
-            // eslint-disable-next-line no-console
-            console.log(pResulto);
-        });
-    };
-
-
-
-
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
-    await gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+    gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
-
 
     /**
      * Controls
@@ -304,7 +300,6 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
     const lRenderExecutor: GpuExecution = lGpu.executor((pExecutor) => {
         lRenderPass.execute(pExecutor);
     });
-
 
     const lFpsLabel = document.getElementById('fpsCounter')!;
 

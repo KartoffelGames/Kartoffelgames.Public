@@ -9,6 +9,7 @@ import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffe
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
+import { Shader } from '../../source/base/shader/shader';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { CanvasTexture } from '../../source/base/texture/canvas-texture';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
@@ -23,9 +24,10 @@ import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
 import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './game_objects/cube/cube-mesh';
+import { InitCameraControls, UpdateFpsDisplay } from './util';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
-import { InitCameraControls, UpdateFpsDisplay } from './util';
+import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
 
 const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
     const lHeight: number = 50;
@@ -71,7 +73,7 @@ const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRen
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
-                .withTexture(TextureDimension.TwoDimensionArray, TextureFormat.Rgba8unorm, false);
+                .withTexture(TextureDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
         }));
     });
 
@@ -103,7 +105,11 @@ const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRen
     const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    lWoodBoxUserGroup.data('cubeTexture').createImage('/source/game_objects/cube/texture_one/cube-texture.png', '/source/game_objects/cube/texture_two/cube-texture.png', '/source/game_objects/cube/texture_three/cube-texture.png');
+    lWoodBoxUserGroup.data('cubeTexture').createImage(
+        '/source/game_objects/cube/texture_one/cube-texture.png',
+        '/source/game_objects/cube/texture_two/cube-texture.png',
+        '/source/game_objects/cube/texture_three/cube-texture.png'
+    );
 
     // Setup Sampler.
     lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
@@ -127,7 +133,7 @@ const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRen
 
 const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup): void => {
     // Create shader.
-    const lLightBoxShader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
+    const lLightBoxShader: Shader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
             pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
@@ -177,27 +183,91 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
     pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], pWorldGroup.data('pointLights').get<GpuBuffer>().length / 12);
 };
 
+const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup): void => {
+    const lSkyBoxShader: Shader = pGpu.shader(skyboxShader).setup((pShaderSetup) => {
+        // Vertex entry.
+        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
+            pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
+                .withParameter('position', 0, PrimitiveBufferMultiplier.Vector4);
+
+            pVertexParameterSetup.buffer('uv', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, PrimitiveBufferMultiplier.Vector2);
+        });
+
+        // Fragment entry.
+        pShaderSetup.fragmentEntryPoint('fragment_main')
+            .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
+                .withSampler(SamplerType.Filter);
+
+            pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
+                .withTexture(TextureDimension.Cube, TextureFormat.Rgba8unorm);
+        }));
+
+        // World bind group.
+        pShaderSetup.group(1, pWorldGroup.layout);
+    });
+
+    // Create render module from shader.
+    const lSkyBoxRenderModule = lSkyBoxShader.createRenderModule('vertex_main', 'fragment_main');
+
+    // Transformation and position group. 
+    const lSkyBoxTextureGroup = lSkyBoxShader.layout.getGroupLayout('object').create();
+
+    lSkyBoxTextureGroup.data('cubeMap').createImage(
+        '/source/game_objects/skybox/right.jpg',
+        '/source/game_objects/skybox/left.jpg',
+        '/source/game_objects/skybox/top.jpg',
+        '/source/game_objects/skybox/bottom.jpg',
+        '/source/game_objects/skybox/front.jpg',
+        '/source/game_objects/skybox/back.jpg',
+    );
+
+    // Setup Sampler.
+    lSkyBoxTextureGroup.data('cubeTextureSampler').createSampler();
+
+    // Generate render parameter from parameter layout.
+    const lMesh: VertexParameter = lSkyBoxRenderModule.vertexParameter.create(CubeVertexIndices);
+    lMesh.set('position', CubeVertexPositionData);
+    lMesh.set('uv', CubeVertexUvData);
+
+    const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
+    lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+
+    pRenderPass.addStep(lSkyBoxPipeline, lMesh, [lSkyBoxTextureGroup, pWorldGroup]);
+};
+
 const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'viewProjectionMatrix', ComputeStage.Vertex)
+        pBindGroupSetup.binding(0, 'cameraViewProjection', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(1, 'cameraView', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(2, 'cameraProjection', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(3, 'cameraRotation', ComputeStage.Vertex)
+            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(4, 'cameraTranslation', ComputeStage.Vertex)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
+        pBindGroupSetup.binding(5, 'timestamp', ComputeStage.Vertex)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
-        pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
+        pBindGroupSetup.binding(6, 'ambientLight', ComputeStage.Fragment)
             .withStruct((pStruct) => {
                 pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
             });
 
-        pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
+        pBindGroupSetup.binding(7, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
             .withArray().withStruct((pStruct) => {
                 pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
             });
 
-        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
+        pBindGroupSetup.binding(8, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
     });
@@ -207,7 +277,11 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): Bind
      */
     const lWorldGroup: BindGroup = lWorldGroupLayout.create();
 
-    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
+    lWorldGroup.data('cameraViewProjection').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
+    lWorldGroup.data('cameraView').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.View).dataArray));
+    lWorldGroup.data('cameraProjection').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Projection).dataArray));
+    lWorldGroup.data('cameraRotation').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Rotation).dataArray));
+    lWorldGroup.data('cameraTranslation').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Translation).dataArray));
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
@@ -288,11 +362,12 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): Bind
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
     gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+    gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
 
     /**
      * Controls
      */
-    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('viewProjectionMatrix').get());
+    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('cameraViewProjection').get());
 
     /*
      * Execution 

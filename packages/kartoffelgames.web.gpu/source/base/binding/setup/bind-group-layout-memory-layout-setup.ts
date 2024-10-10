@@ -96,13 +96,12 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * @param pTextureDimension - Texture dimension.
      * @param pTextureFormat - Texture format.
      * @param pTextureBindType - Texture binding.
-     * @param pMultisampled  - Is texture multisampled. 
      */
-    public withTexture(pTextureDimension: TextureDimension, pTextureFormat: TextureFormat, pMultisampled: boolean): void {
+    public withTexture(pTextureDimension: TextureDimension, pTextureFormat: TextureFormat): void {
         const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
             dimension: pTextureDimension,
             format: pTextureFormat,
-            multisampled: pMultisampled
+            multisampled: false
         });
 
         // Send created data.

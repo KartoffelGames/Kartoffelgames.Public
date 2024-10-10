@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { Vector } from '../../math/vector';
+import { Vector } from '../math/vector';
 
 export class AmbientLight {
     private readonly mColor: Vector;

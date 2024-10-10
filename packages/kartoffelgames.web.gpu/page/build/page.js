@@ -189,430 +189,57 @@ ansiHTML.reset()
 
 /***/ }),
 
-/***/ "./page/source/cube/cube.ts":
-/*!**********************************!*\
-  !*** ./page/source/cube/cube.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.CubeVertexIndices = exports.CubeVertexNormalData = exports.CubeVertexUvData = exports.CubeVertexPositionData = void 0;
-// Create attributes data.
-exports.CubeVertexPositionData = [
-// Back
--1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
-// Front
--1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0];
-exports.CubeVertexUvData = [
-// Front 4,5,6
-0.33333, 0.25, 0.66666, 0.25, 0.66666, 0.50,
-// Front 4,6,7
-0.33333, 0.25, 0.66666, 0.50, 0.33333, 0.50,
-// Back 1,0,3
-0.66666, 1, 0.33333, 1, 0.33333, 0.75,
-// Back 1,3,2
-0.66666, 1, 0.33333, 0.75, 0.66666, 0.75,
-// Left 0,4,7
-0, 0.25, 0.33333, 0.25, 0.33333, 0.50,
-// Left 0,7,3
-0, 0.25, 0.33333, 0.50, 0, 0.50,
-// Right 5,1,2
-0.66666, 0.25, 1, 0.25, 1, 0.50,
-// Right 5,2,6
-0.66666, 0.25, 1, 0.50, 0.66666, 0.50,
-// Top 0,1,5
-0.33333, 0, 0.66666, 0, 0.66666, 0.25,
-// Top 0,5,4
-0.33333, 0, 0.66666, 0.25, 0.33333, 0.25,
-// Bottom 7,6,2
-0.33333, 0.50, 0.66666, 0.50, 0.66666, 0.75,
-// Bottom 7,2,3
-0.33333, 0.50, 0.66666, 0.75, 0.33333, 0.75];
-exports.CubeVertexNormalData = [
-// Front
-0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
-// Back 1,0,3
-0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-// Left 0,4,7
--1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
-// Right 5,1,2
-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-// Top 0,1,5
-0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-// Bottom 7,6,2
-0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0];
-// Create mesh.
-exports.CubeVertexIndices = [
-// Front
-4, 5, 6, 4, 6, 7,
-// Back
-1, 0, 3, 1, 3, 2,
-// Left
-0, 4, 7, 0, 7, 3,
-// Right
-5, 1, 2, 5, 2, 6,
-// Top
-0, 1, 5, 0, 5, 4,
-// Bottom
-7, 6, 2, 7, 2, 3];
-
-/***/ }),
-
-/***/ "./page/source/index.ts":
-/*!******************************!*\
-  !*** ./page/source/index.ts ***!
-  \******************************/
+/***/ "./page/source/camera/light/ambient-light.ts":
+/*!***************************************************!*\
+  !*** ./page/source/camera/light/ambient-light.ts ***!
+  \***************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
+exports.AmbientLight = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
-const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
-const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const render_targets_1 = __webpack_require__(/*! ../../source/base/pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
-const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
-const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const cube_1 = __webpack_require__(/*! ./cube/cube */ "./page/source/cube/cube.ts");
-const light_box_shader_wgsl_1 = __webpack_require__(/*! ./light-box-shader.wgsl */ "./page/source/light-box-shader.wgsl");
-const shader_wgsl_1 = __webpack_require__(/*! ./shader.wgsl */ "./page/source/shader.wgsl");
-const ambient_light_1 = __webpack_require__(/*! ./something_better/light/ambient-light */ "./page/source/something_better/light/ambient-light.ts");
-const transform_1 = __webpack_require__(/*! ./something_better/transform */ "./page/source/something_better/transform.ts");
-const perspective_projection_1 = __webpack_require__(/*! ./something_better/view_projection/projection/perspective-projection */ "./page/source/something_better/view_projection/projection/perspective-projection.ts");
-const view_projection_1 = __webpack_require__(/*! ./something_better/view_projection/view-projection */ "./page/source/something_better/view_projection/view-projection.ts");
-const gHeight = 100;
-const gWidth = 100;
-const gDepth = 100;
-const gInitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
-  // Register keyboard mouse movements.
-  const lDefaultConfiguaration = new web_game_input_1.DeviceConfiguration();
-  lDefaultConfiguaration.addAction('Forward', [web_game_input_1.KeyboardButton.KeyW]);
-  lDefaultConfiguaration.addAction('Back', [web_game_input_1.KeyboardButton.KeyS]);
-  lDefaultConfiguaration.addAction('Left', [web_game_input_1.KeyboardButton.KeyA]);
-  lDefaultConfiguaration.addAction('Right', [web_game_input_1.KeyboardButton.KeyD]);
-  lDefaultConfiguaration.addAction('Up', [web_game_input_1.KeyboardButton.ShiftLeft]);
-  lDefaultConfiguaration.addAction('Down', [web_game_input_1.KeyboardButton.ControlLeft]);
-  lDefaultConfiguaration.addAction('RotateLeft', [web_game_input_1.KeyboardButton.KeyQ]);
-  lDefaultConfiguaration.addAction('RotateRight', [web_game_input_1.KeyboardButton.KeyE]);
-  lDefaultConfiguaration.addAction('Yaw', [web_game_input_1.MouseButton.Xaxis]);
-  lDefaultConfiguaration.addAction('Pitch', [web_game_input_1.MouseButton.Yaxis]);
-  lDefaultConfiguaration.triggerTolerance = 0.2;
-  const lInputConfiguration = new web_game_input_1.InputConfiguration(lDefaultConfiguaration);
-  const lInputDevices = new web_game_input_1.InputDevices(lInputConfiguration);
-  lInputDevices.registerConnector(new web_game_input_1.MouseKeyboardConnector());
-  const lCurrentActionValue = new core_1.Dictionary();
-  const lKeyboard = lInputDevices.devices[0];
-  lKeyboard.addEventListener('actionstatechange', pEvent => {
-    lCurrentActionValue.set(pEvent.action, pEvent.state);
-  });
-  window.setInterval(() => {
-    const lSpeed = 10;
-    // Z Axis
-    if (lCurrentActionValue.get('Forward') > 0) {
-      pCamera.transformation.translateInDirection(lCurrentActionValue.get('Forward') / 50 * lSpeed, 0, 0);
-    }
-    if (lCurrentActionValue.get('Back') > 0) {
-      pCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back') / 50) * lSpeed, 0, 0);
-    }
-    // X Axis
-    if (lCurrentActionValue.get('Right') > 0) {
-      pCamera.transformation.translateInDirection(0, lCurrentActionValue.get('Right') / 50 * lSpeed, 0);
-    }
-    if (lCurrentActionValue.get('Left') > 0) {
-      pCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left') / 50) * lSpeed, 0);
-    }
-    // Y Axis
-    if (lCurrentActionValue.get('Up') > 0) {
-      pCamera.transformation.translateInDirection(0, 0, lCurrentActionValue.get('Up') / 50 * lSpeed);
-    }
-    if (lCurrentActionValue.get('Down') > 0) {
-      pCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down') / 50) * lSpeed);
-    }
-    // Rotation.
-    if (lCurrentActionValue.get('Yaw') > 0 || lCurrentActionValue.get('Yaw') < 0) {
-      pCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw'), 0);
-    }
-    if (lCurrentActionValue.get('Pitch') > 0 || lCurrentActionValue.get('Pitch') < 0) {
-      pCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch'), 0, 0);
-    }
-    if (lCurrentActionValue.get('RotateLeft') > 0) {
-      pCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft'));
-    }
-    if (lCurrentActionValue.get('RotateRight') > 0) {
-      pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight'));
-    }
-    // Update transformation buffer.
-    pCameraBuffer.writeRaw(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray);
-  }, 8);
-  pCanvas.addEventListener('click', () => {
-    pCanvas.requestPointerLock();
-  });
-};
-const gUpdateFpsDisplay = (() => {
-  let lMaxFps = 0;
-  return (pFps, pWidth) => {
-    const lCanvas = document.getElementById('fps-display');
-    const lCanvasContext = lCanvas.getContext('2d', {
-      willReadFrequently: true
-    });
-    // Update canvas width.
-    if (pWidth !== lCanvas.width) {
-      lCanvas.width = pWidth;
-      lCanvas.height = 30;
-    }
-    // Get current fps image data except the first pixel column.
-    const lLastFpsData = lCanvasContext.getImageData(1, 0, lCanvas.width - 1, lCanvas.height);
-    // Adjust to new fps scaling.
-    let lScaling = 1;
-    if (lMaxFps < pFps) {
-      lScaling = lMaxFps / pFps;
-      lMaxFps = pFps;
-    }
-    // now clear the right-most pixels:
-    if (lScaling === 1) {
-      lCanvasContext.clearRect(lCanvas.width - 1, 0, 1, lCanvas.height);
-    } else {
-      lCanvasContext.clearRect(0, 0, lCanvas.width, lCanvas.height);
-    }
-    // Put image data to left.
-    const lScalingSize = Math.floor(lCanvas.height * lScaling);
-    lCanvasContext.putImageData(lLastFpsData, 0, lCanvas.height - lScalingSize, 0, 0, lCanvas.width - 1, lScalingSize);
-    // Calculate heigt of rect.
-    const lRectHeight = pFps / lMaxFps * lCanvas.height;
-    // Draw current fps.
-    lCanvasContext.fillStyle = '#87beee';
-    lCanvasContext.fillRect(lCanvas.width - 1, lCanvas.height - lRectHeight, 1, lRectHeight);
-  };
-})();
-_asyncToGenerator(function* () {
-  const lGpu = yield gpu_device_1.GpuDevice.request('high-performance');
-  // Create canvas.
-  const lCanvasTexture = lGpu.canvas(document.getElementById('canvas'));
-  // Create and configure render targets.
-  const lRenderTargets = lGpu.renderTargets().setup(pSetup => {
-    // Add "color" target and init new texture.
-    pSetup.addColor('color', 0, true, {
-      r: 1,
-      g: 0.5,
-      b: 0.5,
-      a: 0
-    }).use(lCanvasTexture);
-    // Add depth texture and init new texture.    
-    pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
-  });
-  // Resize canvas.
-  (() => {
-    const lCanvasWrapper = document.querySelector('.canvas-wrapper');
-    new ResizeObserver(() => {
-      const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
-      const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
-      // Resize displayed render targets.
-      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
-    }).observe(lCanvasWrapper);
-  })();
-  // Create shader.
-  const lWoodBoxShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
-    // Set parameter.
-    pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
-    // Vertex entry.
-    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    });
-    // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    // Object bind group.
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    }));
-    // World bind group.
-    pShaderSetup.group(1, new bind_group_layout_1.BindGroupLayout(lGpu, 'world').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'viewProjectionMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-      pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
-        pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      });
-      pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
-        pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-        pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-        pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-      });
-      pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
-    }));
-    // User bind group
-    pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(lGpu, 'user').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm, false);
-    }));
-  });
-  // Create shader.
-  const lLightBoxShader = lGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
-    // Vertex entry.
-    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    });
-    // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    // Object bind group.
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(lGpu, 'object').setup(pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-    }));
-    // World bind group.
-    pShaderSetup.group(1, lWoodBoxShader.layout.getGroupLayout('world'));
-  });
-  // Create render module from shader.
-  const lWoodBoxRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
-  const lLightBoxRenderModule = lLightBoxShader.createRenderModule('vertex_main', 'fragment_main');
-  /*
-   * Transformation and position group.
-   */
-  const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
-  // Create transformation.
-  const lWoodBoxTransform = new transform_1.Transform();
-  lWoodBoxTransform.setScale(1, 1, 1);
-  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
-  // Create instance positions.
-  const lCubeInstanceTransformationData = new Array();
-  for (let lWidthIndex = 0; lWidthIndex < gWidth; lWidthIndex++) {
-    for (let lHeightIndex = 0; lHeightIndex < gHeight; lHeightIndex++) {
-      for (let lDepthIndex = 0; lDepthIndex < gDepth; lDepthIndex++) {
-        lCubeInstanceTransformationData.push(lWidthIndex * 3, lHeightIndex * 3, lDepthIndex * 3, 1);
-      }
-    }
-  }
-  lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
-  /*
-   * Transformation and position group.
-   */
-  const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
-  // Create transformation.
-  const lLightBoxTransform = new transform_1.Transform();
-  lLightBoxTransform.setScale(1, 1, 1);
-  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
-  /*
-   * Camera and world group.
-   */
-  const lWorldGroup = lWoodBoxRenderModule.layout.getGroupLayout('world').create();
-  // Create camera perspective.
-  const lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
-  lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
-  lPerspectiveProjection.angleOfView = 72;
-  lPerspectiveProjection.near = 0.1;
-  lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
-  lRenderTargets.addInvalidationListener(() => {
-    lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
-  }, [render_targets_1.RenderTargetsInvalidationType.Resize]);
-  // Create camera.
-  const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
-  lCamera.transformation.setTranslation(0, 0, -4);
-  lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
-  // Create ambient light.
-  const lAmbientLight = new ambient_light_1.AmbientLight();
-  lAmbientLight.setColor(0.3, 0.3, 0.3);
-  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
-  // Create point lights.
-  lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0]));
-  // Create timestamp.
-  lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
-  const lTimestampBuffer = lWorldGroup.data('timestamp').get();
-  // Create debug value.
-  lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
-  const lDebugBuffer = lWorldGroup.data('debugValue').get();
-  window.debugBuffer = () => {
-    lDebugBuffer.readRaw(0, 4).then(pResulto => {
-      // eslint-disable-next-line no-console
-      console.log(pResulto);
-    });
-  };
-  /*
-   * User defined group.
-   */
-  const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
-  // Setup cube texture.
-  yield lWoodBoxUserGroup.data('cubeTexture').createImage('/source/cube/texture_one/cube-texture.png', '/source/cube/texture_two/cube-texture.png', '/source/cube/texture_three/cube-texture.png');
-  // Setup Sampler.
-  lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
-  // Generate render parameter from parameter layout.
-  const lMesh = lWoodBoxRenderModule.vertexParameter.create(cube_1.CubeVertexIndices);
-  lMesh.set('position', cube_1.CubeVertexPositionData);
-  lMesh.set('uv', cube_1.CubeVertexUvData);
-  lMesh.set('normal', cube_1.CubeVertexNormalData);
-  // Create pipeline.
-  const lWoodBoxPipeline = lWoodBoxRenderModule.create(lRenderTargets);
-  lWoodBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
-  lWoodBoxPipeline.setParameter('animationSeconds', 3);
-  window.animationSpeed = pSeconds => {
-    lWoodBoxPipeline.setParameter('animationSeconds', pSeconds);
-  };
-  const lLightBoxPipeline = lLightBoxRenderModule.create(lRenderTargets);
-  lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
-  // Create instruction.
-  const lRenderPass = lGpu.renderPass(lRenderTargets);
-  lRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, lWorldGroup, lWoodBoxUserGroup], gWidth * gHeight * gDepth);
-  lRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, lWorldGroup], lWorldGroup.data('pointLights').get().length / 12);
+const vector_1 = __webpack_require__(/*! ../math/vector */ "./page/source/camera/math/vector.ts");
+class AmbientLight {
   /**
-   * Controls
+   * Ambient light Vector4 data.
    */
-  gInitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('viewProjectionMatrix').get());
-  /*
-   * Execution
+  get data() {
+    return this.mColor.data;
+  }
+  /**
+   * Constructor.
    */
-  const lRenderExecutor = lGpu.executor(pExecutor => {
-    lRenderPass.execute(pExecutor);
-  });
-  const lFpsLabel = document.getElementById('fpsCounter');
-  // Actual execute.
-  let lLastTime = 0;
-  let lCurrentFps = 0;
-  const lRender = pTime => {
-    // Start new frame.
-    lGpu.startNewFrame();
-    // Update time stamp data.
-    lTimestampBuffer.write([pTime / 1000], []);
-    // Generate encoder and add render commands.
-    lRenderExecutor.execute();
-    // Generate fps and smooth fps numbers.
-    const lFps = 1000 / (pTime - lLastTime);
-    lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
-    lLastTime = pTime;
-    // Update fps display.
-    gUpdateFpsDisplay(lFps, lRenderTargets.width);
-    // Update FPS counter.
-    lFpsLabel.textContent = lCurrentFps.toFixed(0);
-    // Refresh canvas
-    requestAnimationFrame(lRender);
-  };
-  requestAnimationFrame(lRender);
-})();
+  constructor() {
+    this.mColor = new vector_1.Vector([1, 1, 1, 1]);
+  }
+  /**
+   * Set ambient light color.
+   * @param pRed - Red.
+   * @param pGreen - Green.
+   * @param pBlue - Blue.
+   */
+  setColor(pRed, pGreen, pBlue) {
+    if (pRed > 1 || pRed < 0 || pGreen > 1 || pGreen < 0 || pBlue > 1 || pBlue < 0) {
+      throw new core_1.Exception(`Color values need to be in 0 to 1 range. (R:${pRed}, G:${pGreen}, B:${pBlue})`, this);
+    }
+    this.mColor.data[0] = pRed;
+    this.mColor.data[1] = pGreen;
+    this.mColor.data[2] = pBlue;
+  }
+}
+exports.AmbientLight = AmbientLight;
 
 /***/ }),
 
-/***/ "./page/source/math/euler.ts":
-/*!***********************************!*\
-  !*** ./page/source/math/euler.ts ***!
-  \***********************************/
+/***/ "./page/source/camera/math/euler.ts":
+/*!******************************************!*\
+  !*** ./page/source/camera/math/euler.ts ***!
+  \******************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -663,10 +290,10 @@ exports.Euler = Euler;
 
 /***/ }),
 
-/***/ "./page/source/math/matrix.ts":
-/*!************************************!*\
-  !*** ./page/source/math/matrix.ts ***!
-  \************************************/
+/***/ "./page/source/camera/math/matrix.ts":
+/*!*******************************************!*\
+  !*** ./page/source/camera/math/matrix.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -677,7 +304,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Matrix = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const vector_1 = __webpack_require__(/*! ./vector */ "./page/source/math/vector.ts");
+const vector_1 = __webpack_require__(/*! ./vector */ "./page/source/camera/math/vector.ts");
 class Matrix {
   /**
    * Create matrix from data array.
@@ -981,10 +608,10 @@ exports.Matrix = Matrix;
 
 /***/ }),
 
-/***/ "./page/source/math/quaternion.ts":
-/*!****************************************!*\
-  !*** ./page/source/math/quaternion.ts ***!
-  \****************************************/
+/***/ "./page/source/camera/math/quaternion.ts":
+/*!***********************************************!*\
+  !*** ./page/source/camera/math/quaternion.ts ***!
+  \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -994,9 +621,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Quaternion = void 0;
-const euler_1 = __webpack_require__(/*! ./euler */ "./page/source/math/euler.ts");
-const matrix_1 = __webpack_require__(/*! ./matrix */ "./page/source/math/matrix.ts");
-const vector_1 = __webpack_require__(/*! ./vector */ "./page/source/math/vector.ts");
+const euler_1 = __webpack_require__(/*! ./euler */ "./page/source/camera/math/euler.ts");
+const matrix_1 = __webpack_require__(/*! ./matrix */ "./page/source/camera/math/matrix.ts");
+const vector_1 = __webpack_require__(/*! ./vector */ "./page/source/camera/math/vector.ts");
 class Quaternion {
   /**
    * Create new quaternion from degree rotation.
@@ -1221,10 +848,10 @@ exports.Quaternion = Quaternion;
 
 /***/ }),
 
-/***/ "./page/source/math/vector.ts":
-/*!************************************!*\
-  !*** ./page/source/math/vector.ts ***!
-  \************************************/
+/***/ "./page/source/camera/math/vector.ts":
+/*!*******************************************!*\
+  !*** ./page/source/camera/math/vector.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1375,57 +1002,10 @@ exports.Vector = Vector;
 
 /***/ }),
 
-/***/ "./page/source/something_better/light/ambient-light.ts":
-/*!*************************************************************!*\
-  !*** ./page/source/something_better/light/ambient-light.ts ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.AmbientLight = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const vector_1 = __webpack_require__(/*! ../../math/vector */ "./page/source/math/vector.ts");
-class AmbientLight {
-  /**
-   * Ambient light Vector4 data.
-   */
-  get data() {
-    return this.mColor.data;
-  }
-  /**
-   * Constructor.
-   */
-  constructor() {
-    this.mColor = new vector_1.Vector([1, 1, 1, 1]);
-  }
-  /**
-   * Set ambient light color.
-   * @param pRed - Red.
-   * @param pGreen - Green.
-   * @param pBlue - Blue.
-   */
-  setColor(pRed, pGreen, pBlue) {
-    if (pRed > 1 || pRed < 0 || pGreen > 1 || pGreen < 0 || pBlue > 1 || pBlue < 0) {
-      throw new core_1.Exception(`Color values need to be in 0 to 1 range. (R:${pRed}, G:${pGreen}, B:${pBlue})`, this);
-    }
-    this.mColor.data[0] = pRed;
-    this.mColor.data[1] = pGreen;
-    this.mColor.data[2] = pBlue;
-  }
-}
-exports.AmbientLight = AmbientLight;
-
-/***/ }),
-
-/***/ "./page/source/something_better/transform.ts":
-/*!***************************************************!*\
-  !*** ./page/source/something_better/transform.ts ***!
-  \***************************************************/
+/***/ "./page/source/camera/transform.ts":
+/*!*****************************************!*\
+  !*** ./page/source/camera/transform.ts ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1435,9 +1015,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.TransformMatrix = exports.Transform = void 0;
-const matrix_1 = __webpack_require__(/*! ../math/matrix */ "./page/source/math/matrix.ts");
-const quaternion_1 = __webpack_require__(/*! ../math/quaternion */ "./page/source/math/quaternion.ts");
-const vector_1 = __webpack_require__(/*! ../math/vector */ "./page/source/math/vector.ts");
+const matrix_1 = __webpack_require__(/*! ./math/matrix */ "./page/source/camera/math/matrix.ts");
+const quaternion_1 = __webpack_require__(/*! ./math/quaternion */ "./page/source/camera/math/quaternion.ts");
+const vector_1 = __webpack_require__(/*! ./math/vector */ "./page/source/camera/math/vector.ts");
 class Transform {
   /**
    * X pivot point.
@@ -1674,10 +1254,10 @@ var TransformMatrix;
 
 /***/ }),
 
-/***/ "./page/source/something_better/view_projection/projection/perspective-projection.ts":
-/*!*******************************************************************************************!*\
-  !*** ./page/source/something_better/view_projection/projection/perspective-projection.ts ***!
-  \*******************************************************************************************/
+/***/ "./page/source/camera/view_projection/projection/perspective-projection.ts":
+/*!*********************************************************************************!*\
+  !*** ./page/source/camera/view_projection/projection/perspective-projection.ts ***!
+  \*********************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1687,7 +1267,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.PerspectiveProjection = void 0;
-const matrix_1 = __webpack_require__(/*! ../../../math/matrix */ "./page/source/math/matrix.ts");
+const matrix_1 = __webpack_require__(/*! ../../math/matrix */ "./page/source/camera/math/matrix.ts");
 class PerspectiveProjection {
   /**
    * Angle of view.
@@ -1822,10 +1402,10 @@ exports.PerspectiveProjection = PerspectiveProjection;
 
 /***/ }),
 
-/***/ "./page/source/something_better/view_projection/view-projection.ts":
-/*!*************************************************************************!*\
-  !*** ./page/source/something_better/view_projection/view-projection.ts ***!
-  \*************************************************************************/
+/***/ "./page/source/camera/view_projection/view-projection.ts":
+/*!***************************************************************!*\
+  !*** ./page/source/camera/view_projection/view-projection.ts ***!
+  \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1835,7 +1415,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CameraMatrix = exports.ViewProjection = void 0;
-const transform_1 = __webpack_require__(/*! ../transform */ "./page/source/something_better/transform.ts");
+const transform_1 = __webpack_require__(/*! ../transform */ "./page/source/camera/transform.ts");
 class ViewProjection {
   /**
    * Camera projection.
@@ -1903,6 +1483,462 @@ var CameraMatrix;
   CameraMatrix[CameraMatrix["View"] = 5] = "View";
   CameraMatrix[CameraMatrix["ViewProjection"] = 6] = "ViewProjection";
 })(CameraMatrix || (exports.CameraMatrix = CameraMatrix = {}));
+
+/***/ }),
+
+/***/ "./page/source/game_objects/cube/cube-mesh.ts":
+/*!****************************************************!*\
+  !*** ./page/source/game_objects/cube/cube-mesh.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CubeVertexIndices = exports.CubeVertexNormalData = exports.CubeVertexUvData = exports.CubeVertexPositionData = void 0;
+// Create attributes data.
+exports.CubeVertexPositionData = [
+// Back
+-1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
+// Front
+-1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0];
+exports.CubeVertexUvData = [
+// Front 4,5,6
+0.33333, 0.25, 0.66666, 0.25, 0.66666, 0.50,
+// Front 4,6,7
+0.33333, 0.25, 0.66666, 0.50, 0.33333, 0.50,
+// Back 1,0,3
+0.66666, 1, 0.33333, 1, 0.33333, 0.75,
+// Back 1,3,2
+0.66666, 1, 0.33333, 0.75, 0.66666, 0.75,
+// Left 0,4,7
+0, 0.25, 0.33333, 0.25, 0.33333, 0.50,
+// Left 0,7,3
+0, 0.25, 0.33333, 0.50, 0, 0.50,
+// Right 5,1,2
+0.66666, 0.25, 1, 0.25, 1, 0.50,
+// Right 5,2,6
+0.66666, 0.25, 1, 0.50, 0.66666, 0.50,
+// Top 0,1,5
+0.33333, 0, 0.66666, 0, 0.66666, 0.25,
+// Top 0,5,4
+0.33333, 0, 0.66666, 0.25, 0.33333, 0.25,
+// Bottom 7,6,2
+0.33333, 0.50, 0.66666, 0.50, 0.66666, 0.75,
+// Bottom 7,2,3
+0.33333, 0.50, 0.66666, 0.75, 0.33333, 0.75];
+exports.CubeVertexNormalData = [
+// Front
+0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
+// Back 1,0,3
+0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+// Left 0,4,7
+-1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
+// Right 5,1,2
+1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+// Top 0,1,5
+0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+// Bottom 7,6,2
+0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0];
+// Create mesh.
+exports.CubeVertexIndices = [
+// Front
+4, 5, 6, 4, 6, 7,
+// Back
+1, 0, 3, 1, 3, 2,
+// Left
+0, 4, 7, 0, 7, 3,
+// Right
+5, 1, 2, 5, 2, 6,
+// Top
+0, 1, 5, 0, 5, 4,
+// Bottom
+7, 6, 2, 7, 2, 3];
+
+/***/ }),
+
+/***/ "./page/source/index.ts":
+/*!******************************!*\
+  !*** ./page/source/index.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
+const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const render_targets_1 = __webpack_require__(/*! ../../source/base/pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
+const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
+const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
+const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
+const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
+const cube_mesh_1 = __webpack_require__(/*! ./game_objects/cube/cube-mesh */ "./page/source/game_objects/cube/cube-mesh.ts");
+const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
+const light_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/light/light-box-shader.wgsl */ "./page/source/game_objects/light/light-box-shader.wgsl");
+const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
+const gAddCubeStep = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(function* (pGpu, pRenderTargets, pRenderPass, pWorldGroup) {
+    const lHeight = 50;
+    const lWidth = 50;
+    const lDepth = 50;
+    // Create shader.
+    const lWoodBoxShader = pGpu.shader(cube_shader_wgsl_1.default).setup(pShaderSetup => {
+      // Set parameter.
+      pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
+      // Vertex entry.
+      pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+        pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+        pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
+        pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      });
+      // Fragment entry.
+      pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      // Object bind group.
+      pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+        pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      }));
+      // World bind group.
+      pShaderSetup.group(1, pWorldGroup.layout);
+      // User bind group
+      pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(pGpu, 'user').setup(pBindGroupSetup => {
+        pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
+        pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm, false);
+      }));
+    });
+    // Create render module from shader.
+    const lWoodBoxRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
+    // Transformation and position group. 
+    const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
+    // Create transformation.
+    const lWoodBoxTransform = new transform_1.Transform();
+    lWoodBoxTransform.setScale(1, 1, 1);
+    lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+    // Create instance positions.
+    const lCubeInstanceTransformationData = new Array();
+    for (let lWidthIndex = 0; lWidthIndex < lWidth; lWidthIndex++) {
+      for (let lHeightIndex = 0; lHeightIndex < lHeight; lHeightIndex++) {
+        for (let lDepthIndex = 0; lDepthIndex < lDepth; lDepthIndex++) {
+          lCubeInstanceTransformationData.push(lWidthIndex * 3, lHeightIndex * 3, lDepthIndex * 3, 1);
+        }
+      }
+    }
+    lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+    /*
+     * User defined group.
+     */
+    const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
+    // Setup cube texture.
+    lWoodBoxUserGroup.data('cubeTexture').createImage('/source/game_objects/cube/texture_one/cube-texture.png', '/source/game_objects/cube/texture_two/cube-texture.png', '/source/game_objects/cube/texture_three/cube-texture.png');
+    // Setup Sampler.
+    lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
+    // Generate render parameter from parameter layout.
+    const lMesh = lWoodBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
+    lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
+    lMesh.set('uv', cube_mesh_1.CubeVertexUvData);
+    lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
+    // Create pipeline.
+    const lWoodBoxPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+    lWoodBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
+    lWoodBoxPipeline.setParameter('animationSeconds', 3);
+    window.animationSpeed = pSeconds => {
+      lWoodBoxPipeline.setParameter('animationSeconds', pSeconds);
+    };
+    pRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, pWorldGroup, lWoodBoxUserGroup], lWidth * lHeight * lDepth);
+  });
+  return function gAddCubeStep(_x, _x2, _x3, _x4) {
+    return _ref.apply(this, arguments);
+  };
+}();
+const gAddLightBoxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
+  // Create shader.
+  const lLightBoxShader = pGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
+    // Vertex entry.
+    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    });
+    // Fragment entry.
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    // Object bind group.
+    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+    }));
+    // World bind group.
+    pShaderSetup.group(1, pWorldGroup.layout);
+  });
+  // Create render module from shader.
+  const lLightBoxRenderModule = lLightBoxShader.createRenderModule('vertex_main', 'fragment_main');
+  // Transformation and position group. 
+  const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
+  // Create transformation.
+  const lLightBoxTransform = new transform_1.Transform();
+  lLightBoxTransform.setScale(1, 1, 1);
+  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+  const lLightBoxPipeline = lLightBoxRenderModule.create(pRenderTargets);
+  lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
+  // Generate render parameter from parameter layout.
+  const lMesh = lLightBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
+  lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
+  lMesh.set('uv', cube_mesh_1.CubeVertexUvData);
+  lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
+  pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], pWorldGroup.data('pointLights').get().length / 12);
+};
+_asyncToGenerator(function* () {
+  const lGpu = yield gpu_device_1.GpuDevice.request('high-performance');
+  // Create canvas.
+  const lCanvasTexture = lGpu.canvas(document.getElementById('canvas'));
+  // Create and configure render targets.
+  const lRenderTargets = lGpu.renderTargets().setup(pSetup => {
+    // Add "color" target and init new texture.
+    pSetup.addColor('color', 0, true, {
+      r: 0,
+      g: 1,
+      b: 0,
+      a: 0
+    }).use(lCanvasTexture);
+    // Add depth texture and init new texture.    
+    pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
+  });
+  // Resize canvas.
+  (() => {
+    const lCanvasWrapper = document.querySelector('.canvas-wrapper');
+    new ResizeObserver(() => {
+      const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
+      const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+      // Resize displayed render targets.
+      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
+    }).observe(lCanvasWrapper);
+  })();
+  const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(lGpu, 'world').setup(pBindGroupSetup => {
+    pBindGroupSetup.binding(0, 'viewProjectionMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
+      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    });
+    pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
+      pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    });
+    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+  });
+  /*
+   * Camera and world group.
+   */
+  const lWorldGroup = lWorldGroupLayout.create();
+  // Create camera perspective.
+  const lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
+  lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
+  lPerspectiveProjection.angleOfView = 72;
+  lPerspectiveProjection.near = 0.1;
+  lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
+  lRenderTargets.addInvalidationListener(() => {
+    lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
+  }, [render_targets_1.RenderTargetsInvalidationType.Resize]);
+  // Create camera.
+  const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
+  lCamera.transformation.setTranslation(0, 0, -4);
+  lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
+  // Create ambient light.
+  const lAmbientLight = new ambient_light_1.AmbientLight();
+  lAmbientLight.setColor(0.3, 0.3, 0.3);
+  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
+  // Create point lights.
+  lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200, 0, 0, 0]));
+  // Create timestamp.
+  lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+  const lTimestampBuffer = lWorldGroup.data('timestamp').get();
+  // Create debug value.
+  lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+  const lDebugBuffer = lWorldGroup.data('debugValue').get();
+  window.debugBuffer = () => {
+    lDebugBuffer.readRaw(0, 4).then(pResulto => {
+      // eslint-disable-next-line no-console
+      console.log(pResulto);
+    });
+  };
+  // Create instruction.
+  const lRenderPass = lGpu.renderPass(lRenderTargets);
+  yield gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+  gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+  /**
+   * Controls
+   */
+  (0, util_1.InitCameraControls)(lCanvasTexture.canvas, lCamera, lWorldGroup.data('viewProjectionMatrix').get());
+  /*
+   * Execution
+   */
+  const lRenderExecutor = lGpu.executor(pExecutor => {
+    lRenderPass.execute(pExecutor);
+  });
+  const lFpsLabel = document.getElementById('fpsCounter');
+  // Actual execute.
+  let lLastTime = 0;
+  let lCurrentFps = 0;
+  const lRender = pTime => {
+    // Start new frame.
+    lGpu.startNewFrame();
+    // Update time stamp data.
+    lTimestampBuffer.write([pTime / 1000], []);
+    // Generate encoder and add render commands.
+    lRenderExecutor.execute();
+    // Generate fps and smooth fps numbers.
+    const lFps = 1000 / (pTime - lLastTime);
+    lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
+    lLastTime = pTime;
+    // Update fps display.
+    (0, util_1.UpdateFpsDisplay)(lFps, lRenderTargets.width);
+    // Update FPS counter.
+    lFpsLabel.textContent = lCurrentFps.toFixed(0);
+    // Refresh canvas
+    requestAnimationFrame(lRender);
+  };
+  requestAnimationFrame(lRender);
+})();
+
+/***/ }),
+
+/***/ "./page/source/util.ts":
+/*!*****************************!*\
+  !*** ./page/source/util.ts ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.UpdateFpsDisplay = exports.InitCameraControls = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
+const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
+const InitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
+  // Register keyboard mouse movements.
+  const lDefaultConfiguaration = new web_game_input_1.DeviceConfiguration();
+  lDefaultConfiguaration.addAction('Forward', [web_game_input_1.KeyboardButton.KeyW]);
+  lDefaultConfiguaration.addAction('Back', [web_game_input_1.KeyboardButton.KeyS]);
+  lDefaultConfiguaration.addAction('Left', [web_game_input_1.KeyboardButton.KeyA]);
+  lDefaultConfiguaration.addAction('Right', [web_game_input_1.KeyboardButton.KeyD]);
+  lDefaultConfiguaration.addAction('Up', [web_game_input_1.KeyboardButton.ShiftLeft]);
+  lDefaultConfiguaration.addAction('Down', [web_game_input_1.KeyboardButton.ControlLeft]);
+  lDefaultConfiguaration.addAction('RotateLeft', [web_game_input_1.KeyboardButton.KeyQ]);
+  lDefaultConfiguaration.addAction('RotateRight', [web_game_input_1.KeyboardButton.KeyE]);
+  lDefaultConfiguaration.addAction('Yaw', [web_game_input_1.MouseButton.Xaxis]);
+  lDefaultConfiguaration.addAction('Pitch', [web_game_input_1.MouseButton.Yaxis]);
+  lDefaultConfiguaration.triggerTolerance = 0.2;
+  const lInputConfiguration = new web_game_input_1.InputConfiguration(lDefaultConfiguaration);
+  const lInputDevices = new web_game_input_1.InputDevices(lInputConfiguration);
+  lInputDevices.registerConnector(new web_game_input_1.MouseKeyboardConnector());
+  const lCurrentActionValue = new core_1.Dictionary();
+  const lKeyboard = lInputDevices.devices[0];
+  lKeyboard.addEventListener('actionstatechange', pEvent => {
+    lCurrentActionValue.set(pEvent.action, pEvent.state);
+  });
+  window.setInterval(() => {
+    const lSpeed = 10;
+    // Z Axis
+    if (lCurrentActionValue.get('Forward') > 0) {
+      pCamera.transformation.translateInDirection(lCurrentActionValue.get('Forward') / 50 * lSpeed, 0, 0);
+    }
+    if (lCurrentActionValue.get('Back') > 0) {
+      pCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back') / 50) * lSpeed, 0, 0);
+    }
+    // X Axis
+    if (lCurrentActionValue.get('Right') > 0) {
+      pCamera.transformation.translateInDirection(0, lCurrentActionValue.get('Right') / 50 * lSpeed, 0);
+    }
+    if (lCurrentActionValue.get('Left') > 0) {
+      pCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left') / 50) * lSpeed, 0);
+    }
+    // Y Axis
+    if (lCurrentActionValue.get('Up') > 0) {
+      pCamera.transformation.translateInDirection(0, 0, lCurrentActionValue.get('Up') / 50 * lSpeed);
+    }
+    if (lCurrentActionValue.get('Down') > 0) {
+      pCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down') / 50) * lSpeed);
+    }
+    // Rotation.
+    if (lCurrentActionValue.get('Yaw') > 0 || lCurrentActionValue.get('Yaw') < 0) {
+      pCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw'), 0);
+    }
+    if (lCurrentActionValue.get('Pitch') > 0 || lCurrentActionValue.get('Pitch') < 0) {
+      pCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch'), 0, 0);
+    }
+    if (lCurrentActionValue.get('RotateLeft') > 0) {
+      pCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft'));
+    }
+    if (lCurrentActionValue.get('RotateRight') > 0) {
+      pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight'));
+    }
+    // Update transformation buffer.
+    pCameraBuffer.writeRaw(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray);
+  }, 8);
+  pCanvas.addEventListener('click', () => {
+    pCanvas.requestPointerLock();
+  });
+};
+exports.InitCameraControls = InitCameraControls;
+exports.UpdateFpsDisplay = (() => {
+  let lMaxFps = 0;
+  return (pFps, pWidth) => {
+    const lCanvas = document.getElementById('fps-display');
+    const lCanvasContext = lCanvas.getContext('2d', {
+      willReadFrequently: true
+    });
+    if (lCanvas.width > 2) {
+      return;
+    }
+    // Update canvas width.
+    if (pWidth !== lCanvas.width) {
+      lCanvas.width = pWidth;
+      lCanvas.height = 30;
+    }
+    // Get current fps image data except the first pixel column.
+    const lLastFpsData = lCanvasContext.getImageData(1, 0, lCanvas.width - 1, lCanvas.height);
+    // Adjust to new fps scaling.
+    let lScaling = 1;
+    if (lMaxFps < pFps) {
+      lScaling = lMaxFps / pFps;
+      lMaxFps = pFps;
+    }
+    // now clear the right-most pixels:
+    if (lScaling === 1) {
+      lCanvasContext.clearRect(lCanvas.width - 1, 0, 1, lCanvas.height);
+    } else {
+      lCanvasContext.clearRect(0, 0, lCanvas.width, lCanvas.height);
+    }
+    // Put image data to left.
+    const lScalingSize = Math.floor(lCanvas.height * lScaling);
+    lCanvasContext.putImageData(lLastFpsData, 0, lCanvas.height - lScalingSize, 0, 0, lCanvas.width - 1, lScalingSize);
+    // Calculate heigt of rect.
+    const lRectHeight = pFps / lMaxFps * lCanvas.height;
+    // Draw current fps.
+    lCanvasContext.fillStyle = '#87beee';
+    lCanvasContext.fillRect(lCanvas.width - 1, lCanvas.height - lRectHeight, 1, lRectHeight);
+  };
+})();
 
 /***/ }),
 
@@ -11175,25 +11211,10 @@ Object.defineProperty(exports, "__esModule", ({value:true}));exports.fromCodePoi
 
 /***/ }),
 
-/***/ "./page/source/light-box-shader.wgsl":
-/*!*******************************************!*\
-  !*** ./page/source/light-box-shader.wgsl ***!
-  \*******************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
-
-/***/ }),
-
-/***/ "./page/source/shader.wgsl":
-/*!*********************************!*\
-  !*** ./page/source/shader.wgsl ***!
-  \*********************************/
+/***/ "./page/source/game_objects/cube/cube-shader.wgsl":
+/*!********************************************************!*\
+  !*** ./page/source/game_objects/cube/cube-shader.wgsl ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -11202,6 +11223,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d_array<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let textureLayers: f32 = f32(textureNumLayers(cubeTexture));\r\n\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var textureLayer: u32 = u32(floor(f32(vertex.instanceId) % textureLayers));\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n    out.textureLayer = textureLayer;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv, fragment.textureLayer), fragment.fragmentPosition, fragment.normal);\r\n}");
+
+/***/ }),
+
+/***/ "./page/source/game_objects/light/light-box-shader.wgsl":
+/*!**************************************************************!*\
+  !*** ./page/source/game_objects/light/light-box-shader.wgsl ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n@group(1) @binding(1) var<uniform> timestamp: u32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
 
 /***/ }),
 
@@ -15856,7 +15892,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("bfb4d550899864013f44")
+/******/ 		__webpack_require__.h = () => ("6dbc255f65efef3e73cd")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

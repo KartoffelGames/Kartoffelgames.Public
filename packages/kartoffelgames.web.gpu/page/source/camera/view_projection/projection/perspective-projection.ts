@@ -1,4 +1,4 @@
-import { Matrix } from '../../../math/matrix';
+import { Matrix } from '../../math/matrix';
 import { IProjection } from './i-projection.interface';
 
 export class PerspectiveProjection implements IProjection {

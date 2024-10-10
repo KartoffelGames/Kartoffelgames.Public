@@ -1,6 +1,6 @@
-import { Matrix } from '../math/matrix';
-import { Quaternion } from '../math/quaternion';
-import { Vector } from '../math/vector';
+import { Matrix } from './math/matrix';
+import { Quaternion } from './math/quaternion';
+import { Vector } from './math/vector';
 
 export class Transform {
     private readonly mPivot: Matrix;

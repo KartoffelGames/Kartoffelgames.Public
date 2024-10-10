@@ -1,4 +1,4 @@
-import { Matrix } from '../../math/matrix';
+import { Matrix } from '../math/matrix';
 import { Transform, TransformMatrix } from '../transform';
 import { IProjection } from './projection/i-projection.interface';
 

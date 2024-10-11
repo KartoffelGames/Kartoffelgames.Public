@@ -24,13 +24,16 @@ import { AmbientLight } from './camera/light/ambient-light';
 import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
 import { ViewProjection } from './camera/view_projection/view-projection';
-import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './game_objects/cube/cube-mesh';
+import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
 import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
+import videoCanvasShader from './game_objects/video_canvas/video-canvas-shader.wgsl';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
+import { CanvasVertexIndices, CanvasVertexPositionData, CanvasVertexUvData, CanvasVertexNormalData } from './meshes/canvas-mesh';
+import { VideoTexture } from '../../source/base/texture/video-texture';
 
-const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
+const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
     const lHeight: number = 50;
     const lWidth: number = 50;
     const lDepth: number = 50;
@@ -238,6 +241,84 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
     pRenderPass.addStep(lSkyBoxPipeline, lMesh, [lSkyBoxTextureGroup, pWorldGroup]);
 };
 
+const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
+    // Create shader.
+    const lWoodBoxShader = pGpu.shader(videoCanvasShader).setup((pShaderSetup) => {
+        // Vertex entry.
+        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
+            pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
+                .withParameter('position', 0, PrimitiveBufferMultiplier.Vector4);
+
+            pVertexParameterSetup.buffer('uv', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, PrimitiveBufferMultiplier.Vector2);
+
+            pVertexParameterSetup.buffer('normal', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, PrimitiveBufferMultiplier.Vector4);
+        });
+
+        // Fragment entry.
+        pShaderSetup.fragmentEntryPoint('fragment_main')
+            .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+
+        // Object bind group.
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        }));
+
+        // World bind group.
+        pShaderSetup.group(1, pWorldGroup.layout);
+
+        // User bind group
+        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'videoTextureSampler', ComputeStage.Fragment)
+                .withSampler(SamplerType.Filter);
+
+            pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
+                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm);
+        }));
+    });
+
+    // Create render module from shader.
+    const lWoodBoxRenderModule: ShaderRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
+
+    // Transformation and position group. 
+    const lTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
+
+    // Create transformation.
+    const lWoodBoxTransform: Transform = new Transform();
+    lWoodBoxTransform.setScale(15, 8.4, 0);
+    lWoodBoxTransform.addTranslation(-0.5, -0.5, 100);
+    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+
+    /*
+     * User defined group.
+     */
+    const lUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
+
+    // Setup cube texture.
+    lUserGroup.data('videoTexture').createVideo('/source/game_objects/video_canvas/earth.mp4');
+    const lVideoTexture: VideoTexture = lUserGroup.data('videoTexture').get<VideoTexture>();
+    lVideoTexture.loop = true;
+    lVideoTexture.play();
+
+    // Setup Sampler.
+    lUserGroup.data('videoTextureSampler').createSampler();
+
+    // Generate render parameter from parameter layout.
+    const lMesh: VertexParameter = lWoodBoxRenderModule.vertexParameter.create(CanvasVertexIndices);
+    lMesh.set('position', CanvasVertexPositionData);
+    lMesh.set('uv', CanvasVertexUvData);
+    lMesh.set('normal', CanvasVertexNormalData);
+
+    // Create pipeline.
+    const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+    lPipeline.primitiveCullMode = PrimitiveCullMode.None;
+    lPipeline.writeDepth = false;
+
+    pRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, pWorldGroup, lUserGroup]);
+};
+
 const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
         pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex).withStruct((pStructSetup) => {
@@ -362,6 +443,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+    gAddVideoCanvasStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
 
     /**
      * Controls

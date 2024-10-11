@@ -1,11 +1,32 @@
 import { TextureDimension } from '../../constant/texture-dimension.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 
 export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
+    private mEnableMips: boolean;
     private mTexture: GPUTexture | null;
     private readonly mVideo: HTMLVideoElement;
+
+    /**
+     * Set play position in secons.
+     */
+    public get currentTime(): number {
+        return this.mVideo.currentTime;
+    } set currentTime(pValue: number) {
+        this.mVideo.currentTime = pValue;
+    }
+
+    /**
+     * Enable mip maps.
+     */
+    public get enableMips(): boolean {
+        return this.mEnableMips;
+    } set enableMips(pEnable: boolean) {
+        this.mEnableMips = pEnable;
+    }
 
     /**
      * Texture height.
@@ -33,13 +54,6 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
     }
 
     /**
-     * Video element.
-     */
-    public get video(): HTMLVideoElement {
-        return this.mVideo;
-    }
-
-    /**
      * Video width.
      */
     public get width(): number {
@@ -56,21 +70,57 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
         super(pDevice, pLayout);
 
         this.mTexture = null;
+        this.mEnableMips = true;
 
         // Create video.
-        this.mVideo = new HTMLVideoElement();
+        this.mVideo = document.createElement('video');
+        this.mVideo.preload = 'auto';
         this.mVideo.loop = false;
         this.mVideo.muted = true; // Allways muted.
+
+        // Extend usage to copy external data into texture.
+        this.extendUsage(TextureUsage.CopyDestination);
+        this.extendUsage(TextureUsage.RenderAttachment);
+
+        // When mips are enabled.
+        if (this.mEnableMips) {
+            this.extendUsage(TextureUsage.TextureBinding);
+            this.extendUsage(TextureUsage.Storage);
+        }
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.invalidate(VideoTextureInvalidationType.Layout);
         }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
 
+        // When video was resized.
+        this.mVideo.addEventListener('resize', () => {
+            this.invalidate(VideoTextureInvalidationType.Resize);
+        });
+
         // Update video texture on every frame.
         this.device.addFrameChangeListener(() => {
-            if (this.mTexture) {
+            const lVideoIsPlaying = !!(this.mVideo.currentTime > 0 && !this.mVideo.paused && !this.mVideo.ended && this.mVideo.readyState > 1);
+
+            if (this.mTexture && lVideoIsPlaying) {
                 // TODO: Load current view image into texture.
+
+                const lSource: GPUImageCopyExternalImage = {
+                    source: this.mVideo
+                };
+
+                const lDestination: GPUImageCopyTextureTagged = {
+                    texture: this.mTexture,
+                    mipLevel: 0
+                };
+
+                const lCopySize: GPUExtent3DDictStrict = {
+                    width: this.width,
+                    height: this.height,
+                    depthOrArrayLayers: 1
+                };
+
+                this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lCopySize);
             }
         });
     }
@@ -91,11 +141,16 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
 
     /**
      * Destory texture object.
+     * 
      * @param _pNativeObject - Native canvas texture.
+     * @param pInvalidationReason - Invalidation reasons.
      */
-    protected override destroyNative(_pNativeObject: GPUTextureView): void {
-        this.mTexture?.destroy();
-        this.mTexture = null;
+    protected override destroyNative(_pNativeObject: GPUTextureView, pInvalidationReason: GpuObjectInvalidationReasons<VideoTextureInvalidationType>): void {
+        // Desconstruct current texture only on deconstruction calls.
+        if (pInvalidationReason.deconstruct) {
+            this.mTexture?.destroy();
+            this.mTexture = null;
+        }
     }
 
     /**
@@ -103,6 +158,10 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
      */
     protected override generateNative(): GPUTextureView {
         // TODO: Validate format based on layout. Maybe replace used format.
+
+        // Clamp with and height to never fall under 1.
+        const lClampedTextureWidth: number = Math.max(this.width, 1);
+        const lClampedTextureHeight: number = Math.max(this.height, 1);
 
         // Generate gpu dimension from memory layout dimension.
         const lGpuDimension: GPUTextureDimension = (() => {
@@ -128,10 +187,13 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
             }
         })();
 
+        // Any change triggers a texture rebuild.
+        this.mTexture?.destroy();
+
         // Create texture with set size, format and usage. Save it for destorying later.
         this.mTexture = this.device.gpu.createTexture({
-            label: 'Frame-Buffer-Texture',
-            size: [this.width, this.height, 1],
+            label: 'Video-Buffer-Texture',
+            size: [lClampedTextureWidth, lClampedTextureHeight, 1],
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,
             dimension: lGpuDimension
@@ -154,5 +216,6 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
 
 export enum VideoTextureInvalidationType {
     Layout = 'LayoutChange',
-    Usage = 'UsageChange'
+    Usage = 'UsageChange',
+    Resize = 'Resize',
 }

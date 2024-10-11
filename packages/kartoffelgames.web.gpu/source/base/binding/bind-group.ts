@@ -10,9 +10,6 @@ import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memo
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from '../texture/base-texture';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
-import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
@@ -168,24 +165,8 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
                 continue;
             }
 
-            // Frame buffer bind.
-            if (lBindData instanceof FrameBufferTexture) {
-                lGroupEntry.resource = lBindData.native;
-
-                lEntryList.push(lGroupEntry);
-                continue;
-            }
-
-            // Image texture bind.
-            if (lBindData instanceof ImageTexture) {
-                lGroupEntry.resource = lBindData.native;
-
-                lEntryList.push(lGroupEntry);
-                continue;
-            }
-
-            // Canvas texture bind.
-            if (lBindData instanceof CanvasTexture) {
+            // Texture bind.
+            if (lBindData instanceof BaseTexture) {
                 lGroupEntry.resource = lBindData.native;
 
                 lEntryList.push(lGroupEntry);

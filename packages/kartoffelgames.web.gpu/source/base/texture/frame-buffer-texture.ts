@@ -114,7 +114,6 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
 
         // Any change triggers a texture rebuild.
         this.mTexture?.destroy();
-        this.mTexture = null;
 
         // Invalidate texture and view.
         this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);

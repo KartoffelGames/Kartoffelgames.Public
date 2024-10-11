@@ -49,7 +49,7 @@ struct VertexIn {
 fn vertex_main(vertex: VertexIn) -> VertexOut {
     var out: VertexOut;
     out.position = camera.projection * camera.invertedTranslation.rotation  * vertex.position;
-    out.fragmentPosition = 0.5 * (vertex.position + vec4(1.0, 1.0, 1.0, 1.0));
+    out.fragmentPosition = vertex.position;
 
     return out;
 }
@@ -60,13 +60,5 @@ struct FragmentIn {
 
 @fragment
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
-    // Our camera and the skybox cube are both centered at (0, 0, 0)
-  // so we can use the cube geometry position to get viewing vector to sample
-  // the cube texture. The magnitude of the vector doesn't matter.
-  var cubemapVec = fragment.fragmentPosition.xyz - vec3(0.5);
-  // When viewed from the inside, cubemaps are left-handed (z away from viewer),
-  // but common camera matrix convention results in a right-handed world space
-  // (z toward viewer), so we have to flip it.
-  //cubemapVec.z *= -1;
-  return textureSample(cubeMap, cubeTextureSampler, cubemapVec);
+  return textureSample(cubeMap, cubeTextureSampler, fragment.fragmentPosition.xyz);
 }

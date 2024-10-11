@@ -12,6 +12,7 @@ import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragme
 import { Shader } from '../../source/base/shader/shader';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { CanvasTexture } from '../../source/base/texture/canvas-texture';
+import { CompareFunction } from '../../source/constant/compare-function.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { SamplerType } from '../../source/constant/sampler-type.enum';
@@ -22,12 +23,12 @@ import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-
 import { AmbientLight } from './camera/light/ambient-light';
 import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
-import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection';
+import { ViewProjection } from './camera/view_projection/view-projection';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './game_objects/cube/cube-mesh';
-import { InitCameraControls, UpdateFpsDisplay } from './util';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
 import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
+import { InitCameraControls, UpdateFpsDisplay } from './util';
 
 const gAddCubeStep = async (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
     const lHeight: number = 50;
@@ -189,9 +190,6 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
             pVertexParameterSetup.buffer('position', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Index)
                 .withParameter('position', 0, PrimitiveBufferMultiplier.Vector4);
-
-            pVertexParameterSetup.buffer('uv', PrimitiveBufferFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('uv', 1, PrimitiveBufferMultiplier.Vector2);
         });
 
         // Fragment entry.
@@ -231,43 +229,49 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lSkyBoxRenderModule.vertexParameter.create(CubeVertexIndices);
     lMesh.set('position', CubeVertexPositionData);
-    lMesh.set('uv', CubeVertexUvData);
 
     const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+    lSkyBoxPipeline.depthCompare = CompareFunction.Allways;
+    lSkyBoxPipeline.writeDepth = false;
 
     pRenderPass.addStep(lSkyBoxPipeline, lMesh, [lSkyBoxTextureGroup, pWorldGroup]);
 };
 
-const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): BindGroup => {
+const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'cameraViewProjection', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        pBindGroupSetup.binding(1, 'cameraView', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        pBindGroupSetup.binding(2, 'cameraProjection', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        pBindGroupSetup.binding(3, 'cameraRotation', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        pBindGroupSetup.binding(4, 'cameraTranslation', ComputeStage.Vertex)
-            .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex).withStruct((pStructSetup) => {
+            pStructSetup.property('viewProjection').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            pStructSetup.property('view').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            pStructSetup.property('projection').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-        pBindGroupSetup.binding(5, 'timestamp', ComputeStage.Vertex)
+            pStructSetup.property('translation').asStruct((pTranslationStruct) => {
+                pTranslationStruct.property('rotation').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+                pTranslationStruct.property('translation').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            });
+
+            pStructSetup.property('invertedTranslation').asStruct((pTranslationStruct) => {
+                pTranslationStruct.property('rotation').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+                pTranslationStruct.property('translation').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            });
+        });
+
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
-        pBindGroupSetup.binding(6, 'ambientLight', ComputeStage.Fragment)
+        pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
             .withStruct((pStruct) => {
                 pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
             });
 
-        pBindGroupSetup.binding(7, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
+        pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
             .withArray().withStruct((pStruct) => {
                 pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
             });
 
-        pBindGroupSetup.binding(8, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
+        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
     });
@@ -276,12 +280,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): Bind
      * Camera and world group. 
      */
     const lWorldGroup: BindGroup = lWorldGroupLayout.create();
-
-    lWorldGroup.data('cameraViewProjection').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
-    lWorldGroup.data('cameraView').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.View).dataArray));
-    lWorldGroup.data('cameraProjection').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Projection).dataArray));
-    lWorldGroup.data('cameraRotation').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Rotation).dataArray));
-    lWorldGroup.data('cameraTranslation').createBuffer(new Float32Array(pCamera.getMatrix(CameraMatrix.Translation).dataArray));
+    lWorldGroup.data('camera').createBuffer(PrimitiveBufferFormat.Float32);
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
@@ -355,19 +354,19 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice, pCamera: ViewProjection): Bind
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
 
-    const lWorldGroup: BindGroup = gGenerateWorldBindGroup(lGpu, lCamera);
+    const lWorldGroup: BindGroup = gGenerateWorldBindGroup(lGpu);
     const lTimestampBuffer: GpuBuffer<Float32Array> = lWorldGroup.data('timestamp').get();
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
+    gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
-    gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
 
     /**
      * Controls
      */
-    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('cameraViewProjection').get());
+    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup);
 
     /*
      * Execution 

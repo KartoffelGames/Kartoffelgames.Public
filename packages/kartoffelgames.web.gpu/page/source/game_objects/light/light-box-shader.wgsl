@@ -4,27 +4,31 @@
 
 
 // ------------------------- World Values ---------------------- //
-@group(1) @binding(0) var<uniform> cameraViewProjection: mat4x4<f32>;
-@group(1) @binding(1) var<uniform> cameraView: mat4x4<f32>;
-@group(1) @binding(2) var<uniform> cameraProjection: mat4x4<f32>;
-@group(1) @binding(3) var<uniform> cameraRotation: mat4x4<f32>;
-@group(1) @binding(4) var<uniform> cameraTranslation: mat4x4<f32>;
+struct Camera {
+    viewProjection: mat4x4<f32>,
+    view: mat4x4<f32>,
+    projection: mat4x4<f32>,
+    rotation: mat4x4<f32>,
+    translation: mat4x4<f32>
+}
+@group(1) @binding(0) var<uniform> camera: Camera;
 
-@group(1) @binding(5) var<uniform> timestamp: f32;
+
+@group(1) @binding(1) var<uniform> timestamp: f32;
 
 struct AmbientLight {
     color: vec4<f32>
 }
-@group(1) @binding(6) var<uniform> ambientLight: AmbientLight;
+@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;
 
 struct PointLight {
     position: vec4<f32>,
     color: vec4<f32>,
     range: f32
 }
-@group(1) @binding(7) var<storage, read> pointLights: array<PointLight>;
+@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;
 
-@group(1) @binding(8) var<storage, read_write> debugValue: f32;
+@group(1) @binding(4) var<storage, read_write> debugValue: f32;
 // -------------------------------------------------------------- //
 
 struct VertexOut {
@@ -44,7 +48,7 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
     var instanceLight: PointLight = pointLights[vertex.instanceId];
 
     var out: VertexOut;
-    out.position = cameraViewProjection * transformationMatrix * (instanceLight.position + vertex.position);
+    out.position = camera.viewProjection * transformationMatrix * (instanceLight.position + vertex.position);
     out.color = instanceLight.color;
 
     return out;

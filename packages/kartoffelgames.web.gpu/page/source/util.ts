@@ -1,9 +1,10 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { DeviceConfiguration, KeyboardButton, MouseButton, InputConfiguration, InputDevices, MouseKeyboardConnector, BaseInputDevice } from '@kartoffelgames/web.game-input';
-import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 import { ViewProjection, CameraMatrix } from './camera/view_projection/view-projection';
+import { BindGroup } from '../../source/base/binding/bind-group';
+import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 
-export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBuffer<Float32Array>): void => {
+export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pWorldGroup: BindGroup): void => {
     // Register keyboard mouse movements.
     const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
     lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
@@ -68,7 +69,14 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
         }
 
         // Update transformation buffer.
-        pCameraBuffer.writeRaw(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.View).dataArray, ['view']);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Projection).dataArray, ['projection']);
+
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Translation).dataArray, ['translation', 'translation']);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
+        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
     }, 8);
     pCanvas.addEventListener('click', () => {
         pCanvas.requestPointerLock();
@@ -82,14 +90,14 @@ export const UpdateFpsDisplay = (() => {
         const lCanvas: HTMLCanvasElement = document.getElementById('fps-display') as HTMLCanvasElement;
         const lCanvasContext: CanvasRenderingContext2D = lCanvas.getContext('2d', { willReadFrequently: true })!;
 
-        if(lCanvas.width > 2) {
-            return;
-        }
-
         // Update canvas width.
         if (pWidth !== lCanvas.width) {
             lCanvas.width = pWidth;
             lCanvas.height = 30;
+        }
+
+        if (lCanvas.width < 2) {
+            return;
         }
 
         // Get current fps image data except the first pixel column.

@@ -4,9 +4,11 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
+import { TextureMipGenerator } from './texture-mip-generator';
 
 export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
     private mEnableMips: boolean;
+    private readonly mMipGenerator: TextureMipGenerator;
     private mTexture: GPUTexture | null;
     private readonly mVideo: HTMLVideoElement;
 
@@ -69,6 +71,7 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice, pLayout);
 
+        this.mMipGenerator = new TextureMipGenerator(pDevice);
         this.mTexture = null;
         this.mEnableMips = true;
 
@@ -98,29 +101,38 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
             this.invalidate(VideoTextureInvalidationType.Resize);
         });
 
-        // Update video texture on every frame.
+        // Update video texture on every frame. // TODO: Remove on destroy. 
         this.device.addFrameChangeListener(() => {
-            const lVideoIsPlaying = !!(this.mVideo.currentTime > 0 && !this.mVideo.paused && !this.mVideo.ended && this.mVideo.readyState > 1);
+            const lVideoHasDataPlaying = this.mVideo.readyState > 1; // Has at least one frame buffered.
 
-            if (this.mTexture && lVideoIsPlaying) {
-                // TODO: Load current view image into texture.
-
+            if (this.mTexture && lVideoHasDataPlaying) {
+                // Video element as source.
                 const lSource: GPUImageCopyExternalImage = {
                     source: this.mVideo
                 };
 
+                // Texture as destination. Only add first mip level.
                 const lDestination: GPUImageCopyTextureTagged = {
                     texture: this.mTexture,
                     mipLevel: 0
                 };
 
+                // Restrict copy size to current texture size.
+                // NOT VIDEO SIZE!!! as video size can change faster than current texture.
                 const lCopySize: GPUExtent3DDictStrict = {
-                    width: this.width,
-                    height: this.height,
+                    width: this.mTexture.width,
+                    height: this.mTexture.height,
                     depthOrArrayLayers: 1
                 };
 
+                // Queue copy.
                 this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lCopySize);
+
+                // Generate mip when enabled.
+                if (this.mEnableMips) {
+                    // Generate mips for texture.
+            this.mMipGenerator.generateMips(this.mTexture);
+                }
             }
         });
     }
@@ -150,6 +162,10 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
         if (pInvalidationReason.deconstruct) {
             this.mTexture?.destroy();
             this.mTexture = null;
+
+            // Stop and reset video.
+            this.mVideo.pause();
+            this.mVideo.src = '';
         }
     }
 
@@ -187,6 +203,12 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
             }
         })();
 
+        // Calculate mip count.
+        let lMipCount = 1;
+        if (this.mEnableMips) {
+            lMipCount = 1 + Math.floor(Math.log2(Math.max(lClampedTextureWidth, lClampedTextureHeight)));
+        }
+
         // Any change triggers a texture rebuild.
         this.mTexture?.destroy();
 
@@ -196,7 +218,8 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
             size: [lClampedTextureWidth, lClampedTextureHeight, 1],
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,
-            dimension: lGpuDimension
+            dimension: lGpuDimension,
+            mipLevelCount: lMipCount
         });
 
         // TODO: View descriptor.

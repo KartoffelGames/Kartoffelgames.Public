@@ -8238,7 +8238,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
       format: this.layout.format,
       usage: this.usage,
       dimension: lTextureDimensions.textureDimension,
-      mipLevelCount: this.enableMips ? lMipCount : 1
+      mipLevelCount: lMipCount
     });
     // Copy current native data into new texture.
     if (lLastTexture !== null && !pInvalidationReasons.has(ImageTextureInvalidationType.ImageBinary)) {
@@ -10129,6 +10129,7 @@ const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
 class VideoTexture extends base_texture_1.BaseTexture {
   /**
    * Set play position in secons.
@@ -10186,6 +10187,7 @@ class VideoTexture extends base_texture_1.BaseTexture {
    */
   constructor(pDevice, pLayout) {
     super(pDevice, pLayout);
+    this.mMipGenerator = new texture_mip_generator_1.TextureMipGenerator(pDevice);
     this.mTexture = null;
     this.mEnableMips = true;
     // Create video.
@@ -10209,24 +10211,33 @@ class VideoTexture extends base_texture_1.BaseTexture {
     this.mVideo.addEventListener('resize', () => {
       this.invalidate(VideoTextureInvalidationType.Resize);
     });
-    // Update video texture on every frame.
+    // Update video texture on every frame. // TODO: Remove on destroy. 
     this.device.addFrameChangeListener(() => {
-      const lVideoIsPlaying = !!(this.mVideo.currentTime > 0 && !this.mVideo.paused && !this.mVideo.ended && this.mVideo.readyState > 1);
-      if (this.mTexture && lVideoIsPlaying) {
-        // TODO: Load current view image into texture.
+      const lVideoHasDataPlaying = this.mVideo.readyState > 1; // Has at least one frame buffered.
+      if (this.mTexture && lVideoHasDataPlaying) {
+        // Video element as source.
         const lSource = {
           source: this.mVideo
         };
+        // Texture as destination. Only add first mip level.
         const lDestination = {
           texture: this.mTexture,
           mipLevel: 0
         };
+        // Restrict copy size to current texture size.
+        // NOT VIDEO SIZE!!! as video size can change faster than current texture.
         const lCopySize = {
-          width: this.width,
-          height: this.height,
+          width: this.mTexture.width,
+          height: this.mTexture.height,
           depthOrArrayLayers: 1
         };
+        // Queue copy.
         this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lCopySize);
+        // Generate mip when enabled.
+        if (this.mEnableMips) {
+          // Generate mips for texture.
+          this.mMipGenerator.generateMips(this.mTexture);
+        }
       }
     });
   }
@@ -10253,6 +10264,9 @@ class VideoTexture extends base_texture_1.BaseTexture {
     if (pInvalidationReason.deconstruct) {
       this.mTexture?.destroy();
       this.mTexture = null;
+      // Stop and reset video.
+      this.mVideo.pause();
+      this.mVideo.src = '';
     }
   }
   /**
@@ -10292,6 +10306,11 @@ class VideoTexture extends base_texture_1.BaseTexture {
           }
       }
     })();
+    // Calculate mip count.
+    let lMipCount = 1;
+    if (this.mEnableMips) {
+      lMipCount = 1 + Math.floor(Math.log2(Math.max(lClampedTextureWidth, lClampedTextureHeight)));
+    }
     // Any change triggers a texture rebuild.
     this.mTexture?.destroy();
     // Create texture with set size, format and usage. Save it for destorying later.
@@ -10300,7 +10319,8 @@ class VideoTexture extends base_texture_1.BaseTexture {
       size: [lClampedTextureWidth, lClampedTextureHeight, 1],
       format: this.layout.format,
       usage: this.usage,
-      dimension: lGpuDimension
+      dimension: lGpuDimension,
+      mipLevelCount: lMipCount
     });
     // TODO: View descriptor.
     return this.mTexture.createView({
@@ -11413,7 +11433,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
 
 /***/ }),
 
@@ -11443,7 +11463,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    if(videoColor.g > 0.83 && videoColor.g < 0.85) {\r\n        discard;\r\n    }\r\n\r\n    return applyLight(videoColor, fragment.fragmentPosition, fragment.normal);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let translation: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(1, 0, 0, 0),\r\n        vec4<f32>(0, 1, 0, 0),\r\n        vec4<f32>(0, 0, 1, 0),\r\n        transformationMatrix[3]\r\n    );\r\n\r\n    let scaling: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),\r\n        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),\r\n        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),\r\n        vec4<f32>(0, 0, 0, 1),\r\n    );\r\n\r\n    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedPosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedPosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    if(videoColor.g > 0.83 && videoColor.g < 0.85 && videoColor.r < 0.30) {\r\n        discard;\r\n    }\r\n\r\n    return applyLight(videoColor, fragment.fragmentPosition, fragment.normal);\r\n}");
 
 /***/ }),
 
@@ -16098,7 +16118,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("cbb1da27c525dd1f68ec")
+/******/ 		__webpack_require__.h = () => ("04015a8fe0ee0feed157")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

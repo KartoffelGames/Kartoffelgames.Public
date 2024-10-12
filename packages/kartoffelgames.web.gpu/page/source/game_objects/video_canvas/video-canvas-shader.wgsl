@@ -4,12 +4,16 @@
 
 
 // ------------------------- World Values ---------------------- //
+struct CameraTransformation {
+    rotation: mat4x4<f32>,
+    translation: mat4x4<f32>
+}
 struct Camera {
     viewProjection: mat4x4<f32>,
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
-    rotation: mat4x4<f32>,
-    translation: mat4x4<f32>
+    translation: CameraTransformation,
+    invertedTranslation: CameraTransformation,
 }
 @group(1) @binding(0) var<uniform> camera: Camera;
 
@@ -90,13 +94,27 @@ struct VertexIn {
 
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
-    var transformedInstancePosition: vec4<f32> = transformationMatrix * vertex.position;
+    let translation: mat4x4<f32> = mat4x4(
+        vec4<f32>(1, 0, 0, 0),
+        vec4<f32>(0, 1, 0, 0),
+        vec4<f32>(0, 0, 1, 0),
+        transformationMatrix[3]
+    );
+
+    let scaling: mat4x4<f32> = mat4x4(
+        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),
+        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),
+        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),
+        vec4<f32>(0, 0, 0, 1),
+    );
+
+    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;
 
     var out: VertexOut;
-    out.position = camera.viewProjection * transformedInstancePosition;
+    out.position = camera.viewProjection * transformedPosition;
     out.uv = vertex.uv;
     out.normal = vertex.normal;
-    out.fragmentPosition = transformedInstancePosition;
+    out.fragmentPosition = transformedPosition;
 
     return out;
 }
@@ -111,7 +129,7 @@ struct FragmentIn {
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
     let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);
 
-    if(videoColor.g > 0.83 && videoColor.g < 0.85) {
+    if(videoColor.g > 0.83 && videoColor.g < 0.85 && videoColor.r < 0.30) {
         discard;
     }
 

@@ -225,7 +225,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,
             dimension: lTextureDimensions.textureDimension,
-            mipLevelCount: (this.enableMips) ? lMipCount : 1
+            mipLevelCount: lMipCount
         });
 
         // Copy current native data into new texture.

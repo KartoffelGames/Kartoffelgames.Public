@@ -4,12 +4,16 @@
 
 
 // ------------------------- World Values ---------------------- //
+struct CameraTransformation {
+    rotation: mat4x4<f32>,
+    translation: mat4x4<f32>
+}
 struct Camera {
     viewProjection: mat4x4<f32>,
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
-    rotation: mat4x4<f32>,
-    translation: mat4x4<f32>
+    translation: CameraTransformation,
+    invertedTranslation: CameraTransformation,
 }
 @group(1) @binding(0) var<uniform> camera: Camera;
 

@@ -149,5 +149,5 @@ fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
         return vec4<f32>(videoColor.rgb, 0.0);
     }
 
-    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, 0.9);
+    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, (sin(fragment.uv.y * 750 + timestamp * 20) * 0.5 + 1) * 0.7);
 }

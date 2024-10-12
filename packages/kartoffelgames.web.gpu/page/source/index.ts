@@ -341,7 +341,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
             });
         });
 
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex)
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment)
             .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
 
         pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)

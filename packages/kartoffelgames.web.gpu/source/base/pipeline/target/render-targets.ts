@@ -66,8 +66,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     /**
      * Render target multisample level.
      */
-    public get multiSampleLevel(): number {
-        return this.mSize.multisampleLevel;
+    public get multisampled(): boolean {
+        return this.mSize.multisampled;
     }
 
     /**
@@ -92,7 +92,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         super(pDevice);
 
         // Set "fixed" 
-        this.mSize = { width: 1, height: 1, multisampleLevel: 1 };
+        this.mSize = { width: 1, height: 1, multisampled: false };
 
         // Setup initial data.
         this.mDepthStencilTexture = null;
@@ -150,18 +150,14 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      *  
      * @returns this. 
      */
-    public resize(pHeight: number, pWidth: number, pMultisampleLevel: number | null = null): this {
+    public resize(pHeight: number, pWidth: number, pMultisampled: boolean | null = null): this {
         // Set 2D size dimensions
         this.mSize.width = pWidth;
         this.mSize.height = pHeight;
 
         // Optional multisample level.
-        if (pMultisampleLevel !== null) {
-            if (pMultisampleLevel !== 1 && pMultisampleLevel % 4 !== 0) {
-                throw new Exception(`Only multisample level 1 or 4 is supported.`, this);
-            }
-
-            this.mSize.multisampleLevel = pMultisampleLevel;
+        if (pMultisampled !== null) {
+            this.mSize.multisampled = pMultisampled;
         }
 
         // Apply resize for all textures.
@@ -439,19 +435,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Update buffer texture multisample level.
         for (const lAttachment of this.mColorTextures.values()) {
             // Check for removed or added multisample level.
-            if (this.mSize.multisampleLevel === 1) {
-                // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
-                if (lAttachment.texture.resolve) {
-                    // Destroy buffering textures.
-                    lAttachment.texture.target.deconstruct();
-
-                    // Use resolve as target.
-                    lAttachment.texture.target = lAttachment.texture.resolve;
-
-                    // Update descriptor on texture changes.
-                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
-                }
-            } else {
+            if (this.mSize.multisampled) {
                 // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
                 if (lAttachment.texture.target instanceof CanvasTexture) {
                     // Move target into resolve.
@@ -464,17 +448,29 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     // Update descriptor on texture changes.
                     this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
                 }
+            } else {
+                // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
+                if (lAttachment.texture.resolve) {
+                    // Destroy buffering textures.
+                    lAttachment.texture.target.deconstruct();
+
+                    // Use resolve as target.
+                    lAttachment.texture.target = lAttachment.texture.resolve;
+
+                    // Update descriptor on texture changes.
+                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+                }
             }
 
             // Add multisample level only to frame buffers as canvas does not support any mutisampling.
             if (lAttachment.texture.target instanceof FrameBufferTexture) {
-                lAttachment.texture.target.multiSampleLevel = this.mSize.multisampleLevel;
+                lAttachment.texture.target.layout.multisampled = this.mSize.multisampled;
             }
         }
 
         // Update target texture multisample level.
         if (this.mDepthStencilTexture) {
-            this.mDepthStencilTexture.target.multiSampleLevel = this.mSize.multisampleLevel;
+            this.mDepthStencilTexture.target.layout.multisampled = this.mSize.multisampled;
         }
 
         // Update buffer texture sizes.
@@ -567,7 +563,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 type TextureSize = {
     width: number;
     height: number;
-    multisampleLevel: number;
+    multisampled: boolean;
 };
 
 export type RenderTargetsDepthStencilTexture = {

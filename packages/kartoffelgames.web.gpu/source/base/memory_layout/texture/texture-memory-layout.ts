@@ -6,7 +6,7 @@ import { BaseMemoryLayout } from '../base-memory-layout';
 export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInvalidationType> {
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
-    private readonly mMultisampled: boolean;
+    private mMultisampled: boolean;
 
     /**
      * Texture dimension.
@@ -27,6 +27,10 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
      */
     public get multisampled(): boolean {
         return this.mMultisampled;
+    } set multisampled(pValue: boolean) {
+        this.mMultisampled = pValue;
+
+        this.invalidate(TextureMemoryLayoutInvalidationType.Multisampled);
     }
 
     /**
@@ -52,5 +56,6 @@ export interface TextureMemoryLayoutParameter {
 
 export enum TextureMemoryLayoutInvalidationType {
     Format = 'FormatChange',
-    Dimension = 'DimensionChange'
+    Dimension = 'DimensionChange',
+    Multisampled = 'MultisampledChange'
 }

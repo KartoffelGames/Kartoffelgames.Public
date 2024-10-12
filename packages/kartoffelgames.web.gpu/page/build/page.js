@@ -1790,7 +1790,7 @@ _asyncToGenerator(function* () {
       const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
       const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
       // Resize displayed render targets.
-      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
+      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, true);
     }).observe(lCanvasWrapper);
   })();
   // Create camera perspective.
@@ -3836,7 +3836,7 @@ class RenderPass extends gpu_object_1.GpuObject {
           return this.mRenderTargets.colorTarget(pColorTargetName).layout.format;
         }),
         // Render target multisample level.
-        sampleCount: this.mRenderTargets.multiSampleLevel,
+        sampleCount: this.mRenderTargets.multisampled ? 4 : 1,
         // Enable depth or stencil write.
         depthReadOnly: !this.mBundleConfig.writeDepth,
         stencilReadOnly: !this.mBundleConfig.writeStencil
@@ -5583,6 +5583,10 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   get multisampled() {
     return this.mMultisampled;
   }
+  set multisampled(pValue) {
+    this.mMultisampled = pValue;
+    this.invalidate(TextureMemoryLayoutInvalidationType.Multisampled);
+  }
   /**
    * Constructor.
    *
@@ -5601,6 +5605,7 @@ var TextureMemoryLayoutInvalidationType;
 (function (TextureMemoryLayoutInvalidationType) {
   TextureMemoryLayoutInvalidationType["Format"] = "FormatChange";
   TextureMemoryLayoutInvalidationType["Dimension"] = "DimensionChange";
+  TextureMemoryLayoutInvalidationType["Multisampled"] = "MultisampledChange";
 })(TextureMemoryLayoutInvalidationType || (exports.TextureMemoryLayoutInvalidationType = TextureMemoryLayoutInvalidationType = {}));
 
 /***/ }),
@@ -6395,8 +6400,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
   /**
    * Render target multisample level.
    */
-  get multiSampleLevel() {
-    return this.mSize.multisampleLevel;
+  get multisampled() {
+    return this.mSize.multisampled;
   }
   /**
    * Native gpu object.
@@ -6420,7 +6425,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     this.mSize = {
       width: 1,
       height: 1,
-      multisampleLevel: 1
+      multisampled: false
     };
     // Setup initial data.
     this.mDepthStencilTexture = null;
@@ -6471,16 +6476,13 @@ class RenderTargets extends gpu_object_1.GpuObject {
    *
    * @returns this.
    */
-  resize(pHeight, pWidth, pMultisampleLevel = null) {
+  resize(pHeight, pWidth, pMultisampled = null) {
     // Set 2D size dimensions
     this.mSize.width = pWidth;
     this.mSize.height = pHeight;
     // Optional multisample level.
-    if (pMultisampleLevel !== null) {
-      if (pMultisampleLevel !== 1 && pMultisampleLevel % 4 !== 0) {
-        throw new core_1.Exception(`Only multisample level 1 or 4 is supported.`, this);
-      }
-      this.mSize.multisampleLevel = pMultisampleLevel;
+    if (pMultisampled !== null) {
+      this.mSize.multisampled = pMultisampled;
     }
     // Apply resize for all textures.
     this.applyResize();
@@ -6711,17 +6713,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Update buffer texture multisample level.
     for (const lAttachment of this.mColorTextures.values()) {
       // Check for removed or added multisample level.
-      if (this.mSize.multisampleLevel === 1) {
-        // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
-        if (lAttachment.texture.resolve) {
-          // Destroy buffering textures.
-          lAttachment.texture.target.deconstruct();
-          // Use resolve as target.
-          lAttachment.texture.target = lAttachment.texture.resolve;
-          // Update descriptor on texture changes.
-          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
-        }
-      } else {
+      if (this.mSize.multisampled) {
         // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
         if (lAttachment.texture.target instanceof canvas_texture_1.CanvasTexture) {
           // Move target into resolve.
@@ -6732,15 +6724,25 @@ class RenderTargets extends gpu_object_1.GpuObject {
           // Update descriptor on texture changes.
           this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
         }
+      } else {
+        // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
+        if (lAttachment.texture.resolve) {
+          // Destroy buffering textures.
+          lAttachment.texture.target.deconstruct();
+          // Use resolve as target.
+          lAttachment.texture.target = lAttachment.texture.resolve;
+          // Update descriptor on texture changes.
+          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+        }
       }
       // Add multisample level only to frame buffers as canvas does not support any mutisampling.
       if (lAttachment.texture.target instanceof frame_buffer_texture_1.FrameBufferTexture) {
-        lAttachment.texture.target.multiSampleLevel = this.mSize.multisampleLevel;
+        lAttachment.texture.target.layout.multisampled = this.mSize.multisampled;
       }
     }
     // Update target texture multisample level.
     if (this.mDepthStencilTexture) {
-      this.mDepthStencilTexture.target.multiSampleLevel = this.mSize.multisampleLevel;
+      this.mDepthStencilTexture.target.layout.multisampled = this.mSize.multisampled;
     }
     // Update buffer texture sizes.
     for (const lAttachment of this.mColorTextures.values()) {
@@ -7147,9 +7149,9 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     }
     // TODO: Stencil.
     // Set multisample count.
-    if (this.mRenderTargets.multiSampleLevel > 1) {
+    if (this.mRenderTargets.multisampled) {
       lPipelineDescriptor.multisample = {
-        count: this.mRenderTargets.multiSampleLevel
+        count: 4
       };
     }
     // Async is none GPU stalling.
@@ -8135,15 +8137,10 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
   }
   /**
-   * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
+   * Texture multi sample level.
    */
   get multiSampleLevel() {
-    return this.mMultiSampleLevel;
-  }
-  set multiSampleLevel(pValue) {
-    this.mMultiSampleLevel = pValue;
-    // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange, FrameBufferTextureInvalidationType.TextureRebuild);
+    return this.layout.multisampled ? 4 : 1;
   }
   /**
    * Texture width.
@@ -8168,7 +8165,6 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     this.mDepth = 1;
     this.mHeight = 1;
     this.mWidth = 1;
-    this.mMultiSampleLevel = 1;
     // Trigger Texture rebuild on dimension for format changes.
     pLayout.addInvalidationListener(() => {
       this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild);
@@ -8177,6 +8173,10 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     pLayout.addInvalidationListener(() => {
       this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
     }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+    // Trigger format change on formats.
+    pLayout.addInvalidationListener(() => {
+      this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
+    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Multisampled]);
   }
   /**
    * Destory texture object.
@@ -16399,7 +16399,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("18b94f856f6a8aa70951")
+/******/ 		__webpack_require__.h = () => ("2741584a15171432c9a6")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

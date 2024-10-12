@@ -1,14 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 
 export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidationType> {
     private mDepth: number;
     private mHeight: number;
-    private mMultiSampleLevel: number;
     private mTexture: GPUTexture | null;
     private mWidth: number;
 
@@ -37,15 +36,10 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
     }
 
     /**
-     * Texture multi sample level. // TODO: Move into layout. Maybe. Or not. As a layout can only hold true or false.
+     * Texture multi sample level.
      */
     public get multiSampleLevel(): number {
-        return this.mMultiSampleLevel;
-    } set multiSampleLevel(pValue: number) {
-        this.mMultiSampleLevel = pValue;
-
-        // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange, FrameBufferTextureInvalidationType.TextureRebuild);
+        return (this.layout.multisampled) ? 4 : 1;
     }
 
     /**
@@ -74,7 +68,6 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mDepth = 1;
         this.mHeight = 1;
         this.mWidth = 1;
-        this.mMultiSampleLevel = 1;
 
         // Trigger Texture rebuild on dimension for format changes.
         pLayout.addInvalidationListener(() => {
@@ -85,6 +78,11 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         pLayout.addInvalidationListener(() => {
             this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
         }, [TextureMemoryLayoutInvalidationType.Format]);
+
+        // Trigger format change on formats.
+        pLayout.addInvalidationListener(() => {
+            this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
+        }, [TextureMemoryLayoutInvalidationType.Multisampled]);
     }
 
     /**

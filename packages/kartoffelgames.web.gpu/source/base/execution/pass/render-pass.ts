@@ -150,7 +150,7 @@ export class RenderPass extends GpuObject {
                 }),
 
                 // Render target multisample level.
-                sampleCount: this.mRenderTargets.multiSampleLevel,
+                sampleCount: this.mRenderTargets.multisampled ? 4 : 1,
 
                 // Enable depth or stencil write.
                 depthReadOnly: !this.mBundleConfig.writeDepth,

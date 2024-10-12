@@ -421,7 +421,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
             const lNewCanvasWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
 
             // Resize displayed render targets.
-            lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, 4);
+            lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, true);
         }).observe(lCanvasWrapper);
     })();
 

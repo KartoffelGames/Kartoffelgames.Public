@@ -273,9 +273,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         // TODO: Stencil.
 
         // Set multisample count.
-        if (this.mRenderTargets.multiSampleLevel > 1) {
+        if (this.mRenderTargets.multisampled) {
             lPipelineDescriptor.multisample = {
-                count: this.mRenderTargets.multiSampleLevel
+                count: 4
             };
         }
 

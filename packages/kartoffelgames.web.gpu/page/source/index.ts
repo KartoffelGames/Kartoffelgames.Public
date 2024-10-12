@@ -32,6 +32,8 @@ import videoCanvasShader from './game_objects/video_canvas/video-canvas-shader.w
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 import { CanvasVertexIndices, CanvasVertexPositionData, CanvasVertexUvData, CanvasVertexNormalData } from './meshes/canvas-mesh';
 import { VideoTexture } from '../../source/base/texture/video-texture';
+import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
+import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
 
 const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
     const lHeight: number = 50;
@@ -315,6 +317,8 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
     const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
     lPipeline.writeDepth = false;
+    lPipeline.targetConfig('color').alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha);
+    lPipeline.targetConfig('color').colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
 
     pRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, pWorldGroup, lUserGroup]);
 };

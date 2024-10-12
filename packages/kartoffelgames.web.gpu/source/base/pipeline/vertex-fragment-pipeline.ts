@@ -1,14 +1,20 @@
-import { Dictionary } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { CompareFunction } from '../../constant/compare-function.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
+import { TextureAspect } from '../../constant/texture-aspect.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
+import { CanvasTexture } from '../texture/canvas-texture';
+import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
+import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
+import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
+import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
 
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline> {
     private mDepthCompare: CompareFunction;
@@ -17,9 +23,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
     private mPrimitiveCullMode: PrimitiveCullMode;
     private mPrimitiveFrontFace: PrimitiveFrontFace;
     private mPrimitiveTopology: PrimitiveTopology;
+    private readonly mRenderTargetConfig: Dictionary<string, VertexFragmentPipelineTargetConfigData>;
     private readonly mRenderTargets: RenderTargets;
     private readonly mShaderModule: ShaderRenderModule;
-
 
     /**
      * Set depth compare function.
@@ -114,7 +120,8 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 
         // Set config objects.
         this.mShaderModule = pShaderRenderModule;
-        this.mRenderTargets = pRenderTargets; // TODO: Update pipeline on format change.
+        this.mRenderTargets = pRenderTargets;
+        this.mRenderTargetConfig = new Dictionary<string, VertexFragmentPipelineTargetConfigData>();
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
@@ -141,7 +148,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;
-        this.mDepthWriteEnabled = true; // TODO: Default based on render target. 
+        this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
 
         // Primitive default settings.
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;
@@ -178,6 +185,42 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
     }
 
     /**
+     * Create or update target config.
+     * 
+     * @param pTargetName - Target name.
+     * 
+     * @returns config object. 
+     */
+    public targetConfig(pTargetName: string): VertexFragmentPipelineTargetConfig {
+        if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
+            throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
+        }
+
+        // Create default config when not already set.
+        if (!this.mRenderTargetConfig.has(pTargetName)) {
+            this.mRenderTargetConfig.set(pTargetName, {
+                colorBlend: {
+                    operation: TextureBlendOperation.Add,
+                    sourceFactor: TextureBlendFactor.One,
+                    destinationFactor: TextureBlendFactor.Zero
+                },
+                alphaBlend: {
+                    operation: TextureBlendOperation.Add,
+                    sourceFactor: TextureBlendFactor.One,
+                    destinationFactor: TextureBlendFactor.Zero
+                },
+                aspectWriteMask: new Set<TextureAspect>([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha])
+            });
+        }
+
+
+        return new VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName)!, () => {
+            // Generate pipeline anew.
+            this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        });
+    }
+
+    /**
      * Generate native gpu pipeline data layout.
      */
     protected override generateNative(): GPURenderPipeline {
@@ -200,11 +243,13 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         if (this.module.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTarget of this.mRenderTargets.colorTextures) {
+            for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
+                const lRenderTarget: FrameBufferTexture | CanvasTexture = this.mRenderTargets.colorTarget(lRenderTargetName);
+
                 lFragmentTargetList.push({
                     format: lRenderTarget.layout.format as GPUTextureFormat,
-                    // blend?: GPUBlendState;   // TODO: GPUBlendState
-                    // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
+                    blend: this.generateRenderTargetBlendState(lRenderTargetName),
+                    writeMask: this.generateRenderTargetWriteMask(lRenderTargetName)
                 });
             }
 
@@ -217,11 +262,11 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         }
 
         // Setup optional depth attachment.
-        if (this.mRenderTargets.depthTexture) {
+        if (this.mRenderTargets.hasDepth) {
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.writeDepth,
                 depthCompare: this.depthCompare,
-                format: this.mRenderTargets.depthTexture.layout.format as GPUTextureFormat,
+                format: this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat,
             };
         }
 
@@ -268,6 +313,78 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 
         return lPrimitiveState;
     }
+
+    /**
+     * Generate blend state for render target.
+     * 
+     * @param pTargetName - Render target name.
+     * 
+     * @returns generated blend state. 
+     */
+    private generateRenderTargetBlendState(pTargetName: string): GPUBlendState {
+        const lConfig: VertexFragmentPipelineTargetConfigData | undefined = this.mRenderTargetConfig.get(pTargetName);
+
+        // Set defaults for blend state.
+        const lBlendState: GPUBlendState = {
+            color: {
+                operation: 'add',
+                srcFactor: 'one',
+                dstFactor: 'zero'
+            },
+            alpha: {
+                operation: 'add',
+                srcFactor: 'one',
+                dstFactor: 'zero'
+            }
+        };
+
+        // Set alpha and alpha blend when set.
+        if (lConfig) {
+            lBlendState.alpha = {
+                operation: lConfig.alphaBlend.operation,
+                srcFactor: lConfig.alphaBlend.sourceFactor,
+                dstFactor: lConfig.alphaBlend.destinationFactor
+            };
+            lBlendState.color = {
+                operation: lConfig.colorBlend.operation,
+                srcFactor: lConfig.colorBlend.sourceFactor,
+                dstFactor: lConfig.colorBlend.destinationFactor
+            };
+        }
+
+        return lBlendState;
+    }
+
+    /**
+     * Generate gpu color write mask for the set render target.
+     * 
+     * @param pTargetName - Target name.
+     * 
+     * @returns color write flags.
+     */
+    private generateRenderTargetWriteMask(pTargetName: string): GPUColorWriteFlags {
+        const lConfig: VertexFragmentPipelineTargetConfigData | undefined = this.mRenderTargetConfig.get(pTargetName);
+
+        // Convert color aspects config to write mask.
+        let lWriteMask: GPUColorWriteFlags = 0xf;
+        if (lConfig) {
+            lWriteMask = 0x0;
+            if (lConfig.aspectWriteMask.has(TextureAspect.Red)) {
+                lWriteMask += 0x1;
+            }
+            if (lConfig.aspectWriteMask.has(TextureAspect.Green)) {
+                lWriteMask += 0x2;
+            }
+            if (lConfig.aspectWriteMask.has(TextureAspect.Red)) {
+                lWriteMask += 0x4;
+            }
+            if (lConfig.aspectWriteMask.has(TextureAspect.Alpha)) {
+                lWriteMask += 0x8;
+            }
+        }
+
+        return lWriteMask;
+    }
 }
 
 export enum VertexFragmentPipelineInvalidationType {
@@ -276,3 +393,15 @@ export enum VertexFragmentPipelineInvalidationType {
     Config = 'ConfigChange',
     Parameter = 'ParameterChange'
 }
+
+type VertexFragmentPipelineTargetConfigBlendData = {
+    operation: TextureBlendOperation;
+    sourceFactor: TextureBlendFactor;
+    destinationFactor: TextureBlendFactor;
+};
+
+export type VertexFragmentPipelineTargetConfigData = {
+    colorBlend: VertexFragmentPipelineTargetConfigBlendData;
+    alphaBlend: VertexFragmentPipelineTargetConfigBlendData;
+    aspectWriteMask: Set<TextureAspect>;
+};

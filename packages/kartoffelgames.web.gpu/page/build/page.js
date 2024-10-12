@@ -1524,6 +1524,8 @@ const sky_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/skybox/sky-
 const video_canvas_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/video_canvas/video-canvas-shader.wgsl */ "./page/source/game_objects/video_canvas/video-canvas-shader.wgsl");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/source/meshes/canvas-mesh.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
 const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   const lHeight = 50;
   const lWidth = 50;
@@ -1711,6 +1713,8 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
   const lPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
   lPipeline.writeDepth = false;
+  lPipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
+  lPipeline.targetConfig('color').colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   pRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, pWorldGroup, lUserGroup]);
 };
 const gGenerateWorldBindGroup = pGpu => {
@@ -2238,7 +2242,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
    * When no data was set.
    */
   get() {
-    // Validate existance.
+    // Validate existence.
     if (!this.mCurrentData) {
       throw new core_1.Exception('No binding data was set.', this);
     }
@@ -3606,7 +3610,7 @@ class ComputePass extends gpu_object_1.GpuObject {
     // Fill in data groups.
     const lPipelineLayout = pPipeline.module.shader.layout;
     for (const lGroupName of lPipelineLayout.groups) {
-      // Get and validate existance of set bind group.
+      // Get and validate existence of set bind group.
       const lBindDataGroup = lBindGroups.get(lGroupName);
       if (!lBindDataGroup) {
         throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
@@ -3772,7 +3776,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Fill in data groups.
     const lPipelineLayout = pPipeline.module.shader.layout;
     for (const lGroupName of lPipelineLayout.groups) {
-      // Get and validate existance of set bind group.
+      // Get and validate existence of set bind group.
       const lBindDataGroup = lBindGroups.get(lGroupName);
       if (!lBindDataGroup) {
         throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
@@ -3828,8 +3832,8 @@ class RenderPass extends gpu_object_1.GpuObject {
     if (!this.mBundleConfig.bundle) {
       // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
       const lRenderBundleEncoderDescriptor = {
-        colorFormats: this.mRenderTargets.colorTextures.map(pRenderTarget => {
-          return pRenderTarget.layout.format;
+        colorFormats: this.mRenderTargets.colorTargetNames.map(pColorTargetName => {
+          return this.mRenderTargets.colorTarget(pColorTargetName).layout.format;
         }),
         // Render target multisample level.
         sampleCount: this.mRenderTargets.multiSampleLevel,
@@ -3838,8 +3842,8 @@ class RenderPass extends gpu_object_1.GpuObject {
         stencilReadOnly: !this.mBundleConfig.writeStencil
       };
       // Optional depth stencil.
-      if (this.mRenderTargets.depthTexture) {
-        lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthTexture.layout.format;
+      if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
+        lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthStencilTarget().layout.format;
       }
       // Create render bundle.
       const lRenderBundleEncoder = this.device.gpu.createRenderBundleEncoder(lRenderBundleEncoderDescriptor);
@@ -6354,29 +6358,33 @@ const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */
  */
 class RenderTargets extends gpu_object_1.GpuObject {
   /**
-   * Color attachment textures.
+   * Color attachment names ordered by index.
    */
-  get colorTextures() {
+  get colorTargetNames() {
     // Ensure setup was called.
     this.ensureSetup();
     // Create color attachment list in order.
-    const lColorAttachmentList = new Array();
+    const lColorAttachmentNameList = new Array();
     for (const lColorAttachment of this.mColorTextures.values()) {
-      lColorAttachmentList[lColorAttachment.index] = lColorAttachment.texture.target;
+      lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
     }
-    return lColorAttachmentList;
+    return lColorAttachmentNameList;
   }
   /**
-   * Depth attachment texture.
+   * Stencil attachment texture.
    */
-  get depthTexture() {
+  get hasDepth() {
     // Ensure setup was called.
     this.ensureSetup();
-    // No depth texture setup.
-    if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
-      return null;
-    }
-    return this.mDepthStencilTexture.target;
+    return !!this.mDepthStencilTexture?.depth;
+  }
+  /**
+   * Stencil attachment texture.
+   */
+  get hasStencil() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return !!this.mDepthStencilTexture?.stencil;
   }
   /**
    * Render target height.
@@ -6395,14 +6403,6 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   get native() {
     return super.native;
-  }
-  /**
-   * Stencil attachment texture.
-   */
-  get stencilTexture() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return this.mDepthStencilTexture?.stencil ? this.mDepthStencilTexture.target : null;
   }
   /**
    * Render target height.
@@ -6425,6 +6425,42 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Setup initial data.
     this.mDepthStencilTexture = null;
     this.mColorTextures = new core_1.Dictionary();
+  }
+  /**
+   * Get color target by name.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns target texture.
+   */
+  colorTarget(pTargetName) {
+    const lTarget = this.mColorTextures.get(pTargetName);
+    if (!lTarget) {
+      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
+    }
+    return lTarget.texture.target;
+  }
+  /**
+   * Get depth attachment texture.
+   */
+  depthStencilTarget() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    // No depth texture setup.
+    if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
+      throw new core_1.Exception(`Depth or stencil target does not exists.`, this);
+    }
+    return this.mDepthStencilTexture.target;
+  }
+  /**
+   * Check for color target existence.
+   *
+   * @param pTargetName - Color target name.
+   *
+   * @returns true when color target exists.
+   */
+  hasColorTarget(pTargetName) {
+    return this.mColorTextures.has(pTargetName);
   }
   /**
    * Resize all render targets.
@@ -6543,7 +6579,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
   onSetup(pReferenceData) {
     // Setup depth stencil targets.
     if (pReferenceData.depthStencil) {
-      // Validate existance of depth stencil texture.
+      // Validate existence of depth stencil texture.
       if (!pReferenceData.depthStencil.texture) {
         throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
       }
@@ -6583,7 +6619,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Setup color targets.
     const lAttachmentLocations = new Array();
     for (const lAttachment of pReferenceData.colorTargets.values()) {
-      // Validate existance of color texture.
+      // Validate existence of color texture.
       if (!lAttachment.texture) {
         throw new core_1.Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
       }
@@ -6792,6 +6828,88 @@ var RenderTargetsInvalidationType;
 
 /***/ }),
 
+/***/ "./source/base/pipeline/vertex-fragment-pipeline-target-config.ts":
+/*!************************************************************************!*\
+  !*** ./source/base/pipeline/vertex-fragment-pipeline-target-config.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexFragmentPipelineTargetConfig = void 0;
+class VertexFragmentPipelineTargetConfig {
+  /**
+   * Constructor.
+   *
+   * @param pCallback - Data callback.
+   */
+  constructor(pDataReference, pCallback) {
+    this.mCallback = pCallback;
+    this.mDataReference = pDataReference;
+  }
+  /**
+   * Set alpha blends.
+   *
+   * @param pOperation - Blend operation.
+   * @param pSourceFactor - Factor of source value.
+   * @param pDestinationFactor - Factor of destination value.
+   *
+   * @returns this.
+   */
+  alphaBlend(pOperation, pSourceFactor, pDestinationFactor) {
+    // Set data.
+    this.mDataReference.alphaBlend = {
+      operation: pOperation,
+      sourceFactor: pSourceFactor,
+      destinationFactor: pDestinationFactor
+    };
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set color blends.
+   *
+   * @param pOperation - Blend operation.
+   * @param pSourceFactor - Factor of source value.
+   * @param pDestinationFactor - Factor of destination value.
+   *
+   * @returns this.
+   */
+  colorBlend(pOperation, pSourceFactor, pDestinationFactor) {
+    // Set data.
+    this.mDataReference.colorBlend = {
+      operation: pOperation,
+      sourceFactor: pSourceFactor,
+      destinationFactor: pDestinationFactor
+    };
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set texture aspect writemask.
+   *
+   * @param pAspects - Aspect to write into.
+   *
+   * @returns this.
+   */
+  writeMask(...pAspects) {
+    // Set data.
+    this.mDataReference.aspectWriteMask = new Set(pAspects);
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+}
+exports.VertexFragmentPipelineTargetConfig = VertexFragmentPipelineTargetConfig;
+
+/***/ }),
+
 /***/ "./source/base/pipeline/vertex-fragment-pipeline.ts":
 /*!**********************************************************!*\
   !*** ./source/base/pipeline/vertex-fragment-pipeline.ts ***!
@@ -6811,8 +6929,12 @@ const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stag
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
 const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/base/pipeline/vertex-fragment-pipeline-target-config.ts");
 class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   /**
    * Set depth compare function.
@@ -6898,7 +7020,8 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     super(pDevice);
     // Set config objects.
     this.mShaderModule = pShaderRenderModule;
-    this.mRenderTargets = pRenderTargets; // TODO: Update pipeline on format change.
+    this.mRenderTargets = pRenderTargets;
+    this.mRenderTargetConfig = new core_1.Dictionary();
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
@@ -6917,7 +7040,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     }, [render_targets_1.RenderTargetsInvalidationType.TextureFormatChange, render_targets_1.RenderTargetsInvalidationType.Resize, render_targets_1.RenderTargetsInvalidationType.MultisampleChange]);
     // Depth default settings.
     this.mDepthCompare = compare_function_enum_1.CompareFunction.Less;
-    this.mDepthWriteEnabled = true; // TODO: Default based on render target. 
+    this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
     // Primitive default settings.
     this.mPrimitiveTopology = primitive_topology_enum_1.PrimitiveTopology.TriangleList;
     this.mPrimitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
@@ -6947,6 +7070,38 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     return this;
   }
   /**
+   * Create or update target config.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns config object.
+   */
+  targetConfig(pTargetName) {
+    if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
+      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
+    }
+    // Create default config when not already set.
+    if (!this.mRenderTargetConfig.has(pTargetName)) {
+      this.mRenderTargetConfig.set(pTargetName, {
+        colorBlend: {
+          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
+          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
+          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
+        },
+        alphaBlend: {
+          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
+          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
+          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
+        },
+        aspectWriteMask: new Set([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha])
+      });
+    }
+    return new vertex_fragment_pipeline_target_config_1.VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName), () => {
+      // Generate pipeline anew.
+      this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    });
+  }
+  /**
    * Generate native gpu pipeline data layout.
    */
   generateNative() {
@@ -6967,11 +7122,12 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     if (this.module.fragmentEntryPoint) {
       // Generate fragment targets only when fragment state is needed.
       const lFragmentTargetList = new Array();
-      for (const lRenderTarget of this.mRenderTargets.colorTextures) {
+      for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
+        const lRenderTarget = this.mRenderTargets.colorTarget(lRenderTargetName);
         lFragmentTargetList.push({
-          format: lRenderTarget.layout.format
-          // blend?: GPUBlendState;   // TODO: GPUBlendState
-          // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
+          format: lRenderTarget.layout.format,
+          blend: this.generateRenderTargetBlendState(lRenderTargetName),
+          writeMask: this.generateRenderTargetWriteMask(lRenderTargetName)
         });
       }
       lPipelineDescriptor.fragment = {
@@ -6982,11 +7138,11 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       };
     }
     // Setup optional depth attachment.
-    if (this.mRenderTargets.depthTexture) {
+    if (this.mRenderTargets.hasDepth) {
       lPipelineDescriptor.depthStencil = {
         depthWriteEnabled: this.writeDepth,
         depthCompare: this.depthCompare,
-        format: this.mRenderTargets.depthTexture.layout.format
+        format: this.mRenderTargets.depthStencilTarget().layout.format
       };
     }
     // TODO: Stencil.
@@ -7025,6 +7181,71 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       lPrimitiveState.stripIndexFormat = lStripIndexFormat;
     }
     return lPrimitiveState;
+  }
+  /**
+   * Generate blend state for render target.
+   *
+   * @param pTargetName - Render target name.
+   *
+   * @returns generated blend state.
+   */
+  generateRenderTargetBlendState(pTargetName) {
+    const lConfig = this.mRenderTargetConfig.get(pTargetName);
+    // Set defaults for blend state.
+    const lBlendState = {
+      color: {
+        operation: 'add',
+        srcFactor: 'one',
+        dstFactor: 'zero'
+      },
+      alpha: {
+        operation: 'add',
+        srcFactor: 'one',
+        dstFactor: 'zero'
+      }
+    };
+    // Set alpha and alpha blend when set.
+    if (lConfig) {
+      lBlendState.alpha = {
+        operation: lConfig.alphaBlend.operation,
+        srcFactor: lConfig.alphaBlend.sourceFactor,
+        dstFactor: lConfig.alphaBlend.destinationFactor
+      };
+      lBlendState.color = {
+        operation: lConfig.colorBlend.operation,
+        srcFactor: lConfig.colorBlend.sourceFactor,
+        dstFactor: lConfig.colorBlend.destinationFactor
+      };
+    }
+    return lBlendState;
+  }
+  /**
+   * Generate gpu color write mask for the set render target.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns color write flags.
+   */
+  generateRenderTargetWriteMask(pTargetName) {
+    const lConfig = this.mRenderTargetConfig.get(pTargetName);
+    // Convert color aspects config to write mask.
+    let lWriteMask = 0xf;
+    if (lConfig) {
+      lWriteMask = 0x0;
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
+        lWriteMask += 0x1;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Green)) {
+        lWriteMask += 0x2;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
+        lWriteMask += 0x4;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Alpha)) {
+        lWriteMask += 0x8;
+      }
+    }
+    return lWriteMask;
   }
 }
 exports.VertexFragmentPipeline = VertexFragmentPipeline;
@@ -10584,6 +10805,66 @@ var TextureAspect;
 
 /***/ }),
 
+/***/ "./source/constant/texture-blend-factor.enum.ts":
+/*!******************************************************!*\
+  !*** ./source/constant/texture-blend-factor.enum.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureBlendFactor = void 0;
+var TextureBlendFactor;
+(function (TextureBlendFactor) {
+  TextureBlendFactor["Zero"] = "zero";
+  TextureBlendFactor["One"] = "one";
+  TextureBlendFactor["Src"] = "src";
+  TextureBlendFactor["OneMinusSrc"] = "one-minus-src";
+  TextureBlendFactor["SrcAlpha"] = "src-alpha";
+  TextureBlendFactor["OneMinusSrcAlpha"] = "one-minus-src-alpha";
+  TextureBlendFactor["Dst"] = "dst";
+  TextureBlendFactor["OneMinusDst"] = "one-minus-dst";
+  TextureBlendFactor["DstAlpha"] = "dst-alpha";
+  TextureBlendFactor["OneMinusDstAlpha"] = "one-minus-dst-alpha";
+  TextureBlendFactor["SrcAlphaSaturated"] = "src-alpha-saturated";
+  TextureBlendFactor["Constant"] = "constant";
+  TextureBlendFactor["OneMinusConstant"] = "one-minus-constant";
+  TextureBlendFactor["Src1"] = "src1";
+  TextureBlendFactor["OneMinusSrc1"] = "one-minus-src1";
+  TextureBlendFactor["Src1Alpha"] = "src1-alpha";
+  TextureBlendFactor["OneMinusSrc1Alpha"] = "one-minus-src1-alpha";
+})(TextureBlendFactor || (exports.TextureBlendFactor = TextureBlendFactor = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-blend-operation.enum.ts":
+/*!*********************************************************!*\
+  !*** ./source/constant/texture-blend-operation.enum.ts ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureBlendOperation = void 0;
+var TextureBlendOperation;
+(function (TextureBlendOperation) {
+  TextureBlendOperation["Add"] = "add";
+  TextureBlendOperation["Subtract"] = "subtract";
+  TextureBlendOperation["ReverseSubtract"] = "reverse-subtract";
+  TextureBlendOperation["Min"] = "min";
+  TextureBlendOperation["Max"] = "max";
+})(TextureBlendOperation || (exports.TextureBlendOperation = TextureBlendOperation = {}));
+
+/***/ }),
+
 /***/ "./source/constant/texture-dimension.enum.ts":
 /*!***************************************************!*\
   !*** ./source/constant/texture-dimension.enum.ts ***!
@@ -11463,7 +11744,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let translation: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(1, 0, 0, 0),\r\n        vec4<f32>(0, 1, 0, 0),\r\n        vec4<f32>(0, 0, 1, 0),\r\n        transformationMatrix[3]\r\n    );\r\n\r\n    let scaling: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),\r\n        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),\r\n        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),\r\n        vec4<f32>(0, 0, 0, 1),\r\n    );\r\n\r\n    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedPosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = camera.translation.rotation * vertex.normal;\r\n    out.fragmentPosition = transformedPosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    if(videoColor.g > 0.83 && videoColor.g < 0.85 && videoColor.r < 0.30) {\r\n        discard;\r\n    }\r\n\r\n    return applyLight(videoColor, fragment.fragmentPosition, fragment.normal);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let translation: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(1, 0, 0, 0),\r\n        vec4<f32>(0, 1, 0, 0),\r\n        vec4<f32>(0, 0, 1, 0),\r\n        transformationMatrix[3]\r\n    );\r\n\r\n    let scaling: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),\r\n        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),\r\n        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),\r\n        vec4<f32>(0, 0, 0, 1),\r\n    );\r\n\r\n    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedPosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = camera.translation.rotation * vertex.normal;\r\n    out.fragmentPosition = transformedPosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    const red: f32 = 53;\r\n    const green: f32 = 214;\r\n    const blue: f32 = 19;\r\n\r\n    const redGreenRatio: f32 = red / green;\r\n    const blueGreenRatio: f32 = blue / green;\r\n\r\n    const ratioTolerance: f32 = 0.5;\r\n\r\n    let curredRedGreenRatio: f32 = videoColor.r / videoColor.g;\r\n    let curredBlueGreenRatio: f32 = videoColor.b / videoColor.g;\r\n\r\n    let compareRed: f32 = abs(curredRedGreenRatio - redGreenRatio);\r\n    let compareBlue: f32 = abs(curredBlueGreenRatio - blueGreenRatio);\r\n    \r\n\r\n    if(compareRed < ratioTolerance && compareBlue < ratioTolerance) {\r\n        return vec4<f32>(videoColor.rgb, 0.0);\r\n    }\r\n\r\n    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, 0.9);\r\n}");
 
 /***/ }),
 
@@ -16118,7 +16399,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("9a913ee80cde697f1e71")
+/******/ 		__webpack_require__.h = () => ("020d6351f35f9f6ca081")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

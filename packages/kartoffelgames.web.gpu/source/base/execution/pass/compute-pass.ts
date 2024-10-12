@@ -49,7 +49,7 @@ export class ComputePass extends GpuObject {
         // Fill in data groups.
         const lPipelineLayout: PipelineLayout = pPipeline.module.shader.layout;
         for (const lGroupName of lPipelineLayout.groups) {
-            // Get and validate existance of set bind group.
+            // Get and validate existence of set bind group.
             const lBindDataGroup: BindGroup | undefined = lBindGroups.get(lGroupName);
             if (!lBindDataGroup) {
                 throw new Exception(`Required bind group "${lGroupName}" not set.`, this);

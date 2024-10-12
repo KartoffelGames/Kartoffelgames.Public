@@ -60,4 +60,6 @@ export abstract class BaseTexture<TInvalidationType extends string = any> extend
      * Called when usage was changed.
      */
     protected abstract onUsageExtend(): void;
+
+    // TODO: Create SubTextures that uses a existing baseTexture but allow changes to the output view. Like aspect, dimension, layers or miplevels.
 }

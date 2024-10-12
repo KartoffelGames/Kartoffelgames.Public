@@ -80,7 +80,7 @@ export class RenderPass extends GpuObject {
         // Fill in data groups.
         const lPipelineLayout: PipelineLayout = pPipeline.module.shader.layout;
         for (const lGroupName of lPipelineLayout.groups) {
-            // Get and validate existance of set bind group.
+            // Get and validate existence of set bind group.
             const lBindDataGroup: BindGroup | undefined = lBindGroups.get(lGroupName);
             if (!lBindDataGroup) {
                 throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
@@ -145,8 +145,8 @@ export class RenderPass extends GpuObject {
         if (!this.mBundleConfig.bundle) {
             // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
             const lRenderBundleEncoderDescriptor: GPURenderBundleEncoderDescriptor = {
-                colorFormats: this.mRenderTargets.colorTextures.map<GPUTextureFormat>((pRenderTarget) => {
-                    return pRenderTarget.layout.format as GPUTextureFormat;
+                colorFormats: this.mRenderTargets.colorTargetNames.map<GPUTextureFormat>((pColorTargetName) => {
+                    return this.mRenderTargets.colorTarget(pColorTargetName).layout.format as GPUTextureFormat;
                 }),
 
                 // Render target multisample level.
@@ -158,8 +158,8 @@ export class RenderPass extends GpuObject {
             };
 
             // Optional depth stencil.
-            if (this.mRenderTargets.depthTexture) {
-                lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthTexture.layout.format as GPUTextureFormat;
+            if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
+                lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat;
             }
 
             // Create render bundle.

@@ -129,9 +129,25 @@ struct FragmentIn {
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
     let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);
 
-    if(videoColor.g > 0.83 && videoColor.g < 0.85 && videoColor.r < 0.30) {
-        discard;
+    const red: f32 = 53;
+    const green: f32 = 214;
+    const blue: f32 = 19;
+
+    const redGreenRatio: f32 = red / green;
+    const blueGreenRatio: f32 = blue / green;
+
+    const ratioTolerance: f32 = 0.5;
+
+    let curredRedGreenRatio: f32 = videoColor.r / videoColor.g;
+    let curredBlueGreenRatio: f32 = videoColor.b / videoColor.g;
+
+    let compareRed: f32 = abs(curredRedGreenRatio - redGreenRatio);
+    let compareBlue: f32 = abs(curredBlueGreenRatio - blueGreenRatio);
+    
+
+    if(compareRed < ratioTolerance && compareBlue < ratioTolerance) {
+        return vec4<f32>(videoColor.rgb, 0.0);
     }
 
-    return applyLight(videoColor, fragment.fragmentPosition, fragment.normal);
+    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, 0.9);
 }

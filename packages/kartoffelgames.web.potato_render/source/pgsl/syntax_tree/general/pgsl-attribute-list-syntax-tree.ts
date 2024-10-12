@@ -72,7 +72,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
 
         // Convert and add each attribute to list.
         for (const lAttribute of pData.attributes) {
-            // Validate existance.
+            // Validate existence.
             if (this.mAttributes.has(lAttribute.name)) {
                 throw new Exception(`Attribute "${lAttribute}" already exists for this entity.`, this);
             }

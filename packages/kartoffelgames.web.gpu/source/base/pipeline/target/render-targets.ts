@@ -21,34 +21,39 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     private readonly mSize: TextureSize;
 
     /**
-     * Color attachment textures.
+     * Color attachment names ordered by index.
      */
-    public get colorTextures(): Array<FrameBufferTexture | CanvasTexture> {
+    public get colorTargetNames(): Array<string> {
         // Ensure setup was called.
         this.ensureSetup();
 
         // Create color attachment list in order.
-        const lColorAttachmentList: Array<FrameBufferTexture | CanvasTexture> = new Array<FrameBufferTexture | CanvasTexture>();
+        const lColorAttachmentNameList: Array<string> = new Array<string>();
         for (const lColorAttachment of this.mColorTextures.values()) {
-            lColorAttachmentList[lColorAttachment.index] = lColorAttachment.texture.target;
+            lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
         }
 
-        return lColorAttachmentList;
+        return lColorAttachmentNameList;
     }
 
     /**
-     * Depth attachment texture.
+     * Stencil attachment texture.
      */
-    public get depthTexture(): FrameBufferTexture | null {
+    public get hasDepth(): boolean {
         // Ensure setup was called.
         this.ensureSetup();
 
-        // No depth texture setup.
-        if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
-            return null;
-        }
+        return !!this.mDepthStencilTexture?.depth;
+    }
 
-        return this.mDepthStencilTexture.target;
+    /**
+     * Stencil attachment texture.
+     */
+    public get hasStencil(): boolean {
+        // Ensure setup was called.
+        this.ensureSetup();
+
+        return !!this.mDepthStencilTexture?.stencil;
     }
 
     /**
@@ -73,16 +78,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     }
 
     /**
-     * Stencil attachment texture.
-     */
-    public get stencilTexture(): FrameBufferTexture | null {
-        // Ensure setup was called.
-        this.ensureSetup();
-
-        return this.mDepthStencilTexture?.stencil ? this.mDepthStencilTexture.target : null;
-    }
-
-    /**
      * Render target height.
      */
     public get width(): number {
@@ -102,6 +97,48 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Setup initial data.
         this.mDepthStencilTexture = null;
         this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
+    }
+
+    /**
+     * Get color target by name.
+     * 
+     * @param pTargetName - Target name.
+     *  
+     * @returns target texture. 
+     */
+    public colorTarget(pTargetName: string): FrameBufferTexture | CanvasTexture {
+        const lTarget: RenderTargetsColorTarget | undefined = this.mColorTextures.get(pTargetName);
+        if (!lTarget) {
+            throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
+        }
+
+        return lTarget.texture.target;
+    }
+
+    /**
+     * Get depth attachment texture.
+     */
+    public depthStencilTarget(): FrameBufferTexture {
+        // Ensure setup was called.
+        this.ensureSetup();
+
+        // No depth texture setup.
+        if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
+            throw new Exception(`Depth or stencil target does not exists.`, this);
+        }
+
+        return this.mDepthStencilTexture.target;
+    }
+
+    /**
+     * Check for color target existence.
+     * 
+     * @param pTargetName - Color target name.
+     * 
+     * @returns true when color target exists. 
+     */
+    public hasColorTarget(pTargetName: string): boolean {
+        return this.mColorTextures.has(pTargetName);
     }
 
     /**
@@ -243,7 +280,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     protected override onSetup(pReferenceData: RenderTargetSetupData): void {
         // Setup depth stencil targets.
         if (pReferenceData.depthStencil) {
-            // Validate existance of depth stencil texture.
+            // Validate existence of depth stencil texture.
             if (!pReferenceData.depthStencil.texture) {
                 throw new Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
             }
@@ -292,7 +329,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Setup color targets.
         const lAttachmentLocations: Array<boolean> = new Array<boolean>();
         for (const lAttachment of pReferenceData.colorTargets.values()) {
-            // Validate existance of color texture.
+            // Validate existence of color texture.
             if (!lAttachment.texture) {
                 throw new Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
             }

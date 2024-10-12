@@ -113,7 +113,7 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
     var out: VertexOut;
     out.position = camera.viewProjection * transformedPosition;
     out.uv = vertex.uv;
-    out.normal = vertex.normal;
+    out.normal = camera.translation.rotation * vertex.normal;
     out.fragmentPosition = transformedPosition;
 
     return out;

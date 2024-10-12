@@ -12,11 +12,14 @@ import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragme
 import { Shader } from '../../source/base/shader/shader';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { CanvasTexture } from '../../source/base/texture/canvas-texture';
+import { VideoTexture } from '../../source/base/texture/video-texture';
 import { CompareFunction } from '../../source/constant/compare-function.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { SamplerType } from '../../source/constant/sampler-type.enum';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
+import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
+import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
 import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
@@ -24,16 +27,13 @@ import { AmbientLight } from './camera/light/ambient-light';
 import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
 import { ViewProjection } from './camera/view_projection/view-projection';
-import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
 import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
 import videoCanvasShader from './game_objects/video_canvas/video-canvas-shader.wgsl';
+import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, CanvasVertexUvData } from './meshes/canvas-mesh';
+import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
-import { CanvasVertexIndices, CanvasVertexPositionData, CanvasVertexUvData, CanvasVertexNormalData } from './meshes/canvas-mesh';
-import { VideoTexture } from '../../source/base/texture/video-texture';
-import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
-import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
 
 const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
     const lHeight: number = 50;
@@ -62,25 +62,25 @@ const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPas
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
         // Object bind group.
-        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
             pBindGroupSetup.binding(1, 'instancePositions', ComputeStage.Vertex, StorageBindingType.Read)
                 .withArray().withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-        }));
+        });
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
 
         // User bind group
-        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
+        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
                 .withTexture(TextureDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
-        }));
+        });
     });
 
     // Create render module from shader.
@@ -157,10 +157,10 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
         // Object bind group.
-        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        }));
+        });
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -201,13 +201,13 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
         pShaderSetup.fragmentEntryPoint('fragment_main')
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
-        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
                 .withTexture(TextureDimension.Cube, TextureFormat.Rgba8unorm);
-        }));
+        });
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -263,22 +263,22 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
             .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
         // Object bind group.
-        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
-        }));
+        });
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
 
         // User bind group
-        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
+        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'videoTextureSampler', ComputeStage.Fragment)
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
                 .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm);
-        }));
+        });
     });
 
     // Create render module from shader.

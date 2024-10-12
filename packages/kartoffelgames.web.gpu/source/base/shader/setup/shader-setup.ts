@@ -1,5 +1,6 @@
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { BindGroupLayout } from '../../binding/bind-group-layout';
+import { BindGroupLayoutSetup } from '../../binding/setup/bind-group-layout-setup';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { VertexParameterLayout } from '../../pipeline/parameter/vertex-parameter-layout';
 import { VertexParameterLayoutSetup } from '../../pipeline/parameter/vertex-parameter-layout-setup';
@@ -69,14 +70,26 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * 
      * @returns the same group.
      */
-    public group(pIndex: number, pGroup: BindGroupLayout): BindGroupLayout {
+    public group(pIndex: number, pGroup: BindGroupLayout): BindGroupLayout;
+    public group(pIndex: number, pGroupName: string, pSetupCall: ((pSetup: BindGroupLayoutSetup) => void)): BindGroupLayout;
+    public group(pIndex: number, pGroupOrName: BindGroupLayout | string, pSetupCall?: ((pSetup: BindGroupLayoutSetup) => void)): BindGroupLayout {
+        // Use existing or create new bind group.
+        let lBindGroupLayout: BindGroupLayout;
+        if (typeof pGroupOrName === 'string') {
+            // Create new group
+            lBindGroupLayout = new BindGroupLayout(this.device, pGroupOrName).setup(pSetupCall);
+        } else {
+            // Use existing group.
+            lBindGroupLayout = pGroupOrName;
+        }
+
         // Register group.
         this.setupData.bindingGroups.push({
             index: pIndex,
-            group: pGroup
+            group: lBindGroupLayout
         });
 
-        return pGroup;
+        return lBindGroupLayout;
     }
 
     /**

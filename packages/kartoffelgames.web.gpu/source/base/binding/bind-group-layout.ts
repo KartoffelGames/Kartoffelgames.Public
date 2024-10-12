@@ -13,8 +13,6 @@ import { TextureFormatCapability } from '../texture/texture-format-capabilities'
 import { BindGroup } from './bind-group';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
 
-// TODO: Find a good way to create new binding groups.
-
 /**
  * Bind group layout. Fixed at creation. 
  */

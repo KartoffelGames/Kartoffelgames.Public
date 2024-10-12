@@ -1510,6 +1510,8 @@ const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compu
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
@@ -1517,15 +1519,13 @@ const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ 
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
-const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
 const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
 const light_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/light/light-box-shader.wgsl */ "./page/source/game_objects/light/light-box-shader.wgsl");
 const sky_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/skybox/sky-box-shader.wgsl */ "./page/source/game_objects/skybox/sky-box-shader.wgsl");
 const video_canvas_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/video_canvas/video-canvas-shader.wgsl */ "./page/source/game_objects/video_canvas/video-canvas-shader.wgsl");
-const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/source/meshes/canvas-mesh.ts");
-const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
+const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   const lHeight = 50;
   const lWidth = 50;
@@ -1543,17 +1543,17 @@ const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
       pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    }));
+    });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
     // User bind group
-    pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(pGpu, 'user').setup(pBindGroupSetup => {
+    pShaderSetup.group(2, 'user', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
       pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm);
-    }));
+    });
   });
   // Create render module from shader.
   const lWoodBoxRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
@@ -1607,9 +1607,9 @@ const gAddLightBoxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-    }));
+    });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
   });
@@ -1638,10 +1638,10 @@ const gAddSkyboxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     });
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
       pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
-    }));
+    });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
   });
@@ -1673,16 +1673,16 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     // Object bind group.
-    pShaderSetup.group(0, new bind_group_layout_1.BindGroupLayout(pGpu, 'object').setup(pBindGroupSetup => {
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-    }));
+    });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
     // User bind group
-    pShaderSetup.group(2, new bind_group_layout_1.BindGroupLayout(pGpu, 'user').setup(pBindGroupSetup => {
+    pShaderSetup.group(2, 'user', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'videoTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
       pBindGroupSetup.binding(1, 'videoTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
-    }));
+    });
   });
   // Create render module from shader.
   const lWoodBoxRenderModule = lWoodBoxShader.createRenderModule('vertex_main', 'fragment_main');
@@ -2283,7 +2283,6 @@ const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture
 const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/base/binding/bind-group.ts");
 const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/base/binding/setup/bind-group-layout-setup.ts");
-// TODO: Find a good way to create new binding groups.
 /**
  * Bind group layout. Fixed at creation.
  */
@@ -7339,6 +7338,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderSetup = void 0;
+const bind_group_layout_1 = __webpack_require__(/*! ../../binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
 const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
 const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
 const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/base/shader/setup/shader-compute-entry-point-setup.ts");
@@ -7389,21 +7389,22 @@ class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
       lEntryPoint.renderTargets.push(pRenderTarget);
     });
   }
-  /**
-   * Add group to layout.
-   *
-   * @param pIndex - Bind group index.
-   * @param pGroup - Group.
-   *
-   * @returns the same group.
-   */
-  group(pIndex, pGroup) {
+  group(pIndex, pGroupOrName, pSetupCall) {
+    // Use existing or create new bind group.
+    let lBindGroupLayout;
+    if (typeof pGroupOrName === 'string') {
+      // Create new group
+      lBindGroupLayout = new bind_group_layout_1.BindGroupLayout(this.device, pGroupOrName).setup(pSetupCall);
+    } else {
+      // Use existing group.
+      lBindGroupLayout = pGroupOrName;
+    }
     // Register group.
     this.setupData.bindingGroups.push({
       index: pIndex,
-      group: pGroup
+      group: lBindGroupLayout
     });
-    return pGroup;
+    return lBindGroupLayout;
   }
   /**
    * Add static pipeline parameters definitions.
@@ -16399,7 +16400,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("2741584a15171432c9a6")
+/******/ 		__webpack_require__.h = () => ("335710e107e9e88774bf")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

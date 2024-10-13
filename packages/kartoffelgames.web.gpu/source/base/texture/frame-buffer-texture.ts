@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
-import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 
 export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidationType> {
@@ -20,7 +20,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mDepth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+        this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -32,7 +32,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mHeight = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+        this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -51,7 +51,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         this.mWidth = pValue;
 
         // Invalidate native.
-        this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+        this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -71,18 +71,8 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
 
         // Trigger Texture rebuild on dimension for format changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild);
-        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
-
-        // Trigger format change on formats.
-        pLayout.addInvalidationListener(() => {
-            this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
-        }, [TextureMemoryLayoutInvalidationType.Format]);
-
-        // Trigger format change on formats.
-        pLayout.addInvalidationListener(() => {
-            this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
-        }, [TextureMemoryLayoutInvalidationType.Multisampled]);
+            this.invalidate(FrameBufferTextureInvalidationType.LayoutChange, FrameBufferTextureInvalidationType.NativeRebuild);
+        });
     }
 
     /**
@@ -103,6 +93,9 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * Generate native canvas texture view.
      */
     protected override generateNative(): GPUTextureView {
+        // Invalidate texture and view.
+        this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
+
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Validate two dimensional texture.
@@ -113,13 +106,10 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
         // Any change triggers a texture rebuild.
         this.mTexture?.destroy();
 
-        // Invalidate texture and view.
-        this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
-
         // Create and configure canvas context.
         this.mTexture = this.device.gpu.createTexture({
             label: 'Frame-Buffer-Texture',
-            size: [this.width, this.height, 1], // Force 2d texture.
+            size: [this.mWidth, this.mHeight, 1], // Force 2d texture.
             format: this.layout.format as GPUTextureFormat,
             usage: this.usage,
             dimension: '2d',
@@ -137,15 +127,11 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
      * On usage extened. Triggers a texture rebuild.
      */
     protected override onUsageExtend(): void {
-        this.invalidate(FrameBufferTextureInvalidationType.UsageExtended);
+        this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     }
 }
 
 export enum FrameBufferTextureInvalidationType {
-    TextureRebuild = 'TextureRebuild',
-    ViewRebuild = 'ViewRebuild',
-    Resize = 'Resize',
-    MultisampleChange = 'MultisampleChange',
-    UsageExtended = 'UsageChange',
-    FormatChange = 'FormatChange'
+    NativeRebuild = 'NativeRebuild',
+    LayoutChange = 'LayoutChange'
 }

@@ -168,7 +168,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Apply resize for all textures.
         this.applyResize();
 
-        // Invalidation triggers through each texture.
+        // Trigger resize invalidation. Does not automaticly trigger rebuild.
+        this.invalidate(RenderTargetsInvalidationType.Resize);
 
         return this;
     }
@@ -190,7 +191,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     protected override generateNative(): GPURenderPassDescriptor {
         // Invalidate bc. descriptor is rebuilding.
-        this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+        this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
 
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
@@ -386,7 +387,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     protected override updateNative(pNative: GPURenderPassDescriptor, pReasons: GpuObjectInvalidationReasons<RenderTargetsInvalidationType>): boolean {
         // Native can not be updated on any config changes.
-        if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
+        if (pReasons.has(RenderTargetsInvalidationType.NativeRebuild)) {
             // Reset updateable views.
             this.mTargetViewUpdateQueue.clear();
 
@@ -442,7 +443,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     lAttachment.texture.target.extendUsage(TextureUsage.RenderAttachment);
 
                     // Update descriptor on texture changes.
-                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+                    this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
                 }
             } else {
                 // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
@@ -454,7 +455,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     lAttachment.texture.target = lAttachment.texture.resolve;
 
                     // Update descriptor on texture changes.
-                    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+                    this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
                 }
             }
 
@@ -498,34 +499,16 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             // Update descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
                 // Invalidate.
-                this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+                this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
 
                 // Set texture as updateable.
                 this.mTargetViewUpdateQueue.add(pTextureIndex);
-            }, [FrameBufferTextureInvalidationType.ViewRebuild]);
+            }, [FrameBufferTextureInvalidationType.NativeRebuild]);
 
             // Passthough other invalidations.
-            pTexture.addInvalidationListener((pType: FrameBufferTextureInvalidationType) => {
-                switch (pType) {
-                    case FrameBufferTextureInvalidationType.Resize: {
-                        this.invalidate(RenderTargetsInvalidationType.Resize);
-                        break;
-                    }
-                    case FrameBufferTextureInvalidationType.MultisampleChange: {
-                        this.invalidate(RenderTargetsInvalidationType.MultisampleChange);
-                        break;
-                    }
-                    case FrameBufferTextureInvalidationType.FormatChange: {
-                        this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
-                        break;
-                    }
-                }
-
-            }, [
-                FrameBufferTextureInvalidationType.Resize,
-                FrameBufferTextureInvalidationType.MultisampleChange,
-                FrameBufferTextureInvalidationType.FormatChange
-            ]);
+            pTexture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.LayoutChange);
+            }, [FrameBufferTextureInvalidationType.LayoutChange]);
 
             return;
         }
@@ -535,29 +518,16 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             // Rebuild descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
                 // Invalidate.
-                this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+                this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
 
                 // Set texture as updateable.
                 this.mTargetViewUpdateQueue.add(pTextureIndex);
-            }, [CanvasTextureInvalidationType.ViewRebuild]);
+            }, [CanvasTextureInvalidationType.NativeRebuild]);
 
             // Passthough other invalidations.
-            pTexture.addInvalidationListener((pType: CanvasTextureInvalidationType) => {
-                switch (pType) {
-                    case CanvasTextureInvalidationType.Resize: {
-                        this.invalidate(RenderTargetsInvalidationType.Resize);
-                        break;
-                    }
-                    case CanvasTextureInvalidationType.FormatChange: {
-                        this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
-                        break;
-                    }
-                }
-
-            }, [
-                CanvasTextureInvalidationType.Resize,
-                CanvasTextureInvalidationType.FormatChange
-            ]);
+            pTexture.addInvalidationListener(() => {
+                this.invalidate(RenderTargetsInvalidationType.LayoutChange);
+            }, [CanvasTextureInvalidationType.LayoutChange]);
 
             return;
         }
@@ -596,9 +566,8 @@ export type RenderTargetsColorTarget = {
 };
 
 export enum RenderTargetsInvalidationType {
-    Resize = 'Resize',
-    MultisampleChange = 'MultisampleChange',
-    TextureFormatChange = 'LayoutChange',
-    ViewRebuild = 'ViewRebuild',
-    DescriptorRebuild = 'DescriptorRebuild'
+    LayoutChange = 'LayoutChange',
+    NativeUpdate = 'NativeUpdate',
+    NativeRebuild = 'NativeRebuild',
+    Resize = 'Resize'
 }

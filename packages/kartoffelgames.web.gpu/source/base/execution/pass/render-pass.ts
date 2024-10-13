@@ -37,10 +37,8 @@ export class RenderPass extends GpuObject {
         pRenderTargets.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
         }, [
-            RenderTargetsInvalidationType.TextureFormatChange,
-            RenderTargetsInvalidationType.DescriptorRebuild,
-            RenderTargetsInvalidationType.Resize,
-            RenderTargetsInvalidationType.MultisampleChange
+            RenderTargetsInvalidationType.LayoutChange,
+            RenderTargetsInvalidationType.NativeRebuild
         ]);
     }
 
@@ -117,7 +115,7 @@ export class RenderPass extends GpuObject {
         for (const lGroupName of lPipelineLayout.groups) {
             lBindGroups.get(lGroupName)!.addInvalidationListener(() => {
                 this.mBundleConfig.bundle = null;
-            }, [BindGroupInvalidationType.BindGroupRebuild]);
+            }, [BindGroupInvalidationType.NativeRebuild]);
         }
     }
 

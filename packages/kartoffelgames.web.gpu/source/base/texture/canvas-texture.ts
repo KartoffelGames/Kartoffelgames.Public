@@ -1,7 +1,7 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 
 export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
@@ -22,9 +22,6 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
         return this.mCanvas.height;
     } set height(pValue: number) {
         this.mCanvas.height = pValue;
-
-        // Invalidate size.
-        this.invalidate(CanvasTextureInvalidationType.Resize);
     }
 
     /**
@@ -34,9 +31,6 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
         return this.mCanvas.width;
     } set width(pValue: number) {
         this.mCanvas.width = pValue;
-
-        // Invalidate size.
-        this.invalidate(CanvasTextureInvalidationType.Resize);
     }
 
     /**
@@ -58,13 +52,13 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(CanvasTextureInvalidationType.FormatChange);
-        }, [TextureMemoryLayoutInvalidationType.Format]);
+            this.invalidate(CanvasTextureInvalidationType.LayoutChange, CanvasTextureInvalidationType.NativeRebuild);
+        });
 
         // TODO: Remove it on deconstruct.
         // Rebuild view on every frame.
         this.device.addFrameChangeListener(() => {
-            this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
+            this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
         });
     }
 
@@ -74,7 +68,7 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
      */
     protected override destroyNative(_pNativeObject: GPUTextureView, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
         // Context is only invalid on deconstruct or layout has changes.
-        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.FormatChange) || pReasons.has(CanvasTextureInvalidationType.UsageExtended);
+        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.ContextRebuild);
 
         // Only destroy context when child data/layout has changes.
         if (lContextInvalid) {
@@ -91,16 +85,13 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
      */
     protected override generateNative(): GPUTextureView {
         // Invalidate for frame change.
-        this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
+        this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
 
         // Read canvas format.
         const lFormat: GPUTextureFormat = this.layout.format as GPUTextureFormat;
 
         // Configure new context when not alread configured or destroyed.
         if (!this.mContext) {
-            // Invalidate bc. context neeeded to rebuild.
-            this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
-
             // Create and configure canvas context.
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
             this.mContext.configure({
@@ -125,7 +116,7 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
      * On usage extened. Triggers a texture rebuild.
      */
     protected override onUsageExtend(): void {
-        this.invalidate(CanvasTextureInvalidationType.UsageExtended);
+        this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
     }
 
     /**
@@ -134,23 +125,26 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
      * @param _pNative - Native 
      * @param pReasons - Invalidation reason.
      * 
-     * @returns true when nothing was done. 
+     * @returns false when a rebuild must be done. 
      */
     protected override updateNative(_pNative: GPUTextureView, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): boolean {
-        // Literally only "update" on resize.
-        return pReasons.has(CanvasTextureInvalidationType.Resize) &&
-            !pReasons.has(CanvasTextureInvalidationType.ViewRebuild) &&
-            !pReasons.has(CanvasTextureInvalidationType.UsageExtended) &&
-            !pReasons.has(CanvasTextureInvalidationType.FormatChange) &&
-            !pReasons.deconstruct;
+        // Cant update on native rebuild.
+        if (pReasons.has(CanvasTextureInvalidationType.NativeRebuild)) {
+            return false;
+        }
+
+        // Cant update on context rebuild.
+        if (pReasons.has(CanvasTextureInvalidationType.ContextRebuild)) {
+            return false;
+        }
+
+        return true;
     }
 
 }
 
 export enum CanvasTextureInvalidationType {
     ContextRebuild = 'ContextRebuild',
-    ViewRebuild = 'ViewRebuild',
-    Resize = 'Resize',
-    UsageExtended = 'UsageChange',
-    FormatChange = 'FormatChange'
+    NativeRebuild = 'NativeRebuild',
+    LayoutChange = 'LayoutChange'
 }

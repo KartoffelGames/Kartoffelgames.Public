@@ -68,7 +68,7 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
 
             // Add invalidationlistener.
             const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-                this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+                this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
             };
             lGroup.addInvalidationListener(lListener);
             this.mBindGroupInvalidationListener.set(lGroup, lListener);
@@ -206,13 +206,13 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
 
         // Replace binding group and add invalidation listener.
         const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-            this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+            this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
         };
         pBindGroup.addInvalidationListener(lListener);
         this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
 
         // Trigger updates.
-        this.invalidate(PipelineLayoutInvalidationType.GroupReplace);
+        this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
     }
 
     /**
@@ -243,13 +243,13 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
 
         // Register change listener for layout changes.
         const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-            this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+            this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
         };
         pLayout.addInvalidationListener(lListener);
         this.mBindGroupInvalidationListener.set(pLayout, lListener);
 
         // Trigger auto update.
-        this.invalidate(PipelineLayoutInvalidationType.GroupReplace);
+        this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
     }
 
     /**
@@ -273,6 +273,5 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
 }
 
 export enum PipelineLayoutInvalidationType {
-    GroupReplace = 'GroupReplace',
-    GroupChange = 'GroupChange',
+    NativeRebuild = 'NativeRebuild',
 }

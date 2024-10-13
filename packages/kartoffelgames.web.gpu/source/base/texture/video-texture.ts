@@ -2,7 +2,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
-import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 import { TextureMipGenerator } from './texture-mip-generator';
 
@@ -28,6 +28,9 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
         return this.mEnableMips;
     } set enableMips(pEnable: boolean) {
         this.mEnableMips = pEnable;
+
+        // Invalidate native on mip enable change.
+        this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -93,12 +96,12 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(VideoTextureInvalidationType.Layout);
-        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
+            this.invalidate(VideoTextureInvalidationType.LayoutChange, VideoTextureInvalidationType.NativeRebuild);
+        });
 
         // When video was resized.
         this.mVideo.addEventListener('resize', () => {
-            this.invalidate(VideoTextureInvalidationType.Resize);
+            this.invalidate(VideoTextureInvalidationType.NativeRebuild);
         });
 
         // Update video texture on every frame. // TODO: Remove on destroy. 
@@ -173,6 +176,9 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
      * Generate native canvas texture view.
      */
     protected override generateNative(): GPUTextureView {
+        // Invalidate texture and view.
+        this.invalidate(VideoTextureInvalidationType.NativeRebuild);
+
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Clamp with and height to never fall under 1.
@@ -233,12 +239,11 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
      * On usage extened. Triggers a texture rebuild.
      */
     protected override onUsageExtend(): void {
-        this.invalidate(VideoTextureInvalidationType.Usage);
+        this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     }
 }
 
 export enum VideoTextureInvalidationType {
-    Layout = 'LayoutChange',
-    Usage = 'UsageChange',
-    Resize = 'Resize',
+    NativeRebuild = 'NativeRebuild',
+    LayoutChange = 'LayoutChange'
 }

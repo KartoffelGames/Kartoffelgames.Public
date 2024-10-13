@@ -5,15 +5,17 @@ import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { TextureAspect } from '../../constant/texture-aspect.enum';
+import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
+import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
+import { PipelineLayoutInvalidationType } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { VertexParameterLayoutInvalidationType } from './parameter/vertex-parameter-layout';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
-import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
-import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
 
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline> {
@@ -36,7 +38,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mDepthCompare = pValue;
 
         // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -62,7 +64,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mPrimitiveCullMode = pValue;
 
         // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -74,7 +76,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mPrimitiveFrontFace = pValue;
 
         // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -86,7 +88,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mPrimitiveTopology = pValue;
 
         // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -105,7 +107,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         this.mDepthWriteEnabled = pValue;
 
         // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -126,25 +128,20 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
 
-        // Listen for shader changes.
-        this.mShaderModule.shader.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-        });
+        // Listen for vertex layout changes.
         this.mShaderModule.vertexParameter.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-        });
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+        }, [VertexParameterLayoutInvalidationType.NativeRebuild]);
+
+        // Listen for pipeline layout changes.
         this.mShaderModule.shader.layout.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-        });
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+        }, [PipelineLayoutInvalidationType.NativeRebuild]);
 
         // Listen for render target changes.
         this.mRenderTargets.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.RenderTargets);
-        }, [
-            RenderTargetsInvalidationType.TextureFormatChange,
-            RenderTargetsInvalidationType.Resize,
-            RenderTargetsInvalidationType.MultisampleChange
-        ]);
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+        }, [RenderTargetsInvalidationType.NativeRebuild]);
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;
@@ -179,7 +176,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
         }
 
         // Generate pipeline anew.
-        this.invalidate(VertexFragmentPipelineInvalidationType.Parameter);
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
 
         return this;
     }
@@ -213,10 +210,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             });
         }
 
-
         return new VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName)!, () => {
             // Generate pipeline anew.
-            this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
         });
     }
 
@@ -388,10 +384,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 }
 
 export enum VertexFragmentPipelineInvalidationType {
-    Shader = 'ShaderChange',
-    RenderTargets = 'RenderTargetsChange',
-    Config = 'ConfigChange',
-    Parameter = 'ParameterChange'
+    NativeRebuild = 'NativeRebuild',
 }
 
 type VertexFragmentPipelineTargetConfigBlendData = {

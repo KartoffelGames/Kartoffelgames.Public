@@ -13,7 +13,7 @@ import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
 
-export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
+export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, Set<ComputeStage>>;
     private mPipelineLayout: PipelineLayout | null;
@@ -262,11 +262,6 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderInvalidationType, S
             lInitialPipelineLayout.set(lGroup.index, lGroup.group);
         }
         this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
-
-        // Invalidate shader every time the pipeline layout changes.
-        this.mPipelineLayout.addInvalidationListener(() => {
-            this.invalidate(ShaderInvalidationType.PipelineLayout);
-        });
     }
 
     /**
@@ -309,7 +304,3 @@ type ShaderModuleEntryPoints = {
     vertex: Dictionary<string, ShaderModuleEntryPointVertex>,
     fragment: Dictionary<string, ShaderModuleEntryPointFragment>,
 };
-
-export enum ShaderInvalidationType {
-    PipelineLayout = 'PipelineLayoutChange',
-}

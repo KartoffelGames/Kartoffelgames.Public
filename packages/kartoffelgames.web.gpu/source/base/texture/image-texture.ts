@@ -3,7 +3,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
-import { TextureMemoryLayout, TextureMemoryLayoutInvalidationType } from '../memory_layout/texture/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { BaseTexture } from './base-texture';
 import { TextureMipGenerator } from './texture-mip-generator';
 
@@ -30,6 +30,9 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         return this.mEnableMips;
     } set enableMips(pEnable: boolean) {
         this.mEnableMips = pEnable;
+
+        // Invalidate native on mip enable change.
+        this.invalidate(ImageTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -73,8 +76,8 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(ImageTextureInvalidationType.Layout);
-        }, [TextureMemoryLayoutInvalidationType.Dimension, TextureMemoryLayoutInvalidationType.Format]);
+            this.invalidate(ImageTextureInvalidationType.LayoutChange, ImageTextureInvalidationType.NativeRebuild);
+        });
 
         // Allways a copy destination.
         this.extendUsage(TextureUsage.CopyDestination);
@@ -126,7 +129,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         // maxTextureArrayLayers
 
         // Trigger change.
-        this.invalidate(ImageTextureInvalidationType.ImageBinary);
+        this.invalidate(ImageTextureInvalidationType.ImageBinary, ImageTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -146,6 +149,9 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
      */
     protected override generateNative(_pCurrentNative: GPUTextureView | null, pInvalidationReasons: GpuObjectInvalidationReasons<ImageTextureInvalidationType>): GPUTextureView {
         // TODO: Validate format based on layout. Maybe replace used format.
+
+        // Invalidate view.
+        this.invalidate(ImageTextureInvalidationType.NativeRebuild);
 
         // Generate gpu dimension from memory layout dimension.
         const lTextureDimensions: { textureDimension: GPUTextureDimension, clampedDimensions: [number, number, number]; } = (() => {
@@ -306,12 +312,12 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
      * On usage extened. Triggers a texture rebuild.
      */
     protected override onUsageExtend(): void {
-        this.invalidate(ImageTextureInvalidationType.Usage);
+        this.invalidate(ImageTextureInvalidationType.NativeRebuild);
     }
 }
 
 export enum ImageTextureInvalidationType {
-    Layout = 'LayoutChange',
+    NativeRebuild = 'NativeRebuild',
+    LayoutChange = 'LayoutChange',
     ImageBinary = 'ImageBinaryChange',
-    Usage = 'UsageChange'
 }

@@ -6,7 +6,7 @@ import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { SamplerMemoryLayout, SamplerMemoryLayoutInvalidationType } from '../memory_layout/texture/sampler-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
 export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalidationType> implements IGpuObjectNative<GPUSampler> {
     private mCompare: CompareFunction | null;
@@ -28,7 +28,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mCompare = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -40,7 +40,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mLodMaxClamp = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -52,7 +52,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mLodMinClamp = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -64,7 +64,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mMagFilter = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -76,7 +76,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mMaxAnisotropy = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -95,7 +95,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mMinFilter = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -107,7 +107,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mMipmapFilter = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -126,7 +126,7 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
         this.mWrapMode = pValue;
 
         // Invalidate native object.
-        this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+        this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
     }
 
     /**
@@ -151,8 +151,8 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(TextureSamplerInvalidationType.Layout);
-        }, [SamplerMemoryLayoutInvalidationType.SamplerType]);
+            this.invalidate(TextureSamplerInvalidationType.LayoutChange, TextureSamplerInvalidationType.NativeRebuild);
+        });
     }
 
     /**
@@ -186,6 +186,6 @@ export class TextureSampler extends GpuObject<GPUSampler, TextureSamplerInvalida
 }
 
 export enum TextureSamplerInvalidationType {
-    Layout = 'LayoutChange',
-    SamplerConfig = 'SamplerConfigChange'
+    LayoutChange = 'LayoutChange',
+    NativeRebuild = 'NativeRebuild'
 }

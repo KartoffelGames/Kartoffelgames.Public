@@ -37,11 +37,8 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
 
         // Listen for shader changes.
-        this.mShaderModule.shader.addInvalidationListener(() => {
-            this.invalidate(ComputePipelineInvalidationType.Shader);
-        });
         this.mShaderModule.shader.layout.addInvalidationListener(() => {
-            this.invalidate(ComputePipelineInvalidationType.Shader);
+            this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
         });
     }
 
@@ -68,7 +65,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
         }
 
         // Generate pipeline anew.
-        this.invalidate(ComputePipelineInvalidationType.Parameter);
+        this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
 
         return this;
     }
@@ -93,7 +90,5 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
 }
 
 export enum ComputePipelineInvalidationType {
-    Shader = 'ShaderChange',
-    Config = 'ConfigChange',
-    Parameter = 'ParameterChange'
+    NativeRebuild = 'NativeRebuild',
 }

@@ -115,7 +115,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+            this.invalidate(GpuBufferInvalidationType.NativeRebuild);
         });
     }
 
@@ -130,7 +130,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         if ((this.mBufferUsage & pUsage) === 0) {
             this.mBufferUsage |= pUsage;
 
-            this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+            this.invalidate(GpuBufferInvalidationType.NativeRebuild);
         }
 
         return this;
@@ -146,7 +146,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         this.mInitialDataCallback = pDataCallback;
 
         // Trigger update.
-        this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+        this.invalidate(GpuBufferInvalidationType.NativeRebuild);
 
         return this;
     }
@@ -375,5 +375,5 @@ type GpuBufferWriteBuffer = {
 };
 
 export enum GpuBufferInvalidationType {
-    BufferRebuild = 'BufferRebuild',
+    NativeRebuild = 'NativeRebuild',
 }

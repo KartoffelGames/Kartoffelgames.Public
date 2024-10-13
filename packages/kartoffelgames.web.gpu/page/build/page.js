@@ -1790,7 +1790,7 @@ _asyncToGenerator(function* () {
       const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
       const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
       // Resize displayed render targets.
-      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, true);
+      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, false);
     }).observe(lCanvasWrapper);
   })();
   // Create camera perspective.
@@ -2493,7 +2493,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       });
       // Register change listener for layout changes.
       lBinding.layout.addInvalidationListener(() => {
-        this.invalidate(BindGroupLayoutInvalidationType.Layout);
+        this.invalidate(BindGroupLayoutInvalidationType.NativeRebuild);
       });
       // Validate dublicate indices.
       if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
@@ -2518,8 +2518,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
 exports.BindGroupLayout = BindGroupLayout;
 var BindGroupLayoutInvalidationType;
 (function (BindGroupLayoutInvalidationType) {
-  BindGroupLayoutInvalidationType["Layout"] = "LayoutChange";
-  BindGroupLayoutInvalidationType["Setting"] = "BindingSettingChange";
+  BindGroupLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(BindGroupLayoutInvalidationType || (exports.BindGroupLayoutInvalidationType = BindGroupLayoutInvalidationType = {}));
 
 /***/ }),
@@ -2572,7 +2571,7 @@ class BindGroup extends gpu_object_1.GpuObject {
     this.mBindData = new core_1.Dictionary();
     // Register change listener for layout changes.
     pBindGroupLayout.addInvalidationListener(() => {
-      this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+      this.invalidate(BindGroupInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -2640,10 +2639,10 @@ class BindGroup extends gpu_object_1.GpuObject {
       this.mBindData.set(pBindName, pData);
       // Trigger update data is invalid.
       pData.addInvalidationListener(() => {
-        this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+        this.invalidate(BindGroupInvalidationType.NativeRebuild);
       }); // TODO: Distinct and only update when necessary.
       // Trigger update on data change. 
-      this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+      this.invalidate(BindGroupInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -2651,7 +2650,7 @@ class BindGroup extends gpu_object_1.GpuObject {
    */
   generateNative() {
     // Invalidate group.
-    this.invalidate(BindGroupInvalidationType.BindGroupRebuild);
+    this.invalidate(BindGroupInvalidationType.NativeRebuild);
     const lEntryList = new Array();
     for (const lBindname of this.layout.bindingNames) {
       // Read bind data.
@@ -2698,7 +2697,7 @@ class BindGroup extends gpu_object_1.GpuObject {
 exports.BindGroup = BindGroup;
 var BindGroupInvalidationType;
 (function (BindGroupInvalidationType) {
-  BindGroupInvalidationType["BindGroupRebuild"] = "GroupRebuild";
+  BindGroupInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(BindGroupInvalidationType || (exports.BindGroupInvalidationType = BindGroupInvalidationType = {}));
 
 /***/ }),
@@ -2768,7 +2767,7 @@ class PipelineLayout extends gpu_object_1.GpuObject {
       this.mBindGroups.set(lGroupIndex, lGroup);
       // Add invalidationlistener.
       const lListener = () => {
-        this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+        this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
       };
       lGroup.addInvalidationListener(lListener);
       this.mBindGroupInvalidationListener.set(lGroup, lListener);
@@ -2882,12 +2881,12 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     }
     // Replace binding group and add invalidation listener.
     const lListener = () => {
-      this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+      this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
     };
     pBindGroup.addInvalidationListener(lListener);
     this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
     // Trigger updates.
-    this.invalidate(PipelineLayoutInvalidationType.GroupReplace);
+    this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
   }
   /**
    * Set a placeholder group that will not be used.
@@ -2913,12 +2912,12 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     this.mBindGroupNames.set(pLayout.name, pIndex);
     // Register change listener for layout changes.
     const lListener = () => {
-      this.invalidate(PipelineLayoutInvalidationType.GroupChange);
+      this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
     };
     pLayout.addInvalidationListener(lListener);
     this.mBindGroupInvalidationListener.set(pLayout, lListener);
     // Trigger auto update.
-    this.invalidate(PipelineLayoutInvalidationType.GroupReplace);
+    this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
   }
   /**
    * Generate native gpu pipeline data layout.
@@ -2942,8 +2941,7 @@ class PipelineLayout extends gpu_object_1.GpuObject {
 exports.PipelineLayout = PipelineLayout;
 var PipelineLayoutInvalidationType;
 (function (PipelineLayoutInvalidationType) {
-  PipelineLayoutInvalidationType["GroupReplace"] = "GroupReplace";
-  PipelineLayoutInvalidationType["GroupChange"] = "GroupChange";
+  PipelineLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(PipelineLayoutInvalidationType || (exports.PipelineLayoutInvalidationType = PipelineLayoutInvalidationType = {}));
 
 /***/ }),
@@ -3282,7 +3280,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     this.mInitialDataCallback = null;
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+      this.invalidate(GpuBufferInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -3295,7 +3293,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     // Update only when not already set.
     if ((this.mBufferUsage & pUsage) === 0) {
       this.mBufferUsage |= pUsage;
-      this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+      this.invalidate(GpuBufferInvalidationType.NativeRebuild);
     }
     return this;
   }
@@ -3308,7 +3306,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     // Set new initial data, set on creation.
     this.mInitialDataCallback = pDataCallback;
     // Trigger update.
-    this.invalidate(GpuBufferInvalidationType.BufferRebuild);
+    this.invalidate(GpuBufferInvalidationType.NativeRebuild);
     return this;
   }
   /**
@@ -3509,7 +3507,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
 exports.GpuBuffer = GpuBuffer;
 var GpuBufferInvalidationType;
 (function (GpuBufferInvalidationType) {
-  GpuBufferInvalidationType["BufferRebuild"] = "BufferRebuild";
+  GpuBufferInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(GpuBufferInvalidationType || (exports.GpuBufferInvalidationType = GpuBufferInvalidationType = {}));
 
 /***/ }),
@@ -3741,7 +3739,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Update bundle when render target has changed.
     pRenderTargets.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    }, [render_targets_1.RenderTargetsInvalidationType.TextureFormatChange, render_targets_1.RenderTargetsInvalidationType.DescriptorRebuild, render_targets_1.RenderTargetsInvalidationType.Resize, render_targets_1.RenderTargetsInvalidationType.MultisampleChange]);
+    }, [render_targets_1.RenderTargetsInvalidationType.LayoutChange, render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
   }
   /**
    * Add instruction step.
@@ -3805,7 +3803,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     for (const lGroupName of lPipelineLayout.groups) {
       lBindGroups.get(lGroupName).addInvalidationListener(() => {
         this.mBundleConfig.bundle = null;
-      }, [bind_group_1.BindGroupInvalidationType.BindGroupRebuild]);
+      }, [bind_group_1.BindGroupInvalidationType.NativeRebuild]);
     }
   }
   /**
@@ -5650,11 +5648,8 @@ class ComputePipeline extends gpu_object_1.GpuObject {
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
-    this.mShaderModule.shader.addInvalidationListener(() => {
-      this.invalidate(ComputePipelineInvalidationType.Shader);
-    });
     this.mShaderModule.shader.layout.addInvalidationListener(() => {
-      this.invalidate(ComputePipelineInvalidationType.Shader);
+      this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -5677,7 +5672,7 @@ class ComputePipeline extends gpu_object_1.GpuObject {
       this.mParameter.get(lUsage)[pParameterName] = pValue;
     }
     // Generate pipeline anew.
-    this.invalidate(ComputePipelineInvalidationType.Parameter);
+    this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
     return this;
   }
   /**
@@ -5700,9 +5695,7 @@ class ComputePipeline extends gpu_object_1.GpuObject {
 exports.ComputePipeline = ComputePipeline;
 var ComputePipelineInvalidationType;
 (function (ComputePipelineInvalidationType) {
-  ComputePipelineInvalidationType["Shader"] = "ShaderChange";
-  ComputePipelineInvalidationType["Config"] = "ConfigChange";
-  ComputePipelineInvalidationType["Parameter"] = "ParameterChange";
+  ComputePipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(ComputePipelineInvalidationType || (exports.ComputePipelineInvalidationType = ComputePipelineInvalidationType = {}));
 
 /***/ }),
@@ -5810,7 +5803,7 @@ exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.VertexParameterLayout = void 0;
+exports.VertexParameterLayoutInvalidationType = exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
@@ -6025,6 +6018,10 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
   }
 }
 exports.VertexParameterLayout = VertexParameterLayout;
+var VertexParameterLayoutInvalidationType;
+(function (VertexParameterLayoutInvalidationType) {
+  VertexParameterLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
+})(VertexParameterLayoutInvalidationType || (exports.VertexParameterLayoutInvalidationType = VertexParameterLayoutInvalidationType = {}));
 
 /***/ }),
 
@@ -6488,7 +6485,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
     }
     // Apply resize for all textures.
     this.applyResize();
-    // Invalidation triggers through each texture.
+    // Trigger resize invalidation. Does not automaticly trigger rebuild.
+    this.invalidate(RenderTargetsInvalidationType.Resize);
     return this;
   }
   /**
@@ -6507,7 +6505,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   generateNative() {
     // Invalidate bc. descriptor is rebuilding.
-    this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+    this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
     // Create color attachments.
     const lColorAttachments = new Array();
     for (const lColorAttachment of this.mColorTargets) {
@@ -6671,7 +6669,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   updateNative(pNative, pReasons) {
     // Native can not be updated on any config changes.
-    if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
+    if (pReasons.has(RenderTargetsInvalidationType.NativeRebuild)) {
       // Reset updateable views.
       this.mTargetViewUpdateQueue.clear();
       return false;
@@ -6715,7 +6713,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
           lAttachment.texture.target = new frame_buffer_texture_1.FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
           lAttachment.texture.target.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
           // Update descriptor on texture changes.
-          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+          this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
         }
       } else {
         // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
@@ -6725,7 +6723,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
           // Use resolve as target.
           lAttachment.texture.target = lAttachment.texture.resolve;
           // Update descriptor on texture changes.
-          this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
+          this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
         }
       }
       // Add multisample level only to frame buffers as canvas does not support any mutisampling.
@@ -6763,30 +6761,14 @@ class RenderTargets extends gpu_object_1.GpuObject {
       // Update descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
         // Invalidate.
-        this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+        this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
         // Set texture as updateable.
         this.mTargetViewUpdateQueue.add(pTextureIndex);
-      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.ViewRebuild]);
+      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.NativeRebuild]);
       // Passthough other invalidations.
-      pTexture.addInvalidationListener(pType => {
-        switch (pType) {
-          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.Resize:
-            {
-              this.invalidate(RenderTargetsInvalidationType.Resize);
-              break;
-            }
-          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.MultisampleChange:
-            {
-              this.invalidate(RenderTargetsInvalidationType.MultisampleChange);
-              break;
-            }
-          case frame_buffer_texture_1.FrameBufferTextureInvalidationType.FormatChange:
-            {
-              this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
-              break;
-            }
-        }
-      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.Resize, frame_buffer_texture_1.FrameBufferTextureInvalidationType.MultisampleChange, frame_buffer_texture_1.FrameBufferTextureInvalidationType.FormatChange]);
+      pTexture.addInvalidationListener(() => {
+        this.invalidate(RenderTargetsInvalidationType.LayoutChange);
+      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.LayoutChange]);
       return;
     }
     // Frame buffer texture invalidation listener.
@@ -6794,25 +6776,14 @@ class RenderTargets extends gpu_object_1.GpuObject {
       // Rebuild descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
         // Invalidate.
-        this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+        this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
         // Set texture as updateable.
         this.mTargetViewUpdateQueue.add(pTextureIndex);
-      }, [canvas_texture_1.CanvasTextureInvalidationType.ViewRebuild]);
+      }, [canvas_texture_1.CanvasTextureInvalidationType.NativeRebuild]);
       // Passthough other invalidations.
-      pTexture.addInvalidationListener(pType => {
-        switch (pType) {
-          case canvas_texture_1.CanvasTextureInvalidationType.Resize:
-            {
-              this.invalidate(RenderTargetsInvalidationType.Resize);
-              break;
-            }
-          case canvas_texture_1.CanvasTextureInvalidationType.FormatChange:
-            {
-              this.invalidate(RenderTargetsInvalidationType.TextureFormatChange);
-              break;
-            }
-        }
-      }, [canvas_texture_1.CanvasTextureInvalidationType.Resize, canvas_texture_1.CanvasTextureInvalidationType.FormatChange]);
+      pTexture.addInvalidationListener(() => {
+        this.invalidate(RenderTargetsInvalidationType.LayoutChange);
+      }, [canvas_texture_1.CanvasTextureInvalidationType.LayoutChange]);
       return;
     }
   }
@@ -6820,11 +6791,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
 exports.RenderTargets = RenderTargets;
 var RenderTargetsInvalidationType;
 (function (RenderTargetsInvalidationType) {
+  RenderTargetsInvalidationType["LayoutChange"] = "LayoutChange";
+  RenderTargetsInvalidationType["NativeUpdate"] = "NativeUpdate";
+  RenderTargetsInvalidationType["NativeRebuild"] = "NativeRebuild";
   RenderTargetsInvalidationType["Resize"] = "Resize";
-  RenderTargetsInvalidationType["MultisampleChange"] = "MultisampleChange";
-  RenderTargetsInvalidationType["TextureFormatChange"] = "LayoutChange";
-  RenderTargetsInvalidationType["ViewRebuild"] = "ViewRebuild";
-  RenderTargetsInvalidationType["DescriptorRebuild"] = "DescriptorRebuild";
 })(RenderTargetsInvalidationType || (exports.RenderTargetsInvalidationType = RenderTargetsInvalidationType = {}));
 
 /***/ }),
@@ -6931,10 +6901,12 @@ const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primiti
 const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
 const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
 const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
-const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const vertex_parameter_layout_1 = __webpack_require__(/*! ./parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
+const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
 const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/base/pipeline/vertex-fragment-pipeline-target-config.ts");
 class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   /**
@@ -6946,7 +6918,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   set depthCompare(pValue) {
     this.mDepthCompare = pValue;
     // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
   }
   /**
    * Pipeline shader.
@@ -6969,7 +6941,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   set primitiveCullMode(pValue) {
     this.mPrimitiveCullMode = pValue;
     // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
   }
   /**
    * Defines which polygons are considered front-facing.
@@ -6980,7 +6952,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   set primitiveFrontFace(pValue) {
     this.mPrimitiveFrontFace = pValue;
     // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
   }
   /**
    * The type of primitive to be constructed from the vertex inputs.
@@ -6991,7 +6963,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   set primitiveTopology(pValue) {
     this.mPrimitiveTopology = pValue;
     // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
   }
   /**
    * Render targets.
@@ -7008,7 +6980,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   set writeDepth(pValue) {
     this.mDepthWriteEnabled = pValue;
     // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
   }
   /**
    * Constructor.
@@ -7025,20 +6997,18 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     this.mRenderTargetConfig = new core_1.Dictionary();
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
-    // Listen for shader changes.
-    this.mShaderModule.shader.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-    });
+    // Listen for vertex layout changes.
     this.mShaderModule.vertexParameter.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-    });
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    }, [vertex_parameter_layout_1.VertexParameterLayoutInvalidationType.NativeRebuild]);
+    // Listen for pipeline layout changes.
     this.mShaderModule.shader.layout.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.Shader);
-    });
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    }, [pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild]);
     // Listen for render target changes.
     this.mRenderTargets.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.RenderTargets);
-    }, [render_targets_1.RenderTargetsInvalidationType.TextureFormatChange, render_targets_1.RenderTargetsInvalidationType.Resize, render_targets_1.RenderTargetsInvalidationType.MultisampleChange]);
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    }, [render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
     // Depth default settings.
     this.mDepthCompare = compare_function_enum_1.CompareFunction.Less;
     this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
@@ -7067,7 +7037,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       this.mParameter.get(lUsage)[pParameterName] = pValue;
     }
     // Generate pipeline anew.
-    this.invalidate(VertexFragmentPipelineInvalidationType.Parameter);
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     return this;
   }
   /**
@@ -7099,7 +7069,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     }
     return new vertex_fragment_pipeline_target_config_1.VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName), () => {
       // Generate pipeline anew.
-      this.invalidate(VertexFragmentPipelineInvalidationType.Config);
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -7252,10 +7222,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
 exports.VertexFragmentPipeline = VertexFragmentPipeline;
 var VertexFragmentPipelineInvalidationType;
 (function (VertexFragmentPipelineInvalidationType) {
-  VertexFragmentPipelineInvalidationType["Shader"] = "ShaderChange";
-  VertexFragmentPipelineInvalidationType["RenderTargets"] = "RenderTargetsChange";
-  VertexFragmentPipelineInvalidationType["Config"] = "ConfigChange";
-  VertexFragmentPipelineInvalidationType["Parameter"] = "ParameterChange";
+  VertexFragmentPipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(VertexFragmentPipelineInvalidationType || (exports.VertexFragmentPipelineInvalidationType = VertexFragmentPipelineInvalidationType = {}));
 
 /***/ }),
@@ -7475,7 +7442,7 @@ exports.ShaderSetup = ShaderSetup;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ShaderComputeModuleInvalidationType = exports.ShaderComputeModule = void 0;
+exports.ShaderComputeModule = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/base/pipeline/compute-pipeline.ts");
 class ShaderComputeModule extends gpu_object_1.GpuObject {
@@ -7528,10 +7495,6 @@ class ShaderComputeModule extends gpu_object_1.GpuObject {
     this.mEntryPoint = pEntryPointName;
     this.mShader = pShader;
     this.mSize = pSize ?? [-1, -1, -1];
-    // Update on shader update.
-    pShader.addInvalidationListener(() => {
-      this.invalidate(ShaderComputeModuleInvalidationType.Shader);
-    });
   }
   /**
    * Create a new compute pipeline.
@@ -7543,10 +7506,6 @@ class ShaderComputeModule extends gpu_object_1.GpuObject {
   }
 }
 exports.ShaderComputeModule = ShaderComputeModule;
-var ShaderComputeModuleInvalidationType;
-(function (ShaderComputeModuleInvalidationType) {
-  ShaderComputeModuleInvalidationType["Shader"] = "ShaderChange";
-})(ShaderComputeModuleInvalidationType || (exports.ShaderComputeModuleInvalidationType = ShaderComputeModuleInvalidationType = {}));
 
 /***/ }),
 
@@ -7562,7 +7521,7 @@ var ShaderComputeModuleInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ShaderRenderModuleInvalidationType = exports.ShaderRenderModule = void 0;
+exports.ShaderRenderModule = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/base/pipeline/vertex-fragment-pipeline.ts");
 class ShaderRenderModule extends gpu_object_1.GpuObject {
@@ -7610,14 +7569,6 @@ class ShaderRenderModule extends gpu_object_1.GpuObject {
     this.mVertexParameter = pVertexParameter;
     this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
     this.mShader = pShader;
-    // Update on shader update.
-    pShader.addInvalidationListener(() => {
-      this.invalidate(ShaderRenderModuleInvalidationType.Shader);
-    });
-    // Update on vertex parameter.
-    pVertexParameter.addInvalidationListener(() => {
-      this.invalidate(ShaderRenderModuleInvalidationType.VertexParameter);
-    });
   }
   /**
    * Create a new render pipeline for set render targets.
@@ -7631,11 +7582,6 @@ class ShaderRenderModule extends gpu_object_1.GpuObject {
   }
 }
 exports.ShaderRenderModule = ShaderRenderModule;
-var ShaderRenderModuleInvalidationType;
-(function (ShaderRenderModuleInvalidationType) {
-  ShaderRenderModuleInvalidationType["Shader"] = "ShaderChange";
-  ShaderRenderModuleInvalidationType["VertexParameter"] = "VertexParameterChange";
-})(ShaderRenderModuleInvalidationType || (exports.ShaderRenderModuleInvalidationType = ShaderRenderModuleInvalidationType = {}));
 
 /***/ }),
 
@@ -7651,7 +7597,7 @@ var ShaderRenderModuleInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ShaderInvalidationType = exports.Shader = void 0;
+exports.Shader = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
@@ -7868,10 +7814,6 @@ class Shader extends gpu_object_1.GpuObject {
       lInitialPipelineLayout.set(lGroup.index, lGroup.group);
     }
     this.mPipelineLayout = new pipeline_layout_1.PipelineLayout(this.device, lInitialPipelineLayout);
-    // Invalidate shader every time the pipeline layout changes.
-    this.mPipelineLayout.addInvalidationListener(() => {
-      this.invalidate(ShaderInvalidationType.PipelineLayout);
-    });
   }
   /**
    * Create setup object. Return null to skip any setups.
@@ -7885,10 +7827,6 @@ class Shader extends gpu_object_1.GpuObject {
   }
 }
 exports.Shader = Shader;
-var ShaderInvalidationType;
-(function (ShaderInvalidationType) {
-  ShaderInvalidationType["PipelineLayout"] = "PipelineLayoutChange";
-})(ShaderInvalidationType || (exports.ShaderInvalidationType = ShaderInvalidationType = {}));
 
 /***/ }),
 
@@ -7967,7 +7905,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class CanvasTexture extends base_texture_1.BaseTexture {
   /**
@@ -7984,8 +7921,6 @@ class CanvasTexture extends base_texture_1.BaseTexture {
   }
   set height(pValue) {
     this.mCanvas.height = pValue;
-    // Invalidate size.
-    this.invalidate(CanvasTextureInvalidationType.Resize);
   }
   /**
    * Texture width.
@@ -7995,8 +7930,6 @@ class CanvasTexture extends base_texture_1.BaseTexture {
   }
   set width(pValue) {
     this.mCanvas.width = pValue;
-    // Invalidate size.
-    this.invalidate(CanvasTextureInvalidationType.Resize);
   }
   /**
    * Constructor.
@@ -8014,12 +7947,12 @@ class CanvasTexture extends base_texture_1.BaseTexture {
     this.width = 1;
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(CanvasTextureInvalidationType.FormatChange);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+      this.invalidate(CanvasTextureInvalidationType.LayoutChange, CanvasTextureInvalidationType.NativeRebuild);
+    });
     // TODO: Remove it on deconstruct.
     // Rebuild view on every frame.
     this.device.addFrameChangeListener(() => {
-      this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
+      this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
     });
   }
   /**
@@ -8028,7 +7961,7 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    */
   destroyNative(_pNativeObject, pReasons) {
     // Context is only invalid on deconstruct or layout has changes.
-    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.FormatChange) || pReasons.has(CanvasTextureInvalidationType.UsageExtended);
+    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.ContextRebuild);
     // Only destroy context when child data/layout has changes.
     if (lContextInvalid) {
       // Destory context.
@@ -8042,13 +7975,11 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    */
   generateNative() {
     // Invalidate for frame change.
-    this.invalidate(CanvasTextureInvalidationType.ViewRebuild);
+    this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
     // Read canvas format.
     const lFormat = this.layout.format;
     // Configure new context when not alread configured or destroyed.
     if (!this.mContext) {
-      // Invalidate bc. context neeeded to rebuild.
-      this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
       // Create and configure canvas context.
       this.mContext = this.canvas.getContext('webgpu');
       this.mContext.configure({
@@ -8070,7 +8001,7 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(CanvasTextureInvalidationType.UsageExtended);
+    this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
   }
   /**
    * Do nothing when view and context does not need to be updated.
@@ -8078,21 +8009,26 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    * @param _pNative - Native
    * @param pReasons - Invalidation reason.
    *
-   * @returns true when nothing was done.
+   * @returns false when a rebuild must be done.
    */
   updateNative(_pNative, pReasons) {
-    // Literally only "update" on resize.
-    return pReasons.has(CanvasTextureInvalidationType.Resize) && !pReasons.has(CanvasTextureInvalidationType.ViewRebuild) && !pReasons.has(CanvasTextureInvalidationType.UsageExtended) && !pReasons.has(CanvasTextureInvalidationType.FormatChange) && !pReasons.deconstruct;
+    // Cant update on native rebuild.
+    if (pReasons.has(CanvasTextureInvalidationType.NativeRebuild)) {
+      return false;
+    }
+    // Cant update on context rebuild.
+    if (pReasons.has(CanvasTextureInvalidationType.ContextRebuild)) {
+      return false;
+    }
+    return true;
   }
 }
 exports.CanvasTexture = CanvasTexture;
 var CanvasTextureInvalidationType;
 (function (CanvasTextureInvalidationType) {
   CanvasTextureInvalidationType["ContextRebuild"] = "ContextRebuild";
-  CanvasTextureInvalidationType["ViewRebuild"] = "ViewRebuild";
-  CanvasTextureInvalidationType["Resize"] = "Resize";
-  CanvasTextureInvalidationType["UsageExtended"] = "UsageChange";
-  CanvasTextureInvalidationType["FormatChange"] = "FormatChange";
+  CanvasTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
+  CanvasTextureInvalidationType["LayoutChange"] = "LayoutChange";
 })(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
 
 /***/ }),
@@ -8112,7 +8048,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.FrameBufferTextureInvalidationType = exports.FrameBufferTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 class FrameBufferTexture extends base_texture_1.BaseTexture {
   /**
@@ -8124,7 +8059,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set depth(pValue) {
     this.mDepth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
   }
   /**
    * Texture height.
@@ -8135,7 +8070,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set height(pValue) {
     this.mHeight = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
   }
   /**
    * Texture multi sample level.
@@ -8152,7 +8087,7 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
   set width(pValue) {
     this.mWidth = pValue;
     // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.Resize, FrameBufferTextureInvalidationType.TextureRebuild);
+    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
   }
   /**
    * Constructor.
@@ -8168,16 +8103,8 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     this.mWidth = 1;
     // Trigger Texture rebuild on dimension for format changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
-    // Trigger format change on formats.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(FrameBufferTextureInvalidationType.FormatChange);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
-    // Trigger format change on formats.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(FrameBufferTextureInvalidationType.MultisampleChange);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Multisampled]);
+      this.invalidate(FrameBufferTextureInvalidationType.LayoutChange, FrameBufferTextureInvalidationType.NativeRebuild);
+    });
   }
   /**
    * Destory texture object.
@@ -8196,6 +8123,8 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * Generate native canvas texture view.
    */
   generateNative() {
+    // Invalidate texture and view.
+    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     // TODO: Validate format based on layout. Maybe replace used format.
     // Validate two dimensional texture.
     if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
@@ -8203,12 +8132,10 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
     }
     // Any change triggers a texture rebuild.
     this.mTexture?.destroy();
-    // Invalidate texture and view.
-    this.invalidate(FrameBufferTextureInvalidationType.TextureRebuild, FrameBufferTextureInvalidationType.ViewRebuild);
     // Create and configure canvas context.
     this.mTexture = this.device.gpu.createTexture({
       label: 'Frame-Buffer-Texture',
-      size: [this.width, this.height, 1],
+      size: [this.mWidth, this.mHeight, 1],
       // Force 2d texture.
       format: this.layout.format,
       usage: this.usage,
@@ -8225,18 +8152,14 @@ class FrameBufferTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(FrameBufferTextureInvalidationType.UsageExtended);
+    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
   }
 }
 exports.FrameBufferTexture = FrameBufferTexture;
 var FrameBufferTextureInvalidationType;
 (function (FrameBufferTextureInvalidationType) {
-  FrameBufferTextureInvalidationType["TextureRebuild"] = "TextureRebuild";
-  FrameBufferTextureInvalidationType["ViewRebuild"] = "ViewRebuild";
-  FrameBufferTextureInvalidationType["Resize"] = "Resize";
-  FrameBufferTextureInvalidationType["MultisampleChange"] = "MultisampleChange";
-  FrameBufferTextureInvalidationType["UsageExtended"] = "UsageChange";
-  FrameBufferTextureInvalidationType["FormatChange"] = "FormatChange";
+  FrameBufferTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
+  FrameBufferTextureInvalidationType["LayoutChange"] = "LayoutChange";
 })(FrameBufferTextureInvalidationType || (exports.FrameBufferTextureInvalidationType = FrameBufferTextureInvalidationType = {}));
 
 /***/ }),
@@ -8259,7 +8182,6 @@ exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
 class ImageTexture extends base_texture_1.BaseTexture {
@@ -8277,6 +8199,8 @@ class ImageTexture extends base_texture_1.BaseTexture {
   }
   set enableMips(pEnable) {
     this.mEnableMips = pEnable;
+    // Invalidate native on mip enable change.
+    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
   }
   /**
    * Texture height.
@@ -8313,8 +8237,8 @@ class ImageTexture extends base_texture_1.BaseTexture {
     this.mImageList = new Array();
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(ImageTextureInvalidationType.Layout);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+      this.invalidate(ImageTextureInvalidationType.LayoutChange, ImageTextureInvalidationType.NativeRebuild);
+    });
     // Allways a copy destination.
     this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
   }
@@ -8363,7 +8287,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
       // maxTextureDimension3D
       // maxTextureArrayLayers
       // Trigger change.
-      _this.invalidate(ImageTextureInvalidationType.ImageBinary);
+      _this.invalidate(ImageTextureInvalidationType.ImageBinary, ImageTextureInvalidationType.NativeRebuild);
     })();
   }
   /**
@@ -8382,6 +8306,8 @@ class ImageTexture extends base_texture_1.BaseTexture {
    */
   generateNative(_pCurrentNative, pInvalidationReasons) {
     // TODO: Validate format based on layout. Maybe replace used format.
+    // Invalidate view.
+    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
     // Generate gpu dimension from memory layout dimension.
     const lTextureDimensions = (() => {
       switch (this.layout.dimension) {
@@ -8529,15 +8455,15 @@ class ImageTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(ImageTextureInvalidationType.Usage);
+    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
   }
 }
 exports.ImageTexture = ImageTexture;
 var ImageTextureInvalidationType;
 (function (ImageTextureInvalidationType) {
-  ImageTextureInvalidationType["Layout"] = "LayoutChange";
+  ImageTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
+  ImageTextureInvalidationType["LayoutChange"] = "LayoutChange";
   ImageTextureInvalidationType["ImageBinary"] = "ImageBinaryChange";
-  ImageTextureInvalidationType["Usage"] = "UsageChange";
 })(ImageTextureInvalidationType || (exports.ImageTextureInvalidationType = ImageTextureInvalidationType = {}));
 
 /***/ }),
@@ -10174,7 +10100,6 @@ const filter_mode_enum_1 = __webpack_require__(/*! ../../constant/filter-mode.en
 const sampler_type_enum_1 = __webpack_require__(/*! ../../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const wrapping_mode_enum_1 = __webpack_require__(/*! ../../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
 class TextureSampler extends gpu_object_1.GpuObject {
   /**
    * When provided the sampler will be a comparison sampler with the specified compare function.
@@ -10185,7 +10110,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set compare(pValue) {
     this.mCompare = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
@@ -10196,7 +10121,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set lodMaxClamp(pValue) {
     this.mLodMaxClamp = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
@@ -10207,7 +10132,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set lodMinClamp(pValue) {
     this.mLodMinClamp = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * How the texture is sampled when a texel covers more than one pixel.
@@ -10218,7 +10143,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set magFilter(pValue) {
     this.mMagFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Specifies the maximum anisotropy value clamp used by the sampler.
@@ -10229,7 +10154,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set maxAnisotropy(pValue) {
     this.mMaxAnisotropy = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Sampler memory layout.
@@ -10246,7 +10171,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set minFilter(pValue) {
     this.mMinFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Specifies behavior for sampling between mipmap levels.
@@ -10257,7 +10182,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set mipmapFilter(pValue) {
     this.mMipmapFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Native gpu object.
@@ -10274,7 +10199,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set wrapMode(pValue) {
     this.mWrapMode = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.SamplerConfig);
+    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
   }
   /**
    * Constructor.
@@ -10295,8 +10220,8 @@ class TextureSampler extends gpu_object_1.GpuObject {
     this.mMaxAnisotropy = 16;
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(TextureSamplerInvalidationType.Layout);
-    }, [sampler_memory_layout_1.SamplerMemoryLayoutInvalidationType.SamplerType]);
+      this.invalidate(TextureSamplerInvalidationType.LayoutChange, TextureSamplerInvalidationType.NativeRebuild);
+    });
   }
   /**
    * Generate native bind data group layout object.
@@ -10328,8 +10253,8 @@ class TextureSampler extends gpu_object_1.GpuObject {
 exports.TextureSampler = TextureSampler;
 var TextureSamplerInvalidationType;
 (function (TextureSamplerInvalidationType) {
-  TextureSamplerInvalidationType["Layout"] = "LayoutChange";
-  TextureSamplerInvalidationType["SamplerConfig"] = "SamplerConfigChange";
+  TextureSamplerInvalidationType["LayoutChange"] = "LayoutChange";
+  TextureSamplerInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(TextureSamplerInvalidationType || (exports.TextureSamplerInvalidationType = TextureSamplerInvalidationType = {}));
 
 /***/ }),
@@ -10349,7 +10274,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.VideoTextureInvalidationType = exports.VideoTexture = void 0;
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
 const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
 const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
 class VideoTexture extends base_texture_1.BaseTexture {
@@ -10370,6 +10294,8 @@ class VideoTexture extends base_texture_1.BaseTexture {
   }
   set enableMips(pEnable) {
     this.mEnableMips = pEnable;
+    // Invalidate native on mip enable change.
+    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
   }
   /**
    * Texture height.
@@ -10427,11 +10353,11 @@ class VideoTexture extends base_texture_1.BaseTexture {
     }
     // Register change listener for layout changes.
     pLayout.addInvalidationListener(() => {
-      this.invalidate(VideoTextureInvalidationType.Layout);
-    }, [texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Dimension, texture_memory_layout_1.TextureMemoryLayoutInvalidationType.Format]);
+      this.invalidate(VideoTextureInvalidationType.LayoutChange, VideoTextureInvalidationType.NativeRebuild);
+    });
     // When video was resized.
     this.mVideo.addEventListener('resize', () => {
-      this.invalidate(VideoTextureInvalidationType.Resize);
+      this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     });
     // Update video texture on every frame. // TODO: Remove on destroy. 
     this.device.addFrameChangeListener(() => {
@@ -10495,6 +10421,8 @@ class VideoTexture extends base_texture_1.BaseTexture {
    * Generate native canvas texture view.
    */
   generateNative() {
+    // Invalidate texture and view.
+    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     // TODO: Validate format based on layout. Maybe replace used format.
     // Clamp with and height to never fall under 1.
     const lClampedTextureWidth = Math.max(this.width, 1);
@@ -10554,15 +10482,14 @@ class VideoTexture extends base_texture_1.BaseTexture {
    * On usage extened. Triggers a texture rebuild.
    */
   onUsageExtend() {
-    this.invalidate(VideoTextureInvalidationType.Usage);
+    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
   }
 }
 exports.VideoTexture = VideoTexture;
 var VideoTextureInvalidationType;
 (function (VideoTextureInvalidationType) {
-  VideoTextureInvalidationType["Layout"] = "LayoutChange";
-  VideoTextureInvalidationType["Usage"] = "UsageChange";
-  VideoTextureInvalidationType["Resize"] = "Resize";
+  VideoTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
+  VideoTextureInvalidationType["LayoutChange"] = "LayoutChange";
 })(VideoTextureInvalidationType || (exports.VideoTextureInvalidationType = VideoTextureInvalidationType = {}));
 
 /***/ }),
@@ -16400,7 +16327,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("fa70c93da631ed73991a")
+/******/ 		__webpack_require__.h = () => ("3ffaaba9cd26a7d41f9f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

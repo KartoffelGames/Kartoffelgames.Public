@@ -251,7 +251,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
             // Register change listener for layout changes.
             lBinding.layout.addInvalidationListener(() => {
-                this.invalidate(BindGroupLayoutInvalidationType.Layout);
+                this.invalidate(BindGroupLayoutInvalidationType.NativeRebuild);
             });
 
             // Validate dublicate indices.
@@ -286,6 +286,5 @@ export type BindLayout = {
 };
 
 export enum BindGroupLayoutInvalidationType {
-    Layout = 'LayoutChange',
-    Setting = 'BindingSettingChange'
+    NativeRebuild = 'NativeRebuild'
 }

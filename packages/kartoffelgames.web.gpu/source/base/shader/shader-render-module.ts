@@ -6,7 +6,7 @@ import { RenderTargets } from '../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
 import { Shader } from './shader';
 
-export class ShaderRenderModule extends GpuObject<null, ShaderRenderModuleInvalidationType> {
+export class ShaderRenderModule extends GpuObject {
     private readonly mFragmentEntryPoint: string | null;
     private readonly mShader: Shader;
     private readonly mVertexEntryPoint: string;
@@ -62,16 +62,6 @@ export class ShaderRenderModule extends GpuObject<null, ShaderRenderModuleInvali
         this.mVertexParameter = pVertexParameter;
         this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
         this.mShader = pShader;
-
-        // Update on shader update.
-        pShader.addInvalidationListener(() => {
-            this.invalidate(ShaderRenderModuleInvalidationType.Shader);
-        });
-
-        // Update on vertex parameter.
-        pVertexParameter.addInvalidationListener(() => {
-            this.invalidate(ShaderRenderModuleInvalidationType.VertexParameter);
-        });
     }
 
     /**
@@ -84,9 +74,4 @@ export class ShaderRenderModule extends GpuObject<null, ShaderRenderModuleInvali
     public create(pRenderTargets: RenderTargets): VertexFragmentPipeline {
         return new VertexFragmentPipeline(this.device, this, pRenderTargets);
     }
-}
-
-export enum ShaderRenderModuleInvalidationType {
-    Shader = 'ShaderChange',
-    VertexParameter = 'VertexParameterChange',
 }

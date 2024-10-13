@@ -132,6 +132,8 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
         this.invalidate(ImageTextureInvalidationType.ImageBinary, ImageTextureInvalidationType.NativeRebuild);
     }
 
+    // TODO: Add ability to create/load images with fixed size and load mips without new generating.
+
     /**
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.

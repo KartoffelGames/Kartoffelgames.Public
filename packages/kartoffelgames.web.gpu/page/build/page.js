@@ -8856,6 +8856,7 @@ class ImageTexture extends base_texture_1.BaseTexture {
       _this.invalidate(ImageTextureInvalidationType.ImageBinary, ImageTextureInvalidationType.NativeRebuild);
     })();
   }
+  // TODO: Add ability to create/load images with fixed size and load mips without new generating.
   /**
    * Destory texture object.
    * @param _pNativeObject - Native canvas texture.
@@ -9074,13 +9075,17 @@ class TextureFormatCapabilities {
     // 8-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8unorm, {
       format: texture_format_enum_1.TextureFormat.R8unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9099,13 +9104,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8snorm, {
       format: texture_format_enum_1.TextureFormat.R8snorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: false,
@@ -9120,13 +9129,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8uint, {
       format: texture_format_enum_1.TextureFormat.R8uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9145,13 +9158,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8sint, {
       format: texture_format_enum_1.TextureFormat.R8sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9171,13 +9188,17 @@ class TextureFormatCapabilities {
     // 16-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16uint, {
       format: texture_format_enum_1.TextureFormat.R16uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9196,13 +9217,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16sint, {
       format: texture_format_enum_1.TextureFormat.R16sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9221,13 +9246,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16float, {
       format: texture_format_enum_1.TextureFormat.R16float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9246,13 +9275,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8unorm, {
       format: texture_format_enum_1.TextureFormat.Rg8unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9271,13 +9304,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8snorm, {
       format: texture_format_enum_1.TextureFormat.Rg8snorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: false,
@@ -9292,13 +9329,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8uint, {
       format: texture_format_enum_1.TextureFormat.Rg8uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9317,13 +9358,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8sint, {
       format: texture_format_enum_1.TextureFormat.Rg8sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9343,13 +9388,17 @@ class TextureFormatCapabilities {
     // 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32uint, {
       format: texture_format_enum_1.TextureFormat.R32uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9372,13 +9421,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32sint, {
       format: texture_format_enum_1.TextureFormat.R32sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9401,13 +9454,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32float, {
       format: texture_format_enum_1.TextureFormat.R32float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9430,13 +9487,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16uint, {
       format: texture_format_enum_1.TextureFormat.Rg16uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9455,13 +9516,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16sint, {
       format: texture_format_enum_1.TextureFormat.Rg16sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9480,13 +9545,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16float, {
       format: texture_format_enum_1.TextureFormat.Rg16float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9505,13 +9574,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unorm, {
       format: texture_format_enum_1.TextureFormat.Rgba8unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9534,13 +9607,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unormSrgb, {
       format: texture_format_enum_1.TextureFormat.Rgba8unormSrgb,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9559,13 +9636,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8snorm, {
       format: texture_format_enum_1.TextureFormat.Rgba8snorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: false,
@@ -9584,13 +9665,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8uint, {
       format: texture_format_enum_1.TextureFormat.Rgba8uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9613,13 +9698,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8sint, {
       format: texture_format_enum_1.TextureFormat.Rgba8sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9642,13 +9731,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unorm, {
       format: texture_format_enum_1.TextureFormat.Bgra8unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9671,13 +9764,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unormSrgb, {
       format: texture_format_enum_1.TextureFormat.Bgra8unormSrgb,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9697,13 +9794,17 @@ class TextureFormatCapabilities {
     // Packed 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb9e5ufloat, {
       format: texture_format_enum_1.TextureFormat.Rgb9e5ufloat,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 1,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: false,
@@ -9718,13 +9819,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2uint, {
       format: texture_format_enum_1.TextureFormat.Rgb10a2uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9743,13 +9848,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2unorm, {
       format: texture_format_enum_1.TextureFormat.Rgb10a2unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9768,13 +9877,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg11b10ufloat, {
       format: texture_format_enum_1.TextureFormat.Rg11b10ufloat,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.Rg11b10ufloatRenderable) ? {
@@ -9794,13 +9907,17 @@ class TextureFormatCapabilities {
     // 64-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32uint, {
       format: texture_format_enum_1.TextureFormat.Rg32uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9823,13 +9940,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32sint, {
       format: texture_format_enum_1.TextureFormat.Rg32sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9852,13 +9973,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32float, {
       format: texture_format_enum_1.TextureFormat.Rg32float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9881,13 +10006,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16uint, {
       format: texture_format_enum_1.TextureFormat.Rgba16uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9910,13 +10039,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16sint, {
       format: texture_format_enum_1.TextureFormat.Rgba16sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9939,13 +10072,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16float, {
       format: texture_format_enum_1.TextureFormat.Rgba16float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9969,13 +10106,17 @@ class TextureFormatCapabilities {
     // 128-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32uint, {
       format: texture_format_enum_1.TextureFormat.Rgba32uint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -9998,13 +10139,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32sint, {
       format: texture_format_enum_1.TextureFormat.Rgba32sint,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10027,13 +10172,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32float, {
       format: texture_format_enum_1.TextureFormat.Rgba32float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10057,13 +10206,17 @@ class TextureFormatCapabilities {
     // Depth/stencil formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Stencil8, {
       format: texture_format_enum_1.TextureFormat.Stencil8,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 1
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10082,13 +10235,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth16unorm, {
       format: texture_format_enum_1.TextureFormat.Depth16unorm,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10107,13 +10264,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plus, {
       format: texture_format_enum_1.TextureFormat.Depth24plus,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10132,13 +10293,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plusStencil8, {
       format: texture_format_enum_1.TextureFormat.Depth24plusStencil8,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 2
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10158,13 +10323,17 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32float, {
       format: texture_format_enum_1.TextureFormat.Depth32float,
+      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
       },
       dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
-      compressionLevel: 0,
+      compressionBlock: {
+        width: 1,
+        height: 1
+      },
       usage: {
         textureBinding: true,
         renderAttachment: {
@@ -10185,13 +10354,17 @@ class TextureFormatCapabilities {
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.Depth32floatStencil8)) {
       this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32floatStencil8, {
         format: texture_format_enum_1.TextureFormat.Depth32floatStencil8,
+        mipMapGeneration: true,
         aspect: {
           types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
           byteCost: 4
         },
         dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
         type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
-        compressionLevel: 0,
+        compressionBlock: {
+          width: 1,
+          height: 1
+        },
         usage: {
           textureBinding: true,
           renderAttachment: {
@@ -10214,13 +10387,17 @@ class TextureFormatCapabilities {
       const lBcTextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
           format: pFormat,
+          mipMapGeneration: false,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
           },
           dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
-          compressionLevel: 16,
+          compressionBlock: {
+            width: 4,
+            height: 4
+          },
           usage: {
             textureBinding: true,
             renderAttachment: false,
@@ -10258,13 +10435,17 @@ class TextureFormatCapabilities {
       const lEtc2TextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
           format: pFormat,
+          mipMapGeneration: false,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
           },
           dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
-          compressionLevel: 16,
+          compressionBlock: {
+            width: 4,
+            height: 4
+          },
           usage: {
             textureBinding: true,
             renderAttachment: false,
@@ -10295,13 +10476,17 @@ class TextureFormatCapabilities {
       const lAstcTextureFormatCapability = (pFormat, pCompressionLevel) => {
         const lFormat = {
           format: pFormat,
+          mipMapGeneration: false,
           aspect: {
             types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
             byteCost: 4
           },
           dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
-          compressionLevel: pCompressionLevel,
+          compressionBlock: {
+            width: pCompressionLevel[0],
+            height: pCompressionLevel[1]
+          },
           usage: {
             textureBinding: true,
             renderAttachment: false,
@@ -10316,34 +10501,34 @@ class TextureFormatCapabilities {
         };
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unorm, 16));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, 16));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unorm, 20));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, 20));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unorm, 25));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, 25));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unorm, 30));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, 330));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unorm, 36));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, 36));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unorm, 40));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, 40));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unorm, 48));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, 48));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unorm, 64));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, 64));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unorm, 50));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, 50));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unorm, 60));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, 60));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unorm, 80));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, 80));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unorm, 100));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, 100));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unorm, 120));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, 120));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unorm, 144));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, 144));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unorm, [4, 4]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, [4, 4]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unorm, [5, 4]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, [5, 4]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unorm, [5, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, [5, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unorm, [6, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, [6, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unorm, [6, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, [6, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unorm, [8, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, [8, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unorm, [8, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, [8, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unorm, [8, 8]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, [8, 8]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unorm, [10, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, [10, 5]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unorm, [10, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, [10, 6]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unorm, [10, 8]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, [10, 8]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unorm, [10, 10]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, [10, 10]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unorm, [12, 10]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, [12, 10]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unorm, [12, 12]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, [12, 12]));
     }
   }
   /**
@@ -11038,7 +11223,7 @@ class VideoTexture extends base_texture_1.BaseTexture {
       dimension: lGpuDimension,
       mipLevelCount: lMipCount
     });
-    // TODO: View descriptor.
+    // View descriptor.
     return this.mTexture.createView({
       format: this.layout.format,
       dimension: this.layout.dimension
@@ -16327,7 +16512,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("39cd5db65095731758c7")
+/******/ 		__webpack_require__.h = () => ("e0708d877163714f90c6")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

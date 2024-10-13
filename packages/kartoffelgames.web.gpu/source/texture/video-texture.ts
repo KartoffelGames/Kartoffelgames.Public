@@ -134,7 +134,7 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
                 // Generate mip when enabled.
                 if (this.mEnableMips) {
                     // Generate mips for texture.
-            this.mMipGenerator.generateMips(this.mTexture);
+                    this.mMipGenerator.generateMips(this.mTexture);
                 }
             }
         });
@@ -228,7 +228,7 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
             mipLevelCount: lMipCount
         });
 
-        // TODO: View descriptor.
+        // View descriptor.
         return this.mTexture.createView({
             format: this.layout.format as GPUTextureFormat,
             dimension: this.layout.dimension

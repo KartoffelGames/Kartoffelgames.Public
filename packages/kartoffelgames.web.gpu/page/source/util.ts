@@ -1,8 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { DeviceConfiguration, KeyboardButton, MouseButton, InputConfiguration, InputDevices, MouseKeyboardConnector, BaseInputDevice } from '@kartoffelgames/web.game-input';
 import { ViewProjection, CameraMatrix } from './camera/view_projection/view-projection';
-import { BindGroup } from '../../source/base/binding/bind-group';
-import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
+import { BindGroup } from '../../source/binding/bind-group';
+import { GpuBuffer } from '../../source/buffer/gpu-buffer';
 
 export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pWorldGroup: BindGroup): void => {
     // Register keyboard mouse movements.

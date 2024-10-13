@@ -1500,11 +1500,11 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const bind_group_layout_1 = __webpack_require__(/*! ../../source/base/binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
-const gpu_device_1 = __webpack_require__(/*! ../../source/base/gpu/gpu-device */ "./source/base/gpu/gpu-device.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const render_targets_1 = __webpack_require__(/*! ../../source/base/pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
+const bind_group_layout_1 = __webpack_require__(/*! ../../source/binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
+const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../../source/constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
@@ -2082,10 +2082,10 @@ exports.UpdateFpsDisplay = (() => {
 
 /***/ }),
 
-/***/ "./source/base/binding/bind-group-data-setup.ts":
-/*!******************************************************!*\
-  !*** ./source/base/binding/bind-group-data-setup.ts ***!
-  \******************************************************/
+/***/ "./source/binding/bind-group-data-setup.ts":
+/*!*************************************************!*\
+  !*** ./source/binding/bind-group-data-setup.ts ***!
+  \*************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2098,15 +2098,15 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupDataSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const image_texture_1 = __webpack_require__(/*! ../texture/image-texture */ "./source/base/texture/image-texture.ts");
-const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/base/texture/texture-sampler.ts");
-const video_texture_1 = __webpack_require__(/*! ../texture/video-texture */ "./source/base/texture/video-texture.ts");
+const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const image_texture_1 = __webpack_require__(/*! ../texture/image-texture */ "./source/texture/image-texture.ts");
+const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+const video_texture_1 = __webpack_require__(/*! ../texture/video-texture */ "./source/texture/video-texture.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2262,10 +2262,10 @@ exports.BindGroupDataSetup = BindGroupDataSetup;
 
 /***/ }),
 
-/***/ "./source/base/binding/bind-group-layout.ts":
-/*!**************************************************!*\
-  !*** ./source/base/binding/bind-group-layout.ts ***!
-  \**************************************************/
+/***/ "./source/binding/bind-group-layout.ts":
+/*!*********************************************!*\
+  !*** ./source/binding/bind-group-layout.ts ***!
+  \*********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2276,13 +2276,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupLayoutInvalidationType = exports.BindGroupLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/base/binding/bind-group.ts");
-const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/base/binding/setup/bind-group-layout-setup.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
+const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/binding/setup/bind-group-layout-setup.ts");
 /**
  * Bind group layout. Fixed at creation.
  */
@@ -2523,10 +2523,10 @@ var BindGroupLayoutInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/binding/bind-group.ts":
-/*!*******************************************!*\
-  !*** ./source/base/binding/bind-group.ts ***!
-  \*******************************************/
+/***/ "./source/binding/bind-group.ts":
+/*!**************************************!*\
+  !*** ./source/binding/bind-group.ts ***!
+  \**************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2537,17 +2537,17 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupInvalidationType = exports.BindGroup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const base_texture_1 = __webpack_require__(/*! ../texture/base-texture */ "./source/base/texture/base-texture.ts");
-const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/base/texture/texture-sampler.ts");
-const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/base/binding/bind-group-data-setup.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const base_texture_1 = __webpack_require__(/*! ../texture/base-texture */ "./source/texture/base-texture.ts");
+const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/binding/bind-group-data-setup.ts");
 class BindGroup extends gpu_object_1.GpuObject {
   /**
    * Layout of bind group.
@@ -2702,10 +2702,10 @@ var BindGroupInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/binding/pipeline-layout.ts":
-/*!************************************************!*\
-  !*** ./source/base/binding/pipeline-layout.ts ***!
-  \************************************************/
+/***/ "./source/binding/pipeline-layout.ts":
+/*!*******************************************!*\
+  !*** ./source/binding/pipeline-layout.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2716,7 +2716,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PipelineLayoutInvalidationType = exports.PipelineLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class PipelineLayout extends gpu_object_1.GpuObject {
   /**
    * Bind group names.
@@ -2946,10 +2946,10 @@ var PipelineLayoutInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/binding/setup/bind-group-layout-array-memory-layout-setup.ts":
-/*!**********************************************************************************!*\
-  !*** ./source/base/binding/setup/bind-group-layout-array-memory-layout-setup.ts ***!
-  \**********************************************************************************/
+/***/ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts":
+/*!*****************************************************************************!*\
+  !*** ./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts ***!
+  \*****************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2959,10 +2959,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutArrayMemoryLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/base/memory_layout/buffer/struct-buffer-memory-layout.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Inner type as array.
@@ -3011,10 +3011,10 @@ exports.BindGroupLayoutArrayMemoryLayoutSetup = BindGroupLayoutArrayMemoryLayout
 
 /***/ }),
 
-/***/ "./source/base/binding/setup/bind-group-layout-memory-layout-setup.ts":
-/*!****************************************************************************!*\
-  !*** ./source/base/binding/setup/bind-group-layout-memory-layout-setup.ts ***!
-  \****************************************************************************/
+/***/ "./source/binding/setup/bind-group-layout-memory-layout-setup.ts":
+/*!***********************************************************************!*\
+  !*** ./source/binding/setup/bind-group-layout-memory-layout-setup.ts ***!
+  \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3024,13 +3024,13 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutMemoryLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/base/memory_layout/buffer/struct-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/base/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const bind_group_layout_array_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-array-memory-layout-setup */ "./source/base/binding/setup/bind-group-layout-array-memory-layout-setup.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const bind_group_layout_array_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-array-memory-layout-setup */ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts");
 class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -3117,10 +3117,10 @@ exports.BindGroupLayoutMemoryLayoutSetup = BindGroupLayoutMemoryLayoutSetup;
 
 /***/ }),
 
-/***/ "./source/base/binding/setup/bind-group-layout-setup.ts":
-/*!**************************************************************!*\
-  !*** ./source/base/binding/setup/bind-group-layout-setup.ts ***!
-  \**************************************************************/
+/***/ "./source/binding/setup/bind-group-layout-setup.ts":
+/*!*********************************************************!*\
+  !*** ./source/binding/setup/bind-group-layout-setup.ts ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3130,9 +3130,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutSetup = void 0;
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
-const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/base/binding/setup/bind-group-layout-memory-layout-setup.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/binding/setup/bind-group-layout-memory-layout-setup.ts");
 class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Add binding to group.
@@ -3174,10 +3174,10 @@ exports.BindGroupLayoutSetup = BindGroupLayoutSetup;
 
 /***/ }),
 
-/***/ "./source/base/buffer/gpu-buffer.ts":
-/*!******************************************!*\
-  !*** ./source/base/buffer/gpu-buffer.ts ***!
-  \******************************************/
+/***/ "./source/buffer/gpu-buffer.ts":
+/*!*************************************!*\
+  !*** ./source/buffer/gpu-buffer.ts ***!
+  \*************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3190,9 +3190,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuBufferInvalidationType = exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
@@ -3512,10 +3512,576 @@ var GpuBufferInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/execution/gpu-execution.ts":
+/***/ "./source/constant/buffer-usage.enum.ts":
+/*!**********************************************!*\
+  !*** ./source/constant/buffer-usage.enum.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BufferUsage = void 0;
+var BufferUsage;
+(function (BufferUsage) {
+  BufferUsage[BufferUsage["None"] = 0] = "None";
+  BufferUsage[BufferUsage["Index"] = GPUBufferUsage.INDEX] = "Index";
+  BufferUsage[BufferUsage["Vertex"] = GPUBufferUsage.VERTEX] = "Vertex";
+  BufferUsage[BufferUsage["Uniform"] = GPUBufferUsage.UNIFORM] = "Uniform";
+  BufferUsage[BufferUsage["Storage"] = GPUBufferUsage.STORAGE] = "Storage";
+  BufferUsage[BufferUsage["Indirect"] = GPUBufferUsage.INDIRECT] = "Indirect";
+  BufferUsage[BufferUsage["CopySource"] = GPUBufferUsage.COPY_SRC] = "CopySource";
+  BufferUsage[BufferUsage["CopyDestination"] = GPUBufferUsage.COPY_DST] = "CopyDestination";
+  // No public available
+  // MapWrite = GPUBufferUsage.MAP_WRITE,
+  // MapRead = GPUBufferUsage.MAP_READ,
+  // QueryResolve = GPUBufferUsage.QUERY_RESOLVE
+})(BufferUsage || (exports.BufferUsage = BufferUsage = {}));
+
+/***/ }),
+
+/***/ "./source/constant/compare-function.enum.ts":
+/*!**************************************************!*\
+  !*** ./source/constant/compare-function.enum.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CompareFunction = void 0;
+var CompareFunction;
+(function (CompareFunction) {
+  CompareFunction["Never"] = "never";
+  CompareFunction["Less"] = "less";
+  CompareFunction["Equal"] = "equal";
+  CompareFunction["LessEqual"] = "less-equal";
+  CompareFunction["Greater"] = "greater";
+  CompareFunction["NotEqual"] = "not-equal";
+  CompareFunction["GreaterEqual"] = "greater-equal";
+  CompareFunction["Allways"] = "always";
+})(CompareFunction || (exports.CompareFunction = CompareFunction = {}));
+
+/***/ }),
+
+/***/ "./source/constant/compute-stage.enum.ts":
+/*!***********************************************!*\
+  !*** ./source/constant/compute-stage.enum.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ComputeStage = void 0;
+var ComputeStage;
+(function (ComputeStage) {
+  ComputeStage[ComputeStage["None"] = 0] = "None";
+  ComputeStage[ComputeStage["Fragment"] = GPUShaderStage.FRAGMENT] = "Fragment";
+  ComputeStage[ComputeStage["Vertex"] = GPUShaderStage.VERTEX] = "Vertex";
+  ComputeStage[ComputeStage["Compute"] = GPUShaderStage.COMPUTE] = "Compute";
+})(ComputeStage || (exports.ComputeStage = ComputeStage = {}));
+
+/***/ }),
+
+/***/ "./source/constant/filter-mode.enum.ts":
+/*!*********************************************!*\
+  !*** ./source/constant/filter-mode.enum.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.FilterMode = void 0;
+var FilterMode;
+(function (FilterMode) {
+  FilterMode["Nearest"] = "nearest";
+  FilterMode["Linear"] = "linear";
+})(FilterMode || (exports.FilterMode = FilterMode = {}));
+
+/***/ }),
+
+/***/ "./source/constant/primitive-cullmode.enum.ts":
+/*!****************************************************!*\
+  !*** ./source/constant/primitive-cullmode.enum.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PrimitiveCullMode = void 0;
+var PrimitiveCullMode;
+(function (PrimitiveCullMode) {
+  PrimitiveCullMode["None"] = "none";
+  PrimitiveCullMode["Front"] = "front";
+  PrimitiveCullMode["Back"] = "back";
+})(PrimitiveCullMode || (exports.PrimitiveCullMode = PrimitiveCullMode = {}));
+
+/***/ }),
+
+/***/ "./source/constant/primitive-front-face.enum.ts":
+/*!******************************************************!*\
+  !*** ./source/constant/primitive-front-face.enum.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PrimitiveFrontFace = void 0;
+var PrimitiveFrontFace;
+(function (PrimitiveFrontFace) {
+  PrimitiveFrontFace["CounterClockWise"] = "cw";
+  PrimitiveFrontFace["ClockWise"] = "ccw";
+})(PrimitiveFrontFace || (exports.PrimitiveFrontFace = PrimitiveFrontFace = {}));
+
+/***/ }),
+
+/***/ "./source/constant/primitive-topology.enum.ts":
+/*!****************************************************!*\
+  !*** ./source/constant/primitive-topology.enum.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PrimitiveTopology = void 0;
+var PrimitiveTopology;
+(function (PrimitiveTopology) {
+  PrimitiveTopology["PointList"] = "point-list";
+  PrimitiveTopology["LineList"] = "line-list";
+  PrimitiveTopology["LineStrip"] = "line-strip";
+  PrimitiveTopology["TriangleList"] = "triangle-list";
+  PrimitiveTopology["TriangleStrip"] = "triangle-strip";
+})(PrimitiveTopology || (exports.PrimitiveTopology = PrimitiveTopology = {}));
+
+/***/ }),
+
+/***/ "./source/constant/sampler-type.enum.ts":
+/*!**********************************************!*\
+  !*** ./source/constant/sampler-type.enum.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SamplerType = void 0;
+var SamplerType;
+(function (SamplerType) {
+  SamplerType["Filter"] = "filtering";
+  SamplerType["NoneFiltering"] = "non-filtering";
+  SamplerType["Comparison"] = "comparison";
+})(SamplerType || (exports.SamplerType = SamplerType = {}));
+
+/***/ }),
+
+/***/ "./source/constant/storage-binding-type.enum.ts":
+/*!******************************************************!*\
+  !*** ./source/constant/storage-binding-type.enum.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StorageBindingType = void 0;
+var StorageBindingType;
+(function (StorageBindingType) {
+  StorageBindingType[StorageBindingType["None"] = 0] = "None";
+  StorageBindingType[StorageBindingType["Read"] = 1] = "Read";
+  StorageBindingType[StorageBindingType["Write"] = 2] = "Write";
+  StorageBindingType[StorageBindingType["ReadWrite"] = 4] = "ReadWrite";
+})(StorageBindingType || (exports.StorageBindingType = StorageBindingType = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-aspect.enum.ts":
 /*!************************************************!*\
-  !*** ./source/base/execution/gpu-execution.ts ***!
+  !*** ./source/constant/texture-aspect.enum.ts ***!
   \************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureAspect = void 0;
+var TextureAspect;
+(function (TextureAspect) {
+  TextureAspect["Red"] = "red";
+  TextureAspect["Green"] = "green";
+  TextureAspect["Blue"] = "blue";
+  TextureAspect["Alpha"] = "alpha";
+  TextureAspect["Stencil"] = "stencil";
+  TextureAspect["Depth"] = "depth";
+})(TextureAspect || (exports.TextureAspect = TextureAspect = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-blend-factor.enum.ts":
+/*!******************************************************!*\
+  !*** ./source/constant/texture-blend-factor.enum.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureBlendFactor = void 0;
+var TextureBlendFactor;
+(function (TextureBlendFactor) {
+  TextureBlendFactor["Zero"] = "zero";
+  TextureBlendFactor["One"] = "one";
+  TextureBlendFactor["Src"] = "src";
+  TextureBlendFactor["OneMinusSrc"] = "one-minus-src";
+  TextureBlendFactor["SrcAlpha"] = "src-alpha";
+  TextureBlendFactor["OneMinusSrcAlpha"] = "one-minus-src-alpha";
+  TextureBlendFactor["Dst"] = "dst";
+  TextureBlendFactor["OneMinusDst"] = "one-minus-dst";
+  TextureBlendFactor["DstAlpha"] = "dst-alpha";
+  TextureBlendFactor["OneMinusDstAlpha"] = "one-minus-dst-alpha";
+  TextureBlendFactor["SrcAlphaSaturated"] = "src-alpha-saturated";
+  TextureBlendFactor["Constant"] = "constant";
+  TextureBlendFactor["OneMinusConstant"] = "one-minus-constant";
+  TextureBlendFactor["Src1"] = "src1";
+  TextureBlendFactor["OneMinusSrc1"] = "one-minus-src1";
+  TextureBlendFactor["Src1Alpha"] = "src1-alpha";
+  TextureBlendFactor["OneMinusSrc1Alpha"] = "one-minus-src1-alpha";
+})(TextureBlendFactor || (exports.TextureBlendFactor = TextureBlendFactor = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-blend-operation.enum.ts":
+/*!*********************************************************!*\
+  !*** ./source/constant/texture-blend-operation.enum.ts ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureBlendOperation = void 0;
+var TextureBlendOperation;
+(function (TextureBlendOperation) {
+  TextureBlendOperation["Add"] = "add";
+  TextureBlendOperation["Subtract"] = "subtract";
+  TextureBlendOperation["ReverseSubtract"] = "reverse-subtract";
+  TextureBlendOperation["Min"] = "min";
+  TextureBlendOperation["Max"] = "max";
+})(TextureBlendOperation || (exports.TextureBlendOperation = TextureBlendOperation = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-dimension.enum.ts":
+/*!***************************************************!*\
+  !*** ./source/constant/texture-dimension.enum.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureDimension = void 0;
+var TextureDimension;
+(function (TextureDimension) {
+  TextureDimension["OneDimension"] = "1d";
+  TextureDimension["TwoDimension"] = "2d";
+  TextureDimension["TwoDimensionArray"] = "2d-array";
+  TextureDimension["Cube"] = "cube";
+  TextureDimension["CubeArray"] = "cube-array";
+  TextureDimension["ThreeDimension"] = "3d";
+})(TextureDimension || (exports.TextureDimension = TextureDimension = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-format.enum.ts":
+/*!************************************************!*\
+  !*** ./source/constant/texture-format.enum.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureFormat = void 0;
+var TextureFormat;
+(function (TextureFormat) {
+  // 8-bit formats
+  TextureFormat["R8unorm"] = "r8unorm";
+  TextureFormat["R8snorm"] = "r8snorm";
+  TextureFormat["R8uint"] = "r8uint";
+  TextureFormat["R8sint"] = "r8sint";
+  // 16-bit formats
+  TextureFormat["R16uint"] = "r16uint";
+  TextureFormat["R16sint"] = "r16sint";
+  TextureFormat["R16float"] = "r16float";
+  TextureFormat["Rg8unorm"] = "rg8unorm";
+  TextureFormat["Rg8snorm"] = "rg8snorm";
+  TextureFormat["Rg8uint"] = "rg8uint";
+  TextureFormat["Rg8sint"] = "rg8sint";
+  // 32-bit formats
+  TextureFormat["R32uint"] = "r32uint";
+  TextureFormat["R32sint"] = "r32sint";
+  TextureFormat["R32float"] = "r32float";
+  TextureFormat["Rg16uint"] = "rg16uint";
+  TextureFormat["Rg16sint"] = "rg16sint";
+  TextureFormat["Rg16float"] = "rg16float";
+  TextureFormat["Rgba8unorm"] = "rgba8unorm";
+  TextureFormat["Rgba8unormSrgb"] = "rgba8unorm-srgb";
+  TextureFormat["Rgba8snorm"] = "rgba8snorm";
+  TextureFormat["Rgba8uint"] = "rgba8uint";
+  TextureFormat["Rgba8sint"] = "rgba8sint";
+  TextureFormat["Bgra8unorm"] = "bgra8unorm";
+  TextureFormat["Bgra8unormSrgb"] = "bgra8unorm-srgb";
+  // Packed 32-bit formats
+  TextureFormat["Rgb9e5ufloat"] = "rgb9e5ufloat";
+  TextureFormat["Rgb10a2uint"] = "rgb10a2uint";
+  TextureFormat["Rgb10a2unorm"] = "rgb10a2unorm";
+  TextureFormat["Rg11b10ufloat"] = "rg11b10ufloat";
+  // 64-bit formats
+  TextureFormat["Rg32uint"] = "rg32uint";
+  TextureFormat["Rg32sint"] = "rg32sint";
+  TextureFormat["Rg32float"] = "rg32float";
+  TextureFormat["Rgba16uint"] = "rgba16uint";
+  TextureFormat["Rgba16sint"] = "rgba16sint";
+  TextureFormat["Rgba16float"] = "rgba16float";
+  // 128-bit formats
+  TextureFormat["Rgba32uint"] = "rgba32uint";
+  TextureFormat["Rgba32sint"] = "rgba32sint";
+  TextureFormat["Rgba32float"] = "rgba32float";
+  // Depth/stencil formats
+  TextureFormat["Stencil8"] = "stencil8";
+  TextureFormat["Depth16unorm"] = "depth16unorm";
+  TextureFormat["Depth24plus"] = "depth24plus";
+  TextureFormat["Depth24plusStencil8"] = "depth24plusStencil8";
+  TextureFormat["Depth32float"] = "depth32float";
+  // "depth32float-stencil8" feature
+  TextureFormat["Depth32floatStencil8"] = "depth32floatStencil8";
+  // BC compressed formats usable if "texture-compression-bc" is both
+  // supported by the device/user agent and enabled in requestDevice.
+  TextureFormat["Bc1RgbaUnorm"] = "bc1-rgba-unorm";
+  TextureFormat["Bc1RgbaUnormSrgb"] = "bc1-rgba-unorm-srgb";
+  TextureFormat["Bc2RgbaUnorm"] = "bc2-rgba-unorm";
+  TextureFormat["Bc2RgbaUnormSrgb"] = "bc2-rgba-unorm-srgb";
+  TextureFormat["Bc3RgbaUnorm"] = "bc3-rgba-unorm";
+  TextureFormat["Bc3RgbaUnormSrgb"] = "bc3-rgba-unorm-srgb";
+  TextureFormat["Bc4Runorm"] = "bc4-r-unorm";
+  TextureFormat["Bc4Rsnorm"] = "bc4-r-snorm";
+  TextureFormat["Bc5RgUnorm"] = "bc5-rg-unorm";
+  TextureFormat["Bc5RgSnorm"] = "bc5-rg-snorm";
+  TextureFormat["Bc6hRgbUfloat"] = "bc6h-rgb-ufloat";
+  TextureFormat["Bc6hRgbFloat"] = "bc6h-rgb-float";
+  TextureFormat["Bc7RgbaUnorm"] = "bc7-rgba-unorm";
+  TextureFormat["Bc7RgbaUnormSrgb"] = "bc7-rgba-unorm-srgb";
+  // ETC2 compressed formats usable if "texture-compression-etc2" is both
+  // supported by the device/user agent and enabled in requestDevice.
+  TextureFormat["Etc2Rgb8unorm"] = "etc2-rgb8unorm";
+  TextureFormat["Etc2Rgb8unormSrgb"] = "etc2-rgb8unorm-srgb";
+  TextureFormat["Etc2Rgb8a1unorm"] = "etc2-rgb8a1unorm";
+  TextureFormat["Etc2Rgb8a1unormSrgb"] = "etc2-rgb8a1unorm-srgb";
+  TextureFormat["Etc2Rgba8unorm"] = "etc2-rgba8unorm";
+  TextureFormat["Etc2Rgba8unormSrgb"] = "etc2-rgba8unorm-srgb";
+  TextureFormat["EacR11unorm"] = "eac-r11unorm";
+  TextureFormat["EacR11snorm"] = "eac-r11snorm";
+  TextureFormat["EacRg11unorm"] = "eac-rg11unorm";
+  TextureFormat["EacRg11snorm"] = "eac-rg11snorm";
+  // ASTC compressed formats usable if "texture-compression-astc" is both
+  // supported by the device/user agent and enabled in requestDevice.
+  TextureFormat["Astc4x4unorm"] = "astc-4x4-unorm";
+  TextureFormat["Astc4x4unormSrgb"] = "astc-4x4-unorm-srgb";
+  TextureFormat["Astc5x4unorm"] = "astc-5x4-unorm";
+  TextureFormat["Astc5x4unormSrgb"] = "astc-5x4-unorm-srgb";
+  TextureFormat["Astc5x5unorm"] = "astc-5x5-unorm";
+  TextureFormat["Astc5x5unormSrgb"] = "astc-5x5-unorm-srgb";
+  TextureFormat["Astc6x5unorm"] = "astc-6x5-unorm";
+  TextureFormat["Astc6x5unormSrgb"] = "astc-6x5-unorm-srgb";
+  TextureFormat["Astc6x6unorm"] = "astc-6x6-unorm";
+  TextureFormat["Astc6x6unormSrgb"] = "astc-6x6-unorm-srgb";
+  TextureFormat["Astc8x5unorm"] = "astc-8x5-unorm";
+  TextureFormat["Astc8x5unormSrgb"] = "astc-8x5-unorm-srgb";
+  TextureFormat["Astc8x6unorm"] = "astc-8x6-unorm";
+  TextureFormat["Astc8x6unormSrgb"] = "astc-8x6-unorm-srgb";
+  TextureFormat["Astc8x8unorm"] = "astc-8x8-unorm";
+  TextureFormat["Astc8x8unormSrgb"] = "astc-8x8-unorm-srgb";
+  TextureFormat["Astc10x5unorm"] = "astc-10x5-unorm";
+  TextureFormat["Astc10x5unormSrgb"] = "astc-10x5-unorm-srgb";
+  TextureFormat["Astc10x6unorm"] = "astc-10x6-unorm";
+  TextureFormat["Astc10x6unormSrgb"] = "astc-10x6-unorm-srgb";
+  TextureFormat["Astc10x8unorm"] = "astc-10x8-unorm";
+  TextureFormat["Astc10x8unormSrgb"] = "astc-10x8-unorm-srgb";
+  TextureFormat["Astc10x10unorm"] = "astc-10x10-unorm";
+  TextureFormat["Astc10x10unormSrgb"] = "astc-10x10-unorm-srgb";
+  TextureFormat["Astc12x10unorm"] = "astc-12x10-unorm";
+  TextureFormat["Astc12x10unormSrgb"] = "astc-12x10-unorm-srgb";
+  TextureFormat["Astc12x12unorm"] = "astc-12x12-unorm";
+  TextureFormat["Astc12x12unormSrgb"] = "astc-12x12-unorm-srgb";
+})(TextureFormat || (exports.TextureFormat = TextureFormat = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-operation.enum.ts":
+/*!***************************************************!*\
+  !*** ./source/constant/texture-operation.enum.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureOperation = void 0;
+var TextureOperation;
+(function (TextureOperation) {
+  TextureOperation["Keep"] = "keep";
+  TextureOperation["Clear"] = "clear";
+})(TextureOperation || (exports.TextureOperation = TextureOperation = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-sample-type.enum.ts":
+/*!*****************************************************!*\
+  !*** ./source/constant/texture-sample-type.enum.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureSampleType = void 0;
+var TextureSampleType;
+(function (TextureSampleType) {
+  TextureSampleType["Float"] = "float";
+  TextureSampleType["SignedInteger"] = "sint";
+  TextureSampleType["UnsignedInteger"] = "uint";
+  TextureSampleType["UnfilterableFloat"] = "unfilterable-float";
+  TextureSampleType["Depth"] = "depth";
+})(TextureSampleType || (exports.TextureSampleType = TextureSampleType = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-usage.enum.ts":
+/*!***********************************************!*\
+  !*** ./source/constant/texture-usage.enum.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureUsage = void 0;
+var TextureUsage;
+(function (TextureUsage) {
+  TextureUsage[TextureUsage["None"] = 0] = "None";
+  TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
+  TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
+  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
+  TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
+  TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
+})(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
+
+/***/ }),
+
+/***/ "./source/constant/vertex-parameter-step-mode.enum.ts":
+/*!************************************************************!*\
+  !*** ./source/constant/vertex-parameter-step-mode.enum.ts ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterStepMode = void 0;
+var VertexParameterStepMode;
+(function (VertexParameterStepMode) {
+  VertexParameterStepMode["Vertex"] = "vertex-step";
+  VertexParameterStepMode["Index"] = "index-step";
+  VertexParameterStepMode["Instance"] = "instance-step";
+})(VertexParameterStepMode || (exports.VertexParameterStepMode = VertexParameterStepMode = {}));
+
+/***/ }),
+
+/***/ "./source/constant/wrapping-mode.enum.ts":
+/*!***********************************************!*\
+  !*** ./source/constant/wrapping-mode.enum.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WrappingMode = void 0;
+var WrappingMode;
+(function (WrappingMode) {
+  WrappingMode["ClampToEdge"] = "clamp-to-edge";
+  WrappingMode["Repeat"] = "repeat";
+  WrappingMode["MirrorRepeat"] = "mirror-repeat";
+})(WrappingMode || (exports.WrappingMode = WrappingMode = {}));
+
+/***/ }),
+
+/***/ "./source/execution/gpu-execution.ts":
+/*!*******************************************!*\
+  !*** ./source/execution/gpu-execution.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3526,7 +4092,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuExecution = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class GpuExecution extends gpu_object_1.GpuObject {
   /**
    * GPU command encoder.
@@ -3557,10 +4123,10 @@ exports.GpuExecution = GpuExecution;
 
 /***/ }),
 
-/***/ "./source/base/execution/pass/compute-pass.ts":
-/*!****************************************************!*\
-  !*** ./source/base/execution/pass/compute-pass.ts ***!
-  \****************************************************/
+/***/ "./source/execution/pass/compute-pass.ts":
+/*!***********************************************!*\
+  !*** ./source/execution/pass/compute-pass.ts ***!
+  \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3571,7 +4137,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ComputePass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class ComputePass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
@@ -3701,10 +4267,10 @@ exports.ComputePass = ComputePass;
 
 /***/ }),
 
-/***/ "./source/base/execution/pass/render-pass.ts":
-/*!***************************************************!*\
-  !*** ./source/base/execution/pass/render-pass.ts ***!
-  \***************************************************/
+/***/ "./source/execution/pass/render-pass.ts":
+/*!**********************************************!*\
+  !*** ./source/execution/pass/render-pass.ts ***!
+  \**********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3715,9 +4281,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderPass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/base/binding/bind-group.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
+const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/binding/bind-group.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 class RenderPass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
@@ -3968,10 +4534,10 @@ exports.RenderPass = RenderPass;
 
 /***/ }),
 
-/***/ "./source/base/gpu/capabilities/gpu-capabilities.ts":
-/*!**********************************************************!*\
-  !*** ./source/base/gpu/capabilities/gpu-capabilities.ts ***!
-  \**********************************************************/
+/***/ "./source/gpu/capabilities/gpu-capabilities.ts":
+/*!*****************************************************!*\
+  !*** ./source/gpu/capabilities/gpu-capabilities.ts ***!
+  \*****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3982,8 +4548,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuCapabilities = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_feature_enum_1 = __webpack_require__(/*! ./gpu-feature.enum */ "./source/base/gpu/capabilities/gpu-feature.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ./gpu-limit.enum */ "./source/base/gpu/capabilities/gpu-limit.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ./gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ./gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Gpu limits and features.
  */
@@ -4033,10 +4599,10 @@ exports.GpuCapabilities = GpuCapabilities;
 
 /***/ }),
 
-/***/ "./source/base/gpu/capabilities/gpu-feature.enum.ts":
-/*!**********************************************************!*\
-  !*** ./source/base/gpu/capabilities/gpu-feature.enum.ts ***!
-  \**********************************************************/
+/***/ "./source/gpu/capabilities/gpu-feature.enum.ts":
+/*!*****************************************************!*\
+  !*** ./source/gpu/capabilities/gpu-feature.enum.ts ***!
+  \*****************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4069,10 +4635,10 @@ var GpuFeature;
 
 /***/ }),
 
-/***/ "./source/base/gpu/capabilities/gpu-limit.enum.ts":
-/*!********************************************************!*\
-  !*** ./source/base/gpu/capabilities/gpu-limit.enum.ts ***!
-  \********************************************************/
+/***/ "./source/gpu/capabilities/gpu-limit.enum.ts":
+/*!***************************************************!*\
+  !*** ./source/gpu/capabilities/gpu-limit.enum.ts ***!
+  \***************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4123,10 +4689,10 @@ var GpuLimit;
 
 /***/ }),
 
-/***/ "./source/base/gpu/gpu-device.ts":
-/*!***************************************!*\
-  !*** ./source/base/gpu/gpu-device.ts ***!
-  \***************************************/
+/***/ "./source/gpu/gpu-device.ts":
+/*!**********************************!*\
+  !*** ./source/gpu/gpu-device.ts ***!
+  \**********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4139,16 +4705,16 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuDevice = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/base/execution/gpu-execution.ts");
-const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/base/execution/pass/compute-pass.ts");
-const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/base/execution/pass/render-pass.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const render_targets_1 = __webpack_require__(/*! ../pipeline/target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
-const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/base/shader/shader.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
-const texture_format_capabilities_1 = __webpack_require__(/*! ../texture/texture-format-capabilities */ "./source/base/texture/texture-format-capabilities.ts");
-const gpu_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-capabilities */ "./source/base/gpu/capabilities/gpu-capabilities.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/execution/gpu-execution.ts");
+const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/execution/pass/compute-pass.ts");
+const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/execution/pass/render-pass.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const render_targets_1 = __webpack_require__(/*! ../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
+const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/shader/shader.ts");
+const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
+const texture_format_capabilities_1 = __webpack_require__(/*! ../texture/texture-format-capabilities */ "./source/texture/texture-format-capabilities.ts");
+const gpu_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-capabilities */ "./source/gpu/capabilities/gpu-capabilities.ts");
 class GpuDevice {
   static {
     this.mAdapters = new core_1.Dictionary();
@@ -4303,10 +4869,10 @@ exports.GpuDevice = GpuDevice;
 
 /***/ }),
 
-/***/ "./source/base/gpu/object/gpu-object-child-setup.ts":
-/*!**********************************************************!*\
-  !*** ./source/base/gpu/object/gpu-object-child-setup.ts ***!
-  \**********************************************************/
+/***/ "./source/gpu/object/gpu-object-child-setup.ts":
+/*!*****************************************************!*\
+  !*** ./source/gpu/object/gpu-object-child-setup.ts ***!
+  \*****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4368,10 +4934,10 @@ exports.GpuObjectChildSetup = GpuObjectChildSetup;
 
 /***/ }),
 
-/***/ "./source/base/gpu/object/gpu-object-invalidation-reasons.ts":
-/*!*******************************************************************!*\
-  !*** ./source/base/gpu/object/gpu-object-invalidation-reasons.ts ***!
-  \*******************************************************************/
+/***/ "./source/gpu/object/gpu-object-invalidation-reasons.ts":
+/*!**************************************************************!*\
+  !*** ./source/gpu/object/gpu-object-invalidation-reasons.ts ***!
+  \**************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4433,10 +4999,10 @@ exports.GpuObjectInvalidationReasons = GpuObjectInvalidationReasons;
 
 /***/ }),
 
-/***/ "./source/base/gpu/object/gpu-object-setup.ts":
-/*!****************************************************!*\
-  !*** ./source/base/gpu/object/gpu-object-setup.ts ***!
-  \****************************************************/
+/***/ "./source/gpu/object/gpu-object-setup.ts":
+/*!***********************************************!*\
+  !*** ./source/gpu/object/gpu-object-setup.ts ***!
+  \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4491,10 +5057,10 @@ exports.GpuObjectSetup = GpuObjectSetup;
 
 /***/ }),
 
-/***/ "./source/base/gpu/object/gpu-object.ts":
-/*!**********************************************!*\
-  !*** ./source/base/gpu/object/gpu-object.ts ***!
-  \**********************************************/
+/***/ "./source/gpu/object/gpu-object.ts":
+/*!*****************************************!*\
+  !*** ./source/gpu/object/gpu-object.ts ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4505,7 +5071,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuObject = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/base/gpu/object/gpu-object-invalidation-reasons.ts");
+const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/gpu/object/gpu-object-invalidation-reasons.ts");
 /**
  * Gpu object with a native internal object.
  */
@@ -4734,10 +5300,10 @@ exports.GpuObject = GpuObject;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/base-memory-layout.ts":
-/*!*********************************************************!*\
-  !*** ./source/base/memory_layout/base-memory-layout.ts ***!
-  \*********************************************************/
+/***/ "./source/memory_layout/base-memory-layout.ts":
+/*!****************************************************!*\
+  !*** ./source/memory_layout/base-memory-layout.ts ***!
+  \****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4747,7 +5313,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BaseMemoryLayout = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class BaseMemoryLayout extends gpu_object_1.GpuObject {
   /**
    * Constuctor.
@@ -4761,10 +5327,10 @@ exports.BaseMemoryLayout = BaseMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts":
-/*!************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/array-buffer-memory-layout.ts ***!
-  \************************************************************************/
+/***/ "./source/memory_layout/buffer/array-buffer-memory-layout.ts":
+/*!*******************************************************************!*\
+  !*** ./source/memory_layout/buffer/array-buffer-memory-layout.ts ***!
+  \*******************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4775,7 +5341,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ArrayBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Alignment of type.
@@ -4872,10 +5438,10 @@ exports.ArrayBufferMemoryLayout = ArrayBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts":
-/*!***********************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/base-buffer-memory-layout.ts ***!
-  \***********************************************************************/
+/***/ "./source/memory_layout/buffer/base-buffer-memory-layout.ts":
+/*!******************************************************************!*\
+  !*** ./source/memory_layout/buffer/base-buffer-memory-layout.ts ***!
+  \******************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4885,7 +5451,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BaseBufferMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/base/memory_layout/base-memory-layout.ts");
+const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
 class BaseBufferMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Constructor.
@@ -4900,10 +5466,10 @@ exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts":
-/*!*******************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts ***!
-  \*******************************************************************************/
+/***/ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts":
+/*!**************************************************************************!*\
+  !*** ./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts ***!
+  \**************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4923,10 +5489,10 @@ var PrimitiveBufferFormat;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts":
-/*!***********************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts ***!
-  \***********************************************************************************/
+/***/ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts":
+/*!******************************************************************************!*\
+  !*** ./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts ***!
+  \******************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4958,10 +5524,10 @@ var PrimitiveBufferMultiplier;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts":
-/*!****************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts ***!
-  \****************************************************************************/
+/***/ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts":
+/*!***********************************************************************!*\
+  !*** ./source/memory_layout/buffer/primitive-buffer-memory-layout.ts ***!
+  \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4972,9 +5538,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PrimitiveBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Type byte alignment.
@@ -5080,10 +5646,10 @@ exports.PrimitiveBufferMemoryLayout = PrimitiveBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts":
-/*!****************************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts ***!
-  \****************************************************************************************/
+/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts":
+/*!***********************************************************************************!*\
+  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts ***!
+  \***********************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5093,10 +5659,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.StructBufferMemoryLayoutPropertySetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ./array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ./struct-buffer-memory-layout */ "./source/base/memory_layout/buffer/struct-buffer-memory-layout.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ./array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ./struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Buffer as array.
@@ -5145,10 +5711,10 @@ exports.StructBufferMemoryLayoutPropertySetup = StructBufferMemoryLayoutProperty
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/struct-buffer-memory-layout-setup.ts":
-/*!*******************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/struct-buffer-memory-layout-setup.ts ***!
-  \*******************************************************************************/
+/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts":
+/*!**************************************************************************!*\
+  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts ***!
+  \**************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5158,8 +5724,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.StructBufferMemoryLayoutSetup = void 0;
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
-const struct_buffer_memory_layout_property_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-property-setup */ "./source/base/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const struct_buffer_memory_layout_property_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-property-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts");
 class StructBufferMemoryLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Add propery.
@@ -5195,10 +5761,10 @@ exports.StructBufferMemoryLayoutSetup = StructBufferMemoryLayoutSetup;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/struct-buffer-memory-layout.ts":
-/*!*************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/struct-buffer-memory-layout.ts ***!
-  \*************************************************************************/
+/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts":
+/*!********************************************************************!*\
+  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout.ts ***!
+  \********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5209,8 +5775,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.StructBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-setup */ "./source/base/memory_layout/buffer/struct-buffer-memory-layout-setup.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts");
 class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Alignment of type.
@@ -5374,10 +5940,10 @@ exports.StructBufferMemoryLayout = StructBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts":
-/*!*************************************************************************!*\
-  !*** ./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts ***!
-  \*************************************************************************/
+/***/ "./source/memory_layout/buffer/vertex-buffer-memory-layout.ts":
+/*!********************************************************************!*\
+  !*** ./source/memory_layout/buffer/vertex-buffer-memory-layout.ts ***!
+  \********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5388,9 +5954,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Type byte alignment.
@@ -5503,10 +6069,10 @@ exports.VertexBufferMemoryLayout = VertexBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/texture/sampler-memory-layout.ts":
-/*!********************************************************************!*\
-  !*** ./source/base/memory_layout/texture/sampler-memory-layout.ts ***!
-  \********************************************************************/
+/***/ "./source/memory_layout/texture/sampler-memory-layout.ts":
+/*!***************************************************************!*\
+  !*** ./source/memory_layout/texture/sampler-memory-layout.ts ***!
+  \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5516,7 +6082,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.SamplerMemoryLayoutInvalidationType = exports.SamplerMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/base/memory_layout/base-memory-layout.ts");
+const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
 class SamplerMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Sampler type.
@@ -5547,10 +6113,10 @@ var SamplerMemoryLayoutInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/memory_layout/texture/texture-memory-layout.ts":
-/*!********************************************************************!*\
-  !*** ./source/base/memory_layout/texture/texture-memory-layout.ts ***!
-  \********************************************************************/
+/***/ "./source/memory_layout/texture/texture-memory-layout.ts":
+/*!***************************************************************!*\
+  !*** ./source/memory_layout/texture/texture-memory-layout.ts ***!
+  \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5560,7 +6126,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.TextureMemoryLayoutInvalidationType = exports.TextureMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/base/memory_layout/base-memory-layout.ts");
+const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
 class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Texture dimension.
@@ -5607,10 +6173,10 @@ var TextureMemoryLayoutInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/compute-pipeline.ts":
-/*!**************************************************!*\
-  !*** ./source/base/pipeline/compute-pipeline.ts ***!
-  \**************************************************/
+/***/ "./source/pipeline/compute-pipeline.ts":
+/*!*********************************************!*\
+  !*** ./source/pipeline/compute-pipeline.ts ***!
+  \*********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5621,8 +6187,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -5700,10 +6266,10 @@ var ComputePipelineInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts":
-/*!********************************************************************************!*\
-  !*** ./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts ***!
-  \********************************************************************************/
+/***/ "./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts":
+/*!***************************************************************************!*\
+  !*** ./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts ***!
+  \***************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5713,7 +6279,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VertexParameterBufferLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 class VertexParameterBufferLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Add new parameter to vertex layout.
@@ -5740,10 +6306,10 @@ exports.VertexParameterBufferLayoutSetup = VertexParameterBufferLayoutSetup;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts":
-/*!*************************************************************************!*\
-  !*** ./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts ***!
-  \*************************************************************************/
+/***/ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts":
+/*!********************************************************************!*\
+  !*** ./source/pipeline/parameter/vertex-parameter-layout-setup.ts ***!
+  \********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5753,8 +6319,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VertexParameterLayoutSetup = void 0;
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
-const vertex_parameter_buffer_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-buffer-layout-setup */ "./source/base/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const vertex_parameter_buffer_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-buffer-layout-setup */ "./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts");
 class VertexParameterLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Add a new buffer layout to vertex parameter layout.
@@ -5791,10 +6357,10 @@ exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/parameter/vertex-parameter-layout.ts":
-/*!*******************************************************************!*\
-  !*** ./source/base/pipeline/parameter/vertex-parameter-layout.ts ***!
-  \*******************************************************************/
+/***/ "./source/pipeline/parameter/vertex-parameter-layout.ts":
+/*!**************************************************************!*\
+  !*** ./source/pipeline/parameter/vertex-parameter-layout.ts ***!
+  \**************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5805,12 +6371,12 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterLayoutInvalidationType = exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
-const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/base/pipeline/parameter/vertex-parameter.ts");
-const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/base/pipeline/parameter/vertex-parameter-layout-setup.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/memory_layout/buffer/vertex-buffer-memory-layout.ts");
+const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
+const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts");
 /**
  * Vertex parameter layout.
  */
@@ -6025,10 +6591,10 @@ var VertexParameterLayoutInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/parameter/vertex-parameter.ts":
-/*!************************************************************!*\
-  !*** ./source/base/pipeline/parameter/vertex-parameter.ts ***!
-  \************************************************************/
+/***/ "./source/pipeline/parameter/vertex-parameter.ts":
+/*!*******************************************************!*\
+  !*** ./source/pipeline/parameter/vertex-parameter.ts ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6039,14 +6605,14 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 class VertexParameter extends gpu_object_1.GpuObject {
   /**
    * Get index buffer.
@@ -6181,10 +6747,10 @@ var VertexParameterInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/target/render-targets-setup.ts":
-/*!*************************************************************!*\
-  !*** ./source/base/pipeline/target/render-targets-setup.ts ***!
-  \*************************************************************/
+/***/ "./source/pipeline/target/render-targets-setup.ts":
+/*!********************************************************!*\
+  !*** ./source/pipeline/target/render-targets-setup.ts ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6195,10 +6761,10 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderTargetsSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_operation_enum_1 = __webpack_require__(/*! ../../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
-const render_targets_texture_setup_1 = __webpack_require__(/*! ./render-targets-texture-setup */ "./source/base/pipeline/target/render-targets-texture-setup.ts");
+const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
+const render_targets_texture_setup_1 = __webpack_require__(/*! ./render-targets-texture-setup */ "./source/pipeline/target/render-targets-texture-setup.ts");
 class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Constructor
@@ -6284,10 +6850,10 @@ exports.RenderTargetsSetup = RenderTargetsSetup;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/target/render-targets-texture-setup.ts":
-/*!*********************************************************************!*\
-  !*** ./source/base/pipeline/target/render-targets-texture-setup.ts ***!
-  \*********************************************************************/
+/***/ "./source/pipeline/target/render-targets-texture-setup.ts":
+/*!****************************************************************!*\
+  !*** ./source/pipeline/target/render-targets-texture-setup.ts ***!
+  \****************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6297,10 +6863,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.RenderTargetTextureSetup = void 0;
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/base/memory_layout/texture/texture-memory-layout.ts");
-const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/texture/frame-buffer-texture.ts");
 class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Create new color render target.
@@ -6333,10 +6899,10 @@ exports.RenderTargetTextureSetup = RenderTargetTextureSetup;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/target/render-targets.ts":
-/*!*******************************************************!*\
-  !*** ./source/base/pipeline/target/render-targets.ts ***!
-  \*******************************************************/
+/***/ "./source/pipeline/target/render-targets.ts":
+/*!**************************************************!*\
+  !*** ./source/pipeline/target/render-targets.ts ***!
+  \**************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6347,13 +6913,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderTargetsInvalidationType = exports.RenderTargets = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_operation_enum_1 = __webpack_require__(/*! ../../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
-const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
-const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/base/pipeline/target/render-targets-setup.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
+const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/texture/frame-buffer-texture.ts");
+const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/pipeline/target/render-targets-setup.ts");
 /**
  * Group of textures with the same size and multisample level.
  */
@@ -6799,10 +7365,10 @@ var RenderTargetsInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/vertex-fragment-pipeline-target-config.ts":
-/*!************************************************************************!*\
-  !*** ./source/base/pipeline/vertex-fragment-pipeline-target-config.ts ***!
-  \************************************************************************/
+/***/ "./source/pipeline/vertex-fragment-pipeline-target-config.ts":
+/*!*******************************************************************!*\
+  !*** ./source/pipeline/vertex-fragment-pipeline-target-config.ts ***!
+  \*******************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6881,10 +7447,10 @@ exports.VertexFragmentPipelineTargetConfig = VertexFragmentPipelineTargetConfig;
 
 /***/ }),
 
-/***/ "./source/base/pipeline/vertex-fragment-pipeline.ts":
-/*!**********************************************************!*\
-  !*** ./source/base/pipeline/vertex-fragment-pipeline.ts ***!
-  \**********************************************************/
+/***/ "./source/pipeline/vertex-fragment-pipeline.ts":
+/*!*****************************************************!*\
+  !*** ./source/pipeline/vertex-fragment-pipeline.ts ***!
+  \*****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6895,19 +7461,19 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const compare_function_enum_1 = __webpack_require__(/*! ../../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
-const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
-const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
-const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
-const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const vertex_parameter_layout_1 = __webpack_require__(/*! ./parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
-const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/base/pipeline/target/render-targets.ts");
-const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/base/pipeline/vertex-fragment-pipeline-target-config.ts");
+const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
+const primitive_front_face_enum_1 = __webpack_require__(/*! ../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
+const primitive_topology_enum_1 = __webpack_require__(/*! ../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const vertex_parameter_layout_1 = __webpack_require__(/*! ./parameter/vertex-parameter-layout */ "./source/pipeline/parameter/vertex-parameter-layout.ts");
+const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/pipeline/target/render-targets.ts");
+const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/pipeline/vertex-fragment-pipeline-target-config.ts");
 class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   /**
    * Set depth compare function.
@@ -7227,10 +7793,10 @@ var VertexFragmentPipelineInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/shader/setup/shader-compute-entry-point-setup.ts":
-/*!**********************************************************************!*\
-  !*** ./source/base/shader/setup/shader-compute-entry-point-setup.ts ***!
-  \**********************************************************************/
+/***/ "./source/shader/setup/shader-compute-entry-point-setup.ts":
+/*!*****************************************************************!*\
+  !*** ./source/shader/setup/shader-compute-entry-point-setup.ts ***!
+  \*****************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7240,7 +7806,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderComputeEntryPointSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 class ShaderComputeEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Setup compute entry with a static size.
@@ -7256,10 +7822,10 @@ exports.ShaderComputeEntryPointSetup = ShaderComputeEntryPointSetup;
 
 /***/ }),
 
-/***/ "./source/base/shader/setup/shader-fragment-entry-point-setup.ts":
-/*!***********************************************************************!*\
-  !*** ./source/base/shader/setup/shader-fragment-entry-point-setup.ts ***!
-  \***********************************************************************/
+/***/ "./source/shader/setup/shader-fragment-entry-point-setup.ts":
+/*!******************************************************************!*\
+  !*** ./source/shader/setup/shader-fragment-entry-point-setup.ts ***!
+  \******************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7269,7 +7835,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderFragmentEntryPointSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 class ShaderFragmentEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Setup fragment render target.
@@ -7292,10 +7858,10 @@ exports.ShaderFragmentEntryPointSetup = ShaderFragmentEntryPointSetup;
 
 /***/ }),
 
-/***/ "./source/base/shader/setup/shader-setup.ts":
-/*!**************************************************!*\
-  !*** ./source/base/shader/setup/shader-setup.ts ***!
-  \**************************************************/
+/***/ "./source/shader/setup/shader-setup.ts":
+/*!*********************************************!*\
+  !*** ./source/shader/setup/shader-setup.ts ***!
+  \*********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7305,11 +7871,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderSetup = void 0;
-const bind_group_layout_1 = __webpack_require__(/*! ../../binding/bind-group-layout */ "./source/base/binding/bind-group-layout.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/base/gpu/object/gpu-object-setup.ts");
-const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter-layout */ "./source/base/pipeline/parameter/vertex-parameter-layout.ts");
-const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/base/shader/setup/shader-compute-entry-point-setup.ts");
-const shader_fragment_entry_point_setup_1 = __webpack_require__(/*! ./shader-fragment-entry-point-setup */ "./source/base/shader/setup/shader-fragment-entry-point-setup.ts");
+const bind_group_layout_1 = __webpack_require__(/*! ../../binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter-layout */ "./source/pipeline/parameter/vertex-parameter-layout.ts");
+const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/shader/setup/shader-compute-entry-point-setup.ts");
+const shader_fragment_entry_point_setup_1 = __webpack_require__(/*! ./shader-fragment-entry-point-setup */ "./source/shader/setup/shader-fragment-entry-point-setup.ts");
 class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
    * Setup compute entry point.
@@ -7430,10 +7996,10 @@ exports.ShaderSetup = ShaderSetup;
 
 /***/ }),
 
-/***/ "./source/base/shader/shader-compute-module.ts":
-/*!*****************************************************!*\
-  !*** ./source/base/shader/shader-compute-module.ts ***!
-  \*****************************************************/
+/***/ "./source/shader/shader-compute-module.ts":
+/*!************************************************!*\
+  !*** ./source/shader/shader-compute-module.ts ***!
+  \************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7443,8 +8009,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderComputeModule = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/base/pipeline/compute-pipeline.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
 class ShaderComputeModule extends gpu_object_1.GpuObject {
   /**
    * Compute entry point.
@@ -7509,10 +8075,10 @@ exports.ShaderComputeModule = ShaderComputeModule;
 
 /***/ }),
 
-/***/ "./source/base/shader/shader-render-module.ts":
-/*!****************************************************!*\
-  !*** ./source/base/shader/shader-render-module.ts ***!
-  \****************************************************/
+/***/ "./source/shader/shader-render-module.ts":
+/*!***********************************************!*\
+  !*** ./source/shader/shader-render-module.ts ***!
+  \***********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7522,8 +8088,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ShaderRenderModule = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/base/pipeline/vertex-fragment-pipeline.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
 class ShaderRenderModule extends gpu_object_1.GpuObject {
   /**
    * Fragment entry point.
@@ -7585,10 +8151,10 @@ exports.ShaderRenderModule = ShaderRenderModule;
 
 /***/ }),
 
-/***/ "./source/base/shader/shader.ts":
-/*!**************************************!*\
-  !*** ./source/base/shader/shader.ts ***!
-  \**************************************/
+/***/ "./source/shader/shader.ts":
+/*!*********************************!*\
+  !*** ./source/shader/shader.ts ***!
+  \*********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7599,11 +8165,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Shader = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/base/binding/pipeline-layout.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
-const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/base/shader/setup/shader-setup.ts");
-const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/base/shader/shader-compute-module.ts");
-const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/base/shader/shader-render-module.ts");
+const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/shader/setup/shader-setup.ts");
+const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/shader/shader-compute-module.ts");
+const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/shader/shader-render-module.ts");
 class Shader extends gpu_object_1.GpuObject {
   /**
    * Shader pipeline layout.
@@ -7830,10 +8396,10 @@ exports.Shader = Shader;
 
 /***/ }),
 
-/***/ "./source/base/texture/base-texture.ts":
-/*!*********************************************!*\
-  !*** ./source/base/texture/base-texture.ts ***!
-  \*********************************************/
+/***/ "./source/texture/base-texture.ts":
+/*!****************************************!*\
+  !*** ./source/texture/base-texture.ts ***!
+  \****************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7843,8 +8409,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BaseTexture = void 0;
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class BaseTexture extends gpu_object_1.GpuObject {
   /**
    * Texture memory layout.
@@ -7892,10 +8458,10 @@ exports.BaseTexture = BaseTexture;
 
 /***/ }),
 
-/***/ "./source/base/texture/canvas-texture.ts":
-/*!***********************************************!*\
-  !*** ./source/base/texture/canvas-texture.ts ***!
-  \***********************************************/
+/***/ "./source/texture/canvas-texture.ts":
+/*!******************************************!*\
+  !*** ./source/texture/canvas-texture.ts ***!
+  \******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7905,7 +8471,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
 class CanvasTexture extends base_texture_1.BaseTexture {
   /**
    * HTML canvas element.
@@ -8033,10 +8599,10 @@ var CanvasTextureInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/texture/frame-buffer-texture.ts":
-/*!*****************************************************!*\
-  !*** ./source/base/texture/frame-buffer-texture.ts ***!
-  \*****************************************************/
+/***/ "./source/texture/frame-buffer-texture.ts":
+/*!************************************************!*\
+  !*** ./source/texture/frame-buffer-texture.ts ***!
+  \************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8047,8 +8613,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.FrameBufferTextureInvalidationType = exports.FrameBufferTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
 class FrameBufferTexture extends base_texture_1.BaseTexture {
   /**
    * Texture depth.
@@ -8164,10 +8730,10 @@ var FrameBufferTextureInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/texture/image-texture.ts":
-/*!**********************************************!*\
-  !*** ./source/base/texture/image-texture.ts ***!
-  \**********************************************/
+/***/ "./source/texture/image-texture.ts":
+/*!*****************************************!*\
+  !*** ./source/texture/image-texture.ts ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8180,10 +8746,10 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
-const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
+const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/texture/texture-mip-generator.ts");
 class ImageTexture extends base_texture_1.BaseTexture {
   /**
    * Texture depth.
@@ -8468,10 +9034,10 @@ var ImageTextureInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/texture/texture-format-capabilities.ts":
-/*!************************************************************!*\
-  !*** ./source/base/texture/texture-format-capabilities.ts ***!
-  \************************************************************/
+/***/ "./source/texture/texture-format-capabilities.ts":
+/*!*******************************************************!*\
+  !*** ./source/texture/texture-format-capabilities.ts ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8482,12 +9048,12 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TextureFormatCapabilities = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_format_enum_1 = __webpack_require__(/*! ../../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
-const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-feature.enum */ "./source/base/gpu/capabilities/gpu-feature.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_format_enum_1 = __webpack_require__(/*! ../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
+const texture_sample_type_enum_1 = __webpack_require__(/*! ../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
 class TextureFormatCapabilities {
   /**
    * Get prefered canvas format.
@@ -9873,10 +10439,10 @@ exports.TextureFormatCapabilities = TextureFormatCapabilities;
 
 /***/ }),
 
-/***/ "./source/base/texture/texture-mip-generator.ts":
-/*!******************************************************!*\
-  !*** ./source/base/texture/texture-mip-generator.ts ***!
-  \******************************************************/
+/***/ "./source/texture/texture-mip-generator.ts":
+/*!*************************************************!*\
+  !*** ./source/texture/texture-mip-generator.ts ***!
+  \*************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -9887,8 +10453,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TextureMipGenerator = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const texture_sample_type_enum_1 = __webpack_require__(/*! ../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 class TextureMipGenerator {
   static {
     this.WORKGROUP_SIZE_PER_DIMENSION = 8;
@@ -10082,10 +10648,10 @@ exports.TextureMipGenerator = TextureMipGenerator;
 
 /***/ }),
 
-/***/ "./source/base/texture/texture-sampler.ts":
-/*!************************************************!*\
-  !*** ./source/base/texture/texture-sampler.ts ***!
-  \************************************************/
+/***/ "./source/texture/texture-sampler.ts":
+/*!*******************************************!*\
+  !*** ./source/texture/texture-sampler.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10096,10 +10662,10 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.TextureSamplerInvalidationType = exports.TextureSampler = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const filter_mode_enum_1 = __webpack_require__(/*! ../../constant/filter-mode.enum */ "./source/constant/filter-mode.enum.ts");
-const sampler_type_enum_1 = __webpack_require__(/*! ../../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
-const wrapping_mode_enum_1 = __webpack_require__(/*! ../../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
+const filter_mode_enum_1 = __webpack_require__(/*! ../constant/filter-mode.enum */ "./source/constant/filter-mode.enum.ts");
+const sampler_type_enum_1 = __webpack_require__(/*! ../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
+const wrapping_mode_enum_1 = __webpack_require__(/*! ../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class TextureSampler extends gpu_object_1.GpuObject {
   /**
    * When provided the sampler will be a comparison sampler with the specified compare function.
@@ -10259,10 +10825,10 @@ var TextureSamplerInvalidationType;
 
 /***/ }),
 
-/***/ "./source/base/texture/video-texture.ts":
-/*!**********************************************!*\
-  !*** ./source/base/texture/video-texture.ts ***!
-  \**********************************************/
+/***/ "./source/texture/video-texture.ts":
+/*!*****************************************!*\
+  !*** ./source/texture/video-texture.ts ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10272,10 +10838,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.VideoTextureInvalidationType = exports.VideoTexture = void 0;
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/base/texture/base-texture.ts");
-const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/base/texture/texture-mip-generator.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
+const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/texture/texture-mip-generator.ts");
 class VideoTexture extends base_texture_1.BaseTexture {
   /**
    * Set play position in secons.
@@ -10491,572 +11057,6 @@ var VideoTextureInvalidationType;
   VideoTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
   VideoTextureInvalidationType["LayoutChange"] = "LayoutChange";
 })(VideoTextureInvalidationType || (exports.VideoTextureInvalidationType = VideoTextureInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/constant/buffer-usage.enum.ts":
-/*!**********************************************!*\
-  !*** ./source/constant/buffer-usage.enum.ts ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BufferUsage = void 0;
-var BufferUsage;
-(function (BufferUsage) {
-  BufferUsage[BufferUsage["None"] = 0] = "None";
-  BufferUsage[BufferUsage["Index"] = GPUBufferUsage.INDEX] = "Index";
-  BufferUsage[BufferUsage["Vertex"] = GPUBufferUsage.VERTEX] = "Vertex";
-  BufferUsage[BufferUsage["Uniform"] = GPUBufferUsage.UNIFORM] = "Uniform";
-  BufferUsage[BufferUsage["Storage"] = GPUBufferUsage.STORAGE] = "Storage";
-  BufferUsage[BufferUsage["Indirect"] = GPUBufferUsage.INDIRECT] = "Indirect";
-  BufferUsage[BufferUsage["CopySource"] = GPUBufferUsage.COPY_SRC] = "CopySource";
-  BufferUsage[BufferUsage["CopyDestination"] = GPUBufferUsage.COPY_DST] = "CopyDestination";
-  // No public available
-  // MapWrite = GPUBufferUsage.MAP_WRITE,
-  // MapRead = GPUBufferUsage.MAP_READ,
-  // QueryResolve = GPUBufferUsage.QUERY_RESOLVE
-})(BufferUsage || (exports.BufferUsage = BufferUsage = {}));
-
-/***/ }),
-
-/***/ "./source/constant/compare-function.enum.ts":
-/*!**************************************************!*\
-  !*** ./source/constant/compare-function.enum.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.CompareFunction = void 0;
-var CompareFunction;
-(function (CompareFunction) {
-  CompareFunction["Never"] = "never";
-  CompareFunction["Less"] = "less";
-  CompareFunction["Equal"] = "equal";
-  CompareFunction["LessEqual"] = "less-equal";
-  CompareFunction["Greater"] = "greater";
-  CompareFunction["NotEqual"] = "not-equal";
-  CompareFunction["GreaterEqual"] = "greater-equal";
-  CompareFunction["Allways"] = "always";
-})(CompareFunction || (exports.CompareFunction = CompareFunction = {}));
-
-/***/ }),
-
-/***/ "./source/constant/compute-stage.enum.ts":
-/*!***********************************************!*\
-  !*** ./source/constant/compute-stage.enum.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ComputeStage = void 0;
-var ComputeStage;
-(function (ComputeStage) {
-  ComputeStage[ComputeStage["None"] = 0] = "None";
-  ComputeStage[ComputeStage["Fragment"] = GPUShaderStage.FRAGMENT] = "Fragment";
-  ComputeStage[ComputeStage["Vertex"] = GPUShaderStage.VERTEX] = "Vertex";
-  ComputeStage[ComputeStage["Compute"] = GPUShaderStage.COMPUTE] = "Compute";
-})(ComputeStage || (exports.ComputeStage = ComputeStage = {}));
-
-/***/ }),
-
-/***/ "./source/constant/filter-mode.enum.ts":
-/*!*********************************************!*\
-  !*** ./source/constant/filter-mode.enum.ts ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.FilterMode = void 0;
-var FilterMode;
-(function (FilterMode) {
-  FilterMode["Nearest"] = "nearest";
-  FilterMode["Linear"] = "linear";
-})(FilterMode || (exports.FilterMode = FilterMode = {}));
-
-/***/ }),
-
-/***/ "./source/constant/primitive-cullmode.enum.ts":
-/*!****************************************************!*\
-  !*** ./source/constant/primitive-cullmode.enum.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PrimitiveCullMode = void 0;
-var PrimitiveCullMode;
-(function (PrimitiveCullMode) {
-  PrimitiveCullMode["None"] = "none";
-  PrimitiveCullMode["Front"] = "front";
-  PrimitiveCullMode["Back"] = "back";
-})(PrimitiveCullMode || (exports.PrimitiveCullMode = PrimitiveCullMode = {}));
-
-/***/ }),
-
-/***/ "./source/constant/primitive-front-face.enum.ts":
-/*!******************************************************!*\
-  !*** ./source/constant/primitive-front-face.enum.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PrimitiveFrontFace = void 0;
-var PrimitiveFrontFace;
-(function (PrimitiveFrontFace) {
-  PrimitiveFrontFace["CounterClockWise"] = "cw";
-  PrimitiveFrontFace["ClockWise"] = "ccw";
-})(PrimitiveFrontFace || (exports.PrimitiveFrontFace = PrimitiveFrontFace = {}));
-
-/***/ }),
-
-/***/ "./source/constant/primitive-topology.enum.ts":
-/*!****************************************************!*\
-  !*** ./source/constant/primitive-topology.enum.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PrimitiveTopology = void 0;
-var PrimitiveTopology;
-(function (PrimitiveTopology) {
-  PrimitiveTopology["PointList"] = "point-list";
-  PrimitiveTopology["LineList"] = "line-list";
-  PrimitiveTopology["LineStrip"] = "line-strip";
-  PrimitiveTopology["TriangleList"] = "triangle-list";
-  PrimitiveTopology["TriangleStrip"] = "triangle-strip";
-})(PrimitiveTopology || (exports.PrimitiveTopology = PrimitiveTopology = {}));
-
-/***/ }),
-
-/***/ "./source/constant/sampler-type.enum.ts":
-/*!**********************************************!*\
-  !*** ./source/constant/sampler-type.enum.ts ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.SamplerType = void 0;
-var SamplerType;
-(function (SamplerType) {
-  SamplerType["Filter"] = "filtering";
-  SamplerType["NoneFiltering"] = "non-filtering";
-  SamplerType["Comparison"] = "comparison";
-})(SamplerType || (exports.SamplerType = SamplerType = {}));
-
-/***/ }),
-
-/***/ "./source/constant/storage-binding-type.enum.ts":
-/*!******************************************************!*\
-  !*** ./source/constant/storage-binding-type.enum.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.StorageBindingType = void 0;
-var StorageBindingType;
-(function (StorageBindingType) {
-  StorageBindingType[StorageBindingType["None"] = 0] = "None";
-  StorageBindingType[StorageBindingType["Read"] = 1] = "Read";
-  StorageBindingType[StorageBindingType["Write"] = 2] = "Write";
-  StorageBindingType[StorageBindingType["ReadWrite"] = 4] = "ReadWrite";
-})(StorageBindingType || (exports.StorageBindingType = StorageBindingType = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-aspect.enum.ts":
-/*!************************************************!*\
-  !*** ./source/constant/texture-aspect.enum.ts ***!
-  \************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureAspect = void 0;
-var TextureAspect;
-(function (TextureAspect) {
-  TextureAspect["Red"] = "red";
-  TextureAspect["Green"] = "green";
-  TextureAspect["Blue"] = "blue";
-  TextureAspect["Alpha"] = "alpha";
-  TextureAspect["Stencil"] = "stencil";
-  TextureAspect["Depth"] = "depth";
-})(TextureAspect || (exports.TextureAspect = TextureAspect = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-blend-factor.enum.ts":
-/*!******************************************************!*\
-  !*** ./source/constant/texture-blend-factor.enum.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureBlendFactor = void 0;
-var TextureBlendFactor;
-(function (TextureBlendFactor) {
-  TextureBlendFactor["Zero"] = "zero";
-  TextureBlendFactor["One"] = "one";
-  TextureBlendFactor["Src"] = "src";
-  TextureBlendFactor["OneMinusSrc"] = "one-minus-src";
-  TextureBlendFactor["SrcAlpha"] = "src-alpha";
-  TextureBlendFactor["OneMinusSrcAlpha"] = "one-minus-src-alpha";
-  TextureBlendFactor["Dst"] = "dst";
-  TextureBlendFactor["OneMinusDst"] = "one-minus-dst";
-  TextureBlendFactor["DstAlpha"] = "dst-alpha";
-  TextureBlendFactor["OneMinusDstAlpha"] = "one-minus-dst-alpha";
-  TextureBlendFactor["SrcAlphaSaturated"] = "src-alpha-saturated";
-  TextureBlendFactor["Constant"] = "constant";
-  TextureBlendFactor["OneMinusConstant"] = "one-minus-constant";
-  TextureBlendFactor["Src1"] = "src1";
-  TextureBlendFactor["OneMinusSrc1"] = "one-minus-src1";
-  TextureBlendFactor["Src1Alpha"] = "src1-alpha";
-  TextureBlendFactor["OneMinusSrc1Alpha"] = "one-minus-src1-alpha";
-})(TextureBlendFactor || (exports.TextureBlendFactor = TextureBlendFactor = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-blend-operation.enum.ts":
-/*!*********************************************************!*\
-  !*** ./source/constant/texture-blend-operation.enum.ts ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureBlendOperation = void 0;
-var TextureBlendOperation;
-(function (TextureBlendOperation) {
-  TextureBlendOperation["Add"] = "add";
-  TextureBlendOperation["Subtract"] = "subtract";
-  TextureBlendOperation["ReverseSubtract"] = "reverse-subtract";
-  TextureBlendOperation["Min"] = "min";
-  TextureBlendOperation["Max"] = "max";
-})(TextureBlendOperation || (exports.TextureBlendOperation = TextureBlendOperation = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-dimension.enum.ts":
-/*!***************************************************!*\
-  !*** ./source/constant/texture-dimension.enum.ts ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureDimension = void 0;
-var TextureDimension;
-(function (TextureDimension) {
-  TextureDimension["OneDimension"] = "1d";
-  TextureDimension["TwoDimension"] = "2d";
-  TextureDimension["TwoDimensionArray"] = "2d-array";
-  TextureDimension["Cube"] = "cube";
-  TextureDimension["CubeArray"] = "cube-array";
-  TextureDimension["ThreeDimension"] = "3d";
-})(TextureDimension || (exports.TextureDimension = TextureDimension = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-format.enum.ts":
-/*!************************************************!*\
-  !*** ./source/constant/texture-format.enum.ts ***!
-  \************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureFormat = void 0;
-var TextureFormat;
-(function (TextureFormat) {
-  // 8-bit formats
-  TextureFormat["R8unorm"] = "r8unorm";
-  TextureFormat["R8snorm"] = "r8snorm";
-  TextureFormat["R8uint"] = "r8uint";
-  TextureFormat["R8sint"] = "r8sint";
-  // 16-bit formats
-  TextureFormat["R16uint"] = "r16uint";
-  TextureFormat["R16sint"] = "r16sint";
-  TextureFormat["R16float"] = "r16float";
-  TextureFormat["Rg8unorm"] = "rg8unorm";
-  TextureFormat["Rg8snorm"] = "rg8snorm";
-  TextureFormat["Rg8uint"] = "rg8uint";
-  TextureFormat["Rg8sint"] = "rg8sint";
-  // 32-bit formats
-  TextureFormat["R32uint"] = "r32uint";
-  TextureFormat["R32sint"] = "r32sint";
-  TextureFormat["R32float"] = "r32float";
-  TextureFormat["Rg16uint"] = "rg16uint";
-  TextureFormat["Rg16sint"] = "rg16sint";
-  TextureFormat["Rg16float"] = "rg16float";
-  TextureFormat["Rgba8unorm"] = "rgba8unorm";
-  TextureFormat["Rgba8unormSrgb"] = "rgba8unorm-srgb";
-  TextureFormat["Rgba8snorm"] = "rgba8snorm";
-  TextureFormat["Rgba8uint"] = "rgba8uint";
-  TextureFormat["Rgba8sint"] = "rgba8sint";
-  TextureFormat["Bgra8unorm"] = "bgra8unorm";
-  TextureFormat["Bgra8unormSrgb"] = "bgra8unorm-srgb";
-  // Packed 32-bit formats
-  TextureFormat["Rgb9e5ufloat"] = "rgb9e5ufloat";
-  TextureFormat["Rgb10a2uint"] = "rgb10a2uint";
-  TextureFormat["Rgb10a2unorm"] = "rgb10a2unorm";
-  TextureFormat["Rg11b10ufloat"] = "rg11b10ufloat";
-  // 64-bit formats
-  TextureFormat["Rg32uint"] = "rg32uint";
-  TextureFormat["Rg32sint"] = "rg32sint";
-  TextureFormat["Rg32float"] = "rg32float";
-  TextureFormat["Rgba16uint"] = "rgba16uint";
-  TextureFormat["Rgba16sint"] = "rgba16sint";
-  TextureFormat["Rgba16float"] = "rgba16float";
-  // 128-bit formats
-  TextureFormat["Rgba32uint"] = "rgba32uint";
-  TextureFormat["Rgba32sint"] = "rgba32sint";
-  TextureFormat["Rgba32float"] = "rgba32float";
-  // Depth/stencil formats
-  TextureFormat["Stencil8"] = "stencil8";
-  TextureFormat["Depth16unorm"] = "depth16unorm";
-  TextureFormat["Depth24plus"] = "depth24plus";
-  TextureFormat["Depth24plusStencil8"] = "depth24plusStencil8";
-  TextureFormat["Depth32float"] = "depth32float";
-  // "depth32float-stencil8" feature
-  TextureFormat["Depth32floatStencil8"] = "depth32floatStencil8";
-  // BC compressed formats usable if "texture-compression-bc" is both
-  // supported by the device/user agent and enabled in requestDevice.
-  TextureFormat["Bc1RgbaUnorm"] = "bc1-rgba-unorm";
-  TextureFormat["Bc1RgbaUnormSrgb"] = "bc1-rgba-unorm-srgb";
-  TextureFormat["Bc2RgbaUnorm"] = "bc2-rgba-unorm";
-  TextureFormat["Bc2RgbaUnormSrgb"] = "bc2-rgba-unorm-srgb";
-  TextureFormat["Bc3RgbaUnorm"] = "bc3-rgba-unorm";
-  TextureFormat["Bc3RgbaUnormSrgb"] = "bc3-rgba-unorm-srgb";
-  TextureFormat["Bc4Runorm"] = "bc4-r-unorm";
-  TextureFormat["Bc4Rsnorm"] = "bc4-r-snorm";
-  TextureFormat["Bc5RgUnorm"] = "bc5-rg-unorm";
-  TextureFormat["Bc5RgSnorm"] = "bc5-rg-snorm";
-  TextureFormat["Bc6hRgbUfloat"] = "bc6h-rgb-ufloat";
-  TextureFormat["Bc6hRgbFloat"] = "bc6h-rgb-float";
-  TextureFormat["Bc7RgbaUnorm"] = "bc7-rgba-unorm";
-  TextureFormat["Bc7RgbaUnormSrgb"] = "bc7-rgba-unorm-srgb";
-  // ETC2 compressed formats usable if "texture-compression-etc2" is both
-  // supported by the device/user agent and enabled in requestDevice.
-  TextureFormat["Etc2Rgb8unorm"] = "etc2-rgb8unorm";
-  TextureFormat["Etc2Rgb8unormSrgb"] = "etc2-rgb8unorm-srgb";
-  TextureFormat["Etc2Rgb8a1unorm"] = "etc2-rgb8a1unorm";
-  TextureFormat["Etc2Rgb8a1unormSrgb"] = "etc2-rgb8a1unorm-srgb";
-  TextureFormat["Etc2Rgba8unorm"] = "etc2-rgba8unorm";
-  TextureFormat["Etc2Rgba8unormSrgb"] = "etc2-rgba8unorm-srgb";
-  TextureFormat["EacR11unorm"] = "eac-r11unorm";
-  TextureFormat["EacR11snorm"] = "eac-r11snorm";
-  TextureFormat["EacRg11unorm"] = "eac-rg11unorm";
-  TextureFormat["EacRg11snorm"] = "eac-rg11snorm";
-  // ASTC compressed formats usable if "texture-compression-astc" is both
-  // supported by the device/user agent and enabled in requestDevice.
-  TextureFormat["Astc4x4unorm"] = "astc-4x4-unorm";
-  TextureFormat["Astc4x4unormSrgb"] = "astc-4x4-unorm-srgb";
-  TextureFormat["Astc5x4unorm"] = "astc-5x4-unorm";
-  TextureFormat["Astc5x4unormSrgb"] = "astc-5x4-unorm-srgb";
-  TextureFormat["Astc5x5unorm"] = "astc-5x5-unorm";
-  TextureFormat["Astc5x5unormSrgb"] = "astc-5x5-unorm-srgb";
-  TextureFormat["Astc6x5unorm"] = "astc-6x5-unorm";
-  TextureFormat["Astc6x5unormSrgb"] = "astc-6x5-unorm-srgb";
-  TextureFormat["Astc6x6unorm"] = "astc-6x6-unorm";
-  TextureFormat["Astc6x6unormSrgb"] = "astc-6x6-unorm-srgb";
-  TextureFormat["Astc8x5unorm"] = "astc-8x5-unorm";
-  TextureFormat["Astc8x5unormSrgb"] = "astc-8x5-unorm-srgb";
-  TextureFormat["Astc8x6unorm"] = "astc-8x6-unorm";
-  TextureFormat["Astc8x6unormSrgb"] = "astc-8x6-unorm-srgb";
-  TextureFormat["Astc8x8unorm"] = "astc-8x8-unorm";
-  TextureFormat["Astc8x8unormSrgb"] = "astc-8x8-unorm-srgb";
-  TextureFormat["Astc10x5unorm"] = "astc-10x5-unorm";
-  TextureFormat["Astc10x5unormSrgb"] = "astc-10x5-unorm-srgb";
-  TextureFormat["Astc10x6unorm"] = "astc-10x6-unorm";
-  TextureFormat["Astc10x6unormSrgb"] = "astc-10x6-unorm-srgb";
-  TextureFormat["Astc10x8unorm"] = "astc-10x8-unorm";
-  TextureFormat["Astc10x8unormSrgb"] = "astc-10x8-unorm-srgb";
-  TextureFormat["Astc10x10unorm"] = "astc-10x10-unorm";
-  TextureFormat["Astc10x10unormSrgb"] = "astc-10x10-unorm-srgb";
-  TextureFormat["Astc12x10unorm"] = "astc-12x10-unorm";
-  TextureFormat["Astc12x10unormSrgb"] = "astc-12x10-unorm-srgb";
-  TextureFormat["Astc12x12unorm"] = "astc-12x12-unorm";
-  TextureFormat["Astc12x12unormSrgb"] = "astc-12x12-unorm-srgb";
-})(TextureFormat || (exports.TextureFormat = TextureFormat = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-operation.enum.ts":
-/*!***************************************************!*\
-  !*** ./source/constant/texture-operation.enum.ts ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureOperation = void 0;
-var TextureOperation;
-(function (TextureOperation) {
-  TextureOperation["Keep"] = "keep";
-  TextureOperation["Clear"] = "clear";
-})(TextureOperation || (exports.TextureOperation = TextureOperation = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-sample-type.enum.ts":
-/*!*****************************************************!*\
-  !*** ./source/constant/texture-sample-type.enum.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureSampleType = void 0;
-var TextureSampleType;
-(function (TextureSampleType) {
-  TextureSampleType["Float"] = "float";
-  TextureSampleType["SignedInteger"] = "sint";
-  TextureSampleType["UnsignedInteger"] = "uint";
-  TextureSampleType["UnfilterableFloat"] = "unfilterable-float";
-  TextureSampleType["Depth"] = "depth";
-})(TextureSampleType || (exports.TextureSampleType = TextureSampleType = {}));
-
-/***/ }),
-
-/***/ "./source/constant/texture-usage.enum.ts":
-/*!***********************************************!*\
-  !*** ./source/constant/texture-usage.enum.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureUsage = void 0;
-var TextureUsage;
-(function (TextureUsage) {
-  TextureUsage[TextureUsage["None"] = 0] = "None";
-  TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
-  TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
-  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
-  TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
-  TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
-})(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
-
-/***/ }),
-
-/***/ "./source/constant/vertex-parameter-step-mode.enum.ts":
-/*!************************************************************!*\
-  !*** ./source/constant/vertex-parameter-step-mode.enum.ts ***!
-  \************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexParameterStepMode = void 0;
-var VertexParameterStepMode;
-(function (VertexParameterStepMode) {
-  VertexParameterStepMode["Vertex"] = "vertex-step";
-  VertexParameterStepMode["Index"] = "index-step";
-  VertexParameterStepMode["Instance"] = "instance-step";
-})(VertexParameterStepMode || (exports.VertexParameterStepMode = VertexParameterStepMode = {}));
-
-/***/ }),
-
-/***/ "./source/constant/wrapping-mode.enum.ts":
-/*!***********************************************!*\
-  !*** ./source/constant/wrapping-mode.enum.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WrappingMode = void 0;
-var WrappingMode;
-(function (WrappingMode) {
-  WrappingMode["ClampToEdge"] = "clamp-to-edge";
-  WrappingMode["Repeat"] = "repeat";
-  WrappingMode["MirrorRepeat"] = "mirror-repeat";
-})(WrappingMode || (exports.WrappingMode = WrappingMode = {}));
 
 /***/ }),
 
@@ -16327,7 +16327,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("3ffaaba9cd26a7d41f9f")
+/******/ 		__webpack_require__.h = () => ("39cd5db65095731758c7")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

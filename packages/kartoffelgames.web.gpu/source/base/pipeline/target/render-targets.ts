@@ -16,9 +16,11 @@ import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setu
  * Group of textures with the same size and multisample level.
  */
 export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTargetsInvalidationType, RenderTargetsSetup> implements IGpuObjectSetup<RenderTargetsSetup>, IGpuObjectNative<GPURenderPassDescriptor> {
-    private readonly mColorTextures: Dictionary<string, RenderTargetsColorTarget>; // TODO: Maybe use a ordered array for that.
-    private mDepthStencilTexture: RenderTargetsDepthStencilTexture | null;
+    private readonly mColorTargetNames: Dictionary<string, number>;
+    private readonly mColorTargets: Array<RenderTargetsColorTarget>;
+    private mDepthStencilTarget: RenderTargetsDepthStencilTexture | null;
     private readonly mSize: TextureSize;
+    private readonly mTargetViewUpdateQueue: Set<number>;
 
     /**
      * Color attachment names ordered by index.
@@ -29,7 +31,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
         // Create color attachment list in order.
         const lColorAttachmentNameList: Array<string> = new Array<string>();
-        for (const lColorAttachment of this.mColorTextures.values()) {
+        for (const lColorAttachment of this.mColorTargets.values()) {
             lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
         }
 
@@ -43,7 +45,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Ensure setup was called.
         this.ensureSetup();
 
-        return !!this.mDepthStencilTexture?.depth;
+        return !!this.mDepthStencilTarget?.depth;
     }
 
     /**
@@ -53,7 +55,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Ensure setup was called.
         this.ensureSetup();
 
-        return !!this.mDepthStencilTexture?.stencil;
+        return !!this.mDepthStencilTarget?.stencil;
     }
 
     /**
@@ -91,12 +93,14 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     public constructor(pDevice: GpuDevice) {
         super(pDevice);
 
-        // Set "fixed" 
+        // Set default size. 
         this.mSize = { width: 1, height: 1, multisampled: false };
 
         // Setup initial data.
-        this.mDepthStencilTexture = null;
-        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
+        this.mDepthStencilTarget = null;
+        this.mColorTargets = new Array<RenderTargetsColorTarget>();
+        this.mColorTargetNames = new Dictionary<string, number>();
+        this.mTargetViewUpdateQueue = new Set<number>();
     }
 
     /**
@@ -107,12 +111,13 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @returns target texture. 
      */
     public colorTarget(pTargetName: string): FrameBufferTexture | CanvasTexture {
-        const lTarget: RenderTargetsColorTarget | undefined = this.mColorTextures.get(pTargetName);
-        if (!lTarget) {
+        // Read index of color target.
+        const lColorTargetIndex: number | null = this.mColorTargetNames.get(pTargetName) ?? null;
+        if (lColorTargetIndex === null) {
             throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
         }
 
-        return lTarget.texture.target;
+        return this.mColorTargets[lColorTargetIndex].texture.target;
     }
 
     /**
@@ -123,11 +128,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         this.ensureSetup();
 
         // No depth texture setup.
-        if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
+        if (!this.mDepthStencilTarget || !this.mDepthStencilTarget.depth) {
             throw new Exception(`Depth or stencil target does not exists.`, this);
         }
 
-        return this.mDepthStencilTexture.target;
+        return this.mDepthStencilTarget.target;
     }
 
     /**
@@ -138,7 +143,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @returns true when color target exists. 
      */
     public hasColorTarget(pTargetName: string): boolean {
-        return this.mColorTextures.has(pTargetName);
+        return this.mColorTargetNames.has(pTargetName);
     }
 
     /**
@@ -187,15 +192,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         // Invalidate bc. descriptor is rebuilding.
         this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
 
-        // Create color attachment list in order.
-        const lColorAttachmentList: Array<RenderTargetsColorTarget> = new Array<RenderTargetsColorTarget>();
-        for (const lColorAttachment of this.mColorTextures.values()) {
-            lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
-        }
-
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
-        for (const lColorAttachment of lColorAttachmentList) {
+        for (const lColorAttachment of this.mColorTargets) {
             // Convert Texture operation to load operations.
             const lStoreOperation: GPUStoreOp = lColorAttachment.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
 
@@ -228,8 +227,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         };
 
         // Set optional depth attachment.
-        if (this.mDepthStencilTexture) {
-            const lDepthStencilTexture: FrameBufferTexture = this.mDepthStencilTexture.target;
+        if (this.mDepthStencilTarget) {
+            const lDepthStencilTexture: FrameBufferTexture = this.mDepthStencilTarget.target;
 
             // Add texture view for depth.
             lDescriptor.depthStencilAttachment = {
@@ -237,31 +236,31 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             };
 
             // Add depth values when depth formats are used.
-            if (this.mDepthStencilTexture.depth) {
+            if (this.mDepthStencilTarget.depth) {
                 // Set clear value of depth texture.
-                if (this.mDepthStencilTexture.depth.clearValue !== null) {
-                    lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTexture.depth.clearValue;
+                if (this.mDepthStencilTarget.depth.clearValue !== null) {
+                    lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTarget.depth.clearValue;
                     lDescriptor.depthStencilAttachment.depthLoadOp = 'clear';
                 } else {
                     lDescriptor.depthStencilAttachment.depthLoadOp = 'load';
                 }
 
                 // Convert Texture operation to load operations.
-                lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTexture.depth.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
+                lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTarget.depth.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
             }
 
             // Add stencil values when stencil formats are used.
-            if (this.mDepthStencilTexture.stencil) {
+            if (this.mDepthStencilTarget.stencil) {
                 // Set clear value of stencil texture.
-                if (this.mDepthStencilTexture.stencil.clearValue !== null) {
-                    lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTexture.stencil.clearValue;
+                if (this.mDepthStencilTarget.stencil.clearValue !== null) {
+                    lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTarget.stencil.clearValue;
                     lDescriptor.depthStencilAttachment.stencilLoadOp = 'clear';
                 } else {
                     lDescriptor.depthStencilAttachment.stencilLoadOp = 'load';
                 }
 
                 // Convert Texture operation to load operations.
-                lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTexture.stencil.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
+                lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTarget.stencil.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
             }
         }
 
@@ -282,7 +281,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             }
 
             // Save setup texture.
-            this.mDepthStencilTexture = {
+            this.mDepthStencilTarget = {
                 target: pReferenceData.depthStencil.texture
             };
 
@@ -290,7 +289,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             pReferenceData.depthStencil.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Passthrough depth stencil texture changes.
-            this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
+            this.setTextureInvalidationListener(pReferenceData.depthStencil.texture, -1);
 
             // Read capability of used depth stencil texture format.
             const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
@@ -302,7 +301,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
                 }
 
-                this.mDepthStencilTexture.depth = {
+                this.mDepthStencilTarget.depth = {
                     clearValue: pReferenceData.depthStencil.depth.clearValue,
                     storeOperation: pReferenceData.depthStencil.depth.storeOperation
                 };
@@ -315,7 +314,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                     throw new Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
                 }
 
-                this.mDepthStencilTexture.stencil = {
+                this.mDepthStencilTarget.stencil = {
                     clearValue: pReferenceData.depthStencil.stencil.clearValue,
                     storeOperation: pReferenceData.depthStencil.stencil.storeOperation
                 };
@@ -323,7 +322,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         // Setup color targets.
-        const lAttachmentLocations: Array<boolean> = new Array<boolean>();
         for (const lAttachment of pReferenceData.colorTargets.values()) {
             // Validate existence of color texture.
             if (!lAttachment.texture) {
@@ -331,26 +329,26 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             }
 
             // No double names.
-            if (this.mColorTextures.has(lAttachment.name)) {
+            if (this.mColorTargetNames.has(lAttachment.name)) {
                 throw new Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
             }
 
             // No double location indices.
-            if (lAttachmentLocations[lAttachment.index] === true) {
+            if (this.mColorTargets[lAttachment.index]) {
                 throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
             }
 
             // Passthrough color texture changes. Any change.
-            this.setTextureInvalidationListener(lAttachment.texture);
+            this.setTextureInvalidationListener(lAttachment.texture, lAttachment.index);
 
             // Add render attachment texture usage to color texture.
             lAttachment.texture.extendUsage(TextureUsage.RenderAttachment);
 
-            // Buffer used location index.
-            lAttachmentLocations[lAttachment.index] = true;
+            // Save color target name and index mapping.
+            this.mColorTargetNames.set(lAttachment.name, lAttachment.index);
 
             // Convert setup into storage data.
-            this.mColorTextures.set(lAttachment.name, {
+            this.mColorTargets[lAttachment.index] = {
                 name: lAttachment.name,
                 index: lAttachment.index,
                 clearValue: lAttachment.clearValue,
@@ -358,11 +356,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 texture: {
                     target: lAttachment.texture
                 }
-            });
+            };
         }
 
         // Validate attachment list.
-        if (lAttachmentLocations.length !== this.mColorTextures.size) {
+        if (this.mColorTargetNames.size !== this.mColorTargets.length) {
             throw new Exception(`Color attachment locations must be in order.`, this);
         }
     }
@@ -389,32 +387,27 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     protected override updateNative(pNative: GPURenderPassDescriptor, pReasons: GpuObjectInvalidationReasons<RenderTargetsInvalidationType>): boolean {
         // Native can not be updated on any config changes.
         if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
+            // Reset updateable views.
+            this.mTargetViewUpdateQueue.clear();
+
             return false;
         }
 
-        // TODO: Make it more performant.
+        // Update depth stencil view. -1 Marks depth stencil texture updates. 
+        if (this.mTargetViewUpdateQueue.has(-1) && pNative.depthStencilAttachment) {
+            pNative.depthStencilAttachment.view = this.mDepthStencilTarget!.target.native;
 
-        // Update only views of descriptor. 
-        if (pNative.depthStencilAttachment) {
-            pNative.depthStencilAttachment.view = this.mDepthStencilTexture!.target.native;
+            // Remove depth stencil from update queue.
+            this.mTargetViewUpdateQueue.delete(-1);
         }
 
-        // Create color attachment list in order.
-        const lColorAttachmentList: Array<RenderTargetsColorTarget> = new Array<RenderTargetsColorTarget>();
-        for (const lColorAttachment of this.mColorTextures.values()) {
-            lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
-        }
-
-        // Create color attachments.
-        for (let lColorAttachmentIndex: number = 0; lColorAttachmentIndex < lColorAttachmentList.length; lColorAttachmentIndex++) {
+        // Update color attachments.
+        for (const lTargetIndex of this.mTargetViewUpdateQueue) {
             // Read current attachment.
-            const lCurrentAttachment: GPURenderPassColorAttachment | null = (<Array<GPURenderPassColorAttachment | null>>pNative.colorAttachments)[lColorAttachmentIndex];
-            if (lCurrentAttachment === null) {
-                continue;
-            }
+            const lCurrentAttachment: GPURenderPassColorAttachment = (<Array<GPURenderPassColorAttachment>>pNative.colorAttachments)[lTargetIndex];
 
             // Read setup attachments.
-            const lColorAttachment = lColorAttachmentList[lColorAttachmentIndex];
+            const lColorAttachment = this.mColorTargets[lTargetIndex];
 
             // Update view.
             lCurrentAttachment.view = lColorAttachment.texture.target.native;
@@ -425,6 +418,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             }
         }
 
+        // Reset updateable views.
+        this.mTargetViewUpdateQueue.clear();
+
         return true;
     }
 
@@ -433,7 +429,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     private applyResize(): void {
         // Update buffer texture multisample level.
-        for (const lAttachment of this.mColorTextures.values()) {
+        for (const lAttachment of this.mColorTargets) {
             // Check for removed or added multisample level.
             if (this.mSize.multisampled) {
                 // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
@@ -469,12 +465,12 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         // Update target texture multisample level.
-        if (this.mDepthStencilTexture) {
-            this.mDepthStencilTexture.target.layout.multisampled = this.mSize.multisampled;
+        if (this.mDepthStencilTarget) {
+            this.mDepthStencilTarget.target.layout.multisampled = this.mSize.multisampled;
         }
 
         // Update buffer texture sizes.
-        for (const lAttachment of this.mColorTextures.values()) {
+        for (const lAttachment of this.mColorTargets) {
             lAttachment.texture.target.height = this.mSize.height;
             lAttachment.texture.target.width = this.mSize.width;
 
@@ -485,9 +481,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         // Update target texture sizes.
-        if (this.mDepthStencilTexture) {
-            this.mDepthStencilTexture.target.height = this.mSize.height;
-            this.mDepthStencilTexture.target.width = this.mSize.width;
+        if (this.mDepthStencilTarget) {
+            this.mDepthStencilTarget.target.height = this.mSize.height;
+            this.mDepthStencilTarget.target.width = this.mSize.width;
         }
     }
 
@@ -496,12 +492,16 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * 
      * @param pTexture - Texture. 
      */
-    private setTextureInvalidationListener(pTexture: FrameBufferTexture | CanvasTexture): void {
+    private setTextureInvalidationListener(pTexture: FrameBufferTexture | CanvasTexture, pTextureIndex: number): void {
         // Frame buffer texture invalidation listener.
         if (pTexture instanceof FrameBufferTexture) {
-            // Rebuild descriptor only on view changes.
+            // Update descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
+                // Invalidate.
                 this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+
+                // Set texture as updateable.
+                this.mTargetViewUpdateQueue.add(pTextureIndex);
             }, [FrameBufferTextureInvalidationType.ViewRebuild]);
 
             // Passthough other invalidations.
@@ -534,7 +534,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         if (pTexture instanceof CanvasTexture) {
             // Rebuild descriptor only on view changes.
             pTexture.addInvalidationListener(() => {
+                // Invalidate.
                 this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+
+                // Set texture as updateable.
+                this.mTargetViewUpdateQueue.add(pTextureIndex);
             }, [CanvasTextureInvalidationType.ViewRebuild]);
 
             // Passthough other invalidations.

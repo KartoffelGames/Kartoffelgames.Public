@@ -6369,7 +6369,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     this.ensureSetup();
     // Create color attachment list in order.
     const lColorAttachmentNameList = new Array();
-    for (const lColorAttachment of this.mColorTextures.values()) {
+    for (const lColorAttachment of this.mColorTargets.values()) {
       lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
     }
     return lColorAttachmentNameList;
@@ -6380,7 +6380,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
   get hasDepth() {
     // Ensure setup was called.
     this.ensureSetup();
-    return !!this.mDepthStencilTexture?.depth;
+    return !!this.mDepthStencilTarget?.depth;
   }
   /**
    * Stencil attachment texture.
@@ -6388,7 +6388,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
   get hasStencil() {
     // Ensure setup was called.
     this.ensureSetup();
-    return !!this.mDepthStencilTexture?.stencil;
+    return !!this.mDepthStencilTarget?.stencil;
   }
   /**
    * Render target height.
@@ -6420,15 +6420,17 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   constructor(pDevice) {
     super(pDevice);
-    // Set "fixed" 
+    // Set default size. 
     this.mSize = {
       width: 1,
       height: 1,
       multisampled: false
     };
     // Setup initial data.
-    this.mDepthStencilTexture = null;
-    this.mColorTextures = new core_1.Dictionary();
+    this.mDepthStencilTarget = null;
+    this.mColorTargets = new Array();
+    this.mColorTargetNames = new core_1.Dictionary();
+    this.mTargetViewUpdateQueue = new Set();
   }
   /**
    * Get color target by name.
@@ -6438,11 +6440,12 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @returns target texture.
    */
   colorTarget(pTargetName) {
-    const lTarget = this.mColorTextures.get(pTargetName);
-    if (!lTarget) {
+    // Read index of color target.
+    const lColorTargetIndex = this.mColorTargetNames.get(pTargetName) ?? null;
+    if (lColorTargetIndex === null) {
       throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
     }
-    return lTarget.texture.target;
+    return this.mColorTargets[lColorTargetIndex].texture.target;
   }
   /**
    * Get depth attachment texture.
@@ -6451,10 +6454,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Ensure setup was called.
     this.ensureSetup();
     // No depth texture setup.
-    if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
+    if (!this.mDepthStencilTarget || !this.mDepthStencilTarget.depth) {
       throw new core_1.Exception(`Depth or stencil target does not exists.`, this);
     }
-    return this.mDepthStencilTexture.target;
+    return this.mDepthStencilTarget.target;
   }
   /**
    * Check for color target existence.
@@ -6464,7 +6467,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @returns true when color target exists.
    */
   hasColorTarget(pTargetName) {
-    return this.mColorTextures.has(pTargetName);
+    return this.mColorTargetNames.has(pTargetName);
   }
   /**
    * Resize all render targets.
@@ -6505,14 +6508,9 @@ class RenderTargets extends gpu_object_1.GpuObject {
   generateNative() {
     // Invalidate bc. descriptor is rebuilding.
     this.invalidate(RenderTargetsInvalidationType.DescriptorRebuild);
-    // Create color attachment list in order.
-    const lColorAttachmentList = new Array();
-    for (const lColorAttachment of this.mColorTextures.values()) {
-      lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
-    }
     // Create color attachments.
     const lColorAttachments = new Array();
-    for (const lColorAttachment of lColorAttachmentList) {
+    for (const lColorAttachment of this.mColorTargets) {
       // Convert Texture operation to load operations.
       const lStoreOperation = lColorAttachment.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
       // Create basic color attachment.
@@ -6539,35 +6537,35 @@ class RenderTargets extends gpu_object_1.GpuObject {
       colorAttachments: lColorAttachments
     };
     // Set optional depth attachment.
-    if (this.mDepthStencilTexture) {
-      const lDepthStencilTexture = this.mDepthStencilTexture.target;
+    if (this.mDepthStencilTarget) {
+      const lDepthStencilTexture = this.mDepthStencilTarget.target;
       // Add texture view for depth.
       lDescriptor.depthStencilAttachment = {
         view: lDepthStencilTexture.native
       };
       // Add depth values when depth formats are used.
-      if (this.mDepthStencilTexture.depth) {
+      if (this.mDepthStencilTarget.depth) {
         // Set clear value of depth texture.
-        if (this.mDepthStencilTexture.depth.clearValue !== null) {
-          lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTexture.depth.clearValue;
+        if (this.mDepthStencilTarget.depth.clearValue !== null) {
+          lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTarget.depth.clearValue;
           lDescriptor.depthStencilAttachment.depthLoadOp = 'clear';
         } else {
           lDescriptor.depthStencilAttachment.depthLoadOp = 'load';
         }
         // Convert Texture operation to load operations.
-        lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTexture.depth.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
+        lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTarget.depth.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
       }
       // Add stencil values when stencil formats are used.
-      if (this.mDepthStencilTexture.stencil) {
+      if (this.mDepthStencilTarget.stencil) {
         // Set clear value of stencil texture.
-        if (this.mDepthStencilTexture.stencil.clearValue !== null) {
-          lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTexture.stencil.clearValue;
+        if (this.mDepthStencilTarget.stencil.clearValue !== null) {
+          lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTarget.stencil.clearValue;
           lDescriptor.depthStencilAttachment.stencilLoadOp = 'clear';
         } else {
           lDescriptor.depthStencilAttachment.stencilLoadOp = 'load';
         }
         // Convert Texture operation to load operations.
-        lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTexture.stencil.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
+        lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTarget.stencil.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
       }
     }
     return lDescriptor;
@@ -6585,13 +6583,13 @@ class RenderTargets extends gpu_object_1.GpuObject {
         throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
       }
       // Save setup texture.
-      this.mDepthStencilTexture = {
+      this.mDepthStencilTarget = {
         target: pReferenceData.depthStencil.texture
       };
       // Add render attachment texture usage to depth stencil texture.
       pReferenceData.depthStencil.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Passthrough depth stencil texture changes.
-      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture);
+      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture, -1);
       // Read capability of used depth stencil texture format.
       const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
       // Setup depth texture.
@@ -6600,7 +6598,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
         if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Depth)) {
           throw new core_1.Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
         }
-        this.mDepthStencilTexture.depth = {
+        this.mDepthStencilTarget.depth = {
           clearValue: pReferenceData.depthStencil.depth.clearValue,
           storeOperation: pReferenceData.depthStencil.depth.storeOperation
         };
@@ -6611,35 +6609,34 @@ class RenderTargets extends gpu_object_1.GpuObject {
         if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Stencil)) {
           throw new core_1.Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
         }
-        this.mDepthStencilTexture.stencil = {
+        this.mDepthStencilTarget.stencil = {
           clearValue: pReferenceData.depthStencil.stencil.clearValue,
           storeOperation: pReferenceData.depthStencil.stencil.storeOperation
         };
       }
     }
     // Setup color targets.
-    const lAttachmentLocations = new Array();
     for (const lAttachment of pReferenceData.colorTargets.values()) {
       // Validate existence of color texture.
       if (!lAttachment.texture) {
         throw new core_1.Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
       }
       // No double names.
-      if (this.mColorTextures.has(lAttachment.name)) {
+      if (this.mColorTargetNames.has(lAttachment.name)) {
         throw new core_1.Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
       }
       // No double location indices.
-      if (lAttachmentLocations[lAttachment.index] === true) {
+      if (this.mColorTargets[lAttachment.index]) {
         throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
       }
       // Passthrough color texture changes. Any change.
-      this.setTextureInvalidationListener(lAttachment.texture);
+      this.setTextureInvalidationListener(lAttachment.texture, lAttachment.index);
       // Add render attachment texture usage to color texture.
       lAttachment.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-      // Buffer used location index.
-      lAttachmentLocations[lAttachment.index] = true;
+      // Save color target name and index mapping.
+      this.mColorTargetNames.set(lAttachment.name, lAttachment.index);
       // Convert setup into storage data.
-      this.mColorTextures.set(lAttachment.name, {
+      this.mColorTargets[lAttachment.index] = {
         name: lAttachment.name,
         index: lAttachment.index,
         clearValue: lAttachment.clearValue,
@@ -6647,10 +6644,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
         texture: {
           target: lAttachment.texture
         }
-      });
+      };
     }
     // Validate attachment list.
-    if (lAttachmentLocations.length !== this.mColorTextures.size) {
+    if (this.mColorTargetNames.size !== this.mColorTargets.length) {
       throw new core_1.Exception(`Color attachment locations must be in order.`, this);
     }
   }
@@ -6675,27 +6672,22 @@ class RenderTargets extends gpu_object_1.GpuObject {
   updateNative(pNative, pReasons) {
     // Native can not be updated on any config changes.
     if (pReasons.has(RenderTargetsInvalidationType.DescriptorRebuild)) {
+      // Reset updateable views.
+      this.mTargetViewUpdateQueue.clear();
       return false;
     }
-    // TODO: Make it more performant.
-    // Update only views of descriptor. 
-    if (pNative.depthStencilAttachment) {
-      pNative.depthStencilAttachment.view = this.mDepthStencilTexture.target.native;
+    // Update depth stencil view. -1 Marks depth stencil texture updates. 
+    if (this.mTargetViewUpdateQueue.has(-1) && pNative.depthStencilAttachment) {
+      pNative.depthStencilAttachment.view = this.mDepthStencilTarget.target.native;
+      // Remove depth stencil from update queue.
+      this.mTargetViewUpdateQueue.delete(-1);
     }
-    // Create color attachment list in order.
-    const lColorAttachmentList = new Array();
-    for (const lColorAttachment of this.mColorTextures.values()) {
-      lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
-    }
-    // Create color attachments.
-    for (let lColorAttachmentIndex = 0; lColorAttachmentIndex < lColorAttachmentList.length; lColorAttachmentIndex++) {
+    // Update color attachments.
+    for (const lTargetIndex of this.mTargetViewUpdateQueue) {
       // Read current attachment.
-      const lCurrentAttachment = pNative.colorAttachments[lColorAttachmentIndex];
-      if (lCurrentAttachment === null) {
-        continue;
-      }
+      const lCurrentAttachment = pNative.colorAttachments[lTargetIndex];
       // Read setup attachments.
-      const lColorAttachment = lColorAttachmentList[lColorAttachmentIndex];
+      const lColorAttachment = this.mColorTargets[lTargetIndex];
       // Update view.
       lCurrentAttachment.view = lColorAttachment.texture.target.native;
       // Update optional resolve target.
@@ -6703,6 +6695,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
         lCurrentAttachment.resolveTarget = lColorAttachment.texture.resolve.native;
       }
     }
+    // Reset updateable views.
+    this.mTargetViewUpdateQueue.clear();
     return true;
   }
   /**
@@ -6710,7 +6704,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    */
   applyResize() {
     // Update buffer texture multisample level.
-    for (const lAttachment of this.mColorTextures.values()) {
+    for (const lAttachment of this.mColorTargets) {
       // Check for removed or added multisample level.
       if (this.mSize.multisampled) {
         // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
@@ -6740,11 +6734,11 @@ class RenderTargets extends gpu_object_1.GpuObject {
       }
     }
     // Update target texture multisample level.
-    if (this.mDepthStencilTexture) {
-      this.mDepthStencilTexture.target.layout.multisampled = this.mSize.multisampled;
+    if (this.mDepthStencilTarget) {
+      this.mDepthStencilTarget.target.layout.multisampled = this.mSize.multisampled;
     }
     // Update buffer texture sizes.
-    for (const lAttachment of this.mColorTextures.values()) {
+    for (const lAttachment of this.mColorTargets) {
       lAttachment.texture.target.height = this.mSize.height;
       lAttachment.texture.target.width = this.mSize.width;
       if (lAttachment.texture.resolve) {
@@ -6753,9 +6747,9 @@ class RenderTargets extends gpu_object_1.GpuObject {
       }
     }
     // Update target texture sizes.
-    if (this.mDepthStencilTexture) {
-      this.mDepthStencilTexture.target.height = this.mSize.height;
-      this.mDepthStencilTexture.target.width = this.mSize.width;
+    if (this.mDepthStencilTarget) {
+      this.mDepthStencilTarget.target.height = this.mSize.height;
+      this.mDepthStencilTarget.target.width = this.mSize.width;
     }
   }
   /**
@@ -6763,12 +6757,15 @@ class RenderTargets extends gpu_object_1.GpuObject {
    *
    * @param pTexture - Texture.
    */
-  setTextureInvalidationListener(pTexture) {
+  setTextureInvalidationListener(pTexture, pTextureIndex) {
     // Frame buffer texture invalidation listener.
     if (pTexture instanceof frame_buffer_texture_1.FrameBufferTexture) {
-      // Rebuild descriptor only on view changes.
+      // Update descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
+        // Invalidate.
         this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+        // Set texture as updateable.
+        this.mTargetViewUpdateQueue.add(pTextureIndex);
       }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.ViewRebuild]);
       // Passthough other invalidations.
       pTexture.addInvalidationListener(pType => {
@@ -6796,7 +6793,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
     if (pTexture instanceof canvas_texture_1.CanvasTexture) {
       // Rebuild descriptor only on view changes.
       pTexture.addInvalidationListener(() => {
+        // Invalidate.
         this.invalidate(RenderTargetsInvalidationType.ViewRebuild);
+        // Set texture as updateable.
+        this.mTargetViewUpdateQueue.add(pTextureIndex);
       }, [canvas_texture_1.CanvasTextureInvalidationType.ViewRebuild]);
       // Passthough other invalidations.
       pTexture.addInvalidationListener(pType => {
@@ -16400,7 +16400,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("335710e107e9e88774bf")
+/******/ 		__webpack_require__.h = () => ("fa70c93da631ed73991a")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

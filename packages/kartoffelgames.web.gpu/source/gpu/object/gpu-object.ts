@@ -93,6 +93,11 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
 
         // Invalidate for each reason.
         for (const lReason of pReasons) {
+            // Skip reasons that already occurred.
+            if(this.mInvalidationReasons.has(lReason)){
+                continue;
+            }
+
             // Add invalidation reason.
             this.mInvalidationReasons.add(lReason);
 
@@ -278,5 +283,3 @@ export interface GpuObjectSetupReferences<TSetupReferenceData> {
 }
 
 export type GpuObjectUpdateListener<TInvalidationReason extends string> = (pReason: TInvalidationReason) => void;
-
-// TODO: Custom invalidation mapping to destinct between creating everything new or replace a view in native objects.

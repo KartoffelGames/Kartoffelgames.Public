@@ -6,6 +6,6 @@
     "outDir": "./library"
   },
   "include": [
-    "./**/*.ts",
+    "./**/*.ts", "../kartoffelgames.web.potato_render/source/texture-mip-generator.ts",
   ]
 }

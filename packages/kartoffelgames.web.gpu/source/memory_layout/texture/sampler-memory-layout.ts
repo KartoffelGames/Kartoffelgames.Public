@@ -2,6 +2,9 @@ import { SamplerType } from '../../constant/sampler-type.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
+/**
+ * Memory layouts for texture samplers.
+ */
 export class SamplerMemoryLayout extends BaseMemoryLayout<SamplerMemoryLayoutInvalidationType> {
     private mSamplerType: SamplerType;
 
@@ -20,17 +23,12 @@ export class SamplerMemoryLayout extends BaseMemoryLayout<SamplerMemoryLayoutInv
      * Constructor.
      * 
      * @param pDevice - Device reference.
-     * @param pParameter - Parameter.
      */
-    public constructor(pDevice: GpuDevice, pParameter: SamplerMemoryLayoutParameter) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice);
 
-        this.mSamplerType = pParameter.samplerType;
+        this.mSamplerType = SamplerType.Filter;
     }
-}
-
-export interface SamplerMemoryLayoutParameter {
-    samplerType: SamplerType;
 }
 
 export enum SamplerMemoryLayoutInvalidationType {

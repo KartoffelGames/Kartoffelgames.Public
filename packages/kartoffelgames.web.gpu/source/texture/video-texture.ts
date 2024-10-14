@@ -3,12 +3,10 @@ import { TextureUsage } from '../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { BaseTexture } from './base-texture';
-import { TextureMipGenerator } from './texture-mip-generator';
+import { GpuTexture } from './gpu-texture';
 
-export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
-    private mEnableMips: boolean;
-    private readonly mMipGenerator: TextureMipGenerator;
+
+export class VideoTexture extends GpuTexture<VideoTextureInvalidationType> {
     private mTexture: GPUTexture | null;
     private readonly mVideo: HTMLVideoElement;
 
@@ -19,18 +17,6 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
         return this.mVideo.currentTime;
     } set currentTime(pValue: number) {
         this.mVideo.currentTime = pValue;
-    }
-
-    /**
-     * Enable mip maps.
-     */
-    public get enableMips(): boolean {
-        return this.mEnableMips;
-    } set enableMips(pEnable: boolean) {
-        this.mEnableMips = pEnable;
-
-        // Invalidate native on mip enable change.
-        this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     }
 
     /**
@@ -74,9 +60,7 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice, pLayout);
 
-        this.mMipGenerator = new TextureMipGenerator(pDevice);
         this.mTexture = null;
-        this.mEnableMips = true;
 
         // Create video.
         this.mVideo = document.createElement('video');
@@ -87,12 +71,6 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
         // Extend usage to copy external data into texture.
         this.extendUsage(TextureUsage.CopyDestination);
         this.extendUsage(TextureUsage.RenderAttachment);
-
-        // When mips are enabled.
-        if (this.mEnableMips) {
-            this.extendUsage(TextureUsage.TextureBinding);
-            this.extendUsage(TextureUsage.Storage);
-        }
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
@@ -238,7 +216,7 @@ export class VideoTexture extends BaseTexture<VideoTextureInvalidationType> {
     /**
      * On usage extened. Triggers a texture rebuild.
      */
-    protected override onUsageExtend(): void {
+    protected override onSettingChange(): void {
         this.invalidate(VideoTextureInvalidationType.NativeRebuild);
     }
 }

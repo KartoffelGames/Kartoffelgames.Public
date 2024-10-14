@@ -3,9 +3,12 @@ import { TextureFormat } from '../../constant/texture-format.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
+/**
+ * Memory layout for textures.
+ */
 export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInvalidationType> {
-    private readonly mDimension: TextureDimension;
-    private readonly mFormat: TextureFormat;
+    private mDimension: TextureDimension;
+    private mFormat: TextureFormat;
     private mMultisampled: boolean;
 
     /**
@@ -13,6 +16,11 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
      */
     public get dimension(): TextureDimension {
         return this.mDimension;
+    } set dimension(pDimension: TextureDimension) {
+        this.mDimension = pDimension;
+
+        // Invalidate layout.
+        this.invalidate(TextureMemoryLayoutInvalidationType.Dimension);
     }
 
     /**
@@ -20,7 +28,12 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
      */
     public get format(): TextureFormat {
         return this.mFormat;
-    } // TODO: Format-Change
+    } set format(pFormat: TextureFormat) {
+        this.mFormat = pFormat;
+
+        // Invalidate layout.
+        this.invalidate(TextureMemoryLayoutInvalidationType.Format);
+    }
 
     /**
      * Texture uses multisample.
@@ -30,6 +43,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
     } set multisampled(pValue: boolean) {
         this.mMultisampled = pValue;
 
+        // Invalidate layout.
         this.invalidate(TextureMemoryLayoutInvalidationType.Multisampled);
     }
 
@@ -39,19 +53,14 @@ export class TextureMemoryLayout extends BaseMemoryLayout<TextureMemoryLayoutInv
      * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pDevice: GpuDevice, pParameter: TextureMemoryLayoutParameter) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice);
 
-        this.mDimension = pParameter.dimension;
-        this.mFormat = pParameter.format;
-        this.mMultisampled = pParameter.multisampled;
+        // Set defauls.
+        this.mDimension = TextureDimension.TwoDimension;
+        this.mFormat = TextureFormat.Bgra8unorm;
+        this.mMultisampled = false;
     }
-}
-
-export interface TextureMemoryLayoutParameter {
-    dimension: TextureDimension;
-    format: TextureFormat;
-    multisampled: boolean;
 }
 
 export enum TextureMemoryLayoutInvalidationType {

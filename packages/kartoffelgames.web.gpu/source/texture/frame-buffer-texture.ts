@@ -3,9 +3,9 @@ import { TextureDimension } from '../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { BaseTexture } from './base-texture';
+import { GpuTexture } from './gpu-texture';
 
-export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidationType> {
+export class FrameBufferTexture extends GpuTexture<FrameBufferTextureInvalidationType> {
     private mDepth: number;
     private mHeight: number;
     private mTexture: GPUTexture | null;
@@ -126,7 +126,7 @@ export class FrameBufferTexture extends BaseTexture<FrameBufferTextureInvalidati
     /**
      * On usage extened. Triggers a texture rebuild.
      */
-    protected override onUsageExtend(): void {
+    protected override onSettingChange(): void {
         this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
     }
 }

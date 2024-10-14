@@ -9,7 +9,7 @@ import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { BaseTexture } from '../texture/base-texture';
+import { GpuTexture } from '../texture/gpu-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
@@ -95,7 +95,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
                 }
 
                 // Textures must use a texture memory layout.
-                case pData instanceof BaseTexture: {
+                case pData instanceof GpuTexture: {
                     if (!(lBindLayout.layout instanceof TextureMemoryLayout)) {
                         throw new Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
                     }
@@ -166,7 +166,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             }
 
             // Texture bind.
-            if (lBindData instanceof BaseTexture) {
+            if (lBindData instanceof GpuTexture) {
                 lGroupEntry.resource = lBindData.native;
 
                 lEntryList.push(lGroupEntry);
@@ -184,7 +184,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
     }
 }
 
-export type BindData = GpuBuffer<TypedArray> | TextureSampler | BaseTexture;
+export type BindData = GpuBuffer<TypedArray> | TextureSampler | GpuTexture;
 
 export enum BindGroupInvalidationType {
     NativeRebuild = 'NativeRebuild',

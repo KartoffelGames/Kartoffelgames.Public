@@ -4,10 +4,12 @@ import { TextureUsage } from '../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { BaseTexture } from './base-texture';
-import { TextureMipGenerator } from './texture-mip-generator';
+import { GpuTexture } from './gpu-texture';
+import { TextureMipGenerator } from '../../../kartoffelgames.web.potato_render/source/texture-mip-generator';
 
-export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
+// TODO: Remove and integrate parts into gpu-texture.
+
+export class ImageTexture extends GpuTexture<ImageTextureInvalidationType> {
     private mDepth: number;
     private mEnableMips: boolean;
     private mHeight: number;
@@ -313,7 +315,7 @@ export class ImageTexture extends BaseTexture<ImageTextureInvalidationType> {
     /**
      * On usage extened. Triggers a texture rebuild.
      */
-    protected override onUsageExtend(): void {
+    protected override onSettingChange(): void {
         this.invalidate(ImageTextureInvalidationType.NativeRebuild);
     }
 }

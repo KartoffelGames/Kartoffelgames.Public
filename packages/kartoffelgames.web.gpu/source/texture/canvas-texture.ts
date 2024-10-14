@@ -2,9 +2,13 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { BaseTexture } from './base-texture';
+import { GpuTexture } from './gpu-texture';
 
-export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
+// TODO: Does not need layout. Is allways 2d with preferred format and can only be rendered and copied into.
+// TODO: Invalidates every frame
+// Exposes a static useAs(): TextureView without any parameters.
+
+export class CanvasTexture extends GpuTexture<CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTextureView> {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
 
@@ -39,7 +43,7 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
      * @param pLayout - Texture layout.
      * @param pCanvas - Canvas of texture.
      */
-    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pCanvas: HTMLCanvasElement) {
+    public constructor(pDevice: GpuDevice, pCanvas: HTMLCanvasElement) {
         super(pDevice, pLayout);
 
         // Set canvas reference.
@@ -49,11 +53,6 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
         // Set defaults.
         this.height = 1;
         this.width = 1;
-
-        // Register change listener for layout changes.
-        pLayout.addInvalidationListener(() => {
-            this.invalidate(CanvasTextureInvalidationType.LayoutChange, CanvasTextureInvalidationType.NativeRebuild);
-        });
 
         // TODO: Remove it on deconstruct.
         // Rebuild view on every frame.
@@ -115,7 +114,7 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
     /**
      * On usage extened. Triggers a texture rebuild.
      */
-    protected override onUsageExtend(): void {
+    protected override onSettingChange(): void {
         this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
     }
 
@@ -145,6 +144,5 @@ export class CanvasTexture extends BaseTexture<CanvasTextureInvalidationType> im
 
 export enum CanvasTextureInvalidationType {
     ContextRebuild = 'ContextRebuild',
-    NativeRebuild = 'NativeRebuild',
-    LayoutChange = 'LayoutChange'
+    NativeRebuild = 'NativeRebuild'
 }

@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TextureFormat } from '../constant/texture-format.enum';
-import { TextureSampleType } from '../constant/texture-sample-type.enum';
-import { TextureUsage } from '../constant/texture-usage.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { TextureFormatCapability } from './texture-format-capabilities';
+import { TextureFormat } from '../../kartoffelgames.web.gpu/source/constant/texture-format.enum';
+import { TextureSampleType } from '../../kartoffelgames.web.gpu/source/constant/texture-sample-type.enum';
+import { TextureUsage } from '../../kartoffelgames.web.gpu/source/constant/texture-usage.enum';
+import { GpuDevice } from '../../kartoffelgames.web.gpu/source/gpu/gpu-device';
+import { TextureFormatCapability } from '../../kartoffelgames.web.gpu/source/texture/texture-format-capabilities';
 
 export class TextureMipGenerator {
     private static readonly WORKGROUP_SIZE_PER_DIMENSION = 8;

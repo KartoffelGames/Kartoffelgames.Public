@@ -104,7 +104,7 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
         // Trigger View rebuild on texture rebuilds.
         pTexture.addInvalidationListener(() => {
             this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
-        }, [GpuResourceObjectInvalidationType.ResourceRebuild]);
+        }, GpuResourceObjectInvalidationType.ResourceRebuild);
     }
 
     /**

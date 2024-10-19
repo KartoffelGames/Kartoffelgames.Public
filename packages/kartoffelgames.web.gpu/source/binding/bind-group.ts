@@ -128,7 +128,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             // Trigger update data is invalid.
             pData.addInvalidationListener(() => {
                 this.invalidate(BindGroupInvalidationType.NativeRebuild);
-            }, [GpuResourceObjectInvalidationType.ResourceRebuild]);
+            }, GpuResourceObjectInvalidationType.ResourceRebuild);
 
             // Trigger update on data change. 
             this.invalidate(BindGroupInvalidationType.NativeRebuild);

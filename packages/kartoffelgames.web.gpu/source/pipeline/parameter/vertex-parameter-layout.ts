@@ -13,7 +13,7 @@ import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './ve
 /**
  * Vertex parameter layout.
  */
-export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>, VertexParameterLayoutInvalidationType, VertexParameterLayoutSetup> implements IGpuObjectNative<Array<GPUVertexBufferLayout>>, IGpuObjectSetup<VertexParameterLayoutSetup> {
+export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>, '', VertexParameterLayoutSetup> implements IGpuObjectNative<Array<GPUVertexBufferLayout>>, IGpuObjectSetup<VertexParameterLayoutSetup> {
     private readonly mBuffer: Dictionary<string, VertexParameterLayoutBuffer>;
     private mIndexable: boolean;
     private readonly mParameter: Dictionary<string, VertexParameterLayoutBufferParameter>;
@@ -270,7 +270,3 @@ export type VertexParameterLayoutBufferParameter = {
     offset: number;
     bufferName: string;
 };
-
-export enum VertexParameterLayoutInvalidationType {
-    NativeRebuild = 'NativeRebuild',
-}

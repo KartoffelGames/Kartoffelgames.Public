@@ -4,7 +4,7 @@ import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
-import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
+import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
 import { GpuExecution } from '../gpu-execution';
@@ -36,7 +36,7 @@ export class RenderPass extends GpuObject {
         // Update bundle when render target has changed.
         pRenderTargets.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        }, [RenderTargetsInvalidationType.NativeRebuild]);
+        }, RenderTargetsInvalidationType.NativeRebuild);
     }
 
     /**
@@ -103,16 +103,16 @@ export class RenderPass extends GpuObject {
         // Clear bundle when anything has changes.
         pPipeline.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        }, [VertexFragmentPipelineInvalidationType.NativeRebuild, VertexFragmentPipelineInvalidationType.NativeLoaded]);
+        }, VertexFragmentPipelineInvalidationType.NativeRebuild, VertexFragmentPipelineInvalidationType.NativeLoaded);
         pParameter.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        });
+        }, VertexParameterInvalidationType.Data);
 
         // Clear bundle on any bindgroup change.
         for (const lGroupName of lPipelineLayout.groups) {
             lBindGroups.get(lGroupName)!.addInvalidationListener(() => {
                 this.mBundleConfig.bundle = null;
-            }, [BindGroupInvalidationType.NativeRebuild]);
+            }, BindGroupInvalidationType.NativeRebuild);
         }
     }
 

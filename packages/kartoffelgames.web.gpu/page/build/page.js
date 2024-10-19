@@ -1943,7 +1943,7 @@ _asyncToGenerator(function* () {
   lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
   lRenderTargets.addInvalidationListener(() => {
     lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
-  }, [render_targets_1.RenderTargetsInvalidationType.Resize]);
+  }, render_targets_1.RenderTargetsInvalidationType.Resize);
   // Create camera.
   const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
   lCamera.transformation.setTranslation(0, 0, -4);
@@ -2783,7 +2783,7 @@ class BindGroup extends gpu_object_1.GpuObject {
       // Trigger update data is invalid.
       pData.addInvalidationListener(() => {
         this.invalidate(BindGroupInvalidationType.NativeRebuild);
-      }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
+      }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
       // Trigger update on data change. 
       this.invalidate(BindGroupInvalidationType.NativeRebuild);
     });
@@ -4499,6 +4499,7 @@ exports.RenderPass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/binding/bind-group.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const vertex_parameter_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
 const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
 class RenderPass extends gpu_object_1.GpuObject {
@@ -4522,7 +4523,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Update bundle when render target has changed.
     pRenderTargets.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    }, [render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
+    }, render_targets_1.RenderTargetsInvalidationType.NativeRebuild);
   }
   /**
    * Add instruction step.
@@ -4578,15 +4579,15 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Clear bundle when anything has changes.
     pPipeline.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    }, [vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeRebuild, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeLoaded]);
+    }, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeRebuild, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeLoaded);
     pParameter.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    });
+    }, vertex_parameter_1.VertexParameterInvalidationType.Data);
     // Clear bundle on any bindgroup change.
     for (const lGroupName of lPipelineLayout.groups) {
       lBindGroups.get(lGroupName).addInvalidationListener(() => {
         this.mBundleConfig.bundle = null;
-      }, [bind_group_1.BindGroupInvalidationType.NativeRebuild]);
+      }, bind_group_1.BindGroupInvalidationType.NativeRebuild);
     }
   }
   /**
@@ -5387,7 +5388,8 @@ class GpuObject {
     this.mDeconstructed = false;
     this.mNativeObject = null;
     // Init lists.
-    this.mUpdateListenerList = new core_1.Dictionary();
+    this.mUpdateListener = new core_1.Dictionary();
+    this.mUpdateListenerAffectedTyped = new WeakMap();
     this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
   }
   /**
@@ -5398,8 +5400,23 @@ class GpuObject {
    *
    * @returns this.
    */
-  addInvalidationListener(pListener, pAffected) {
-    this.mUpdateListenerList.set(pListener, pAffected ? new Set(pAffected) : null);
+  addInvalidationListener(pListener, pFirstAffected, ...pAffected) {
+    if (this.mUpdateListenerAffectedTyped.has(pListener)) {
+      throw new core_1.Exception(`Invalidation listener can't be applied twice.`, this);
+    }
+    // Concat first and optional types.
+    const lAffectedList = [pFirstAffected, ...pAffected];
+    // Listener to each affected
+    for (const lAffectedType of lAffectedList) {
+      // Init new affected bucket.
+      if (!this.mUpdateListener.has(lAffectedType)) {
+        this.mUpdateListener.set(lAffectedType, new core_1.List());
+      }
+      // Assign listener to affected type.
+      this.mUpdateListener.get(lAffectedType).push(pListener);
+    }
+    // Map listener to affected types.
+    this.mUpdateListenerAffectedTyped.set(pListener, lAffectedList);
     return this;
   }
   /**
@@ -5418,23 +5435,34 @@ class GpuObject {
    * Invalidate native gpu object so it will be created again.
    */
   invalidate(...pReasons) {
-    // TODO: This must have a good performance. 
-    // On length = exec in single mode, else use iterator. 
-    // Pregroup listener with dictionary so iterator only needs to iterate needed. May worse remove listener behaviour.
-    // Invalidate for each reason.
-    for (const lReason of pReasons) {
+    // Single reason execution function.
+    const lExecuteReasonListener = pReason => {
       // Skip reasons that already occurred.
-      if (this.mInvalidationReasons.has(lReason)) {
-        continue;
+      if (this.mInvalidationReasons.has(pReason)) {
+        return;
       }
       // Add invalidation reason.
-      this.mInvalidationReasons.add(lReason);
-      // Call parent update listerner.
-      for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
-        // Call listener only when is has a affected reason.
-        if (!lAffected || lAffected.has(lReason)) {
-          lInvalidationListener(lReason);
+      this.mInvalidationReasons.add(pReason);
+      // Read listener list.
+      const lListenerList = this.mUpdateListener.get(pReason);
+      if (!lListenerList || lListenerList.length === 0) {
+        return;
+      }
+      // Single execution of listener when only one exists.
+      if (lListenerList.length === 1) {
+        lListenerList[0](pReason);
+      } else {
+        for (const lListener of lListenerList) {
+          lListener(pReason);
         }
+      }
+    };
+    // Invalidate for each reason. Single reason execution when only one exists.
+    if (pReasons.length === 1) {
+      lExecuteReasonListener(pReasons[0]);
+    } else {
+      for (const lReason of pReasons) {
+        lExecuteReasonListener(lReason);
       }
     }
   }
@@ -5443,7 +5471,17 @@ class GpuObject {
    * @param pListener - Listener.
    */
   removeInvalidationListener(pListener) {
-    this.mUpdateListenerList.delete(pListener);
+    // Get all affected types of listener.
+    const lAffectedList = this.mUpdateListenerAffectedTyped.get(pListener);
+    if (!lAffectedList) {
+      return;
+    }
+    // Remove all listener from each affected type.
+    for (const lAffectedType of lAffectedList) {
+      this.mUpdateListener.get(lAffectedType).remove(pListener);
+    }
+    // Remove listener from affected mapping.
+    this.mUpdateListenerAffectedTyped.delete(pListener);
   }
   /**
    * Destroy native object.
@@ -6460,6 +6498,7 @@ exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -6489,7 +6528,7 @@ class ComputePipeline extends gpu_object_1.GpuObject {
     // Listen for shader changes.
     this.mShaderModule.shader.layout.addInvalidationListener(() => {
       this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
-    });
+    }, pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild);
   }
   /**
    * Set optional parameter of pipeline.
@@ -6648,7 +6687,7 @@ exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.VertexParameterLayoutInvalidationType = exports.VertexParameterLayout = void 0;
+exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
@@ -6863,10 +6902,6 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
   }
 }
 exports.VertexParameterLayout = VertexParameterLayout;
-var VertexParameterLayoutInvalidationType;
-(function (VertexParameterLayoutInvalidationType) {
-  VertexParameterLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(VertexParameterLayoutInvalidationType || (exports.VertexParameterLayoutInvalidationType = VertexParameterLayoutInvalidationType = {}));
 
 /***/ }),
 
@@ -6923,10 +6958,6 @@ class VertexParameter extends gpu_object_1.GpuObject {
     // Set vertex parameter layout.
     this.mLayout = pVertexParameterLayout;
     this.mData = new core_1.Dictionary();
-    // Invalidate on layout change.
-    this.mLayout.addInvalidationListener(() => {
-      this.invalidate(VertexParameterInvalidationType.Data);
-    });
     // Create index layout.
     const lIndexLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
       primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
@@ -7045,7 +7076,6 @@ exports.VertexParameter = VertexParameter;
 var VertexParameterInvalidationType;
 (function (VertexParameterInvalidationType) {
   VertexParameterInvalidationType["Data"] = "DataChange";
-  VertexParameterInvalidationType["Layout"] = "LayoutChange";
 })(VertexParameterInvalidationType || (exports.VertexParameterInvalidationType = VertexParameterInvalidationType = {}));
 
 /***/ }),
@@ -7656,7 +7686,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
       this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
       // Set texture as updateable.
       this.mTargetViewUpdateQueue.add(pTextureIndex);
-    }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
+    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
 }
 exports.RenderTargets = RenderTargets;
@@ -7775,7 +7805,6 @@ const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect
 const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const vertex_parameter_layout_1 = __webpack_require__(/*! ./parameter/vertex-parameter-layout */ "./source/pipeline/parameter/vertex-parameter-layout.ts");
 const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/pipeline/vertex-fragment-pipeline-target-config.ts");
 class VertexFragmentPipeline extends gpu_object_1.GpuObject {
@@ -7869,18 +7898,14 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     this.mRenderTargetConfig = new core_1.Dictionary();
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
-    // Listen for vertex layout changes.
-    this.mShaderModule.vertexParameter.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }, [vertex_parameter_layout_1.VertexParameterLayoutInvalidationType.NativeRebuild]);
     // Listen for pipeline layout changes.
     this.mShaderModule.shader.layout.addInvalidationListener(() => {
       this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }, [pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild]);
+    }, pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild);
     // Listen for render target changes.
     this.mRenderTargets.addInvalidationListener(() => {
       this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }, [render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
+    }, render_targets_1.RenderTargetsInvalidationType.NativeRebuild);
     // Depth default settings.
     this.mDepthCompare = compare_function_enum_1.CompareFunction.Less;
     this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
@@ -8949,7 +8974,7 @@ class GpuTextureView extends gpu_resource_object_1.GpuResourceObject {
     // Trigger View rebuild on texture rebuilds.
     pTexture.addInvalidationListener(() => {
       this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-    }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
+    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Generate native canvas texture view.
@@ -16349,7 +16374,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c0b5d20c0d362cddfea6")
+/******/ 		__webpack_require__.h = () => ("2ce4ae793eeef1f8c77d")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

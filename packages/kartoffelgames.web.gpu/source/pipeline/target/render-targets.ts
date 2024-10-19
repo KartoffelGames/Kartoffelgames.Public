@@ -499,7 +499,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
             // Set texture as updateable.
             this.mTargetViewUpdateQueue.add(pTextureIndex);
-        }, [GpuResourceObjectInvalidationType.ResourceRebuild]);
+        }, GpuResourceObjectInvalidationType.ResourceRebuild);
     }
 }
 

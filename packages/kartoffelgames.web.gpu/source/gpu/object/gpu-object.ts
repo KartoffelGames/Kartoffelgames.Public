@@ -1,4 +1,4 @@
-import { Dictionary, Exception, IDeconstructable, Writeable } from '@kartoffelgames/core';
+import { Dictionary, Exception, IDeconstructable, List, Writeable } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
 import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
 import { GpuObjectSetup } from './gpu-object-setup';
@@ -12,7 +12,8 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     private readonly mInvalidationReasons: GpuObjectInvalidationReasons<TInvalidationType>;
     private mIsSetup: boolean;
     private mNativeObject: TNativeObject | null;
-    private readonly mUpdateListenerList: Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>;
+    private readonly mUpdateListener: Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>;
+    private readonly mUpdateListenerAffectedTyped: WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>;
 
     /**
      * Gpu Device.
@@ -50,7 +51,8 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         this.mNativeObject = null;
 
         // Init lists.
-        this.mUpdateListenerList = new Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>();
+        this.mUpdateListener = new Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>();
+        this.mUpdateListenerAffectedTyped = new WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>();
         this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
     }
 
@@ -62,8 +64,27 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * 
      * @returns this.
      */
-    public addInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>, pAffected?: Array<TInvalidationType>): this {
-        this.mUpdateListenerList.set(pListener, pAffected ? new Set(pAffected) : null);
+    public addInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>, pFirstAffected: TInvalidationType, ...pAffected: Array<TInvalidationType>): this {
+        if (this.mUpdateListenerAffectedTyped.has(pListener)) {
+            throw new Exception(`Invalidation listener can't be applied twice.`, this);
+        }
+
+        // Concat first and optional types.
+        const lAffectedList: Array<TInvalidationType> = [pFirstAffected, ...pAffected];
+
+        // Listener to each affected
+        for (const lAffectedType of lAffectedList) {
+            // Init new affected bucket.
+            if (!this.mUpdateListener.has(lAffectedType)) {
+                this.mUpdateListener.set(lAffectedType, new List<GpuObjectUpdateListener<TInvalidationType>>());
+            }
+
+            // Assign listener to affected type.
+            this.mUpdateListener.get(lAffectedType)!.push(pListener);
+        }
+
+        // Map listener to affected types.
+        this.mUpdateListenerAffectedTyped.set(pListener, lAffectedList);
 
         return this;
     }
@@ -87,26 +108,38 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * Invalidate native gpu object so it will be created again.
      */
     public invalidate(...pReasons: Array<TInvalidationType>): void {
-        // TODO: This must have a good performance. 
-        // On length = exec in single mode, else use iterator. 
-        // Pregroup listener with dictionary so iterator only needs to iterate needed. May worse remove listener behaviour.
-
-        // Invalidate for each reason.
-        for (const lReason of pReasons) {
+        // Single reason execution function.
+        const lExecuteReasonListener = (pReason: TInvalidationType) => {
             // Skip reasons that already occurred.
-            if(this.mInvalidationReasons.has(lReason)){
-                continue;
+            if (this.mInvalidationReasons.has(pReason)) {
+                return;
             }
 
             // Add invalidation reason.
-            this.mInvalidationReasons.add(lReason);
+            this.mInvalidationReasons.add(pReason);
 
-            // Call parent update listerner.
-            for (const [lInvalidationListener, lAffected] of this.mUpdateListenerList) {
-                // Call listener only when is has a affected reason.
-                if (!lAffected || lAffected.has(lReason)) {
-                    lInvalidationListener(lReason);
+            // Read listener list.
+            const lListenerList: List<GpuObjectUpdateListener<TInvalidationType>> | undefined = this.mUpdateListener.get(pReason);
+            if (!lListenerList || lListenerList.length === 0) {
+                return;
+            }
+
+            // Single execution of listener when only one exists.
+            if (lListenerList.length === 1) {
+                lListenerList[0](pReason);
+            } else {
+                for (const lListener of lListenerList) {
+                    lListener(pReason);
                 }
+            }
+        };
+
+        // Invalidate for each reason. Single reason execution when only one exists.
+        if (pReasons.length === 1) {
+            lExecuteReasonListener(pReasons[0]);
+        } else {
+            for (const lReason of pReasons) {
+                lExecuteReasonListener(lReason);
             }
         }
     }
@@ -116,7 +149,19 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      * @param pListener - Listener.
      */
     public removeInvalidationListener(pListener: GpuObjectUpdateListener<TInvalidationType>): void {
-        this.mUpdateListenerList.delete(pListener);
+        // Get all affected types of listener.
+        const lAffectedList: Array<TInvalidationType> | undefined = this.mUpdateListenerAffectedTyped.get(pListener);
+        if (!lAffectedList) {
+            return;
+        }
+
+        // Remove all listener from each affected type.
+        for (const lAffectedType of lAffectedList) {
+            this.mUpdateListener.get(lAffectedType)!.remove(pListener);
+        }
+
+        // Remove listener from affected mapping.
+        this.mUpdateListenerAffectedTyped.delete(pListener);
     }
 
     /**

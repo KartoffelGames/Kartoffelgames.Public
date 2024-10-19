@@ -13,7 +13,6 @@ import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { GpuTextureView } from '../texture/gpu-texture-view';
-import { VertexParameterLayoutInvalidationType } from './parameter/vertex-parameter-layout';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
@@ -132,20 +131,15 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
 
-        // Listen for vertex layout changes.
-        this.mShaderModule.vertexParameter.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-        }, [VertexParameterLayoutInvalidationType.NativeRebuild]);
-
         // Listen for pipeline layout changes.
         this.mShaderModule.shader.layout.addInvalidationListener(() => {
             this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-        }, [PipelineLayoutInvalidationType.NativeRebuild]);
+        }, PipelineLayoutInvalidationType.NativeRebuild);
 
         // Listen for render target changes.
         this.mRenderTargets.addInvalidationListener(() => {
             this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-        }, [RenderTargetsInvalidationType.NativeRebuild]);
+        }, RenderTargetsInvalidationType.NativeRebuild);
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;

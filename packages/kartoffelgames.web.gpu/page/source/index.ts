@@ -586,7 +586,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
     lRenderTargets.addInvalidationListener(() => {
         lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
-    }, [RenderTargetsInvalidationType.Resize]);
+    }, RenderTargetsInvalidationType.Resize);
 
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);

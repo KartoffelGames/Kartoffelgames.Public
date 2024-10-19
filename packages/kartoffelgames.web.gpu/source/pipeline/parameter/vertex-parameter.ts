@@ -52,11 +52,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         this.mLayout = pVertexParameterLayout;
         this.mData = new Dictionary<string, GpuBuffer>();
 
-        // Invalidate on layout change.
-        this.mLayout.addInvalidationListener(() => {
-            this.invalidate(VertexParameterInvalidationType.Data);
-        });
-
         // Create index layout.
         const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: BufferItemFormat.Uint32,
@@ -187,5 +182,4 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
 
 export enum VertexParameterInvalidationType {
     Data = 'DataChange',
-    Layout = 'LayoutChange'
 }

@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
+import { VertexBufferItemFormat } from '../../constant/vertex-buffer-item-format.enum';
 import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexBufferMemoryLayout, VertexBufferMemoryLayoutParameterParameter } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
 import { VertexParameter } from './vertex-parameter';
 import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
@@ -147,7 +147,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
 
                 // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
                 let lFormat: GPUVertexFormat = `${lBuffer.format}x${lByteMultiplier}` as GPUVertexFormat;
-                if (lParameter.multiplier === PrimitiveBufferMultiplier.Single) {
+                if (lParameter.multiplier === BufferItemMultiplier.Single) {
                     lFormat = lBuffer.format as GPUVertexFormat;
                 }
 
@@ -258,7 +258,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
 export type VertexParameterLayoutBuffer = {
     name: string;
     stepMode: VertexParameterStepMode;
-    format: PrimitiveBufferFormat;
+    format: VertexBufferItemFormat;
     layout: VertexBufferMemoryLayout;
     parameter: Array<VertexParameterLayoutBufferParameter>;
 };
@@ -266,7 +266,7 @@ export type VertexParameterLayoutBuffer = {
 export type VertexParameterLayoutBufferParameter = {
     name: string;
     location: number;
-    multiplier: PrimitiveBufferMultiplier;
+    multiplier: BufferItemMultiplier;
     offset: number;
     bufferName: string;
 };

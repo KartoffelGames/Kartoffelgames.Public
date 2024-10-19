@@ -1501,6 +1501,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 const bind_group_layout_1 = __webpack_require__(/*! ../../source/binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../../source/constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
@@ -1510,10 +1512,9 @@ const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constan
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
@@ -1536,16 +1537,16 @@ const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1681,15 +1682,15 @@ const gAddLightBoxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   const lLightBoxShader = pGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1709,16 +1710,18 @@ const gAddLightBoxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
   lMesh.set('uv', cube_mesh_1.CubeVertexUvData);
   lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
-  pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], pWorldGroup.data('pointLights').get().length / 12);
+  // Create buffer view for pointlights.
+  const lPointLightsBuffer = pWorldGroup.data('pointLights').asBufferView(Float32Array);
+  pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], lPointLightsBuffer.length / 12);
 };
 const gAddSkyboxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   const lSkyBoxShader = pGpu.shader(sky_box_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
       pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
@@ -1783,15 +1786,15 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
   const lWoodBoxShader = pGpu.shader(video_canvas_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
-    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1859,34 +1862,34 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
 const gGenerateWorldBindGroup = pGpu => {
   const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(pGpu, 'world').setup(pBindGroupSetup => {
     pBindGroupSetup.binding(0, 'camera', compute_stage_enum_1.ComputeStage.Vertex).withStruct(pStructSetup => {
-      pStructSetup.property('viewProjection').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pStructSetup.property('view').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-      pStructSetup.property('projection').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+      pStructSetup.property('viewProjection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pStructSetup.property('view').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pStructSetup.property('projection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       pStructSetup.property('translation').asStruct(pTranslationStruct => {
-        pTranslationStruct.property('rotation').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-        pTranslationStruct.property('translation').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+        pTranslationStruct.property('rotation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+        pTranslationStruct.property('translation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       });
       pStructSetup.property('invertedTranslation').asStruct(pTranslationStruct => {
-        pTranslationStruct.property('rotation').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
-        pTranslationStruct.property('translation').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44);
+        pTranslationStruct.property('rotation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+        pTranslationStruct.property('translation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       });
     });
-    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
     pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
-      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
+      pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
-      pStruct.property('position').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pStruct.property('color').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
-      pStruct.property('range').asPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+      pStruct.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pStruct.property('range').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
     });
-    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single);
+    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
   });
   /*
    * Camera and world group.
    */
   const lWorldGroup = lWorldGroupLayout.create();
-  lWorldGroup.data('camera').createBuffer(primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32);
+  lWorldGroup.data('camera').createBuffer(buffer_item_format_enum_1.BufferItemFormat.Float32);
   // Create ambient light.
   const lAmbientLight = new ambient_light_1.AmbientLight();
   lAmbientLight.setColor(0.3, 0.3, 0.3);
@@ -1897,9 +1900,9 @@ const gGenerateWorldBindGroup = pGpu => {
   lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
   // Create debug value.
   lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
-  const lDebugBuffer = lWorldGroup.data('debugValue').get();
+  const lDebugBuffer = lWorldGroup.data('debugValue').asBufferView(Float32Array);
   window.debugBuffer = () => {
-    lDebugBuffer.readRaw(0, 4).then(pResulto => {
+    lDebugBuffer.read().then(pResulto => {
       // eslint-disable-next-line no-console
       console.log(pResulto);
     });
@@ -1945,7 +1948,7 @@ _asyncToGenerator(function* () {
   const lCamera = new view_projection_1.ViewProjection(lPerspectiveProjection);
   lCamera.transformation.setTranslation(0, 0, -4);
   const lWorldGroup = gGenerateWorldBindGroup(lGpu);
-  const lTimestampBuffer = lWorldGroup.data('timestamp').get();
+  const lTimestampBuffer = lWorldGroup.data('timestamp').asBufferView(Float32Array);
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
   gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
@@ -1955,7 +1958,7 @@ _asyncToGenerator(function* () {
   /**
    * Controls
    */
-  (0, util_1.InitCameraControls)(lCanvasTexture.canvas, lCamera, lWorldGroup);
+  (0, util_1.InitCameraControls)(lCanvasTexture.canvas, lCamera, lWorldGroup.data('camera').asBufferView(Float32Array));
   /*
    * Execution
    */
@@ -1970,7 +1973,7 @@ _asyncToGenerator(function* () {
     // Start new frame.
     lGpu.startNewFrame();
     // Update time stamp data.
-    lTimestampBuffer.write([pTime / 1000], []);
+    lTimestampBuffer.write([pTime / 1000]);
     // Generate encoder and add render commands.
     lRenderExecutor.execute();
     // Generate fps and smooth fps numbers.
@@ -2107,7 +2110,7 @@ exports.UpdateFpsDisplay = exports.InitCameraControls = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
 const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
-const InitCameraControls = (pCanvas, pCamera, pWorldGroup) => {
+const InitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
   // Register keyboard mouse movements.
   const lDefaultConfiguaration = new web_game_input_1.DeviceConfiguration();
   lDefaultConfiguaration.addAction('Forward', [web_game_input_1.KeyboardButton.KeyW]);
@@ -2166,13 +2169,13 @@ const InitCameraControls = (pCanvas, pCamera, pWorldGroup) => {
       pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight'));
     }
     // Update transformation buffer.
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.View).dataArray, ['view']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.Projection).dataArray, ['projection']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.Translation).dataArray, ['translation', 'translation']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
-    pWorldGroup.data('camera').get().write(pCamera.getMatrix(view_projection_1.CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.View).dataArray, ['view']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Projection).dataArray, ['projection']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Translation).dataArray, ['translation', 'translation']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
+    pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
   }, 8);
   pCanvas.addEventListener('click', () => {
     pCanvas.requestPointerLock();
@@ -2238,13 +2241,13 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
 const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const gpu_buffer_view_1 = __webpack_require__(/*! ../buffer/gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2260,37 +2263,21 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     this.mCurrentData = pCurrentData;
     this.mBindLayout = pLayout;
   }
+  asBufferView(pType) {
+    const lData = this.getRaw();
+    if (!(lData instanceof gpu_buffer_1.GpuBuffer)) {
+      throw new core_1.Exception('Bind data can not be converted into a buffer view.', this);
+    }
+    // Read layout buffer.
+    const lBufferLayout = this.mBindLayout.layout;
+    // Create view.
+    return new gpu_buffer_view_1.GpuBufferView(lData, lBufferLayout, pType);
+  }
   createBuffer(pDataOrType, pVariableSizeCount = null) {
     // Layout must be a buffer memory layout.
     if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
       throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
     }
-    // Read buffer type from parameter.
-    const lBufferFormat = (() => {
-      // Parameter is type.
-      if (typeof pDataOrType === 'string') {
-        return pDataOrType;
-      }
-      // Get buffer type from typed array.
-      switch (true) {
-        case pDataOrType instanceof Float32Array:
-          {
-            return primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32;
-          }
-        case pDataOrType instanceof Uint32Array:
-          {
-            return primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32;
-          }
-        case pDataOrType instanceof Int32Array:
-          {
-            return primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32;
-          }
-        default:
-          {
-            throw new core_1.Exception(`Buffer data is not suitable for binding buffer creation`, this);
-          }
-      }
-    })();
     // Calculate variable item count from initial buffer data.  
     const lVariableItemCount = pVariableSizeCount ?? (() => {
       // No need to calculate was it is allways zero.
@@ -2310,8 +2297,10 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       }
       return lItemCount;
     })();
+    // Calculate buffer size.
+    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
     // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, this.mBindLayout.layout, lBufferFormat, lVariableItemCount);
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
     // Add initial data.
     if (typeof pDataOrType === 'object') {
       lBuffer.initialData(() => {
@@ -2389,7 +2378,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
    * @throws {@link Exception}
    * When no data was set.
    */
-  get() {
+  getRaw() {
     // Validate existence.
     if (!this.mCurrentData) {
       throw new core_1.Exception('No binding data was set.', this);
@@ -2714,6 +2703,7 @@ class BindGroup extends gpu_object_1.GpuObject {
     super(pDevice);
     this.mLayout = pBindGroupLayout;
     this.mBindData = new core_1.Dictionary();
+    this.mDataInvalidationListener = new WeakMap();
   }
   /**
    * Read binding data references.
@@ -2775,6 +2765,14 @@ class BindGroup extends gpu_object_1.GpuObject {
           {
             throw new core_1.Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
           }
+      }
+      // Remove invalidationlistener from old data.
+      const lOldData = this.mBindData.get(pBindName);
+      if (lOldData) {
+        const lBindDataInvalidationListener = this.mDataInvalidationListener.get(lOldData);
+        if (lBindDataInvalidationListener) {
+          lOldData.removeInvalidationListener(lBindDataInvalidationListener);
+        }
       }
       // Set data.
       this.mBindData.set(pBindName, pData);
@@ -3284,6 +3282,87 @@ exports.BindGroupLayoutSetup = BindGroupLayoutSetup;
 
 /***/ }),
 
+/***/ "./source/buffer/gpu-buffer-view.ts":
+/*!******************************************!*\
+  !*** ./source/buffer/gpu-buffer-view.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuBufferView = void 0;
+/**
+ * Create a view to look at a gpu buffer.
+ */
+class GpuBufferView {
+  /**
+   * Get underlying buffer of view.
+   */
+  get buffer() {
+    return this.mBuffer;
+  }
+  /**
+   * Buffer view format.
+   */
+  get format() {
+    return this.mTypedArrayConstructor;
+  }
+  /**
+   * Length of buffer view based on view type.
+   */
+  get length() {
+    return this.mBuffer.size / this.mTypedArrayConstructor.BYTES_PER_ELEMENT;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pBuffer - Views buffer.
+   * @param pLayout - Layout of view.
+   */
+  constructor(pBuffer, pLayout, pType) {
+    this.mLayout = pLayout;
+    this.mBuffer = pBuffer;
+    this.mTypedArrayConstructor = pType;
+  }
+  /**
+   * Read buffer on layout location.
+   *
+   * @param pLayoutPath - Layout path.
+   */
+  read(pLayoutPath = []) {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      const lLocation = _this.mLayout.locationOf(pLayoutPath);
+      return new _this.mTypedArrayConstructor(yield _this.mBuffer.read(lLocation.offset, lLocation.size));
+    })();
+  }
+  /**
+   * Write data on layout location.
+   *
+   * @param pData - Data.
+   * @param pLayoutPath - Layout path.
+   */
+  write(pData, pLayoutPath = []) {
+    var _this2 = this;
+    return _asyncToGenerator(function* () {
+      const lLocation = _this2.mLayout.locationOf(pLayoutPath);
+      // Add data into a data buffer.
+      const lDataBuffer = new _this2.mTypedArrayConstructor(pData);
+      // Skip new promise creation by returning original promise.
+      return _this2.mBuffer.write(lDataBuffer, lLocation.offset);
+    })();
+  }
+}
+exports.GpuBufferView = GpuBufferView;
+
+/***/ }),
+
 /***/ "./source/buffer/gpu-buffer.ts":
 /*!*************************************!*\
   !*** ./source/buffer/gpu-buffer.ts ***!
@@ -3302,23 +3381,11 @@ exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const gpu_buffer_view_1 = __webpack_require__(/*! ./gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
 class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
-  /**
-   * Data type of buffer.
-   */
-  get dataType() {
-    return this.mDataType;
-  }
-  /**
-   * Get buffer item count.
-   */
-  get length() {
-    return this.mItemCount;
-  }
   /**
    * Native gpu object.
    */
@@ -3330,7 +3397,7 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    */
   get size() {
     // Align data size by 4 byte.
-    return this.mItemCount * this.bytePerElement + 3 & ~3;
+    return this.mByteSize;
   }
   /**
    * Write buffer limitation.
@@ -3343,33 +3410,15 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     this.mWriteBuffer.limitation = pLimit;
   }
   /**
-   * Byte per buffer element.
-   */
-  get bytePerElement() {
-    // Read bytes per element
-    return (() => {
-      switch (this.mDataType) {
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
-          return 4;
-        default:
-          // Float16
-          throw new core_1.Exception(`Could not create a size for ${this.mDataType} type.`, this);
-      }
-    })();
-  }
-  /**
    * Constructor.
    * @param pDevice - GPU.
    * @param pLayout - Buffer layout.
    * @param pInitialData  - Inital data. Can be empty. Or Buffer size.
    */
-  constructor(pDevice, pLayout, pDataType, pVariableSizeCount = null) {
+  constructor(pDevice, pByteCount) {
     super(pDevice);
-    this.mLayout = pLayout;
-    // Set config.
-    this.mDataType = pDataType;
+    // Calculate size.
+    this.mByteSize = pByteCount + 3 & ~3;
     // Read and write buffers.
     this.mWriteBuffer = {
       limitation: Number.MAX_SAFE_INTEGER,
@@ -3377,13 +3426,6 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
       buffer: new Set()
     };
     this.mReadBuffer = null;
-    if (pLayout.variableSize !== 0 && pVariableSizeCount === null) {
-      throw new core_1.Exception('Variable size must be set for gpu buffers with variable memory layouts.', this);
-    }
-    // Layout size can be variable so we clamp variable size to 0. 
-    const lByteSize = (pVariableSizeCount ?? 0) * pLayout.variableSize + pLayout.fixedSize;
-    // Set buffer initial data from buffer size or buffer data.
-    this.mItemCount = lByteSize / 4; // All data is 4byte/ 32bit. 
     // No intial data.
     this.mInitialDataCallback = null;
   }
@@ -3400,64 +3442,51 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     return this;
   }
   /**
-   * Read buffer on layout location.
-   * @param pLayoutPath - Layout path.
-   */
-  read(pLayoutPath) {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      const lLocation = _this.mLayout.locationOf(pLayoutPath);
-      return _this.readRaw(lLocation.offset, lLocation.size);
-    })();
-  }
-  /**
    * Read data raw without layout.
    *
    * @param pOffset - Data read offset.
    * @param pSize - Data read size.
    */
-  readRaw(pOffset, pSize) {
-    var _this2 = this;
+  read(pOffset, pSize) {
+    var _this = this;
     return _asyncToGenerator(function* () {
       // Set buffer as writeable.
-      _this2.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
+      _this.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
       const lOffset = pOffset ?? 0;
-      const lSize = pSize ?? _this2.size;
+      const lSize = pSize ?? _this.size;
       // Create a new buffer when it is not already created.
-      if (_this2.mReadBuffer === null) {
-        _this2.mReadBuffer = _this2.device.gpu.createBuffer({
+      if (_this.mReadBuffer === null) {
+        _this.mReadBuffer = _this.device.gpu.createBuffer({
           label: `ReadWaveBuffer`,
-          size: _this2.size,
+          size: _this.size,
           usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
           mappedAtCreation: false
         });
       }
       // Copy buffer data from native into staging.
-      const lCommandDecoder = _this2.device.gpu.createCommandEncoder();
-      lCommandDecoder.copyBufferToBuffer(_this2.native, lOffset, _this2.mReadBuffer, lOffset, lSize);
-      _this2.device.gpu.queue.submit([lCommandDecoder.finish()]);
+      const lCommandDecoder = _this.device.gpu.createCommandEncoder();
+      lCommandDecoder.copyBufferToBuffer(_this.native, lOffset, _this.mReadBuffer, lOffset, lSize);
+      _this.device.gpu.queue.submit([lCommandDecoder.finish()]);
       // Get buffer and map data.
-      yield _this2.mReadBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
+      yield _this.mReadBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
       // Read result from mapped range and copy it with slice.
-      const lBufferReadResult = _this2.createTypedArray(_this2.mReadBuffer.getMappedRange().slice(0));
+      const lBufferReadResult = _this.mReadBuffer.getMappedRange().slice(0);
       // Map read buffer again.
-      _this2.mReadBuffer.unmap();
+      _this.mReadBuffer.unmap();
       // Get mapped data and force it into typed array.
       return lBufferReadResult;
     })();
   }
   /**
-   * Write data on layout location.
-   * @param pData - Data.
-   * @param pLayoutPath - Layout path.
+   * Create view of buffer.
+   *
+   * @param pLayout - View layout.
+   * @param pType - Type of view.
+   *
+   * @returns view of buffer.
    */
-  write(pData, pLayoutPath) {
-    var _this3 = this;
-    return _asyncToGenerator(function* () {
-      const lLocation = _this3.mLayout.locationOf(pLayoutPath);
-      // Skip new promise creation by returning original promise.
-      return _this3.writeRaw(pData, lLocation.offset);
-    })();
+  view(pLayout, pType) {
+    return new gpu_buffer_view_1.GpuBufferView(this, pLayout, pType);
   }
   /**
    * Write data raw without layout.
@@ -3465,59 +3494,60 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    * @param pData - Data.
    * @param pOffset - Data offset.
    */
-  writeRaw(pData, pOffset) {
-    var _this4 = this;
+  write(pData, pOffset) {
+    var _this2 = this;
     return _asyncToGenerator(function* () {
       // Set buffer as writeable.
-      _this4.extendUsage(buffer_usage_enum_1.BufferUsage.CopyDestination);
+      _this2.extendUsage(buffer_usage_enum_1.BufferUsage.CopyDestination);
       // Read native before reading staging buffers.
       // On Native read, staging buffers can be destroyed.
-      const lNative = _this4.native;
+      const lNative = _this2.native;
       // Try to read a mapped buffer from waving list.
       let lStagingBuffer = null;
-      if (_this4.mWriteBuffer.ready.length === 0) {
+      if (_this2.mWriteBuffer.ready.length === 0) {
         // Create new buffer when limitation is not meet.
-        if (_this4.mWriteBuffer.buffer.size < _this4.mWriteBuffer.limitation) {
-          lStagingBuffer = _this4.device.gpu.createBuffer({
-            label: `RingBuffer-WriteWaveBuffer-${_this4.mWriteBuffer.buffer.size}`,
-            size: _this4.size,
+        if (_this2.mWriteBuffer.buffer.size < _this2.mWriteBuffer.limitation) {
+          lStagingBuffer = _this2.device.gpu.createBuffer({
+            label: `RingBuffer-WriteWaveBuffer-${_this2.mWriteBuffer.buffer.size}`,
+            size: _this2.size,
             usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
             mappedAtCreation: true
           });
           // Add new buffer to complete list.
-          _this4.mWriteBuffer.buffer.add(lStagingBuffer);
+          _this2.mWriteBuffer.buffer.add(lStagingBuffer);
         }
       } else {
         // Pop as long as staging buffer is not destroyed or could not be found.
-        lStagingBuffer = _this4.mWriteBuffer.ready.pop();
+        lStagingBuffer = _this2.mWriteBuffer.ready.pop();
       }
       // Get byte length and offset of data to write.
-      const lDataByteLength = pData.length * _this4.bytePerElement;
+      const lDataByteLength = pData.byteLength;
       const lOffset = pOffset ?? 0;
       // When no staging buffer is available, use the slow native.
       if (!lStagingBuffer) {
         // Write data into mapped range.
-        _this4.device.gpu.queue.writeBuffer(lNative, lOffset, _this4.createTypedArray(pData), 0, lDataByteLength);
+        _this2.device.gpu.queue.writeBuffer(lNative, lOffset, pData, 0, lDataByteLength);
         return;
       }
       // Execute write operations on waving buffer.
-      const lBufferArray = _this4.createTypedArray(lStagingBuffer.getMappedRange(lOffset, lDataByteLength));
-      lBufferArray.set(pData);
+      const lMappedBuffer = lStagingBuffer.getMappedRange(lOffset, lDataByteLength);
+      // Set data to mapped buffer. Use the smallest available byte view (1 byte).
+      new pData.constructor(lMappedBuffer).set(pData);
       // Unmap for copying data.
       lStagingBuffer.unmap();
       // Copy buffer data from staging into wavig buffer.
-      const lCommandDecoder = _this4.device.gpu.createCommandEncoder();
+      const lCommandDecoder = _this2.device.gpu.createCommandEncoder();
       lCommandDecoder.copyBufferToBuffer(lStagingBuffer, lOffset, lNative, lOffset, lDataByteLength);
-      _this4.device.gpu.queue.submit([lCommandDecoder.finish()]);
+      _this2.device.gpu.queue.submit([lCommandDecoder.finish()]);
       // Shedule staging buffer remaping.
       lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
         // Check for destroyed state, it is destroyed when not in write buffer list.
-        if (_this4.mWriteBuffer.buffer.has(lStagingBuffer)) {
-          _this4.mWriteBuffer.ready.push(lStagingBuffer);
+        if (_this2.mWriteBuffer.buffer.has(lStagingBuffer)) {
+          _this2.mWriteBuffer.ready.push(lStagingBuffer);
         }
       }).catch(() => {
         // Remove buffer when it could not be mapped.
-        _this4.mWriteBuffer.buffer.delete(lStagingBuffer);
+        _this2.mWriteBuffer.buffer.delete(lStagingBuffer);
         lStagingBuffer.destroy();
       });
     })();
@@ -3557,44 +3587,78 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     // Write data. Is completly async.
     if (lInitalData) {
       // Write initial data.
-      const lMappedBuffer = this.createTypedArray(lBuffer.getMappedRange());
+      const lMappedBuffer = lBuffer.getMappedRange();
       // Validate buffer and initial data length.
-      if (lMappedBuffer.length !== lInitalData.length) {
-        throw new core_1.Exception(`Initial buffer data (length: ${lInitalData.length}) does not fit into buffer (length: ${lMappedBuffer.length}). `, this);
+      if (lMappedBuffer.byteLength !== lInitalData.byteLength) {
+        throw new core_1.Exception(`Initial buffer data (byte-length: ${lInitalData.byteLength}) does not fit into buffer (length: ${lMappedBuffer.byteLength}). `, this);
       }
-      // Set data to buffer.
-      lMappedBuffer.set(lInitalData);
+      // Set data to buffer. Use the smallest available byte view (1 byte).
+      new lInitalData.constructor(lMappedBuffer).set(lInitalData);
+      //console.log(lMappedBuffer.byteLength, lOriginal, lSomething)
       // Unmap buffer.
       lBuffer.unmap();
     }
     return lBuffer;
   }
-  /**
-   * Create a typed array based on buffer data type.
-   *
-   * @param pArrayBuffer - Array buffer.
-   *
-   * @returns typed array.
-   */
-  createTypedArray(pArrayBuffer) {
-    // Read bytes per element
-    const lArrayBufferConstructor = (() => {
-      switch (this.mDataType) {
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
-          return Float32Array;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
-          return Int32Array;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
-          return Uint32Array;
-        default:
-          // Float16
-          throw new core_1.Exception(`Could not create a buffered array for ${this.mDataType} type.`, this);
-      }
-    })();
-    return new lArrayBufferConstructor(pArrayBuffer);
-  }
 }
 exports.GpuBuffer = GpuBuffer;
+
+/***/ }),
+
+/***/ "./source/constant/buffer-item-format.enum.ts":
+/*!****************************************************!*\
+  !*** ./source/constant/buffer-item-format.enum.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BufferItemFormat = void 0;
+var BufferItemFormat;
+(function (BufferItemFormat) {
+  BufferItemFormat["Float32"] = "float32";
+  BufferItemFormat["Uint32"] = "uint32";
+  BufferItemFormat["Sint32"] = "sint32";
+})(BufferItemFormat || (exports.BufferItemFormat = BufferItemFormat = {}));
+
+/***/ }),
+
+/***/ "./source/constant/buffer-item-multiplier.enum.ts":
+/*!********************************************************!*\
+  !*** ./source/constant/buffer-item-multiplier.enum.ts ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BufferItemMultiplier = void 0;
+var BufferItemMultiplier;
+(function (BufferItemMultiplier) {
+  // Single
+  BufferItemMultiplier["Single"] = "x1";
+  // Vector
+  BufferItemMultiplier["Vector2"] = "v2";
+  BufferItemMultiplier["Vector3"] = "v3";
+  BufferItemMultiplier["Vector4"] = "v4";
+  // Matrix
+  BufferItemMultiplier["Matrix22"] = "m22";
+  BufferItemMultiplier["Matrix23"] = "m23";
+  BufferItemMultiplier["Matrix24"] = "m24";
+  BufferItemMultiplier["Matrix32"] = "m32";
+  BufferItemMultiplier["Matrix33"] = "m33";
+  BufferItemMultiplier["Matrix34"] = "m34";
+  BufferItemMultiplier["Matrix42"] = "m42";
+  BufferItemMultiplier["Matrix43"] = "m43";
+  BufferItemMultiplier["Matrix44"] = "m44";
+})(BufferItemMultiplier || (exports.BufferItemMultiplier = BufferItemMultiplier = {}));
 
 /***/ }),
 
@@ -4139,6 +4203,37 @@ var TextureViewDimension;
   TextureViewDimension["CubeArray"] = "cube-array";
   TextureViewDimension["ThreeDimension"] = "3d";
 })(TextureViewDimension || (exports.TextureViewDimension = TextureViewDimension = {}));
+
+/***/ }),
+
+/***/ "./source/constant/vertex-buffer-item-format.enum.ts":
+/*!***********************************************************!*\
+  !*** ./source/constant/vertex-buffer-item-format.enum.ts ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexBufferItemFormat = void 0;
+var VertexBufferItemFormat;
+(function (VertexBufferItemFormat) {
+  VertexBufferItemFormat["Float16"] = "float16";
+  VertexBufferItemFormat["Float32"] = "float32";
+  VertexBufferItemFormat["Uint32"] = "uint32";
+  VertexBufferItemFormat["Sint32"] = "sint32";
+  VertexBufferItemFormat["Uint8"] = "uint8";
+  VertexBufferItemFormat["Sint8"] = "sint8";
+  VertexBufferItemFormat["Uint16"] = "uint16";
+  VertexBufferItemFormat["Sint16"] = "sint16";
+  VertexBufferItemFormat["Unorm16"] = "unorm16";
+  VertexBufferItemFormat["Snorm16"] = "snorm16";
+  VertexBufferItemFormat["Unorm8"] = "unorm8";
+  VertexBufferItemFormat["Snorm8"] = "snorm8";
+})(VertexBufferItemFormat || (exports.VertexBufferItemFormat = VertexBufferItemFormat = {}));
 
 /***/ }),
 
@@ -4688,8 +4783,12 @@ class RenderPass extends gpu_object_1.GpuObject {
       }
       // Draw indexed when parameters are indexable.
       if (lInstruction.parameter.layout.indexable) {
-        // Set indexbuffer.
-        pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
+        // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+        if (lInstruction.parameter.indexBuffer.format === Uint16Array) {
+          pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.buffer.native, 'uint16');
+        } else {
+          pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer.buffer.native, 'uint32');
+        }
         // Create draw call.
         pEncoder.drawIndexed(lInstruction.parameter.indexBuffer.length, lInstruction.instanceCount);
       } else {
@@ -5700,66 +5799,6 @@ exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
 
 /***/ }),
 
-/***/ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts":
-/*!**************************************************************************!*\
-  !*** ./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts ***!
-  \**************************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PrimitiveBufferFormat = void 0;
-// TODO: Move and rename.
-var PrimitiveBufferFormat;
-(function (PrimitiveBufferFormat) {
-  PrimitiveBufferFormat["Float16"] = "float16";
-  PrimitiveBufferFormat["Float32"] = "float32";
-  PrimitiveBufferFormat["Uint32"] = "uint32";
-  PrimitiveBufferFormat["Sint32"] = "sint32";
-})(PrimitiveBufferFormat || (exports.PrimitiveBufferFormat = PrimitiveBufferFormat = {}));
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts":
-/*!******************************************************************************!*\
-  !*** ./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts ***!
-  \******************************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PrimitiveBufferMultiplier = void 0;
-// TODO: Move and rename.
-var PrimitiveBufferMultiplier;
-(function (PrimitiveBufferMultiplier) {
-  // Single
-  PrimitiveBufferMultiplier["Single"] = "x1";
-  // Vector
-  PrimitiveBufferMultiplier["Vector2"] = "v2";
-  PrimitiveBufferMultiplier["Vector3"] = "v3";
-  PrimitiveBufferMultiplier["Vector4"] = "v4";
-  // Matrix
-  PrimitiveBufferMultiplier["Matrix22"] = "m22";
-  PrimitiveBufferMultiplier["Matrix23"] = "m23";
-  PrimitiveBufferMultiplier["Matrix24"] = "m24";
-  PrimitiveBufferMultiplier["Matrix32"] = "m32";
-  PrimitiveBufferMultiplier["Matrix33"] = "m33";
-  PrimitiveBufferMultiplier["Matrix34"] = "m34";
-  PrimitiveBufferMultiplier["Matrix42"] = "m42";
-  PrimitiveBufferMultiplier["Matrix43"] = "m43";
-  PrimitiveBufferMultiplier["Matrix44"] = "m44";
-})(PrimitiveBufferMultiplier || (exports.PrimitiveBufferMultiplier = PrimitiveBufferMultiplier = {}));
-
-/***/ }),
-
 /***/ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts":
 /*!***********************************************************************!*\
   !*** ./source/memory_layout/buffer/primitive-buffer-memory-layout.ts ***!
@@ -5775,8 +5814,8 @@ Object.defineProperty(exports, "__esModule", ({
 exports.PrimitiveBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Type byte alignment.
@@ -5807,44 +5846,42 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
     // Set default size by format.
     this.mSize = (() => {
       switch (pParameter.primitiveFormat) {
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float16:
-          return 2;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
+        case buffer_item_format_enum_1.BufferItemFormat.Float32:
           return 4;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
+        case buffer_item_format_enum_1.BufferItemFormat.Uint32:
           return 4;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
+        case buffer_item_format_enum_1.BufferItemFormat.Sint32:
           return 4;
       }
     })();
     // Calculate alignment and size.
     [this.mAlignment, this.mSize] = (() => {
       switch (pParameter.primitiveMultiplier) {
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
           return [this.mSize, this.mSize];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
           return [this.mSize * 2, this.mSize * 2];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector3:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
           return [this.mSize * 4, this.mSize * 3];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
           return [this.mSize * 4, this.mSize * 4];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix22:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
           return [this.mSize * 2, this.mSize * 2 * 2];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix23:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
           return [this.mSize * 4, this.mSize * 2 * 3];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix24:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
           return [this.mSize * 4, this.mSize * 2 * 4];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix32:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
           return [this.mSize * 2, this.mSize * 3 * 2];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix33:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
           return [this.mSize * 4, this.mSize * 3 * 3];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix34:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
           return [this.mSize * 4, this.mSize * 3 * 4];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix42:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
           return [this.mSize * 2, this.mSize * 4 * 2];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix43:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
           return [this.mSize * 4, this.mSize * 4 * 3];
-        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44:
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
           return [this.mSize * 4, this.mSize * 4 * 4];
       }
     })();
@@ -6190,9 +6227,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Type byte alignment.
@@ -6235,14 +6272,30 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
     // Set default size by format.
     const lPrimitiveByteCount = (() => {
       switch (pParameter.format) {
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float16:
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float16:
           return 2;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32:
           return 4;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint32:
           return 4;
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint32:
           return 4;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint8:
+          return 1;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint8:
+          return 1;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint16:
+          return 2;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint16:
+          return 2;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm16:
+          return 2;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm16:
+          return 2;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm8:
+          return 1;
+        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm8:
+          return 1;
       }
     })();
     // Set default size and init format values.
@@ -6254,32 +6307,18 @@ class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
       // Calculate alignment and size.
       const lParameterSize = (() => {
         switch (lParameter.primitiveMultiplier) {
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
+          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
             return lPrimitiveByteCount;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2:
+          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
             return lPrimitiveByteCount * 2;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector3:
+          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
             return lPrimitiveByteCount * 3;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4:
+          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
             return lPrimitiveByteCount * 4;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix22:
-            return lPrimitiveByteCount * 2 * 2;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix23:
-            return lPrimitiveByteCount * 2 * 3;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix24:
-            return lPrimitiveByteCount * 2 * 4;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix32:
-            return lPrimitiveByteCount * 3 * 2;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix33:
-            return lPrimitiveByteCount * 3 * 3;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix34:
-            return lPrimitiveByteCount * 3 * 4;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix42:
-            return lPrimitiveByteCount * 4 * 2;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix43:
-            return lPrimitiveByteCount * 4 * 3;
-          case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44:
-            return lPrimitiveByteCount * 4 * 4;
+          default:
+            {
+              throw new core_1.Exception(`Item multipier "${lParameter.primitiveMultiplier}" not supported for vertex buffer.`, this);
+            }
         }
       })();
       // Extend buffer size.
@@ -6603,9 +6642,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterLayoutInvalidationType = exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
 const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts");
@@ -6724,7 +6763,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
         }, 1);
         // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
         let lFormat = `${lBuffer.format}x${lByteMultiplier}`;
-        if (lParameter.multiplier === primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single) {
+        if (lParameter.multiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
           lFormat = lBuffer.format;
         }
         // Create buffer layout.
@@ -6837,20 +6876,21 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 class VertexParameter extends gpu_object_1.GpuObject {
   /**
    * Get index buffer.
    */
   get indexBuffer() {
-    return this.mIndexBuffer;
+    return this.mIndexBufferView;
   }
   /**
    * Get parameter layout.
@@ -6881,23 +6921,40 @@ class VertexParameter extends gpu_object_1.GpuObject {
     });
     // Create index layout.
     const lIndexLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-      primitiveFormat: primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32,
-      primitiveMultiplier: primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single
+      primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
+      primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
     });
     // Create index buffer layout.
     const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
       arraySize: pIndices.length,
       innerType: lIndexLayout
     });
-    // Create index buffer.
-    this.mIndexBuffer = null;
-    if (this.mLayout.indexable) {
-      this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
-        return new Uint32Array(pIndices);
-      }).extendUsage(buffer_usage_enum_1.BufferUsage.Index);
-    }
     // Save index information.
     this.mIndices = pIndices;
+    // Create index buffer.
+    this.mIndexBufferView = null;
+    if (this.mLayout.indexable) {
+      // Decide wich format to use.
+      if (pIndices.length < Math.pow(2, 16)) {
+        // Create index buffer.
+        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
+        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+        lIndexBuffer.initialData(() => {
+          return new Uint16Array(pIndices);
+        });
+        // Create view of buffer.
+        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
+      } else {
+        // Create index buffer.
+        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
+        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+        lIndexBuffer.initialData(() => {
+          return new Uint32Array(pIndices);
+        });
+        // Create view of buffer.
+        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
+      }
+    }
   }
   /**
    * Get parameter buffer.
@@ -6935,31 +6992,37 @@ class VertexParameter extends gpu_object_1.GpuObject {
     const lVertexParameterItemCount = lData.length * lParameterLayout.layout.formatByteCount / lParameterLayout.layout.variableSize;
     // Load typed array from layout format.
     const lParameterBuffer = (() => {
-      switch (lParameterLayout.format) {
-        // TODO. Support all 8 16 and 32 formats. 
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
-          {
-            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
-              return new Float32Array(lData);
-            });
-          }
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
-          {
-            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
-              return new Int32Array(lData);
-            });
-          }
-        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
-          {
-            return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
-              return new Uint32Array(lData);
-            });
-          }
-        default:
-          {
-            throw new core_1.Exception(`Format "${lParameterLayout.format}" not supported for vertex buffer.`, this);
-          }
-      }
+      const lInitialData = (() => {
+        switch (lParameterLayout.format) {
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32:
+            return new Float32Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint32:
+            return new Uint32Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint32:
+            return new Int32Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint8:
+            return new Uint8Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint8:
+            return new Int8Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint16:
+            return new Uint16Array(lData);
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint16:
+            return new Int16Array(lData);
+          // Unsupported
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float16:
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm16:
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm16:
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm8:
+          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm8:
+          default:
+            {
+              throw new core_1.Exception(`Currently "${lParameterLayout.format}" is not supported.`, this);
+            }
+        }
+      })();
+      return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout.variableSize * lVertexParameterItemCount).initialData(() => {
+        return lInitialData;
+      });
     })();
     // Extend buffer to be a vertex buffer.
     lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
@@ -16255,7 +16318,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("d5bc2592759a5273faea")
+/******/ 		__webpack_require__.h = () => ("092d00f54e66a415130e")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

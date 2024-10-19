@@ -1,13 +1,13 @@
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
 import { ShaderSetupReferenceData } from './shader-setup';
 
 export class ShaderFragmentEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, RenderTargetCallback> {
     /**
      * Setup fragment render target.
      */
-    public addRenderTarget(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): this {
+    public addRenderTarget(pName: string, pLocationIndex: number, pDataFormat: BufferItemFormat, pDataMultiplier: BufferItemMultiplier): this {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -28,8 +28,8 @@ export class ShaderFragmentEntryPointSetup extends GpuObjectChildSetup<ShaderSet
 export type ShaderFragmentEntryPointRenderTargetSetupData = {
     name: string;
     location: number;
-    format: PrimitiveBufferFormat;
-    multiplier: PrimitiveBufferMultiplier;
+    format: BufferItemFormat;
+    multiplier: BufferItemMultiplier;
 };
 
 type RenderTargetCallback = (pRenderTarget: ShaderFragmentEntryPointRenderTargetSetupData) => void;

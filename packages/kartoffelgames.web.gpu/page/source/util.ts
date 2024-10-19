@@ -1,10 +1,9 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { DeviceConfiguration, KeyboardButton, MouseButton, InputConfiguration, InputDevices, MouseKeyboardConnector, BaseInputDevice } from '@kartoffelgames/web.game-input';
-import { ViewProjection, CameraMatrix } from './camera/view_projection/view-projection';
-import { BindGroup } from '../../source/binding/bind-group';
-import { GpuBuffer } from '../../source/buffer/gpu-buffer';
+import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
+import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
+import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection';
 
-export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pWorldGroup: BindGroup): void => {
+export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBufferView<Float32Array>): void => {
     // Register keyboard mouse movements.
     const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
     lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
@@ -69,14 +68,14 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
         }
 
         // Update transformation buffer.
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.View).dataArray, ['view']);
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Projection).dataArray, ['projection']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.View).dataArray, ['view']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Projection).dataArray, ['projection']);
 
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Translation).dataArray, ['translation', 'translation']);
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
-        pWorldGroup.data('camera').get<GpuBuffer>().write(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).dataArray, ['translation', 'translation']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
+        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
     }, 8);
     pCanvas.addEventListener('click', () => {
         pCanvas.requestPointerLock();

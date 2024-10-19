@@ -1,8 +1,8 @@
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup } from '../../memory_layout/buffer/struct-buffer-memory-layout-setup';
@@ -33,7 +33,7 @@ export class BindGroupLayoutArrayMemoryLayoutSetup extends GpuObjectChildSetup<B
      * @param pPrimitiveFormat - Primitive format.
      * @param pPrimitiveMultiplier - Value multiplier.
      */
-    public withPrimitive(pPrimitiveFormat: PrimitiveBufferFormat, pPrimitiveMultiplier: PrimitiveBufferMultiplier): void {
+    public withPrimitive(pPrimitiveFormat: BufferItemFormat, pPrimitiveMultiplier: BufferItemMultiplier): void {
         const lLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: pPrimitiveFormat,
             primitiveMultiplier: pPrimitiveMultiplier,

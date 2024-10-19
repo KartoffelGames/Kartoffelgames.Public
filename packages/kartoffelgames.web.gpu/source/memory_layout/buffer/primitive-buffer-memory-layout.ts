@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
-import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
 
 export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mAlignment: number;
@@ -41,29 +41,28 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
         // Set default size by format.
         this.mSize = ((): number => {
             switch (pParameter.primitiveFormat) {
-                case PrimitiveBufferFormat.Float16: return 2;
-                case PrimitiveBufferFormat.Float32: return 4;
-                case PrimitiveBufferFormat.Uint32: return 4;
-                case PrimitiveBufferFormat.Sint32: return 4;
+                case BufferItemFormat.Float32: return 4;
+                case BufferItemFormat.Uint32: return 4;
+                case BufferItemFormat.Sint32: return 4;
             }
         })();
 
         // Calculate alignment and size.
         [this.mAlignment, this.mSize] = ((): [number, number] => {
             switch (pParameter.primitiveMultiplier) {
-                case PrimitiveBufferMultiplier.Single: return [this.mSize, this.mSize];
-                case PrimitiveBufferMultiplier.Vector2: return [this.mSize * 2, this.mSize * 2];
-                case PrimitiveBufferMultiplier.Vector3: return [this.mSize * 4, this.mSize * 3];
-                case PrimitiveBufferMultiplier.Vector4: return [this.mSize * 4, this.mSize * 4];
-                case PrimitiveBufferMultiplier.Matrix22: return [this.mSize * 2, this.mSize * 2 * 2];
-                case PrimitiveBufferMultiplier.Matrix23: return [this.mSize * 4, this.mSize * 2 * 3];
-                case PrimitiveBufferMultiplier.Matrix24: return [this.mSize * 4, this.mSize * 2 * 4];
-                case PrimitiveBufferMultiplier.Matrix32: return [this.mSize * 2, this.mSize * 3 * 2];
-                case PrimitiveBufferMultiplier.Matrix33: return [this.mSize * 4, this.mSize * 3 * 3];
-                case PrimitiveBufferMultiplier.Matrix34: return [this.mSize * 4, this.mSize * 3 * 4];
-                case PrimitiveBufferMultiplier.Matrix42: return [this.mSize * 2, this.mSize * 4 * 2];
-                case PrimitiveBufferMultiplier.Matrix43: return [this.mSize * 4, this.mSize * 4 * 3];
-                case PrimitiveBufferMultiplier.Matrix44: return [this.mSize * 4, this.mSize * 4 * 4];
+                case BufferItemMultiplier.Single: return [this.mSize, this.mSize];
+                case BufferItemMultiplier.Vector2: return [this.mSize * 2, this.mSize * 2];
+                case BufferItemMultiplier.Vector3: return [this.mSize * 4, this.mSize * 3];
+                case BufferItemMultiplier.Vector4: return [this.mSize * 4, this.mSize * 4];
+                case BufferItemMultiplier.Matrix22: return [this.mSize * 2, this.mSize * 2 * 2];
+                case BufferItemMultiplier.Matrix23: return [this.mSize * 4, this.mSize * 2 * 3];
+                case BufferItemMultiplier.Matrix24: return [this.mSize * 4, this.mSize * 2 * 4];
+                case BufferItemMultiplier.Matrix32: return [this.mSize * 2, this.mSize * 3 * 2];
+                case BufferItemMultiplier.Matrix33: return [this.mSize * 4, this.mSize * 3 * 3];
+                case BufferItemMultiplier.Matrix34: return [this.mSize * 4, this.mSize * 3 * 4];
+                case BufferItemMultiplier.Matrix42: return [this.mSize * 2, this.mSize * 4 * 2];
+                case BufferItemMultiplier.Matrix43: return [this.mSize * 4, this.mSize * 4 * 3];
+                case BufferItemMultiplier.Matrix44: return [this.mSize * 4, this.mSize * 4 * 4];
             }
         })();
 
@@ -103,6 +102,6 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
 export interface LinearBufferMemoryLayoutParameter {
     overrideAlignment?: number;
     overrideSize?: number;
-    primitiveFormat: PrimitiveBufferFormat;
-    primitiveMultiplier: PrimitiveBufferMultiplier;
+    primitiveFormat: BufferItemFormat;
+    primitiveMultiplier: BufferItemMultiplier;
 }

@@ -1,5 +1,5 @@
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
-import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
 import { VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
 
 export class VertexParameterBufferLayoutSetup extends GpuObjectChildSetup<VertexParameterLayoutSetupData, VertexParameterBufferLayoutCallback> {
@@ -13,7 +13,7 @@ export class VertexParameterBufferLayoutSetup extends GpuObjectChildSetup<Vertex
      * @param pAdditionalOffset - Additional offset. Offset 0 aligns right after the last parameter.
      * @returns 
      */
-    public withParameter(pName: string, pLocation: number, pMultiplier: PrimitiveBufferMultiplier, pAdditionalOffset: number = 0): this {
+    public withParameter(pName: string, pLocation: number, pMultiplier: BufferItemMultiplier, pAdditionalOffset: number = 0): this {
         // Send layout data.
         this.sendData({
             name: pName,
@@ -31,6 +31,6 @@ type VertexParameterBufferLayoutCallback = (pLayout: VertexParameterBufferLayout
 export type VertexParameterBufferLayoutData = {
     name: string;
     location: number;
-    multiplier: PrimitiveBufferMultiplier;
+    multiplier: BufferItemMultiplier;
     offset: number;
 };

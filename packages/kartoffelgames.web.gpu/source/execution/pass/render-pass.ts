@@ -1,4 +1,4 @@
-import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup, BindGroupInvalidationType } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
@@ -264,7 +264,7 @@ export class RenderPass extends GpuObject {
         let lPipeline: VertexFragmentPipeline | null = null;
 
         // Buffer for current set vertex buffer.
-        const lVertexBufferList: Dictionary<number, GpuBuffer<TypedArray>> = new Dictionary<number, GpuBuffer<TypedArray>>();
+        const lVertexBufferList: Dictionary<number, GpuBuffer> = new Dictionary<number, GpuBuffer>();
         let lHighestVertexParameterListIndex: number = -1;
 
         // Buffer for current set bind groups.
@@ -313,7 +313,7 @@ export class RenderPass extends GpuObject {
             for (let lBufferIndex: number = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
                 // Read buffer information.
                 const lAttributeBufferName: string = lBufferNames[lBufferIndex];
-                const lNewAttributeBuffer: GpuBuffer<TypedArray> = lInstruction.parameter.get(lAttributeBufferName);
+                const lNewAttributeBuffer: GpuBuffer = lInstruction.parameter.get(lAttributeBufferName);
 
                 // Extend group list length.
                 if (lBufferIndex > lLocalHighestVertexParameterListIndex) {
@@ -359,8 +359,12 @@ export class RenderPass extends GpuObject {
 
             // Draw indexed when parameters are indexable.
             if (lInstruction.parameter.layout.indexable) {
-                // Set indexbuffer.
-                pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.native, 'uint32'); // TODO: Dynamicly switch between 32 and 16 bit based on length.
+                // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+                if (lInstruction.parameter.indexBuffer!.format === Uint16Array) {
+                    pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.buffer.native, 'uint16');
+                } else {
+                    pEncoder.setIndexBuffer(lInstruction.parameter.indexBuffer!.buffer.native, 'uint32');
+                }
 
                 // Create draw call.
                 pEncoder.drawIndexed(lInstruction.parameter.indexBuffer!.length, lInstruction.instanceCount);

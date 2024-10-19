@@ -6,8 +6,8 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
-import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { BufferItemFormat } from '../constant/buffer-item-format.enum';
+import { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
@@ -294,8 +294,8 @@ export type ShaderModuleEntryPointVertex = {
 export type ShaderModuleEntryPointFragmentRenderTarget = {
     name: string;
     location: number;
-    format: PrimitiveBufferFormat;
-    multiplier: PrimitiveBufferMultiplier;
+    format: BufferItemFormat;
+    multiplier: BufferItemMultiplier;
 };
 export type ShaderModuleEntryPointFragment = {
     renderTargets: Dictionary<string, ShaderModuleEntryPointFragmentRenderTarget>;

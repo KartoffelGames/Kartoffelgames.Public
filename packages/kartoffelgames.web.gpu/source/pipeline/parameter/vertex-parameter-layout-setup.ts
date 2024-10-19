@@ -1,6 +1,6 @@
+import { VertexBufferItemFormat } from '../../constant/vertex-buffer-item-format.enum';
 import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { VertexParameterBufferLayoutData, VertexParameterBufferLayoutSetup } from './vertex-parameter-buffer-layout-setup';
 
 export class VertexParameterLayoutSetup extends GpuObjectSetup<VertexParameterLayoutSetupData> {
@@ -11,7 +11,7 @@ export class VertexParameterLayoutSetup extends GpuObjectSetup<VertexParameterLa
      * 
      * @returns vertex buffer layout setup 
      */
-    public buffer(pBufferName: string, pFormat: PrimitiveBufferFormat, pStepMode: VertexParameterStepMode): VertexParameterBufferLayoutSetup {
+    public buffer(pBufferName: string, pFormat: VertexBufferItemFormat, pStepMode: VertexParameterStepMode): VertexParameterBufferLayoutSetup {
         // Create buffer.
         const lBuffer: VertexParameterLayoutSetupBufferData = {
             name: pBufferName,
@@ -41,7 +41,7 @@ export class VertexParameterLayoutSetup extends GpuObjectSetup<VertexParameterLa
 
 type VertexParameterLayoutSetupBufferData = {
     name: string;
-    format: PrimitiveBufferFormat;
+    format: VertexBufferItemFormat;
     stepMode: VertexParameterStepMode;
     parameter: Array<VertexParameterBufferLayoutData>;
 };

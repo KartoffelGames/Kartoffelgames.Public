@@ -17,8 +17,9 @@ import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
 export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, GpuResourceObject<any, any>>;
+    private readonly mDataInvalidationListener: WeakMap<GpuResourceObject, BindGroupDataInvalidationListener>;
     private readonly mLayout: BindGroupLayout;
-
+    
     /**
      * Layout of bind group.
      */
@@ -42,6 +43,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
         this.mLayout = pBindGroupLayout;
         this.mBindData = new Dictionary<string, GpuResourceObject>();
+        this.mDataInvalidationListener = new WeakMap<GpuResourceObject, BindGroupDataInvalidationListener>();
     }
 
     /**
@@ -108,6 +110,15 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
                 default: {
                     throw new Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
+                }
+            }
+
+            // Remove invalidationlistener from old data.
+            const lOldData: GpuResourceObject | undefined = this.mBindData.get(pBindName);
+            if (lOldData) {
+                const lBindDataInvalidationListener: BindGroupDataInvalidationListener | undefined = this.mDataInvalidationListener.get(lOldData);
+                if (lBindDataInvalidationListener) {
+                    lOldData.removeInvalidationListener(lBindDataInvalidationListener);
                 }
             }
 
@@ -183,3 +194,5 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 export enum BindGroupInvalidationType {
     NativeRebuild = 'NativeRebuild',
 }
+
+type BindGroupDataInvalidationListener = () => void;

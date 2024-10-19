@@ -1,5 +1,4 @@
-// TODO: Move and rename.
-export enum PrimitiveBufferMultiplier {
+export enum BufferItemMultiplier {
     // Single
     Single = 'x1',
     

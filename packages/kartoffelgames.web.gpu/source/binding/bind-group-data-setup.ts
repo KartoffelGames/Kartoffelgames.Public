@@ -4,7 +4,7 @@ import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
 import { GpuResourceObject } from '../gpu/object/gpu-resource-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
-import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
+import { BufferItemFormat } from '../constant/buffer-item-format.enum';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
 import { TextureSampler } from '../texture/texture-sampler';
@@ -13,6 +13,7 @@ import { GpuTexture } from '../texture/gpu-texture';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { GpuTextureView } from '../texture/gpu-texture-view';
+import { GpuBufferView, GpuBufferViewFormat } from '../buffer/gpu-buffer-view';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
@@ -34,6 +35,19 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         this.mBindLayout = pLayout;
     }
 
+    public asBufferView<T extends TypedArray>(pType: GpuBufferViewFormat<T>): GpuBufferView<T> {
+        const lData: GpuResourceObject = this.getRaw();
+        if (!(lData instanceof GpuBuffer)) {
+            throw new Exception('Bind data can not be converted into a buffer view.', this);
+        }
+
+        // Read layout buffer.
+        const lBufferLayout: BaseBufferMemoryLayout = this.mBindLayout.layout as BaseBufferMemoryLayout;
+
+        // Create view.
+        return new GpuBufferView<T>(lData, lBufferLayout, pType);
+    }
+
     /**
      * Create na new buffer.
      * 
@@ -42,37 +56,13 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * 
      * @returns created buffer.
      */
-    public createBuffer(pData: TypedArray): GpuBuffer<TypedArray>;
-    public createBuffer(pType: PrimitiveBufferFormat, pVariableSizeCount?: number): GpuBuffer<TypedArray>;
-    public createBuffer(pDataOrType: TypedArray | PrimitiveBufferFormat, pVariableSizeCount: number | null = null): GpuBuffer<TypedArray> {
+    public createBuffer(pData: TypedArray): GpuBuffer;
+    public createBuffer(pType: BufferItemFormat, pVariableSizeCount?: number): GpuBuffer;
+    public createBuffer(pDataOrType: TypedArray | BufferItemFormat, pVariableSizeCount: number | null = null): GpuBuffer {
         // Layout must be a buffer memory layout.
         if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
         }
-
-        // Read buffer type from parameter.
-        const lBufferFormat: PrimitiveBufferFormat = (() => {
-            // Parameter is type.
-            if (typeof pDataOrType === 'string') {
-                return pDataOrType;
-            }
-
-            // Get buffer type from typed array.
-            switch (true) {
-                case pDataOrType instanceof Float32Array: {
-                    return PrimitiveBufferFormat.Float32;
-                }
-                case pDataOrType instanceof Uint32Array: {
-                    return PrimitiveBufferFormat.Uint32;
-                }
-                case pDataOrType instanceof Int32Array: {
-                    return PrimitiveBufferFormat.Sint32;
-                }
-                default: {
-                    throw new Exception(`Buffer data is not suitable for binding buffer creation`, this);
-                }
-            }
-        })();
 
         // Calculate variable item count from initial buffer data.  
         const lVariableItemCount: number = pVariableSizeCount ?? (() => {
@@ -98,8 +88,11 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             return lItemCount;
         })();
 
+        // Calculate buffer size.
+        const lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+
         // Create buffer.
-        const lBuffer: GpuBuffer<TypedArray> = new GpuBuffer(this.device, this.mBindLayout.layout, lBufferFormat, lVariableItemCount);
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteSize);
 
         // Add initial data.
         if (typeof pDataOrType === 'object') {
@@ -188,7 +181,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * @throws {@link Exception}
      * When no data was set.
      */
-    public get<T extends GpuResourceObject<any, any, any, any>>(): T {
+    public getRaw<T extends GpuResourceObject<any, any, any, any>>(): T {
         // Validate existence.
         if (!this.mCurrentData) {
             throw new Exception('No binding data was set.', this);

@@ -35,6 +35,13 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
 }
 
 export type BufferLayoutLocation = {
+    /**
+     * Offset in bytes.
+     */
     offset: number;
+
+    /**
+     * Size in byte.
+     */
     size: number;
 };

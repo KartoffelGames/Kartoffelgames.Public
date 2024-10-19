@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
+import { VertexBufferItemFormat } from '../../constant/vertex-buffer-item-format.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
-import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
-import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
 
 export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
-    private readonly mFormat: PrimitiveBufferFormat;
+    private readonly mFormat: VertexBufferItemFormat;
     private readonly mFormatByteCount: number;
     private readonly mSize: number;
-    
+
     /**
      * Type byte alignment.
      */
@@ -26,7 +26,7 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
     /**
      * Underlying format of all parameters.
      */
-    public get format(): PrimitiveBufferFormat {
+    public get format(): VertexBufferItemFormat {
         return this.mFormat;
     }
 
@@ -56,10 +56,18 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
         // Set default size by format.
         const lPrimitiveByteCount: number = ((): number => {
             switch (pParameter.format) {
-                case PrimitiveBufferFormat.Float16: return 2;
-                case PrimitiveBufferFormat.Float32: return 4;
-                case PrimitiveBufferFormat.Uint32: return 4;
-                case PrimitiveBufferFormat.Sint32: return 4;
+                case VertexBufferItemFormat.Float16: return 2;
+                case VertexBufferItemFormat.Float32: return 4;
+                case VertexBufferItemFormat.Uint32: return 4;
+                case VertexBufferItemFormat.Sint32: return 4;
+                case VertexBufferItemFormat.Uint8: return 1;
+                case VertexBufferItemFormat.Sint8: return 1;
+                case VertexBufferItemFormat.Uint16: return 2;
+                case VertexBufferItemFormat.Sint16: return 2;
+                case VertexBufferItemFormat.Unorm16: return 2;
+                case VertexBufferItemFormat.Snorm16: return 2;
+                case VertexBufferItemFormat.Unorm8: return 1;
+                case VertexBufferItemFormat.Snorm8: return 1;
             }
         })();
 
@@ -73,22 +81,16 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
             // Calculate alignment and size.
             const lParameterSize: number = ((): number => {
                 switch (lParameter.primitiveMultiplier) {
-                    case PrimitiveBufferMultiplier.Single: return lPrimitiveByteCount;
-                    case PrimitiveBufferMultiplier.Vector2: return lPrimitiveByteCount * 2;
-                    case PrimitiveBufferMultiplier.Vector3: return lPrimitiveByteCount * 3;
-                    case PrimitiveBufferMultiplier.Vector4: return lPrimitiveByteCount * 4;
-                    case PrimitiveBufferMultiplier.Matrix22: return lPrimitiveByteCount * 2 * 2;
-                    case PrimitiveBufferMultiplier.Matrix23: return lPrimitiveByteCount * 2 * 3;
-                    case PrimitiveBufferMultiplier.Matrix24: return lPrimitiveByteCount * 2 * 4;
-                    case PrimitiveBufferMultiplier.Matrix32: return lPrimitiveByteCount * 3 * 2;
-                    case PrimitiveBufferMultiplier.Matrix33: return lPrimitiveByteCount * 3 * 3;
-                    case PrimitiveBufferMultiplier.Matrix34: return lPrimitiveByteCount * 3 * 4;
-                    case PrimitiveBufferMultiplier.Matrix42: return lPrimitiveByteCount * 4 * 2;
-                    case PrimitiveBufferMultiplier.Matrix43: return lPrimitiveByteCount * 4 * 3;
-                    case PrimitiveBufferMultiplier.Matrix44: return lPrimitiveByteCount * 4 * 4;
+                    case BufferItemMultiplier.Single: return lPrimitiveByteCount;
+                    case BufferItemMultiplier.Vector2: return lPrimitiveByteCount * 2;
+                    case BufferItemMultiplier.Vector3: return lPrimitiveByteCount * 3;
+                    case BufferItemMultiplier.Vector4: return lPrimitiveByteCount * 4;
+                    default: {
+                        throw new Exception(`Item multipier "${lParameter.primitiveMultiplier}" not supported for vertex buffer.`, this);
+                    }
                 }
             })();
-
+            
             // Extend buffer size.
             this.mSize = lParameterSize + lParameter.offset;
         }
@@ -109,11 +111,11 @@ export class VertexBufferMemoryLayout extends BaseBufferMemoryLayout {
 }
 
 export type VertexBufferMemoryLayoutParameterParameter = {
-    primitiveMultiplier: PrimitiveBufferMultiplier;
+    primitiveMultiplier: BufferItemMultiplier;
     offset: number;
 };
 
 export type VertexBufferMemoryLayoutParameter = {
-    format: PrimitiveBufferFormat;
+    format: VertexBufferItemFormat;
     parameter: Array<VertexBufferMemoryLayoutParameterParameter>;
 };

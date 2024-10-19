@@ -5,18 +5,14 @@ import { BaseMemoryLayout } from '../base-memory-layout';
 /**
  * Memory layouts for texture samplers.
  */
-export class SamplerMemoryLayout extends BaseMemoryLayout<SamplerMemoryLayoutInvalidationType> {
-    private mSamplerType: SamplerType;
+export class SamplerMemoryLayout extends BaseMemoryLayout {
+    private readonly mSamplerType: SamplerType;
 
     /**
      * Sampler type.
      */
     public get samplerType(): SamplerType {
         return this.mSamplerType;
-    } set samplerType(pType: SamplerType) {
-        this.mSamplerType = pType;
-
-        this.invalidate(SamplerMemoryLayoutInvalidationType.SamplerType);
     }
 
     /**
@@ -24,13 +20,9 @@ export class SamplerMemoryLayout extends BaseMemoryLayout<SamplerMemoryLayoutInv
      * 
      * @param pDevice - Device reference.
      */
-    public constructor(pDevice: GpuDevice) {
+    public constructor(pDevice: GpuDevice, pType: SamplerType) {
         super(pDevice);
 
-        this.mSamplerType = SamplerType.Filter;
+        this.mSamplerType = pType;
     }
-}
-
-export enum SamplerMemoryLayoutInvalidationType {
-    SamplerType = 'SamplerTypeChange'
 }

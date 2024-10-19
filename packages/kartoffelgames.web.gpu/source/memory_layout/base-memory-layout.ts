@@ -2,7 +2,11 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectSetup } from '../gpu/object/gpu-object-setup';
 
-export abstract class BaseMemoryLayout<TInvalidationType extends string = any, TSetupObject extends GpuObjectSetup<any> | null = any> extends GpuObject<null, TInvalidationType, TSetupObject> {
+/**
+ * Base memory layout. 
+ * Represents a memory slot used by a shader.
+ */
+export abstract class BaseMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends GpuObject<null, '', TSetupObject> {
     /**
      * Constuctor.
      * @param pDevice - Device reference.

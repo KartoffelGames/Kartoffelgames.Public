@@ -5,7 +5,7 @@ import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
 
-export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<any, StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
+export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
     private mFixedSize: number;
     private mInnerProperties: Array<StructBufferMemoryLayoutProperty>;

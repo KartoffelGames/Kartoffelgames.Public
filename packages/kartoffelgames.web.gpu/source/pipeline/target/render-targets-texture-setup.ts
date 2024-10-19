@@ -1,27 +1,59 @@
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
-import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
 import { CanvasTexture } from '../../texture/canvas-texture';
-import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { GpuTexture } from '../../texture/gpu-texture';
+import { GpuTextureView } from '../../texture/gpu-texture-view';
 import { RenderTargetSetupData } from './render-targets-setup';
 
 export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSetupData, RenderTargetTextureCallback> {
+    private readonly mMultisampled: boolean;
+
+    /**
+     * Constructor.
+     * 
+     * @param pSetupReference - Setup references.
+     * @param pMultisampled - Multisample state.
+     * @param pDataCallback - Setup data callback.
+     */
+    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupData>, pMultisampled: boolean, pDataCallback: RenderTargetTextureCallback) {
+        super(pSetupReference, pDataCallback);
+
+        // Set static multisampled state.
+        this.mMultisampled = pMultisampled;
+    }
+
     /**
      * Create new color render target.
+     * 
+     * @param pFormat - Texture format.
+     * @param pResolve - Optional resolve target.
+     * 
+     * @returns created texture view.
      */
-    public new(pFormat: TextureFormat): void {
+    public new(pFormat: TextureFormat, pResolve: CanvasTexture | null = null): GpuTextureView {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
-        const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
+        // Create new texture.
+        const lTexture: GpuTexture = new GpuTexture(this.device, {
+            format: pFormat,
             dimension: TextureDimension.TwoDimension,
-            format: pFormat, // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
-            multisampled: false // Should be set in render target generation.
+            multisampled: this.mMultisampled
         });
 
+        // Create view from texture.
+        const lTextureView: GpuTextureView = lTexture.useAs(TextureViewDimension.TwoDimension);
+
         // Callback texture.
-        this.sendData(new FrameBufferTexture(this.device, lMemoryLayout));
+        this.sendData({
+            view: lTextureView,
+            resolveCanvas: pResolve
+        });
+
+        return lTextureView;
     }
 
     /**
@@ -29,13 +61,24 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
      * 
      * @param pTexture - Existing texture.
      */
-    public use(pTexture: FrameBufferTexture | CanvasTexture): void {
+    public use(pTextureView: GpuTextureView, pResolve: CanvasTexture | null = null): GpuTextureView {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
         // Callback texture.
-        this.sendData(pTexture);
+        this.sendData({
+            view: pTextureView,
+            resolveCanvas: pResolve
+        });
+
+        // Return same data.
+        return pTextureView;
     }
 }
 
-type RenderTargetTextureCallback = (pTexture: FrameBufferTexture | CanvasTexture) => void;
+export type RenderTargetSetupTextures = {
+    view: GpuTextureView,
+    resolveCanvas: CanvasTexture | null;
+};
+
+type RenderTargetTextureCallback = (pTexture: RenderTargetSetupTextures) => void;

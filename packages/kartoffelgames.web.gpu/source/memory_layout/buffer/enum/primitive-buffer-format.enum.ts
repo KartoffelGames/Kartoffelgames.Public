@@ -1,3 +1,4 @@
+// TODO: Move and rename.
 export enum PrimitiveBufferFormat {
     Float16 = 'float16',
     Float32 = 'float32',

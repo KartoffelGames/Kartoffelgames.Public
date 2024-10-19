@@ -1,8 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../constant/buffer-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -10,8 +10,7 @@ import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-bu
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<GPUBuffer, GpuBufferInvalidationType> implements IGpuObjectNative<GPUBuffer> {
-    private mBufferUsage: number;
+export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuResourceObject<BufferUsage, GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
     private readonly mDataType: PrimitiveBufferFormat;
     private mInitialDataCallback: (() => TType) | null;
     private readonly mItemCount: number;
@@ -89,9 +88,6 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         // Set config.
         this.mDataType = pDataType;
 
-        // At default buffer can not be read and not be written to.
-        this.mBufferUsage = BufferUsage.None;
-
         // Read and write buffers.
         this.mWriteBuffer = {
             limitation: Number.MAX_SAFE_INTEGER,
@@ -112,28 +108,6 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
 
         // No intial data.
         this.mInitialDataCallback = null;
-
-        // Register change listener for layout changes.
-        pLayout.addInvalidationListener(() => {
-            this.invalidate(GpuBufferInvalidationType.NativeRebuild);
-        });
-    }
-
-    /**
-     * Extend usage of buffer.
-     * Might trigger a buffer rebuild.
-     * 
-     * @param pUsage - Buffer usage. 
-     */
-    public extendUsage(pUsage: BufferUsage): this {
-        // Update only when not already set.
-        if ((this.mBufferUsage & pUsage) === 0) {
-            this.mBufferUsage |= pUsage;
-
-            this.invalidate(GpuBufferInvalidationType.NativeRebuild);
-        }
-
-        return this;
     }
 
     /**
@@ -146,7 +120,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         this.mInitialDataCallback = pDataCallback;
 
         // Trigger update.
-        this.invalidate(GpuBufferInvalidationType.NativeRebuild);
+        this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
 
         return this;
     }
@@ -287,23 +261,23 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
     /**
      * Destroy wave and ready buffer.
      */
-    protected override destroyNative(pNativeObject: GPUBuffer, _pReason: GpuObjectInvalidationReasons<GpuBufferInvalidationType>): void {
+    protected override destroyNative(pNativeObject: GPUBuffer, pReason: GpuObjectInvalidationReasons<GpuResourceObjectInvalidationType>): void {
         pNativeObject.destroy();
 
-        // Only clear staging buffers when layout, and therfore the buffer size has changed.
-        //if (pReason.has(GpuBufferInvalidationType.Layout)) {
-        // Destroy all wave buffer and clear list.
-        for (const lWriteBuffer of this.mWriteBuffer.buffer) {
-            lWriteBuffer.destroy();
-        }
-        this.mWriteBuffer.buffer.clear();
+        // Only clear staging buffers when buffer should be deconstructed, on any other invalidation, the size does not change.
+        if (pReason.deconstruct) {
+            // Destroy all wave buffer and clear list.
+            for (const lWriteBuffer of this.mWriteBuffer.buffer) {
+                lWriteBuffer.destroy();
+            }
+            this.mWriteBuffer.buffer.clear();
 
-        // Clear ready buffer list.
-        while (this.mWriteBuffer.ready.length > 0) {
-            // No need to destroy. All buffers have already destroyed.
-            this.mWriteBuffer.ready.pop();
+            // Clear ready buffer list.
+            while (this.mWriteBuffer.ready.length > 0) {
+                // No need to destroy. All buffers have already destroyed.
+                this.mWriteBuffer.ready.pop();
+            }
         }
-        //}
     }
 
     /**
@@ -317,7 +291,7 @@ export class GpuBuffer<TType extends TypedArray = TypedArray> extends GpuObject<
         const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
-            usage: this.mBufferUsage,
+            usage: this.usage,
             mappedAtCreation: !!lInitalData
         });
 
@@ -373,7 +347,3 @@ type GpuBufferWriteBuffer = {
     ready: Array<GPUBuffer>;
     limitation: number;
 };
-
-export enum GpuBufferInvalidationType {
-    NativeRebuild = 'NativeRebuild',
-}

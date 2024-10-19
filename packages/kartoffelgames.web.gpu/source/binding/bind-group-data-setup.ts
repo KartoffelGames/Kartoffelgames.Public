@@ -2,19 +2,21 @@ import { Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
+import { GpuResourceObject } from '../gpu/object/gpu-resource-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { ImageTexture } from '../texture/image-texture';
+import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
 import { TextureSampler } from '../texture/texture-sampler';
-import { VideoTexture } from '../texture/video-texture';
-import { BindData } from './bind-group';
 import { BindLayout } from './bind-group-layout';
+import { GpuTexture } from '../texture/gpu-texture';
+import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
+import { TextureDimension } from '../constant/texture-dimension.enum';
+import { GpuTextureView } from '../texture/gpu-texture-view';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
-    private readonly mCurrentData: BindData | null;
+    private readonly mCurrentData: GpuResourceObject | null;
 
     /**
      * Constructor.
@@ -24,7 +26,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * @param pSetupReference - Setup data references.
      * @param pDataCallback - Bind data callback.
      */
-    public constructor(pLayout: Readonly<BindLayout>, pCurrentData: BindData | null, pSetupReference: GpuObjectSetupReferences<null>, pDataCallback: BindGroupDataCallback) {
+    public constructor(pLayout: Readonly<BindLayout>, pCurrentData: GpuResourceObject | null, pSetupReference: GpuObjectSetupReferences<null>, pDataCallback: BindGroupDataCallback) {
         super(pSetupReference, pDataCallback);
 
         // Set initial data.
@@ -37,10 +39,12 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * 
      * @param pDataOrType - Type or initial data.
      * @param pVariableSizeCount - Variable item count.
+     * 
+     * @returns created buffer.
      */
-    public createBuffer(pData: TypedArray): void;
-    public createBuffer(pType: PrimitiveBufferFormat, pVariableSizeCount?: number): void;
-    public createBuffer(pDataOrType: TypedArray | PrimitiveBufferFormat, pVariableSizeCount: number | null = null): void {
+    public createBuffer(pData: TypedArray): GpuBuffer<TypedArray>;
+    public createBuffer(pType: PrimitiveBufferFormat, pVariableSizeCount?: number): GpuBuffer<TypedArray>;
+    public createBuffer(pDataOrType: TypedArray | PrimitiveBufferFormat, pVariableSizeCount: number | null = null): GpuBuffer<TypedArray> {
         // Layout must be a buffer memory layout.
         if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
@@ -106,63 +110,74 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
         // Send created data.
         this.sendData(lBuffer);
-    }
 
-    /**
-     * Create new image texture with loaded images.
-     * 
-     * @param pSourceList - Image source list.
-     * 
-     * @returns promise that resolves when all images are loaded. 
-     */
-    public async createImage(...pSourceList: Array<string>): Promise<void> {
-        // Layout must be a texture memory layout.
-        if (!(this.mBindLayout.layout instanceof TextureMemoryLayout)) {
-            throw new Exception(`Bind data layout is not suitable for image textures.`, this);
-        }
-
-        // Create image texture.
-        const lTexture: ImageTexture = new ImageTexture(this.device, this.mBindLayout.layout);
-
-        // Load images async.
-        const lImageLoading: Promise<void> = lTexture.load(...pSourceList);
-
-        // Send created texture to parent bind group.
-        this.sendData(lTexture);
-
-        return lImageLoading;
+        return lBuffer;
     }
 
     /**
      * Create new sampler.
+     * 
+     * @returns created texture sampler.
      */
-    public createSampler(): void {
+    public createSampler(): TextureSampler {
         // Layout must be a sampler memory layout.
         if (!(this.mBindLayout.layout instanceof SamplerMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for samplers.`, this);
         }
 
+        // Create texture sampler.
+        const lSampler: TextureSampler = new TextureSampler(this.device, this.mBindLayout.layout);
+
         // Send created data.
-        this.sendData(new TextureSampler(this.device, this.mBindLayout.layout));
+        this.sendData(lSampler);
+
+        return lSampler;
     }
 
     /**
-     * Create new video texture.
+     * Create texture view.
+     * Generates a new texture.
      * 
-     * @param pSource - Video source.
+      * @returns created texture view.
      */
-    public createVideo(pSource: string): void {
-        // Layout must be a sampler memory layout.
-        if (!(this.mBindLayout.layout instanceof TextureMemoryLayout)) {
-            throw new Exception(`Bind data layout is not suitable for samplers.`, this);
+    public createTexture(): GpuTextureView {
+        // Layout must be a texture viw memory layout.
+        if (!(this.mBindLayout.layout instanceof TextureViewMemoryLayout)) {
+            throw new Exception(`Bind data layout is not suitable for image textures.`, this);
         }
 
-        // Create video texture with initial source.
-        const lVideoTexture: VideoTexture = new VideoTexture(this.device, this.mBindLayout.layout);
-        lVideoTexture.source = pSource;
+        // Generate texture dimension from view dimensions.
+        const lTextureDimension: TextureDimension = (() => {
+            switch (this.mBindLayout.layout.dimension) {
+                case TextureViewDimension.OneDimension: {
+                    return TextureDimension.OneDimension;
+                }
+                case TextureViewDimension.TwoDimensionArray:
+                case TextureViewDimension.Cube:
+                case TextureViewDimension.CubeArray:
+                case TextureViewDimension.TwoDimension: {
+                    return TextureDimension.TwoDimension;
+                }
+                case TextureViewDimension.ThreeDimension: {
+                    return TextureDimension.ThreeDimension;
+                }
+            }
+        })();
 
-        // Send created data.
-        this.sendData(lVideoTexture);
+        // Create texture.
+        const lTexture: GpuTexture = new GpuTexture(this.device, {
+            dimension: lTextureDimension,
+            format: this.mBindLayout.layout.format,
+            multisampled: this.mBindLayout.layout.multisampled
+        });
+
+        // Create view from texture.
+        const lTextureView: GpuTextureView = lTexture.useAs(this.mBindLayout.layout.dimension);
+
+        // Send created texture to parent bind group.
+        this.sendData(lTextureView);
+
+        return lTextureView;
     }
 
     /**
@@ -173,7 +188,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * @throws {@link Exception}
      * When no data was set.
      */
-    public get<T extends BindData>(): T {
+    public get<T extends GpuResourceObject<any, any, any, any>>(): T {
         // Validate existence.
         if (!this.mCurrentData) {
             throw new Exception('No binding data was set.', this);
@@ -187,10 +202,15 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * Set already created bind data.
      * 
      * @param pData - Created data.
+     * 
+     * @returns set data.
      */
-    public set(pData: BindData): void {
+    public set<T extends GpuResourceObject<any, any, any, any>>(pData: T): T {
         this.sendData(pData);
+
+        // Return same data.
+        return pData;
     }
 }
 
-type BindGroupDataCallback = (pData: BindData) => void;
+type BindGroupDataCallback = (pData: GpuResourceObject<any, any, any, any>) => void;

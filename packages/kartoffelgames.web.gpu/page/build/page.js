@@ -1501,10 +1501,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 const bind_group_layout_1 = __webpack_require__(/*! ../../source/binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
-const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
-const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
-const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
-const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../../source/constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
@@ -1512,9 +1508,13 @@ const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sample
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
@@ -1527,9 +1527,9 @@ const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/so
 const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
-  const lHeight = 50;
-  const lWidth = 50;
-  const lDepth = 50;
+  const lHeight = 100;
+  const lWidth = 100;
+  const lDepth = 100;
   // Create shader.
   const lWoodBoxShader = pGpu.shader(cube_shader_wgsl_1.default).setup(pShaderSetup => {
     // Set parameter.
@@ -1552,7 +1552,7 @@ const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     // User bind group
     pShaderSetup.group(2, 'user', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
   });
   // Create render module from shader.
@@ -1578,7 +1578,88 @@ const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
    */
   const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
   // Setup cube texture.
-  lWoodBoxUserGroup.data('cubeTexture').createImage('/source/game_objects/cube/texture_one/cube-texture.png', '/source/game_objects/cube/texture_two/cube-texture.png', '/source/game_objects/cube/texture_three/cube-texture.png');
+  const lImageTexture = lWoodBoxUserGroup.data('cubeTexture').createTexture().texture;
+  lImageTexture.depth = 3;
+  lImageTexture.mipCount = 20;
+  _asyncToGenerator(function* () {
+    const lSourceList = ['/source/game_objects/cube/texture_one/cube-texture.png', '/source/game_objects/cube/texture_two/cube-texture.png', '/source/game_objects/cube/texture_three/cube-texture.png'];
+    let lHeight = 0;
+    let lWidth = 0;
+    // "Random" colors.
+    const lColorList = new Array();
+    for (let lIndex = 0; lIndex < 20; lIndex++) {
+      lColorList.push('#' + Math.floor(Math.random() * 16777215).toString(16));
+    }
+    // Parallel load images.
+    const lImageLoadPromiseList = lSourceList.map( /*#__PURE__*/function () {
+      var _ref2 = _asyncToGenerator(function* (pSource, pIndex) {
+        // Load image with html image element.
+        const lImage = new Image();
+        lImage.src = pSource;
+        yield lImage.decode();
+        // Init size.
+        if (lHeight === 0 || lWidth === 0) {
+          lWidth = lImage.naturalWidth;
+          lHeight = lImage.naturalHeight;
+        }
+        // Validate same image size for all layers.
+        if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+          throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+        }
+        const lWaiter = new Array();
+        const lMipList = new Array();
+        // Add level one.
+        lWaiter.push(createImageBitmap(lImage).then(pBitmap => {
+          lMipList.push({
+            data: pBitmap,
+            mipLevel: 0,
+            targetOrigin: {
+              x: 0,
+              y: 0,
+              z: pIndex
+            }
+          });
+        }));
+        // Generate all mips.
+        const lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(lWidth, lHeight)));
+        for (let lMipLevel = 1; lMipLevel < lMaxMipCount; lMipLevel++) {
+          const lCanvas = new OffscreenCanvas(Math.max(1, Math.floor(lWidth / Math.pow(2, lMipLevel))), Math.max(1, Math.floor(lHeight / Math.pow(2, lMipLevel))));
+          // Fill canvas.
+          const lCanvasContext = lCanvas.getContext('2d');
+          lCanvasContext.globalAlpha = 1;
+          lCanvasContext.drawImage(lImage, 0, 0, lWidth, lHeight, 0, 0, lCanvas.width, lCanvas.height);
+          lCanvasContext.globalAlpha = 0.5;
+          lCanvasContext.fillStyle = lColorList[lMipLevel];
+          lCanvasContext.fillRect(0, 0, lCanvas.width, lCanvas.height);
+          lWaiter.push(createImageBitmap(lCanvas).then(pBitmap => {
+            lMipList.push({
+              data: pBitmap,
+              mipLevel: lMipLevel,
+              targetOrigin: {
+                x: 0,
+                y: 0,
+                z: pIndex
+              }
+            });
+          }));
+        }
+        // Wait for all images to resolve.
+        yield Promise.all(lWaiter);
+        return lMipList;
+      });
+      return function (_x, _x2) {
+        return _ref2.apply(this, arguments);
+      };
+    }()).flat();
+    // Resolve all bitmaps.
+    const lImageList = (yield Promise.all(lImageLoadPromiseList)).flat();
+    // Set new texture size.
+    lImageTexture.width = lWidth;
+    lImageTexture.height = lHeight;
+    lImageTexture.depth = lSourceList.length;
+    // Copy images into texture.
+    lImageTexture.copyFrom(...lImageList);
+  })();
   // Setup Sampler.
   lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
@@ -1640,7 +1721,7 @@ const gAddSkyboxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1649,7 +1730,43 @@ const gAddSkyboxStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
   const lSkyBoxRenderModule = lSkyBoxShader.createRenderModule('vertex_main', 'fragment_main');
   // Transformation and position group. 
   const lSkyBoxTextureGroup = lSkyBoxShader.layout.getGroupLayout('object').create();
-  lSkyBoxTextureGroup.data('cubeMap').createImage('/source/game_objects/skybox/right.jpg', '/source/game_objects/skybox/left.jpg', '/source/game_objects/skybox/top.jpg', '/source/game_objects/skybox/bottom.jpg', '/source/game_objects/skybox/front.jpg', '/source/game_objects/skybox/back.jpg');
+  const lImageTexture = lSkyBoxTextureGroup.data('cubeMap').createTexture().texture;
+  lImageTexture.depth = 6;
+  _asyncToGenerator(function* () {
+    const lSourceList = ['/source/game_objects/skybox/right.jpg', '/source/game_objects/skybox/left.jpg', '/source/game_objects/skybox/top.jpg', '/source/game_objects/skybox/bottom.jpg', '/source/game_objects/skybox/front.jpg', '/source/game_objects/skybox/back.jpg'];
+    let lHeight = 0;
+    let lWidth = 0;
+    // Parallel load images.
+    const lImageLoadPromiseList = lSourceList.map( /*#__PURE__*/function () {
+      var _ref4 = _asyncToGenerator(function* (pSource) {
+        // Load image with html image element.
+        const lImage = new Image();
+        lImage.src = pSource;
+        yield lImage.decode();
+        // Init size.
+        if (lHeight === 0 || lWidth === 0) {
+          lWidth = lImage.naturalWidth;
+          lHeight = lImage.naturalHeight;
+        }
+        // Validate same image size for all layers.
+        if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+          throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+        }
+        return createImageBitmap(lImage);
+      });
+      return function (_x3) {
+        return _ref4.apply(this, arguments);
+      };
+    }());
+    // Resolve all bitmaps.
+    const lImageList = yield Promise.all(lImageLoadPromiseList);
+    // Set new texture size.
+    lImageTexture.width = lWidth;
+    lImageTexture.height = lHeight;
+    lImageTexture.depth = lSourceList.length;
+    // Copy images into texture.
+    lImageTexture.copyFrom(...lImageList);
+  })();
   // Setup Sampler.
   lSkyBoxTextureGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
@@ -1681,7 +1798,7 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
     // User bind group
     pShaderSetup.group(2, 'user', pBindGroupSetup => {
       pBindGroupSetup.binding(0, 'videoTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'videoTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_dimension_enum_1.TextureDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(1, 'videoTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
   });
   // Create render module from shader.
@@ -1698,10 +1815,26 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
    */
   const lUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
   // Setup cube texture.
-  lUserGroup.data('videoTexture').createVideo('/source/game_objects/video_canvas/earth.mp4');
-  const lVideoTexture = lUserGroup.data('videoTexture').get();
-  lVideoTexture.loop = true;
-  lVideoTexture.play();
+  const lVideoTexture = lUserGroup.data('videoTexture').createTexture().texture;
+  // Create video.
+  const lVideo = document.createElement('video');
+  lVideo.preload = 'auto';
+  lVideo.loop = true;
+  lVideo.muted = true; // Allways muted.
+  lVideo.src = '/source/game_objects/video_canvas/earth.mp4';
+  lVideo.addEventListener('resize', () => {
+    lVideoTexture.height = Math.max(lVideo.videoHeight, 1);
+    lVideoTexture.width = Math.max(lVideo.videoWidth, 1);
+  });
+  lVideo.play();
+  pGpu.addFrameChangeListener(() => {
+    // Has at least one frame buffered.
+    if (lVideo.readyState > 1) {
+      createImageBitmap(lVideo).then(pImageBitmap => {
+        lVideoTexture.copyFrom(pImageBitmap);
+      });
+    }
+  });
   // Setup Sampler.
   lUserGroup.data('videoTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
@@ -1772,14 +1905,14 @@ _asyncToGenerator(function* () {
   // Create canvas.
   const lCanvasTexture = lGpu.canvas(document.getElementById('canvas'));
   // Create and configure render targets.
-  const lRenderTargets = lGpu.renderTargets().setup(pSetup => {
+  const lRenderTargets = lGpu.renderTargets(false).setup(pSetup => {
     // Add "color" target and init new texture.
     pSetup.addColor('color', 0, true, {
       r: 0,
       g: 1,
       b: 0,
       a: 0
-    }).use(lCanvasTexture);
+    }).new(texture_format_enum_1.TextureFormat.Bgra8unorm, lCanvasTexture);
     // Add depth texture and init new texture.    
     pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
   });
@@ -1790,7 +1923,7 @@ _asyncToGenerator(function* () {
       const lNewCanvasHeight = Math.max(0, lCanvasWrapper.clientHeight - 20);
       const lNewCanvasWidth = Math.max(lCanvasWrapper.clientWidth - 20, 0);
       // Resize displayed render targets.
-      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, false);
+      lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth);
     }).observe(lCanvasWrapper);
   })();
   // Create camera perspective.
@@ -2091,8 +2224,6 @@ exports.UpdateFpsDisplay = (() => {
 "use strict";
 
 
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -2103,10 +2234,11 @@ const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-objec
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
-const image_texture_1 = __webpack_require__(/*! ../texture/image-texture */ "./source/texture/image-texture.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
-const video_texture_1 = __webpack_require__(/*! ../texture/video-texture */ "./source/texture/video-texture.ts");
+const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2182,56 +2314,66 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     }
     // Send created data.
     this.sendData(lBuffer);
-  }
-  /**
-   * Create new image texture with loaded images.
-   *
-   * @param pSourceList - Image source list.
-   *
-   * @returns promise that resolves when all images are loaded.
-   */
-  createImage(...pSourceList) {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      // Layout must be a texture memory layout.
-      if (!(_this.mBindLayout.layout instanceof texture_memory_layout_1.TextureMemoryLayout)) {
-        throw new core_1.Exception(`Bind data layout is not suitable for image textures.`, _this);
-      }
-      // Create image texture.
-      const lTexture = new image_texture_1.ImageTexture(_this.device, _this.mBindLayout.layout);
-      // Load images async.
-      const lImageLoading = lTexture.load(...pSourceList);
-      // Send created texture to parent bind group.
-      _this.sendData(lTexture);
-      return lImageLoading;
-    })();
+    return lBuffer;
   }
   /**
    * Create new sampler.
+   *
+   * @returns created texture sampler.
    */
   createSampler() {
     // Layout must be a sampler memory layout.
     if (!(this.mBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
       throw new core_1.Exception(`Bind data layout is not suitable for samplers.`, this);
     }
+    // Create texture sampler.
+    const lSampler = new texture_sampler_1.TextureSampler(this.device, this.mBindLayout.layout);
     // Send created data.
-    this.sendData(new texture_sampler_1.TextureSampler(this.device, this.mBindLayout.layout));
+    this.sendData(lSampler);
+    return lSampler;
   }
   /**
-   * Create new video texture.
+   * Create texture view.
+   * Generates a new texture.
    *
-   * @param pSource - Video source.
+    * @returns created texture view.
    */
-  createVideo(pSource) {
-    // Layout must be a sampler memory layout.
-    if (!(this.mBindLayout.layout instanceof texture_memory_layout_1.TextureMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for samplers.`, this);
+  createTexture() {
+    // Layout must be a texture viw memory layout.
+    if (!(this.mBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for image textures.`, this);
     }
-    // Create video texture with initial source.
-    const lVideoTexture = new video_texture_1.VideoTexture(this.device, this.mBindLayout.layout);
-    lVideoTexture.source = pSource;
-    // Send created data.
-    this.sendData(lVideoTexture);
+    // Generate texture dimension from view dimensions.
+    const lTextureDimension = (() => {
+      switch (this.mBindLayout.layout.dimension) {
+        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.OneDimension;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
+        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.TwoDimension;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.ThreeDimension;
+          }
+      }
+    })();
+    // Create texture.
+    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
+      dimension: lTextureDimension,
+      format: this.mBindLayout.layout.format,
+      multisampled: this.mBindLayout.layout.multisampled
+    });
+    // Create view from texture.
+    const lTextureView = lTexture.useAs(this.mBindLayout.layout.dimension);
+    // Send created texture to parent bind group.
+    this.sendData(lTextureView);
+    return lTextureView;
   }
   /**
    * Get current binded data.
@@ -2253,9 +2395,13 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
    * Set already created bind data.
    *
    * @param pData - Created data.
+   *
+   * @returns set data.
    */
   set(pData) {
     this.sendData(pData);
+    // Return same data.
+    return pData;
   }
 }
 exports.BindGroupDataSetup = BindGroupDataSetup;
@@ -2274,13 +2420,13 @@ exports.BindGroupDataSetup = BindGroupDataSetup;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.BindGroupLayoutInvalidationType = exports.BindGroupLayout = void 0;
+exports.BindGroupLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
 const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/binding/setup/bind-group-layout-setup.ts");
 /**
@@ -2418,7 +2564,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
             break;
           }
         // Texture layouts.
-        case lEntry.layout instanceof texture_memory_layout_1.TextureMemoryLayout:
+        case lEntry.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
           {
             // Uniform bind when without storage binding.
             if (lEntry.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
@@ -2491,10 +2637,6 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         visibility: lBinding.visibility,
         storageType: lBinding.storageType
       });
-      // Register change listener for layout changes.
-      lBinding.layout.addInvalidationListener(() => {
-        this.invalidate(BindGroupLayoutInvalidationType.NativeRebuild);
-      });
       // Validate dublicate indices.
       if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
         throw new core_1.Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
@@ -2516,10 +2658,6 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
   }
 }
 exports.BindGroupLayout = BindGroupLayout;
-var BindGroupLayoutInvalidationType;
-(function (BindGroupLayoutInvalidationType) {
-  BindGroupLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(BindGroupLayoutInvalidationType || (exports.BindGroupLayoutInvalidationType = BindGroupLayoutInvalidationType = {}));
 
 /***/ }),
 
@@ -2537,15 +2675,16 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupInvalidationType = exports.BindGroup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
-const base_texture_1 = __webpack_require__(/*! ../texture/base-texture */ "./source/texture/base-texture.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
+const gpu_texture_view_1 = __webpack_require__(/*! ../texture/gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
 const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/binding/bind-group-data-setup.ts");
 class BindGroup extends gpu_object_1.GpuObject {
@@ -2569,10 +2708,6 @@ class BindGroup extends gpu_object_1.GpuObject {
     super(pDevice);
     this.mLayout = pBindGroupLayout;
     this.mBindData = new core_1.Dictionary();
-    // Register change listener for layout changes.
-    pBindGroupLayout.addInvalidationListener(() => {
-      this.invalidate(BindGroupInvalidationType.NativeRebuild);
-    });
   }
   /**
    * Read binding data references.
@@ -2617,16 +2752,16 @@ class BindGroup extends gpu_object_1.GpuObject {
             break;
           }
         // Textures must use a texture memory layout.
-        case pData instanceof base_texture_1.BaseTexture:
+        case pData instanceof gpu_texture_view_1.GpuTextureView:
           {
-            if (!(lBindLayout.layout instanceof texture_memory_layout_1.TextureMemoryLayout)) {
+            if (!(lBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
               throw new core_1.Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
             }
             // Extend buffer usage based on if it is a storage or not.
             if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
-              pData.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
+              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
             } else {
-              pData.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
+              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
             }
             break;
           }
@@ -2640,7 +2775,7 @@ class BindGroup extends gpu_object_1.GpuObject {
       // Trigger update data is invalid.
       pData.addInvalidationListener(() => {
         this.invalidate(BindGroupInvalidationType.NativeRebuild);
-      }); // TODO: Distinct and only update when necessary.
+      }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
       // Trigger update on data change. 
       this.invalidate(BindGroupInvalidationType.NativeRebuild);
     });
@@ -2680,7 +2815,7 @@ class BindGroup extends gpu_object_1.GpuObject {
         continue;
       }
       // Texture bind.
-      if (lBindData instanceof base_texture_1.BaseTexture) {
+      if (lBindData instanceof gpu_texture_view_1.GpuTextureView) {
         lGroupEntry.resource = lBindData.native;
         lEntryList.push(lGroupEntry);
         continue;
@@ -2742,7 +2877,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     this.mBindGroupNames = new core_1.Dictionary();
     this.mInitialBindGroups = new core_1.Dictionary();
     this.mBindGroups = new core_1.Dictionary();
-    this.mBindGroupInvalidationListener = new WeakMap();
     // TODO: Check gpu restriction.
     //this.device.gpu.limits.maxBindGroups
     // maxSampledTexturesPerShaderStage;
@@ -2765,12 +2899,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
       // Set bind groups to initial data and working bind group.
       this.mInitialBindGroups.set(lGroupIndex, lGroup);
       this.mBindGroups.set(lGroupIndex, lGroup);
-      // Add invalidationlistener.
-      const lListener = () => {
-        this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-      };
-      lGroup.addInvalidationListener(lListener);
-      this.mBindGroupInvalidationListener.set(lGroup, lListener);
     }
   }
   /**
@@ -2811,8 +2939,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     // Clean old placeholder.
     const lLastBindGroup = this.mBindGroups.get(lBindGroupIndex);
     if (lLastBindGroup) {
-      // Remove invalidation listener.
-      lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup));
       // Remove old name.
       this.mBindGroupNames.delete(lLastBindGroup.name);
     }
@@ -2873,18 +2999,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
       }
       // TODO: layout: BaseMemoryLayout; some type of equal.
     }
-    // Remove last 
-    const lLastBindGroup = this.mBindGroups.get(lBindGroupIndex);
-    if (lLastBindGroup) {
-      // Remove invalidation listener.
-      lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup));
-    }
-    // Replace binding group and add invalidation listener.
-    const lListener = () => {
-      this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-    };
-    pBindGroup.addInvalidationListener(lListener);
-    this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
     // Trigger updates.
     this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
   }
@@ -2902,20 +3016,12 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     // Clean old placeholder.
     const lLastBindGroup = this.mBindGroups.get(pIndex);
     if (lLastBindGroup) {
-      // Remove invalidation listener.
-      lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup));
       // Remove old name.
       this.mBindGroupNames.delete(lLastBindGroup.name);
     }
     // Add replacment layout and name.
     this.mBindGroups.set(pIndex, pLayout);
     this.mBindGroupNames.set(pLayout.name, pIndex);
-    // Register change listener for layout changes.
-    const lListener = () => {
-      this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-    };
-    pLayout.addInvalidationListener(lListener);
-    this.mBindGroupInvalidationListener.set(pLayout, lListener);
     // Trigger auto update.
     this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
   }
@@ -3029,7 +3135,7 @@ const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const bind_group_layout_array_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-array-memory-layout-setup */ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts");
 class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
@@ -3078,9 +3184,7 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    * @param pSamplerType - Sampler type.
    */
   withSampler(pSamplerType) {
-    const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, {
-      samplerType: pSamplerType
-    });
+    const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, pSamplerType);
     // Send created data.
     this.sendData(lLayout);
   }
@@ -3104,7 +3208,7 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    * @param pTextureBindType - Texture binding.
    */
   withTexture(pTextureDimension, pTextureFormat) {
-    const lLayout = new texture_memory_layout_1.TextureMemoryLayout(this.device, {
+    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
       dimension: pTextureDimension,
       format: pTextureFormat,
       multisampled: false
@@ -3188,15 +3292,15 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.GpuBufferInvalidationType = exports.GpuBuffer = void 0;
+exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-class GpuBuffer extends gpu_object_1.GpuObject {
+class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
   /**
    * Data type of buffer.
    */
@@ -3260,8 +3364,6 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     this.mLayout = pLayout;
     // Set config.
     this.mDataType = pDataType;
-    // At default buffer can not be read and not be written to.
-    this.mBufferUsage = buffer_usage_enum_1.BufferUsage.None;
     // Read and write buffers.
     this.mWriteBuffer = {
       limitation: Number.MAX_SAFE_INTEGER,
@@ -3278,24 +3380,6 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     this.mItemCount = lByteSize / 4; // All data is 4byte/ 32bit. 
     // No intial data.
     this.mInitialDataCallback = null;
-    // Register change listener for layout changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(GpuBufferInvalidationType.NativeRebuild);
-    });
-  }
-  /**
-   * Extend usage of buffer.
-   * Might trigger a buffer rebuild.
-   *
-   * @param pUsage - Buffer usage.
-   */
-  extendUsage(pUsage) {
-    // Update only when not already set.
-    if ((this.mBufferUsage & pUsage) === 0) {
-      this.mBufferUsage |= pUsage;
-      this.invalidate(GpuBufferInvalidationType.NativeRebuild);
-    }
-    return this;
   }
   /**
    * Set new initial data before the buffer is created.
@@ -3306,7 +3390,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     // Set new initial data, set on creation.
     this.mInitialDataCallback = pDataCallback;
     // Trigger update.
-    this.invalidate(GpuBufferInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
     return this;
   }
   /**
@@ -3435,21 +3519,21 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   /**
    * Destroy wave and ready buffer.
    */
-  destroyNative(pNativeObject, _pReason) {
+  destroyNative(pNativeObject, pReason) {
     pNativeObject.destroy();
-    // Only clear staging buffers when layout, and therfore the buffer size has changed.
-    //if (pReason.has(GpuBufferInvalidationType.Layout)) {
-    // Destroy all wave buffer and clear list.
-    for (const lWriteBuffer of this.mWriteBuffer.buffer) {
-      lWriteBuffer.destroy();
+    // Only clear staging buffers when buffer should be deconstructed, on any other invalidation, the size does not change.
+    if (pReason.deconstruct) {
+      // Destroy all wave buffer and clear list.
+      for (const lWriteBuffer of this.mWriteBuffer.buffer) {
+        lWriteBuffer.destroy();
+      }
+      this.mWriteBuffer.buffer.clear();
+      // Clear ready buffer list.
+      while (this.mWriteBuffer.ready.length > 0) {
+        // No need to destroy. All buffers have already destroyed.
+        this.mWriteBuffer.ready.pop();
+      }
     }
-    this.mWriteBuffer.buffer.clear();
-    // Clear ready buffer list.
-    while (this.mWriteBuffer.ready.length > 0) {
-      // No need to destroy. All buffers have already destroyed.
-      this.mWriteBuffer.ready.pop();
-    }
-    //}
   }
   /**
    * Generate buffer. Write local gpu object data as initial native buffer data.
@@ -3461,7 +3545,7 @@ class GpuBuffer extends gpu_object_1.GpuObject {
     const lBuffer = this.device.gpu.createBuffer({
       label: 'Ring-Buffer-Static-Buffer',
       size: this.size,
-      usage: this.mBufferUsage,
+      usage: this.usage,
       mappedAtCreation: !!lInitalData
     });
     // Write data. Is completly async.
@@ -3505,10 +3589,6 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   }
 }
 exports.GpuBuffer = GpuBuffer;
-var GpuBufferInvalidationType;
-(function (GpuBufferInvalidationType) {
-  GpuBufferInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(GpuBufferInvalidationType || (exports.GpuBufferInvalidationType = GpuBufferInvalidationType = {}));
 
 /***/ }),
 
@@ -3828,9 +3908,6 @@ var TextureDimension;
 (function (TextureDimension) {
   TextureDimension["OneDimension"] = "1d";
   TextureDimension["TwoDimension"] = "2d";
-  TextureDimension["TwoDimensionArray"] = "2d-array";
-  TextureDimension["Cube"] = "cube";
-  TextureDimension["CubeArray"] = "cube-array";
   TextureDimension["ThreeDimension"] = "3d";
 })(TextureDimension || (exports.TextureDimension = TextureDimension = {}));
 
@@ -4031,6 +4108,31 @@ var TextureUsage;
   TextureUsage[TextureUsage["Storage"] = GPUTextureUsage.STORAGE_BINDING] = "Storage";
   TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
 })(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
+
+/***/ }),
+
+/***/ "./source/constant/texture-view-dimension.enum.ts":
+/*!********************************************************!*\
+  !*** ./source/constant/texture-view-dimension.enum.ts ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureViewDimension = void 0;
+var TextureViewDimension;
+(function (TextureViewDimension) {
+  TextureViewDimension["OneDimension"] = "1d";
+  TextureViewDimension["TwoDimension"] = "2d";
+  TextureViewDimension["TwoDimensionArray"] = "2d-array";
+  TextureViewDimension["Cube"] = "cube";
+  TextureViewDimension["CubeArray"] = "cube-array";
+  TextureViewDimension["ThreeDimension"] = "3d";
+})(TextureViewDimension || (exports.TextureViewDimension = TextureViewDimension = {}));
 
 /***/ }),
 
@@ -4305,7 +4407,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Update bundle when render target has changed.
     pRenderTargets.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    }, [render_targets_1.RenderTargetsInvalidationType.LayoutChange, render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
+    }, [render_targets_1.RenderTargetsInvalidationType.NativeRebuild]);
   }
   /**
    * Add instruction step.
@@ -4383,6 +4485,10 @@ class RenderPass extends gpu_object_1.GpuObject {
       this.cachedExecute(pExecution);
     } else {
       this.directExecute(pExecution);
+    }
+    // Resolve targets into canvas.
+    for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
+      lResolveTexture.canvas.resolveFrom(pExecution, lResolveTexture.source);
     }
   }
   /**
@@ -4705,11 +4811,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuDevice = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/execution/gpu-execution.ts");
 const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/execution/pass/compute-pass.ts");
 const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/execution/pass/render-pass.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
 const render_targets_1 = __webpack_require__(/*! ../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/shader/shader.ts");
 const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
@@ -4803,13 +4907,7 @@ class GpuDevice {
   canvas(pCanvas) {
     // Create or use canvas.
     const lCanvas = pCanvas ?? document.createElement('canvas');
-    // Create basic canvas layout.
-    const lLayout = new texture_memory_layout_1.TextureMemoryLayout(this, {
-      dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
-      format: this.formatValidator.preferredCanvasFormat,
-      multisampled: false
-    });
-    return new canvas_texture_1.CanvasTexture(this, lLayout, lCanvas);
+    return new canvas_texture_1.CanvasTexture(this, lCanvas);
   }
   /**
    * Create new compute pass.
@@ -4841,10 +4939,12 @@ class GpuDevice {
   /**
    * Create render target object.
    *
+   * @param pMultisampled - Render targets are multisampled.
+   *
    * @returns render target object.
    */
-  renderTargets() {
-    return new render_targets_1.RenderTargets(this);
+  renderTargets(pMultisampled = false) {
+    return new render_targets_1.RenderTargets(this, pMultisampled);
   }
   /**
    * Create shader.
@@ -4907,6 +5007,7 @@ class GpuObjectChildSetup {
    * Constructor.
    *
    * @param pSetupReference - Setup references.
+   * @param pDataCallback - Setup data callback.
    */
   constructor(pSetupReference, pDataCallback) {
     this.mSetupReference = pSetupReference;
@@ -5072,6 +5173,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.GpuObject = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/gpu/object/gpu-object-invalidation-reasons.ts");
+// TODO: New GpuResourceObject (Buffer, Texture, Sampler) has an GpuResourceObjectInvalidationReason.NativeRebuild and some sort of extendUsage. Old references of all none deconstructed, i dont know, maybe to clear memory.
 /**
  * Gpu object with a native internal object.
  */
@@ -5143,6 +5245,10 @@ class GpuObject {
     // Pregroup listener with dictionary so iterator only needs to iterate needed. May worse remove listener behaviour.
     // Invalidate for each reason.
     for (const lReason of pReasons) {
+      // Skip reasons that already occurred.
+      if (this.mInvalidationReasons.has(lReason)) {
+        continue;
+      }
       // Add invalidation reason.
       this.mInvalidationReasons.add(lReason);
       // Call parent update listerner.
@@ -5296,7 +5402,63 @@ class GpuObject {
   }
 }
 exports.GpuObject = GpuObject;
-// TODO: Custom invalidation mapping to destinct between creating everything new or replace a view in native objects.
+
+/***/ }),
+
+/***/ "./source/gpu/object/gpu-resource-object.ts":
+/*!**************************************************!*\
+  !*** ./source/gpu/object/gpu-resource-object.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuResourceObjectInvalidationType = exports.GpuResourceObject = void 0;
+const gpu_object_1 = __webpack_require__(/*! ./gpu-object */ "./source/gpu/object/gpu-object.ts");
+/**
+ * Gpu resource object.
+ * Takes actual memory space on gpu hardware.
+ */
+class GpuResourceObject extends gpu_object_1.GpuObject {
+  /**
+   * Texture usage.
+   */
+  get usage() {
+    return this.mResourceUsage;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   */
+  constructor(pDevice) {
+    super(pDevice);
+    // Set static config.
+    this.mResourceUsage = 0;
+  }
+  /**
+   * Extend usage of resource.
+   * Might trigger a resource rebuild.
+   *
+   * @param pUsage - Usage.
+   */
+  extendUsage(pUsage) {
+    // Update onyl when not already set.
+    if ((this.mResourceUsage & pUsage) === 0) {
+      this.mResourceUsage = this.mResourceUsage | pUsage;
+      this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
+    }
+    return this;
+  }
+}
+exports.GpuResourceObject = GpuResourceObject;
+var GpuResourceObjectInvalidationType;
+(function (GpuResourceObjectInvalidationType) {
+  GpuResourceObjectInvalidationType["ResourceRebuild"] = "ResourceRebuild";
+})(GpuResourceObjectInvalidationType || (exports.GpuResourceObjectInvalidationType = GpuResourceObjectInvalidationType = {}));
 
 /***/ }),
 
@@ -5314,6 +5476,10 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BaseMemoryLayout = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+/**
+ * Base memory layout.
+ * Represents a memory slot used by a shader.
+ */
 class BaseMemoryLayout extends gpu_object_1.GpuObject {
   /**
    * Constuctor.
@@ -5479,6 +5645,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.PrimitiveBufferFormat = void 0;
+// TODO: Move and rename.
 var PrimitiveBufferFormat;
 (function (PrimitiveBufferFormat) {
   PrimitiveBufferFormat["Float16"] = "float16";
@@ -5502,6 +5669,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.PrimitiveBufferMultiplier = void 0;
+// TODO: Move and rename.
 var PrimitiveBufferMultiplier;
 (function (PrimitiveBufferMultiplier) {
   // Single
@@ -6081,8 +6249,11 @@ exports.VertexBufferMemoryLayout = VertexBufferMemoryLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.SamplerMemoryLayoutInvalidationType = exports.SamplerMemoryLayout = void 0;
+exports.SamplerMemoryLayout = void 0;
 const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
+/**
+ * Memory layouts for texture samplers.
+ */
 class SamplerMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Sampler type.
@@ -6090,33 +6261,24 @@ class SamplerMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   get samplerType() {
     return this.mSamplerType;
   }
-  set samplerType(pType) {
-    this.mSamplerType = pType;
-    this.invalidate(SamplerMemoryLayoutInvalidationType.SamplerType);
-  }
   /**
    * Constructor.
    *
    * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
    */
-  constructor(pDevice, pParameter) {
+  constructor(pDevice, pType) {
     super(pDevice);
-    this.mSamplerType = pParameter.samplerType;
+    this.mSamplerType = pType;
   }
 }
 exports.SamplerMemoryLayout = SamplerMemoryLayout;
-var SamplerMemoryLayoutInvalidationType;
-(function (SamplerMemoryLayoutInvalidationType) {
-  SamplerMemoryLayoutInvalidationType["SamplerType"] = "SamplerTypeChange";
-})(SamplerMemoryLayoutInvalidationType || (exports.SamplerMemoryLayoutInvalidationType = SamplerMemoryLayoutInvalidationType = {}));
 
 /***/ }),
 
-/***/ "./source/memory_layout/texture/texture-memory-layout.ts":
-/*!***************************************************************!*\
-  !*** ./source/memory_layout/texture/texture-memory-layout.ts ***!
-  \***************************************************************/
+/***/ "./source/memory_layout/texture/texture-view-memory-layout.ts":
+/*!********************************************************************!*\
+  !*** ./source/memory_layout/texture/texture-view-memory-layout.ts ***!
+  \********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6125,9 +6287,12 @@ var SamplerMemoryLayoutInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.TextureMemoryLayoutInvalidationType = exports.TextureMemoryLayout = void 0;
+exports.TextureViewMemoryLayout = void 0;
 const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
-class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
+/**
+ * Memory layout for textures.
+ */
+class TextureViewMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
    * Texture dimension.
    */
@@ -6139,16 +6304,12 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
    */
   get format() {
     return this.mFormat;
-  } // TODO: Format-Change
+  }
   /**
    * Texture uses multisample.
    */
   get multisampled() {
     return this.mMultisampled;
-  }
-  set multisampled(pValue) {
-    this.mMultisampled = pValue;
-    this.invalidate(TextureMemoryLayoutInvalidationType.Multisampled);
   }
   /**
    * Constructor.
@@ -6158,18 +6319,13 @@ class TextureMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
    */
   constructor(pDevice, pParameter) {
     super(pDevice);
+    // Set defauls.
     this.mDimension = pParameter.dimension;
     this.mFormat = pParameter.format;
     this.mMultisampled = pParameter.multisampled;
   }
 }
-exports.TextureMemoryLayout = TextureMemoryLayout;
-var TextureMemoryLayoutInvalidationType;
-(function (TextureMemoryLayoutInvalidationType) {
-  TextureMemoryLayoutInvalidationType["Format"] = "FormatChange";
-  TextureMemoryLayoutInvalidationType["Dimension"] = "DimensionChange";
-  TextureMemoryLayoutInvalidationType["Multisampled"] = "MultisampledChange";
-})(TextureMemoryLayoutInvalidationType || (exports.TextureMemoryLayoutInvalidationType = TextureMemoryLayoutInvalidationType = {}));
+exports.TextureViewMemoryLayout = TextureViewMemoryLayout;
 
 /***/ }),
 
@@ -6763,7 +6919,6 @@ exports.RenderTargetsSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
 const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
 const render_targets_texture_setup_1 = __webpack_require__(/*! ./render-targets-texture-setup */ "./source/pipeline/target/render-targets-texture-setup.ts");
 class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
@@ -6771,8 +6926,10 @@ class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
    *
    * @param pSetupReference -Setup references.
    */
-  constructor(pSetupReference) {
+  constructor(pSetupReference, pMultisampled) {
     super(pSetupReference);
+    // Set static multisampled state.
+    this.mMultisampled = pMultisampled;
   }
   /**
    * Add color target.
@@ -6791,13 +6948,15 @@ class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
       index: pLocationIndex,
       clearValue: pClearValue ?? null,
       storeOperation: pKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear,
-      texture: null
+      textureView: null,
+      resolveCanvas: null
     };
     // Add to color attachment list.
     this.setupData.colorTargets.push(lTarget);
     // Return texture setup. Set texture on texture resolve.
-    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, pTexture => {
-      lTarget.texture = pTexture;
+    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
+      lTarget.textureView = pTexture.view;
+      lTarget.resolveCanvas = pTexture.resolveCanvas;
     });
   }
   /**
@@ -6812,7 +6971,7 @@ class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     this.setupData.depthStencil = {
-      texture: null
+      textureView: null
     };
     // Setup depth when values where set.
     if (pDepthKeepOnEnd !== null || pDepthClearValue !== null) {
@@ -6829,12 +6988,12 @@ class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
       };
     }
     // Return texture setup. Set texture on texture resolve.
-    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, pTexture => {
+    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
       // Restrict used texture type to a frame buffer.
-      if (pTexture instanceof canvas_texture_1.CanvasTexture) {
+      if (pTexture.resolveCanvas) {
         throw new core_1.Exception(`Can't use a canvas texture as depth or stencil texture.`, this);
       }
-      this.setupData.depthStencil.texture = pTexture;
+      this.setupData.depthStencil.textureView = pTexture.view;
     });
   }
   /**
@@ -6864,35 +7023,63 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderTargetTextureSetup = void 0;
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const texture_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-memory-layout */ "./source/memory_layout/texture/texture-memory-layout.ts");
-const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/texture/frame-buffer-texture.ts");
+const gpu_texture_1 = __webpack_require__(/*! ../../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
 class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
-   * Create new color render target.
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pMultisampled - Multisample state.
+   * @param pDataCallback - Setup data callback.
    */
-  new(pFormat) {
+  constructor(pSetupReference, pMultisampled, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    // Set static multisampled state.
+    this.mMultisampled = pMultisampled;
+  }
+  /**
+   * Create new color render target.
+   *
+   * @param pFormat - Texture format.
+   * @param pResolve - Optional resolve target.
+   *
+   * @returns created texture view.
+   */
+  new(pFormat, pResolve = null) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
-    const lMemoryLayout = new texture_memory_layout_1.TextureMemoryLayout(this.device, {
-      dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
+    // Create new texture.
+    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
       format: pFormat,
-      // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
-      multisampled: false // Should be set in render target generation.
+      dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
+      multisampled: this.mMultisampled
     });
+    // Create view from texture.
+    const lTextureView = lTexture.useAs(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension);
     // Callback texture.
-    this.sendData(new frame_buffer_texture_1.FrameBufferTexture(this.device, lMemoryLayout));
+    this.sendData({
+      view: lTextureView,
+      resolveCanvas: pResolve
+    });
+    return lTextureView;
   }
   /**
    * Use a existing texture.
    *
    * @param pTexture - Existing texture.
    */
-  use(pTexture) {
+  use(pTextureView, pResolve = null) {
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     // Callback texture.
-    this.sendData(pTexture);
+    this.sendData({
+      view: pTextureView,
+      resolveCanvas: pResolve
+    });
+    // Return same data.
+    return pTextureView;
   }
 }
 exports.RenderTargetTextureSetup = RenderTargetTextureSetup;
@@ -6917,9 +7104,9 @@ const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-asp
 const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
-const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/texture/frame-buffer-texture.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
 const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/pipeline/target/render-targets-setup.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 /**
  * Group of textures with the same size and multisample level.
  */
@@ -6963,13 +7150,19 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * Render target multisample level.
    */
   get multisampled() {
-    return this.mSize.multisampled;
+    return this.mMultisampled;
   }
   /**
    * Native gpu object.
    */
   get native() {
     return super.native;
+  }
+  /**
+   * List of all resolve canvases.
+   */
+  get resolveCanvasList() {
+    return this.mResolveCanvasList;
   }
   /**
    * Render target height.
@@ -6981,19 +7174,21 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * Constuctor.
    * @param pDevice - Gpu device reference.
    */
-  constructor(pDevice) {
+  constructor(pDevice, pMultisampled) {
     super(pDevice);
+    // Set statics.
+    this.mMultisampled = pMultisampled;
     // Set default size. 
     this.mSize = {
       width: 1,
-      height: 1,
-      multisampled: false
+      height: 1
     };
     // Setup initial data.
     this.mDepthStencilTarget = null;
     this.mColorTargets = new Array();
     this.mColorTargetNames = new core_1.Dictionary();
     this.mTargetViewUpdateQueue = new Set();
+    this.mResolveCanvasList = new Array();
   }
   /**
    * Get color target by name.
@@ -7041,14 +7236,10 @@ class RenderTargets extends gpu_object_1.GpuObject {
    *
    * @returns this.
    */
-  resize(pHeight, pWidth, pMultisampled = null) {
+  resize(pHeight, pWidth) {
     // Set 2D size dimensions
     this.mSize.width = pWidth;
     this.mSize.height = pHeight;
-    // Optional multisample level.
-    if (pMultisampled !== null) {
-      this.mSize.multisampled = pMultisampled;
-    }
     // Apply resize for all textures.
     this.applyResize();
     // Trigger resize invalidation. Does not automaticly trigger rebuild.
@@ -7089,10 +7280,6 @@ class RenderTargets extends gpu_object_1.GpuObject {
         lPassColorAttachment.loadOp = 'clear';
       } else {
         lPassColorAttachment.loadOp = 'load';
-      }
-      // Resolve optional resolve attachment but only when texture uses multisample.
-      if (lColorAttachment.texture.resolve) {
-        lPassColorAttachment.resolveTarget = lColorAttachment.texture.resolve.native;
       }
       lColorAttachments.push(lPassColorAttachment);
     }
@@ -7143,19 +7330,23 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Setup depth stencil targets.
     if (pReferenceData.depthStencil) {
       // Validate existence of depth stencil texture.
-      if (!pReferenceData.depthStencil.texture) {
+      if (!pReferenceData.depthStencil.textureView) {
         throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
+      }
+      // Only two dimensional textures.
+      if (pReferenceData.depthStencil.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
+        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
       }
       // Save setup texture.
       this.mDepthStencilTarget = {
-        target: pReferenceData.depthStencil.texture
+        target: pReferenceData.depthStencil.textureView
       };
       // Add render attachment texture usage to depth stencil texture.
-      pReferenceData.depthStencil.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      pReferenceData.depthStencil.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Passthrough depth stencil texture changes.
-      this.setTextureInvalidationListener(pReferenceData.depthStencil.texture, -1);
+      this.setTextureInvalidationListener(pReferenceData.depthStencil.textureView, -1);
       // Read capability of used depth stencil texture format.
-      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.layout.format);
+      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.textureView.layout.format);
       // Setup depth texture.
       if (pReferenceData.depthStencil.depth) {
         // Validate if depth texture
@@ -7182,7 +7373,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
     // Setup color targets.
     for (const lAttachment of pReferenceData.colorTargets.values()) {
       // Validate existence of color texture.
-      if (!lAttachment.texture) {
+      if (!lAttachment.textureView) {
         throw new core_1.Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
       }
       // No double names.
@@ -7193,12 +7384,33 @@ class RenderTargets extends gpu_object_1.GpuObject {
       if (this.mColorTargets[lAttachment.index]) {
         throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
       }
+      // When a resolve canvas is specified, the texture must have the same texture format.
+      if (lAttachment.resolveCanvas && lAttachment.resolveCanvas.format !== lAttachment.textureView.layout.format) {
+        throw new core_1.Exception(`Color attachment can only be resolved into a canvas with the same texture format.`, this);
+      }
+      // Only two dimensional textures.
+      if (lAttachment.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
+        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
+      }
+      // Only two dimensional textures.
+      if (lAttachment.textureView.mipLevelStart !== 0) {
+        throw new core_1.Exception(`Color attachment can only rendered into mip level 0.`, this);
+      }
       // Passthrough color texture changes. Any change.
-      this.setTextureInvalidationListener(lAttachment.texture, lAttachment.index);
+      this.setTextureInvalidationListener(lAttachment.textureView, lAttachment.index);
       // Add render attachment texture usage to color texture.
-      lAttachment.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
       // Save color target name and index mapping.
       this.mColorTargetNames.set(lAttachment.name, lAttachment.index);
+      // Set resolve canvas.
+      if (lAttachment.resolveCanvas) {
+        // Add copy source to texture usage to be copied into canvas.
+        lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.CopySource);
+        this.mResolveCanvasList.push({
+          source: lAttachment.textureView,
+          canvas: lAttachment.resolveCanvas
+        });
+      }
       // Convert setup into storage data.
       this.mColorTargets[lAttachment.index] = {
         name: lAttachment.name,
@@ -7206,7 +7418,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
         clearValue: lAttachment.clearValue,
         storeOperation: lAttachment.storeOperation,
         texture: {
-          target: lAttachment.texture
+          target: lAttachment.textureView,
+          resolveCanvas: lAttachment.resolveCanvas
         }
       };
     }
@@ -7223,7 +7436,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @returns build setup object.
    */
   onSetupObjectCreate(pReferences) {
-    return new render_targets_setup_1.RenderTargetsSetup(pReferences);
+    return new render_targets_setup_1.RenderTargetsSetup(pReferences, this.mMultisampled);
   }
   /**
    * Try to update views of pass descriptor.
@@ -7254,10 +7467,6 @@ class RenderTargets extends gpu_object_1.GpuObject {
       const lColorAttachment = this.mColorTargets[lTargetIndex];
       // Update view.
       lCurrentAttachment.view = lColorAttachment.texture.target.native;
-      // Update optional resolve target.
-      if (lCurrentAttachment.resolveTarget && lColorAttachment.texture.resolve) {
-        lCurrentAttachment.resolveTarget = lColorAttachment.texture.resolve.native;
-      }
     }
     // Reset updateable views.
     this.mTargetViewUpdateQueue.clear();
@@ -7267,53 +7476,19 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * Resize all textures.
    */
   applyResize() {
-    // Update buffer texture multisample level.
-    for (const lAttachment of this.mColorTargets) {
-      // Check for removed or added multisample level.
-      if (this.mSize.multisampled) {
-        // When the multisample state is added, use all canvas targets as a resolve texture used after rendering and create a new target buffer texture with multisampling. 
-        if (lAttachment.texture.target instanceof canvas_texture_1.CanvasTexture) {
-          // Move target into resolve.
-          lAttachment.texture.resolve = lAttachment.texture.target;
-          // Create new texture from canvas texture.
-          lAttachment.texture.target = new frame_buffer_texture_1.FrameBufferTexture(this.device, lAttachment.texture.resolve.layout);
-          lAttachment.texture.target.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-          // Update descriptor on texture changes.
-          this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
-        }
-      } else {
-        // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
-        if (lAttachment.texture.resolve) {
-          // Destroy buffering textures.
-          lAttachment.texture.target.deconstruct();
-          // Use resolve as target.
-          lAttachment.texture.target = lAttachment.texture.resolve;
-          // Update descriptor on texture changes.
-          this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
-        }
-      }
-      // Add multisample level only to frame buffers as canvas does not support any mutisampling.
-      if (lAttachment.texture.target instanceof frame_buffer_texture_1.FrameBufferTexture) {
-        lAttachment.texture.target.layout.multisampled = this.mSize.multisampled;
-      }
-    }
-    // Update target texture multisample level.
-    if (this.mDepthStencilTarget) {
-      this.mDepthStencilTarget.target.layout.multisampled = this.mSize.multisampled;
-    }
     // Update buffer texture sizes.
     for (const lAttachment of this.mColorTargets) {
-      lAttachment.texture.target.height = this.mSize.height;
-      lAttachment.texture.target.width = this.mSize.width;
-      if (lAttachment.texture.resolve) {
-        lAttachment.texture.resolve.height = this.mSize.height;
-        lAttachment.texture.resolve.width = this.mSize.width;
+      lAttachment.texture.target.texture.height = this.mSize.height;
+      lAttachment.texture.target.texture.width = this.mSize.width;
+      if (lAttachment.texture.resolveCanvas) {
+        lAttachment.texture.resolveCanvas.height = this.mSize.height;
+        lAttachment.texture.resolveCanvas.width = this.mSize.width;
       }
     }
     // Update target texture sizes.
     if (this.mDepthStencilTarget) {
-      this.mDepthStencilTarget.target.height = this.mSize.height;
-      this.mDepthStencilTarget.target.width = this.mSize.width;
+      this.mDepthStencilTarget.target.texture.height = this.mSize.height;
+      this.mDepthStencilTarget.target.texture.width = this.mSize.width;
     }
   }
   /**
@@ -7322,42 +7497,18 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @param pTexture - Texture.
    */
   setTextureInvalidationListener(pTexture, pTextureIndex) {
-    // Frame buffer texture invalidation listener.
-    if (pTexture instanceof frame_buffer_texture_1.FrameBufferTexture) {
-      // Update descriptor only on view changes.
-      pTexture.addInvalidationListener(() => {
-        // Invalidate.
-        this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
-        // Set texture as updateable.
-        this.mTargetViewUpdateQueue.add(pTextureIndex);
-      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.NativeRebuild]);
-      // Passthough other invalidations.
-      pTexture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.LayoutChange);
-      }, [frame_buffer_texture_1.FrameBufferTextureInvalidationType.LayoutChange]);
-      return;
-    }
-    // Frame buffer texture invalidation listener.
-    if (pTexture instanceof canvas_texture_1.CanvasTexture) {
-      // Rebuild descriptor only on view changes.
-      pTexture.addInvalidationListener(() => {
-        // Invalidate.
-        this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
-        // Set texture as updateable.
-        this.mTargetViewUpdateQueue.add(pTextureIndex);
-      }, [canvas_texture_1.CanvasTextureInvalidationType.NativeRebuild]);
-      // Passthough other invalidations.
-      pTexture.addInvalidationListener(() => {
-        this.invalidate(RenderTargetsInvalidationType.LayoutChange);
-      }, [canvas_texture_1.CanvasTextureInvalidationType.LayoutChange]);
-      return;
-    }
+    // Update descriptor only on view changes.
+    pTexture.addInvalidationListener(() => {
+      // Invalidate.
+      this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
+      // Set texture as updateable.
+      this.mTargetViewUpdateQueue.add(pTextureIndex);
+    }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
   }
 }
 exports.RenderTargets = RenderTargets;
 var RenderTargetsInvalidationType;
 (function (RenderTargetsInvalidationType) {
-  RenderTargetsInvalidationType["LayoutChange"] = "LayoutChange";
   RenderTargetsInvalidationType["NativeUpdate"] = "NativeUpdate";
   RenderTargetsInvalidationType["NativeRebuild"] = "NativeRebuild";
   RenderTargetsInvalidationType["Resize"] = "Resize";
@@ -7461,6 +7612,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
@@ -7469,7 +7621,6 @@ const primitive_topology_enum_1 = __webpack_require__(/*! ../constant/primitive-
 const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
 const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const vertex_parameter_layout_1 = __webpack_require__(/*! ./parameter/vertex-parameter-layout */ "./source/pipeline/parameter/vertex-parameter-layout.ts");
 const render_targets_1 = __webpack_require__(/*! ./target/render-targets */ "./source/pipeline/target/render-targets.ts");
@@ -8396,68 +8547,6 @@ exports.Shader = Shader;
 
 /***/ }),
 
-/***/ "./source/texture/base-texture.ts":
-/*!****************************************!*\
-  !*** ./source/texture/base-texture.ts ***!
-  \****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BaseTexture = void 0;
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-class BaseTexture extends gpu_object_1.GpuObject {
-  /**
-   * Texture memory layout.
-   */
-  get layout() {
-    return this.mMemoryLayout;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  get usage() {
-    return this.mTextureUsage;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   * @param pLayout - Texture layout.
-   * @param pCanvas - Canvas of texture.
-   */
-  constructor(pDevice, pLayout) {
-    super(pDevice);
-    // Set layout.
-    this.mMemoryLayout = pLayout;
-    this.mTextureUsage = texture_usage_enum_1.TextureUsage.None;
-  }
-  /**
-   * Extend usage of texture.
-   * Might trigger a texture rebuild.
-   *
-   * @param pUsage - Texture usage.
-   */
-  extendUsage(pUsage) {
-    // Update onyl when not already set.
-    if ((this.mTextureUsage & pUsage) === 0) {
-      this.mTextureUsage |= pUsage;
-      this.onUsageExtend();
-    }
-    return this;
-  }
-}
-exports.BaseTexture = BaseTexture;
-
-/***/ }),
-
 /***/ "./source/texture/canvas-texture.ts":
 /*!******************************************!*\
   !*** ./source/texture/canvas-texture.ts ***!
@@ -8471,13 +8560,37 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
-class CanvasTexture extends base_texture_1.BaseTexture {
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+/**
+ * Canvas texture. Can only be used as render attachment or to be copied into.
+ * Allways 2D with preferred format.
+ */
+class CanvasTexture extends gpu_object_1.GpuObject {
   /**
    * HTML canvas element.
    */
   get canvas() {
     return this.mCanvas;
+  }
+  /**
+   * Texture depth.
+   */
+  get depth() {
+    return 1;
+  }
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return texture_dimension_enum_1.TextureDimension.ThreeDimension;
+  }
+  /**
+   * Canvas format.
+   */
+  get format() {
+    return this.device.formatValidator.preferredCanvasFormat;
   }
   /**
    * Texture height.
@@ -8487,6 +8600,18 @@ class CanvasTexture extends base_texture_1.BaseTexture {
   }
   set height(pValue) {
     this.mCanvas.height = pValue;
+  }
+  /**
+   * Texture mip level count.
+   */
+  get mipCount() {
+    return 1;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
   }
   /**
    * Texture width.
@@ -8503,23 +8628,47 @@ class CanvasTexture extends base_texture_1.BaseTexture {
    * @param pLayout - Texture layout.
    * @param pCanvas - Canvas of texture.
    */
-  constructor(pDevice, pLayout, pCanvas) {
-    super(pDevice, pLayout);
+  constructor(pDevice, pCanvas) {
+    super(pDevice);
     // Set canvas reference.
     this.mCanvas = pCanvas;
     this.mContext = null;
     // Set defaults.
     this.height = 1;
     this.width = 1;
-    // Register change listener for layout changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(CanvasTextureInvalidationType.LayoutChange, CanvasTextureInvalidationType.NativeRebuild);
-    });
     // TODO: Remove it on deconstruct.
     // Rebuild view on every frame.
     this.device.addFrameChangeListener(() => {
       this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
     });
+  }
+  resolveFrom(pExecutionContext, pResolveSource) {
+    // const lCanvasTextureView: GPUTextureView = lCanvasTexture.createView({
+    //     dimension: '2d',
+    //     baseMipLevel: 0,
+    //     mipLevelCount: 1,
+    //     baseArrayLayer: 0,
+    //     arrayLayerCount: 1
+    // });
+    // Create External source.
+    const lSource = {
+      texture: pResolveSource.texture.native,
+      aspect: 'all',
+      mipLevel: pResolveSource.mipLevelStart
+    };
+    // Generate native texture.
+    const lDestination = {
+      texture: this.native,
+      aspect: 'all',
+      mipLevel: 0
+    };
+    // Clamp copy sizes to lowest.
+    const lCopySize = {
+      width: this.width,
+      height: this.height,
+      depthOrArrayLayers: pResolveSource.arrayLayerStart + 1
+    };
+    pExecutionContext.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
   }
   /**
    * Destory texture object.
@@ -8534,59 +8683,26 @@ class CanvasTexture extends base_texture_1.BaseTexture {
       this.mContext.unconfigure();
       this.mContext = null;
     }
-    // Native view can not be destroyed.
   }
   /**
    * Generate native canvas texture view.
    */
   generateNative() {
-    // Invalidate for frame change.
-    this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
-    // Read canvas format.
-    const lFormat = this.layout.format;
     // Configure new context when not alread configured or destroyed.
     if (!this.mContext) {
       // Create and configure canvas context.
       this.mContext = this.canvas.getContext('webgpu');
       this.mContext.configure({
         device: this.device.gpu,
-        format: lFormat,
-        usage: this.usage,
+        format: this.device.formatValidator.preferredCanvasFormat,
+        usage: texture_usage_enum_1.TextureUsage.CopyDestination | texture_usage_enum_1.TextureUsage.RenderAttachment,
         alphaMode: 'opaque'
       });
     }
     // Read current texture of canvas. Needs to be retrieved for each frame.
     const lTexture = this.mContext.getCurrentTexture();
-    // force a two dimensional view.
-    return lTexture.createView({
-      format: lFormat,
-      dimension: '2d'
-    });
-  }
-  /**
-   * On usage extened. Triggers a texture rebuild.
-   */
-  onUsageExtend() {
-    this.invalidate(CanvasTextureInvalidationType.ContextRebuild);
-  }
-  /**
-   * Do nothing when view and context does not need to be updated.
-   *
-   * @param _pNative - Native
-   * @param pReasons - Invalidation reason.
-   *
-   * @returns false when a rebuild must be done.
-   */
-  updateNative(_pNative, pReasons) {
-    // Cant update on native rebuild.
-    if (pReasons.has(CanvasTextureInvalidationType.NativeRebuild)) {
-      return false;
-    }
-    // Cant update on context rebuild.
-    if (pReasons.has(CanvasTextureInvalidationType.ContextRebuild)) {
-      return false;
-    }
-    return true;
+    lTexture.label = 'Canvas-Texture';
+    return lTexture;
   }
 }
 exports.CanvasTexture = CanvasTexture;
@@ -8594,15 +8710,14 @@ var CanvasTextureInvalidationType;
 (function (CanvasTextureInvalidationType) {
   CanvasTextureInvalidationType["ContextRebuild"] = "ContextRebuild";
   CanvasTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
-  CanvasTextureInvalidationType["LayoutChange"] = "LayoutChange";
 })(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
 
 /***/ }),
 
-/***/ "./source/texture/frame-buffer-texture.ts":
-/*!************************************************!*\
-  !*** ./source/texture/frame-buffer-texture.ts ***!
-  \************************************************/
+/***/ "./source/texture/gpu-texture-view.ts":
+/*!********************************************!*\
+  !*** ./source/texture/gpu-texture-view.ts ***!
+  \********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8611,162 +8726,188 @@ var CanvasTextureInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.FrameBufferTextureInvalidationType = exports.FrameBufferTexture = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
-class FrameBufferTexture extends base_texture_1.BaseTexture {
+exports.GpuTextureView = void 0;
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
+class GpuTextureView extends gpu_resource_object_1.GpuResourceObject {
   /**
-   * Texture depth.
+   * End index of depth or array level.
    */
-  get depth() {
-    return this.mDepth;
+  get arrayLayerEnd() {
+    return this.mArrayLayerEnd;
   }
-  set depth(pValue) {
-    this.mDepth = pValue;
-    // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
-  }
-  /**
-   * Texture height.
-   */
-  get height() {
-    return this.mHeight;
-  }
-  set height(pValue) {
-    this.mHeight = pValue;
-    // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
+  set arrayLayerEnd(pArrayLayer) {
+    this.mArrayLayerEnd = pArrayLayer;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
-   * Texture multi sample level.
+   * Staring index of depth or array level.
    */
-  get multiSampleLevel() {
-    return this.layout.multisampled ? 4 : 1;
+  get arrayLayerStart() {
+    return this.mArrayLayerStart;
+  }
+  set arrayLayerStart(pArrayLayerIndex) {
+    this.mArrayLayerStart = pArrayLayerIndex;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
-   * Texture width.
+   * Texture layout.
    */
-  get width() {
-    return this.mWidth;
+  get layout() {
+    return this.mLayout;
   }
-  set width(pValue) {
-    this.mWidth = pValue;
-    // Invalidate native.
-    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
+  /**
+   * End index of mip level.
+   */
+  get mipLevelEnd() {
+    return this.mMipLevelEnd;
+  }
+  set mipLevelEnd(pMipLevel) {
+    this.mMipLevelEnd = pMipLevel;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Staring index of mip level.
+   */
+  get mipLevelStart() {
+    return this.mMipLevelStart;
+  }
+  set mipLevelStart(pMipLevel) {
+    this.mMipLevelStart = pMipLevel;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Views texture.
+   */
+  get texture() {
+    return this.mTexture;
   }
   /**
    * Constructor.
    * @param pDevice - Device.
-   * @param pLayout - Texture memory layout.
+   * @param pTexture - Texture of view.
    */
-  constructor(pDevice, pLayout) {
-    super(pDevice, pLayout);
-    this.mTexture = null;
+  constructor(pDevice, pTexture, pLayout) {
+    super(pDevice);
+    // Set statics.
+    this.mTexture = pTexture;
+    this.mLayout = pLayout;
     // Set defaults.
-    this.mDepth = 1;
-    this.mHeight = 1;
-    this.mWidth = 1;
-    // Trigger Texture rebuild on dimension for format changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(FrameBufferTextureInvalidationType.LayoutChange, FrameBufferTextureInvalidationType.NativeRebuild);
-    });
-  }
-  /**
-   * Destory texture object.
-   *
-   * @param _pNativeObject - Native canvas texture.
-   * @param pInvalidationReason - Invalidation reasons.
-   */
-  destroyNative(_pNativeObject, pInvalidationReason) {
-    // Desconstruct current texture only on deconstruction calls.
-    if (pInvalidationReason.deconstruct) {
-      this.mTexture?.destroy();
-      this.mTexture = null;
-    }
+    this.mMipLevelStart = 0;
+    this.mMipLevelEnd = -1;
+    this.mArrayLayerStart = 0;
+    this.mArrayLayerEnd = -1;
+    // Trigger View rebuild on texture rebuilds.
+    pTexture.addInvalidationListener(() => {
+      this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+    }, [gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild]);
   }
   /**
    * Generate native canvas texture view.
    */
   generateNative() {
-    // Invalidate texture and view.
-    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
-    // TODO: Validate format based on layout. Maybe replace used format.
-    // Validate two dimensional texture.
-    if (this.layout.dimension !== texture_dimension_enum_1.TextureDimension.TwoDimension) {
-      throw new core_1.Exception('Frame buffers must be two dimensional.', this);
-    }
-    // Any change triggers a texture rebuild.
-    this.mTexture?.destroy();
+    // Read native texture.
+    const lNativeTexture = this.mTexture.native;
+    // When mip end level or array end layer is not set, use textures max. 
+    const lMipLevelEnd = this.mMipLevelEnd < 0 ? lNativeTexture.mipLevelCount - 1 : this.mMipLevelEnd;
+    const lArrayLayerEnd = this.mArrayLayerEnd < 0 ? lNativeTexture.depthOrArrayLayers - 1 : this.mArrayLayerEnd;
+    // Validate dimension based on 
+    const lDimensionViewDepthCount = (() => {
+      switch (this.mLayout.dimension) {
+        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
+          {
+            return 1;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
+          {
+            return 6;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
+          {
+            return Math.floor((lArrayLayerEnd - this.mArrayLayerStart + 1) / 6) * 6;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
+          {
+            return lArrayLayerEnd - this.mArrayLayerStart + 1;
+          }
+        default:
+          {
+            return 1;
+          }
+      }
+    })();
     // Create and configure canvas context.
-    this.mTexture = this.device.gpu.createTexture({
-      label: 'Frame-Buffer-Texture',
-      size: [this.mWidth, this.mHeight, 1],
-      // Force 2d texture.
-      format: this.layout.format,
-      usage: this.usage,
-      dimension: '2d',
-      sampleCount: this.multiSampleLevel
+    return lNativeTexture.createView({
+      aspect: 'all',
+      format: this.mLayout.format,
+      dimension: this.mLayout.dimension,
+      // Mip start and end.
+      baseMipLevel: this.mMipLevelStart,
+      mipLevelCount: lMipLevelEnd - this.mMipLevelStart + 1,
+      // Array layer start and end.
+      baseArrayLayer: this.mArrayLayerStart,
+      arrayLayerCount: lDimensionViewDepthCount
     });
-    // Force a 2d view.
-    return this.mTexture.createView({
-      format: this.layout.format,
-      dimension: '2d'
-    });
-  }
-  /**
-   * On usage extened. Triggers a texture rebuild.
-   */
-  onUsageExtend() {
-    this.invalidate(FrameBufferTextureInvalidationType.NativeRebuild);
   }
 }
-exports.FrameBufferTexture = FrameBufferTexture;
-var FrameBufferTextureInvalidationType;
-(function (FrameBufferTextureInvalidationType) {
-  FrameBufferTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
-  FrameBufferTextureInvalidationType["LayoutChange"] = "LayoutChange";
-})(FrameBufferTextureInvalidationType || (exports.FrameBufferTextureInvalidationType = FrameBufferTextureInvalidationType = {}));
+exports.GpuTextureView = GpuTextureView;
 
 /***/ }),
 
-/***/ "./source/texture/image-texture.ts":
-/*!*****************************************!*\
-  !*** ./source/texture/image-texture.ts ***!
-  \*****************************************/
+/***/ "./source/texture/gpu-texture.ts":
+/*!***************************************!*\
+  !*** ./source/texture/gpu-texture.ts ***!
+  \***************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ImageTextureInvalidationType = exports.ImageTexture = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+exports.GpuTexture = void 0;
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
-const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/texture/texture-mip-generator.ts");
-class ImageTexture extends base_texture_1.BaseTexture {
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
+const gpu_texture_view_1 = __webpack_require__(/*! ./gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
+class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
   /**
    * Texture depth.
    */
   get depth() {
     return this.mDepth;
   }
-  /**
-   * Enable mip maps.
-   */
-  get enableMips() {
-    return this.mEnableMips;
+  set depth(pDepth) {
+    this.mDepth = pDepth;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
-  set enableMips(pEnable) {
-    this.mEnableMips = pEnable;
-    // Invalidate native on mip enable change.
-    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return this.mDimension;
+  }
+  /**
+   * Texture format.
+   */
+  get format() {
+    return this.mFormat;
   }
   /**
    * Texture height.
@@ -8774,11 +8915,33 @@ class ImageTexture extends base_texture_1.BaseTexture {
   get height() {
     return this.mHeight;
   }
+  set height(pHeight) {
+    this.mHeight = pHeight;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
   /**
-   * Loaded html image list.
+   * Texture mip level count.
    */
-  get images() {
-    return this.mImageList;
+  get mipCount() {
+    return this.mMipLevelCount;
+  }
+  set mipCount(pMipCount) {
+    this.mMipLevelCount = pMipCount;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Texture multi sampled.
+   */
+  get multiSampled() {
+    return this.mMultisampled;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
   }
   /**
    * Texture width.
@@ -8786,131 +8949,234 @@ class ImageTexture extends base_texture_1.BaseTexture {
   get width() {
     return this.mWidth;
   }
+  set width(pWidth) {
+    this.mWidth = pWidth;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
   /**
    * Constructor.
    * @param pDevice - Device.
-   * @param pLayout - Texture memory layout.
+   * @param pLayout - Texture layout.
+   * @param pCanvas - Canvas of texture.
    */
-  constructor(pDevice, pLayout) {
-    super(pDevice, pLayout);
-    this.mMipGenerator = new texture_mip_generator_1.TextureMipGenerator(pDevice);
-    this.mTexture = null;
+  constructor(pDevice, pParameter) {
+    super(pDevice);
+    // TODO: Enforce limits.
+    // maxTextureDimension1D
+    // maxTextureDimension2D
+    // maxTextureDimension3D
+    // maxTextureArrayLayers
+    // Set static config.
+    this.mDimension = pParameter.dimension;
+    this.mFormat = pParameter.format;
+    this.mMultisampled = pParameter.multisampled;
     // Set defaults.
-    this.mEnableMips = true;
+    this.mMipLevelCount = 1;
     this.mDepth = 1;
     this.mHeight = 1;
     this.mWidth = 1;
-    this.mImageList = new Array();
-    // Register change listener for layout changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(ImageTextureInvalidationType.LayoutChange, ImageTextureInvalidationType.NativeRebuild);
-    });
-    // Allways a copy destination.
+  }
+  copyFrom(...pTextures) {
+    // Convert into none optional config.
+    const lCopyConfig = new Array();
+    for (let lTextureIndex = 0; lTextureIndex < pTextures.length; lTextureIndex++) {
+      const lCopyTexture = pTextures[lTextureIndex];
+      // Create new config from data.
+      if (!('data' in lCopyTexture)) {
+        // Wild instance checks.
+        switch (true) {
+          case lCopyTexture instanceof GpuTexture:
+            {
+              lCopyConfig.push({
+                data: lCopyTexture,
+                mipLevel: 0,
+                external: false,
+                dimension: {
+                  width: lCopyTexture.width,
+                  height: lCopyTexture.height,
+                  depthOrArrayLayers: lCopyTexture.depth
+                },
+                sourceOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                targetOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: lTextureIndex
+                }
+              });
+              continue;
+            }
+          case lCopyTexture instanceof ImageBitmap:
+            {
+              lCopyConfig.push({
+                data: lCopyTexture,
+                mipLevel: 0,
+                external: true,
+                dimension: {
+                  width: lCopyTexture.width,
+                  height: lCopyTexture.height,
+                  depthOrArrayLayers: 1
+                },
+                sourceOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                targetOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: lTextureIndex
+                }
+              });
+              continue;
+            }
+        }
+        // Not hit. But better to read.
+        continue;
+      }
+      // Get data type.
+      const lExternal = !(lCopyTexture instanceof GpuTexture);
+      // Fill in missing values with defaults.
+      lCopyConfig.push({
+        data: lCopyTexture.data,
+        external: lExternal,
+        mipLevel: lCopyTexture.mipLevel ?? 0,
+        dimension: {
+          width: lCopyTexture.dimension?.width ?? lCopyTexture.data.width,
+          height: lCopyTexture.dimension?.height ?? lCopyTexture.data.height,
+          depthOrArrayLayers: lCopyTexture.dimension?.depth ?? ('depth' in lCopyTexture.data ? lCopyTexture.data.depth : 1)
+        },
+        sourceOrigin: lCopyTexture.sourceOrigin ?? {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        targetOrigin: lCopyTexture.targetOrigin ?? {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      });
+    }
+    // Extend usage to be able to copy from external and gpu textures.
     this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
+    this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+    // Generate native texture.
+    const lDestination = {
+      texture: this.native,
+      aspect: 'all'
+    };
+    // Create copy command encoder to store copy actions.
+    const lCommandDecoder = this.device.gpu.createCommandEncoder();
+    for (const lSourceTexture of lCopyConfig) {
+      // Skip copy of textures outside of targets mip level.
+      if (lDestination.texture.mipLevelCount < lSourceTexture.mipLevel) {
+        continue;
+      }
+      // Apply destination config.
+      lDestination.origin = lSourceTexture.targetOrigin;
+      lDestination.mipLevel = lSourceTexture.mipLevel;
+      // Calculate target max size for the specific mip map.
+      const lDestinationMaxSize = {
+        width: Math.floor(lDestination.texture.width / Math.pow(2, lDestination.mipLevel)),
+        height: Math.floor(lDestination.texture.height / Math.pow(2, lDestination.mipLevel)),
+        // On 3D textures the depth count to the mip.
+        depthOrArrayLayers: lDestination.texture.dimension === '3d' ? Math.floor(lDestination.texture.depthOrArrayLayers / Math.pow(2, lDestination.mipLevel)) : lDestination.texture.depthOrArrayLayers
+      };
+      // Clamp copy sizes to lowest.
+      const lClampedCopySize = {
+        width: Math.min(lDestinationMaxSize.width - lSourceTexture.targetOrigin.x, lSourceTexture.dimension.width - lSourceTexture.sourceOrigin.x),
+        height: Math.min(lDestinationMaxSize.height - lSourceTexture.targetOrigin.y, lSourceTexture.dimension.height - lSourceTexture.sourceOrigin.y),
+        depthOrArrayLayers: Math.min(lDestinationMaxSize.depthOrArrayLayers - lSourceTexture.targetOrigin.z, lSourceTexture.dimension.depthOrArrayLayers - lSourceTexture.sourceOrigin.z)
+      };
+      // Omit copy when nothing should by copied.
+      if (lClampedCopySize.width < 1 || lClampedCopySize.height < 1 || lClampedCopySize.depthOrArrayLayers < 1) {
+        continue;
+      }
+      // Copy external.
+      if (lSourceTexture.external) {
+        // Create External source.
+        const lSource = {
+          source: lSourceTexture.data,
+          origin: [lSourceTexture.sourceOrigin.x, lSourceTexture.sourceOrigin.y]
+        };
+        // Add external copy into queue.
+        this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lClampedCopySize);
+        continue;
+      }
+      // Create External source.
+      const lSource = {
+        texture: lSourceTexture.data.native,
+        aspect: 'all',
+        origin: lSourceTexture.targetOrigin,
+        mipLevel: 0
+      };
+      // Add copy action to command queue.
+      lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
+    }
+    // Submit copy actions.
+    this.device.gpu.queue.submit([lCommandDecoder.finish()]);
   }
   /**
-   * Load image into texture.
-   * Images needs to have the same dimensions.
-   *
-   * @param pSorceList - Source for each depth layer.
+   * Use texture as view.
+   * @returns Texture view.
    */
-  load(...pSourceList) {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      let lHeight = 0;
-      let lWidth = 0;
-      // Parallel load images.
-      const lImageLoadPromiseList = pSourceList.map( /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator(function* (pSource) {
-          // Load image with html image element.
-          const lImage = new Image();
-          lImage.src = pSource;
-          yield lImage.decode();
-          // Init size.
-          if (lHeight === 0 || lWidth === 0) {
-            lWidth = lImage.naturalWidth;
-            lHeight = lImage.naturalHeight;
+  useAs(pDimension /* Others Optional, layer, mip ... */) {
+    // Use dimension form parameter or convert texture dimension to view dimension.
+    const lViewDimension = pDimension ?? (() => {
+      switch (this.mDimension) {
+        case texture_dimension_enum_1.TextureDimension.OneDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.OneDimension;
           }
-          // Validate same image size for all layers.
-          if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
-            throw new core_1.Exception(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`, _this);
+        case texture_dimension_enum_1.TextureDimension.TwoDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.TwoDimension;
           }
-          return createImageBitmap(lImage);
-        });
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      }());
-      // Resolve all bitmaps.
-      _this.mImageList = yield Promise.all(lImageLoadPromiseList);
-      // Set new texture size.
-      _this.mWidth = lWidth;
-      _this.mHeight = lHeight;
-      _this.mDepth = pSourceList.length;
-      // TODO: Enforce limits.
-      // maxTextureDimension1D
-      // maxTextureDimension2D
-      // maxTextureDimension3D
-      // maxTextureArrayLayers
-      // Trigger change.
-      _this.invalidate(ImageTextureInvalidationType.ImageBinary, ImageTextureInvalidationType.NativeRebuild);
+        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension;
+          }
+      }
     })();
+    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
+      format: this.mFormat,
+      dimension: lViewDimension,
+      multisampled: this.mMultisampled
+    });
+    return new gpu_texture_view_1.GpuTextureView(this.device, this, lLayout);
   }
-  // TODO: Add ability to create/load images with fixed size and load mips without new generating.
   /**
    * Destory texture object.
-   * @param _pNativeObject - Native canvas texture.
+   *
+   * @param _pNativeObject - Native gpu texture.
    */
-  destroyNative(_pNativeObject, pInvalidationReason) {
-    // Desconstruct current texture only on deconstruction calls.
-    if (pInvalidationReason.deconstruct) {
-      this.mTexture?.destroy();
-      this.mTexture = null;
-    }
+  destroyNative(pNativeObject) {
+    pNativeObject.destroy();
   }
   /**
    * Generate native canvas texture view.
    */
-  generateNative(_pCurrentNative, pInvalidationReasons) {
-    // TODO: Validate format based on layout. Maybe replace used format.
-    // Invalidate view.
-    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
+  generateNative() {
     // Generate gpu dimension from memory layout dimension.
     const lTextureDimensions = (() => {
-      switch (this.layout.dimension) {
+      switch (this.mDimension) {
         case texture_dimension_enum_1.TextureDimension.OneDimension:
           {
             return {
               textureDimension: '1d',
-              clampedDimensions: [this.mWidth, 1, 1]
+              clampedDimensions: [this.mWidth, 1, this.mDepth]
             };
           }
         case texture_dimension_enum_1.TextureDimension.TwoDimension:
           {
             return {
               textureDimension: '2d',
-              clampedDimensions: [this.mWidth, this.mHeight, 1]
-            };
-          }
-        case texture_dimension_enum_1.TextureDimension.TwoDimensionArray:
-          {
-            return {
-              textureDimension: '2d',
               clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
-            };
-          }
-        case texture_dimension_enum_1.TextureDimension.Cube:
-          {
-            return {
-              textureDimension: '2d',
-              clampedDimensions: [this.mWidth, this.mHeight, 6]
-            };
-          }
-        case texture_dimension_enum_1.TextureDimension.CubeArray:
-          {
-            return {
-              textureDimension: '2d',
-              clampedDimensions: [this.mWidth, this.mHeight, Math.ceil(this.mDepth / 6) * 6]
             };
           }
         case texture_dimension_enum_1.TextureDimension.ThreeDimension:
@@ -8922,116 +9188,26 @@ class ImageTexture extends base_texture_1.BaseTexture {
           }
       }
     })();
-    // To copy images, the texture needs to be a render attachment and copy destination.
-    // Extend usage before texture creation.
-    // TextureUsage.CopyDestination set in constructor.
-    if (this.images.length > 0) {
-      this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-      // Usages needed for mip generation.
-      if (this.mEnableMips) {
-        this.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
-        this.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
-      }
+    // Calculate max mip count.
+    let lMaxMipCount;
+    if (lTextureDimensions.textureDimension === '3d') {
+      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
+    } else {
+      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
     }
-    // Calculate mip count on 3D images the depth affects mips.
-    let lMipCount = 1;
-    if (this.mEnableMips) {
-      if (lTextureDimensions.textureDimension === '3d') {
-        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
-      } else {
-        lMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
-      }
-    }
-    // Save last used texture.
-    const lLastTexture = this.mTexture;
-    // Destroy old texture. // TODO: Only destroy when format usage or dimension has changed.
-    this.mTexture?.destroy();
-    // Create texture with set size, format and usage. Save it for destorying later.
-    this.mTexture = this.device.gpu.createTexture({
-      label: 'Image-Buffer-Texture',
+    // Create and configure canvas context.
+    return this.device.gpu.createTexture({
+      label: 'GPU-Texture',
       size: lTextureDimensions.clampedDimensions,
-      format: this.layout.format,
+      format: this.mFormat,
       usage: this.usage,
       dimension: lTextureDimensions.textureDimension,
-      mipLevelCount: lMipCount
+      sampleCount: this.mMultisampled ? 4 : 1,
+      mipLevelCount: Math.min(this.mMipLevelCount, lMaxMipCount)
     });
-    // Copy current native data into new texture.
-    if (lLastTexture !== null && !pInvalidationReasons.has(ImageTextureInvalidationType.ImageBinary)) {
-      // Create target copy texture.
-      const lDestination = {
-        texture: this.mTexture,
-        mipLevel: 0
-      };
-      // Create source copy texture.
-      const lSource = {
-        texture: lLastTexture,
-        mipLevel: 0
-      };
-      // Clamp copy sizes to lowest.
-      const lLevelOneCopySize = {
-        width: Math.min(lLastTexture.width, this.mTexture.width),
-        height: Math.min(lLastTexture.height, this.mTexture.height),
-        depthOrArrayLayers: Math.min(lLastTexture.depthOrArrayLayers, this.mTexture.depthOrArrayLayers)
-      };
-      // Create copy command encoder to store copy actions.
-      const lCommandDecoder = this.device.gpu.createCommandEncoder();
-      // Copy each mipmap.
-      const lCopyMipCount = Math.min(lLastTexture.mipLevelCount, this.mTexture.mipLevelCount);
-      for (let lMipLevel = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
-        // Calculate mip level copy sizes.
-        const lMipCopySize = {
-          width: Math.floor(lLevelOneCopySize.width / Math.pow(2, lMipLevel)),
-          height: Math.floor(lLevelOneCopySize.height / Math.pow(2, lMipLevel)),
-          depthOrArrayLayers: 0
-        };
-        // On 3D images the depth count to the mip.
-        if (this.mTexture.dimension === '3d') {
-          lMipCopySize.depthOrArrayLayers = Math.floor(lLevelOneCopySize.depthOrArrayLayers / Math.pow(2, lMipLevel));
-        } else {
-          lMipCopySize.depthOrArrayLayers = lLevelOneCopySize.depthOrArrayLayers;
-        }
-        // Add copy action to command queue.
-        lCommandDecoder.copyTextureToTexture(lSource, lDestination, lMipCopySize);
-      }
-      // Submit copy actions.
-      this.device.gpu.queue.submit([lCommandDecoder.finish()]);
-    }
-    // Only reload when binary data has changed.
-    if (pInvalidationReasons.has(ImageTextureInvalidationType.ImageBinary)) {
-      // Load images into texture.
-      for (let lImageIndex = 0; lImageIndex < this.images.length; lImageIndex++) {
-        const lBitmap = this.images[lImageIndex];
-        // Copy image into depth layer.
-        this.device.gpu.queue.copyExternalImageToTexture({
-          source: lBitmap
-        }, {
-          texture: this.mTexture,
-          origin: [0, 0, lImageIndex]
-        }, [lBitmap.width, lBitmap.height]);
-      }
-      // Generate mips for texture.
-      this.mMipGenerator.generateMips(this.mTexture);
-    }
-    // View descriptor.
-    return this.mTexture.createView({
-      format: this.layout.format,
-      dimension: this.layout.dimension
-    });
-  }
-  /**
-   * On usage extened. Triggers a texture rebuild.
-   */
-  onUsageExtend() {
-    this.invalidate(ImageTextureInvalidationType.NativeRebuild);
   }
 }
-exports.ImageTexture = ImageTexture;
-var ImageTextureInvalidationType;
-(function (ImageTextureInvalidationType) {
-  ImageTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
-  ImageTextureInvalidationType["LayoutChange"] = "LayoutChange";
-  ImageTextureInvalidationType["ImageBinary"] = "ImageBinaryChange";
-})(ImageTextureInvalidationType || (exports.ImageTextureInvalidationType = ImageTextureInvalidationType = {}));
+exports.GpuTexture = GpuTexture;
 
 /***/ }),
 
@@ -9062,7 +9238,11 @@ class TextureFormatCapabilities {
   get preferredCanvasFormat() {
     return window.navigator.gpu.getPreferredCanvasFormat();
   }
-  // TODO: https://www.w3.org/TR/webgpu/#texture-format-caps
+  /**
+   * Constructor. Inits capabilities.
+   *
+   * @param pDevice - Device.
+   */
   constructor(pDevice) {
     this.mDevice = pDevice;
     // Construct sample type for float32 texture types.
@@ -9075,12 +9255,11 @@ class TextureFormatCapabilities {
     // 8-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8unorm, {
       format: texture_format_enum_1.TextureFormat.R8unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9104,12 +9283,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8snorm, {
       format: texture_format_enum_1.TextureFormat.R8snorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9129,12 +9307,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8uint, {
       format: texture_format_enum_1.TextureFormat.R8uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9158,12 +9335,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R8sint, {
       format: texture_format_enum_1.TextureFormat.R8sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9188,12 +9364,11 @@ class TextureFormatCapabilities {
     // 16-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16uint, {
       format: texture_format_enum_1.TextureFormat.R16uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9217,12 +9392,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16sint, {
       format: texture_format_enum_1.TextureFormat.R16sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9246,12 +9420,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R16float, {
       format: texture_format_enum_1.TextureFormat.R16float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9275,12 +9448,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8unorm, {
       format: texture_format_enum_1.TextureFormat.Rg8unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9304,12 +9476,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8snorm, {
       format: texture_format_enum_1.TextureFormat.Rg8snorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9329,12 +9500,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8uint, {
       format: texture_format_enum_1.TextureFormat.Rg8uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9358,12 +9528,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg8sint, {
       format: texture_format_enum_1.TextureFormat.Rg8sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9388,12 +9557,11 @@ class TextureFormatCapabilities {
     // 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32uint, {
       format: texture_format_enum_1.TextureFormat.R32uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9421,12 +9589,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32sint, {
       format: texture_format_enum_1.TextureFormat.R32sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9454,12 +9621,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.R32float, {
       format: texture_format_enum_1.TextureFormat.R32float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
       compressionBlock: {
         width: 1,
@@ -9487,12 +9653,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16uint, {
       format: texture_format_enum_1.TextureFormat.Rg16uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9516,12 +9681,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16sint, {
       format: texture_format_enum_1.TextureFormat.Rg16sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9545,12 +9709,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg16float, {
       format: texture_format_enum_1.TextureFormat.Rg16float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9574,12 +9737,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unorm, {
       format: texture_format_enum_1.TextureFormat.Rgba8unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9607,12 +9769,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8unormSrgb, {
       format: texture_format_enum_1.TextureFormat.Rgba8unormSrgb,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9636,12 +9797,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8snorm, {
       format: texture_format_enum_1.TextureFormat.Rgba8snorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9665,12 +9825,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8uint, {
       format: texture_format_enum_1.TextureFormat.Rgba8uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9698,12 +9857,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba8sint, {
       format: texture_format_enum_1.TextureFormat.Rgba8sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9731,12 +9889,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unorm, {
       format: texture_format_enum_1.TextureFormat.Bgra8unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9764,12 +9921,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bgra8unormSrgb, {
       format: texture_format_enum_1.TextureFormat.Bgra8unormSrgb,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9794,12 +9950,11 @@ class TextureFormatCapabilities {
     // Packed 32-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb9e5ufloat, {
       format: texture_format_enum_1.TextureFormat.Rgb9e5ufloat,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9819,12 +9974,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2uint, {
       format: texture_format_enum_1.TextureFormat.Rgb10a2uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9848,12 +10002,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgb10a2unorm, {
       format: texture_format_enum_1.TextureFormat.Rgb10a2unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9877,12 +10030,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg11b10ufloat, {
       format: texture_format_enum_1.TextureFormat.Rg11b10ufloat,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -9907,12 +10059,11 @@ class TextureFormatCapabilities {
     // 64-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32uint, {
       format: texture_format_enum_1.TextureFormat.Rg32uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -9940,12 +10091,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32sint, {
       format: texture_format_enum_1.TextureFormat.Rg32sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -9973,12 +10123,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rg32float, {
       format: texture_format_enum_1.TextureFormat.Rg32float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
       compressionBlock: {
         width: 1,
@@ -10006,12 +10155,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16uint, {
       format: texture_format_enum_1.TextureFormat.Rgba16uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -10039,12 +10187,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16sint, {
       format: texture_format_enum_1.TextureFormat.Rgba16sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -10072,12 +10219,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba16float, {
       format: texture_format_enum_1.TextureFormat.Rgba16float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Float, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -10106,12 +10252,11 @@ class TextureFormatCapabilities {
     // 128-bit formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32uint, {
       format: texture_format_enum_1.TextureFormat.Rgba32uint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -10139,12 +10284,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32sint, {
       format: texture_format_enum_1.TextureFormat.Rgba32sint,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.SignedInteger],
       compressionBlock: {
         width: 1,
@@ -10172,12 +10316,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Rgba32float, {
       format: texture_format_enum_1.TextureFormat.Rgba32float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray, texture_dimension_enum_1.TextureDimension.ThreeDimension],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.ThreeDimension],
       type: lFloat32Filterable,
       compressionBlock: {
         width: 1,
@@ -10206,12 +10349,11 @@ class TextureFormatCapabilities {
     // Depth/stencil formats
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Stencil8, {
       format: texture_format_enum_1.TextureFormat.Stencil8,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 1
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -10235,12 +10377,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth16unorm, {
       format: texture_format_enum_1.TextureFormat.Depth16unorm,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -10264,12 +10405,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plus, {
       format: texture_format_enum_1.TextureFormat.Depth24plus,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -10293,12 +10433,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth24plusStencil8, {
       format: texture_format_enum_1.TextureFormat.Depth24plusStencil8,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
         byteCost: 2
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
       compressionBlock: {
         width: 1,
@@ -10323,12 +10462,11 @@ class TextureFormatCapabilities {
     });
     this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32float, {
       format: texture_format_enum_1.TextureFormat.Depth32float,
-      mipMapGeneration: true,
       aspect: {
         types: [texture_aspect_enum_1.TextureAspect.Depth],
         byteCost: 4
       },
-      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+      dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
       type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat],
       compressionBlock: {
         width: 1,
@@ -10354,12 +10492,11 @@ class TextureFormatCapabilities {
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.Depth32floatStencil8)) {
       this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Depth32floatStencil8, {
         format: texture_format_enum_1.TextureFormat.Depth32floatStencil8,
-        mipMapGeneration: true,
         aspect: {
           types: [texture_aspect_enum_1.TextureAspect.Depth, texture_aspect_enum_1.TextureAspect.Stencil],
           byteCost: 4
         },
-        dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+        dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
         type: [texture_sample_type_enum_1.TextureSampleType.Depth, texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.UnsignedInteger],
         compressionBlock: {
           width: 1,
@@ -10387,12 +10524,11 @@ class TextureFormatCapabilities {
       const lBcTextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
           format: pFormat,
-          mipMapGeneration: false,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
           },
-          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
           compressionBlock: {
             width: 4,
@@ -10435,12 +10571,11 @@ class TextureFormatCapabilities {
       const lEtc2TextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
         const lFormat = {
           format: pFormat,
-          mipMapGeneration: false,
           aspect: {
             types: pAspects,
             byteCost: pByteOfAspect
           },
-          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
           compressionBlock: {
             width: 4,
@@ -10476,12 +10611,11 @@ class TextureFormatCapabilities {
       const lAstcTextureFormatCapability = (pFormat, pCompressionLevel) => {
         const lFormat = {
           format: pFormat,
-          mipMapGeneration: false,
           aspect: {
             types: [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha],
             byteCost: 4
           },
-          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension, texture_dimension_enum_1.TextureDimension.TwoDimensionArray, texture_dimension_enum_1.TextureDimension.Cube, texture_dimension_enum_1.TextureDimension.CubeArray],
+          dimensions: [texture_dimension_enum_1.TextureDimension.OneDimension, texture_dimension_enum_1.TextureDimension.TwoDimension],
           type: [texture_sample_type_enum_1.TextureSampleType.UnfilterableFloat, texture_sample_type_enum_1.TextureSampleType.Float],
           compressionBlock: {
             width: pCompressionLevel[0],
@@ -10624,215 +10758,6 @@ exports.TextureFormatCapabilities = TextureFormatCapabilities;
 
 /***/ }),
 
-/***/ "./source/texture/texture-mip-generator.ts":
-/*!*************************************************!*\
-  !*** ./source/texture/texture-mip-generator.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureMipGenerator = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_sample_type_enum_1 = __webpack_require__(/*! ../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-class TextureMipGenerator {
-  static {
-    this.WORKGROUP_SIZE_PER_DIMENSION = 8;
-  }
-  constructor(pDevice) {
-    this.mFormatBindGroupsLayouts2d = new core_1.Dictionary();
-    this.mFormatBindGroupsLayouts3d = new core_1.Dictionary();
-    this.mFormatPipelines2d = new core_1.Dictionary();
-    this.mFormatPipelines3d = new core_1.Dictionary();
-    this.mDevice = pDevice;
-    this.mFormatPipelines2d = new core_1.Dictionary();
-    this.mFormatBindGroupsLayouts2d = new core_1.Dictionary();
-    this.mFormatPipelines3d = new core_1.Dictionary();
-    this.mFormatBindGroupsLayouts3d = new core_1.Dictionary();
-  }
-  /**
-   * Generate mips for textures.
-   *
-   * @param pDevice - Device reference.
-   * @param pTexture - Filled texture.sdsd
-   */
-  generateMips(pTexture) {
-    const lTextureCapability = this.mDevice.formatValidator.capabilityOf(pTexture.format);
-    // Use compute shader or fallback to cpu generation of mips.
-    if (lTextureCapability.storage.writeonly && lTextureCapability.textureUsages.has(texture_usage_enum_1.TextureUsage.TextureBinding)) {
-      switch (pTexture.dimension) {
-        case '1d':
-          {
-            break; // TODO;
-          }
-        case '2d':
-          {
-            this.initComputeShader2d(lTextureCapability);
-            this.generateMipsWithCompute2d(this.mDevice.gpu, pTexture, lTextureCapability);
-            break;
-          }
-        case '3d':
-          {
-            break; // TODO;
-          }
-      }
-    } else {
-      // TODO: Fallback CPU generation.
-      switch (pTexture.dimension) {
-        case '1d':
-          {
-            break; // TODO;
-          }
-        case '2d':
-          {
-            break; // TODO;
-          }
-        case '3d':
-          {
-            break; // TODO;
-          }
-      }
-    }
-  }
-  /**
-   * Create mips for texture with compute shader.
-   *
-   * @param pTexture - Target texture.
-   */
-  generateMipsWithCompute2d(pGpuDevice, pTexture, pFormat) {
-    // Calulate mip count.
-    const lMipCount = 1 + Math.floor(Math.log2(Math.max(pTexture.width, pTexture.height)));
-    // Read cached pipeline and layout.
-    const lPipeline = this.mFormatPipelines2d.get(pFormat.format);
-    const lBindGroupLayout = this.mFormatBindGroupsLayouts2d.get(pFormat.format);
-    // Create command encoder.
-    const lCommandEncoder = pGpuDevice.createCommandEncoder();
-    const lComputePass = lCommandEncoder.beginComputePass();
-    lComputePass.setPipeline(lPipeline);
-    for (let lMipLevel = 1; lMipLevel < lMipCount; lMipLevel++) {
-      // Create and add bind group with needed texture resources.
-      lComputePass.setBindGroup(0, pGpuDevice.createBindGroup({
-        layout: lBindGroupLayout,
-        entries: [{
-          binding: 0,
-          resource: pTexture.createView({
-            format: pFormat.format,
-            dimension: '2d-array',
-            baseMipLevel: lMipLevel - 1,
-            mipLevelCount: 1
-          })
-        }, {
-          binding: 1,
-          resource: pTexture.createView({
-            format: pFormat.format,
-            dimension: '2d-array',
-            baseMipLevel: lMipLevel,
-            mipLevelCount: 1
-          })
-        }]
-      }));
-      // Calculate needed single pixel invocations to cover complete mipmap level texture. 
-      // Prevent dimension from becoming zero.
-      const lMipMapDimensionX = Math.floor(pTexture.width / Math.pow(2, lMipLevel)) || 1;
-      const lMipMapDimensionY = Math.floor(pTexture.height / Math.pow(2, lMipLevel)) || 1;
-      // Calculate needed compute workgroup invocations to cover complete mipmap level texture.
-      const lWorkgroupCountForX = Math.ceil(lMipMapDimensionX / TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION);
-      const lWorkgroupCountForY = Math.ceil(lMipMapDimensionY / TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION);
-      lComputePass.dispatchWorkgroups(lWorkgroupCountForX, lWorkgroupCountForY, 1);
-    }
-    // End computepass after all mips are generated.
-    lComputePass.end();
-    // Push all commands to gpu queue.
-    pGpuDevice.queue.submit([lCommandEncoder.finish()]);
-  }
-  // TODO: 3D
-  // lMipCount = 1 + Math.floor(Math.log2(Math.max(this.width, this.height, this.depth)));
-  initComputeShader2d(pFormat) {
-    // Generate cache when missed.
-    if (!this.mFormatPipelines2d.has(pFormat.format)) {
-      const lSampleTypeName = (() => {
-        switch (pFormat.sampleTypes.primary) {
-          case texture_sample_type_enum_1.TextureSampleType.Float:
-            return 'f32';
-          case texture_sample_type_enum_1.TextureSampleType.UnsignedInteger:
-            return 'u32';
-          case texture_sample_type_enum_1.TextureSampleType.SignedInteger:
-            return 'i32';
-          default:
-            {
-              throw new core_1.Exception(`Can't generate mip for textures that cant be filtered.`, this);
-            }
-        }
-      })();
-      // Shader code. Insert format.
-      const lShader = this.mDevice.gpu.createShaderModule({
-        code: `
-                        @group(0) @binding(0) var previousMipLevel: texture_2d_array<${lSampleTypeName}>;
-                        @group(0) @binding(1) var nextMipLevel: texture_storage_2d_array<${pFormat.format}, write>;
-
-                        @compute @workgroup_size(${TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION}, ${TextureMipGenerator.WORKGROUP_SIZE_PER_DIMENSION})
-                        fn computeMipMap(@builtin(global_invocation_id) id: vec3<u32>) {
-                            const lOffset: vec2<u32> = vec2<u32>(0u, 1u);
-
-                            let lTextureLayerCount: u32 = textureNumLayers(previousMipLevel);
-
-                            var lColor: vec4<${lSampleTypeName}>;
-                            for(var lArrayLayer = 0u; lArrayLayer < lTextureLayerCount; lArrayLayer++){
-                                lColor = (
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xx, lArrayLayer, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.xy, lArrayLayer, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yx, lArrayLayer, 0) +
-                                    textureLoad(previousMipLevel, 2u * id.xy + lOffset.yy, lArrayLayer, 0)
-                                ) * 0.25;
-                                textureStore(nextMipLevel, id.xy, lArrayLayer, lColor);
-                            }
-                        }
-                    `
-      });
-      // Generate bind group layout.
-      const lBindGroupLayout = this.mDevice.gpu.createBindGroupLayout({
-        entries: [{
-          binding: 0,
-          visibility: GPUShaderStage.COMPUTE,
-          texture: {
-            sampleType: pFormat.sampleTypes.primary,
-            viewDimension: '2d-array'
-          }
-        }, {
-          binding: 1,
-          visibility: GPUShaderStage.COMPUTE,
-          storageTexture: {
-            access: 'write-only',
-            format: pFormat.format,
-            viewDimension: '2d-array'
-          }
-        }]
-      });
-      // Create pipeline.
-      const lPipeline = this.mDevice.gpu.createComputePipeline({
-        layout: this.mDevice.gpu.createPipelineLayout({
-          bindGroupLayouts: [lBindGroupLayout]
-        }),
-        compute: {
-          module: lShader,
-          entryPoint: 'computeMipMap'
-        }
-      });
-      // Safe pipeline and bind group layout.
-      this.mFormatPipelines2d.set(pFormat.format, lPipeline);
-      this.mFormatBindGroupsLayouts2d.set(pFormat.format, lBindGroupLayout);
-    }
-  }
-}
-exports.TextureMipGenerator = TextureMipGenerator;
-
-/***/ }),
-
 /***/ "./source/texture/texture-sampler.ts":
 /*!*******************************************!*\
   !*** ./source/texture/texture-sampler.ts ***!
@@ -10845,13 +10770,13 @@ exports.TextureMipGenerator = TextureMipGenerator;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.TextureSamplerInvalidationType = exports.TextureSampler = void 0;
+exports.TextureSampler = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const filter_mode_enum_1 = __webpack_require__(/*! ../constant/filter-mode.enum */ "./source/constant/filter-mode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const wrapping_mode_enum_1 = __webpack_require__(/*! ../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-class TextureSampler extends gpu_object_1.GpuObject {
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
+class TextureSampler extends gpu_resource_object_1.GpuResourceObject {
   /**
    * When provided the sampler will be a comparison sampler with the specified compare function.
    */
@@ -10861,7 +10786,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set compare(pValue) {
     this.mCompare = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
@@ -10872,7 +10797,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set lodMaxClamp(pValue) {
     this.mLodMaxClamp = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
@@ -10883,7 +10808,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set lodMinClamp(pValue) {
     this.mLodMinClamp = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * How the texture is sampled when a texel covers more than one pixel.
@@ -10894,7 +10819,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set magFilter(pValue) {
     this.mMagFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Specifies the maximum anisotropy value clamp used by the sampler.
@@ -10905,7 +10830,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set maxAnisotropy(pValue) {
     this.mMaxAnisotropy = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Sampler memory layout.
@@ -10922,7 +10847,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set minFilter(pValue) {
     this.mMinFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Specifies behavior for sampling between mipmap levels.
@@ -10933,7 +10858,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set mipmapFilter(pValue) {
     this.mMipmapFilter = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Native gpu object.
@@ -10950,7 +10875,7 @@ class TextureSampler extends gpu_object_1.GpuObject {
   set wrapMode(pValue) {
     this.mWrapMode = pValue;
     // Invalidate native object.
-    this.invalidate(TextureSamplerInvalidationType.NativeRebuild);
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
   }
   /**
    * Constructor.
@@ -10969,10 +10894,6 @@ class TextureSampler extends gpu_object_1.GpuObject {
     this.mLodMinClamp = 0;
     this.mLodMaxClamp = 32;
     this.mMaxAnisotropy = 16;
-    // Register change listener for layout changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(TextureSamplerInvalidationType.LayoutChange, TextureSamplerInvalidationType.NativeRebuild);
-    });
   }
   /**
    * Generate native bind data group layout object.
@@ -11002,246 +10923,6 @@ class TextureSampler extends gpu_object_1.GpuObject {
   }
 }
 exports.TextureSampler = TextureSampler;
-var TextureSamplerInvalidationType;
-(function (TextureSamplerInvalidationType) {
-  TextureSamplerInvalidationType["LayoutChange"] = "LayoutChange";
-  TextureSamplerInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(TextureSamplerInvalidationType || (exports.TextureSamplerInvalidationType = TextureSamplerInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/texture/video-texture.ts":
-/*!*****************************************!*\
-  !*** ./source/texture/video-texture.ts ***!
-  \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VideoTextureInvalidationType = exports.VideoTexture = void 0;
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const base_texture_1 = __webpack_require__(/*! ./base-texture */ "./source/texture/base-texture.ts");
-const texture_mip_generator_1 = __webpack_require__(/*! ./texture-mip-generator */ "./source/texture/texture-mip-generator.ts");
-class VideoTexture extends base_texture_1.BaseTexture {
-  /**
-   * Set play position in secons.
-   */
-  get currentTime() {
-    return this.mVideo.currentTime;
-  }
-  set currentTime(pValue) {
-    this.mVideo.currentTime = pValue;
-  }
-  /**
-   * Enable mip maps.
-   */
-  get enableMips() {
-    return this.mEnableMips;
-  }
-  set enableMips(pEnable) {
-    this.mEnableMips = pEnable;
-    // Invalidate native on mip enable change.
-    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
-  }
-  /**
-   * Texture height.
-   */
-  get height() {
-    return this.mVideo.videoHeight;
-  }
-  /**
-   * If video should be looped.
-   */
-  get loop() {
-    return this.mVideo.loop;
-  }
-  set loop(pValue) {
-    this.mVideo.loop = pValue;
-  }
-  /**
-   * Video source.
-   */
-  get source() {
-    return this.mVideo.src;
-  }
-  set source(pValue) {
-    this.mVideo.src = pValue;
-  }
-  /**
-   * Video width.
-   */
-  get width() {
-    return this.mVideo.videoWidth;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   * @param pLayout - Texture memory layout.
-   * @param pDepth - Texture depth.
-   */
-  constructor(pDevice, pLayout) {
-    super(pDevice, pLayout);
-    this.mMipGenerator = new texture_mip_generator_1.TextureMipGenerator(pDevice);
-    this.mTexture = null;
-    this.mEnableMips = true;
-    // Create video.
-    this.mVideo = document.createElement('video');
-    this.mVideo.preload = 'auto';
-    this.mVideo.loop = false;
-    this.mVideo.muted = true; // Allways muted.
-    // Extend usage to copy external data into texture.
-    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
-    this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-    // When mips are enabled.
-    if (this.mEnableMips) {
-      this.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
-      this.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
-    }
-    // Register change listener for layout changes.
-    pLayout.addInvalidationListener(() => {
-      this.invalidate(VideoTextureInvalidationType.LayoutChange, VideoTextureInvalidationType.NativeRebuild);
-    });
-    // When video was resized.
-    this.mVideo.addEventListener('resize', () => {
-      this.invalidate(VideoTextureInvalidationType.NativeRebuild);
-    });
-    // Update video texture on every frame. // TODO: Remove on destroy. 
-    this.device.addFrameChangeListener(() => {
-      const lVideoHasDataPlaying = this.mVideo.readyState > 1; // Has at least one frame buffered.
-      if (this.mTexture && lVideoHasDataPlaying) {
-        // Video element as source.
-        const lSource = {
-          source: this.mVideo
-        };
-        // Texture as destination. Only add first mip level.
-        const lDestination = {
-          texture: this.mTexture,
-          mipLevel: 0
-        };
-        // Restrict copy size to current texture size.
-        // NOT VIDEO SIZE!!! as video size can change faster than current texture.
-        const lCopySize = {
-          width: this.mTexture.width,
-          height: this.mTexture.height,
-          depthOrArrayLayers: 1
-        };
-        // Queue copy.
-        this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lCopySize);
-        // Generate mip when enabled.
-        if (this.mEnableMips) {
-          // Generate mips for texture.
-          this.mMipGenerator.generateMips(this.mTexture);
-        }
-      }
-    });
-  }
-  /**
-   * Pause video.
-   */
-  pause() {
-    this.mVideo.pause();
-  }
-  /**
-   * Play video.
-   */
-  play() {
-    this.mVideo.play();
-  }
-  /**
-   * Destory texture object.
-   *
-   * @param _pNativeObject - Native canvas texture.
-   * @param pInvalidationReason - Invalidation reasons.
-   */
-  destroyNative(_pNativeObject, pInvalidationReason) {
-    // Desconstruct current texture only on deconstruction calls.
-    if (pInvalidationReason.deconstruct) {
-      this.mTexture?.destroy();
-      this.mTexture = null;
-      // Stop and reset video.
-      this.mVideo.pause();
-      this.mVideo.src = '';
-    }
-  }
-  /**
-   * Generate native canvas texture view.
-   */
-  generateNative() {
-    // Invalidate texture and view.
-    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
-    // TODO: Validate format based on layout. Maybe replace used format.
-    // Clamp with and height to never fall under 1.
-    const lClampedTextureWidth = Math.max(this.width, 1);
-    const lClampedTextureHeight = Math.max(this.height, 1);
-    // Generate gpu dimension from memory layout dimension.
-    const lGpuDimension = (() => {
-      switch (this.layout.dimension) {
-        case texture_dimension_enum_1.TextureDimension.OneDimension:
-          {
-            return '1d';
-          }
-        case texture_dimension_enum_1.TextureDimension.TwoDimension:
-          {
-            return '2d';
-          }
-        case texture_dimension_enum_1.TextureDimension.TwoDimensionArray:
-          {
-            return '2d';
-          }
-        case texture_dimension_enum_1.TextureDimension.Cube:
-          {
-            return '2d';
-          }
-        case texture_dimension_enum_1.TextureDimension.CubeArray:
-          {
-            return '2d';
-          }
-        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
-          {
-            return '3d';
-          }
-      }
-    })();
-    // Calculate mip count.
-    let lMipCount = 1;
-    if (this.mEnableMips) {
-      lMipCount = 1 + Math.floor(Math.log2(Math.max(lClampedTextureWidth, lClampedTextureHeight)));
-    }
-    // Any change triggers a texture rebuild.
-    this.mTexture?.destroy();
-    // Create texture with set size, format and usage. Save it for destorying later.
-    this.mTexture = this.device.gpu.createTexture({
-      label: 'Video-Buffer-Texture',
-      size: [lClampedTextureWidth, lClampedTextureHeight, 1],
-      format: this.layout.format,
-      usage: this.usage,
-      dimension: lGpuDimension,
-      mipLevelCount: lMipCount
-    });
-    // View descriptor.
-    return this.mTexture.createView({
-      format: this.layout.format,
-      dimension: this.layout.dimension
-    });
-  }
-  /**
-   * On usage extened. Triggers a texture rebuild.
-   */
-  onUsageExtend() {
-    this.invalidate(VideoTextureInvalidationType.NativeRebuild);
-  }
-}
-exports.VideoTexture = VideoTexture;
-var VideoTextureInvalidationType;
-(function (VideoTextureInvalidationType) {
-  VideoTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
-  VideoTextureInvalidationType["LayoutChange"] = "LayoutChange";
-})(VideoTextureInvalidationType || (exports.VideoTextureInvalidationType = VideoTextureInvalidationType = {}));
 
 /***/ }),
 
@@ -16512,7 +16193,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("e0708d877163714f90c6")
+/******/ 		__webpack_require__.h = () => ("01cb79ef2930cd395e29")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

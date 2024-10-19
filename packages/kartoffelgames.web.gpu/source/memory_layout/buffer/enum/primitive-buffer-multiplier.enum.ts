@@ -1,3 +1,4 @@
+// TODO: Move and rename.
 export enum PrimitiveBufferMultiplier {
     // Single
     Single = 'x1',

@@ -3,6 +3,8 @@ import { GpuDevice } from '../gpu-device';
 import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
 import { GpuObjectSetup } from './gpu-object-setup';
 
+// TODO: New GpuResourceObject (Buffer, Texture, Sampler) has an GpuResourceObjectInvalidationReason.NativeRebuild and some sort of extendUsage. Old references of all none deconstructed, i dont know, maybe to clear memory.
+
 /**
  * Gpu object with a native internal object.
  */

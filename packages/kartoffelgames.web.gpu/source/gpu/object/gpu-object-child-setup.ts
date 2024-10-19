@@ -32,6 +32,7 @@ export abstract class GpuObjectChildSetup<TSetupReferenceData, TCallback extends
      * Constructor.
      * 
      * @param pSetupReference - Setup references.
+     * @param pDataCallback - Setup data callback.
      */
     public constructor(pSetupReference: GpuObjectSetupReferences<TSetupReferenceData>, pDataCallback: TCallback) {
         this.mSetupReference = pSetupReference;

@@ -2,7 +2,7 @@ import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
-export abstract class BaseBufferMemoryLayout<TInvalidationType extends string = any, TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TInvalidationType, TSetupObject> {
+export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
     /**
      * Type byte alignment.
      */

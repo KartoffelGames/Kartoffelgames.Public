@@ -3,17 +3,22 @@ import { TextureOperation } from '../../constant/texture-operation.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
-import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { RenderTargetTextureSetup } from './render-targets-texture-setup';
+import { GpuTextureView } from '../../texture/gpu-texture-view';
+import { RenderTargetSetupTextures, RenderTargetTextureSetup } from './render-targets-texture-setup';
 
 export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
+    private readonly mMultisampled: boolean;
+
     /**
      * Constructor
      * 
      * @param pSetupReference -Setup references.
      */
-    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupData>) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupData>, pMultisampled: boolean) {
         super(pSetupReference);
+
+        // Set static multisampled state.
+        this.mMultisampled = pMultisampled;
     }
 
     /**
@@ -34,15 +39,17 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
             index: pLocationIndex,
             clearValue: pClearValue ?? null,
             storeOperation: (pKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
-            texture: null
+            textureView: null,
+            resolveCanvas: null
         };
 
         // Add to color attachment list.
         this.setupData.colorTargets.push(lTarget);
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture | CanvasTexture) => {
-            lTarget.texture = pTexture;
+        return new RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, (pTexture: RenderTargetSetupTextures) => {
+            lTarget.textureView = pTexture.view;
+            lTarget.resolveCanvas = pTexture.resolveCanvas;
         });
     }
 
@@ -59,7 +66,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
         this.ensureThatInSetup();
 
         this.setupData.depthStencil = {
-            texture: null
+            textureView: null
         };
 
         // Setup depth when values where set.
@@ -79,13 +86,13 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
         }
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture | CanvasTexture) => {
+        return new RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, (pTexture: RenderTargetSetupTextures) => {
             // Restrict used texture type to a frame buffer.
-            if (pTexture instanceof CanvasTexture) {
+            if (pTexture.resolveCanvas) {
                 throw new Exception(`Can't use a canvas texture as depth or stencil texture.`, this);
             }
 
-            this.setupData.depthStencil!.texture = pTexture;
+            this.setupData.depthStencil!.textureView = pTexture.view;
         });
     }
 
@@ -100,7 +107,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
 }
 
 type RenderTargetsDepthStencilTextureSetupData = {
-    texture: FrameBufferTexture | null;
+    textureView: GpuTextureView | null;
     depth?: {
         clearValue: number | null;
         storeOperation: TextureOperation;
@@ -116,7 +123,8 @@ type RenderTargetsColorTargetSetupData = {
     index: number;
     clearValue: { r: number; g: number; b: number; a: number; } | null;
     storeOperation: TextureOperation;
-    texture: FrameBufferTexture | CanvasTexture | null;
+    textureView: GpuTextureView | null;
+    resolveCanvas: CanvasTexture | null;
 };
 
 export interface RenderTargetSetupData {

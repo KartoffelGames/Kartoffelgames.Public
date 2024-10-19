@@ -1,6 +1,16 @@
 import { BindGroup } from '../../source/binding/bind-group';
 import { BindGroupLayout } from '../../source/binding/bind-group-layout';
 import { GpuBuffer } from '../../source/buffer/gpu-buffer';
+import { CompareFunction } from '../../source/constant/compare-function.enum';
+import { ComputeStage } from '../../source/constant/compute-stage.enum';
+import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
+import { SamplerType } from '../../source/constant/sampler-type.enum';
+import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
+import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
+import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
+import { TextureFormat } from '../../source/constant/texture-format.enum';
+import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
 import { GpuExecution } from '../../source/execution/gpu-execution';
 import { RenderPass } from '../../source/execution/pass/render-pass';
 import { GpuDevice } from '../../source/gpu/gpu-device';
@@ -12,17 +22,7 @@ import { VertexFragmentPipeline } from '../../source/pipeline/vertex-fragment-pi
 import { Shader } from '../../source/shader/shader';
 import { ShaderRenderModule } from '../../source/shader/shader-render-module';
 import { CanvasTexture } from '../../source/texture/canvas-texture';
-import { VideoTexture } from '../../source/texture/video-texture';
-import { CompareFunction } from '../../source/constant/compare-function.enum';
-import { ComputeStage } from '../../source/constant/compute-stage.enum';
-import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
-import { SamplerType } from '../../source/constant/sampler-type.enum';
-import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
-import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
-import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
-import { TextureDimension } from '../../source/constant/texture-dimension.enum';
-import { TextureFormat } from '../../source/constant/texture-format.enum';
-import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
+import { GpuTexture, GpuTextureCopyOptions } from '../../source/texture/gpu-texture';
 import { AmbientLight } from './camera/light/ambient-light';
 import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
@@ -36,9 +36,9 @@ import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVe
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 
 const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
-    const lHeight: number = 50;
-    const lWidth: number = 50;
-    const lDepth: number = 50;
+    const lHeight: number = 100;
+    const lWidth: number = 100;
+    const lDepth: number = 100;
 
     // Create shader.
     const lWoodBoxShader = pGpu.shader(cubeShader).setup((pShaderSetup) => {
@@ -79,7 +79,7 @@ const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPas
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
-                .withTexture(TextureDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
+                .withTexture(TextureViewDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
         });
     });
 
@@ -111,11 +111,97 @@ const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPas
     const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    lWoodBoxUserGroup.data('cubeTexture').createImage(
-        '/source/game_objects/cube/texture_one/cube-texture.png',
-        '/source/game_objects/cube/texture_two/cube-texture.png',
-        '/source/game_objects/cube/texture_three/cube-texture.png'
-    );
+    const lImageTexture: GpuTexture = lWoodBoxUserGroup.data('cubeTexture').createTexture().texture;
+    lImageTexture.depth = 3;
+    lImageTexture.mipCount = 20;
+    (async () => {
+        const lSourceList: Array<string> = [
+            '/source/game_objects/cube/texture_one/cube-texture.png',
+            '/source/game_objects/cube/texture_two/cube-texture.png',
+            '/source/game_objects/cube/texture_three/cube-texture.png'
+        ];
+
+        let lHeight: number = 0;
+        let lWidth: number = 0;
+
+        // "Random" colors.
+        const lColorList: Array<string> = new Array<string>();
+        for (let lIndex: number = 0; lIndex < 20; lIndex++) {
+            lColorList.push('#' + Math.floor(Math.random() * 16777215).toString(16));
+        }
+
+        // Parallel load images.
+        const lImageLoadPromiseList: Array<Promise<Array<GpuTextureCopyOptions>>> = lSourceList.map(async (pSource, pIndex: number) => {
+            // Load image with html image element.
+            const lImage: HTMLImageElement = new Image();
+            lImage.src = pSource;
+            await lImage.decode();
+
+            // Init size.
+            if (lHeight === 0 || lWidth === 0) {
+                lWidth = lImage.naturalWidth;
+                lHeight = lImage.naturalHeight;
+            }
+
+            // Validate same image size for all layers.
+            if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+                throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+            }
+
+            const lWaiter: Array<Promise<void>> = new Array<Promise<void>>();
+            const lMipList: Array<GpuTextureCopyOptions> = new Array<GpuTextureCopyOptions>();
+
+            // Add level one.
+            lWaiter.push(createImageBitmap(lImage).then((pBitmap) => {
+                lMipList.push({
+                    data: pBitmap,
+                    mipLevel: 0,
+                    targetOrigin: { x: 0, y: 0, z: pIndex }
+                });
+            }));
+
+            // Generate all mips.
+            const lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(lWidth, lHeight)));
+            for (let lMipLevel: number = 1; lMipLevel < lMaxMipCount; lMipLevel++) {
+                const lCanvas: OffscreenCanvas = new OffscreenCanvas(
+                    Math.max(1, Math.floor(lWidth / Math.pow(2, lMipLevel))),
+                    Math.max(1, Math.floor(lHeight / Math.pow(2, lMipLevel)))
+                );
+
+                // Fill canvas.
+                const lCanvasContext: OffscreenCanvasRenderingContext2D = lCanvas.getContext('2d')!;
+                lCanvasContext.globalAlpha = 1;
+                lCanvasContext.drawImage(lImage, 0,0, lWidth, lHeight, 0, 0, lCanvas.width, lCanvas.height);
+                lCanvasContext.globalAlpha = 0.5;
+                lCanvasContext.fillStyle = lColorList[lMipLevel];
+                lCanvasContext.fillRect(0, 0, lCanvas.width, lCanvas.height);
+
+                lWaiter.push(createImageBitmap(lCanvas).then((pBitmap) => {
+                    lMipList.push({
+                        data: pBitmap,
+                        mipLevel: lMipLevel,
+                        targetOrigin: { x: 0, y: 0, z: pIndex }
+                    });
+                }));
+            }
+
+            // Wait for all images to resolve.
+            await Promise.all(lWaiter);
+
+            return lMipList;
+        }).flat();
+
+        // Resolve all bitmaps.
+        const lImageList: Array<GpuTextureCopyOptions> = (await Promise.all(lImageLoadPromiseList)).flat();
+
+        // Set new texture size.
+        lImageTexture.width = lWidth;
+        lImageTexture.height = lHeight;
+        lImageTexture.depth = lSourceList.length;
+
+        // Copy images into texture.
+        lImageTexture.copyFrom(...lImageList);
+    })();
 
     // Setup Sampler.
     lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
@@ -206,7 +292,7 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
-                .withTexture(TextureDimension.Cube, TextureFormat.Rgba8unorm);
+                .withTexture(TextureViewDimension.Cube, TextureFormat.Rgba8unorm);
         });
 
         // World bind group.
@@ -219,14 +305,53 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
     // Transformation and position group. 
     const lSkyBoxTextureGroup = lSkyBoxShader.layout.getGroupLayout('object').create();
 
-    lSkyBoxTextureGroup.data('cubeMap').createImage(
-        '/source/game_objects/skybox/right.jpg',
-        '/source/game_objects/skybox/left.jpg',
-        '/source/game_objects/skybox/top.jpg',
-        '/source/game_objects/skybox/bottom.jpg',
-        '/source/game_objects/skybox/front.jpg',
-        '/source/game_objects/skybox/back.jpg',
-    );
+    const lImageTexture: GpuTexture = lSkyBoxTextureGroup.data('cubeMap').createTexture().texture;
+    lImageTexture.depth = 6;
+    (async () => {
+        const lSourceList: Array<string> = [
+            '/source/game_objects/skybox/right.jpg',
+            '/source/game_objects/skybox/left.jpg',
+            '/source/game_objects/skybox/top.jpg',
+            '/source/game_objects/skybox/bottom.jpg',
+            '/source/game_objects/skybox/front.jpg',
+            '/source/game_objects/skybox/back.jpg'
+        ];
+
+        let lHeight: number = 0;
+        let lWidth: number = 0;
+
+        // Parallel load images.
+        const lImageLoadPromiseList: Array<Promise<ImageBitmap>> = lSourceList.map(async (pSource) => {
+            // Load image with html image element.
+            const lImage: HTMLImageElement = new Image();
+            lImage.src = pSource;
+            await lImage.decode();
+
+            // Init size.
+            if (lHeight === 0 || lWidth === 0) {
+                lWidth = lImage.naturalWidth;
+                lHeight = lImage.naturalHeight;
+            }
+
+            // Validate same image size for all layers.
+            if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+                throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+            }
+
+            return createImageBitmap(lImage);
+        });
+
+        // Resolve all bitmaps.
+        const lImageList: Array<ImageBitmap> = await Promise.all(lImageLoadPromiseList);
+
+        // Set new texture size.
+        lImageTexture.width = lWidth;
+        lImageTexture.height = lHeight;
+        lImageTexture.depth = lSourceList.length;
+
+        // Copy images into texture.
+        lImageTexture.copyFrom(...lImageList);
+    })();
 
     // Setup Sampler.
     lSkyBoxTextureGroup.data('cubeTextureSampler').createSampler();
@@ -277,7 +402,7 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
                 .withSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
-                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                .withTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
         });
     });
 
@@ -299,10 +424,27 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
     const lUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    lUserGroup.data('videoTexture').createVideo('/source/game_objects/video_canvas/earth.mp4');
-    const lVideoTexture: VideoTexture = lUserGroup.data('videoTexture').get<VideoTexture>();
-    lVideoTexture.loop = true;
-    lVideoTexture.play();
+    const lVideoTexture: GpuTexture = lUserGroup.data('videoTexture').createTexture().texture;
+
+    // Create video.
+    const lVideo = document.createElement('video');
+    lVideo.preload = 'auto';
+    lVideo.loop = true;
+    lVideo.muted = true; // Allways muted.
+    lVideo.src = '/source/game_objects/video_canvas/earth.mp4';
+    lVideo.addEventListener('resize', () => {
+        lVideoTexture.height = Math.max(lVideo.videoHeight, 1);
+        lVideoTexture.width = Math.max(lVideo.videoWidth, 1);
+    });
+    lVideo.play();
+    pGpu.addFrameChangeListener(() => {
+        // Has at least one frame buffered.
+        if (lVideo.readyState > 1) {
+            createImageBitmap(lVideo).then((pImageBitmap) => {
+                lVideoTexture.copyFrom(pImageBitmap);
+            });
+        }
+    });
 
     // Setup Sampler.
     lUserGroup.data('videoTextureSampler').createSampler();
@@ -403,10 +545,10 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
 
     // Create and configure render targets.
-    const lRenderTargets: RenderTargets = lGpu.renderTargets().setup((pSetup) => {
+    const lRenderTargets: RenderTargets = lGpu.renderTargets(false).setup((pSetup) => {
         // Add "color" target and init new texture.
         pSetup.addColor('color', 0, true, { r: 0, g: 1, b: 0, a: 0 })
-            .use(lCanvasTexture);
+            .new(TextureFormat.Bgra8unorm, lCanvasTexture);
 
         // Add depth texture and init new texture.    
         pSetup.addDepthStencil(true, 1)
@@ -421,7 +563,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
             const lNewCanvasWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
 
             // Resize displayed render targets.
-            lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth, false);
+            lRenderTargets.resize(lNewCanvasHeight, lNewCanvasWidth);
         }).observe(lCanvasWrapper);
     })();
 

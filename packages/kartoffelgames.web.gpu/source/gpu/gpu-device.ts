@@ -1,9 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TextureDimension } from '../constant/texture-dimension.enum';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass } from '../execution/pass/compute-pass';
 import { RenderPass } from '../execution/pass/render-pass';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
 import { CanvasTexture } from '../texture/canvas-texture';
@@ -115,14 +113,7 @@ export class GpuDevice {
         // Create or use canvas.
         const lCanvas: HTMLCanvasElement = pCanvas ?? document.createElement('canvas');
 
-        // Create basic canvas layout.
-        const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this, {
-            dimension: TextureDimension.TwoDimension,
-            format: this.formatValidator.preferredCanvasFormat,
-            multisampled: false
-        });
-
-        return new CanvasTexture(this, lLayout, lCanvas);
+        return new CanvasTexture(this, lCanvas);
     }
 
     /**
@@ -158,10 +149,12 @@ export class GpuDevice {
     /**
      * Create render target object.
      * 
+     * @param pMultisampled - Render targets are multisampled.
+     * 
      * @returns render target object. 
      */
-    public renderTargets(): RenderTargets {
-        return new RenderTargets(this);
+    public renderTargets(pMultisampled: boolean = false): RenderTargets {
+        return new RenderTargets(this, pMultisampled);
     }
 
     /**

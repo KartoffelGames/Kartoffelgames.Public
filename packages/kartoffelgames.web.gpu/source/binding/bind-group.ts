@@ -1,21 +1,22 @@
-import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { GpuBuffer } from '../buffer/gpu-buffer';
 import { BufferUsage } from '../constant/buffer-usage.enum';
 import { StorageBindingType } from '../constant/storage-binding-type.enum';
 import { TextureUsage } from '../constant/texture-usage.enum';
-import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { GpuTexture } from '../texture/gpu-texture';
+import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
+import { GpuTextureView } from '../texture/gpu-texture-view';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
 export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType> implements IGpuObjectNative<GPUBindGroup> {
-    private readonly mBindData: Dictionary<string, BindData>;
+    private readonly mBindData: Dictionary<string, GpuResourceObject<any, any>>;
     private readonly mLayout: BindGroupLayout;
 
     /**
@@ -40,12 +41,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
         super(pDevice);
 
         this.mLayout = pBindGroupLayout;
-        this.mBindData = new Dictionary<string, BindData>();
-
-        // Register change listener for layout changes.
-        pBindGroupLayout.addInvalidationListener(() => {
-            this.invalidate(BindGroupInvalidationType.NativeRebuild);
-        });
+        this.mBindData = new Dictionary<string, GpuResourceObject>();
     }
 
     /**
@@ -57,7 +53,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
      */
     public data(pBindName: string): BindGroupDataSetup {
         const lBindLayout: Readonly<BindLayout> = this.mLayout.getBind(pBindName);
-        const lData: BindData | null = this.mBindData.get(pBindName) ?? null;
+        const lData: GpuResourceObject | null = this.mBindData.get(pBindName) ?? null;
 
         // Construct setup data to data.
         const lDataSetupReferences: GpuObjectSetupReferences<null> = {
@@ -66,7 +62,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             data: null
         };
 
-        return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: BindData) => {
+        return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: GpuResourceObject) => {
             // Validate if layout fits bind data and dynamicly extend usage type of bind data.
             switch (true) {
                 // Textures must use a buffer memory layout.
@@ -95,16 +91,16 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
                 }
 
                 // Textures must use a texture memory layout.
-                case pData instanceof GpuTexture: {
-                    if (!(lBindLayout.layout instanceof TextureMemoryLayout)) {
+                case pData instanceof GpuTextureView: {
+                    if (!(lBindLayout.layout instanceof TextureViewMemoryLayout)) {
                         throw new Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
                     }
 
                     // Extend buffer usage based on if it is a storage or not.
                     if (lBindLayout.storageType !== StorageBindingType.None) {
-                        pData.extendUsage(TextureUsage.Storage);
+                        pData.texture.extendUsage(TextureUsage.Storage);
                     } else {
-                        pData.extendUsage(TextureUsage.TextureBinding);
+                        pData.texture.extendUsage(TextureUsage.TextureBinding);
                     }
 
                     break;
@@ -121,7 +117,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             // Trigger update data is invalid.
             pData.addInvalidationListener(() => {
                 this.invalidate(BindGroupInvalidationType.NativeRebuild);
-            }); // TODO: Distinct and only update when necessary.
+            }, [GpuResourceObjectInvalidationType.ResourceRebuild]);
 
             // Trigger update on data change. 
             this.invalidate(BindGroupInvalidationType.NativeRebuild);
@@ -139,7 +135,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
         for (const lBindname of this.layout.bindingNames) {
             // Read bind data.
-            const lBindData: BindData | undefined = this.mBindData.get(lBindname);
+            const lBindData: GpuResourceObject | undefined = this.mBindData.get(lBindname);
             if (!lBindData) {
                 throw new Exception(`Data for binding "${lBindname}" is not set.`, this);
             }
@@ -166,7 +162,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             }
 
             // Texture bind.
-            if (lBindData instanceof GpuTexture) {
+            if (lBindData instanceof GpuTextureView) {
                 lGroupEntry.resource = lBindData.native;
 
                 lEntryList.push(lGroupEntry);
@@ -183,8 +179,6 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
         });
     }
 }
-
-export type BindData = GpuBuffer<TypedArray> | TextureSampler | GpuTexture;
 
 export enum BindGroupInvalidationType {
     NativeRebuild = 'NativeRebuild',

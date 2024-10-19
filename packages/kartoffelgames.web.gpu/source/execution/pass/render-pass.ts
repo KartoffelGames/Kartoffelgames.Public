@@ -36,10 +36,7 @@ export class RenderPass extends GpuObject {
         // Update bundle when render target has changed.
         pRenderTargets.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        }, [
-            RenderTargetsInvalidationType.LayoutChange,
-            RenderTargetsInvalidationType.NativeRebuild
-        ]);
+        }, [RenderTargetsInvalidationType.NativeRebuild]);
     }
 
     /**
@@ -130,6 +127,11 @@ export class RenderPass extends GpuObject {
             this.cachedExecute(pExecution);
         } else {
             this.directExecute(pExecution);
+        }
+
+        // Resolve targets into canvas.
+        for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
+            lResolveTexture.canvas.resolveFrom(pExecution, lResolveTexture.source);
         }
     }
 

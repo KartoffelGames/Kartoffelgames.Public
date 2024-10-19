@@ -1,6 +1,6 @@
 import { SamplerType } from '../../constant/sampler-type.enum';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
@@ -12,7 +12,7 @@ import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitiv
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup } from '../../memory_layout/buffer/struct-buffer-memory-layout-setup';
 import { SamplerMemoryLayout } from '../../memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
+import { TextureViewMemoryLayout } from '../../memory_layout/texture/texture-view-memory-layout';
 import { BindGroupLayoutArrayMemoryLayoutSetup } from './bind-group-layout-array-memory-layout-setup';
 import { BindGroupLayoutSetupData } from './bind-group-layout-setup';
 
@@ -68,9 +68,7 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * @param pSamplerType - Sampler type.
      */
     public withSampler(pSamplerType: SamplerType): void {
-        const lLayout: SamplerMemoryLayout = new SamplerMemoryLayout(this.device, {
-            samplerType: pSamplerType
-        });
+        const lLayout: SamplerMemoryLayout = new SamplerMemoryLayout(this.device, pSamplerType);
 
         // Send created data.
         this.sendData(lLayout);
@@ -97,8 +95,8 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * @param pTextureFormat - Texture format.
      * @param pTextureBindType - Texture binding.
      */
-    public withTexture(pTextureDimension: TextureDimension, pTextureFormat: TextureFormat): void {
-        const lLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
+    public withTexture(pTextureDimension: TextureViewDimension, pTextureFormat: TextureFormat): void {
+        const lLayout: TextureViewMemoryLayout = new TextureViewMemoryLayout(this.device, {
             dimension: pTextureDimension,
             format: pTextureFormat,
             multisampled: false

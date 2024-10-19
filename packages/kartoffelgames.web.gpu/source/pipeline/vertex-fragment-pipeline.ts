@@ -1,4 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { PipelineLayoutInvalidationType } from '../binding/pipeline-layout';
 import { CompareFunction } from '../constant/compare-function.enum';
 import { ComputeStage } from '../constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../constant/primitive-cullmode.enum';
@@ -7,13 +8,11 @@ import { PrimitiveTopology } from '../constant/primitive-topology.enum';
 import { TextureAspect } from '../constant/texture-aspect.enum';
 import { TextureBlendFactor } from '../constant/texture-blend-factor.enum';
 import { TextureBlendOperation } from '../constant/texture-blend-operation.enum';
-import { PipelineLayoutInvalidationType } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { GpuTextureView } from '../texture/gpu-texture-view';
 import { VertexParameterLayoutInvalidationType } from './parameter/vertex-parameter-layout';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
@@ -240,7 +239,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
             for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
-                const lRenderTarget: FrameBufferTexture | CanvasTexture = this.mRenderTargets.colorTarget(lRenderTargetName);
+                const lRenderTarget: GpuTextureView = this.mRenderTargets.colorTarget(lRenderTargetName);
 
                 lFragmentTargetList.push({
                     format: lRenderTarget.layout.format as GPUTextureFormat,

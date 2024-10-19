@@ -1,11 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectUpdateListener } from '../gpu/object/gpu-object';
+import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { BindGroupLayout, BindGroupLayoutInvalidationType, BindLayout } from './bind-group-layout';
+import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
 export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutInvalidationType> implements IGpuObjectNative<GPUPipelineLayout> {
-    private readonly mBindGroupInvalidationListener: WeakMap<BindGroupLayout, GpuObjectUpdateListener<BindGroupLayoutInvalidationType>>;
     private readonly mBindGroupNames: Dictionary<string, number>;
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
     private readonly mInitialBindGroups: Dictionary<number, BindGroupLayout>;
@@ -37,7 +36,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         this.mBindGroupNames = new Dictionary<string, number>();
         this.mInitialBindGroups = new Dictionary<number, BindGroupLayout>();
         this.mBindGroups = new Dictionary<number, BindGroupLayout>();
-        this.mBindGroupInvalidationListener = new WeakMap<BindGroupLayout, GpuObjectUpdateListener<BindGroupLayoutInvalidationType>>();
 
         // TODO: Check gpu restriction.
         //this.device.gpu.limits.maxBindGroups
@@ -65,13 +63,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
             // Set bind groups to initial data and working bind group.
             this.mInitialBindGroups.set(lGroupIndex, lGroup);
             this.mBindGroups.set(lGroupIndex, lGroup);
-
-            // Add invalidationlistener.
-            const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-                this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-            };
-            lGroup.addInvalidationListener(lListener);
-            this.mBindGroupInvalidationListener.set(lGroup, lListener);
         }
     }
 
@@ -119,9 +110,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         // Clean old placeholder.
         const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lBindGroupIndex);
         if (lLastBindGroup) {
-            // Remove invalidation listener.
-            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
-
             // Remove old name.
             this.mBindGroupNames.delete(lLastBindGroup.name);
         }
@@ -197,20 +185,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
             // TODO: layout: BaseMemoryLayout; some type of equal.
         }
 
-        // Remove last 
-        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lBindGroupIndex);
-        if (lLastBindGroup) {
-            // Remove invalidation listener.
-            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
-        }
-
-        // Replace binding group and add invalidation listener.
-        const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-            this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-        };
-        pBindGroup.addInvalidationListener(lListener);
-        this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
-
         // Trigger updates.
         this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
     }
@@ -230,9 +204,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         // Clean old placeholder.
         const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(pIndex);
         if (lLastBindGroup) {
-            // Remove invalidation listener.
-            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
-
             // Remove old name.
             this.mBindGroupNames.delete(lLastBindGroup.name);
         }
@@ -240,13 +211,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         // Add replacment layout and name.
         this.mBindGroups.set(pIndex, pLayout);
         this.mBindGroupNames.set(pLayout.name, pIndex);
-
-        // Register change listener for layout changes.
-        const lListener: GpuObjectUpdateListener<BindGroupLayoutInvalidationType> = () => {
-            this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-        };
-        pLayout.addInvalidationListener(lListener);
-        this.mBindGroupInvalidationListener.set(pLayout, lListener);
 
         // Trigger auto update.
         this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);

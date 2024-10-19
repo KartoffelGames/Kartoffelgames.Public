@@ -8,7 +8,7 @@ import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
 import { BindGroup } from './bind-group';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
@@ -16,7 +16,7 @@ import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-gro
 /**
  * Bind group layout. Fixed at creation. 
  */
-export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayoutInvalidationType, BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
+export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
 
@@ -170,7 +170,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
                 }
 
                 // Texture layouts.
-                case lEntry.layout instanceof TextureMemoryLayout: {
+                case lEntry.layout instanceof TextureViewMemoryLayout: {
                     // Uniform bind when without storage binding.
                     if (lEntry.storageType === StorageBindingType.None) {
                         // Read texture capabilities.
@@ -249,11 +249,6 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
                 storageType: lBinding.storageType
             });
 
-            // Register change listener for layout changes.
-            lBinding.layout.addInvalidationListener(() => {
-                this.invalidate(BindGroupLayoutInvalidationType.NativeRebuild);
-            });
-
             // Validate dublicate indices.
             if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
                 throw new Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
@@ -284,7 +279,3 @@ export type BindLayout = {
     visibility: ComputeStage;
     storageType: StorageBindingType;
 };
-
-export enum BindGroupLayoutInvalidationType {
-    NativeRebuild = 'NativeRebuild'
-}

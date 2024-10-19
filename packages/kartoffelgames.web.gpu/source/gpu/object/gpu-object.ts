@@ -3,8 +3,6 @@ import { GpuDevice } from '../gpu-device';
 import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
 import { GpuObjectSetup } from './gpu-object-setup';
 
-// TODO: New GpuResourceObject (Buffer, Texture, Sampler) has an GpuResourceObjectInvalidationReason.NativeRebuild and some sort of extendUsage. Old references of all none deconstructed, i dont know, maybe to clear memory.
-
 /**
  * Gpu object with a native internal object.
  */
@@ -259,9 +257,6 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
 
             // Generate new native.
             this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
-            if (this.mNativeObject === null) {
-                throw new Exception(`No gpu native object can be generated.`, this);
-            }
 
             // Destroy old native when existing.
             if (lCurrentNative !== null) {
@@ -272,7 +267,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
             this.mInvalidationReasons.clear();
         }
 
-        return this.mNativeObject;
+        return this.mNativeObject!;
     }
 }
 

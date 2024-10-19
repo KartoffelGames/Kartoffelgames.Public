@@ -18,6 +18,7 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
     private readonly mParameter: Dictionary<string, Set<ComputeStage>>;
     private mPipelineLayout: PipelineLayout | null;
     private readonly mSource: string;
+    private readonly mSourceMap: any | null;
 
     /**
      * Shader pipeline layout.
@@ -42,11 +43,12 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
      * @param pSource - Shader source as wgsl code.
      * @param pLayout - Shader layout information.
      */
-    public constructor(pDevice: GpuDevice, pSource: string) {
+    public constructor(pDevice: GpuDevice, pSource: string, pSourceMap: any | null = null) {
         super(pDevice);
 
         // Create shader information for source.
         this.mSource = pSource;
+        this.mSourceMap = pSourceMap;
 
         // Init default unset values.
         this.mParameter = new Dictionary<string, Set<ComputeStage>>();
@@ -163,8 +165,8 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
         // Create shader module use hints to speed up compilation on safari.
         return this.device.gpu.createShaderModule({
             code: this.mSource,
-            compilationHints: lCompilationHints
-            // TODO: sourceMap: undefined
+            compilationHints: lCompilationHints,
+            sourceMap: this.mSourceMap ?? {}
         });
     }
 

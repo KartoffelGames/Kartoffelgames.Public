@@ -86,6 +86,12 @@ export class ComputePass extends GpuObject {
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
+            // Skip pipelines that are currently loading.
+            const lNativePipeline: GPUComputePipeline | null = lInstruction.pipeline.native;
+            if (lNativePipeline === null) {
+                continue;
+            }
+
             // Cache for bind group length of this instruction.
             let lLocalHighestBindGroupListIndex: number = -1;
 
@@ -117,7 +123,7 @@ export class ComputePass extends GpuObject {
                 lPipeline = lInstruction.pipeline;
 
                 // Generate and set new pipeline.
-                lComputePassEncoder.setPipeline(lPipeline.native);
+                lComputePassEncoder.setPipeline(lNativePipeline);
 
                 // Only clear bind buffer when a new pipeline is set.
                 // Same pipelines must have set the same bind group layouts.

@@ -6,7 +6,7 @@ import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../pipeline/target/render-targets';
-import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
+import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
 import { GpuExecution } from '../gpu-execution';
 
 export class RenderPass extends GpuObject {
@@ -103,7 +103,7 @@ export class RenderPass extends GpuObject {
         // Clear bundle when anything has changes.
         pPipeline.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
-        });
+        }, [VertexFragmentPipelineInvalidationType.NativeRebuild, VertexFragmentPipelineInvalidationType.NativeLoaded]);
         pParameter.addInvalidationListener(() => {
             this.mBundleConfig.bundle = null;
         });
@@ -273,6 +273,12 @@ export class RenderPass extends GpuObject {
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
+            // Skip pipelines that are currently loading.
+            const lNativePipeline: GPURenderPipeline | null = lInstruction.pipeline.native;
+            if (lNativePipeline === null) {
+                continue;
+            }
+
             // Cache for bind group length of this instruction.
             let lLocalHighestBindGroupListIndex: number = -1;
 
@@ -326,7 +332,7 @@ export class RenderPass extends GpuObject {
                 lPipeline = lInstruction.pipeline;
 
                 // Generate and set new pipeline.
-                pEncoder.setPipeline(lPipeline.native);
+                pEncoder.setPipeline(lNativePipeline);
 
                 // Only clear bind buffer when a new pipeline is set.
                 // Same pipelines must have set the same bind group layouts.

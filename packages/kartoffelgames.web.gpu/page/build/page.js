@@ -4310,6 +4310,11 @@ class ComputePass extends gpu_object_1.GpuObject {
     let lHighestBindGroupListIndex = -1;
     // Execute instructions.
     for (const lInstruction of this.mInstructionList) {
+      // Skip pipelines that are currently loading.
+      const lNativePipeline = lInstruction.pipeline.native;
+      if (lNativePipeline === null) {
+        continue;
+      }
       // Cache for bind group length of this instruction.
       let lLocalHighestBindGroupListIndex = -1;
       // Add bind groups.
@@ -4334,7 +4339,7 @@ class ComputePass extends gpu_object_1.GpuObject {
       if (lInstruction.pipeline !== lPipeline) {
         lPipeline = lInstruction.pipeline;
         // Generate and set new pipeline.
-        lComputePassEncoder.setPipeline(lPipeline.native);
+        lComputePassEncoder.setPipeline(lNativePipeline);
         // Only clear bind buffer when a new pipeline is set.
         // Same pipelines must have set the same bind group layouts.
         if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
@@ -4392,6 +4397,7 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/binding/bind-group.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
 class RenderPass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
@@ -4469,7 +4475,7 @@ class RenderPass extends gpu_object_1.GpuObject {
     // Clear bundle when anything has changes.
     pPipeline.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
-    });
+    }, [vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeRebuild, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeLoaded]);
     pParameter.addInvalidationListener(() => {
       this.mBundleConfig.bundle = null;
     });
@@ -4613,6 +4619,11 @@ class RenderPass extends gpu_object_1.GpuObject {
     let lHighestBindGroupListIndex = -1;
     // Execute instructions.
     for (const lInstruction of this.mInstructionList) {
+      // Skip pipelines that are currently loading.
+      const lNativePipeline = lInstruction.pipeline.native;
+      if (lNativePipeline === null) {
+        continue;
+      }
       // Cache for bind group length of this instruction.
       let lLocalHighestBindGroupListIndex = -1;
       // Add bind groups.
@@ -4655,7 +4666,7 @@ class RenderPass extends gpu_object_1.GpuObject {
       if (lInstruction.pipeline !== lPipeline) {
         lPipeline = lInstruction.pipeline;
         // Generate and set new pipeline.
-        pEncoder.setPipeline(lPipeline.native);
+        pEncoder.setPipeline(lNativePipeline);
         // Only clear bind buffer when a new pipeline is set.
         // Same pipelines must have set the same bind group layouts.
         if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
@@ -5234,7 +5245,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.GpuObject = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/gpu/object/gpu-object-invalidation-reasons.ts");
-// TODO: New GpuResourceObject (Buffer, Texture, Sampler) has an GpuResourceObjectInvalidationReason.NativeRebuild and some sort of extendUsage. Old references of all none deconstructed, i dont know, maybe to clear memory.
 /**
  * Gpu object with a native internal object.
  */
@@ -5449,9 +5459,6 @@ class GpuObject {
       const lCurrentNative = this.mNativeObject;
       // Generate new native.
       this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
-      if (this.mNativeObject === null) {
-        throw new core_1.Exception(`No gpu native object can be generated.`, this);
-      }
       // Destroy old native when existing.
       if (lCurrentNative !== null) {
         this.destroyNative(lCurrentNative, this.mInvalidationReasons);
@@ -6428,6 +6435,8 @@ class ComputePipeline extends gpu_object_1.GpuObject {
   constructor(pDevice, pShader) {
     super(pDevice);
     this.mShaderModule = pShader;
+    // Loaded pipeline for async creation.
+    this.mLoadedPipeline = null;
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
     // Listen for shader changes.
@@ -6471,14 +6480,20 @@ class ComputePipeline extends gpu_object_1.GpuObject {
         constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Compute) ?? {}
       }
     };
-    // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
-    return this.device.gpu.createComputePipeline(lPipelineDescriptor);
+    // Load pipeline asyncron and update native after promise resolve.
+    this.device.gpu.createComputePipelineAsync(lPipelineDescriptor).then(pPipeline => {
+      this.mLoadedPipeline = pPipeline;
+      this.invalidate(ComputePipelineInvalidationType.NativeLoaded);
+    });
+    // Null as long as pipeline is loading.
+    return null;
   }
 }
 exports.ComputePipeline = ComputePipeline;
 var ComputePipelineInvalidationType;
 (function (ComputePipelineInvalidationType) {
   ComputePipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
+  ComputePipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
 })(ComputePipelineInvalidationType || (exports.ComputePipelineInvalidationType = ComputePipelineInvalidationType = {}));
 
 /***/ }),
@@ -7769,6 +7784,8 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pShaderRenderModule, pRenderTargets) {
     super(pDevice);
+    // Loaded pipeline for async creation.
+    this.mLoadedPipeline = null;
     // Set config objects.
     this.mShaderModule = pShaderRenderModule;
     this.mRenderTargets = pRenderTargets;
@@ -7853,7 +7870,13 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   /**
    * Generate native gpu pipeline data layout.
    */
-  generateNative() {
+  generateNative(_pLastNative, pInvalidationReason) {
+    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(VertexFragmentPipelineInvalidationType.NativeRebuild)) {
+      const lLoadedPipeline = this.mLoadedPipeline;
+      this.mLoadedPipeline = null;
+      return lLoadedPipeline;
+    }
     // Generate pipeline layout from bind group layouts.
     const lPipelineLayout = this.mShaderModule.shader.layout.native;
     // Construct basic GPURenderPipelineDescriptor.
@@ -7901,8 +7924,13 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
         count: 4
       };
     }
-    // Async is none GPU stalling.
-    return this.device.gpu.createRenderPipeline(lPipelineDescriptor); // TODO: Async create render pipeline somehow.
+    // Load pipeline asyncron and update native after promise resolve.
+    this.device.gpu.createRenderPipelineAsync(lPipelineDescriptor).then(pPipeline => {
+      this.mLoadedPipeline = pPipeline;
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeLoaded);
+    });
+    // Null as long as pipeline is loading.
+    return null;
   }
   /**
    * Primitive settings.
@@ -8001,6 +8029,7 @@ exports.VertexFragmentPipeline = VertexFragmentPipeline;
 var VertexFragmentPipelineInvalidationType;
 (function (VertexFragmentPipelineInvalidationType) {
   VertexFragmentPipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
+  VertexFragmentPipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
 })(VertexFragmentPipelineInvalidationType || (exports.VertexFragmentPipelineInvalidationType = VertexFragmentPipelineInvalidationType = {}));
 
 /***/ }),
@@ -8403,10 +8432,11 @@ class Shader extends gpu_object_1.GpuObject {
    * @param pSource - Shader source as wgsl code.
    * @param pLayout - Shader layout information.
    */
-  constructor(pDevice, pSource) {
+  constructor(pDevice, pSource, pSourceMap = null) {
     super(pDevice);
     // Create shader information for source.
     this.mSource = pSource;
+    this.mSourceMap = pSourceMap;
     // Init default unset values.
     this.mParameter = new core_1.Dictionary();
     this.mPipelineLayout = null;
@@ -8506,8 +8536,8 @@ class Shader extends gpu_object_1.GpuObject {
     // Create shader module use hints to speed up compilation on safari.
     return this.device.gpu.createShaderModule({
       code: this.mSource,
-      compilationHints: lCompilationHints
-      // TODO: sourceMap: undefined
+      compilationHints: lCompilationHints,
+      sourceMap: this.mSourceMap ?? {}
     });
   }
   /**
@@ -16225,7 +16255,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("e319635f47a581695d0f")
+/******/ 		__webpack_require__.h = () => ("d5bc2592759a5273faea")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

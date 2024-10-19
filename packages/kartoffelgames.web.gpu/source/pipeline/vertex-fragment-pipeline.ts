@@ -16,10 +16,12 @@ import { GpuTextureView } from '../texture/gpu-texture-view';
 import { VertexParameterLayoutInvalidationType } from './parameter/vertex-parameter-layout';
 import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 
-export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline> {
+export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
     private mDepthCompare: CompareFunction;
     private mDepthWriteEnabled: boolean;
+    private mLoadedPipeline: GPURenderPipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private mPrimitiveCullMode: PrimitiveCullMode;
     private mPrimitiveFrontFace: PrimitiveFrontFace;
@@ -50,7 +52,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
     /**
      * Native gpu object.
      */
-    public override get native(): GPURenderPipeline {
+    public override get native(): GPURenderPipeline | null {
         return super.native;
     }
 
@@ -118,6 +120,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
      */
     public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargets: RenderTargets) {
         super(pDevice);
+
+        // Loaded pipeline for async creation.
+        this.mLoadedPipeline = null;
 
         // Set config objects.
         this.mShaderModule = pShaderRenderModule;
@@ -218,7 +223,15 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generateNative(): GPURenderPipeline {
+    protected override generateNative(_pLastNative: GPURenderPipeline | null, pInvalidationReason: GpuObjectInvalidationReasons<VertexFragmentPipelineInvalidationType>): GPURenderPipeline | null {
+        // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+        if (this.mLoadedPipeline !== null && !pInvalidationReason.has(VertexFragmentPipelineInvalidationType.NativeRebuild)) {
+            const lLoadedPipeline: GPURenderPipeline = this.mLoadedPipeline;
+            this.mLoadedPipeline = null;
+
+            return lLoadedPipeline;
+        }
+
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout: GPUPipelineLayout = this.mShaderModule.shader.layout.native;
 
@@ -274,8 +287,14 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
             };
         }
 
-        // Async is none GPU stalling.
-        return this.device.gpu.createRenderPipeline(lPipelineDescriptor); // TODO: Async create render pipeline somehow.
+        // Load pipeline asyncron and update native after promise resolve.
+        this.device.gpu.createRenderPipelineAsync(lPipelineDescriptor).then((pPipeline: GPURenderPipeline) => {
+            this.mLoadedPipeline = pPipeline;
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeLoaded);
+        });
+
+        // Null as long as pipeline is loading.
+        return null;
     }
 
     /**
@@ -384,6 +403,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline, VertexF
 
 export enum VertexFragmentPipelineInvalidationType {
     NativeRebuild = 'NativeRebuild',
+    NativeLoaded = 'NativeLoaded',
 }
 
 type VertexFragmentPipelineTargetConfigBlendData = {

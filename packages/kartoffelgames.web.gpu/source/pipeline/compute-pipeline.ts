@@ -5,7 +5,8 @@ import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
-export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline> {
+export class ComputePipeline extends GpuObject<GPUComputePipeline | null, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline | null> {
+    private mLoadedPipeline: GPUComputePipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private readonly mShaderModule: ShaderComputeModule;
 
@@ -19,7 +20,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
     /**
      * Native gpu object.
      */
-    public override get native(): GPUComputePipeline {
+    public override get native(): GPUComputePipeline | null {
         return super.native;
     }
 
@@ -32,6 +33,9 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
     public constructor(pDevice: GpuDevice, pShader: ShaderComputeModule) {
         super(pDevice);
         this.mShaderModule = pShader;
+
+        // Loaded pipeline for async creation.
+        this.mLoadedPipeline = null;
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
@@ -73,7 +77,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generateNative(): GPUComputePipeline {
+    protected override generateNative(): GPUComputePipeline | null {
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
             layout: this.mShaderModule.shader.layout.native,
@@ -84,11 +88,18 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline, ComputePipeli
             }
         };
 
-        // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
-        return this.device.gpu.createComputePipeline(lPipelineDescriptor);
+        // Load pipeline asyncron and update native after promise resolve.
+        this.device.gpu.createComputePipelineAsync(lPipelineDescriptor).then((pPipeline: GPUComputePipeline) => {
+            this.mLoadedPipeline = pPipeline;
+            this.invalidate(ComputePipelineInvalidationType.NativeLoaded);
+        });
+
+        // Null as long as pipeline is loading.
+        return null;
     }
 }
 
 export enum ComputePipelineInvalidationType {
     NativeRebuild = 'NativeRebuild',
+    NativeLoaded = 'NativeLoaded',
 }

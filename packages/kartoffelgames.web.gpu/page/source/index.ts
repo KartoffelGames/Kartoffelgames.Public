@@ -171,7 +171,7 @@ const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPas
                 // Fill canvas.
                 const lCanvasContext: OffscreenCanvasRenderingContext2D = lCanvas.getContext('2d')!;
                 lCanvasContext.globalAlpha = 1;
-                lCanvasContext.drawImage(lImage, 0,0, lWidth, lHeight, 0, 0, lCanvas.width, lCanvas.height);
+                lCanvasContext.drawImage(lImage, 0, 0, lWidth, lHeight, 0, 0, lCanvas.width, lCanvas.height);
                 lCanvasContext.globalAlpha = 0.5;
                 lCanvasContext.fillStyle = lColorList[lMipLevel];
                 lCanvasContext.fillRect(0, 0, lCanvas.width, lCanvas.height);
@@ -437,10 +437,18 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
         lVideoTexture.width = Math.max(lVideo.videoWidth, 1);
     });
     lVideo.play();
+
+    let lTimeStamp: number = performance.now();
     pGpu.addFrameChangeListener(() => {
         // Has at least one frame buffered.
         if (lVideo.readyState > 1) {
+            const lFrameTimeStamp: number = performance.now();
             createImageBitmap(lVideo).then((pImageBitmap) => {
+                if (lFrameTimeStamp < lTimeStamp) {
+                    return;
+                }
+
+                lTimeStamp = lFrameTimeStamp;
                 lVideoTexture.copyFrom(pImageBitmap);
             });
         }

@@ -1827,10 +1827,16 @@ const gAddVideoCanvasStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => 
     lVideoTexture.width = Math.max(lVideo.videoWidth, 1);
   });
   lVideo.play();
+  let lTimeStamp = performance.now();
   pGpu.addFrameChangeListener(() => {
     // Has at least one frame buffered.
     if (lVideo.readyState > 1) {
+      const lFrameTimeStamp = performance.now();
       createImageBitmap(lVideo).then(pImageBitmap => {
+        if (lFrameTimeStamp < lTimeStamp) {
+          return;
+        }
+        lTimeStamp = lFrameTimeStamp;
         lVideoTexture.copyFrom(pImageBitmap);
       });
     }
@@ -16193,7 +16199,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("01cb79ef2930cd395e29")
+/******/ 		__webpack_require__.h = () => ("f326eb9964c369548c53")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

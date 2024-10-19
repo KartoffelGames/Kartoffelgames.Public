@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception, List } from '@kartoffelgames/core';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass } from '../execution/pass/compute-pass';
 import { RenderPass } from '../execution/pass/render-pass';
@@ -40,7 +40,7 @@ export class GpuDevice {
 
     private readonly mCapabilities: GpuCapabilities;
     private readonly mFormatValidator: TextureFormatCapabilities;
-    private readonly mFrameChangeListener: Array<GpuDeviceFrameChangeListener>;
+    private readonly mFrameChangeListener: List<GpuDeviceFrameChangeListener>;
     private mFrameCounter: number;
     private readonly mGpuDevice: GPUDevice;
 
@@ -90,7 +90,7 @@ export class GpuDevice {
         this.mFormatValidator = new TextureFormatCapabilities(this);
 
         // Frame change listener.
-        this.mFrameChangeListener = new Array<GpuDeviceFrameChangeListener>();
+        this.mFrameChangeListener = new List<GpuDeviceFrameChangeListener>();
     }
 
     /**
@@ -132,6 +132,15 @@ export class GpuDevice {
      */
     public executor(pOnExecute: GpuExecutionFunction): GpuExecution {
         return new GpuExecution(this, pOnExecute);
+    }
+
+    /**
+     * Remove listener called on frame change.
+     * 
+     * @param pListener - Listener.
+     */
+    public removeFrameChangeListener(pListener: GpuDeviceFrameChangeListener): void {
+        this.mFrameChangeListener.remove(pListener);
     }
 
     /**

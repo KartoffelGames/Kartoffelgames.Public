@@ -13,6 +13,7 @@ import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTexture> {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
+    private readonly mFrameListener: () => void;
 
     /**
      * HTML canvas element.
@@ -91,11 +92,11 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
         this.height = 1;
         this.width = 1;
 
-        // TODO: Remove it on deconstruct.
         // Rebuild view on every frame.
-        this.device.addFrameChangeListener(() => {
+        this.mFrameListener = () => {
             this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
-        });
+        };
+        this.device.addFrameChangeListener(this.mFrameListener);
     }
 
     /**
@@ -103,11 +104,11 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
      * @param _pNativeObject - Native canvas texture.
      */
     protected override destroyNative(_pNativeObject: GPUTexture, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
-        // Context is only invalid on deconstruct or layout has changes.
-        const lContextInvalid: boolean = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.ContextRebuild);
-
         // Only destroy context when child data/layout has changes.
-        if (lContextInvalid) {
+        if (pReasons.deconstruct) {
+            // Remove frame listener.
+            this.device.removeFrameChangeListener(this.mFrameListener);
+
             // Destory context.
             this.mContext!.unconfigure();
             this.mContext = null;
@@ -140,6 +141,5 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
 
 
 export enum CanvasTextureInvalidationType {
-    ContextRebuild = 'ContextRebuild',
     NativeRebuild = 'NativeRebuild'
 }

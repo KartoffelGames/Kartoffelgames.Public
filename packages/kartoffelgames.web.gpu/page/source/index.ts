@@ -36,9 +36,9 @@ import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVe
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 
 const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
-    const lHeight: number = 100;
-    const lWidth: number = 100;
-    const lDepth: number = 100;
+    const lHeight: number = 50;
+    const lWidth: number = 50;
+    const lDepth: number = 50;
 
     // Create shader.
     const lWoodBoxShader = pGpu.shader(cubeShader).setup((pShaderSetup) => {

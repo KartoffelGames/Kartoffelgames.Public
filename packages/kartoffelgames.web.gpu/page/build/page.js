@@ -1527,9 +1527,9 @@ const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/so
 const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const gAddCubeStep = (pGpu, pRenderTargets, pRenderPass, pWorldGroup) => {
-  const lHeight = 100;
-  const lWidth = 100;
-  const lDepth = 100;
+  const lHeight = 50;
+  const lWidth = 50;
+  const lDepth = 50;
   // Create shader.
   const lWoodBoxShader = pGpu.shader(cube_shader_wgsl_1.default).setup(pShaderSetup => {
     // Set parameter.
@@ -4940,7 +4940,7 @@ class GpuDevice {
     // Init form validator.
     this.mFormatValidator = new texture_format_capabilities_1.TextureFormatCapabilities(this);
     // Frame change listener.
-    this.mFrameChangeListener = new Array();
+    this.mFrameChangeListener = new core_1.List();
   }
   /**
    * Add listener called on frame change.
@@ -4977,6 +4977,14 @@ class GpuDevice {
    */
   executor(pOnExecute) {
     return new gpu_execution_1.GpuExecution(this, pOnExecute);
+  }
+  /**
+   * Remove listener called on frame change.
+   *
+   * @param pListener - Listener.
+   */
+  removeFrameChangeListener(pListener) {
+    this.mFrameChangeListener.remove(pListener);
   }
   /**
    * Create new render pass.
@@ -8689,21 +8697,21 @@ class CanvasTexture extends gpu_object_1.GpuObject {
     // Set defaults.
     this.height = 1;
     this.width = 1;
-    // TODO: Remove it on deconstruct.
     // Rebuild view on every frame.
-    this.device.addFrameChangeListener(() => {
+    this.mFrameListener = () => {
       this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
-    });
+    };
+    this.device.addFrameChangeListener(this.mFrameListener);
   }
   /**
    * Destory texture object.
    * @param _pNativeObject - Native canvas texture.
    */
   destroyNative(_pNativeObject, pReasons) {
-    // Context is only invalid on deconstruct or layout has changes.
-    const lContextInvalid = pReasons.deconstruct || pReasons.has(CanvasTextureInvalidationType.ContextRebuild);
     // Only destroy context when child data/layout has changes.
-    if (lContextInvalid) {
+    if (pReasons.deconstruct) {
+      // Remove frame listener.
+      this.device.removeFrameChangeListener(this.mFrameListener);
       // Destory context.
       this.mContext.unconfigure();
       this.mContext = null;
@@ -8733,7 +8741,6 @@ class CanvasTexture extends gpu_object_1.GpuObject {
 exports.CanvasTexture = CanvasTexture;
 var CanvasTextureInvalidationType;
 (function (CanvasTextureInvalidationType) {
-  CanvasTextureInvalidationType["ContextRebuild"] = "ContextRebuild";
   CanvasTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
 })(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
 
@@ -16218,7 +16225,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("b678aebe04ad20918cdb")
+/******/ 		__webpack_require__.h = () => ("e319635f47a581695d0f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

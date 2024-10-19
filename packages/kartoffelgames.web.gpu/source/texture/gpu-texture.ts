@@ -1,7 +1,9 @@
+import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { TextureFormat } from '../constant/texture-format.enum';
 import { TextureUsage } from '../constant/texture-usage.enum';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
@@ -101,12 +103,6 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
      */
     public constructor(pDevice: GpuDevice, pParameter: GpuTextureParameter) {
         super(pDevice);
-
-        // TODO: Enforce limits.
-        // maxTextureDimension1D
-        // maxTextureDimension2D
-        // maxTextureDimension3D
-        // maxTextureArrayLayers
 
         // Set static config.
         this.mDimension = pParameter.dimension;
@@ -313,22 +309,46 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
      * Generate native canvas texture view.
      */
     protected override generateNative(): GPUTexture {
-        // Generate gpu dimension from memory layout dimension.
+        // Generate gpu dimension from memory layout dimension and enforce limits.
         const lTextureDimensions: { textureDimension: GPUTextureDimension, clampedDimensions: [number, number, number]; } = (() => {
             switch (this.mDimension) {
                 case TextureDimension.OneDimension: {
+                    // Enforce dimension limits.
+                    const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension1D);
+                    if (this.mWidth > lDimensionLimit) {
+                        throw new Exception(`Texture dimension exeeced for 1D Texture(${this.mWidth}).`, this);
+                    }
+
                     return {
                         textureDimension: '1d',
-                        clampedDimensions: [this.mWidth, 1, this.mDepth]
+                        clampedDimensions: [this.mWidth, 1, 1]
                     };
                 }
                 case TextureDimension.TwoDimension: {
+                    // Enforce dimension limits.
+                    const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension1D);
+                    if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit) {
+                        throw new Exception(`Texture dimension exeeced for 2D Texture(${this.mWidth}, ${this.mHeight}).`, this);
+                    }
+
+                    // Enforce array layer limits.
+                    const lArrayLayerLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureArrayLayers);
+                    if (this.mDepth > lArrayLayerLimit) {
+                        throw new Exception(`Texture array layer exeeced for 2D Texture(${this.mDepth}).`, this);
+                    }
+
                     return {
                         textureDimension: '2d',
                         clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
                     };
                 }
                 case TextureDimension.ThreeDimension: {
+                    // Enforce dimension limits.
+                    const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension3D);
+                    if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit || this.mDepth > lDimensionLimit) {
+                        throw new Exception(`Texture dimension exeeced for 3D Texture(${this.mWidth}, ${this.mHeight}, ${this.mDepth}).`, this);
+                    }
+
                     return {
                         textureDimension: '3d',
                         clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]

@@ -13,6 +13,7 @@ import { GpuTextureView } from '../../texture/gpu-texture-view';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
 import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
+import { GpuLimit } from '../../gpu/capabilities/gpu-limit.enum';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -279,6 +280,12 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @param pReferenceData - Referenced setup data.
      */
     protected override onSetup(pReferenceData: RenderTargetSetupData): void {
+        // Enforce gpu color attachment limits.
+        const lMaxRenderTargets: number = this.device.capabilities.getLimit(GpuLimit.MaxColorAttachments);
+        if (pReferenceData.colorTargets.length > (lMaxRenderTargets - 1)) {
+            throw new Exception(`Max color targets count exeeced.`, this);
+        }
+
         // Setup depth stencil targets.
         if (pReferenceData.depthStencil) {
             // Validate existence of depth stencil texture.

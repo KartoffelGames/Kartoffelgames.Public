@@ -3,6 +3,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 
 export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutInvalidationType> implements IGpuObjectNative<GPUPipelineLayout> {
     private readonly mBindGroupNames: Dictionary<string, number>;
@@ -38,7 +39,6 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         this.mBindGroups = new Dictionary<number, BindGroupLayout>();
 
         // TODO: Check gpu restriction.
-        //this.device.gpu.limits.maxBindGroups
         // maxSampledTexturesPerShaderStage;
         // maxSamplersPerShaderStage;
         // maxStorageBuffersPerShaderStage;
@@ -46,7 +46,12 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout, PipelineLayoutI
         // maxUniformBuffersPerShaderStage;
 
         // Set initial work groups.
+        const lMaxBindGroupCount: number = this.device.capabilities.getLimit(GpuLimit.MaxBindGroups);
         for (const [lGroupIndex, lGroup] of pInitialGroups) {
+            if (lGroupIndex > (lMaxBindGroupCount - 1)) {
+                throw new Exception(`Bind group limit exceeded with index: ${lGroupIndex} and group "${lGroup.name}"`, this);
+            }
+
             // Restrict dublicate names.
             if (this.mBindGroupNames.has(lGroup.name)) {
                 throw new Exception(`Can add group name "${lGroup.name}" only once.`, this);

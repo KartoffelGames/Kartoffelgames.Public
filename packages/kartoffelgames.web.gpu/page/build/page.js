@@ -2424,6 +2424,7 @@ const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
 const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/binding/setup/bind-group-layout-setup.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Bind group layout. Fixed at creation.
  */
@@ -2468,8 +2469,6 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pName) {
     super(pDevice);
-    // TODO: Enforce limits.
-    // maxBindingsPerBindGroup
     // Set binding group name.
     this.mName = pName;
     // Init bindings.
@@ -2615,6 +2614,11 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
    * @param pReferences - Setup data references.
    */
   onSetup(pReferences) {
+    // Check capabilities.
+    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindingsPerBindGroup);
+    if (pReferences.bindings.length > lMaxBindGroupCount - 1) {
+      throw new core_1.Exception(`Bind group "${this.mName}" exceeds max binding count.`, this);
+    }
     // Validation set.
     const lBindingIndices = new Set();
     const lBindingName = new Set();
@@ -2856,6 +2860,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.PipelineLayoutInvalidationType = exports.PipelineLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 class PipelineLayout extends gpu_object_1.GpuObject {
   /**
    * Bind group names.
@@ -2882,14 +2887,17 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     this.mInitialBindGroups = new core_1.Dictionary();
     this.mBindGroups = new core_1.Dictionary();
     // TODO: Check gpu restriction.
-    //this.device.gpu.limits.maxBindGroups
     // maxSampledTexturesPerShaderStage;
     // maxSamplersPerShaderStage;
     // maxStorageBuffersPerShaderStage;
     // maxStorageTexturesPerShaderStage;
     // maxUniformBuffersPerShaderStage;
     // Set initial work groups.
+    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindGroups);
     for (const [lGroupIndex, lGroup] of pInitialGroups) {
+      if (lGroupIndex > lMaxBindGroupCount - 1) {
+        throw new core_1.Exception(`Bind group limit exceeded with index: ${lGroupIndex} and group "${lGroup.name}"`, this);
+      }
       // Restrict dublicate names.
       if (this.mBindGroupNames.has(lGroup.name)) {
         throw new core_1.Exception(`Can add group name "${lGroup.name}" only once.`, this);
@@ -6761,7 +6769,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
           }
           return pPreviousNumber * lCurrentNumber;
         }, 1);
-        // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
+        // Convert multiplier to float32 format.
         let lFormat = `${lBuffer.format}x${lByteMultiplier}`;
         if (lParameter.multiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
           lFormat = lBuffer.format;
@@ -7246,6 +7254,7 @@ const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./s
 const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
 const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/pipeline/target/render-targets-setup.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Group of textures with the same size and multisample level.
  */
@@ -7466,6 +7475,11 @@ class RenderTargets extends gpu_object_1.GpuObject {
    * @param pReferenceData - Referenced setup data.
    */
   onSetup(pReferenceData) {
+    // Enforce gpu color attachment limits.
+    const lMaxRenderTargets = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxColorAttachments);
+    if (pReferenceData.colorTargets.length > lMaxRenderTargets - 1) {
+      throw new core_1.Exception(`Max color targets count exeeced.`, this);
+    }
     // Setup depth stencil targets.
     if (pReferenceData.depthStencil) {
       // Validate existence of depth stencil texture.
@@ -9004,9 +9018,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.GpuTexture = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const gpu_texture_view_1 = __webpack_require__(/*! ./gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
@@ -9087,11 +9103,6 @@ class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
    */
   constructor(pDevice, pParameter) {
     super(pDevice);
-    // TODO: Enforce limits.
-    // maxTextureDimension1D
-    // maxTextureDimension2D
-    // maxTextureDimension3D
-    // maxTextureArrayLayers
     // Set static config.
     this.mDimension = pParameter.dimension;
     this.mFormat = pParameter.format;
@@ -9287,18 +9298,33 @@ class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
    * Generate native canvas texture view.
    */
   generateNative() {
-    // Generate gpu dimension from memory layout dimension.
+    // Generate gpu dimension from memory layout dimension and enforce limits.
     const lTextureDimensions = (() => {
       switch (this.mDimension) {
         case texture_dimension_enum_1.TextureDimension.OneDimension:
           {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
+            if (this.mWidth > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 1D Texture(${this.mWidth}).`, this);
+            }
             return {
               textureDimension: '1d',
-              clampedDimensions: [this.mWidth, 1, this.mDepth]
+              clampedDimensions: [this.mWidth, 1, 1]
             };
           }
         case texture_dimension_enum_1.TextureDimension.TwoDimension:
           {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
+            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 2D Texture(${this.mWidth}, ${this.mHeight}).`, this);
+            }
+            // Enforce array layer limits.
+            const lArrayLayerLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureArrayLayers);
+            if (this.mDepth > lArrayLayerLimit) {
+              throw new core_1.Exception(`Texture array layer exeeced for 2D Texture(${this.mDepth}).`, this);
+            }
             return {
               textureDimension: '2d',
               clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
@@ -9306,6 +9332,11 @@ class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
           }
         case texture_dimension_enum_1.TextureDimension.ThreeDimension:
           {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension3D);
+            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit || this.mDepth > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 3D Texture(${this.mWidth}, ${this.mHeight}, ${this.mDepth}).`, this);
+            }
             return {
               textureDimension: '3d',
               clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
@@ -16318,7 +16349,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("092d00f54e66a415130e")
+/******/ 		__webpack_require__.h = () => ("c0b5d20c0d362cddfea6")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

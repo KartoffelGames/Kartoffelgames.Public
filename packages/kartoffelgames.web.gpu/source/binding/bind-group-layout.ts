@@ -12,6 +12,7 @@ import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-m
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
 import { BindGroup } from './bind-group';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 
 /**
  * Bind group layout. Fixed at creation. 
@@ -67,9 +68,6 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
      */
     public constructor(pDevice: GpuDevice, pName: string) {
         super(pDevice);
-
-        // TODO: Enforce limits.
-        // maxBindingsPerBindGroup
 
         // Set binding group name.
         this.mName = pName;
@@ -229,6 +227,12 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
      * @param pReferences - Setup data references. 
      */
     protected override onSetup(pReferences: BindGroupLayoutSetupData): void {
+        // Check capabilities.
+        const lMaxBindGroupCount: number = this.device.capabilities.getLimit(GpuLimit.MaxBindingsPerBindGroup);
+        if (pReferences.bindings.length > (lMaxBindGroupCount - 1)) {
+            throw new Exception(`Bind group "${this.mName}" exceeds max binding count.`, this);
+        }
+
         // Validation set.
         const lBindingIndices: Set<number> = new Set<number>();
         const lBindingName: Set<string> = new Set<string>();

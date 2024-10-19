@@ -2857,7 +2857,7 @@ var BindGroupInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.PipelineLayoutInvalidationType = exports.PipelineLayout = void 0;
+exports.PipelineLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
@@ -2884,7 +2884,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     super(pDevice);
     // Init storages.
     this.mBindGroupNames = new core_1.Dictionary();
-    this.mInitialBindGroups = new core_1.Dictionary();
     this.mBindGroups = new core_1.Dictionary();
     // TODO: Check gpu restriction.
     // maxSampledTexturesPerShaderStage;
@@ -2903,13 +2902,12 @@ class PipelineLayout extends gpu_object_1.GpuObject {
         throw new core_1.Exception(`Can add group name "${lGroup.name}" only once.`, this);
       }
       // Restrict dublicate locations.
-      if (this.mInitialBindGroups.has(lGroupIndex)) {
+      if (this.mBindGroups.has(lGroupIndex)) {
         throw new core_1.Exception(`Can add group location index "${lGroupIndex}" only once.`, this);
       }
       // Set name to index mapping.
       this.mBindGroupNames.set(lGroup.name, lGroupIndex);
-      // Set bind groups to initial data and working bind group.
-      this.mInitialBindGroups.set(lGroupIndex, lGroup);
+      // Set bind groups to bind group.
       this.mBindGroups.set(lGroupIndex, lGroup);
     }
   }
@@ -2942,102 +2940,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     return lBindGroupIndex;
   }
   /**
-   * Remove placeholder group.
-   *
-   * @param pName - Bind group name of replacement.
-   */
-  removePlaceholderGroup(pName) {
-    const lBindGroupIndex = this.groupIndex(pName);
-    // Clean old placeholder.
-    const lLastBindGroup = this.mBindGroups.get(lBindGroupIndex);
-    if (lLastBindGroup) {
-      // Remove old name.
-      this.mBindGroupNames.delete(lLastBindGroup.name);
-    }
-    // Remove replacement layout.
-    this.mBindGroups.delete(lBindGroupIndex);
-  }
-  /**
-   * Replace existing bind group.
-   *
-   * @param pGroupName - Layout name that should be replaced.
-   * @param pBindGroup - Replacement bind group.
-   */
-  replaceGroup(pGroupName, pBindGroup) {
-    const lBindGroupIndex = this.groupIndex(pGroupName);
-    // Read original bind group.
-    const lInitialGroup = this.mInitialBindGroups.get(lBindGroupIndex);
-    if (!lInitialGroup) {
-      throw new core_1.Exception(`Only initial bind group layouts can be replaced.`, this);
-    }
-    // Read binding lists.
-    const lInitialBindingList = pBindGroup.bindings;
-    const lReplacementBindingList = pBindGroup.bindings;
-    // Compare inital it with replacement to check compatibility.
-    if (lInitialBindingList.length !== lReplacementBindingList.length) {
-      throw new core_1.Exception(`Replacement group does not include all bindings.`, this);
-    }
-    // Compare all bindings.
-    for (let lBindingIndex = 0; lBindingIndex < lInitialBindingList.length; lBindingIndex++) {
-      const lInitialBinding = lInitialBindingList.at(lBindingIndex);
-      const lReplacementBinding = lReplacementBindingList.at(lBindingIndex);
-      // Continue on undefined or when bind layout is the same.
-      if (lInitialBinding === lReplacementBinding) {
-        continue;
-      }
-      // Can't set binding of something that is not there.
-      if (typeof lInitialBinding === 'undefined') {
-        throw new core_1.Exception(`Can't replace group binding with index "${lBindingIndex}". Layout binding does not exists in initial layout.`, this);
-      }
-      // Group must have the same bindings no binding can be missed.
-      if (typeof lReplacementBinding === 'undefined') {
-        throw new core_1.Exception(`Can't omit group binding with index "${lBindingIndex}".`, this);
-      }
-      // Same binding name.
-      if (lInitialBinding.name !== lReplacementBinding.name) {
-        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must be named "${lInitialBinding.name}"`, this);
-      }
-      // Must share the same access mode.
-      if (lReplacementBinding.storageType !== lReplacementBinding.storageType) {
-        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same storage type.`, this);
-      }
-      // Must share the same visibility.
-      if ((lReplacementBinding.visibility & lInitialBinding.visibility) !== lReplacementBinding.visibility) {
-        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial visibility.`, this);
-      }
-      // Must be same memory layout.
-      if (lReplacementBinding.constructor !== lInitialBinding.constructor) {
-        throw new core_1.Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same memory layout as initial bind group layout.`, this);
-      }
-      // TODO: layout: BaseMemoryLayout; some type of equal.
-    }
-    // Trigger updates.
-    this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-  }
-  /**
-   * Set a placeholder group that will not be used.
-   *
-   * @param pIndex - Group index.
-   * @param pLayout - [Optional] Bind group Layout.
-   */
-  setPlaceholderGroup(pIndex, pLayout) {
-    // Initial group must be undefined.
-    if (this.mInitialBindGroups.has(pIndex)) {
-      throw new core_1.Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
-    }
-    // Clean old placeholder.
-    const lLastBindGroup = this.mBindGroups.get(pIndex);
-    if (lLastBindGroup) {
-      // Remove old name.
-      this.mBindGroupNames.delete(lLastBindGroup.name);
-    }
-    // Add replacment layout and name.
-    this.mBindGroups.set(pIndex, pLayout);
-    this.mBindGroupNames.set(pLayout.name, pIndex);
-    // Trigger auto update.
-    this.invalidate(PipelineLayoutInvalidationType.NativeRebuild);
-  }
-  /**
    * Generate native gpu pipeline data layout.
    */
   generateNative() {
@@ -3057,10 +2959,6 @@ class PipelineLayout extends gpu_object_1.GpuObject {
   }
 }
 exports.PipelineLayout = PipelineLayout;
-var PipelineLayoutInvalidationType;
-(function (PipelineLayoutInvalidationType) {
-  PipelineLayoutInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(PipelineLayoutInvalidationType || (exports.PipelineLayoutInvalidationType = PipelineLayoutInvalidationType = {}));
 
 /***/ }),
 
@@ -6498,7 +6396,6 @@ exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Pipeline shader.
@@ -6525,10 +6422,6 @@ class ComputePipeline extends gpu_object_1.GpuObject {
     this.mLoadedPipeline = null;
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
-    // Listen for shader changes.
-    this.mShaderModule.shader.layout.addInvalidationListener(() => {
-      this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
-    }, pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild);
   }
   /**
    * Set optional parameter of pipeline.
@@ -7795,7 +7688,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
@@ -7898,10 +7790,6 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     this.mRenderTargetConfig = new core_1.Dictionary();
     // Pipeline constants.
     this.mParameter = new core_1.Dictionary();
-    // Listen for pipeline layout changes.
-    this.mShaderModule.shader.layout.addInvalidationListener(() => {
-      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }, pipeline_layout_1.PipelineLayoutInvalidationType.NativeRebuild);
     // Listen for render target changes.
     this.mRenderTargets.addInvalidationListener(() => {
       this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
@@ -16374,7 +16262,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("2ce4ae793eeef1f8c77d")
+/******/ 		__webpack_require__.h = () => ("206f9bfb8d6a39ed161c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

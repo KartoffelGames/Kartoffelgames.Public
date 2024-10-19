@@ -1,5 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PipelineLayoutInvalidationType } from '../binding/pipeline-layout';
 import { CompareFunction } from '../constant/compare-function.enum';
 import { ComputeStage } from '../constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../constant/primitive-cullmode.enum';
@@ -130,12 +129,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
-
-        // Listen for pipeline layout changes.
-        this.mShaderModule.shader.layout.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-        }, PipelineLayoutInvalidationType.NativeRebuild);
-
+        
         // Listen for render target changes.
         this.mRenderTargets.addInvalidationListener(() => {
             this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);

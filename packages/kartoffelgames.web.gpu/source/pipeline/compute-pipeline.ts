@@ -4,7 +4,6 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
-import { PipelineLayoutInvalidationType } from '../binding/pipeline-layout';
 
 export class ComputePipeline extends GpuObject<GPUComputePipeline | null, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline | null> {
     private mLoadedPipeline: GPUComputePipeline | null;
@@ -40,11 +39,6 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline | null, Comput
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
-
-        // Listen for shader changes.
-        this.mShaderModule.shader.layout.addInvalidationListener(() => {
-            this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
-        }, PipelineLayoutInvalidationType.NativeRebuild);
     }
 
     /**

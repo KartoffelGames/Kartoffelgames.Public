@@ -1911,7 +1911,7 @@ _asyncToGenerator(function* () {
   // Create canvas.
   const lCanvasTexture = lGpu.canvas(document.getElementById('canvas'));
   // Create and configure render targets.
-  const lRenderTargets = lGpu.renderTargets(false).setup(pSetup => {
+  const lRenderTargets = lGpu.renderTargets(true).setup(pSetup => {
     // Add "color" target and init new texture.
     pSetup.addColor('color', 0, true, {
       r: 0,
@@ -4492,10 +4492,8 @@ class RenderPass extends gpu_object_1.GpuObject {
     } else {
       this.directExecute(pExecution);
     }
-    // Resolve targets into canvas.
-    for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
-      lResolveTexture.canvas.resolveFrom(pExecution, lResolveTexture.source);
-    }
+    // Execute optional resolve targets.
+    this.resolveCanvasTargets(pExecution);
   }
   /**
    * Execute render pass as cached bundle.
@@ -4549,6 +4547,55 @@ class RenderPass extends gpu_object_1.GpuObject {
     this.setRenderQueue(lRenderPassEncoder);
     // End render queue.
     lRenderPassEncoder.end();
+  }
+  /**
+   * Resolve gpu textures into canvas textures.
+   *
+   * @param pExecution - Executor context.
+   */
+  resolveCanvasTargets(pExecution) {
+    // Skip when nothing to be resolved.
+    if (this.mRenderTargets.resolveCanvasList.length === 0) {
+      return;
+    }
+    if (this.mRenderTargets.multisampled) {
+      // Generate resolve target descriptor with operation that does nothing.
+      const lColorTargetList = this.mRenderTargets.resolveCanvasList.map(pResolveTexture => {
+        return {
+          view: pResolveTexture.source.native,
+          resolveTarget: pResolveTexture.canvas.native.createView(),
+          loadOp: 'load',
+          storeOp: 'store'
+        };
+      });
+      // Begin and end render pass. Render pass does only resolve targets.
+      pExecution.encoder.beginRenderPass({
+        colorAttachments: lColorTargetList
+      }).end();
+    } else {
+      // Copy targets into canvas.
+      for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
+        // Create External source.
+        const lSource = {
+          texture: lResolveTexture.source.texture.native,
+          aspect: 'all',
+          mipLevel: lResolveTexture.source.mipLevelStart
+        };
+        // Generate native texture.
+        const lDestination = {
+          texture: lResolveTexture.canvas.native,
+          aspect: 'all',
+          mipLevel: 0
+        };
+        // Clamp copy sizes to lowest.
+        const lCopySize = {
+          width: this.mRenderTargets.width,
+          height: this.mRenderTargets.height,
+          depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
+        };
+        pExecution.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
+      }
+    }
   }
   /**
    * Fill encoder with each render step.
@@ -8647,34 +8694,6 @@ class CanvasTexture extends gpu_object_1.GpuObject {
     this.device.addFrameChangeListener(() => {
       this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
     });
-  }
-  resolveFrom(pExecutionContext, pResolveSource) {
-    // const lCanvasTextureView: GPUTextureView = lCanvasTexture.createView({
-    //     dimension: '2d',
-    //     baseMipLevel: 0,
-    //     mipLevelCount: 1,
-    //     baseArrayLayer: 0,
-    //     arrayLayerCount: 1
-    // });
-    // Create External source.
-    const lSource = {
-      texture: pResolveSource.texture.native,
-      aspect: 'all',
-      mipLevel: pResolveSource.mipLevelStart
-    };
-    // Generate native texture.
-    const lDestination = {
-      texture: this.native,
-      aspect: 'all',
-      mipLevel: 0
-    };
-    // Clamp copy sizes to lowest.
-    const lCopySize = {
-      width: this.width,
-      height: this.height,
-      depthOrArrayLayers: pResolveSource.arrayLayerStart + 1
-    };
-    pExecutionContext.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
   }
   /**
    * Destory texture object.
@@ -16199,7 +16218,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("f326eb9964c369548c53")
+/******/ 		__webpack_require__.h = () => ("b678aebe04ad20918cdb")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

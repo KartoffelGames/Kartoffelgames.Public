@@ -553,7 +553,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
 
     // Create and configure render targets.
-    const lRenderTargets: RenderTargets = lGpu.renderTargets(false).setup((pSetup) => {
+    const lRenderTargets: RenderTargets = lGpu.renderTargets(true).setup((pSetup) => {
         // Add "color" target and init new texture.
         pSetup.addColor('color', 0, true, { r: 0, g: 1, b: 0, a: 0 })
             .new(TextureFormat.Bgra8unorm, lCanvasTexture);

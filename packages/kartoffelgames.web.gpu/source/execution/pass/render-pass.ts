@@ -129,10 +129,8 @@ export class RenderPass extends GpuObject {
             this.directExecute(pExecution);
         }
 
-        // Resolve targets into canvas.
-        for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
-            lResolveTexture.canvas.resolveFrom(pExecution, lResolveTexture.source);
-        }
+        // Execute optional resolve targets.
+        this.resolveCanvasTargets(pExecution);
     }
 
     /**
@@ -199,6 +197,61 @@ export class RenderPass extends GpuObject {
 
         // End render queue.
         lRenderPassEncoder.end();
+    }
+
+    /**
+     * Resolve gpu textures into canvas textures.
+     * 
+     * @param pExecution - Executor context.
+     */
+    private resolveCanvasTargets(pExecution: GpuExecution): void {
+        // Skip when nothing to be resolved.
+        if (this.mRenderTargets.resolveCanvasList.length === 0) {
+            return;
+        }
+
+        if (this.mRenderTargets.multisampled) {
+            // Generate resolve target descriptor with operation that does nothing.
+            const lColorTargetList: Array<GPURenderPassColorAttachment> = this.mRenderTargets.resolveCanvasList.map((pResolveTexture) => {
+                return {
+                    view: pResolveTexture.source.native,
+                    resolveTarget: pResolveTexture.canvas.native.createView(),
+                    loadOp: 'load',
+                    storeOp: 'store'
+                };
+            });
+
+            // Begin and end render pass. Render pass does only resolve targets.
+            pExecution.encoder.beginRenderPass({
+                colorAttachments: lColorTargetList
+            }).end();
+        } else {
+            // Copy targets into canvas.
+            for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
+                // Create External source.
+                const lSource: GPUImageCopyTexture = {
+                    texture: lResolveTexture.source.texture.native,
+                    aspect: 'all',
+                    mipLevel: lResolveTexture.source.mipLevelStart,
+                };
+
+                // Generate native texture.
+                const lDestination: GPUImageCopyTexture = {
+                    texture: lResolveTexture.canvas.native,
+                    aspect: 'all',
+                    mipLevel: 0,
+                };
+
+                // Clamp copy sizes to lowest.
+                const lCopySize: GPUExtent3DStrict = {
+                    width: this.mRenderTargets.width,
+                    height: this.mRenderTargets.height,
+                    depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
+                };
+
+                pExecution.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
+            }
+        }
     }
 
     /**

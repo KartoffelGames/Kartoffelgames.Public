@@ -1,12 +1,10 @@
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { TextureFormat } from '../constant/texture-format.enum';
 import { TextureUsage } from '../constant/texture-usage.enum';
-import { GpuExecution } from '../execution/gpu-execution';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { GpuTextureView } from './gpu-texture-view';
 
 /**
  * Canvas texture. Can only be used as render attachment or to be copied into.
@@ -98,39 +96,6 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
         this.device.addFrameChangeListener(() => {
             this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
         });
-    }
-
-    public resolveFrom(pExecutionContext: GpuExecution, pResolveSource: GpuTextureView): void {
-        // const lCanvasTextureView: GPUTextureView = lCanvasTexture.createView({
-        //     dimension: '2d',
-        //     baseMipLevel: 0,
-        //     mipLevelCount: 1,
-        //     baseArrayLayer: 0,
-        //     arrayLayerCount: 1
-        // });
-
-        // Create External source.
-        const lSource: GPUImageCopyTexture = {
-            texture: pResolveSource.texture.native,
-            aspect: 'all',
-            mipLevel: pResolveSource.mipLevelStart,
-        };
-
-        // Generate native texture.
-        const lDestination: GPUImageCopyTexture = {
-            texture: this.native,
-            aspect: 'all',
-            mipLevel: 0,
-        };
-
-        // Clamp copy sizes to lowest.
-        const lCopySize: GPUExtent3DStrict = {
-            width: this.width,
-            height: this.height,
-            depthOrArrayLayers: pResolveSource.arrayLayerStart + 1
-        };
-
-        pExecutionContext.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
     }
 
     /**

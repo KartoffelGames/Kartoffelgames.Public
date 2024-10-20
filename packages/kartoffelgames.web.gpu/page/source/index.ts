@@ -602,6 +602,13 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
     gAddVideoCanvasStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
 
+    (<any>window).renderpassRuntime = () => {
+        lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
+            // eslint-disable-next-line no-console
+            console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
+        });
+    };
+
     /**
      * Controls
      */

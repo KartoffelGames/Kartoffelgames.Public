@@ -84,15 +84,15 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
     /**
      * Read data raw without layout.
      * 
-     * @param pOffset - Data read offset.
-     * @param pSize - Data read size.
+     * @param pOffset - Data read offset in byte.
+     * @param pSize - Data read size in byte.
      */
     public async read(pOffset?: number | undefined, pSize?: number | undefined): Promise<ArrayBuffer> {
         // Set buffer as writeable.
         this.extendUsage(BufferUsage.CopySource);
 
         const lOffset: number = pOffset ?? 0;
-        const lSize: number = pSize ?? this.size;
+        const lSize: number = pSize ?? this.size - lOffset;
 
         // Create a new buffer when it is not already created.
         if (this.mReadBuffer === null) {

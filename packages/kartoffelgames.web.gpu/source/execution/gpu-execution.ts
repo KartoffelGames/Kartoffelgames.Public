@@ -17,6 +17,12 @@ export class GpuExecution extends GpuObject {
         return this.mEncoder;
     }
 
+    /**
+     * Constructor.
+     * 
+     * @param pDevice - Device reference. 
+     * @param pExecution - Main execution function.
+     */
     public constructor(pDevice: GpuDevice, pExecution: GpuExecutionFunction) {
         super(pDevice);
 
@@ -24,6 +30,9 @@ export class GpuExecution extends GpuObject {
         this.mEncoder = null;
     }
 
+    /**
+     * Execute with context.
+     */
     public execute(): void {
         this.mEncoder = this.device.gpu.createCommandEncoder({
             label: 'Execution'
@@ -31,7 +40,6 @@ export class GpuExecution extends GpuObject {
 
         this.mExecutionFunction(this);
 
-        // TODO: Execution is async.
         // Submit commands to queue and clear command encoder.
         this.device.gpu.queue.submit([this.mEncoder.finish()]);
         this.mEncoder = null;

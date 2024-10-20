@@ -8,10 +8,13 @@ import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline
 import { RenderTargets, RenderTargetsInvalidationType } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
 import { GpuExecution } from '../gpu-execution';
+import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 
 export class RenderPass extends GpuObject {
     private readonly mBundleConfig: RenderBundleConfig;
     private readonly mInstructionList: Array<RenderInstruction>;
+    private readonly mQueries: RenderPassQuery;
     private readonly mRenderTargets: RenderTargets;
 
     /**
@@ -24,6 +27,7 @@ export class RenderPass extends GpuObject {
     public constructor(pDevice: GpuDevice, pRenderTargets: RenderTargets, pStaticBundle: boolean) {
         super(pDevice);
 
+        this.mQueries = {};
         this.mInstructionList = new Array<RenderInstruction>();
         this.mRenderTargets = pRenderTargets;
         this.mBundleConfig = {
@@ -122,11 +126,28 @@ export class RenderPass extends GpuObject {
      * @param pExecutor - Executor context.
      */
     public execute(pExecution: GpuExecution): void {
+        // Read render pass descriptor and inject timestamp query when it is setup.
+        const lRenderPassDescriptor: GPURenderPassDescriptor = this.mRenderTargets.native;
+        if (this.mQueries.timestamp) {
+            lRenderPassDescriptor.timestampWrites = this.mQueries.timestamp.query;
+        }
+
+        // Pass descriptor is set, when the pipeline is set.
+        const lRenderPassEncoder: GPURenderPassEncoder = pExecution.encoder.beginRenderPass(lRenderPassDescriptor);
+
         // Execute cached or execute direct based on static or variable bundles.
         if (this.mBundleConfig.enabled) {
-            this.cachedExecute(pExecution);
+            this.cachedExecute(lRenderPassEncoder);
         } else {
-            this.directExecute(pExecution);
+            this.directExecute(lRenderPassEncoder);
+        }
+
+        // End render queue.
+        lRenderPassEncoder.end();
+
+        // Resolve query.
+        if (this.mQueries.timestamp) {
+            pExecution.encoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
         }
 
         // Execute optional resolve targets.
@@ -134,11 +155,65 @@ export class RenderPass extends GpuObject {
     }
 
     /**
+     * Probe timestamp data from render pass.
+     * Resolves into two big ints with start and end time in nanoseconds.
+     * 
+     * @returns Promise that resolves with the latest timestamp data.
+     */
+    public async probeTimestamp(): Promise<[bigint, bigint]> {
+        // Skip when not enabled.
+        if (!this.device.capabilities.hasFeature(GpuFeature.TimestampQuery)) {
+            return [0n, 0n];
+        }
+
+        // Init timestamp query when not already set.
+        if (!this.mQueries.timestamp) {
+            // Create timestamp query.
+            const lTimestampQuerySet: GPUQuerySet = this.device.gpu.createQuerySet({
+                type: 'timestamp',
+                count: 2
+            });
+
+            // Create timestamp buffer.
+            const lTimestampBuffer: GpuBuffer = new GpuBuffer(this.device, 16);
+            lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
+            lTimestampBuffer.extendUsage(BufferUsage.CopySource);
+
+            // Create query.
+            this.mQueries.timestamp = {
+                query: {
+                    querySet: lTimestampQuerySet,
+                    beginningOfPassWriteIndex: 0,
+                    endOfPassWriteIndex: 1
+                },
+                buffer: lTimestampBuffer,
+                resolver: null
+            };
+        }
+
+        // Use existing resolver.
+        if (this.mQueries.timestamp.resolver) {
+            return this.mQueries.timestamp.resolver;
+        }
+
+        this.mQueries.timestamp.resolver = this.mQueries.timestamp.buffer.read(0, 16).then((pData: ArrayBuffer) => {
+            // Reset resolver.
+            this.mQueries.timestamp!.resolver = null;
+
+            // Read and resolve timestamp data.
+            const lTimedata: BigUint64Array = new BigUint64Array(pData);
+            return [lTimedata[0], lTimedata[1]];
+        });
+
+        return this.mQueries.timestamp.resolver;
+    }
+
+    /**
      * Execute render pass as cached bundle.
      * 
      * @param pExecutor - Executor context.
      */
-    private cachedExecute(pExecution: GpuExecution): void {
+    private cachedExecute(pRenderPassEncoder: GPURenderPassEncoder): void {
         // Generate new bundle when not already cached or render target got changed.
         if (!this.mBundleConfig.bundle) {
             // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
@@ -173,14 +248,8 @@ export class RenderPass extends GpuObject {
             };
         }
 
-        // Pass descriptor is set, when the pipeline is set.
-        const lRenderPassEncoder: GPURenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
-
         // Add cached render bundle.
-        lRenderPassEncoder.executeBundles([this.mBundleConfig.bundle?.bundle]);
-
-        // End render queue.
-        lRenderPassEncoder.end();
+        pRenderPassEncoder.executeBundles([this.mBundleConfig.bundle?.bundle]);
     }
 
     /**
@@ -188,15 +257,9 @@ export class RenderPass extends GpuObject {
      * 
      * @param pExecutor - Executor context.
      */
-    private directExecute(pExecution: GpuExecution): void {
-        // Pass descriptor is set, when the pipeline is set.
-        const lRenderPassEncoder: GPURenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
-
+    private directExecute(pRenderPassEncoder: GPURenderPassEncoder): void {
         // Fill render queue.
-        this.setRenderQueue(lRenderPassEncoder);
-
-        // End render queue.
-        lRenderPassEncoder.end();
+        this.setRenderQueue(pRenderPassEncoder);
     }
 
     /**
@@ -377,6 +440,14 @@ export class RenderPass extends GpuObject {
         }
     }
 }
+
+type RenderPassQuery = {
+    timestamp?: {
+        query: GPURenderPassTimestampWrites;
+        buffer: GpuBuffer;
+        resolver: null | Promise<[bigint, bigint]>;
+    };
+};
 
 type RenderInstruction = {
     pipeline: VertexFragmentPipeline;

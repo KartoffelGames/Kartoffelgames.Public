@@ -28,7 +28,9 @@ export class GpuDevice {
         GpuDevice.mAdapters.set(pPerformance, lAdapter);
 
         // Try to load cached device. When not cached, request new one. // TODO: Required features.
-        const lDevice: GPUDevice | null = GpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
+        const lDevice: GPUDevice | null = GpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice({
+            requiredFeatures: ['timestamp-query']
+        });
         if (!lDevice) {
             throw new Exception('Error requesting GPU device', GpuDevice);
         }

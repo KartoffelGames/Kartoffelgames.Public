@@ -1955,6 +1955,12 @@ _asyncToGenerator(function* () {
   gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
   gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
   gAddVideoCanvasStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+  window.renderpassRuntime = () => {
+    lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
+      // eslint-disable-next-line no-console
+      console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
+    });
+  };
   /**
    * Controls
    */
@@ -3350,8 +3356,8 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
   /**
    * Read data raw without layout.
    *
-   * @param pOffset - Data read offset.
-   * @param pSize - Data read size.
+   * @param pOffset - Data read offset in byte.
+   * @param pSize - Data read size in byte.
    */
   read(pOffset, pSize) {
     var _this = this;
@@ -3359,7 +3365,7 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
       // Set buffer as writeable.
       _this.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
       const lOffset = pOffset ?? 0;
-      const lSize = pSize ?? _this.size;
+      const lSize = pSize ?? _this.size - lOffset;
       // Create a new buffer when it is not already created.
       if (_this.mReadBuffer === null) {
         _this.mReadBuffer = _this.device.gpu.createBuffer({
@@ -4212,17 +4218,25 @@ class GpuExecution extends gpu_object_1.GpuObject {
     }
     return this.mEncoder;
   }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pExecution - Main execution function.
+   */
   constructor(pDevice, pExecution) {
     super(pDevice);
     this.mExecutionFunction = pExecution;
     this.mEncoder = null;
   }
+  /**
+   * Execute with context.
+   */
   execute() {
     this.mEncoder = this.device.gpu.createCommandEncoder({
       label: 'Execution'
     });
     this.mExecutionFunction(this);
-    // TODO: Execution is async.
     // Submit commands to queue and clear command encoder.
     this.device.gpu.queue.submit([this.mEncoder.finish()]);
     this.mEncoder = null;
@@ -4241,12 +4255,17 @@ exports.GpuExecution = GpuExecution;
 "use strict";
 
 
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ComputePass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
 class ComputePass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
@@ -4254,6 +4273,7 @@ class ComputePass extends gpu_object_1.GpuObject {
    */
   constructor(pDevice) {
     super(pDevice);
+    this.mQueries = {};
     this.mInstructionList = new Array();
   }
   /**
@@ -4302,8 +4322,13 @@ class ComputePass extends gpu_object_1.GpuObject {
    * @param pExecutor - Executor context.
    */
   execute(pExecution) {
+    // Read render pass descriptor and inject timestamp query when it is setup.
+    const lComputePassDescriptor = {};
+    if (this.mQueries.timestamp) {
+      lComputePassDescriptor.timestampWrites = this.mQueries.timestamp.query;
+    }
     // Pass descriptor is set, when the pipeline ist set.
-    const lComputePassEncoder = pExecution.encoder.beginComputePass();
+    const lComputePassEncoder = pExecution.encoder.beginComputePass(lComputePassDescriptor);
     // Instruction cache.
     let lPipeline = null;
     // Buffer for current set bind groups.
@@ -4356,6 +4381,59 @@ class ComputePass extends gpu_object_1.GpuObject {
       // TODO: Indirect dispatch.
     }
     lComputePassEncoder.end();
+    // Resolve query.
+    if (this.mQueries.timestamp) {
+      pExecution.encoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+    }
+  }
+  /**
+   * Probe timestamp data from render pass.
+   * Resolves into two big ints with start and end time in nanoseconds.
+   *
+   * @returns Promise that resolves with the latest timestamp data.
+   */
+  probeTimestamp() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Skip when not enabled.
+      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
+        return [0n, 0n];
+      }
+      // Init timestamp query when not already set.
+      if (!_this.mQueries.timestamp) {
+        // Create timestamp query.
+        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
+          type: 'timestamp',
+          count: 2
+        });
+        // Create timestamp buffer.
+        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
+        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
+        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
+        // Create query.
+        _this.mQueries.timestamp = {
+          query: {
+            querySet: lTimestampQuerySet,
+            beginningOfPassWriteIndex: 0,
+            endOfPassWriteIndex: 1
+          },
+          buffer: lTimestampBuffer,
+          resolver: null
+        };
+      }
+      // Use existing resolver.
+      if (_this.mQueries.timestamp.resolver) {
+        return _this.mQueries.timestamp.resolver;
+      }
+      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
+        // Reset resolver.
+        _this.mQueries.timestamp.resolver = null;
+        // Read and resolve timestamp data.
+        const lTimedata = new BigUint64Array(pData);
+        return [lTimedata[0], lTimedata[1]];
+      });
+      return _this.mQueries.timestamp.resolver;
+    })();
   }
   /**
    * Remove instruction from instruction list.
@@ -4390,16 +4468,21 @@ exports.ComputePass = ComputePass;
 "use strict";
 
 
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.RenderPass = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const bind_group_1 = __webpack_require__(/*! ../../binding/bind-group */ "./source/binding/bind-group.ts");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
 const render_targets_1 = __webpack_require__(/*! ../../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 class RenderPass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
@@ -4410,6 +4493,7 @@ class RenderPass extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pRenderTargets, pStaticBundle) {
     super(pDevice);
+    this.mQueries = {};
     this.mInstructionList = new Array();
     this.mRenderTargets = pRenderTargets;
     this.mBundleConfig = {
@@ -4494,21 +4578,83 @@ class RenderPass extends gpu_object_1.GpuObject {
    * @param pExecutor - Executor context.
    */
   execute(pExecution) {
+    // Read render pass descriptor and inject timestamp query when it is setup.
+    const lRenderPassDescriptor = this.mRenderTargets.native;
+    if (this.mQueries.timestamp) {
+      lRenderPassDescriptor.timestampWrites = this.mQueries.timestamp.query;
+    }
+    // Pass descriptor is set, when the pipeline is set.
+    const lRenderPassEncoder = pExecution.encoder.beginRenderPass(lRenderPassDescriptor);
     // Execute cached or execute direct based on static or variable bundles.
     if (this.mBundleConfig.enabled) {
-      this.cachedExecute(pExecution);
+      this.cachedExecute(lRenderPassEncoder);
     } else {
-      this.directExecute(pExecution);
+      this.directExecute(lRenderPassEncoder);
+    }
+    // End render queue.
+    lRenderPassEncoder.end();
+    // Resolve query.
+    if (this.mQueries.timestamp) {
+      pExecution.encoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
     }
     // Execute optional resolve targets.
     this.resolveCanvasTargets(pExecution);
+  }
+  /**
+   * Probe timestamp data from render pass.
+   * Resolves into two big ints with start and end time in nanoseconds.
+   *
+   * @returns Promise that resolves with the latest timestamp data.
+   */
+  probeTimestamp() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Skip when not enabled.
+      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
+        return [0n, 0n];
+      }
+      // Init timestamp query when not already set.
+      if (!_this.mQueries.timestamp) {
+        // Create timestamp query.
+        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
+          type: 'timestamp',
+          count: 2
+        });
+        // Create timestamp buffer.
+        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
+        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
+        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
+        // Create query.
+        _this.mQueries.timestamp = {
+          query: {
+            querySet: lTimestampQuerySet,
+            beginningOfPassWriteIndex: 0,
+            endOfPassWriteIndex: 1
+          },
+          buffer: lTimestampBuffer,
+          resolver: null
+        };
+      }
+      // Use existing resolver.
+      if (_this.mQueries.timestamp.resolver) {
+        return _this.mQueries.timestamp.resolver;
+      }
+      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
+        // Reset resolver.
+        _this.mQueries.timestamp.resolver = null;
+        // Read and resolve timestamp data.
+        const lTimedata = new BigUint64Array(pData);
+        return [lTimedata[0], lTimedata[1]];
+      });
+      return _this.mQueries.timestamp.resolver;
+    })();
   }
   /**
    * Execute render pass as cached bundle.
    *
    * @param pExecutor - Executor context.
    */
-  cachedExecute(pExecution) {
+  cachedExecute(pRenderPassEncoder) {
     // Generate new bundle when not already cached or render target got changed.
     if (!this.mBundleConfig.bundle) {
       // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
@@ -4536,25 +4682,17 @@ class RenderPass extends gpu_object_1.GpuObject {
         descriptor: this.mRenderTargets.native
       };
     }
-    // Pass descriptor is set, when the pipeline is set.
-    const lRenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
     // Add cached render bundle.
-    lRenderPassEncoder.executeBundles([this.mBundleConfig.bundle?.bundle]);
-    // End render queue.
-    lRenderPassEncoder.end();
+    pRenderPassEncoder.executeBundles([this.mBundleConfig.bundle?.bundle]);
   }
   /**
    * Execute steps in a row without caching.
    *
    * @param pExecutor - Executor context.
    */
-  directExecute(pExecution) {
-    // Pass descriptor is set, when the pipeline is set.
-    const lRenderPassEncoder = pExecution.encoder.beginRenderPass(this.mRenderTargets.native);
+  directExecute(pRenderPassEncoder) {
     // Fill render queue.
-    this.setRenderQueue(lRenderPassEncoder);
-    // End render queue.
-    lRenderPassEncoder.end();
+    this.setRenderQueue(pRenderPassEncoder);
   }
   /**
    * Resolve gpu textures into canvas textures.
@@ -4912,7 +5050,9 @@ class GpuDevice {
       }
       GpuDevice.mAdapters.set(pPerformance, lAdapter);
       // Try to load cached device. When not cached, request new one. // TODO: Required features.
-      const lDevice = GpuDevice.mDevices.get(lAdapter) ?? (yield lAdapter.requestDevice());
+      const lDevice = GpuDevice.mDevices.get(lAdapter) ?? (yield lAdapter.requestDevice({
+        requiredFeatures: ['timestamp-query']
+      }));
       if (!lDevice) {
         throw new core_1.Exception('Error requesting GPU device', GpuDevice);
       }
@@ -16262,7 +16402,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("206f9bfb8d6a39ed161c")
+/******/ 		__webpack_require__.h = () => ("ebb966c8c19f8af146b6")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

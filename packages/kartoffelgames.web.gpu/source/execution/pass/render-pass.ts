@@ -2,14 +2,14 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup, BindGroupInvalidationType } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
 import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
-import { GpuExecution } from '../gpu-execution';
-import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { GpuExecutionContext } from '../gpu-execution';
 
 export class RenderPass extends GpuObject {
     private readonly mBundleConfig: RenderBundleConfig;
@@ -125,7 +125,7 @@ export class RenderPass extends GpuObject {
      * 
      * @param pExecutor - Executor context.
      */
-    public execute(pExecution: GpuExecution): void {
+    public execute(pExecutionContext: GpuExecutionContext): void {
         // Read render pass descriptor and inject timestamp query when it is setup.
         const lRenderPassDescriptor: GPURenderPassDescriptor = this.mRenderTargets.native;
         if (this.mQueries.timestamp) {
@@ -133,7 +133,7 @@ export class RenderPass extends GpuObject {
         }
 
         // Pass descriptor is set, when the pipeline is set.
-        const lRenderPassEncoder: GPURenderPassEncoder = pExecution.encoder.beginRenderPass(lRenderPassDescriptor);
+        const lRenderPassEncoder: GPURenderPassEncoder = pExecutionContext.commandEncoder.beginRenderPass(lRenderPassDescriptor);
 
         // Execute cached or execute direct based on static or variable bundles.
         if (this.mBundleConfig.enabled) {
@@ -147,11 +147,11 @@ export class RenderPass extends GpuObject {
 
         // Resolve query.
         if (this.mQueries.timestamp) {
-            pExecution.encoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+            pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
         }
 
         // Execute optional resolve targets.
-        this.resolveCanvasTargets(pExecution);
+        this.resolveCanvasTargets(pExecutionContext);
     }
 
     /**
@@ -265,9 +265,9 @@ export class RenderPass extends GpuObject {
     /**
      * Resolve gpu textures into canvas textures.
      * 
-     * @param pExecution - Executor context.
+     * @param pExecutionContext - Executor context.
      */
-    private resolveCanvasTargets(pExecution: GpuExecution): void {
+    private resolveCanvasTargets(pExecutionContext: GpuExecutionContext): void {
         // Skip when nothing to be resolved.
         if (this.mRenderTargets.resolveCanvasList.length === 0) {
             return;
@@ -285,7 +285,7 @@ export class RenderPass extends GpuObject {
             });
 
             // Begin and end render pass. Render pass does only resolve targets.
-            pExecution.encoder.beginRenderPass({
+            pExecutionContext.commandEncoder.beginRenderPass({
                 colorAttachments: lColorTargetList
             }).end();
         } else {
@@ -312,7 +312,7 @@ export class RenderPass extends GpuObject {
                     depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
                 };
 
-                pExecution.encoder.copyTextureToTexture(lSource, lDestination, lCopySize);
+                pExecutionContext.commandEncoder.copyTextureToTexture(lSource, lDestination, lCopySize);
             }
         }
     }

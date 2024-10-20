@@ -1,21 +1,8 @@
-import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 
 export class GpuExecution extends GpuObject {
-    private mEncoder: GPUCommandEncoder | null;
     private readonly mExecutionFunction: GpuExecutionFunction;
-
-    /**
-     * GPU command encoder.
-     */
-    public get encoder(): GPUCommandEncoder {
-        if (!this.mEncoder) {
-            throw new Exception('Execution is not started', this);
-        }
-
-        return this.mEncoder;
-    }
 
     /**
      * Constructor.
@@ -27,23 +14,29 @@ export class GpuExecution extends GpuObject {
         super(pDevice);
 
         this.mExecutionFunction = pExecution;
-        this.mEncoder = null;
     }
 
     /**
      * Execute with context.
      */
     public execute(): void {
-        this.mEncoder = this.device.gpu.createCommandEncoder({
+        // Create command encoder.
+        const lCommandEncoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder({
             label: 'Execution'
         });
 
-        this.mExecutionFunction(this);
+        // Call execution with encoder context.
+        this.mExecutionFunction({
+            commandEncoder: lCommandEncoder
+        });
 
         // Submit commands to queue and clear command encoder.
-        this.device.gpu.queue.submit([this.mEncoder.finish()]);
-        this.mEncoder = null;
+        this.device.gpu.queue.submit([lCommandEncoder.finish()]);
     }
 }
 
-export type GpuExecutionFunction = (pExecutor: GpuExecution) => void;
+export type GpuExecutionFunction = (pExecutor: GpuExecutionContext) => void;
+
+export type GpuExecutionContext = {
+    commandEncoder: GPUCommandEncoder;
+};

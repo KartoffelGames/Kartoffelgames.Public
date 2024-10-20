@@ -2,12 +2,12 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/object/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
-import { GpuExecution } from '../gpu-execution';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
+import { GpuExecutionContext } from '../gpu-execution';
 
 export class ComputePass extends GpuObject {
     private readonly mInstructionList: Array<ComputeInstruction>;
@@ -76,9 +76,9 @@ export class ComputePass extends GpuObject {
 
     /**
      * Execute steps in a row.
-     * @param pExecutor - Executor context.
+     * @param pExecutionContext - Executor context.
      */
-    public execute(pExecution: GpuExecution): void {
+    public execute(pExecutionContext: GpuExecutionContext): void {
         // Read render pass descriptor and inject timestamp query when it is setup.
         const lComputePassDescriptor: GPUComputePassDescriptor = {};
         if (this.mQueries.timestamp) {
@@ -86,7 +86,7 @@ export class ComputePass extends GpuObject {
         }
 
         // Pass descriptor is set, when the pipeline ist set.
-        const lComputePassEncoder: GPUComputePassEncoder = pExecution.encoder.beginComputePass(lComputePassDescriptor);
+        const lComputePassEncoder: GPUComputePassEncoder = pExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;
@@ -158,7 +158,7 @@ export class ComputePass extends GpuObject {
 
         // Resolve query.
         if (this.mQueries.timestamp) {
-            pExecution.encoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+            pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
         }
     }
 

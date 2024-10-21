@@ -1,7 +1,7 @@
 import { Dictionary, Exception, List } from '@kartoffelgames/core';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass } from '../execution/pass/compute-pass';
-import { RenderPass } from '../execution/pass/render-pass';
+import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
 import { CanvasTexture } from '../texture/canvas-texture';
@@ -153,8 +153,8 @@ export class GpuDevice {
      * 
      * @returns new render pass. 
      */
-    public renderPass(pRenderTargets: RenderTargets, pStaticBundle: boolean = true): RenderPass {
-        return new RenderPass(this, pRenderTargets, pStaticBundle);
+    public renderPass(pRenderTargets: RenderTargets, pExecution: RenderPassExecutionFunction, pStaticBundle: boolean = true): RenderPass {
+        return new RenderPass(this, pRenderTargets, pStaticBundle, pExecution);
     }
 
     /**

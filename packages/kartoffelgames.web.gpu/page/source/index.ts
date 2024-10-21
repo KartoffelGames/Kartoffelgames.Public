@@ -1,5 +1,6 @@
 import { BindGroup } from '../../source/binding/bind-group';
 import { BindGroupLayout } from '../../source/binding/bind-group-layout';
+import { PipelineData } from '../../source/binding/pipeline-data';
 import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum';
@@ -36,7 +37,7 @@ import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, 
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 
-const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
+const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;
     const lWidth: number = 50;
     const lDepth: number = 50;
@@ -221,10 +222,19 @@ const gAddCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPas
         lWoodBoxPipeline.setParameter('animationSeconds', pSeconds);
     };
 
-    pRenderPass.addStep(lWoodBoxPipeline, lMesh, [lWoodBoxTransformationGroup, pWorldGroup, lWoodBoxUserGroup], lWidth * lHeight * lDepth);
+    return {
+        pipeline: lWoodBoxPipeline,
+        parameter: lMesh,
+        instanceCount: lWidth * lHeight * lDepth,
+        data: lWoodBoxPipeline.layout.withData([
+            lWoodBoxTransformationGroup,
+            pWorldGroup,
+            lWoodBoxUserGroup
+        ])
+    };
 };
 
-const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup): void => {
+const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
     const lLightBoxShader: Shader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
         // Vertex entry.
@@ -276,10 +286,18 @@ const gAddLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRende
     // Create buffer view for pointlights.
     const lPointLightsBuffer: GpuBufferView<Float32Array> = pWorldGroup.data('pointLights').asBufferView(Float32Array);
 
-    pRenderPass.addStep(lLightBoxPipeline, lMesh, [lLightBoxTransformationGroup, pWorldGroup], lPointLightsBuffer.length / 12);
+    return {
+        pipeline: lLightBoxPipeline,
+        parameter: lMesh,
+        instanceCount: lPointLightsBuffer.length / 12,
+        data: lLightBoxPipeline.layout.withData([
+            lLightBoxTransformationGroup,
+            pWorldGroup
+        ])
+    };
 };
 
-const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup): void => {
+const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lSkyBoxShader: Shader = pGpu.shader(skyboxShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
@@ -369,10 +387,18 @@ const gAddSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderP
     lSkyBoxPipeline.depthCompare = CompareFunction.Allways;
     lSkyBoxPipeline.writeDepth = false;
 
-    pRenderPass.addStep(lSkyBoxPipeline, lMesh, [lSkyBoxTextureGroup, pWorldGroup]);
+    return {
+        pipeline: lSkyBoxPipeline,
+        parameter: lMesh,
+        instanceCount: 1,
+        data: lSkyBoxPipeline.layout.withData([
+            lSkyBoxTextureGroup,
+            pWorldGroup
+        ])
+    };
 };
 
-const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRenderPass: RenderPass, pWorldGroup: BindGroup) => {
+const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
     const lWoodBoxShader = pGpu.shader(videoCanvasShader).setup((pShaderSetup) => {
         // Vertex entry.
@@ -474,7 +500,16 @@ const gAddVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pRe
     lPipeline.targetConfig('color').alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha);
     lPipeline.targetConfig('color').colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
 
-    pRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, pWorldGroup, lUserGroup]);
+    return {
+        pipeline: lPipeline,
+        parameter: lMesh,
+        instanceCount: 1,
+        data: lPipeline.layout.withData([
+            lTransformationGroup,
+            pWorldGroup,
+            lUserGroup
+        ])
+    };
 };
 
 const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
@@ -596,11 +631,22 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lTimestampBuffer: GpuBufferView<Float32Array> = lWorldGroup.data('timestamp').asBufferView(Float32Array);
 
     // Create instruction.
-    const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
-    gAddSkyboxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
-    gAddCubeStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
-    gAddLightBoxStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
-    gAddVideoCanvasStep(lGpu, lRenderTargets, lRenderPass, lWorldGroup);
+    const lSteps: Array<RenderInstruction> = [
+        gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup),
+        gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup),
+        gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup),
+        gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup)
+    ];
+    const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets, (pContext) => {
+        for (const lStep of lSteps) {
+            pContext.drawDirect(
+                lStep.pipeline,
+                lStep.parameter,
+                lStep.data,
+                lStep.instanceCount
+            );
+        }
+    });
 
     (<any>window).renderpassRuntime = () => {
         lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
@@ -652,3 +698,10 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     };
     requestAnimationFrame(lRender);
 })();
+
+type RenderInstruction = {
+    pipeline: VertexFragmentPipeline;
+    parameter: VertexParameter;
+    instanceCount: number;
+    data: PipelineData;
+};

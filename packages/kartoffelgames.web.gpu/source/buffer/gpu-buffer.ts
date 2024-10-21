@@ -50,7 +50,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
     public constructor(pDevice: GpuDevice, pByteCount: number) {
         super(pDevice);
 
-        // Calculate size.
+        // Calculate size. // TODO: Allow buffer resize.
         this.mByteSize = ((pByteCount) + 3) & ~3;
 
         // Read and write buffers.
@@ -60,7 +60,6 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
             buffer: new Set<GPUBuffer>()
         };
         this.mReadBuffer = null;
-
 
         // No intial data.
         this.mInitialDataCallback = null;
@@ -257,8 +256,6 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
             // Set data to buffer. Use the smallest available byte view (1 byte).
             new (<GpuBufferViewFormat<TypedArray>>lInitalData.constructor)(lMappedBuffer).set(lInitalData);
             
-            //console.log(lMappedBuffer.byteLength, lOriginal, lSomething)
-
             // Unmap buffer.
             lBuffer.unmap();
         }

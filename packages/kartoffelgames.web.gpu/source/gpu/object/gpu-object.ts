@@ -110,8 +110,9 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     public invalidate(...pReasons: Array<TInvalidationType>): void {
         // Single reason execution function.
         const lExecuteReasonListener = (pReason: TInvalidationType) => {
-            // Skip reasons that already occurred.
-            if (this.mInvalidationReasons.has(pReason)) {
+            // Skip reasons that already occurred or no native was created.
+            // This step ensures to execute invalidation listener for all gpu objects that doesn't create natives. 
+            if (this.mNativeObject !== null && this.mInvalidationReasons.has(pReason)) {
                 return;
             }
 

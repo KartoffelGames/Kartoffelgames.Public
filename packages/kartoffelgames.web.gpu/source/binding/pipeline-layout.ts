@@ -4,6 +4,8 @@ import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout } from './bind-group-layout';
 import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
+import { PipelineData } from './pipeline-data';
+import { BindGroup } from './bind-group';
 
 export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpuObjectNative<GPUPipelineLayout> {
     private readonly mBindGroupNames: Dictionary<string, number>;
@@ -99,6 +101,17 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
         }
 
         return lBindGroupIndex;
+    }
+
+    /**
+     * Create pipeline data.
+     * 
+     * @param pBindData - Any bind group of pipeline layout.
+     * 
+     * @returns validated pipeline data. 
+     */
+    public withData(pBindData: Array<BindGroup>): PipelineData {
+        return new PipelineData(this.device, this, pBindData);
     }
 
     /**

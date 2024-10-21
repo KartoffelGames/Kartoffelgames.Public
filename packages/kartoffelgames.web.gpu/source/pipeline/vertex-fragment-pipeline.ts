@@ -9,12 +9,13 @@ import { TextureBlendFactor } from '../constant/texture-blend-factor.enum';
 import { TextureBlendOperation } from '../constant/texture-blend-operation.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { GpuTextureView } from '../texture/gpu-texture-view';
-import { RenderTargets, RenderTargetsInvalidationType } from './target/render-targets';
+import { RenderTargets } from './target/render-targets';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
+import { PipelineLayout } from '../binding/pipeline-layout';
 
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
     private mDepthCompare: CompareFunction;
@@ -38,6 +39,13 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
         // Invalidate pipeline on setting change.
         this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    }
+
+    /**
+     * Pipeline layout.
+     */
+    public get layout(): PipelineLayout {
+        return this.mShaderModule.shader.layout;
     }
 
     /**
@@ -129,11 +137,6 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
         // Pipeline constants.
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
-        
-        // Listen for render target changes.
-        this.mRenderTargets.addInvalidationListener(() => {
-            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-        }, RenderTargetsInvalidationType.NativeRebuild);
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;

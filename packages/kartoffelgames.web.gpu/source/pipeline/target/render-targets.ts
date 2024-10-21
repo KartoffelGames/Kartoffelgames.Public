@@ -2,9 +2,10 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureAspect } from '../../constant/texture-aspect.enum';
 import { TextureOperation } from '../../constant/texture-operation.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
+import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
+import { GpuLimit } from '../../gpu/capabilities/gpu-limit.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../../gpu/object/gpu-object-invalidation-reasons';
 import { GpuResourceObjectInvalidationType } from '../../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
@@ -12,8 +13,6 @@ import { CanvasTexture } from '../../texture/canvas-texture';
 import { GpuTextureView } from '../../texture/gpu-texture-view';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
-import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
-import { GpuLimit } from '../../gpu/capabilities/gpu-limit.enum';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -177,6 +176,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         this.mSize.height = pHeight;
 
         // Apply resize for all textures.
+        // This trigger RenderTargetsInvalidationType.NativeUpdate for textures set in setTextureInvalidationListener.
         this.applyResize();
 
         // Trigger resize invalidation. Does not automaticly trigger rebuild.
@@ -201,9 +201,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * Generate native gpu bind data group.
      */
     protected override generateNative(): GPURenderPassDescriptor {
-        // Invalidate bc. descriptor is rebuilding.
-        this.invalidate(RenderTargetsInvalidationType.NativeRebuild);
-
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
         for (const lColorAttachment of this.mColorTargets) {
@@ -429,15 +426,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * 
      * @returns true when native was updated.
      */
-    protected override updateNative(pNative: GPURenderPassDescriptor, pReasons: GpuObjectInvalidationReasons<RenderTargetsInvalidationType>): boolean {
-        // Native can not be updated on any config changes.
-        if (pReasons.has(RenderTargetsInvalidationType.NativeRebuild)) {
-            // Reset updateable views.
-            this.mTargetViewUpdateQueue.clear();
-
-            return false;
-        }
-
+    protected override updateNative(pNative: GPURenderPassDescriptor): boolean {
         // Update depth stencil view. -1 Marks depth stencil texture updates. 
         if (this.mTargetViewUpdateQueue.has(-1) && pNative.depthStencilAttachment) {
             pNative.depthStencilAttachment.view = this.mDepthStencilTarget!.target.native;
@@ -540,6 +529,5 @@ export type RenderTargetsColorTarget = {
 
 export enum RenderTargetsInvalidationType {
     NativeUpdate = 'NativeUpdate',
-    NativeRebuild = 'NativeRebuild',
     Resize = 'Resize'
 }

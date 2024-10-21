@@ -35,7 +35,7 @@ export class GpuExecution extends GpuObject {
     }
 }
 
-export type GpuExecutionFunction = (pExecutor: GpuExecutionContext) => void;
+export type GpuExecutionFunction = (pContext: GpuExecutionContext) => void;
 
 export type GpuExecutionContext = {
     commandEncoder: GPUCommandEncoder;

@@ -64,6 +64,8 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
         }
 
+        // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
+
         // Calculate variable item count from initial buffer data.  
         const lVariableItemCount: number = pVariableSizeCount ?? (() => {
             // No need to calculate was it is allways zero.

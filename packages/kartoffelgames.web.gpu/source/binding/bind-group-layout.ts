@@ -151,7 +151,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     lLayoutEntry.buffer = {
                         type: lBufferBindingType,
                         minBindingSize: 0,
-                        hasDynamicOffset: false
+                        hasDynamicOffset: false // TODO: Dynamic offset
                     } satisfies Required<GPUBufferBindingLayout>;
 
                     break;
@@ -205,7 +205,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     lLayoutEntry.storageTexture = {
                         access: lStorageAccess!,
                         format: lEntry.layout.format as GPUTextureFormat,
-                        viewDimension: lEntry.layout.dimension
+                        viewDimension: lEntry.layout.dimension,
                     } satisfies Required<GPUStorageTextureBindingLayout>;
                 }
             }

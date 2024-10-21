@@ -3,6 +3,9 @@ import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
 export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
+    // TODO: TightlyPacked Option to omit all alignment options.
+    // Work with something like BufferMemoryLayoutAlignmentMode => Storage/Vertex/Storage
+
     /**
      * Type byte alignment.
      */

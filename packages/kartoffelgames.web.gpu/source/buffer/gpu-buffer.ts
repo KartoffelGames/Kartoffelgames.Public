@@ -130,6 +130,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * @returns view of buffer. 
      */
     public view<T extends TypedArray>(pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>): GpuBufferView<T> {
+        // TODO: Add some offset information. So it offsets the view by layouts size. 
         return new GpuBufferView(this, pLayout, pType);
     }
 

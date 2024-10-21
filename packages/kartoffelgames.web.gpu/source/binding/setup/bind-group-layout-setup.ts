@@ -14,7 +14,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
      * @param pVisibility - Visibility.
      * @param pAccessMode - Access mode.
      */
-    public binding(pIndex: number, pName: string, pVisibility: ComputeStage, pStorageBinding?: StorageBindingType): BindGroupLayoutMemoryLayoutSetup {
+    public binding(pIndex: number, pName: string, pVisibility: ComputeStage, pStorageBinding?: StorageBindingType): BindGroupLayoutMemoryLayoutSetup { // TODO: Dynamic offset.
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 

@@ -2290,7 +2290,14 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     this.mCurrentData = pCurrentData;
     this.mBindLayout = pLayout;
   }
-  asBufferView(pType) {
+  /**
+   * Create a view with the attached buffer and binding layout.
+   *
+   * @param pValueType - Number item type of view.
+   *
+   * @returns view of buffer from bind group layout.
+   */
+  asBufferView(pValueType) {
     const lData = this.getRaw();
     if (!(lData instanceof gpu_buffer_1.GpuBuffer)) {
       throw new core_1.Exception('Bind data can not be converted into a buffer view.', this);
@@ -2298,13 +2305,14 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     // Read layout buffer.
     const lBufferLayout = this.mBindLayout.layout;
     // Create view.
-    return new gpu_buffer_view_1.GpuBufferView(lData, lBufferLayout, pType);
+    return new gpu_buffer_view_1.GpuBufferView(lData, lBufferLayout, pValueType);
   }
   createBuffer(pDataOrType, pVariableSizeCount = null) {
     // Layout must be a buffer memory layout.
     if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
       throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
     }
+    // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
     // Calculate variable item count from initial buffer data.  
     const lVariableItemCount = pVariableSizeCount ?? (() => {
       // No need to calculate was it is allways zero.
@@ -2571,7 +2579,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
             lLayoutEntry.buffer = {
               type: lBufferBindingType,
               minBindingSize: 0,
-              hasDynamicOffset: false
+              hasDynamicOffset: false // TODO: Dynamic offset
             };
             break;
           }
@@ -3518,6 +3526,7 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    * @returns view of buffer.
    */
   view(pLayout, pType) {
+    // TODO: Add some offset information. So it offsets the view by layouts size. 
     return new gpu_buffer_view_1.GpuBufferView(this, pLayout, pType);
   }
   /**
@@ -4584,6 +4593,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RenderPassContext = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 class RenderPassContext {
   /**
    * Used resource.
@@ -4592,6 +4602,13 @@ class RenderPassContext {
   get usedResources() {
     return this.mUsedResources;
   }
+  /**
+   * Constructor.
+   *
+   * @param pEncoder - Encoder.
+   * @param pRenderTargets - Render targets.
+   * @param pRecordResources - Records used resources on render.
+   */
   constructor(pEncoder, pRenderTargets, pRecordResources) {
     this.mEncoder = pEncoder;
     this.mRenderTargets = pRenderTargets;
@@ -4614,11 +4631,12 @@ class RenderPassContext {
    * Draw direct with set parameter.
    *
    * @param pPipeline - Pipeline.
-   * @param pParameter - Pipeline parameter.
-   * @param pBindData - Pipline bind data groups.
+   * @param pParameter - Vertex parameter.
+   * @param pPipelineData - Pipline bind data groups.
    * @param pInstanceCount - Instance count.
+   * @param pInstanceOffset - Instance offset.
    */
-  drawDirect(pPipeline, pParameter, pPipelineData, pInstanceCount = 1, _pInstanceOffset) {
+  drawDirect(pPipeline, pParameter, pPipelineData, pInstanceCount = 1, pInstanceOffset = 0) {
     // Validate same render targets.
     if (this.mRenderTargets !== pPipeline.renderTargets) {
       throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
@@ -4642,21 +4660,64 @@ class RenderPassContext {
         this.mUsedResources.pipelineData.add(pPipelineData);
       }
     }
-    this.setRenderQueue(pPipeline, pParameter, pInstanceCount, pPipelineData);
-  }
-  drawIndirect(_pPipeline, _pParameter, _pPipelineData) {
-    // TODO:
+    // Execute draw.
+    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+      this.executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset);
+    }
   }
   /**
-   * Fill encoder with each render step.
+   * Draw indirect with parameters set in buffer.
    *
-   * @param pEncoder - Render encoder.
+   * @param pPipeline - Pipeline.
+   * @param pParameter - Vertex parameter.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pIndirectBuffer - Buffer with indirect parameter data.
    */
-  setRenderQueue(pPipeline, pParameter, pInstanceCount, pPipelineData) {
+  drawIndirect(pPipeline, pParameter, pPipelineData, pIndirectBuffer) {
+    // Extend usage.
+    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
+    // Validate same render targets.
+    if (this.mRenderTargets !== pPipeline.renderTargets) {
+      throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
+    }
+    // Validate parameter.
+    if (pParameter.layout !== pPipeline.module.vertexParameter) {
+      throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
+    }
+    // Record resource when config is set.
+    if (this.mRecordResources) {
+      // Pipelines.
+      if (!this.mUsedResources.pipelines.has(pPipeline)) {
+        this.mUsedResources.pipelines.add(pPipeline);
+      }
+      // Parameter
+      if (!this.mUsedResources.parameter.has(pParameter)) {
+        this.mUsedResources.parameter.add(pParameter);
+      }
+      // Pipeline data.
+      if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
+        this.mUsedResources.pipelineData.add(pPipelineData);
+      }
+    }
+    // Execute draw.
+    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+      this.executeIndirectDraw(pParameter, pIndirectBuffer);
+    }
+  }
+  /**
+   * Set pipeline and any bind and vertex data.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pParameter  - Pipeline vertex parameter.
+   * @param pPipelineData - Pipeline binding data.
+   *
+   * @returns true when everything has been successfully set.
+   */
+  setupEncoderData(pPipeline, pParameter, pPipelineData) {
     // Skip pipelines that are currently loading.
     const lNativePipeline = pPipeline.native;
     if (lNativePipeline === null) {
-      return;
+      return false;
     }
     // Cache for bind group length of this instruction.
     let lLocalHighestBindGroupListIndex = -1;
@@ -4719,6 +4780,16 @@ class RenderPassContext {
       // Update global bind group list length.
       this.mRenderResourceBuffer.highestVertexParameterIndex = lLocalHighestVertexParameterListIndex;
     }
+    return true;
+  }
+  /**
+   * Execute direct draw call.
+   *
+   * @param pParameter - Vertex parameter.
+   * @param pInstanceCount - Index count.
+   * @param pInstanceOffset - Instance offset.
+   */
+  executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset) {
     // Draw indexed when parameters are indexable.
     if (pParameter.layout.indexable) {
       // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
@@ -4728,12 +4799,41 @@ class RenderPassContext {
         this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
       }
       // Create draw call.
-      this.mEncoder.drawIndexed(pParameter.indexBuffer.length, pInstanceCount);
+      this.mEncoder.drawIndexed(pParameter.indexBuffer.length, pInstanceCount, 0, 0, pInstanceOffset);
     } else {
       // Create draw call.
-      this.mEncoder.draw(pParameter.vertexCount, pInstanceCount);
+      this.mEncoder.draw(pParameter.vertexCount, pInstanceCount, 0, pInstanceOffset);
     }
-    // TODO: Indirect dispatch.
+  }
+  /**
+   * Execute a indirect draw call.
+   * If indexed or normal indirect calls are used is defined by the buffer length.
+   *
+   * @param pParameter - Vertex parameter.
+   * @param pBuffer - Indirect buffer.
+   */
+  executeIndirectDraw(pParameter, pBuffer) {
+    // 4 Byte * 5 => 20 Byte => Indexed draw 
+    // 4 Byte * 4 => 16 Byte => Normal draw 
+    if (pBuffer.size === 20) {
+      // Buffer does not match when parameters are not indexable.
+      if (!pParameter.layout.indexable) {
+        throw new core_1.Exception('Indirect indexed draw call failed, because parameter are not indexable', this);
+      }
+      // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+      if (pParameter.indexBuffer.format === Uint16Array) {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint16');
+      } else {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
+      }
+      // Start indirect indexed call.
+      this.mEncoder.drawIndexedIndirect(pBuffer.native, 0);
+    } else if (pBuffer.size === 16) {
+      // Start indirect call.
+      this.mEncoder.drawIndirect(pBuffer.native, 0);
+    } else {
+      throw new core_1.Exception('Indirect draw calls can only be done with 20 or 16 byte long buffers', this);
+    }
   }
 }
 exports.RenderPassContext = RenderPassContext;
@@ -16548,7 +16648,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("03e8d8fa910b0f9ead4e")
+/******/ 		__webpack_require__.h = () => ("41407c5608fd88c10f4a")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

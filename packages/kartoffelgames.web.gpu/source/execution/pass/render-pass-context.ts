@@ -5,6 +5,7 @@ import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 
 export class RenderPassContext {
     private readonly mEncoder: GPURenderPassEncoder | GPURenderBundleEncoder;
@@ -51,11 +52,12 @@ export class RenderPassContext {
      * Draw direct with set parameter.
      * 
      * @param pPipeline - Pipeline.
-     * @param pParameter - Pipeline parameter.
-     * @param pBindData - Pipline bind data groups.
+     * @param pParameter - Vertex parameter.
+     * @param pPipelineData - Pipline bind data groups.
      * @param pInstanceCount - Instance count.
+     * @param pInstanceOffset - Instance offset. 
      */
-    public drawDirect(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pPipelineData: PipelineData, pInstanceCount: number = 1, _pInstanceOffset?: GPUSize32): void { // TODO: INstanceOffset
+    public drawDirect(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pPipelineData: PipelineData, pInstanceCount: number = 1, pInstanceOffset: number = 0): void {
         // Validate same render targets.
         if (this.mRenderTargets !== pPipeline.renderTargets) {
             throw new Exception('Pipelines render targets not valid for this render pass.', this);
@@ -84,25 +86,72 @@ export class RenderPassContext {
             }
         }
 
-        this.setRenderQueue(pPipeline, pParameter, pInstanceCount, pPipelineData);
+        // Execute draw.
+        if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+            this.executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset);
+        }
     }
-
-    public drawIndirect(_pPipeline: VertexFragmentPipeline, _pParameter: VertexParameter, _pPipelineData: PipelineData): void {
-        // TODO:
-    }
-
-
 
     /**
-     * Fill encoder with each render step.
+     * Draw indirect with parameters set in buffer.
      * 
-     * @param pEncoder - Render encoder.
+     * @param pPipeline - Pipeline.
+     * @param pParameter - Vertex parameter.
+     * @param pPipelineData - Pipline bind data groups.
+     * @param pIndirectBuffer - Buffer with indirect parameter data.
      */
-    private setRenderQueue(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pInstanceCount: number, pPipelineData: PipelineData): void {
+    public drawIndirect(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pPipelineData: PipelineData, pIndirectBuffer: GpuBuffer): void {
+        // Extend usage.
+        pIndirectBuffer.extendUsage(BufferUsage.Indirect);
+
+        // Validate same render targets.
+        if (this.mRenderTargets !== pPipeline.renderTargets) {
+            throw new Exception('Pipelines render targets not valid for this render pass.', this);
+        }
+
+        // Validate parameter.
+        if (pParameter.layout !== pPipeline.module.vertexParameter) {
+            throw new Exception('Vertex parameter not valid for set pipeline.', this);
+        }
+
+        // Record resource when config is set.
+        if (this.mRecordResources) {
+            // Pipelines.
+            if (!this.mUsedResources.pipelines.has(pPipeline)) {
+                this.mUsedResources.pipelines.add(pPipeline);
+            }
+
+            // Parameter
+            if (!this.mUsedResources.parameter.has(pParameter)) {
+                this.mUsedResources.parameter.add(pParameter);
+            }
+
+            // Pipeline data.
+            if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
+                this.mUsedResources.pipelineData.add(pPipelineData);
+            }
+        }
+
+        // Execute draw.
+        if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+            this.executeIndirectDraw(pParameter, pIndirectBuffer);
+        }
+    }
+
+    /**
+     * Set pipeline and any bind and vertex data.
+     * 
+     * @param pPipeline - Pipeline.
+     * @param pParameter  - Pipeline vertex parameter.
+     * @param pPipelineData - Pipeline binding data.
+     * 
+     * @returns true when everything has been successfully set. 
+     */
+    public setupEncoderData(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pPipelineData: PipelineData): boolean {
         // Skip pipelines that are currently loading.
         const lNativePipeline: GPURenderPipeline | null = pPipeline.native;
         if (lNativePipeline === null) {
-            return;
+            return false;
         }
 
         // Cache for bind group length of this instruction.
@@ -181,6 +230,17 @@ export class RenderPassContext {
             this.mRenderResourceBuffer.highestVertexParameterIndex = lLocalHighestVertexParameterListIndex;
         }
 
+        return true;
+    }
+
+    /**
+     * Execute direct draw call.
+     * 
+     * @param pParameter - Vertex parameter.
+     * @param pInstanceCount - Index count.
+     * @param pInstanceOffset - Instance offset. 
+     */
+    private executeDirectDraw(pParameter: VertexParameter, pInstanceCount: number, pInstanceOffset: number): void {
         // Draw indexed when parameters are indexable.
         if (pParameter.layout.indexable) {
             // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
@@ -191,13 +251,44 @@ export class RenderPassContext {
             }
 
             // Create draw call.
-            this.mEncoder.drawIndexed(pParameter.indexBuffer!.length, pInstanceCount);
+            this.mEncoder.drawIndexed(pParameter.indexBuffer!.length, pInstanceCount, 0, 0, pInstanceOffset);
         } else {
             // Create draw call.
-            this.mEncoder.draw(pParameter.vertexCount, pInstanceCount);
+            this.mEncoder.draw(pParameter.vertexCount, pInstanceCount, 0, pInstanceOffset);
         }
+    }
 
-        // TODO: Indirect dispatch.
+    /**
+     * Execute a indirect draw call.
+     * If indexed or normal indirect calls are used is defined by the buffer length.
+     * 
+     * @param pParameter - Vertex parameter.
+     * @param pBuffer - Indirect buffer.
+     */
+    private executeIndirectDraw(pParameter: VertexParameter, pBuffer: GpuBuffer): void {
+        // 4 Byte * 5 => 20 Byte => Indexed draw 
+        // 4 Byte * 4 => 16 Byte => Normal draw 
+        if (pBuffer.size === 20) {
+            // Buffer does not match when parameters are not indexable.
+            if (!pParameter.layout.indexable) {
+                throw new Exception('Indirect indexed draw call failed, because parameter are not indexable', this);
+            }
+
+            // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+            if (pParameter.indexBuffer!.format === Uint16Array) {
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint16');
+            } else {
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint32');
+            }
+
+            // Start indirect indexed call.
+            this.mEncoder.drawIndexedIndirect(pBuffer.native, 0);
+        } else if (pBuffer.size === 16) {
+            // Start indirect call.
+            this.mEncoder.drawIndirect(pBuffer.native, 0);
+        } else {
+            throw new Exception('Indirect draw calls can only be done with 20 or 16 byte long buffers', this);
+        }
     }
 }
 type RenderPassContextUsedResource = {

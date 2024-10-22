@@ -35,7 +35,14 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         this.mBindLayout = pLayout;
     }
 
-    public asBufferView<T extends TypedArray>(pType: GpuBufferViewFormat<T>): GpuBufferView<T> {
+    /**
+     * Create a view with the attached buffer and binding layout. 
+     * 
+     * @param pValueType - Number item type of view.
+     * 
+     * @returns view of buffer from bind group layout.
+     */
+    public asBufferView<T extends TypedArray>(pValueType: GpuBufferViewFormat<T>): GpuBufferView<T> {
         const lData: GpuResourceObject = this.getRaw();
         if (!(lData instanceof GpuBuffer)) {
             throw new Exception('Bind data can not be converted into a buffer view.', this);
@@ -45,7 +52,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         const lBufferLayout: BaseBufferMemoryLayout = this.mBindLayout.layout as BaseBufferMemoryLayout;
 
         // Create view.
-        return new GpuBufferView<T>(lData, lBufferLayout, pType);
+        return new GpuBufferView<T>(lData, lBufferLayout, pValueType);
     }
 
     /**

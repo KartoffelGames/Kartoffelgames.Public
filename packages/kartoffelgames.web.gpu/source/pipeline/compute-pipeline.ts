@@ -4,6 +4,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
+import { PipelineLayout } from '../binding/pipeline-layout';
 
 export class ComputePipeline extends GpuObject<GPUComputePipeline | null, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline | null> {
     private mLoadedPipeline: GPUComputePipeline | null;
@@ -11,12 +12,19 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline | null, Comput
     private readonly mShaderModule: ShaderComputeModule;
 
     /**
+     * Pipeline layout.
+     */
+    public get layout(): PipelineLayout {
+        return this.mShaderModule.shader.layout;
+    }
+
+    /**
      * Pipeline shader.
      */
     public get module(): ShaderComputeModule {
         return this.mShaderModule;
     }
-
+    
     /**
      * Native gpu object.
      */

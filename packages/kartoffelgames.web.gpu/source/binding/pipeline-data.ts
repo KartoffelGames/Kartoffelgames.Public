@@ -7,12 +7,20 @@ import { GpuDevice } from '../gpu/gpu-device';
 export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> {
     private readonly mBindData: Array<BindGroup>;
     private readonly mInvalidationListener: () => void;
+    private readonly mLayout: PipelineLayout;
 
     /**
      * Orderes pipeline data.
      */
     public get data(): Array<BindGroup> {
         return this.mBindData;
+    }
+
+    /**
+     * Pipline layout of data.
+     */
+    public get layout(): PipelineLayout {
+        return this.mLayout;
     }
 
     /**
@@ -23,6 +31,9 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> 
      */
     public constructor(pDevice: GpuDevice, pPipelineLayout: PipelineLayout, pBindData: Array<BindGroup>) {
         super(pDevice);
+
+        // Set pipeline layout.
+        this.mLayout = pPipelineLayout;
 
         // Invalidate pipeline data when any data has changed.
         this.mInvalidationListener = () => {

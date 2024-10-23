@@ -68,6 +68,11 @@ export class RenderPassContext {
             throw new Exception('Vertex parameter not valid for set pipeline.', this);
         }
 
+        // Validate pipeline data matches pipeline layout of pipeline.
+        if (pPipeline.layout !== pPipelineData.layout) {
+            throw new Exception('Pipline data not valid for set pipeline.', this);
+        }
+
         // Record resource when config is set.
         if (this.mRecordResources) {
             // Pipelines.
@@ -112,6 +117,11 @@ export class RenderPassContext {
         // Validate parameter.
         if (pParameter.layout !== pPipeline.module.vertexParameter) {
             throw new Exception('Vertex parameter not valid for set pipeline.', this);
+        }
+
+        // Validate pipeline data matches pipeline layout of pipeline.
+        if (pPipeline.layout !== pPipelineData.layout) {
+            throw new Exception('Pipline data not valid for set pipeline.', this);
         }
 
         // Record resource when config is set.

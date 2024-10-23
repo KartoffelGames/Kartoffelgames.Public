@@ -2904,6 +2904,12 @@ class PipelineData extends gpu_object_1.GpuObject {
     return this.mBindData;
   }
   /**
+   * Pipline layout of data.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
    * Constructor.
    *
    * @param pPipelineLayout - Pipeline data.
@@ -2911,6 +2917,8 @@ class PipelineData extends gpu_object_1.GpuObject {
    */
   constructor(pDevice, pPipelineLayout, pBindData) {
     super(pDevice);
+    // Set pipeline layout.
+    this.mLayout = pPipelineLayout;
     // Invalidate pipeline data when any data has changed.
     this.mInvalidationListener = () => {
       this.invalidate(PipelineDataInvalidationType.Data);
@@ -4366,6 +4374,135 @@ exports.GpuExecution = GpuExecution;
 
 /***/ }),
 
+/***/ "./source/execution/pass/compute-pass-context.ts":
+/*!*******************************************************!*\
+  !*** ./source/execution/pass/compute-pass-context.ts ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ComputePassContext = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+class ComputePassContext {
+  /**
+   * Constructor.
+   *
+   * @param pEncoder - Encoder.
+   */
+  constructor(pEncoder) {
+    this.mEncoder = pEncoder;
+    this.mRenderResourceBuffer = {
+      pipeline: null,
+      bindGroupList: new Array(),
+      highestBindGroupListIndex: -1
+    };
+  }
+  /**
+   * Compute direct with set parameter.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pX - Workgroup x dimension.
+   * @param pY - Workgroup y dimension.
+   * @param pZ - Workgroup z dimension.
+   */
+  computeDirect(pPipeline, pPipelineData, pX = 1, pY = 1, pZ = 1) {
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Execute compute.
+    if (this.setupEncoderData(pPipeline, pPipelineData)) {
+      this.mEncoder.dispatchWorkgroups(pX, pY, pZ);
+    }
+  }
+  /**
+   * Compute indirect with parameters set in buffer.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pIndirectBuffer - Buffer with indirect parameter data.
+   */
+  computeIndirect(pPipeline, pPipelineData, pIndirectBuffer) {
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Extend usage.
+    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
+    // Execute compute.
+    if (this.setupEncoderData(pPipeline, pPipelineData)) {
+      // Validate buffer length
+      // 4 Byte * 3 => 12 Byte => Indexed draw 
+      if (pIndirectBuffer.size === 20) {
+        // Start indirect call.
+        this.mEncoder.dispatchWorkgroupsIndirect(pIndirectBuffer.native, 0);
+      } else {
+        throw new core_1.Exception('Indirect compute calls can only be done with 20 or 16 byte long buffers', this);
+      }
+    }
+  }
+  /**
+   * Set pipeline and any bind data.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipeline binding data.
+   *
+   * @returns true when everything has been successfully set.
+   */
+  setupEncoderData(pPipeline, pPipelineData) {
+    // Skip pipelines that are currently loading.
+    const lNativePipeline = pPipeline.native;
+    if (lNativePipeline === null) {
+      return false;
+    }
+    // Cache for bind group length of this instruction.
+    let lLocalHighestBindGroupListIndex = -1;
+    // Add bind groups.
+    const lBindGroupList = pPipelineData.data;
+    for (let lBindGroupIndex = 0; lBindGroupIndex < lBindGroupList.length; lBindGroupIndex++) {
+      const lNewBindGroup = lBindGroupList[lBindGroupIndex];
+      const lCurrentBindGroup = this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex];
+      // Extend group list length.
+      if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+        lLocalHighestBindGroupListIndex = lBindGroupIndex;
+      }
+      // Use cached bind group or use new.
+      if (lNewBindGroup !== lCurrentBindGroup) {
+        // Set bind group buffer to cache current set bind groups.
+        this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
+        // Set bind group to gpu.
+        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+      }
+    }
+    // Use cached pipeline or use new.
+    if (pPipeline !== this.mRenderResourceBuffer.pipeline) {
+      this.mRenderResourceBuffer.pipeline = pPipeline;
+      // Generate and set new pipeline.
+      this.mEncoder.setPipeline(lNativePipeline);
+      // Only clear bind buffer when a new pipeline is set.
+      // Same pipelines must have set the same bind group layouts.
+      if (this.mRenderResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mRenderResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, null);
+        }
+      }
+      // Update global bind group list length.
+      this.mRenderResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+    }
+    return true;
+  }
+}
+exports.ComputePassContext = ComputePassContext;
+
+/***/ }),
+
 /***/ "./source/execution/pass/compute-pass.ts":
 /*!***********************************************!*\
   !*** ./source/execution/pass/compute-pass.ts ***!
@@ -4381,61 +4518,20 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ComputePass = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
 const gpu_feature_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const compute_pass_context_1 = __webpack_require__(/*! ./compute-pass-context */ "./source/execution/pass/compute-pass-context.ts");
 class ComputePass extends gpu_object_1.GpuObject {
   /**
    * Constructor.
    * @param pDevice - Device reference.
    */
-  constructor(pDevice) {
+  constructor(pDevice, pExecution) {
     super(pDevice);
+    this.mExecutionFunction = pExecution;
     this.mQueries = {};
-    this.mInstructionList = new Array();
-  }
-  /**
-   * Add instruction step.
-   * @param pPipeline - Pipeline.
-   * @param pBindData -  Pipeline bind data.
-   */
-  addStep(pPipeline, pWorkGroupSizes, pBindData) {
-    const lStep = {
-      id: Symbol('ComuteStep'),
-      pipeline: pPipeline,
-      bindData: new Array(),
-      workGroupSizes: pWorkGroupSizes
-    };
-    // TODO: Enforce maxComputeInvocationsPerWorkgroup
-    // Write bind groups into searchable structure.
-    const lBindGroups = new core_1.Dictionary();
-    for (const lBindGroup of pBindData) {
-      // Only distinct bind group names.
-      if (lBindGroups.has(lBindGroup.layout.name)) {
-        throw new core_1.Exception(`Bind group "${lBindGroup.layout.name}" was added multiple times to render pass step.`, this);
-      }
-      // Add bind group by name.
-      lBindGroups.set(lBindGroup.layout.name, lBindGroup);
-    }
-    // Fill in data groups.
-    const lPipelineLayout = pPipeline.module.shader.layout;
-    for (const lGroupName of lPipelineLayout.groups) {
-      // Get and validate existence of set bind group.
-      const lBindDataGroup = lBindGroups.get(lGroupName);
-      if (!lBindDataGroup) {
-        throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
-      }
-      // Validate same layout bind layout.
-      const lBindGroupLayout = lPipelineLayout.getGroupLayout(lGroupName);
-      if (lBindDataGroup.layout !== lBindGroupLayout) {
-        throw new core_1.Exception('Source bind group layout does not match target layout.', this);
-      }
-      lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;
-    }
-    this.mInstructionList.push(lStep);
-    return lStep.id;
   }
   /**
    * Execute steps in a row.
@@ -4449,57 +4545,9 @@ class ComputePass extends gpu_object_1.GpuObject {
     }
     // Pass descriptor is set, when the pipeline ist set.
     const lComputePassEncoder = pExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
-    // Instruction cache.
-    let lPipeline = null;
-    // Buffer for current set bind groups.
-    const lBindGroupList = new Array();
-    let lHighestBindGroupListIndex = -1;
-    // Execute instructions.
-    for (const lInstruction of this.mInstructionList) {
-      // Skip pipelines that are currently loading.
-      const lNativePipeline = lInstruction.pipeline.native;
-      if (lNativePipeline === null) {
-        continue;
-      }
-      // Cache for bind group length of this instruction.
-      let lLocalHighestBindGroupListIndex = -1;
-      // Add bind groups.
-      const lPipelineLayout = lInstruction.pipeline.module.shader.layout;
-      for (const lBindGroupName of lPipelineLayout.groups) {
-        const lBindGroupIndex = lPipelineLayout.groupIndex(lBindGroupName);
-        const lNewBindGroup = lInstruction.bindData[lBindGroupIndex];
-        const lCurrentBindGroup = lBindGroupList[lBindGroupIndex];
-        // Extend group list length.
-        if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
-          lLocalHighestBindGroupListIndex = lBindGroupIndex;
-        }
-        // Use cached bind group or use new.
-        if (lNewBindGroup !== lCurrentBindGroup) {
-          // Set bind group buffer to cache current set bind groups.
-          lBindGroupList[lBindGroupIndex] = lNewBindGroup;
-          // Set bind group to gpu.
-          lComputePassEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
-        }
-      }
-      // Use cached pipeline or use new.
-      if (lInstruction.pipeline !== lPipeline) {
-        lPipeline = lInstruction.pipeline;
-        // Generate and set new pipeline.
-        lComputePassEncoder.setPipeline(lNativePipeline);
-        // Only clear bind buffer when a new pipeline is set.
-        // Same pipelines must have set the same bind group layouts.
-        if (lHighestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
-          for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < lHighestBindGroupListIndex + 1; lBindGroupIndex++) {
-            lComputePassEncoder.setBindGroup(lBindGroupIndex, null);
-          }
-        }
-        // Update global bind group list length.
-        lHighestBindGroupListIndex = lLocalHighestBindGroupListIndex;
-      }
-      // Start compute groups.
-      lComputePassEncoder.dispatchWorkgroups(...lInstruction.workGroupSizes);
-      // TODO: Indirect dispatch.
-    }
+    // Direct execute function.
+    this.mExecutionFunction(new compute_pass_context_1.ComputePassContext(lComputePassEncoder));
+    // End compute pass.
     lComputePassEncoder.end();
     // Resolve query.
     if (this.mQueries.timestamp) {
@@ -4554,25 +4602,6 @@ class ComputePass extends gpu_object_1.GpuObject {
       });
       return _this.mQueries.timestamp.resolver;
     })();
-  }
-  /**
-   * Remove instruction from instruction list.
-   *
-   * @param pInstructionId - Instruction id.
-   *
-   * @returns true when instruction was removed, false when it was not found.
-   */
-  removeStep(pInstructionId) {
-    // Find instruction index.
-    const lInstructionIndex = this.mInstructionList.findIndex(pInstruction => {
-      return pInstruction.id === pInstructionId;
-    });
-    // Remove instruction by index.
-    if (lInstructionIndex !== -1) {
-      this.mInstructionList.splice(lInstructionIndex, 1);
-      return true;
-    }
-    return false;
   }
 }
 exports.ComputePass = ComputePass;
@@ -4645,6 +4674,10 @@ class RenderPassContext {
     if (pParameter.layout !== pPipeline.module.vertexParameter) {
       throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
     }
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
     // Record resource when config is set.
     if (this.mRecordResources) {
       // Pipelines.
@@ -4683,6 +4716,10 @@ class RenderPassContext {
     // Validate parameter.
     if (pParameter.layout !== pPipeline.module.vertexParameter) {
       throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
+    }
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
     }
     // Record resource when config is set.
     if (this.mRecordResources) {
@@ -5376,8 +5413,8 @@ class GpuDevice {
    *
    * @returns new compute pass.
    */
-  computePass() {
-    return new compute_pass_1.ComputePass(this);
+  computePass(pExecution) {
+    return new compute_pass_1.ComputePass(this, pExecution);
   }
   /**
    * Create pass executor.
@@ -6790,6 +6827,12 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 class ComputePipeline extends gpu_object_1.GpuObject {
+  /**
+   * Pipeline layout.
+   */
+  get layout() {
+    return this.mShaderModule.shader.layout;
+  }
   /**
    * Pipeline shader.
    */
@@ -16648,7 +16691,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("41407c5608fd88c10f4a")
+/******/ 		__webpack_require__.h = () => ("0ed907dd42709c9ef55c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

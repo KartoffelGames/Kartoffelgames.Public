@@ -1,6 +1,6 @@
 import { Dictionary, Exception, List } from '@kartoffelgames/core';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
-import { ComputePass } from '../execution/pass/compute-pass';
+import { ComputePass, ComputePassExecutionFunction } from '../execution/pass/compute-pass';
 import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
@@ -123,8 +123,8 @@ export class GpuDevice {
      *
      * @returns new compute pass. 
      */
-    public computePass(): ComputePass {
-        return new ComputePass(this);
+    public computePass(pExecution: ComputePassExecutionFunction): ComputePass {
+        return new ComputePass(this, pExecution);
     }
 
     /**

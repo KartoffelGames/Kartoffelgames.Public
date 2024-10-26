@@ -1512,7 +1512,6 @@ const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../source/constan
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
 const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
@@ -1537,9 +1536,9 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
@@ -1665,9 +1664,9 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lWoodBoxUserGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
   const lMesh = lWoodBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
-  lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
-  lMesh.set('uv', cube_mesh_1.CubeVertexUvData);
-  lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
+  lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
+  lMesh.create('uv', cube_mesh_1.CubeVertexUvData);
+  lMesh.create('normal', cube_mesh_1.CubeVertexNormalData);
   // Create pipeline.
   const lWoodBoxPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lWoodBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
@@ -1687,9 +1686,9 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lLightBoxShader = pGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
@@ -1712,9 +1711,9 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Generate render parameter from parameter layout.
   const lMesh = lLightBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
-  lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
-  lMesh.set('uv', cube_mesh_1.CubeVertexUvData);
-  lMesh.set('normal', cube_mesh_1.CubeVertexNormalData);
+  lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
+  lMesh.create('uv', cube_mesh_1.CubeVertexUvData);
+  lMesh.create('normal', cube_mesh_1.CubeVertexNormalData);
   // Create buffer view for pointlights.
   const lPointLightsBuffer = pWorldGroup.data('pointLights').asBufferView(Float32Array);
   return {
@@ -1728,7 +1727,7 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lSkyBoxShader = pGpu.shader(sky_box_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
@@ -1784,7 +1783,7 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lSkyBoxTextureGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
   const lMesh = lSkyBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
-  lMesh.set('position', cube_mesh_1.CubeVertexPositionData);
+  lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
   const lSkyBoxPipeline = lSkyBoxRenderModule.create(pRenderTargets);
   lSkyBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
   lSkyBoxPipeline.depthCompare = compare_function_enum_1.CompareFunction.Allways;
@@ -1801,9 +1800,9 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lWoodBoxShader = pGpu.shader(video_canvas_shader_wgsl_1.default).setup(pShaderSetup => {
     // Vertex entry.
     pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
-      pVertexParameterSetup.buffer('position', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
-      pVertexParameterSetup.buffer('uv', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
-      pVertexParameterSetup.buffer('normal', vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32, vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('position', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('uv', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('uv', 1, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+      pVertexParameterSetup.buffer('normal', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 2, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
@@ -1827,7 +1826,7 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lWoodBoxTransform = new transform_1.Transform();
   lWoodBoxTransform.setScale(15, 8.4, 0);
   lWoodBoxTransform.addTranslation(-0.5, -0.5, 100);
-  lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+  lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray).buffer);
   /*
    * User defined group.
    */
@@ -1863,9 +1862,9 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lUserGroup.data('videoTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
   const lMesh = lWoodBoxRenderModule.vertexParameter.create(canvas_mesh_1.CanvasVertexIndices);
-  lMesh.set('position', canvas_mesh_1.CanvasVertexPositionData);
-  lMesh.set('uv', canvas_mesh_1.CanvasVertexUvData);
-  lMesh.set('normal', canvas_mesh_1.CanvasVertexNormalData);
+  lMesh.create('position', canvas_mesh_1.CanvasVertexPositionData);
+  lMesh.create('uv', canvas_mesh_1.CanvasVertexUvData);
+  lMesh.create('normal', canvas_mesh_1.CanvasVertexNormalData);
   // Create pipeline.
   const lPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
@@ -2266,15 +2265,15 @@ Object.defineProperty(exports, "__esModule", ({
 exports.BindGroupDataSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const gpu_buffer_view_1 = __webpack_require__(/*! ../buffer/gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
 const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const gpu_buffer_view_1 = __webpack_require__(/*! ../buffer/gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
+const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2324,7 +2323,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
         throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
       }
       // Get initial buffer data byte length.
-      const lBufferByteLength = pDataOrType.length * pDataOrType.BYTES_PER_ELEMENT;
+      const lBufferByteLength = pDataOrType.byteLength;
       // calculate item count and check if initial data meets requirments.
       const lItemCount = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
       if (lItemCount % 1 > 0) {
@@ -2453,13 +2452,13 @@ Object.defineProperty(exports, "__esModule", ({
 exports.BindGroupLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
 const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/binding/setup/bind-group-layout-setup.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Bind group layout. Fixed at creation.
  */
@@ -2663,6 +2662,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       if (!lBinding.layout) {
         throw new core_1.Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
       }
+      // Layout validation for 32bit formats are in setup.
       // Shallow copy binding.
       this.mBindings.set(lBinding.name, {
         name: lBinding.name,
@@ -3117,11 +3117,24 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutArrayMemoryLayoutSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pAlignmentType - Buffers alignment type.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
   /**
    * Inner type as array.
    *
@@ -3130,7 +3143,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
    * @returns array setup.
    */
   withArray(pSize = -1) {
-    return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
+    return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
         innerType: pMemoryLayout
@@ -3145,7 +3158,12 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
    * @param pPrimitiveMultiplier - Value multiplier.
    */
   withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
+    // Validate for 32bit formats.
+    if (pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Float32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Uint32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Sint32) {
+      throw new core_1.Exception('Uniform layout must be a 32bit format.', this);
+    }
     const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+      alignmentType: this.mAlignmentType,
       primitiveFormat: pPrimitiveFormat,
       primitiveMultiplier: pPrimitiveMultiplier
     });
@@ -3159,7 +3177,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
    */
   withStruct(pSetupCall) {
     // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
     lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
@@ -3182,54 +3200,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutMemoryLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const bind_group_layout_array_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-array-memory-layout-setup */ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts");
-class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pUsage - Buffer usage.
-   * @param pSetupReference - Setup references.
-   * @param pDataCallback - Data callback.
-   */
-  constructor(pSetupReference, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-  }
-  /**
-   * Buffer as array.
-   *
-   * @param pSize - Optional. Set size fixed.
-   *
-   * @returns array setup.
-   */
-  withArray(pSize = -1) {
-    return new bind_group_layout_array_memory_layout_setup_1.BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
-      const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-        arraySize: pSize,
-        innerType: pMemoryLayout
-      });
-      this.sendData(lLayout);
-    });
-  }
-  /**
-   * Memory layout as primitive.
-   *
-   * @param pPrimitiveFormat - Primitive format.
-   * @param pPrimitiveMultiplier - Value multiplier.
-   */
-  withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
-    const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-      primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier
-    });
-    // Send created data.
-    this.sendData(lLayout);
-  }
+class BindGroupLayoutMemoryLayoutSetup extends bind_group_layout_array_memory_layout_setup_1.BindGroupLayoutArrayMemoryLayoutSetup {
   /**
    * Memory layout as sampler.
    *
@@ -3237,18 +3211,6 @@ class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    */
   withSampler(pSamplerType) {
     const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, pSamplerType);
-    // Send created data.
-    this.sendData(lLayout);
-  }
-  /**
-   * Memory layout as struct
-   *
-   * @param pSetupCall - Struct setup call.
-   */
-  withStruct(pSetupCall) {
-    // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
-    lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
   }
@@ -3286,6 +3248,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutSetup = void 0;
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
 const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/binding/setup/bind-group-layout-memory-layout-setup.ts");
@@ -3312,8 +3275,10 @@ class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
     };
     // Set layout.
     this.setupData.bindings.push(lBind);
+    // Aligment type of memory layout. When it is not a storage buffer then is is a uniform buffer.
+    const lAlignmentType = lBind.storageType === storage_binding_type_enum_1.StorageBindingType.None ? buffer_alignment_type_enum_1.BufferAlignmentType.Uniform : buffer_alignment_type_enum_1.BufferAlignmentType.Storage;
     // Create layout memory layout.
-    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, pMemoryLayout => {
+    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, pMemoryLayout => {
       lBind.layout = pMemoryLayout;
     });
   }
@@ -3377,6 +3342,8 @@ class GpuBufferView {
     this.mLayout = pLayout;
     this.mBuffer = pBuffer;
     this.mTypedArrayConstructor = pType;
+    // TODO: Only on fixed layouts: Check how often the layout fits into the buffer and safe the calculated available offsets.
+    // TODO: Add offset counts to read and write.
   }
   /**
    * Read buffer on layout location.
@@ -3403,7 +3370,7 @@ class GpuBufferView {
       // Add data into a data buffer.
       const lDataBuffer = new _this2.mTypedArrayConstructor(pData);
       // Skip new promise creation by returning original promise.
-      return _this2.mBuffer.write(lDataBuffer, lLocation.offset);
+      return _this2.mBuffer.write(lDataBuffer.buffer, lLocation.offset);
     })();
   }
 }
@@ -3467,6 +3434,8 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     super(pDevice);
     // Calculate size. // TODO: Allow buffer resize.
     this.mByteSize = pByteCount + 3 & ~3;
+    // TODO: Allways add copy source/destination and copy over information on rebuild. 
+    // TODO: Work with dataviews and set data with loops.
     // Read and write buffers.
     this.mWriteBuffer = {
       limitation: Number.MAX_SAFE_INTEGER,
@@ -3483,6 +3452,10 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    * @param pDataCallback - Data callback.
    */
   initialData(pDataCallback) {
+    // Initial is inital.
+    if (this.mInitialDataCallback) {
+      throw new core_1.Exception('Initial callback can only be set once.', this);
+    }
     // Set new initial data, set on creation.
     this.mInitialDataCallback = pDataCallback;
     // Trigger update.
@@ -3569,19 +3542,24 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
         // Pop as long as staging buffer is not destroyed or could not be found.
         lStagingBuffer = _this2.mWriteBuffer.ready.pop();
       }
+      // Convert views into array buffers.
+      let lDataArrayBuffer = pData;
+      if (ArrayBuffer.isView(lDataArrayBuffer)) {
+        lDataArrayBuffer = lDataArrayBuffer.buffer;
+      }
       // Get byte length and offset of data to write.
-      const lDataByteLength = pData.byteLength;
+      const lDataByteLength = lDataArrayBuffer.byteLength;
       const lOffset = pOffset ?? 0;
       // When no staging buffer is available, use the slow native.
       if (!lStagingBuffer) {
         // Write data into mapped range.
-        _this2.device.gpu.queue.writeBuffer(lNative, lOffset, pData, 0, lDataByteLength);
+        _this2.device.gpu.queue.writeBuffer(lNative, lOffset, lDataArrayBuffer, 0, lDataByteLength);
         return;
       }
       // Execute write operations on waving buffer.
       const lMappedBuffer = lStagingBuffer.getMappedRange(lOffset, lDataByteLength);
       // Set data to mapped buffer. Use the smallest available byte view (1 byte).
-      new pData.constructor(lMappedBuffer).set(pData);
+      new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
       // Unmap for copying data.
       lStagingBuffer.unmap();
       // Copy buffer data from staging into wavig buffer.
@@ -3635,14 +3613,19 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     });
     // Write data. Is completly async.
     if (lInitalData) {
+      // Convert views into array buffers.
+      let lDataArrayBuffer = lInitalData;
+      if (ArrayBuffer.isView(lDataArrayBuffer)) {
+        lDataArrayBuffer = lDataArrayBuffer.buffer;
+      }
       // Write initial data.
       const lMappedBuffer = lBuffer.getMappedRange();
       // Validate buffer and initial data length.
-      if (lMappedBuffer.byteLength !== lInitalData.byteLength) {
-        throw new core_1.Exception(`Initial buffer data (byte-length: ${lInitalData.byteLength}) does not fit into buffer (length: ${lMappedBuffer.byteLength}). `, this);
+      if (lMappedBuffer.byteLength !== lDataArrayBuffer.byteLength) {
+        throw new core_1.Exception(`Initial buffer data (byte-length: ${lDataArrayBuffer.byteLength}) does not fit into buffer (length: ${lMappedBuffer.byteLength}). `, this);
       }
       // Set data to buffer. Use the smallest available byte view (1 byte).
-      new lInitalData.constructor(lMappedBuffer).set(lInitalData);
+      new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
       // Unmap buffer.
       lBuffer.unmap();
     }
@@ -3650,6 +3633,28 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
   }
 }
 exports.GpuBuffer = GpuBuffer;
+
+/***/ }),
+
+/***/ "./source/constant/buffer-alignment-type.enum.ts":
+/*!*******************************************************!*\
+  !*** ./source/constant/buffer-alignment-type.enum.ts ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BufferAlignmentType = void 0;
+var BufferAlignmentType;
+(function (BufferAlignmentType) {
+  BufferAlignmentType[BufferAlignmentType["Packed"] = 1] = "Packed";
+  BufferAlignmentType[BufferAlignmentType["Uniform"] = 2] = "Uniform";
+  BufferAlignmentType[BufferAlignmentType["Storage"] = 3] = "Storage";
+})(BufferAlignmentType || (exports.BufferAlignmentType = BufferAlignmentType = {}));
 
 /***/ }),
 
@@ -3671,6 +3676,16 @@ var BufferItemFormat;
   BufferItemFormat["Float32"] = "float32";
   BufferItemFormat["Uint32"] = "uint32";
   BufferItemFormat["Sint32"] = "sint32";
+  // Extended vertex formats.
+  BufferItemFormat["Float16"] = "float16";
+  BufferItemFormat["Uint8"] = "uint8";
+  BufferItemFormat["Sint8"] = "sint8";
+  BufferItemFormat["Uint16"] = "uint16";
+  BufferItemFormat["Sint16"] = "sint16";
+  BufferItemFormat["Unorm16"] = "unorm16";
+  BufferItemFormat["Snorm16"] = "snorm16";
+  BufferItemFormat["Unorm8"] = "unorm8";
+  BufferItemFormat["Snorm8"] = "snorm8";
 })(BufferItemFormat || (exports.BufferItemFormat = BufferItemFormat = {}));
 
 /***/ }),
@@ -4251,37 +4266,6 @@ var TextureViewDimension;
   TextureViewDimension["CubeArray"] = "cube-array";
   TextureViewDimension["ThreeDimension"] = "3d";
 })(TextureViewDimension || (exports.TextureViewDimension = TextureViewDimension = {}));
-
-/***/ }),
-
-/***/ "./source/constant/vertex-buffer-item-format.enum.ts":
-/*!***********************************************************!*\
-  !*** ./source/constant/vertex-buffer-item-format.enum.ts ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexBufferItemFormat = void 0;
-var VertexBufferItemFormat;
-(function (VertexBufferItemFormat) {
-  VertexBufferItemFormat["Float16"] = "float16";
-  VertexBufferItemFormat["Float32"] = "float32";
-  VertexBufferItemFormat["Uint32"] = "uint32";
-  VertexBufferItemFormat["Sint32"] = "sint32";
-  VertexBufferItemFormat["Uint8"] = "uint8";
-  VertexBufferItemFormat["Sint8"] = "sint8";
-  VertexBufferItemFormat["Uint16"] = "uint16";
-  VertexBufferItemFormat["Sint16"] = "sint16";
-  VertexBufferItemFormat["Unorm16"] = "unorm16";
-  VertexBufferItemFormat["Snorm16"] = "snorm16";
-  VertexBufferItemFormat["Unorm8"] = "unorm8";
-  VertexBufferItemFormat["Snorm8"] = "snorm8";
-})(VertexBufferItemFormat || (exports.VertexBufferItemFormat = VertexBufferItemFormat = {}));
 
 /***/ }),
 
@@ -6049,12 +6033,13 @@ Object.defineProperty(exports, "__esModule", ({
 exports.ArrayBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
-   * Alignment of type.
+   * Type byte alignment.
    */
   get alignment() {
-    return this.innerType.alignment;
+    return this.mAlignment;
   }
   /**
    * Array item count.
@@ -6069,7 +6054,7 @@ class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemo
     if (this.arraySize < 1) {
       return 0;
     }
-    return this.arraySize * (Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment);
+    return this.arraySize * Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
   }
   /**
    * Array type.
@@ -6093,10 +6078,28 @@ class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemo
    * @param pParameter - Parameter.
    */
   constructor(pDevice, pParameter) {
-    super(pDevice);
+    super(pDevice, pParameter.innerType.alignmentType);
     // Static properties.
     this.mArraySize = pParameter.arraySize;
     this.mInnerType = pParameter.innerType;
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (pParameter.innerType.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+          {
+            return pParameter.innerType.alignment;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            // For uniforms, arrays buffers are aligned by 16 byte
+            return Math.ceil(pParameter.innerType.alignment / 16) * 16;
+          }
+      }
+    })();
     if (this.mInnerType.variableSize > 0) {
       throw new core_1.Exception(`Array memory layout must be of fixed size.`, this);
     }
@@ -6110,9 +6113,9 @@ class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemo
     // Complete array.
     const lItemIndexString = lPathName.shift();
     if (!lItemIndexString) {
-      // Only valid for ststic arrays.
+      // Only valid for static arrays.
       if (this.variableSize > 0) {
-        throw new core_1.Exception('No size can be calculated for dynamic array buffer locations.', this);
+        throw new core_1.Exception('Getting the offset and size location for dynamic arrays is not supported.', this);
       }
       return {
         size: this.fixedSize,
@@ -6161,12 +6164,19 @@ exports.BaseBufferMemoryLayout = void 0;
 const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
 class BaseBufferMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
   /**
+   * Buffer value alignment type.
+   */
+  get alignmentType() {
+    return this.mAlignmentType;
+  }
+  /**
    * Constructor.
    *
    * @param pDevice - Device reference.
    */
-  constructor(pDevice) {
+  constructor(pDevice, pAlignmentType) {
     super(pDevice);
+    this.mAlignmentType = pAlignmentType;
   }
 }
 exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
@@ -6187,10 +6197,109 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PrimitiveBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
+  /**
+   * Get item count for multiplier type.
+   *
+   * @param pMultiplier - Multiplier type.
+   *
+   * @returns item count of multiplier.
+   */
+  static itemCountOfMultiplier(pMultiplier) {
+    switch (pMultiplier) {
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
+        {
+          return 1;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
+        {
+          return 2;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
+        {
+          return 3;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
+        {
+          return 4;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
+        {
+          return 4;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
+        {
+          return 6;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
+        {
+          return 8;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
+        {
+          return 6;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
+        {
+          return 9;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
+        {
+          return 12;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
+        {
+          return 8;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
+        {
+          return 0;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
+        {
+          return 16;
+        }
+    }
+  }
+  /**
+   * Get byte count of item format.
+   *
+   * @param pItemFormat - Item format.
+   *
+   * @returns byte count of format.
+   */
+  static itemFormatByteCount(pItemFormat) {
+    switch (pItemFormat) {
+      case buffer_item_format_enum_1.BufferItemFormat.Float16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Float32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+        return 1;
+    }
+  }
   /**
    * Type byte alignment.
    */
@@ -6202,6 +6311,24 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
    */
   get fixedSize() {
     return this.mSize;
+  }
+  /**
+   * Byte count of underlying format.
+   */
+  get formatByteCount() {
+    return this.mFormatByteCount;
+  }
+  /**
+   * Format of single value.
+   */
+  get itemFormat() {
+    return this.mItemFormat;
+  }
+  /**
+   * Format multiplication.
+   */
+  get itemMultiplier() {
+    return this.mItemMultiplier;
   }
   /**
    * Buffer size in bytes.
@@ -6216,47 +6343,41 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
    * @param pParameter - Parameter.
    */
   constructor(pDevice, pParameter) {
-    super(pDevice);
+    super(pDevice, pParameter.alignmentType);
     // Set default size by format.
-    this.mSize = (() => {
-      switch (pParameter.primitiveFormat) {
-        case buffer_item_format_enum_1.BufferItemFormat.Float32:
-          return 4;
-        case buffer_item_format_enum_1.BufferItemFormat.Uint32:
-          return 4;
-        case buffer_item_format_enum_1.BufferItemFormat.Sint32:
-          return 4;
-      }
-    })();
+    this.mFormatByteCount = PrimitiveBufferMemoryLayout.itemFormatByteCount(pParameter.primitiveFormat);
+    this.mItemFormat = pParameter.primitiveFormat;
+    this.mItemMultiplier = pParameter.primitiveMultiplier;
+    this.mSize = this.mFormatByteCount * PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pParameter.primitiveMultiplier);
     // Calculate alignment and size.
-    [this.mAlignment, this.mSize] = (() => {
+    this.mAlignment = (() => {
       switch (pParameter.primitiveMultiplier) {
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
-          return [this.mSize, this.mSize];
+          return this.mFormatByteCount;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
-          return [this.mSize * 2, this.mSize * 2];
+          return this.mFormatByteCount * 2;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
-          return [this.mSize * 4, this.mSize * 3];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
-          return [this.mSize * 4, this.mSize * 4];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
-          return [this.mSize * 2, this.mSize * 2 * 2];
+          return this.mFormatByteCount * 2;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
-          return [this.mSize * 4, this.mSize * 2 * 3];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
-          return [this.mSize * 4, this.mSize * 2 * 4];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
-          return [this.mSize * 2, this.mSize * 3 * 2];
+          return this.mFormatByteCount * 2;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
-          return [this.mSize * 4, this.mSize * 3 * 3];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
-          return [this.mSize * 4, this.mSize * 3 * 4];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
-          return [this.mSize * 2, this.mSize * 4 * 2];
+          return this.mFormatByteCount * 2;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
-          return [this.mSize * 4, this.mSize * 4 * 3];
+          return this.mFormatByteCount * 4;
         case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
-          return [this.mSize * 4, this.mSize * 4 * 4];
+          return this.mFormatByteCount * 4;
       }
     })();
     // Override size of primitive.
@@ -6266,6 +6387,20 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
       }
       this.mAlignment = pParameter.overrideSize;
     }
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (pParameter.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            return this.mAlignment;
+          }
+      }
+    })();
     // Override alignment of primitive.
     if (pParameter.overrideAlignment) {
       if (pParameter.overrideAlignment % this.mAlignment !== 0) {
@@ -6312,6 +6447,17 @@ const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buf
 const struct_buffer_memory_layout_1 = __webpack_require__(/*! ./struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
+   * Constructor.
+   *
+   * @param pUsage - Buffer usage.
+   * @param pSetupReference - Setup references.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
    * Buffer as array.
    *
    * @param pSize - Optional. Set size fixed.
@@ -6319,7 +6465,7 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
    * @returns array setup.
    */
   asArray(pSize = -1) {
-    return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, pMemoryLayout => {
+    return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
         innerType: pMemoryLayout
@@ -6333,10 +6479,12 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
    * @param pPrimitiveFormat - Primitive format.
    * @param pPrimitiveMultiplier - Value multiplier.
    */
-  asPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
+  asPrimitive(pPrimitiveFormat, pPrimitiveMultiplier, pAlignment = null) {
     const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+      alignmentType: this.mAlignmentType,
       primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier
+      primitiveMultiplier: pPrimitiveMultiplier,
+      overrideAlignment: pAlignment
     });
     // Send created data.
     this.sendData(lLayout);
@@ -6348,7 +6496,7 @@ class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.Gpu
    */
   asStruct(pSetupCall) {
     // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device);
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
     lLayout.setup(pSetupCall);
     // Send created data.
     this.sendData(lLayout);
@@ -6375,6 +6523,15 @@ const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-s
 const struct_buffer_memory_layout_property_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-property-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts");
 class StructBufferMemoryLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
   /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   */
+  constructor(pSetupReference, pAlignmentType) {
+    super(pSetupReference);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
    * Add propery.
    *
    * @param pName - Propery name.
@@ -6391,7 +6548,7 @@ class StructBufferMemoryLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
     // Add empty property.
     this.setupData.properties.push(lProperty);
     // Create and return property setup.
-    return new struct_buffer_memory_layout_property_setup_1.StructBufferMemoryLayoutPropertySetup(this.setupReferences, pMemoryLayout => {
+    return new struct_buffer_memory_layout_property_setup_1.StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
       lProperty.layout = pMemoryLayout;
     });
   }
@@ -6424,6 +6581,7 @@ exports.StructBufferMemoryLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
 const struct_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
   /**
    * Alignment of type.
@@ -6442,12 +6600,12 @@ class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
     return this.mFixedSize;
   }
   /**
-   * Ordered inner properties.
+   * Ordered inner property names.
    */
   get properties() {
     // Ensure setup was called.
     this.ensureSetup();
-    return this.mInnerProperties.map(pProperty => pProperty.layout);
+    return [...this.mInnerProperties];
   }
   /**
    * Size of variable part of struct.
@@ -6463,8 +6621,8 @@ class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
    * @param pDevice - Device reference.
    * @param pParameter - Parameter.
    */
-  constructor(pDevice) {
-    super(pDevice);
+  constructor(pDevice, pAlignmentType) {
+    super(pDevice, pAlignmentType);
     // Calculated properties.
     this.mAlignment = 0;
     this.mFixedSize = 0;
@@ -6571,6 +6729,24 @@ class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
     }
     // Apply struct alignment to raw data size.
     this.mFixedSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (this.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+          {
+            return this.mAlignment;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            // For uniforms, struct buffers are aligned by 16 byte
+            return Math.ceil(this.mAlignment / 16) * 16;
+          }
+      }
+    })();
   }
   /**
    * Create setup object.
@@ -6580,141 +6756,10 @@ class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMem
    * @returns setup object.
    */
   onSetupObjectCreate(pReferences) {
-    return new struct_buffer_memory_layout_setup_1.StructBufferMemoryLayoutSetup(pReferences);
+    return new struct_buffer_memory_layout_setup_1.StructBufferMemoryLayoutSetup(pReferences, this.alignmentType);
   }
 }
 exports.StructBufferMemoryLayout = StructBufferMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/vertex-buffer-memory-layout.ts":
-/*!********************************************************************!*\
-  !*** ./source/memory_layout/buffer/vertex-buffer-memory-layout.ts ***!
-  \********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexBufferMemoryLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
-const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
-  /**
-   * Type byte alignment.
-   */
-  get alignment() {
-    return this.mSize;
-  }
-  /**
-   * Fixed buffer size in bytes.
-   */
-  get fixedSize() {
-    return 0;
-  }
-  /**
-   * Underlying format of all parameters.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Byte count of underlying format.
-   */
-  get formatByteCount() {
-    return this.mFormatByteCount;
-  }
-  /**
-   * Buffer size in bytes.
-   */
-  get variableSize() {
-    return this.mSize;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
-   */
-  constructor(pDevice, pParameter) {
-    super(pDevice);
-    // Set default size by format.
-    const lPrimitiveByteCount = (() => {
-      switch (pParameter.format) {
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float16:
-          return 2;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32:
-          return 4;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint32:
-          return 4;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint32:
-          return 4;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint8:
-          return 1;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint8:
-          return 1;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint16:
-          return 2;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint16:
-          return 2;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm16:
-          return 2;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm16:
-          return 2;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm8:
-          return 1;
-        case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm8:
-          return 1;
-      }
-    })();
-    // Set default size and init format values.
-    this.mSize = 0;
-    this.mFormat = pParameter.format;
-    this.mFormatByteCount = lPrimitiveByteCount;
-    // Calculate size of all parameter.
-    for (const lParameter of pParameter.parameter) {
-      // Calculate alignment and size.
-      const lParameterSize = (() => {
-        switch (lParameter.primitiveMultiplier) {
-          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
-            return lPrimitiveByteCount;
-          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
-            return lPrimitiveByteCount * 2;
-          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
-            return lPrimitiveByteCount * 3;
-          case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
-            return lPrimitiveByteCount * 4;
-          default:
-            {
-              throw new core_1.Exception(`Item multipier "${lParameter.primitiveMultiplier}" not supported for vertex buffer.`, this);
-            }
-        }
-      })();
-      // Extend buffer size.
-      this.mSize = lParameterSize + lParameter.offset;
-    }
-  }
-  /**
-   * Get location of path.
-   * @param pPathName - Path name. Divided by dots.
-   */
-  locationOf(pPathName) {
-    // Only validate name.
-    if (pPathName.length !== 0) {
-      throw new core_1.Exception(`Simple buffer layout has no properties.`, this);
-    }
-    return {
-      size: this.fixedSize,
-      offset: 0
-    };
-  }
-}
-exports.VertexBufferMemoryLayout = VertexBufferMemoryLayout;
 
 /***/ }),
 
@@ -6938,13 +6983,14 @@ class VertexParameterBufferLayoutSetup extends gpu_object_child_setup_1.GpuObjec
    * @param pAdditionalOffset - Additional offset. Offset 0 aligns right after the last parameter.
    * @returns
    */
-  withParameter(pName, pLocation, pMultiplier, pAdditionalOffset = 0) {
+  withParameter(pName, pLocation, pFormat, pMultiplier, pAlignment = null) {
     // Send layout data.
     this.sendData({
       name: pName,
       location: pLocation,
+      format: pFormat,
       multiplier: pMultiplier,
-      offset: pAdditionalOffset
+      alignment: pAlignment
     });
     return this;
   }
@@ -6976,12 +7022,11 @@ class VertexParameterLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
    *
    * @returns vertex buffer layout setup
    */
-  buffer(pBufferName, pFormat, pStepMode) {
+  buffer(pBufferName, pStepMode) {
     // Create buffer.
     const lBuffer = {
       name: pBufferName,
       stepMode: pStepMode,
-      format: pFormat,
       parameter: new Array()
     };
     // Add buffer to result.
@@ -7018,10 +7063,12 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexParameterLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/memory_layout/buffer/vertex-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
 const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts");
 /**
@@ -7071,6 +7118,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
     this.mIndexable = false;
     this.mBuffer = new core_1.Dictionary();
     this.mParameter = new core_1.Dictionary();
+    // TODO: Generate a struct for each vertex buffer. So it doesnt need a VertexParameterLayoutBuffer.parameter list. Struct is allways alignmenttype packed.
   }
   /**
    * Create vertex parameters from layout.
@@ -7119,39 +7167,31 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
   generateNative() {
     // Create vertex buffer layout for each parameter.
     const lLayoutList = new Array();
-    const lParameterIndicies = new Array();
     for (const lBuffer of this.mBuffer.values()) {
+      let lCurrentBufferByteLength = 0;
       // Create parameter layouts.
       const lVertexAttributes = new Array();
-      let lCurrentByteLength = 0;
-      for (const lParameter of lBuffer.parameter) {
-        // No double locations.
-        if (lParameterIndicies[lParameter.location]) {
-          throw new core_1.Exception(`Vertex parameter location "${lParameter.location}" can't be defined twice.`, this);
-        }
+      for (const lParameter of lBuffer.layout.properties) {
+        // Convert parameter layout to primitive buffer layout.
+        const lPrimitiveParameterLayout = lParameter.layout;
         // Convert multiplier to value.
-        const lByteMultiplier = lParameter.multiplier.split('').reduce((pPreviousNumber, pCurrentValue) => {
-          const lCurrentNumber = parseInt(pCurrentValue);
-          if (isNaN(lCurrentNumber)) {
-            return pPreviousNumber;
-          }
-          return pPreviousNumber * lCurrentNumber;
-        }, 1);
+        const lItemMultiplier = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lPrimitiveParameterLayout.itemMultiplier);
         // Convert multiplier to float32 format.
-        let lFormat = `${lBuffer.format}x${lByteMultiplier}`;
-        if (lParameter.multiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
-          lFormat = lBuffer.format;
+        let lFormat = `${lPrimitiveParameterLayout.itemFormat}x${lItemMultiplier}`;
+        if (lPrimitiveParameterLayout.itemMultiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
+          lFormat = lPrimitiveParameterLayout.itemFormat;
         }
+        // Read location of parameter.
+        const lParameterLocation = this.mParameter.get(lParameter.name).location;
         // Create buffer layout.
         lVertexAttributes.push({
           format: lFormat,
-          offset: lCurrentByteLength + lParameter.offset,
-          shaderLocation: lParameter.location
+          offset: lCurrentBufferByteLength,
+          shaderLocation: lParameterLocation
         });
-        // Increment current byte length.
-        lCurrentByteLength += 4 * lByteMultiplier + lParameter.offset; // 32Bit-Number * (single, vector or matrix number count) 
-        // Save location index for checkind double
-        lParameterIndicies[lParameter.location] = true;
+        // Apply alignment and extend buffer size by parameter length.
+        lCurrentBufferByteLength = Math.ceil(lCurrentBufferByteLength / lPrimitiveParameterLayout.alignment) * lPrimitiveParameterLayout.alignment;
+        lCurrentBufferByteLength += lPrimitiveParameterLayout.fixedSize;
       }
       // Convert stepmode.
       let lStepmode = 'vertex';
@@ -7160,13 +7200,9 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
       }
       lLayoutList.push({
         stepMode: lStepmode,
-        arrayStride: lBuffer.layout.variableSize,
+        arrayStride: lBuffer.layout.fixedSize,
         attributes: lVertexAttributes
       });
-    }
-    // Validate continuity of parameter locations.
-    if (lParameterIndicies.length !== this.mParameter.size) {
-      throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
     }
     return lLayoutList;
   }
@@ -7177,45 +7213,48 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
    */
   onSetup(pReferences) {
     let lCanBeIndexed = true;
+    // Build allowed multiplier list.
+    const lAllowedMultiplier = new Set([buffer_item_multiplier_enum_1.BufferItemMultiplier.Single, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4]);
     // Create each buffer.
+    const lParameterIndicies = new Array();
     for (const lBufferSetupData of pReferences.buffer) {
-      // Add each parameter to parameter list.
-      const lParameterList = new Array();
-      const lParameterlayoutList = new Array();
-      for (const lParameterSetupData of lBufferSetupData.parameter) {
-        // Create parameter list for the vertex buffer memory layout.
-        lParameterlayoutList.push({
-          primitiveMultiplier: lParameterSetupData.multiplier,
-          offset: lParameterSetupData.offset
-        });
-        // Create vertex parameter.
-        const lParameterLayout = {
-          name: lParameterSetupData.name,
-          location: lParameterSetupData.location,
-          multiplier: lParameterSetupData.multiplier,
-          offset: lParameterSetupData.offset,
-          bufferName: lBufferSetupData.name
-        };
-        // Add to parameter list and mapping.
-        lParameterList.push(lParameterLayout);
-        this.mParameter.set(lParameterLayout.name, lParameterLayout);
-      }
-      // Create empty buffer.
-      const lBufferLayout = {
+      // Create struct layout with packed alignment.
+      const lBufferLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, buffer_alignment_type_enum_1.BufferAlignmentType.Packed);
+      lBufferLayout.setup(pSetup => {
+        for (const lParameterSetupData of lBufferSetupData.parameter) {
+          // No double locations.
+          if (lParameterIndicies[lParameterSetupData.location]) {
+            throw new core_1.Exception(`Vertex parameter location "${lParameterSetupData.location}" can't be defined twice.`, this);
+          }
+          // Validate multiplier.
+          if (!lAllowedMultiplier.has(lParameterSetupData.multiplier)) {
+            throw new core_1.Exception(`Vertex parameter item multiplier "${lParameterSetupData.multiplier}" not supported.`, this);
+          }
+          // Add parameter as struct property.
+          pSetup.property(lParameterSetupData.name).asPrimitive(lParameterSetupData.format, lParameterSetupData.multiplier, lParameterSetupData.alignment);
+          // Add to parameter list.
+          this.mParameter.set(lParameterSetupData.name, {
+            name: lParameterSetupData.name,
+            location: lParameterSetupData.location
+          });
+          // Save location index for checkind double
+          lParameterIndicies[lParameterSetupData.location] = true;
+        }
+      });
+      // Create buffer description.
+      this.mBuffer.set(lBufferSetupData.name, {
         name: lBufferSetupData.name,
         stepMode: lBufferSetupData.stepMode,
-        format: lBufferSetupData.format,
-        parameter: lParameterList,
-        layout: new vertex_buffer_memory_layout_1.VertexBufferMemoryLayout(this.device, {
-          format: lBufferSetupData.format,
-          parameter: lParameterlayoutList
-        })
-      };
-      this.mBuffer.set(lBufferLayout.name, lBufferLayout);
+        layout: lBufferLayout
+      });
       // When one buffer is not indexable than no buffer is it.
-      if (lBufferLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
+      if (lBufferSetupData.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
         lCanBeIndexed = false;
       }
+    }
+    // Validate continuity of parameter locations.
+    if (lParameterIndicies.length !== this.mParameter.size) {
+      throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
     }
     this.mIndexable = lCanBeIndexed;
   }
@@ -7249,10 +7288,10 @@ Object.defineProperty(exports, "__esModule", ({
 exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const vertex_buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/vertex-buffer-item-format.enum */ "./source/constant/vertex-buffer-item-format.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
@@ -7286,9 +7325,10 @@ class VertexParameter extends gpu_object_1.GpuObject {
     super(pDevice);
     // Set vertex parameter layout.
     this.mLayout = pVertexParameterLayout;
-    this.mData = new core_1.Dictionary();
+    this.mBuffer = new core_1.Dictionary();
     // Create index layout.
     const lIndexLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+      alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
       primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
       primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
     });
@@ -7308,7 +7348,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
         lIndexBuffer.initialData(() => {
-          return new Uint16Array(pIndices);
+          return new Uint16Array(pIndices).buffer;
         });
         // Create view of buffer.
         this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
@@ -7317,7 +7357,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
         lIndexBuffer.initialData(() => {
-          return new Uint32Array(pIndices);
+          return new Uint32Array(pIndices).buffer;
         });
         // Create view of buffer.
         this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
@@ -7325,80 +7365,161 @@ class VertexParameter extends gpu_object_1.GpuObject {
     }
   }
   /**
-   * Get parameter buffer.
-   * @param pName - Parameter name.
-   */
-  get(pName) {
-    // Validate.
-    if (!this.mData.has(pName)) {
-      throw new core_1.Exception(`Vertex parameter buffer for "${pName}" not set.`, this);
-    }
-    return this.mData.get(pName);
-  }
-  /**
    * Set parameter data.
    * @param pName - parameter buffer name.
-   * @param pData - Parameter data.
+   * @param pData - Parameter data with ignored alignments.
    */
-  set(pBufferName, pData) {
+  create(pBufferName, pData) {
     const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
+    // Get item count of layout. => Vec3<float> + int + Vex2<uint> => 6 Items
+    const lStrideParameter = new Array();
+    let lStrideDataCount = 0;
+    for (const lBufferParameter of lParameterLayout.layout.properties) {
+      const lParameterLayout = lBufferParameter.layout;
+      // Read item count and format of parameter.
+      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lParameterLayout.itemMultiplier);
+      const lParameterItemFormat = lParameterLayout.itemFormat;
+      // Add stride data count.
+      lStrideDataCount += lParameterItemCount;
+      // Add formats for each item of parameter.
+      lStrideParameter.push({
+        count: lParameterItemCount,
+        format: lParameterItemFormat,
+        alignment: lParameterLayout.alignment,
+        itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+      });
+    }
+    // Buffer data must align with layout.
+    if (pData.length % lStrideDataCount !== 0) {
+      throw new core_1.Exception('Vertex parameter buffer data does not align with layout.', this);
+    }
     // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
     let lData = pData;
     if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
-      // Calculate how many items represent one parameter.
-      const lStepCount = lParameterLayout.layout.variableSize / lParameterLayout.layout.formatByteCount;
       // Dublicate dependent on index information.
       lData = new Array();
       for (const lIndex of this.mIndices) {
-        const lDataStart = lIndex * lStepCount;
-        const lDataEnd = lDataStart + lStepCount;
+        const lDataStart = lIndex * lStrideDataCount;
+        const lDataEnd = lDataStart + lStrideDataCount;
         // Copy vertex parameter data.
         lData.push(...pData.slice(lDataStart, lDataEnd));
       }
     }
-    // Calculate vertex parameter count.
-    const lVertexParameterItemCount = lData.length * lParameterLayout.layout.formatByteCount / lParameterLayout.layout.variableSize;
-    // Load typed array from layout format.
-    const lParameterBuffer = (() => {
-      const lInitialData = (() => {
-        switch (lParameterLayout.format) {
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float32:
-            return new Float32Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint32:
-            return new Uint32Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint32:
-            return new Int32Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint8:
-            return new Uint8Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint8:
-            return new Int8Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Uint16:
-            return new Uint16Array(lData);
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Sint16:
-            return new Int16Array(lData);
-          // Unsupported
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Float16:
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm16:
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm16:
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Unorm8:
-          case vertex_buffer_item_format_enum_1.VertexBufferItemFormat.Snorm8:
-          default:
-            {
-              throw new core_1.Exception(`Currently "${lParameterLayout.format}" is not supported.`, this);
-            }
+    // Calculate struct count in buffer. Fallback to vertex mode when buffer is in index step mode but parameters cant be indexed.
+    let lStrideCount = lData.length / lStrideDataCount;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      lStrideCount = this.mIndices.length;
+    }
+    // Create buffer data.
+    const lBufferData = new ArrayBuffer(lParameterLayout.layout.fixedSize * lStrideCount);
+    const lBufferDataView = new DataView(lBufferData);
+    // Set data in little endian according to the set item format and offset. 
+    const lSetData = (pByteOffset, pFormat, pData) => {
+      switch (pFormat) {
+        case buffer_item_format_enum_1.BufferItemFormat.Float32:
+          {
+            lBufferDataView.setFloat32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+          {
+            lBufferDataView.setUint32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+          {
+            lBufferDataView.setInt32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+          {
+            lBufferDataView.setUint8(pByteOffset, pData);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+          {
+            lBufferDataView.setInt8(pByteOffset, pData);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+          {
+            lBufferDataView.setUint16(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+          {
+            lBufferDataView.setInt16(pByteOffset, pData, true);
+            break;
+          }
+        // Unsupported
+        case buffer_item_format_enum_1.BufferItemFormat.Float16:
+        case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+        case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+        case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+        case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+        default:
+          {
+            throw new core_1.Exception(`Currently "${pFormat}" is not supported for vertex parameter.`, this);
+          }
+      }
+    };
+    // Add data with correct alignment.
+    let lDataIndex = 0;
+    let lByteOffset = 0;
+    for (let lStrideIndex = 0; lStrideIndex < lStrideCount; lStrideIndex++) {
+      for (const lStrideItem of lStrideParameter) {
+        // Apply stride item alignment to offset.
+        lByteOffset = Math.ceil(lByteOffset / lStrideItem.alignment) * lStrideItem.alignment;
+        // Add each parameter to buffer.
+        for (let lStrideItemIndex = 0; lStrideItemIndex < lStrideItem.count; lStrideItemIndex++) {
+          // Add and iterate data.
+          lSetData(lByteOffset, lStrideItem.format, lData[lDataIndex]);
+          lDataIndex++;
+          // Increase offset by format byte count.
+          lByteOffset += lStrideItem.itemByteCount;
         }
-      })();
-      return new gpu_buffer_1.GpuBuffer(this.device, lParameterLayout.layout.variableSize * lVertexParameterItemCount).initialData(() => {
-        return lInitialData;
-      });
-    })();
+      }
+      // Apply stride alignment
+      lByteOffset = Math.ceil(lByteOffset / lParameterLayout.layout.alignment) * lParameterLayout.layout.alignment;
+    }
+    // Load typed array from layout format.
+    const lParameterBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
+      return lBufferData;
+    });
     // Extend buffer to be a vertex buffer.
     lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
     // Save gpu buffer in correct index.
-    this.mData.set(pBufferName, lParameterBuffer);
+    this.mBuffer.set(pBufferName, lParameterBuffer);
     // Invalidate on data set.
     this.invalidate(VertexParameterInvalidationType.Data);
     return lParameterBuffer;
+  }
+  /**
+   * Get parameter buffer.
+   * @param pBufferName - Parameter buffer name.
+   */
+  get(pBufferName) {
+    // Validate.
+    if (!this.mBuffer.has(pBufferName)) {
+      throw new core_1.Exception(`Vertex parameter buffer for "${pBufferName}" not set.`, this);
+    }
+    return this.mBuffer.get(pBufferName);
+  }
+  /**
+   *
+   * @param pBufferName - Buffer name.
+   * @param pBuffer - Buffer.
+   */
+  set(pBufferName, pBuffer) {
+    // TODO: Validate length.
+    if (pBuffer.size !== this.mIndices.length) {
+      // No not good. What about indexed buffers.
+    }
+    // Extend usage.
+    pBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
+    // Add buffer.
+    this.mBuffer.set(pBufferName, pBuffer);
+    return pBuffer;
   }
 }
 exports.VertexParameter = VertexParameter;
@@ -9445,6 +9566,7 @@ class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
    */
   constructor(pDevice, pParameter) {
     super(pDevice);
+    // TODO: Allways add copy source/destination and copy over information on rebuild. 
     // Set static config.
     this.mDimension = pParameter.dimension;
     this.mFormat = pParameter.format;
@@ -16691,7 +16813,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("0ed907dd42709c9ef55c")
+/******/ 		__webpack_require__.h = () => ("7c3acb1c287901c2a49f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

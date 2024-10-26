@@ -104,6 +104,8 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
     public constructor(pDevice: GpuDevice, pParameter: GpuTextureParameter) {
         super(pDevice);
 
+        // TODO: Allways add copy source/destination and copy over information on rebuild. 
+
         // Set static config.
         this.mDimension = pParameter.dimension;
         this.mFormat = pParameter.format;

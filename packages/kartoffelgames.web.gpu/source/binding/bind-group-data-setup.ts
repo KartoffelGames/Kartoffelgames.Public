@@ -1,19 +1,19 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
+import { GpuBufferView, GpuBufferViewFormat } from '../buffer/gpu-buffer-view';
+import { BufferItemFormat } from '../constant/buffer-item-format.enum';
+import { TextureDimension } from '../constant/texture-dimension.enum';
+import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
 import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
 import { GpuResourceObject } from '../gpu/object/gpu-resource-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
-import { BufferItemFormat } from '../constant/buffer-item-format.enum';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
+import { GpuTexture } from '../texture/gpu-texture';
+import { GpuTextureView } from '../texture/gpu-texture-view';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindLayout } from './bind-group-layout';
-import { GpuTexture } from '../texture/gpu-texture';
-import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
-import { TextureDimension } from '../constant/texture-dimension.enum';
-import { GpuTextureView } from '../texture/gpu-texture-view';
-import { GpuBufferView, GpuBufferViewFormat } from '../buffer/gpu-buffer-view';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
@@ -63,9 +63,9 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * 
      * @returns created buffer.
      */
-    public createBuffer(pData: TypedArray): GpuBuffer;
+    public createBuffer(pData: ArrayBufferLike): GpuBuffer;
     public createBuffer(pType: BufferItemFormat, pVariableSizeCount?: number): GpuBuffer;
-    public createBuffer(pDataOrType: TypedArray | BufferItemFormat, pVariableSizeCount: number | null = null): GpuBuffer {
+    public createBuffer(pDataOrType: ArrayBufferLike  | BufferItemFormat, pVariableSizeCount: number | null = null): GpuBuffer {
         // Layout must be a buffer memory layout.
         if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
@@ -86,7 +86,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             }
 
             // Get initial buffer data byte length.
-            const lBufferByteLength: number = pDataOrType.length * pDataOrType.BYTES_PER_ELEMENT;
+            const lBufferByteLength: number = pDataOrType.byteLength;
 
             // calculate item count and check if initial data meets requirments.
             const lItemCount: number = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;

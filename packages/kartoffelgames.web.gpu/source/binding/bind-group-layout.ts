@@ -1,6 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ComputeStage } from '../constant/compute-stage.enum';
 import { StorageBindingType } from '../constant/storage-binding-type.enum';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
@@ -12,7 +13,6 @@ import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-m
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
 import { BindGroup } from './bind-group';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
-import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 
 /**
  * Bind group layout. Fixed at creation. 
@@ -243,6 +243,8 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             if (!lBinding.layout) {
                 throw new Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
             }
+
+            // Layout validation for 32bit formats are in setup.
 
             // Shallow copy binding.
             this.mBindings.set(lBinding.name, {

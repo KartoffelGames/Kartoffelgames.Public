@@ -6,8 +6,25 @@ import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum
 import { PrimitiveBufferMemoryLayout } from './primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from './struct-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 
 export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<StructBufferMemoryLayoutSetupData, MemoryLayoutCallback> {
+    private readonly mAlignmentType: BufferAlignmentType;
+
+    /**
+     * Constructor.
+     * 
+     * @param pUsage - Buffer usage. 
+     * @param pSetupReference - Setup references.
+     * @param pDataCallback - Data callback.
+     */
+    public constructor(pSetupReference: GpuObjectSetupReferences<StructBufferMemoryLayoutSetupData>, pAlignmentType: BufferAlignmentType, pDataCallback: MemoryLayoutCallback) {
+        super(pSetupReference, pDataCallback);
+
+        this.mAlignmentType = pAlignmentType;
+    }
+
     /**
      * Buffer as array.
      * 
@@ -16,7 +33,7 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
      * @returns array setup. 
      */
     public asArray(pSize: number = -1): StructBufferMemoryLayoutPropertySetup {
-        return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, (pMemoryLayout: BaseBufferMemoryLayout) => {
+        return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, (pMemoryLayout: BaseBufferMemoryLayout) => {
             const lLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
                 arraySize: pSize,
                 innerType: pMemoryLayout
@@ -32,10 +49,12 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
      * @param pPrimitiveFormat - Primitive format.
      * @param pPrimitiveMultiplier - Value multiplier.
      */
-    public asPrimitive(pPrimitiveFormat: BufferItemFormat, pPrimitiveMultiplier: BufferItemMultiplier): void {
+    public asPrimitive(pPrimitiveFormat: BufferItemFormat, pPrimitiveMultiplier: BufferItemMultiplier, pAlignment: number | null = null): void {
         const lLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
+            alignmentType: this.mAlignmentType,
             primitiveFormat: pPrimitiveFormat,
             primitiveMultiplier: pPrimitiveMultiplier,
+            overrideAlignment: pAlignment
         });
 
         // Send created data.
@@ -49,7 +68,7 @@ export class StructBufferMemoryLayoutPropertySetup extends GpuObjectChildSetup<S
      */
     public asStruct(pSetupCall: (pSetup: StructBufferMemoryLayoutSetup) => void): void {
         // Create and setup struct buffer memory layout.
-        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device);
+        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device, this.mAlignmentType);
         lLayout.setup(pSetupCall);
 
         // Send created data.

@@ -4,6 +4,7 @@ import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
@@ -32,13 +33,13 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
     }
 
     /**
-     * Ordered inner properties.
+     * Ordered inner property names.
      */
-    public get properties(): Array<BaseBufferMemoryLayout> {
+    public get properties(): Array<StructBufferMemoryLayoutProperty> {
         // Ensure setup was called.
         this.ensureSetup();
 
-        return this.mInnerProperties.map((pProperty) => pProperty.layout);
+        return [...this.mInnerProperties];
     }
 
     /**
@@ -57,8 +58,8 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
      * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pDevice: GpuDevice) {
-        super(pDevice);
+    public constructor(pDevice: GpuDevice, pAlignmentType: BufferAlignmentType) {
+        super(pDevice, pAlignmentType);
 
         // Calculated properties.
         this.mAlignment = 0;
@@ -185,6 +186,22 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
 
         // Apply struct alignment to raw data size.
         this.mFixedSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+
+        // Change alignment based on alignment type.
+        this.mAlignment = (() => {
+            switch (this.alignmentType) {
+                case BufferAlignmentType.Packed: {
+                    return 1;
+                }
+                case BufferAlignmentType.Storage: {
+                    return this.mAlignment;
+                }
+                case BufferAlignmentType.Uniform: {
+                    // For uniforms, struct buffers are aligned by 16 byte
+                    return Math.ceil(this.mAlignment / 16) * 16;
+                }
+            }
+        })();
     }
 
     /**
@@ -195,11 +212,11 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
      * @returns setup object. 
      */
     protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<StructBufferMemoryLayoutSetupData>): StructBufferMemoryLayoutSetup {
-        return new StructBufferMemoryLayoutSetup(pReferences);
+        return new StructBufferMemoryLayoutSetup(pReferences, this.alignmentType);
     }
 }
 
-type StructBufferMemoryLayoutProperty = {
+export type StructBufferMemoryLayoutProperty = {
     orderIndex: number,
     name: string,
     layout: BaseBufferMemoryLayout;

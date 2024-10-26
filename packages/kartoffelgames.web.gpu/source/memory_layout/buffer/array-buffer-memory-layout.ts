@@ -1,16 +1,18 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 
 export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
+    private readonly mAlignment: number;
     private readonly mArraySize: number;
     private readonly mInnerType: BaseBufferMemoryLayout;
 
     /**
-     * Alignment of type.
+     * Type byte alignment.
      */
-    public get alignment(): number {
-        return this.innerType.alignment;
+    public override get alignment(): number {
+        return this.mAlignment;
     }
 
     /**
@@ -28,7 +30,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
             return 0;
         }
 
-        return this.arraySize * (Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment);
+        return this.arraySize * Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
     }
 
     /**
@@ -46,7 +48,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
             return 0;
         }
 
-        return (Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment);
+        return Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
     }
 
     /**
@@ -56,11 +58,27 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pDevice: GpuDevice, pParameter: ArrayBufferMemoryLayoutParameter) {
-        super(pDevice);
+        super(pDevice, pParameter.innerType.alignmentType);
 
         // Static properties.
         this.mArraySize = pParameter.arraySize;
         this.mInnerType = pParameter.innerType;
+
+        // Change alignment based on alignment type.
+        this.mAlignment = (() => {
+            switch (pParameter.innerType.alignmentType) {
+                case BufferAlignmentType.Packed: {
+                    return 1;
+                }
+                case BufferAlignmentType.Storage: {
+                    return pParameter.innerType.alignment;
+                }
+                case BufferAlignmentType.Uniform: {
+                    // For uniforms, arrays buffers are aligned by 16 byte
+                    return Math.ceil(pParameter.innerType.alignment / 16) * 16;
+                }
+            }
+        })();
 
         if (this.mInnerType.variableSize > 0) {
             throw new Exception(`Array memory layout must be of fixed size.`, this);
@@ -77,9 +95,9 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
         // Complete array.
         const lItemIndexString: string | undefined = lPathName.shift();
         if (!lItemIndexString) {
-            // Only valid for ststic arrays.
+            // Only valid for static arrays.
             if (this.variableSize > 0) {
-                throw new Exception('No size can be calculated for dynamic array buffer locations.', this);
+                throw new Exception('Getting the offset and size location for dynamic arrays is not supported.', this);
             }
 
             return { size: this.fixedSize, offset: 0 };

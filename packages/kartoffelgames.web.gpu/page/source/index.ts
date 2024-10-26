@@ -13,7 +13,6 @@ import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.e
 import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum';
-import { VertexBufferItemFormat } from '../../source/constant/vertex-buffer-item-format.enum';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
 import { GpuExecution } from '../../source/execution/gpu-execution';
 import { RenderPass } from '../../source/execution/pass/render-pass';
@@ -49,14 +48,14 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
 
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexBufferItemFormat.Float32, VertexParameterStepMode.Index)
-                .withParameter('position', 0, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('uv', 1, BufferItemMultiplier.Vector2);
+            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('normal', 2, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // Fragment entry.
@@ -210,9 +209,9 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lWoodBoxRenderModule.vertexParameter.create(CubeVertexIndices);
-    lMesh.set('position', CubeVertexPositionData);
-    lMesh.set('uv', CubeVertexUvData);
-    lMesh.set('normal', CubeVertexNormalData);
+    lMesh.create('position', CubeVertexPositionData);
+    lMesh.create('uv', CubeVertexUvData);
+    lMesh.create('normal', CubeVertexNormalData);
 
     // Create pipeline.
     const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
@@ -239,14 +238,14 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     const lLightBoxShader: Shader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexBufferItemFormat.Float32, VertexParameterStepMode.Index)
-                .withParameter('position', 0, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('uv', 1, BufferItemMultiplier.Vector2);
+            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('normal', 2, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // Fragment entry.
@@ -279,9 +278,9 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lLightBoxRenderModule.vertexParameter.create(CubeVertexIndices);
-    lMesh.set('position', CubeVertexPositionData);
-    lMesh.set('uv', CubeVertexUvData);
-    lMesh.set('normal', CubeVertexNormalData);
+    lMesh.create('position', CubeVertexPositionData);
+    lMesh.create('uv', CubeVertexUvData);
+    lMesh.create('normal', CubeVertexNormalData);
 
     // Create buffer view for pointlights.
     const lPointLightsBuffer: GpuBufferView<Float32Array> = pWorldGroup.data('pointLights').asBufferView(Float32Array);
@@ -301,8 +300,8 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
     const lSkyBoxShader: Shader = pGpu.shader(skyboxShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexBufferItemFormat.Float32, VertexParameterStepMode.Index)
-                .withParameter('position', 0, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // Fragment entry.
@@ -380,7 +379,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lSkyBoxRenderModule.vertexParameter.create(CubeVertexIndices);
-    lMesh.set('position', CubeVertexPositionData);
+    lMesh.create('position', CubeVertexPositionData);
 
     const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
@@ -403,14 +402,14 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     const lWoodBoxShader = pGpu.shader(videoCanvasShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexBufferItemFormat.Float32, VertexParameterStepMode.Index)
-                .withParameter('position', 0, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('uv', 1, BufferItemMultiplier.Vector2);
+            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+                .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexBufferItemFormat.Float32, VertexParameterStepMode.Vertex)
-                .withParameter('normal', 2, BufferItemMultiplier.Vector4);
+            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+                .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // Fragment entry.
@@ -446,7 +445,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     const lWoodBoxTransform: Transform = new Transform();
     lWoodBoxTransform.setScale(15, 8.4, 0);
     lWoodBoxTransform.addTranslation(-0.5, -0.5, 100);
-    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
     /*
      * User defined group.
@@ -489,9 +488,9 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lWoodBoxRenderModule.vertexParameter.create(CanvasVertexIndices);
-    lMesh.set('position', CanvasVertexPositionData);
-    lMesh.set('uv', CanvasVertexUvData);
-    lMesh.set('normal', CanvasVertexNormalData);
+    lMesh.create('position', CanvasVertexPositionData);
+    lMesh.create('uv', CanvasVertexUvData);
+    lMesh.create('normal', CanvasVertexNormalData);
 
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);

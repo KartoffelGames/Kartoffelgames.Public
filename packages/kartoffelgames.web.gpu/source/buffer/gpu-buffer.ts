@@ -4,15 +4,15 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
 export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
     private readonly mByteSize: number;
-    private mInitialDataCallback: (() => TypedArray) | null;
+    private mInitialDataCallback: (() => ArrayBufferLike) | null;
     private mReadBuffer: GPUBuffer | null;
     private readonly mWriteBuffer: GpuBufferWriteBuffer;
 
@@ -53,6 +53,10 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         // Calculate size. // TODO: Allow buffer resize.
         this.mByteSize = ((pByteCount) + 3) & ~3;
 
+        // TODO: Allways add copy source/destination and copy over information on rebuild. 
+
+        // TODO: Work with dataviews and set data with loops.
+
         // Read and write buffers.
         this.mWriteBuffer = {
             limitation: Number.MAX_SAFE_INTEGER,
@@ -70,7 +74,12 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * 
      * @param pDataCallback - Data callback. 
      */
-    public initialData(pDataCallback: () => TypedArray): this {
+    public initialData(pDataCallback: () => ArrayBufferLike): this {
+        // Initial is inital.
+        if (this.mInitialDataCallback) {
+            throw new Exception('Initial callback can only be set once.', this);
+        }
+
         // Set new initial data, set on creation.
         this.mInitialDataCallback = pDataCallback;
 
@@ -140,7 +149,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * @param pData - Data.
      * @param pOffset - Data offset.
      */
-    public async write<T extends TypedArray>(pData: T, pOffset?: number): Promise<void> {
+    public async write(pData: ArrayBuffer, pOffset?: number): Promise<void> {
         // Set buffer as writeable.
         this.extendUsage(BufferUsage.CopyDestination);
 
@@ -168,14 +177,22 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
             lStagingBuffer = this.mWriteBuffer.ready.pop()!;
         }
 
+        // Convert views into array buffers.
+        let lDataArrayBuffer: ArrayBuffer = pData;
+        if (ArrayBuffer.isView(lDataArrayBuffer)) {
+            lDataArrayBuffer = lDataArrayBuffer.buffer;
+        }
+
         // Get byte length and offset of data to write.
-        const lDataByteLength: number = pData.byteLength;
+        const lDataByteLength: number = lDataArrayBuffer.byteLength;
         const lOffset: number = pOffset ?? 0;
 
         // When no staging buffer is available, use the slow native.
         if (!lStagingBuffer) {
+
+
             // Write data into mapped range.
-            this.device.gpu.queue.writeBuffer(lNative, lOffset, pData, 0, lDataByteLength);
+            this.device.gpu.queue.writeBuffer(lNative, lOffset, lDataArrayBuffer, 0, lDataByteLength);
 
             return;
         }
@@ -184,7 +201,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         const lMappedBuffer: ArrayBuffer = lStagingBuffer.getMappedRange(lOffset, lDataByteLength);
 
         // Set data to mapped buffer. Use the smallest available byte view (1 byte).
-        new (<GpuBufferViewFormat<T>>pData.constructor)(lMappedBuffer).set(pData);
+        new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
 
         // Unmap for copying data.
         lStagingBuffer.unmap();
@@ -234,7 +251,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      */
     protected override generateNative(): GPUBuffer {
         // Read optional initial data.
-        const lInitalData: TypedArray | undefined = this.mInitialDataCallback?.();
+        const lInitalData: ArrayBufferLike | undefined = this.mInitialDataCallback?.();
 
         // Create gpu buffer mapped
         const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
@@ -246,17 +263,23 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
 
         // Write data. Is completly async.
         if (lInitalData) {
+            // Convert views into array buffers.
+            let lDataArrayBuffer: ArrayBuffer = lInitalData;
+            if (ArrayBuffer.isView(lDataArrayBuffer)) {
+                lDataArrayBuffer = lDataArrayBuffer.buffer;
+            }
+
             // Write initial data.
             const lMappedBuffer: ArrayBuffer = lBuffer.getMappedRange();
 
             // Validate buffer and initial data length.
-            if (lMappedBuffer.byteLength !== lInitalData.byteLength) {
-                throw new Exception(`Initial buffer data (byte-length: ${lInitalData.byteLength}) does not fit into buffer (length: ${lMappedBuffer.byteLength}). `, this);
+            if (lMappedBuffer.byteLength !== lDataArrayBuffer.byteLength) {
+                throw new Exception(`Initial buffer data (byte-length: ${lDataArrayBuffer.byteLength}) does not fit into buffer (length: ${lMappedBuffer.byteLength}). `, this);
             }
 
             // Set data to buffer. Use the smallest available byte view (1 byte).
-            new (<GpuBufferViewFormat<TypedArray>>lInitalData.constructor)(lMappedBuffer).set(lInitalData);
-            
+            new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
+
             // Unmap buffer.
             lBuffer.unmap();
         }

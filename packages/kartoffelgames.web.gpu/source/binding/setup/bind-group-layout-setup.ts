@@ -1,3 +1,4 @@
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
@@ -30,8 +31,11 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
         // Set layout.
         this.setupData.bindings.push(lBind);
 
+        // Aligment type of memory layout. When it is not a storage buffer then is is a uniform buffer.
+        const lAlignmentType: BufferAlignmentType = (lBind.storageType === StorageBindingType.None) ? BufferAlignmentType.Uniform : BufferAlignmentType.Storage;
+
         // Create layout memory layout.
-        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, (pMemoryLayout: BaseMemoryLayout) => {
+        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, (pMemoryLayout: BaseMemoryLayout) => {
             lBind.layout = pMemoryLayout;
         });
     }

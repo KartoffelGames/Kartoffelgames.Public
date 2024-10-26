@@ -1,67 +1,12 @@
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
-import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
-import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
-import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
-import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
-import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
-import { StructBufferMemoryLayoutSetup } from '../../memory_layout/buffer/struct-buffer-memory-layout-setup';
 import { SamplerMemoryLayout } from '../../memory_layout/texture/sampler-memory-layout';
 import { TextureViewMemoryLayout } from '../../memory_layout/texture/texture-view-memory-layout';
 import { BindGroupLayoutArrayMemoryLayoutSetup } from './bind-group-layout-array-memory-layout-setup';
-import { BindGroupLayoutSetupData } from './bind-group-layout-setup';
 
-export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGroupLayoutSetupData, MemoryLayoutCallback> {
-    /**
-     * Constructor.
-     * 
-     * @param pUsage - Buffer usage. 
-     * @param pSetupReference - Setup references.
-     * @param pDataCallback - Data callback.
-     */
-    public constructor(pSetupReference: GpuObjectSetupReferences<BindGroupLayoutSetupData>, pDataCallback: MemoryLayoutCallback) {
-        super(pSetupReference, pDataCallback);
-    }
-
-    /**
-     * Buffer as array.
-     * 
-     * @param pSize - Optional. Set size fixed.
-     *  
-     * @returns array setup. 
-     */
-    public withArray(pSize: number = -1): BindGroupLayoutArrayMemoryLayoutSetup {
-        return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, (pMemoryLayout: BaseBufferMemoryLayout) => {
-            const lLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
-                arraySize: pSize,
-                innerType: pMemoryLayout
-            });
-
-            this.sendData(lLayout);
-        });
-    }
-
-    /**
-     * Memory layout as primitive.
-     * 
-     * @param pPrimitiveFormat - Primitive format.
-     * @param pPrimitiveMultiplier - Value multiplier.
-     */
-    public withPrimitive(pPrimitiveFormat: BufferItemFormat, pPrimitiveMultiplier: BufferItemMultiplier): void {
-        const lLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
-            primitiveFormat: pPrimitiveFormat,
-            primitiveMultiplier: pPrimitiveMultiplier,
-        });
-
-        // Send created data.
-        this.sendData(lLayout);
-    }
-
+export class BindGroupLayoutMemoryLayoutSetup extends BindGroupLayoutArrayMemoryLayoutSetup<BaseMemoryLayout> {
     /**
      * Memory layout as sampler.
      * 
@@ -69,20 +14,6 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      */
     public withSampler(pSamplerType: SamplerType): void {
         const lLayout: SamplerMemoryLayout = new SamplerMemoryLayout(this.device, pSamplerType);
-
-        // Send created data.
-        this.sendData(lLayout);
-    }
-
-    /**
-     * Memory layout as struct
-     * 
-     * @param pSetupCall - Struct setup call.
-     */
-    public withStruct(pSetupCall: (pSetup: StructBufferMemoryLayoutSetup) => void): void {
-        // Create and setup struct buffer memory layout.
-        const lLayout: StructBufferMemoryLayout = new StructBufferMemoryLayout(this.device);
-        lLayout.setup(pSetupCall);
 
         // Send created data.
         this.sendData(lLayout);
@@ -106,5 +37,3 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
         this.sendData(lLayout);
     }
 }
-
-type MemoryLayoutCallback = (pMemoryLayout: BaseMemoryLayout) => void;

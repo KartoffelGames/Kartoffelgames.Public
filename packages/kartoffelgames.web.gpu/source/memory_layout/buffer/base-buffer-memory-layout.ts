@@ -1,10 +1,10 @@
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
 export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
-    // TODO: TightlyPacked Option to omit all alignment options.
-    // Work with something like BufferMemoryLayoutAlignmentMode => Storage/Vertex/Storage
+    private readonly mAlignmentType: BufferAlignmentType;
 
     /**
      * Type byte alignment.
@@ -22,12 +22,20 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
     public abstract readonly variableSize: number;
 
     /**
+     * Buffer value alignment type.
+     */
+    public get alignmentType(): BufferAlignmentType {
+        return this.mAlignmentType;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pDevice - Device reference.
      */
-    public constructor(pDevice: GpuDevice) {
+    public constructor(pDevice: GpuDevice, pAlignmentType: BufferAlignmentType) {
         super(pDevice);
+        this.mAlignmentType = pAlignmentType;
     }
 
     /**

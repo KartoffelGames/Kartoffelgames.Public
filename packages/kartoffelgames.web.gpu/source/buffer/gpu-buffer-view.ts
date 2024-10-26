@@ -37,10 +37,13 @@ export class GpuBufferView<T extends TypedArray> {
      * @param pBuffer - Views buffer. 
      * @param pLayout - Layout of view.
      */
-    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>) {
+    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>) { // TODO: Define type with Enum and set data with dataview loops.
         this.mLayout = pLayout;
         this.mBuffer = pBuffer;
         this.mTypedArrayConstructor = pType;
+
+        // TODO: Only on fixed layouts: Check how often the layout fits into the buffer and safe the calculated available offsets.
+        // TODO: Add offset counts to read and write.
     }
 
     /**
@@ -67,7 +70,7 @@ export class GpuBufferView<T extends TypedArray> {
         const lDataBuffer: TypedArray = new this.mTypedArrayConstructor(pData);
 
         // Skip new promise creation by returning original promise.
-        return this.mBuffer.write(lDataBuffer, lLocation.offset);
+        return this.mBuffer.write(lDataBuffer.buffer, lLocation.offset);
     }
 }
 

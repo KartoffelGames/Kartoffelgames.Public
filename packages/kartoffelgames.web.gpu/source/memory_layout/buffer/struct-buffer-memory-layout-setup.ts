@@ -1,8 +1,23 @@
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseBufferMemoryLayout } from './base-buffer-memory-layout';
 import { StructBufferMemoryLayoutPropertySetup } from './struct-buffer-memory-layout-property-setup';
 
 export class StructBufferMemoryLayoutSetup extends GpuObjectSetup<StructBufferMemoryLayoutSetupData> {
+    private readonly mAlignmentType: BufferAlignmentType;
+
+    /**
+     * Constructor.
+     * 
+     * @param pSetupReference - Setup references.
+     */
+    public constructor(pSetupReference: GpuObjectSetupReferences<StructBufferMemoryLayoutSetupData>, pAlignmentType: BufferAlignmentType) {
+        super(pSetupReference);
+
+        this.mAlignmentType = pAlignmentType;
+    }
+
     /**
      * Add propery.
      * 
@@ -22,7 +37,7 @@ export class StructBufferMemoryLayoutSetup extends GpuObjectSetup<StructBufferMe
         this.setupData.properties.push(lProperty);
 
         // Create and return property setup.
-        return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, (pMemoryLayout: BaseBufferMemoryLayout) => {
+        return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, (pMemoryLayout: BaseBufferMemoryLayout) => {
             lProperty.layout = pMemoryLayout;
         });
     }

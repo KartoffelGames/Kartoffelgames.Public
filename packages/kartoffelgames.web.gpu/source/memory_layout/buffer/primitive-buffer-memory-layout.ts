@@ -1,11 +1,64 @@
 import { Exception } from '@kartoffelgames/core';
-import { GpuDevice } from '../../gpu/gpu-device';
-import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
 
 export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
+    /**
+     * Get item count for multiplier type.
+     * 
+     * @param pMultiplier - Multiplier type.
+     * 
+     * @returns item count of multiplier. 
+     */
+    public static itemCountOfMultiplier(pMultiplier: BufferItemMultiplier): number {
+        switch (pMultiplier) {
+            case BufferItemMultiplier.Single: { return 1; }
+            case BufferItemMultiplier.Vector2: { return 2; }
+            case BufferItemMultiplier.Vector3: { return 3; }
+            case BufferItemMultiplier.Vector4: { return 4; }
+            case BufferItemMultiplier.Matrix22: { return 4; }
+            case BufferItemMultiplier.Matrix23: { return 6; }
+            case BufferItemMultiplier.Matrix24: { return 8; }
+            case BufferItemMultiplier.Matrix32: { return 6; }
+            case BufferItemMultiplier.Matrix33: { return 9; }
+            case BufferItemMultiplier.Matrix34: { return 12; }
+            case BufferItemMultiplier.Matrix42: { return 8; }
+            case BufferItemMultiplier.Matrix43: { return 0; }
+            case BufferItemMultiplier.Matrix44: { return 16; }
+        }
+    }
+
+    /**
+     * Get byte count of item format.
+     * 
+     * @param pItemFormat - Item format.
+     * 
+     * @returns byte count of format. 
+     */
+    public static itemFormatByteCount(pItemFormat: BufferItemFormat): number {
+        switch (pItemFormat) {
+            case BufferItemFormat.Float16: return 2;
+            case BufferItemFormat.Float32: return 4;
+            case BufferItemFormat.Uint32: return 4;
+            case BufferItemFormat.Sint32: return 4;
+            case BufferItemFormat.Uint8: return 1;
+            case BufferItemFormat.Sint8: return 1;
+            case BufferItemFormat.Uint16: return 2;
+            case BufferItemFormat.Sint16: return 2;
+            case BufferItemFormat.Unorm16: return 2;
+            case BufferItemFormat.Snorm16: return 2;
+            case BufferItemFormat.Unorm8: return 1;
+            case BufferItemFormat.Snorm8: return 1;
+        }
+    }
+
     private readonly mAlignment: number;
+    private readonly mFormatByteCount: number;
+    private readonly mItemFormat: BufferItemFormat;
+    private readonly mItemMultiplier: BufferItemMultiplier;
     private readonly mSize: number;
 
     /**
@@ -23,6 +76,27 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
+     * Byte count of underlying format.
+     */
+    public get formatByteCount(): number {
+        return this.mFormatByteCount;
+    }
+
+    /**
+     * Format of single value.
+     */
+    public get itemFormat(): BufferItemFormat {
+        return this.mItemFormat;
+    }
+
+    /**
+     * Format multiplication.
+     */
+    public get itemMultiplier(): BufferItemMultiplier {
+        return this.mItemMultiplier;
+    }
+
+    /**
      * Buffer size in bytes.
      */
     public get variableSize(): number {
@@ -36,33 +110,30 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pDevice: GpuDevice, pParameter: LinearBufferMemoryLayoutParameter) {
-        super(pDevice);
+        super(pDevice, pParameter.alignmentType);
 
         // Set default size by format.
-        this.mSize = ((): number => {
-            switch (pParameter.primitiveFormat) {
-                case BufferItemFormat.Float32: return 4;
-                case BufferItemFormat.Uint32: return 4;
-                case BufferItemFormat.Sint32: return 4;
-            }
-        })();
+        this.mFormatByteCount = PrimitiveBufferMemoryLayout.itemFormatByteCount(pParameter.primitiveFormat);
+        this.mItemFormat = pParameter.primitiveFormat;
+        this.mItemMultiplier = pParameter.primitiveMultiplier;
+        this.mSize = this.mFormatByteCount * PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pParameter.primitiveMultiplier);
 
         // Calculate alignment and size.
-        [this.mAlignment, this.mSize] = ((): [number, number] => {
+        this.mAlignment = ((): number => {
             switch (pParameter.primitiveMultiplier) {
-                case BufferItemMultiplier.Single: return [this.mSize, this.mSize];
-                case BufferItemMultiplier.Vector2: return [this.mSize * 2, this.mSize * 2];
-                case BufferItemMultiplier.Vector3: return [this.mSize * 4, this.mSize * 3];
-                case BufferItemMultiplier.Vector4: return [this.mSize * 4, this.mSize * 4];
-                case BufferItemMultiplier.Matrix22: return [this.mSize * 2, this.mSize * 2 * 2];
-                case BufferItemMultiplier.Matrix23: return [this.mSize * 4, this.mSize * 2 * 3];
-                case BufferItemMultiplier.Matrix24: return [this.mSize * 4, this.mSize * 2 * 4];
-                case BufferItemMultiplier.Matrix32: return [this.mSize * 2, this.mSize * 3 * 2];
-                case BufferItemMultiplier.Matrix33: return [this.mSize * 4, this.mSize * 3 * 3];
-                case BufferItemMultiplier.Matrix34: return [this.mSize * 4, this.mSize * 3 * 4];
-                case BufferItemMultiplier.Matrix42: return [this.mSize * 2, this.mSize * 4 * 2];
-                case BufferItemMultiplier.Matrix43: return [this.mSize * 4, this.mSize * 4 * 3];
-                case BufferItemMultiplier.Matrix44: return [this.mSize * 4, this.mSize * 4 * 4];
+                case BufferItemMultiplier.Single: return this.mFormatByteCount;
+                case BufferItemMultiplier.Vector2: return this.mFormatByteCount * 2;
+                case BufferItemMultiplier.Vector3: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Vector4: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix22: return this.mFormatByteCount * 2;
+                case BufferItemMultiplier.Matrix23: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix24: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix32: return this.mFormatByteCount * 2;
+                case BufferItemMultiplier.Matrix33: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix34: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix42: return this.mFormatByteCount * 2;
+                case BufferItemMultiplier.Matrix43: return this.mFormatByteCount * 4;
+                case BufferItemMultiplier.Matrix44: return this.mFormatByteCount * 4;
             }
         })();
 
@@ -74,6 +145,19 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
 
             this.mAlignment = pParameter.overrideSize;
         }
+
+        // Change alignment based on alignment type.
+        this.mAlignment = (() => {
+            switch (pParameter.alignmentType) {
+                case BufferAlignmentType.Packed: {
+                    return 1;
+                }
+                case BufferAlignmentType.Storage:
+                case BufferAlignmentType.Uniform: {
+                    return this.mAlignment;
+                }
+            }
+        })();
 
         // Override alignment of primitive.
         if (pParameter.overrideAlignment) {
@@ -100,8 +184,9 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
 }
 
 export interface LinearBufferMemoryLayoutParameter {
-    overrideAlignment?: number;
-    overrideSize?: number;
+    alignmentType: BufferAlignmentType;
+    overrideAlignment?: number | null;
+    overrideSize?: number | null;
     primitiveFormat: BufferItemFormat;
     primitiveMultiplier: BufferItemMultiplier;
 }

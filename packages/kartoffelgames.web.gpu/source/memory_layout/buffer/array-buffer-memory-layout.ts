@@ -35,6 +35,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
 
     /**
      * Array type.
+     * Is negative when array is variable sized.
      */
     public get innerType(): BaseBufferMemoryLayout {
         return this.mInnerType;
@@ -124,6 +125,9 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
 }
 
 export interface ArrayBufferMemoryLayoutParameter {
+    /**
+     * Array size. -1 when array is variable sized.
+     */
     arraySize: number;
     innerType: BaseBufferMemoryLayout;
 }

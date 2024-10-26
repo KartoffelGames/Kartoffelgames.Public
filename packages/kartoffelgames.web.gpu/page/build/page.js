@@ -1562,7 +1562,7 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create transformation.
   const lWoodBoxTransform = new transform_1.Transform();
   lWoodBoxTransform.setScale(1, 1, 1);
-  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   // Create instance positions.
   const lCubeInstanceTransformationData = new Array();
   for (let lWidthIndex = 0; lWidthIndex < lWidth; lWidthIndex++) {
@@ -1572,7 +1572,7 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
       }
     }
   }
-  lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+  lWoodBoxTransformationGroup.data('instancePositions').createBuffer(lCubeInstanceTransformationData);
   /*
    * User defined group.
    */
@@ -1706,7 +1706,7 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create transformation.
   const lLightBoxTransform = new transform_1.Transform();
   lLightBoxTransform.setScale(1, 1, 1);
-  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray));
+  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   const lLightBoxPipeline = lLightBoxRenderModule.create(pRenderTargets);
   lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Generate render parameter from parameter layout.
@@ -1823,10 +1823,10 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Transformation and position group. 
   const lTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
   // Create transformation.
-  const lWoodBoxTransform = new transform_1.Transform();
-  lWoodBoxTransform.setScale(15, 8.4, 0);
-  lWoodBoxTransform.addTranslation(-0.5, -0.5, 100);
-  lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray).buffer);
+  const lBillboardTransform = new transform_1.Transform();
+  lBillboardTransform.setScale(15, 8.4, 0);
+  lBillboardTransform.addTranslation(-0.5, -0.5, 100);
+  lTransformationGroup.data('transformationMatrix').createBuffer(lBillboardTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   /*
    * User defined group.
    */
@@ -1908,17 +1908,17 @@ const gGenerateWorldBindGroup = pGpu => {
    * Camera and world group.
    */
   const lWorldGroup = lWorldGroupLayout.create();
-  lWorldGroup.data('camera').createBuffer(buffer_item_format_enum_1.BufferItemFormat.Float32);
+  lWorldGroup.data('camera').createBufferEmpty();
   // Create ambient light.
   const lAmbientLight = new ambient_light_1.AmbientLight();
   lAmbientLight.setColor(0.3, 0.3, 0.3);
-  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
+  lWorldGroup.data('ambientLight').createBuffer(lAmbientLight.data);
   // Create point lights.
-  lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200, 0, 0, 0]));
+  lWorldGroup.data('pointLights').createBuffer([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200]);
   // Create timestamp.
-  lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+  lWorldGroup.data('timestamp').createBufferEmpty();
   // Create debug value.
-  lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+  lWorldGroup.data('debugValue').createBufferEmpty();
   const lDebugBuffer = lWorldGroup.data('debugValue').asBufferView(Float32Array);
   window.debugBuffer = () => {
     lDebugBuffer.read().then(pResulto => {
@@ -2266,6 +2266,7 @@ exports.BindGroupDataSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const gpu_buffer_view_1 = __webpack_require__(/*! ../buffer/gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
@@ -2274,6 +2275,9 @@ const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2306,41 +2310,135 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     // Create view.
     return new gpu_buffer_view_1.GpuBufferView(lData, lBufferLayout, pValueType);
   }
-  createBuffer(pDataOrType, pVariableSizeCount = null) {
+  /**
+   * Create na new buffer.
+   *
+   * @param pData - Buffer data without right alignment.
+   *
+   * @returns created buffer.
+   */
+  createBuffer(pData) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Unwrap layout.
+    const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
+    // Get variable data repetitions.
+    let lVariableRepetitionCount = 0;
+    if (lUnwrapedLayout.variableItemCount > 0) {
+      lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
+    }
+    // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
+    // Create buffer with correct length.
+    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.fixedSize + this.mBindLayout.layout.variableSize * lVariableRepetitionCount);
+    const lBufferDataView = new DataView(lBufferData);
+    // Write data.
+    let lDataIndex = 0;
+    let lByteOffset = 0;
+    const lWriteLayout = pUnwrappedLayout => {
+      // Apply layout alignment to offset.
+      lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
+      // buffer layout is a layered format.
+      if (Array.isArray(pUnwrappedLayout.format)) {
+        // Set repetition count to variable count when layout repetition count is uncapped.
+        const lRepetitionCount = pUnwrappedLayout.count !== -1 ? pUnwrappedLayout.count : lVariableRepetitionCount;
+        for (let lLayoutRepetionIndex = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
+          // Add each inner format.
+          for (const lInnerFormat of pUnwrappedLayout.format) {
+            lWriteLayout(lInnerFormat);
+          }
+        }
+        return;
+      }
+      for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
+        // Add and iterate data.
+        this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
+        lDataIndex++;
+        // Increase offset by format byte count.
+        lByteOffset += pUnwrappedLayout.format.itemByteCount;
+      }
+    };
+    lWriteLayout(lUnwrapedLayout);
+    // Create buffer with initial data.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
+      return lBufferData;
+    });
+    // Send created data.
+    this.sendData(lBuffer);
+    return lBuffer;
+  }
+  /**
+   * Create a empty buffer.
+   *
+   * @param pVariableSizeCount - Variable item count.
+   *
+   * @returns - Created buffer.
+   */
+  createBufferEmpty(pVariableSizeCount = null) {
     // Layout must be a buffer memory layout.
     if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
       throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
     }
     // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
     // Calculate variable item count from initial buffer data.  
-    const lVariableItemCount = pVariableSizeCount ?? (() => {
+    const lVariableItemCount = (() => {
+      // Use set variable count.
+      if (pVariableSizeCount !== null) {
+        return pVariableSizeCount;
+      }
       // No need to calculate was it is allways zero.
       if (this.mBindLayout.layout.variableSize === 0) {
         return 0;
       }
-      // A variable size count can only be calculated for data.
-      if (typeof pDataOrType !== 'object') {
-        throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
-      }
-      // Get initial buffer data byte length.
-      const lBufferByteLength = pDataOrType.byteLength;
-      // calculate item count and check if initial data meets requirments.
-      const lItemCount = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
-      if (lItemCount % 1 > 0) {
-        throw new core_1.Exception('Initial bind group data buffer data "${this.mBindLayout.name}" does not meet alignment or data size requirements.', this);
-      }
-      return lItemCount;
+      throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
     })();
     // Calculate buffer size.
     const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
     // Create buffer.
     const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
-    // Add initial data.
-    if (typeof pDataOrType === 'object') {
-      lBuffer.initialData(() => {
-        return pDataOrType;
-      });
+    // Send created data.
+    this.sendData(lBuffer);
+    return lBuffer;
+  }
+  /**
+   * Create and init buffer with raw array buffer data.
+   * Data needs to have the right alignment and size.
+   *
+   * @param pData - Raw data.
+   *
+   * @returns - Created buffer.
+   */
+  createBufferWithRawData(pData) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
     }
+    // Calculate variable item count from initial buffer data.  
+    const lVariableItemCount = (() => {
+      // No need to calculate was it is allways zero.
+      if (this.mBindLayout.layout.variableSize === 0) {
+        return 0;
+      }
+      // Get initial buffer data byte length.
+      const lBufferByteLength = pData.byteLength;
+      // calculate item count and check if initial data meets requirments.
+      const lItemCount = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
+      if (lItemCount % 1 > 0) {
+        throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet alignment.`, this);
+      }
+      return lItemCount;
+    })();
+    // Calculate buffer size. // TODO: Extend bytecount when dynamic offsets are enabled.
+    const lByteCount = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    // Validate size.
+    if (pData.byteLength !== lByteCount) {
+      throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteCount} => Has:${pData.byteLength}) requirements.`, this);
+    }
+    // Create buffer.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteCount).initialData(() => {
+      return pData;
+    });
     // Send created data.
     this.sendData(lBuffer);
     return lBuffer;
@@ -2431,6 +2529,116 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     this.sendData(pData);
     // Return same data.
     return pData;
+  }
+  /**
+   * Set data in little endian according to the set item format and offset.
+   *
+   * @param pBufferDataView - Data view of buffer.
+   * @param pByteOffset - Byte offset in buffer.
+   * @param pFormat - Format to write.
+   * @param pData - Data to write.
+   */
+  setBufferData(pBufferDataView, pByteOffset, pFormat, pData) {
+    switch (pFormat) {
+      case buffer_item_format_enum_1.BufferItemFormat.Float32:
+        {
+          pBufferDataView.setFloat32(pByteOffset, pData, true);
+          break;
+        }
+      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+        {
+          pBufferDataView.setUint32(pByteOffset, pData, true);
+          break;
+        }
+      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+        {
+          pBufferDataView.setInt32(pByteOffset, pData, true);
+          break;
+        }
+      // Unsupported
+      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+      case buffer_item_format_enum_1.BufferItemFormat.Float16:
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+      default:
+        {
+          throw new core_1.Exception(`Currently "${pFormat}" is not supported for uniform parameter.`, this);
+        }
+    }
+  }
+  /**
+   * Unwrap layout.
+   *
+   * @param pLayout - Buffer layout.
+   *
+   * @returns - unwrapped layout.
+   */
+  unwrapLayouts(pLayout) {
+    // Recursion end condition. Primitives have no inner formats.
+    if (pLayout instanceof primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout) {
+      // Read item count and format of parameter.
+      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pLayout.itemMultiplier);
+      const lParameterItemFormat = pLayout.itemFormat;
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: lParameterItemCount,
+        variableItemCount: 0,
+        // Local layout data.
+        count: lParameterItemCount,
+        alignment: pLayout.alignment,
+        format: {
+          itemFormat: lParameterItemFormat,
+          itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+        }
+      };
+    }
+    // Recursive array.
+    if (pLayout instanceof array_buffer_memory_layout_1.ArrayBufferMemoryLayout) {
+      // Unwrap inner format.
+      const lInnerFormatUnwrapped = this.unwrapLayouts(pLayout.innerType);
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: Math.max(pLayout.arraySize, 0) * lInnerFormatUnwrapped.fixedItemCount,
+        variableItemCount: pLayout.variableSize > 0 ? lInnerFormatUnwrapped.fixedItemCount : 0,
+        // Local layout data.
+        count: pLayout.fixedSize || -1,
+        alignment: pLayout.alignment,
+        format: [lInnerFormatUnwrapped]
+      };
+    }
+    // Recursive struct.
+    if (pLayout instanceof struct_buffer_memory_layout_1.StructBufferMemoryLayout) {
+      let lFixedItemCount = 0;
+      let lVariableItemCount = 0;
+      // Create new unwrapped layout for each property.
+      const lPropertyFormats = new Array();
+      for (const lProperty of pLayout.properties) {
+        // Unwrap property format.
+        const lPropertyFormatUnwrapped = this.unwrapLayouts(lProperty.layout);
+        // Count of fixed and variable item size.
+        lFixedItemCount += lPropertyFormatUnwrapped.fixedItemCount;
+        lVariableItemCount += lPropertyFormatUnwrapped.variableItemCount;
+        lPropertyFormats.push(lPropertyFormatUnwrapped);
+      }
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: lFixedItemCount,
+        variableItemCount: lVariableItemCount,
+        // Local layout data.
+        count: 1,
+        alignment: pLayout.alignment,
+        format: lPropertyFormats
+      };
+    }
+    throw new core_1.Exception('Memory layout not suppored for bindings', this);
   }
 }
 exports.BindGroupDataSetup = BindGroupDataSetup;
@@ -6058,6 +6266,7 @@ class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemo
   }
   /**
    * Array type.
+   * Is negative when array is variable sized.
    */
   get innerType() {
     return this.mInnerType;
@@ -16813,7 +17022,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("7c3acb1c287901c2a49f")
+/******/ 		__webpack_require__.h = () => ("bd4cce5967e802e1ad3a")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

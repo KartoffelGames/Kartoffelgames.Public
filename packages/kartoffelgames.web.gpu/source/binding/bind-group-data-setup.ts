@@ -14,6 +14,9 @@ import { GpuTexture } from '../texture/gpu-texture';
 import { GpuTextureView } from '../texture/gpu-texture-view';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindLayout } from './bind-group-layout';
+import { PrimitiveBufferMemoryLayout } from '../memory_layout/buffer/primitive-buffer-memory-layout';
+import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
@@ -58,14 +61,82 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
     /**
      * Create na new buffer.
      * 
-     * @param pDataOrType - Type or initial data.
-     * @param pVariableSizeCount - Variable item count.
+     * @param pData - Buffer data without right alignment.
      * 
      * @returns created buffer.
      */
-    public createBuffer(pData: ArrayBufferLike): GpuBuffer;
-    public createBuffer(pType: BufferItemFormat, pVariableSizeCount?: number): GpuBuffer;
-    public createBuffer(pDataOrType: ArrayBufferLike  | BufferItemFormat, pVariableSizeCount: number | null = null): GpuBuffer {
+    public createBuffer(pData: Array<number>): GpuBuffer {
+        // Layout must be a buffer memory layout.
+        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
+            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
+        }
+
+        // Unwrap layout.
+        const lUnwrapedLayout: UnwrappedBufferLayout = this.unwrapLayouts(this.mBindLayout.layout);
+
+        // Get variable data repetitions.
+        let lVariableRepetitionCount: number = 0;
+        if (lUnwrapedLayout.variableItemCount > 0) {
+            lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
+        }
+
+        // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
+
+        // Create buffer with correct length.
+        const lBufferData: ArrayBuffer = new ArrayBuffer(this.mBindLayout.layout.fixedSize + (this.mBindLayout.layout.variableSize * lVariableRepetitionCount));
+        const lBufferDataView: DataView = new DataView(lBufferData);
+
+        // Write data.
+        let lDataIndex: number = 0;
+        let lByteOffset: number = 0;
+        const lWriteLayout = (pUnwrappedLayout: UnwrappedBufferLayout,) => {
+            // Apply layout alignment to offset.
+            lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
+
+            // buffer layout is a layered format.
+            if (Array.isArray(pUnwrappedLayout.format)) {
+                // Set repetition count to variable count when layout repetition count is uncapped.
+                const lRepetitionCount: number = (pUnwrappedLayout.count !== -1) ? pUnwrappedLayout.count : lVariableRepetitionCount;
+                for (let lLayoutRepetionIndex: number = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
+                    // Add each inner format.
+                    for (const lInnerFormat of pUnwrappedLayout.format) {
+                        lWriteLayout(lInnerFormat);
+                    }
+                }
+
+                return;
+            }
+
+            for (let lItemIndex: number = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
+                // Add and iterate data.
+                this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
+                lDataIndex++;
+
+                // Increase offset by format byte count.
+                lByteOffset += pUnwrappedLayout.format.itemByteCount;
+            }
+        };
+        lWriteLayout(lUnwrapedLayout);
+
+        // Create buffer with initial data.
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
+            return lBufferData;
+        });
+
+        // Send created data.
+        this.sendData(lBuffer);
+
+        return lBuffer;
+    }
+
+    /**
+     * Create a empty buffer.
+     * 
+     * @param pVariableSizeCount - Variable item count.
+     * 
+     * @returns - Created buffer. 
+     */
+    public createBufferEmpty(pVariableSizeCount: number | null = null): GpuBuffer {
         // Layout must be a buffer memory layout.
         if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
@@ -74,27 +145,18 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
 
         // Calculate variable item count from initial buffer data.  
-        const lVariableItemCount: number = pVariableSizeCount ?? (() => {
+        const lVariableItemCount: number = (() => {
+            // Use set variable count.
+            if (pVariableSizeCount !== null) {
+                return pVariableSizeCount;
+            }
+
             // No need to calculate was it is allways zero.
             if (this.mBindLayout.layout.variableSize === 0) {
                 return 0;
             }
 
-            // A variable size count can only be calculated for data.
-            if (typeof pDataOrType !== 'object') {
-                throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
-            }
-
-            // Get initial buffer data byte length.
-            const lBufferByteLength: number = pDataOrType.byteLength;
-
-            // calculate item count and check if initial data meets requirments.
-            const lItemCount: number = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
-            if (lItemCount % 1 > 0) {
-                throw new Exception('Initial bind group data buffer data "${this.mBindLayout.name}" does not meet alignment or data size requirements.', this);
-            }
-
-            return lItemCount;
+            throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
         })();
 
         // Calculate buffer size.
@@ -103,12 +165,57 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // Create buffer.
         const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteSize);
 
-        // Add initial data.
-        if (typeof pDataOrType === 'object') {
-            lBuffer.initialData(() => {
-                return pDataOrType;
-            });
+        // Send created data.
+        this.sendData(lBuffer);
+
+        return lBuffer;
+    }
+
+    /**
+     * Create and init buffer with raw array buffer data.
+     * Data needs to have the right alignment and size.
+     * 
+     * @param pData - Raw data. 
+     * 
+     * @returns - Created buffer.
+     */
+    public createBufferWithRawData(pData: ArrayBufferLike): GpuBuffer {
+        // Layout must be a buffer memory layout.
+        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
+            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
         }
+
+        // Calculate variable item count from initial buffer data.  
+        const lVariableItemCount: number = (() => {
+            // No need to calculate was it is allways zero.
+            if (this.mBindLayout.layout.variableSize === 0) {
+                return 0;
+            }
+
+            // Get initial buffer data byte length.
+            const lBufferByteLength: number = pData.byteLength;
+
+            // calculate item count and check if initial data meets requirments.
+            const lItemCount: number = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
+            if (lItemCount % 1 > 0) {
+                throw new Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet alignment.`, this);
+            }
+
+            return lItemCount;
+        })();
+
+        // Calculate buffer size. // TODO: Extend bytecount when dynamic offsets are enabled.
+        const lByteCount: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+
+        // Validate size.
+        if (pData.byteLength !== lByteCount) {
+            throw new Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteCount} => Has:${pData.byteLength}) requirements.`, this);
+        }
+
+        // Create buffer.
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteCount).initialData(() => {
+            return pData;
+        });
 
         // Send created data.
         this.sendData(lBuffer);
@@ -213,6 +320,132 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // Return same data.
         return pData;
     }
+
+    /**
+     * Set data in little endian according to the set item format and offset. 
+     * 
+     * @param pBufferDataView - Data view of buffer.
+     * @param pByteOffset - Byte offset in buffer.
+     * @param pFormat - Format to write.
+     * @param pData - Data to write.
+     */
+    private setBufferData(pBufferDataView: DataView, pByteOffset: number, pFormat: BufferItemFormat, pData: number): void {
+        switch (pFormat) {
+            case BufferItemFormat.Float32: { pBufferDataView.setFloat32(pByteOffset, pData, true); break; }
+            case BufferItemFormat.Uint32: { pBufferDataView.setUint32(pByteOffset, pData, true); break; }
+            case BufferItemFormat.Sint32: { pBufferDataView.setInt32(pByteOffset, pData, true); break; }
+
+            // Unsupported
+            case BufferItemFormat.Uint8:
+            case BufferItemFormat.Sint8:
+            case BufferItemFormat.Uint16:
+            case BufferItemFormat.Sint16:
+            case BufferItemFormat.Float16:
+            case BufferItemFormat.Unorm16:
+            case BufferItemFormat.Snorm16:
+            case BufferItemFormat.Unorm8:
+            case BufferItemFormat.Snorm8:
+            default: {
+                throw new Exception(`Currently "${pFormat}" is not supported for uniform parameter.`, this);
+            }
+        }
+    }
+
+    /**
+     * Unwrap layout.
+     * 
+     * @param pLayout - Buffer layout.
+     * 
+     * @returns - unwrapped layout. 
+     */
+    private unwrapLayouts(pLayout: BaseBufferMemoryLayout): UnwrappedBufferLayout {
+        // Recursion end condition. Primitives have no inner formats.
+        if (pLayout instanceof PrimitiveBufferMemoryLayout) {
+            // Read item count and format of parameter.
+            const lParameterItemCount: number = PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pLayout.itemMultiplier);
+            const lParameterItemFormat: BufferItemFormat = pLayout.itemFormat;
+
+            // Add formats for each item of parameter.
+            return {
+                // Global data.
+                fixedItemCount: lParameterItemCount,
+                variableItemCount: 0,
+
+                // Local layout data.
+                count: lParameterItemCount,
+                alignment: pLayout.alignment,
+                format: {
+                    itemFormat: lParameterItemFormat,
+                    itemByteCount: PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+                }
+            };
+        }
+
+        // Recursive array.
+        if (pLayout instanceof ArrayBufferMemoryLayout) {
+            // Unwrap inner format.
+            const lInnerFormatUnwrapped: UnwrappedBufferLayout = this.unwrapLayouts(pLayout.innerType);
+
+            // Add formats for each item of parameter.
+            return {
+                // Global data.
+                fixedItemCount: Math.max(pLayout.arraySize, 0) * lInnerFormatUnwrapped.fixedItemCount,
+                variableItemCount: (pLayout.variableSize > 0) ? lInnerFormatUnwrapped.fixedItemCount : 0,
+
+                // Local layout data.
+                count: pLayout.fixedSize || -1,
+                alignment: pLayout.alignment,
+                format: [lInnerFormatUnwrapped]
+            };
+        }
+
+        // Recursive struct.
+        if (pLayout instanceof StructBufferMemoryLayout) {
+            let lFixedItemCount: number = 0;
+            let lVariableItemCount: number = 0;
+
+            // Create new unwrapped layout for each property.
+            const lPropertyFormats: Array<UnwrappedBufferLayout> = new Array<UnwrappedBufferLayout>();
+            for (const lProperty of pLayout.properties) {
+                // Unwrap property format.
+                const lPropertyFormatUnwrapped: UnwrappedBufferLayout = this.unwrapLayouts(lProperty.layout);
+
+                // Count of fixed and variable item size.
+                lFixedItemCount += lPropertyFormatUnwrapped.fixedItemCount;
+                lVariableItemCount += lPropertyFormatUnwrapped.variableItemCount;
+
+                lPropertyFormats.push(lPropertyFormatUnwrapped);
+            }
+
+            // Add formats for each item of parameter.
+            return {
+                // Global data.
+                fixedItemCount: lFixedItemCount,
+                variableItemCount: lVariableItemCount,
+
+                // Local layout data.
+                count: 1,
+                alignment: pLayout.alignment,
+                format: lPropertyFormats
+            };
+        }
+
+        throw new Exception('Memory layout not suppored for bindings', this);
+    }
 }
 
 type BindGroupDataCallback = (pData: GpuResourceObject<any, any, any, any>) => void;
+
+type UnwrappedBufferLayout = {
+    // Global data.
+    fixedItemCount: number;
+    variableItemCount: number;
+
+    // Local layout data.
+    count: number;
+    alignment: number;
+    format: Array<UnwrappedBufferLayout> | {
+        itemFormat: BufferItemFormat,
+        itemByteCount: number;
+    };
+};

@@ -124,8 +124,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 alignment: lParameterLayout.alignment,
                 itemByteCount: PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
             });
-
-
         }
 
         // Buffer data must align with layout.

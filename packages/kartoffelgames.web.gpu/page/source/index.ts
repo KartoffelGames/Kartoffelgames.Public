@@ -93,7 +93,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
     // Create transformation.
     const lWoodBoxTransform: Transform = new Transform();
     lWoodBoxTransform.setScale(1, 1, 1);
-    lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+    lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray);
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -104,7 +104,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
             }
         }
     }
-    lWoodBoxTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+    lWoodBoxTransformationGroup.data('instancePositions').createBuffer(lCubeInstanceTransformationData);
 
     /*
      * User defined group.
@@ -271,7 +271,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     // Create transformation.
     const lLightBoxTransform: Transform = new Transform();
     lLightBoxTransform.setScale(1, 1, 1);
-    lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lLightBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+    lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(lLightBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray);
 
     const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(pRenderTargets);
     lLightBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
@@ -442,10 +442,10 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     const lTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    const lWoodBoxTransform: Transform = new Transform();
-    lWoodBoxTransform.setScale(15, 8.4, 0);
-    lWoodBoxTransform.addTranslation(-0.5, -0.5, 100);
-    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lWoodBoxTransform.getMatrix(TransformMatrix.Transformation).dataArray).buffer);
+    const lBillboardTransform: Transform = new Transform();
+    lBillboardTransform.setScale(15, 8.4, 0);
+    lBillboardTransform.addTranslation(-0.5, -0.5, 100);
+    lTransformationGroup.data('transformationMatrix').createBuffer(lBillboardTransform.getMatrix(TransformMatrix.Transformation).dataArray);
 
     /*
      * User defined group.
@@ -553,25 +553,25 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
      * Camera and world group. 
      */
     const lWorldGroup: BindGroup = lWorldGroupLayout.create();
-    lWorldGroup.data('camera').createBuffer(BufferItemFormat.Float32);
+    lWorldGroup.data('camera').createBufferEmpty();
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
     lAmbientLight.setColor(0.3, 0.3, 0.3);
-    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
+    lWorldGroup.data('ambientLight').createBuffer(lAmbientLight.data);
 
     // Create point lights.
-    lWorldGroup.data('pointLights').createBuffer(new Float32Array([
-        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
-        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0,
-        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200, 0, 0, 0
-    ]));
+    lWorldGroup.data('pointLights').createBuffer([
+        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200,
+        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200,
+        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200
+    ]);
 
     // Create timestamp.
-    lWorldGroup.data('timestamp').createBuffer(new Float32Array(1));
+    lWorldGroup.data('timestamp').createBufferEmpty();
 
     // Create debug value.
-    lWorldGroup.data('debugValue').createBuffer(new Float32Array(1));
+    lWorldGroup.data('debugValue').createBufferEmpty();
     const lDebugBuffer: GpuBufferView<Float32Array> = lWorldGroup.data('debugValue').asBufferView(Float32Array);
     (<any>window).debugBuffer = () => {
         lDebugBuffer.read().then((pResulto) => {

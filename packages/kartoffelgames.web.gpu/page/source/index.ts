@@ -546,6 +546,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
             pBindGroupSetup.binding(1, 'particles', ComputeStage.Vertex, StorageBindingType.Read)
                 .withArray().withStruct((pStructSetup) => {
                     pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
                 });
@@ -631,7 +632,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargets);
     lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
     lParticlePipeline.depthCompare = CompareFunction.Less;
-    lParticlePipeline.writeDepth = false;
+    lParticlePipeline.writeDepth = true;
     lParticlePipeline.targetConfig('color')
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
@@ -668,6 +669,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
             pBindGroupSetup.binding(0, 'particles', ComputeStage.Compute, StorageBindingType.ReadWrite)
                 .withArray().withStruct((pStructSetup) => {
                     pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
                 });

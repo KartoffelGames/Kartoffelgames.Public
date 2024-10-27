@@ -1,11 +1,12 @@
 // ------------------------- Object Values ---------------------- //
 struct Particle {
     position: vec3<f32>,
+    rotation: vec3<f32>,
     velocity: vec3<f32>,
     lifetime: f32
 }
 @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
-@group(0) @binding(1) var<storage, read_write> indirect: vec4<u32>;
+@group(0) @binding(1) var<storage, read_write> indirect: array<atomic<u32>, 4>;
 // -------------------------------------------------------------- //
 
 
@@ -62,8 +63,8 @@ struct ComputeParams {
 }
 @compute @workgroup_size(64)
 fn compute_main(params: ComputeParams) {
-    const MAX_DISTANCE: f32 = 5; //
-    const MAX_LIFETIME: f32 = 10; //
+    const MAX_DISTANCE: f32 = 3;
+    const MAX_LIFETIME: f32 = 9999;
 
     let id = params.globalInvocationId.x;
     if(id >= arrayLength(&particles)) {
@@ -72,13 +73,20 @@ fn compute_main(params: ComputeParams) {
 
     var particle: Particle = particles[id];
 
-    indirect[1] = 300;
+    // Atomic just in case
+    atomicStore(&indirect[1], 600);
 
     // Update time
     particle.lifetime -= time.delta;
 
+    // Mark particle to kill.
     let cameraDistance: f32 = distance(particle.position, camera.position);
-    if(particle.lifetime < 0 || cameraDistance > MAX_DISTANCE) {
+    if(cameraDistance > MAX_DISTANCE && particle.lifetime > 1) {
+        particle.lifetime = 0;
+    }
+
+    // Recreate particle.
+    if(particle.lifetime <= 0) {
         var hash1: u32 = hash(id * 10000  + u32(time.timestamp * 1000));
         var hash2: u32 = hash(hash1);
         var hash3: u32 = hash(hash2);
@@ -93,16 +101,21 @@ fn compute_main(params: ComputeParams) {
         var randomPosition: vec3<f32> =vec3<f32>(posX, posY, posZ);
         randomPosition = normalize(randomPosition);
 
+        // Flip Y when it is negative.
+        randomPosition.y = abs(randomPosition.y);
+
         // Scale ball by 10m
-        randomPosition *= radi * MAX_DISTANCE;
+        randomPosition *= MAX_DISTANCE * 0.75;
 
         particle.position = randomPosition + camera.position;
+        particle.rotation = randomPosition;
         particle.lifetime = MAX_LIFETIME;
         particle.velocity = vec3<f32>(0.1, -0.2, 0);
     }
 
     // Move by velocity.
-    particle.position += particle.velocity * time.delta ;
+    particle.position += particle.velocity * time.delta;
+    particle.rotation += particle.velocity * time.delta * 8;
 
     _ = animationSeconds;
 

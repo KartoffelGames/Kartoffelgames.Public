@@ -2,6 +2,7 @@
 @group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;
 struct Particle {
     position: vec3<f32>,
+    rotation: vec3<f32>,
     velocity: vec3<f32>,
     lifetime: f32
 }
@@ -66,6 +67,9 @@ struct VertexIn {
 
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
+    const MAX_DISTANCE: f32 = 3;
+    const MAX_LIFETIME: f32 = 9999;
+
     var particle: Particle = particles[vertex.instanceId];
 
     let positionMatrix: mat4x4<f32> = mat4x4<f32>(
@@ -75,11 +79,44 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
         particle.position.x, particle.position.y, particle.position.z, 1,
     );
 
+    let rotationMatrixX: mat4x4<f32> = mat4x4<f32>(
+        1, 0, 0, 0,
+        0, cos(particle.rotation.x), -sin(particle.rotation.x), 0,
+        0, sin(particle.rotation.x), cos(particle.rotation.x), 0,
+        0, 0, 0, 1
+    );
+
+    let rotationMatrixY: mat4x4<f32> = mat4x4<f32>(
+        cos(particle.rotation.y), 0, sin(particle.rotation.y), 0,
+        0, 1, 0, 0,
+        -sin(particle.rotation.y), 0, cos(particle.rotation.y), 0,
+        0, 0, 0, 1
+    );
+
+    let rotationMatrixZ: mat4x4<f32> = mat4x4<f32>(
+        cos(particle.rotation.z), -sin(particle.rotation.z), 0, 0,
+        sin(particle.rotation.z), cos(particle.rotation.z), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    );
+
+    let rotationMatrix: mat4x4<f32> = rotationMatrixX * rotationMatrixY * rotationMatrixZ;
+
+    let distanceScale: f32 = (MAX_DISTANCE - distance(particle.position, camera.position)) / MAX_DISTANCE;
+    let scalingMatrix: mat4x4<f32> = mat4x4<f32>(
+        distanceScale, 0, 0, 0,
+        0, distanceScale, 0, 0,
+        0, 0, distanceScale, 0,
+        0, 0, 0, 1,
+    );
+
+    let worldPosition: vec4<f32> = positionMatrix * scalingMatrix * transformationMatrix * rotationMatrix * vertex.position;
+
     var out: VertexOut;
-    out.position = camera.viewProjection * positionMatrix * transformationMatrix * vertex.position ;
+    out.position = camera.viewProjection * worldPosition;
     out.uv = vertex.uv;
-    out.fragmentPosition = transformationMatrix * positionMatrix * vertex.position;
-    out.alpha = min(clamp(particle.lifetime, 0, 1), clamp(10 - particle.lifetime, 0, 1));
+    out.fragmentPosition = worldPosition;
+    out.alpha = clamp(particle.lifetime, 0, 1);
 
     return out;
 }
@@ -94,6 +131,10 @@ struct FragmentIn {
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
     var color = textureSample(texture, textureSampler, fragment.uv);
     color.a *= fragment.alpha;
+
+    if(color.a == 0) {
+        discard;
+    }
 
     return color;
 }

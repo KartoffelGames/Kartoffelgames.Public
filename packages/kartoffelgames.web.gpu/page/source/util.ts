@@ -16,7 +16,7 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
     lDefaultConfiguaration.addAction('RotateRight', [KeyboardButton.KeyE]);
     lDefaultConfiguaration.addAction('Yaw', [MouseButton.Xaxis]);
     lDefaultConfiguaration.addAction('Pitch', [MouseButton.Yaxis]);
-    lDefaultConfiguaration.triggerTolerance = 0.2;
+    lDefaultConfiguaration.triggerTolerance = 0;
     const lInputConfiguration: InputConfiguration = new InputConfiguration(lDefaultConfiguaration);
     const lInputDevices: InputDevices = new InputDevices(lInputConfiguration);
     lInputDevices.registerConnector(new MouseKeyboardConnector());

@@ -37,7 +37,7 @@ export class GpuBufferView<T extends TypedArray> {
      * @param pBuffer - Views buffer. 
      * @param pLayout - Layout of view.
      */
-    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>) { // TODO: Define type with Enum and set data with dataview loops.
+    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>) {
         this.mLayout = pLayout;
         this.mBuffer = pBuffer;
         this.mTypedArrayConstructor = pType;

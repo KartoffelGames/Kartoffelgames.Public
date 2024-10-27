@@ -76,9 +76,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 2);
                 lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(() => {
-                    return new Uint16Array(pIndices).buffer;
-                });
+                lIndexBuffer.initialData(new Uint16Array(pIndices));
 
                 // Create view of buffer.
                 this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
@@ -86,9 +84,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 4);
                 lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(() => {
-                    return new Uint32Array(pIndices).buffer;
-                });
+                lIndexBuffer.initialData(new Uint32Array(pIndices));
 
                 // Create view of buffer.
                 this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
@@ -202,9 +198,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         }
 
         // Load typed array from layout format.
-        const lParameterBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
-            return lBufferData;
-        });
+        const lParameterBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
 
         // Extend buffer to be a vertex buffer.
         lParameterBuffer.extendUsage(BufferUsage.Vertex);

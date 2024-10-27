@@ -7,16 +7,16 @@ import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
 import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
 import { GpuResourceObject } from '../gpu/object/gpu-resource-object';
+import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../memory_layout/buffer/primitive-buffer-memory-layout';
+import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
 import { GpuTexture } from '../texture/gpu-texture';
 import { GpuTextureView } from '../texture/gpu-texture-view';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindLayout } from './bind-group-layout';
-import { PrimitiveBufferMemoryLayout } from '../memory_layout/buffer/primitive-buffer-memory-layout';
-import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
@@ -119,9 +119,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         lWriteLayout(lUnwrapedLayout);
 
         // Create buffer with initial data.
-        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
-            return lBufferData;
-        });
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
 
         // Send created data.
         this.sendData(lBuffer);
@@ -213,9 +211,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         }
 
         // Create buffer.
-        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteCount).initialData(() => {
-            return pData;
-        });
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteCount).initialData(pData);
 
         // Send created data.
         this.sendData(lBuffer);

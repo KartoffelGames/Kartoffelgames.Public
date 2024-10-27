@@ -1970,10 +1970,8 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lParticlePipeline.depthCompare = compare_function_enum_1.CompareFunction.Less;
   lParticlePipeline.writeDepth = true;
   lParticlePipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
-  const lIndirectionBuffer = new gpu_buffer_1.GpuBuffer(pGpu, 4 * 4).initialData(() => {
-    // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32
-    return new Uint32Array([particle_mesh_1.ParticleVertexIndices.length, 0, 0, 0]);
-  });
+  // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32    
+  const lIndirectionBuffer = new gpu_buffer_1.GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([particle_mesh_1.ParticleVertexIndices.length, 0, 0, 0]));
   const lRenderInstruction = {
     pipeline: lParticlePipeline,
     parameter: lMesh,
@@ -2345,7 +2343,7 @@ const InitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
   lDefaultConfiguaration.addAction('RotateRight', [web_game_input_1.KeyboardButton.KeyE]);
   lDefaultConfiguaration.addAction('Yaw', [web_game_input_1.MouseButton.Xaxis]);
   lDefaultConfiguaration.addAction('Pitch', [web_game_input_1.MouseButton.Yaxis]);
-  lDefaultConfiguaration.triggerTolerance = 0.2;
+  lDefaultConfiguaration.triggerTolerance = 0;
   const lInputConfiguration = new web_game_input_1.InputConfiguration(lDefaultConfiguaration);
   const lInputDevices = new web_game_input_1.InputDevices(lInputConfiguration);
   lInputDevices.registerConnector(new web_game_input_1.MouseKeyboardConnector());
@@ -2467,14 +2465,14 @@ const buffer_item_format_enum_1 = __webpack_require__(/*! ../constant/buffer-ite
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2558,9 +2556,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     };
     lWriteLayout(lUnwrapedLayout);
     // Create buffer with initial data.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
-      return lBufferData;
-    });
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
     // Send created data.
     this.sendData(lBuffer);
     return lBuffer;
@@ -2633,9 +2629,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteCount} => Has:${pData.byteLength}) requirements.`, this);
     }
     // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteCount).initialData(() => {
-      return pData;
-    });
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteCount).initialData(pData);
     // Send created data.
     this.sendData(lBuffer);
     return lBuffer;
@@ -3840,6 +3834,11 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     // Align data size by 4 byte.
     return this.mByteSize;
   }
+  set size(pByteCount) {
+    // Calculate size. Align to 4 byte. Allways.
+    this.mByteSize = pByteCount + 3 & ~3;
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
   /**
    * Write buffer limitation.
    * Limiting the amount of created staging buffer to perform reads.
@@ -3858,10 +3857,11 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    */
   constructor(pDevice, pByteCount) {
     super(pDevice);
-    // Calculate size. // TODO: Allow buffer resize.
+    // Calculate size. Align to 4 byte. Allways.
     this.mByteSize = pByteCount + 3 & ~3;
-    // TODO: Allways add copy source/destination and copy over information on rebuild. 
-    // TODO: Work with dataviews and set data with loops.
+    // Allways add copy source/destination to copy over information on rebuild.
+    this.extendUsage(buffer_usage_enum_1.BufferUsage.CopyDestination);
+    this.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
     // Read and write buffers.
     this.mWriteBuffer = {
       limitation: Number.MAX_SAFE_INTEGER,
@@ -3870,22 +3870,20 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
     };
     this.mReadBuffer = null;
     // No intial data.
-    this.mInitialDataCallback = null;
+    this.mInitialData = null;
   }
   /**
    * Set new initial data before the buffer is created.
    *
    * @param pDataCallback - Data callback.
    */
-  initialData(pDataCallback) {
+  initialData(pInitialData) {
     // Initial is inital.
-    if (this.mInitialDataCallback) {
+    if (this.mInitialData !== null) {
       throw new core_1.Exception('Initial callback can only be set once.', this);
     }
     // Set new initial data, set on creation.
-    this.mInitialDataCallback = pDataCallback;
-    // Trigger update.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+    this.mInitialData = pInitialData;
     return this;
   }
   /**
@@ -4008,39 +4006,34 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
   /**
    * Destroy wave and ready buffer.
    */
-  destroyNative(pNativeObject, pReason) {
+  destroyNative(pNativeObject) {
     pNativeObject.destroy();
-    // Only clear staging buffers when buffer should be deconstructed, on any other invalidation, the size does not change.
-    if (pReason.deconstruct) {
-      // Destroy all wave buffer and clear list.
-      for (const lWriteBuffer of this.mWriteBuffer.buffer) {
-        lWriteBuffer.destroy();
-      }
-      this.mWriteBuffer.buffer.clear();
-      // Clear ready buffer list.
-      while (this.mWriteBuffer.ready.length > 0) {
-        // No need to destroy. All buffers have already destroyed.
-        this.mWriteBuffer.ready.pop();
-      }
+    // Destroy all wave buffer and clear list.
+    for (const lWriteBuffer of this.mWriteBuffer.buffer) {
+      lWriteBuffer.destroy();
+    }
+    this.mWriteBuffer.buffer.clear();
+    // Clear ready buffer list.
+    while (this.mWriteBuffer.ready.length > 0) {
+      // No need to destroy. All buffers have already destroyed.
+      this.mWriteBuffer.ready.pop();
     }
   }
   /**
    * Generate buffer. Write local gpu object data as initial native buffer data.
    */
-  generateNative() {
-    // Read optional initial data.
-    const lInitalData = this.mInitialDataCallback?.();
+  generateNative(pLastNative) {
     // Create gpu buffer mapped
     const lBuffer = this.device.gpu.createBuffer({
       label: 'Ring-Buffer-Static-Buffer',
       size: this.size,
       usage: this.usage,
-      mappedAtCreation: !!lInitalData
+      mappedAtCreation: !!this.mInitialData
     });
     // Write data. Is completly async.
-    if (lInitalData) {
+    if (this.mInitialData) {
       // Convert views into array buffers.
-      let lDataArrayBuffer = lInitalData;
+      let lDataArrayBuffer = this.mInitialData;
       if (ArrayBuffer.isView(lDataArrayBuffer)) {
         lDataArrayBuffer = lDataArrayBuffer.buffer;
       }
@@ -4054,6 +4047,14 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
       new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
       // Unmap buffer.
       lBuffer.unmap();
+      // Clear inital data.
+      this.mInitialData = undefined;
+    }
+    // Try to copy last data into new buffer.
+    if (pLastNative) {
+      const lCommandDecoder = this.device.gpu.createCommandEncoder();
+      lCommandDecoder.copyBufferToBuffer(pLastNative, 0, lBuffer, 0, Math.min(pLastNative.size, lBuffer.size));
+      this.device.gpu.queue.submit([lCommandDecoder.finish()]);
     }
     return lBuffer;
   }
@@ -7779,18 +7780,14 @@ class VertexParameter extends gpu_object_1.GpuObject {
         // Create index buffer.
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
-        lIndexBuffer.initialData(() => {
-          return new Uint16Array(pIndices).buffer;
-        });
+        lIndexBuffer.initialData(new Uint16Array(pIndices));
         // Create view of buffer.
         this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
       } else {
         // Create index buffer.
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
-        lIndexBuffer.initialData(() => {
-          return new Uint32Array(pIndices).buffer;
-        });
+        lIndexBuffer.initialData(new Uint32Array(pIndices));
         // Create view of buffer.
         this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
       }
@@ -7915,9 +7912,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
       lByteOffset = Math.ceil(lByteOffset / lParameterLayout.layout.alignment) * lParameterLayout.layout.alignment;
     }
     // Load typed array from layout format.
-    const lParameterBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(() => {
-      return lBufferData;
-    });
+    const lParameterBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
     // Extend buffer to be a vertex buffer.
     lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
     // Save gpu buffer in correct index.
@@ -17288,7 +17283,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("07ecf662546a9d3453e8")
+/******/ 		__webpack_require__.h = () => ("513a027e3d30984f6faf")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

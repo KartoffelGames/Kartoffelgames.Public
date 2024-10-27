@@ -637,10 +637,8 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
 
-    const lIndirectionBuffer: GpuBuffer = new GpuBuffer(pGpu, 4 * 4).initialData(() => {
-        // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32
-        return new Uint32Array([ParticleVertexIndices.length, 0, 0, 0]);
-    });
+    // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32    
+    const lIndirectionBuffer: GpuBuffer = new GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([ParticleVertexIndices.length, 0, 0, 0]));
 
     const lRenderInstruction: RenderInstruction = {
         pipeline: lParticlePipeline,

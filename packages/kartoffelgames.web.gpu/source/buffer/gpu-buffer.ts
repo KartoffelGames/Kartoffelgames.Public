@@ -1,7 +1,6 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../constant/buffer-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
@@ -11,8 +10,8 @@ import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view';
  * GpuBuffer. Uses local and native gpu buffers.
  */
 export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
-    private readonly mByteSize: number;
-    private mInitialDataCallback: (() => ArrayBufferLike) | null;
+    private mByteSize: number;
+    private mInitialData: ArrayBufferLike | null | undefined;
     private mReadBuffer: GPUBuffer | null;
     private readonly mWriteBuffer: GpuBufferWriteBuffer;
 
@@ -29,6 +28,11 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
     public get size(): number {
         // Align data size by 4 byte.
         return this.mByteSize;
+    } set size(pByteCount: number) {
+        // Calculate size. Align to 4 byte. Allways.
+        this.mByteSize = ((pByteCount) + 3) & ~3;
+
+        this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
     }
 
     /**
@@ -50,12 +54,12 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
     public constructor(pDevice: GpuDevice, pByteCount: number) {
         super(pDevice);
 
-        // Calculate size. // TODO: Allow buffer resize.
+        // Calculate size. Align to 4 byte. Allways.
         this.mByteSize = ((pByteCount) + 3) & ~3;
 
-        // TODO: Allways add copy source/destination and copy over information on rebuild. 
-
-        // TODO: Work with dataviews and set data with loops.
+        // Allways add copy source/destination to copy over information on rebuild.
+        this.extendUsage(BufferUsage.CopyDestination);
+        this.extendUsage(BufferUsage.CopySource);
 
         // Read and write buffers.
         this.mWriteBuffer = {
@@ -66,7 +70,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         this.mReadBuffer = null;
 
         // No intial data.
-        this.mInitialDataCallback = null;
+        this.mInitialData = null;
     }
 
     /**
@@ -74,17 +78,14 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * 
      * @param pDataCallback - Data callback. 
      */
-    public initialData(pDataCallback: () => ArrayBufferLike): this {
+    public initialData(pInitialData: ArrayBufferLike): this {
         // Initial is inital.
-        if (this.mInitialDataCallback) {
+        if (this.mInitialData !== null) {
             throw new Exception('Initial callback can only be set once.', this);
         }
 
         // Set new initial data, set on creation.
-        this.mInitialDataCallback = pDataCallback;
-
-        // Trigger update.
-        this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
+        this.mInitialData = pInitialData;
 
         return this;
     }
@@ -225,44 +226,38 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
     /**
      * Destroy wave and ready buffer.
      */
-    protected override destroyNative(pNativeObject: GPUBuffer, pReason: GpuObjectInvalidationReasons<GpuResourceObjectInvalidationType>): void {
+    protected override destroyNative(pNativeObject: GPUBuffer): void {
         pNativeObject.destroy();
 
-        // Only clear staging buffers when buffer should be deconstructed, on any other invalidation, the size does not change.
-        if (pReason.deconstruct) {
-            // Destroy all wave buffer and clear list.
-            for (const lWriteBuffer of this.mWriteBuffer.buffer) {
-                lWriteBuffer.destroy();
-            }
-            this.mWriteBuffer.buffer.clear();
+        // Destroy all wave buffer and clear list.
+        for (const lWriteBuffer of this.mWriteBuffer.buffer) {
+            lWriteBuffer.destroy();
+        }
+        this.mWriteBuffer.buffer.clear();
 
-            // Clear ready buffer list.
-            while (this.mWriteBuffer.ready.length > 0) {
-                // No need to destroy. All buffers have already destroyed.
-                this.mWriteBuffer.ready.pop();
-            }
+        // Clear ready buffer list.
+        while (this.mWriteBuffer.ready.length > 0) {
+            // No need to destroy. All buffers have already destroyed.
+            this.mWriteBuffer.ready.pop();
         }
     }
 
     /**
      * Generate buffer. Write local gpu object data as initial native buffer data.
      */
-    protected override generateNative(): GPUBuffer {
-        // Read optional initial data.
-        const lInitalData: ArrayBufferLike | undefined = this.mInitialDataCallback?.();
-
+    protected override generateNative(pLastNative: GPUBuffer | null): GPUBuffer {
         // Create gpu buffer mapped
         const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
             usage: this.usage,
-            mappedAtCreation: !!lInitalData
+            mappedAtCreation: !!this.mInitialData
         });
 
         // Write data. Is completly async.
-        if (lInitalData) {
+        if (this.mInitialData) {
             // Convert views into array buffers.
-            let lDataArrayBuffer: ArrayBuffer = lInitalData;
+            let lDataArrayBuffer: ArrayBuffer = this.mInitialData;
             if (ArrayBuffer.isView(lDataArrayBuffer)) {
                 lDataArrayBuffer = lDataArrayBuffer.buffer;
             }
@@ -280,6 +275,16 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
 
             // Unmap buffer.
             lBuffer.unmap();
+
+            // Clear inital data.
+            this.mInitialData = undefined;
+        }
+
+        // Try to copy last data into new buffer.
+        if (pLastNative) {
+            const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
+            lCommandDecoder.copyBufferToBuffer(pLastNative, 0, lBuffer, 0, Math.min(pLastNative.size, lBuffer.size));
+            this.device.gpu.queue.submit([lCommandDecoder.finish()]);
         }
 
         return lBuffer;

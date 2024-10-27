@@ -14,11 +14,15 @@ struct Camera {
     projection: mat4x4<f32>,
     translation: CameraTransformation,
     invertedTranslation: CameraTransformation,
+    position: vec3<f32>
 }
 @group(1) @binding(0) var<uniform> camera: Camera;
 
-
-@group(1) @binding(1) var<uniform> timestamp: f32;
+struct TimeData {
+    timestamp: f32,
+    delta: f32
+}
+@group(1) @binding(1) var<uniform> time: TimeData;
 
 struct AmbientLight {
     color: vec4<f32>
@@ -149,5 +153,5 @@ fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
         return vec4<f32>(videoColor.rgb, 0.0);
     }
 
-    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, (sin(fragment.uv.y * 750 + timestamp * 20) * 0.5 + 1) * 0.7);
+    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, (sin(fragment.uv.y * 750 + time.timestamp * 20) * 0.5 + 1) * 0.7);
 }

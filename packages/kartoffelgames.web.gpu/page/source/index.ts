@@ -1,6 +1,7 @@
 import { BindGroup } from '../../source/binding/bind-group';
 import { BindGroupLayout } from '../../source/binding/bind-group-layout';
 import { PipelineData } from '../../source/binding/pipeline-data';
+import { GpuBuffer } from '../../source/buffer/gpu-buffer';
 import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum';
@@ -15,8 +16,10 @@ import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
 import { GpuExecution } from '../../source/execution/gpu-execution';
+import { ComputePass } from '../../source/execution/pass/compute-pass';
 import { RenderPass } from '../../source/execution/pass/render-pass';
 import { GpuDevice } from '../../source/gpu/gpu-device';
+import { ComputePipeline } from '../../source/pipeline/compute-pipeline';
 import { VertexParameter } from '../../source/pipeline/parameter/vertex-parameter';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/pipeline/vertex-fragment-pipeline';
@@ -29,11 +32,14 @@ import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
 import { ViewProjection } from './camera/view_projection/view-projection';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
+import particleComputeShader from './game_objects/leaf_particle/particle-compute-shader.wgsl';
+import particleShader from './game_objects/leaf_particle/particle-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
 import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
 import videoCanvasShader from './game_objects/video_canvas/video-canvas-shader.wgsl';
 import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, CanvasVertexUvData } from './meshes/canvas-mesh';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
+import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 
 const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
@@ -496,8 +502,9 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
     lPipeline.writeDepth = false;
-    lPipeline.targetConfig('color').alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha);
-    lPipeline.targetConfig('color').colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
+    lPipeline.targetConfig('color')
+        .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
+        .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
 
     return {
         pipeline: lPipeline,
@@ -511,9 +518,199 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     };
 };
 
+const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): [RenderInstruction, ComputeInstruction] => {
+    const lMaxParticleCount: number = 18000;
+
+    const lParticleRenderShader: Shader = pGpu.shader(particleShader).setup((pShaderSetup) => {
+        // Set parameter.
+        pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
+
+        // Vertex entry.
+        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
+            pVertexParameterSetup.buffer('position-uv', VertexParameterStepMode.Index)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4)
+                .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
+        });
+
+        // Fragment entry.
+        pShaderSetup.fragmentEntryPoint('fragment_main')
+            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+
+        // Compute entry.
+        pShaderSetup.computeEntryPoint('compute_main').size(64);
+
+        // Object bind group.
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
+                .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+            pBindGroupSetup.binding(1, 'particles', ComputeStage.Vertex, StorageBindingType.Read)
+                .withArray().withStruct((pStructSetup) => {
+                    pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+                });
+        });
+
+        // World bind group.
+        pShaderSetup.group(1, pWorldGroup.layout);
+
+        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'textureSampler', ComputeStage.Fragment)
+                .withSampler(SamplerType.Filter);
+
+            pBindGroupSetup.binding(1, 'texture', ComputeStage.Fragment)
+                .withTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+        });
+    });
+
+    // Create render module from shader.
+    const lParticleRenderModule = lParticleRenderShader.createRenderModule('vertex_main', 'fragment_main');
+
+    // Transformation and position group. 
+    const lParticleInformationGroup = lParticleRenderModule.layout.getGroupLayout('object').create();
+    lParticleInformationGroup.data('particles').createBufferEmpty(lMaxParticleCount);
+
+    // Create transformation.
+    const lParticleTransform: Transform = new Transform();
+    lParticleTransform.setScale(0.02, 0.02, 0.02);
+    lParticleInformationGroup.data('transformationMatrix').createBuffer(lParticleTransform.getMatrix(TransformMatrix.Transformation).dataArray);
+
+    // Transformation and position group. 
+    const lParticleTextureGroup = lParticleRenderShader.layout.getGroupLayout('user').create();
+
+    const lImageTexture: GpuTexture = lParticleTextureGroup.data('texture').createTexture().texture;
+    lImageTexture.depth = 6;
+    (async () => {
+        const lSourceList: Array<string> = [
+            '/source/game_objects/leaf_particle/leaf.png'
+        ];
+
+        let lHeight: number = 0;
+        let lWidth: number = 0;
+
+        // Parallel load images.
+        const lImageLoadPromiseList: Array<Promise<ImageBitmap>> = lSourceList.map(async (pSource) => {
+            // Load image with html image element.
+            const lImage: HTMLImageElement = new Image();
+            lImage.src = pSource;
+            await lImage.decode();
+
+            // Init size.
+            if (lHeight === 0 || lWidth === 0) {
+                lWidth = lImage.naturalWidth;
+                lHeight = lImage.naturalHeight;
+            }
+
+            // Validate same image size for all layers.
+            if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+                throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+            }
+
+            return createImageBitmap(lImage);
+        });
+
+        // Resolve all bitmaps.
+        const lImageList: Array<ImageBitmap> = await Promise.all(lImageLoadPromiseList);
+
+        // Set new texture size.
+        lImageTexture.width = lWidth;
+        lImageTexture.height = lHeight;
+        lImageTexture.depth = lSourceList.length;
+
+        // Copy images into texture.
+        lImageTexture.copyFrom(...lImageList);
+    })();
+
+    // Setup Sampler.
+    lParticleTextureGroup.data('textureSampler').createSampler();
+
+    // Generate render parameter from parameter layout.
+    const lMesh: VertexParameter = lParticleRenderModule.vertexParameter.create(ParticleVertexIndices);
+    lMesh.create('position-uv', ParticleVertexPositionUvData);
+
+    const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargets);
+    lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
+    lParticlePipeline.depthCompare = CompareFunction.Less;
+    lParticlePipeline.writeDepth = false;
+    lParticlePipeline.targetConfig('color')
+        .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
+        .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
+
+    const lIndirectionBuffer: GpuBuffer = new GpuBuffer(pGpu, 4 * 4).initialData(() => {
+        // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32
+        return new Uint32Array([ParticleVertexIndices.length, 0, 0, 0]);
+    });
+
+    const lRenderInstruction: RenderInstruction = {
+        pipeline: lParticlePipeline,
+        parameter: lMesh,
+        instanceCount: 0,
+        data: lParticlePipeline.layout.withData([
+            lParticleTextureGroup,
+            pWorldGroup,
+            lParticleInformationGroup
+        ]),
+        indirectBuffer: lIndirectionBuffer
+    };
+
+    /*
+     * Compute shader.
+     */
+    const lParticleComputeShader: Shader = pGpu.shader(particleComputeShader).setup((pShaderSetup) => {
+        // Set parameter.
+        pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
+
+        // Compute entry.
+        pShaderSetup.computeEntryPoint('compute_main').size(64);
+
+        // Object bind group.
+        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+            pBindGroupSetup.binding(0, 'particles', ComputeStage.Compute, StorageBindingType.ReadWrite)
+                .withArray().withStruct((pStructSetup) => {
+                    pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
+                    pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+                });
+
+            pBindGroupSetup.binding(1, 'indirect', ComputeStage.Compute, StorageBindingType.ReadWrite).withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Vector4);
+        });
+
+        // World bind group.
+        pShaderSetup.group(1, pWorldGroup.layout);
+    });
+
+    // Create render module from shader.
+    const lParticleComputeModule = lParticleComputeShader.createComputeModule('compute_main');
+
+    // Create compute pipeline.
+    const lComputePipeline: ComputePipeline = new ComputePipeline(pGpu, lParticleComputeModule);
+    lComputePipeline.setParameter('animationSeconds', 30);
+
+    // Transformation and position group. 
+    const lParticleComputeInformationGroup = lParticleComputeModule.layout.getGroupLayout('object').create();
+    lParticleComputeInformationGroup.data('particles').set(lParticleInformationGroup.data('particles').getRaw());
+    lParticleComputeInformationGroup.data('indirect').set(lIndirectionBuffer);
+
+    // Create compute instruction
+    const lComputeInstruction: ComputeInstruction = {
+        pipeline: lComputePipeline,
+        data: lComputePipeline.layout.withData([
+            lParticleComputeInformationGroup,
+            pWorldGroup
+        ]),
+        dimensions: {
+            x: Math.ceil(lMaxParticleCount / (lParticleComputeModule.workGroupSizeX * lParticleComputeModule.workGroupSizeY * lParticleComputeModule.workGroupSizeZ)),
+            y: 1,
+            z: 1
+        }
+    };
+
+    return [lRenderInstruction, lComputeInstruction];
+};
+
 const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex).withStruct((pStructSetup) => {
+        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex | ComputeStage.Compute).withStruct((pStructSetup) => {
             pStructSetup.property('viewProjection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             pStructSetup.property('view').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             pStructSetup.property('projection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
@@ -527,10 +724,14 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
                 pTranslationStruct.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
                 pTranslationStruct.property('translation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             });
+
+            pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
         });
 
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment)
-            .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment | ComputeStage.Compute).withStruct((pTimeStruct) => {
+            pTimeStruct.property('timestamp').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+            pTimeStruct.property('delta').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+        });
 
         pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
             .withStruct((pStruct) => {
@@ -544,7 +745,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
                 pStruct.property('range').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
             });
 
-        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment, StorageBindingType.ReadWrite)
+        pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment | ComputeStage.Compute, StorageBindingType.ReadWrite)
             .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
 
     });
@@ -629,26 +830,61 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroup: BindGroup = gGenerateWorldBindGroup(lGpu);
     const lTimestampBuffer: GpuBufferView<Float32Array> = lWorldGroup.data('timestamp').asBufferView(Float32Array);
 
+    const [lParticelRenderInstruction, lParticelComputeInstruction] = gGenerateParticleStep(lGpu, lRenderTargets, lWorldGroup);
+
     // Create instruction.
-    const lSteps: Array<RenderInstruction> = [
+    const lRenderSteps: Array<RenderInstruction> = [
         gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup),
         gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup),
         gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup),
-        gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup)
+        gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup),
+        lParticelRenderInstruction
     ];
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets, (pContext) => {
-        for (const lStep of lSteps) {
-            pContext.drawDirect(
-                lStep.pipeline,
-                lStep.parameter,
-                lStep.data,
-                lStep.instanceCount
-            );
+        for (const lStep of lRenderSteps) {
+            if (lStep.indirectBuffer) {
+                pContext.drawIndirect(
+                    lStep.pipeline,
+                    lStep.parameter,
+                    lStep.data,
+                    lStep.indirectBuffer
+                );
+            } else {
+                pContext.drawDirect(
+                    lStep.pipeline,
+                    lStep.parameter,
+                    lStep.data,
+                    lStep.instanceCount
+                );
+            }
         }
     });
 
     (<any>window).renderpassRuntime = () => {
         lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
+            // eslint-disable-next-line no-console
+            console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
+        });
+    };
+
+    // Create instruction.
+    const lComputeSteps: Array<ComputeInstruction> = [
+        lParticelComputeInstruction
+    ];
+    const lComputePass: ComputePass = lGpu.computePass((pContext) => {
+        for (const lStep of lComputeSteps) {
+            pContext.computeDirect(
+                lStep.pipeline,
+                lStep.data,
+                lStep.dimensions.x,
+                lStep.dimensions.y,
+                lStep.dimensions.z
+            );
+        }
+    });
+
+    (<any>window).computepassRuntime = () => {
+        lComputePass.probeTimestamp().then(([pStart, pEnd]) => {
             // eslint-disable-next-line no-console
             console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
         });
@@ -663,6 +899,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
      * Execution 
      */
     const lRenderExecutor: GpuExecution = lGpu.executor((pExecutor) => {
+        lComputePass.execute(pExecutor);
         lRenderPass.execute(pExecutor);
     });
 
@@ -675,16 +912,17 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
         // Start new frame.
         lGpu.startNewFrame();
 
-        // Update time stamp data.
-        lTimestampBuffer.write([pTime / 1000]);
-
-        // Generate encoder and add render commands.
-        lRenderExecutor.execute();
-
         // Generate fps and smooth fps numbers.
         const lFps: number = 1000 / (pTime - lLastTime);
         lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
+
+        // Update time stamp data.
+        lTimestampBuffer.write([pTime / 1000, (pTime - lLastTime) / 1000]);
+
         lLastTime = pTime;
+
+        // Generate encoder and add render commands.
+        lRenderExecutor.execute();
 
         // Update fps display.
         UpdateFpsDisplay(lFps, lRenderTargets.width);
@@ -703,4 +941,15 @@ type RenderInstruction = {
     parameter: VertexParameter;
     instanceCount: number;
     data: PipelineData;
+    indirectBuffer?: GpuBuffer;
+};
+
+type ComputeInstruction = {
+    pipeline: ComputePipeline;
+    data: PipelineData;
+    dimensions: {
+        x: number;
+        y: number;
+        z: number;
+    };
 };

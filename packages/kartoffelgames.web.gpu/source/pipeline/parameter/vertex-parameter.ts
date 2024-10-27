@@ -232,14 +232,28 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
     }
 
     /**
+     * Add raw buffer as vertex parameter.
      * 
      * @param pBufferName - Buffer name.
      * @param pBuffer - Buffer.
      */
     public set(pBufferName: string, pBuffer: GpuBuffer): GpuBuffer {
-        // TODO: Validate length.
-        if (pBuffer.size !== this.mIndices.length) {
-            // No not good. What about indexed buffers.
+        const lParameterLayout: VertexParameterLayoutBuffer = this.mLayout.parameterBuffer(pBufferName);
+
+        // Validate alignment.
+        if (pBuffer.size % lParameterLayout.layout.fixedSize !== 0) {
+            throw new Exception('Set vertex parameter buffer does not align with layout.', this);
+        }
+
+        // Calculate stride count.
+        let lStrideCount: number = pBuffer.size / lParameterLayout.layout.fixedSize;
+        if (!this.mLayout.indexable && lParameterLayout.stepMode === VertexParameterStepMode.Index) {
+            lStrideCount = this.mIndices.length;
+        }
+
+        // Validate length.
+        if (pBuffer.size !== (lParameterLayout.layout.fixedSize * lStrideCount)) {
+            throw new Exception(`Set vertex parameter buffer does not fit needed buffer size (Has:${pBuffer.size} => Should:${lParameterLayout.layout.fixedSize * lStrideCount}).`, this);
         }
 
         // Extend usage.
@@ -248,9 +262,11 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         // Add buffer.
         this.mBuffer.set(pBufferName, pBuffer);
 
+        // Invalidate on data set.
+        this.invalidate(VertexParameterInvalidationType.Data);
+
         return pBuffer;
     }
-
 }
 
 export enum VertexParameterInvalidationType {

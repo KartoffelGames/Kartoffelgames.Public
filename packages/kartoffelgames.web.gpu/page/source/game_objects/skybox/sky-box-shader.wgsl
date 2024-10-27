@@ -15,11 +15,15 @@ struct Camera {
     projection: mat4x4<f32>,
     translation: CameraTransformation,
     invertedTranslation: CameraTransformation,
+    position: vec3<f32>
 }
 @group(1) @binding(0) var<uniform> camera: Camera;
 
-
-@group(1) @binding(1) var<uniform> timestamp: f32;
+struct TimeData {
+    timestamp: f32,
+    delta: f32
+}
+@group(1) @binding(1) var<uniform> time: TimeData;
 
 struct AmbientLight {
     color: vec4<f32>

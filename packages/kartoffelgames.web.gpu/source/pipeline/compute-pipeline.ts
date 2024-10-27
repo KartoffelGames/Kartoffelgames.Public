@@ -1,10 +1,11 @@
 import { Dictionary } from '@kartoffelgames/core';
+import { PipelineLayout } from '../binding/pipeline-layout';
 import { ComputeStage } from '../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
-import { PipelineLayout } from '../binding/pipeline-layout';
 
 export class ComputePipeline extends GpuObject<GPUComputePipeline | null, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline | null> {
     private mLoadedPipeline: GPUComputePipeline | null;
@@ -24,7 +25,7 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline | null, Comput
     public get module(): ShaderComputeModule {
         return this.mShaderModule;
     }
-    
+
     /**
      * Native gpu object.
      */
@@ -80,8 +81,16 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline | null, Comput
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generateNative(): GPUComputePipeline | null {
-        // Construct basic GPURenderPipelineDescriptor.
+    protected override generateNative(_pLastNative: GPUComputePipeline | null, pInvalidationReason: GpuObjectInvalidationReasons<ComputePipelineInvalidationType>): GPUComputePipeline | null {
+        // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+        if (this.mLoadedPipeline !== null && !pInvalidationReason.has(ComputePipelineInvalidationType.NativeRebuild)) {
+            const lLoadedPipeline: GPUComputePipeline = this.mLoadedPipeline;
+            this.mLoadedPipeline = null;
+
+            return lLoadedPipeline;
+        }
+
+        // Construct basic GPUComputePipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
             layout: this.mShaderModule.shader.layout.native,
             compute: {

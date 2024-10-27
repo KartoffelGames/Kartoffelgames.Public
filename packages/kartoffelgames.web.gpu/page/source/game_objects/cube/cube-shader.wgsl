@@ -10,12 +10,16 @@ struct Camera {
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
     rotation: mat4x4<f32>,
-    translation: mat4x4<f32>
+    translation: mat4x4<f32>,
+    position: vec3<f32>
 }
 @group(1) @binding(0) var<uniform> camera: Camera;
 
-
-@group(1) @binding(1) var<uniform> timestamp: f32;
+struct TimeData {
+    timestamp: f32,
+    delta: f32
+}
+@group(1) @binding(1) var<uniform> time: TimeData;
 
 struct AmbientLight {
     color: vec4<f32>
@@ -108,7 +112,7 @@ override animationSeconds: f32 = 3;
 fn vertex_main(vertex: VertexIn) -> VertexOut {
     let textureLayers: f32 = f32(textureNumLayers(cubeTexture));
 
-    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;
+    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];
 
     // Generate 4 random numbers.
     var hash1: u32 = hash(vertex.instanceId + 1);
@@ -118,27 +122,41 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
 
     // Convert into normals.
     var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);
-    var randomNormalPosition: vec3<f32> = vec3<f32>(
+    var randomNormalPosition: vec4<f32> = vec4<f32>(
         (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),
         (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),
-        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)
+        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32),
+        1
     );
 
     // Calculate random position and animate a 100m spread. 
-    var randPosition: vec4<f32> = instancePosition; // Current start.
-    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.
-    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;
-    randPosition[3] = 1; // Reset w coord.
+    var randPosition: vec4<f32> = randomNormalPosition * 1000; // Randomise start spreading 1000m in all directsions.
+    randPosition += randomNormalPosition * sin((time.timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;
+    randPosition.w = 1; // Reset w coord.
 
-    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;
+    let randomPositionMatrix: mat4x4<f32> = mat4x4<f32>(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        randPosition.x, randPosition.y, randPosition.z, 1
+    );
+
+    let instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        instancePosition.x, instancePosition.y, instancePosition.z, 1
+    );
 
     var textureLayer: u32 = u32(floor(f32(vertex.instanceId) % textureLayers));
 
+    var worldposition: vec4<f32> = randomPositionMatrix * instancePositionMatrix * transformationMatrix * vertex.position;
+
     var out: VertexOut;
-    out.position = camera.viewProjection * transformedInstancePosition;
+    out.position = camera.viewProjection * worldposition;
     out.uv = vertex.uv;
     out.normal = vertex.normal;
-    out.fragmentPosition = transformedInstancePosition;
+    out.fragmentPosition = worldposition;
     out.textureLayer = textureLayer;
 
     return out;

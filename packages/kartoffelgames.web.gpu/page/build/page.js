@@ -1501,6 +1501,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 const bind_group_layout_1 = __webpack_require__(/*! ../../source/binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
+const gpu_buffer_1 = __webpack_require__(/*! ../../source/buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../../source/constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
@@ -1514,17 +1515,21 @@ const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/text
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
 const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
+const compute_pipeline_1 = __webpack_require__(/*! ../../source/pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
 const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
 const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
 const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
+const particle_compute_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-compute-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-compute-shader.wgsl");
+const particle_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-shader.wgsl");
 const light_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/light/light-box-shader.wgsl */ "./page/source/game_objects/light/light-box-shader.wgsl");
 const sky_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/skybox/sky-box-shader.wgsl */ "./page/source/game_objects/skybox/sky-box-shader.wgsl");
 const video_canvas_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/video_canvas/video-canvas-shader.wgsl */ "./page/source/game_objects/video_canvas/video-canvas-shader.wgsl");
 const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/source/meshes/canvas-mesh.ts");
 const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
+const particle_mesh_1 = __webpack_require__(/*! ./meshes/particle-mesh */ "./page/source/meshes/particle-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lHeight = 50;
@@ -1869,8 +1874,7 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
   lPipeline.writeDepth = false;
-  lPipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
-  lPipeline.targetConfig('color').colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
+  lPipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   return {
     pipeline: lPipeline,
     parameter: lMesh,
@@ -1878,9 +1882,148 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
     data: lPipeline.layout.withData([lTransformationGroup, pWorldGroup, lUserGroup])
   };
 };
+const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
+  const lMaxParticleCount = 18000;
+  const lParticleRenderShader = pGpu.shader(particle_shader_wgsl_1.default).setup(pShaderSetup => {
+    // Set parameter.
+    pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
+    // Vertex entry.
+    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+      pVertexParameterSetup.buffer('position-uv', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4).withParameter('uv', 1, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2);
+    });
+    // Fragment entry.
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+    // Compute entry.
+    pShaderSetup.computeEntryPoint('compute_main').size(64);
+    // Object bind group.
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'particles', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStructSetup => {
+        pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
+        pStructSetup.property('velocity').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
+        pStructSetup.property('lifetime').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+      });
+    });
+    // World bind group.
+    pShaderSetup.group(1, pWorldGroup.layout);
+    pShaderSetup.group(2, 'user', pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'textureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'texture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
+    });
+  });
+  // Create render module from shader.
+  const lParticleRenderModule = lParticleRenderShader.createRenderModule('vertex_main', 'fragment_main');
+  // Transformation and position group. 
+  const lParticleInformationGroup = lParticleRenderModule.layout.getGroupLayout('object').create();
+  lParticleInformationGroup.data('particles').createBufferEmpty(lMaxParticleCount);
+  // Create transformation.
+  const lParticleTransform = new transform_1.Transform();
+  lParticleTransform.setScale(0.02, 0.02, 0.02);
+  lParticleInformationGroup.data('transformationMatrix').createBuffer(lParticleTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  // Transformation and position group. 
+  const lParticleTextureGroup = lParticleRenderShader.layout.getGroupLayout('user').create();
+  const lImageTexture = lParticleTextureGroup.data('texture').createTexture().texture;
+  lImageTexture.depth = 6;
+  _asyncToGenerator(function* () {
+    const lSourceList = ['/source/game_objects/leaf_particle/leaf.png'];
+    let lHeight = 0;
+    let lWidth = 0;
+    // Parallel load images.
+    const lImageLoadPromiseList = lSourceList.map( /*#__PURE__*/function () {
+      var _ref6 = _asyncToGenerator(function* (pSource) {
+        // Load image with html image element.
+        const lImage = new Image();
+        lImage.src = pSource;
+        yield lImage.decode();
+        // Init size.
+        if (lHeight === 0 || lWidth === 0) {
+          lWidth = lImage.naturalWidth;
+          lHeight = lImage.naturalHeight;
+        }
+        // Validate same image size for all layers.
+        if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+          throw new Error(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`);
+        }
+        return createImageBitmap(lImage);
+      });
+      return function (_x4) {
+        return _ref6.apply(this, arguments);
+      };
+    }());
+    // Resolve all bitmaps.
+    const lImageList = yield Promise.all(lImageLoadPromiseList);
+    // Set new texture size.
+    lImageTexture.width = lWidth;
+    lImageTexture.height = lHeight;
+    lImageTexture.depth = lSourceList.length;
+    // Copy images into texture.
+    lImageTexture.copyFrom(...lImageList);
+  })();
+  // Setup Sampler.
+  lParticleTextureGroup.data('textureSampler').createSampler();
+  // Generate render parameter from parameter layout.
+  const lMesh = lParticleRenderModule.vertexParameter.create(particle_mesh_1.ParticleVertexIndices);
+  lMesh.create('position-uv', particle_mesh_1.ParticleVertexPositionUvData);
+  const lParticlePipeline = lParticleRenderModule.create(pRenderTargets);
+  lParticlePipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
+  lParticlePipeline.depthCompare = compare_function_enum_1.CompareFunction.Less;
+  lParticlePipeline.writeDepth = false;
+  lParticlePipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
+  const lIndirectionBuffer = new gpu_buffer_1.GpuBuffer(pGpu, 4 * 4).initialData(() => {
+    // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32
+    return new Uint32Array([particle_mesh_1.ParticleVertexIndices.length, 0, 0, 0]);
+  });
+  const lRenderInstruction = {
+    pipeline: lParticlePipeline,
+    parameter: lMesh,
+    instanceCount: 0,
+    data: lParticlePipeline.layout.withData([lParticleTextureGroup, pWorldGroup, lParticleInformationGroup]),
+    indirectBuffer: lIndirectionBuffer
+  };
+  /*
+   * Compute shader.
+   */
+  const lParticleComputeShader = pGpu.shader(particle_compute_shader_wgsl_1.default).setup(pShaderSetup => {
+    // Set parameter.
+    pShaderSetup.parameter('animationSeconds', compute_stage_enum_1.ComputeStage.Vertex);
+    // Compute entry.
+    pShaderSetup.computeEntryPoint('compute_main').size(64);
+    // Object bind group.
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'particles', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withArray().withStruct(pStructSetup => {
+        pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
+        pStructSetup.property('velocity').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
+        pStructSetup.property('lifetime').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+      });
+      pBindGroupSetup.binding(1, 'indirect', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Uint32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+    });
+    // World bind group.
+    pShaderSetup.group(1, pWorldGroup.layout);
+  });
+  // Create render module from shader.
+  const lParticleComputeModule = lParticleComputeShader.createComputeModule('compute_main');
+  // Create compute pipeline.
+  const lComputePipeline = new compute_pipeline_1.ComputePipeline(pGpu, lParticleComputeModule);
+  lComputePipeline.setParameter('animationSeconds', 30);
+  // Transformation and position group. 
+  const lParticleComputeInformationGroup = lParticleComputeModule.layout.getGroupLayout('object').create();
+  lParticleComputeInformationGroup.data('particles').set(lParticleInformationGroup.data('particles').getRaw());
+  lParticleComputeInformationGroup.data('indirect').set(lIndirectionBuffer);
+  // Create compute instruction
+  const lComputeInstruction = {
+    pipeline: lComputePipeline,
+    data: lComputePipeline.layout.withData([lParticleComputeInformationGroup, pWorldGroup]),
+    dimensions: {
+      x: Math.ceil(lMaxParticleCount / (lParticleComputeModule.workGroupSizeX * lParticleComputeModule.workGroupSizeY * lParticleComputeModule.workGroupSizeZ)),
+      y: 1,
+      z: 1
+    }
+  };
+  return [lRenderInstruction, lComputeInstruction];
+};
 const gGenerateWorldBindGroup = pGpu => {
   const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(pGpu, 'world').setup(pBindGroupSetup => {
-    pBindGroupSetup.binding(0, 'camera', compute_stage_enum_1.ComputeStage.Vertex).withStruct(pStructSetup => {
+    pBindGroupSetup.binding(0, 'camera', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Compute).withStruct(pStructSetup => {
       pStructSetup.property('viewProjection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       pStructSetup.property('view').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       pStructSetup.property('projection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
@@ -1892,8 +2035,12 @@ const gGenerateWorldBindGroup = pGpu => {
         pTranslationStruct.property('rotation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
         pTranslationStruct.property('translation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       });
+      pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
     });
-    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute).withStruct(pTimeStruct => {
+      pTimeStruct.property('timestamp').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+      pTimeStruct.property('delta').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+    });
     pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
       pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
@@ -1902,7 +2049,7 @@ const gGenerateWorldBindGroup = pGpu => {
       pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
       pStruct.property('range').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
     });
-    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
   });
   /*
    * Camera and world group.
@@ -1968,15 +2115,33 @@ _asyncToGenerator(function* () {
   lCamera.transformation.setTranslation(0, 0, -4);
   const lWorldGroup = gGenerateWorldBindGroup(lGpu);
   const lTimestampBuffer = lWorldGroup.data('timestamp').asBufferView(Float32Array);
+  const [lParticelRenderInstruction, lParticelComputeInstruction] = gGenerateParticleStep(lGpu, lRenderTargets, lWorldGroup);
   // Create instruction.
-  const lSteps = [gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup), gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup)];
+  const lRenderSteps = [gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup), gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup), lParticelRenderInstruction];
   const lRenderPass = lGpu.renderPass(lRenderTargets, pContext => {
-    for (const lStep of lSteps) {
-      pContext.drawDirect(lStep.pipeline, lStep.parameter, lStep.data, lStep.instanceCount);
+    for (const lStep of lRenderSteps) {
+      if (lStep.indirectBuffer) {
+        pContext.drawIndirect(lStep.pipeline, lStep.parameter, lStep.data, lStep.indirectBuffer);
+      } else {
+        pContext.drawDirect(lStep.pipeline, lStep.parameter, lStep.data, lStep.instanceCount);
+      }
     }
   });
   window.renderpassRuntime = () => {
     lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
+      // eslint-disable-next-line no-console
+      console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
+    });
+  };
+  // Create instruction.
+  const lComputeSteps = [lParticelComputeInstruction];
+  const lComputePass = lGpu.computePass(pContext => {
+    for (const lStep of lComputeSteps) {
+      pContext.computeDirect(lStep.pipeline, lStep.data, lStep.dimensions.x, lStep.dimensions.y, lStep.dimensions.z);
+    }
+  });
+  window.computepassRuntime = () => {
+    lComputePass.probeTimestamp().then(([pStart, pEnd]) => {
       // eslint-disable-next-line no-console
       console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
     });
@@ -1989,6 +2154,7 @@ _asyncToGenerator(function* () {
    * Execution
    */
   const lRenderExecutor = lGpu.executor(pExecutor => {
+    lComputePass.execute(pExecutor);
     lRenderPass.execute(pExecutor);
   });
   const lFpsLabel = document.getElementById('fpsCounter');
@@ -1998,14 +2164,14 @@ _asyncToGenerator(function* () {
   const lRender = pTime => {
     // Start new frame.
     lGpu.startNewFrame();
-    // Update time stamp data.
-    lTimestampBuffer.write([pTime / 1000]);
-    // Generate encoder and add render commands.
-    lRenderExecutor.execute();
     // Generate fps and smooth fps numbers.
     const lFps = 1000 / (pTime - lLastTime);
     lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
+    // Update time stamp data.
+    lTimestampBuffer.write([pTime / 1000, (pTime - lLastTime) / 1000]);
     lLastTime = pTime;
+    // Generate encoder and add render commands.
+    lRenderExecutor.execute();
     // Update fps display.
     (0, util_1.UpdateFpsDisplay)(lFps, lRenderTargets.width);
     // Update FPS counter.
@@ -2120,6 +2286,34 @@ exports.CubeVertexIndices = [
 
 /***/ }),
 
+/***/ "./page/source/meshes/particle-mesh.ts":
+/*!*********************************************!*\
+  !*** ./page/source/meshes/particle-mesh.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ParticleVertexIndices = exports.ParticleVertexPositionUvData = void 0;
+// Create attributes data.
+exports.ParticleVertexPositionUvData = [
+// 1
+-1.0, 0.5, 0.0, 1.0, /* UV */0.0, 0.0, 0.0, -0.5, 0.0, 1.0, /* UV */0.5, 1.0, -1.0, -0.5, -0.6, 1.0, /* UV */0.0, 1.0,
+// 2
+-1.0, 0.5, 0.0, 1.0, /* UV */0.0, 0.0, 0.0, 0.5, 0.0, 1.0, /* UV */0.5, 0.0, 0.0, -0.5, 0.0, 1.0, /* UV */0.5, 1.0,
+// 3
+0.0, 0.5, 0.0, 1.0, /* UV */0.5, 0.0, 1.0, -0.5, -0.6, 1.0, /* UV */1.0, 1.0, 0.0, -0.5, 0.0, 1.0, /* UV */0.5, 1.0,
+// 4
+0.0, 0.5, 0.0, 1.0, /* UV */0.5, 0.0, 1.0, 0.5, -1.2, 1.0, /* UV */1.0, 0.0, 1.0, -0.5, -0.6, 1.0, /* UV */1.0, 1.0];
+// Create mesh.
+exports.ParticleVertexIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+/***/ }),
+
 /***/ "./page/source/util.ts":
 /*!*****************************!*\
   !*** ./page/source/util.ts ***!
@@ -2198,6 +2392,7 @@ const InitCameraControls = (pCanvas, pCamera, pCameraBuffer) => {
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.View).dataArray, ['view']);
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Projection).dataArray, ['projection']);
+    pCameraBuffer.write([pCamera.transformation.translationX, pCamera.transformation.translationY, pCamera.transformation.translationZ], ['position']);
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Translation).dataArray, ['translation', 'translation']);
     pCameraBuffer.write(pCamera.getMatrix(view_projection_1.CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
@@ -3109,7 +3304,7 @@ class PipelineData extends gpu_object_1.GpuObject {
    * Orderes pipeline data.
    */
   get data() {
-    return this.mBindData;
+    return this.mOrderedBindData;
   }
   /**
    * Pipline layout of data.
@@ -3127,10 +3322,25 @@ class PipelineData extends gpu_object_1.GpuObject {
     super(pDevice);
     // Set pipeline layout.
     this.mLayout = pPipelineLayout;
+    // Easy access dictionary.
+    this.mBindData = new core_1.Dictionary();
     // Invalidate pipeline data when any data has changed.
     this.mInvalidationListener = () => {
       this.invalidate(PipelineDataInvalidationType.Data);
     };
+    // All bind groups must be set.
+    if (pPipelineLayout.groups.length !== pBindData.length) {
+      // Generate a better error message.
+      for (const lGroupName of pPipelineLayout.groups) {
+        // Get and validate existence of set bind group.
+        const lBindDataGroup = pBindData.find(pBindGroup => {
+          return pBindGroup.layout.name === lGroupName;
+        });
+        if (!lBindDataGroup) {
+          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
+        }
+      }
+    }
     // Validate and order bind data.
     const lBindData = new Array();
     for (const lBindGroup of pBindData) {
@@ -3145,25 +3355,18 @@ class PipelineData extends gpu_object_1.GpuObject {
       if (lBindGroup.layout !== lBindGroupLayout) {
         throw new core_1.Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
       }
+      // Restrict double names.
+      if (this.mBindData.has(lBindGroupName)) {
+        throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
+      }
+      // Set name to bind group mapping.
+      this.mBindData.set(lBindGroupName, lBindGroup);
       // Set bind group.
       lBindData[lBindGroupIndex] = lBindGroup;
       // Invalidate native data when bind group has changed.
       lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
     }
-    // All bind groups must be set.
-    if (pPipelineLayout.groups.length !== lBindData.length) {
-      // Generate a better error message.
-      for (const lGroupName of pPipelineLayout.groups) {
-        // Get and validate existence of set bind group.
-        const lBindDataGroup = pBindData.find(pBindGroup => {
-          return pBindGroup.layout.name === lGroupName;
-        });
-        if (!lBindDataGroup) {
-          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
-        }
-      }
-    }
-    this.mBindData = lBindData;
+    this.mOrderedBindData = lBindData;
   }
   /**
    * Deconstruct native object.
@@ -3171,9 +3374,22 @@ class PipelineData extends gpu_object_1.GpuObject {
   deconstruct() {
     super.deconstruct();
     // Remove all invalidation listener from bind groups.
-    for (const lBindGroup of this.mBindData) {
+    for (const lBindGroup of this.mOrderedBindData) {
       lBindGroup.removeInvalidationListener(this.mInvalidationListener);
     }
+  }
+  /**
+   * Get bind group by name.
+   *
+   * @param pBindGroupName  - Bind group name.
+   *
+   * @returns bind group.
+   */
+  group(pBindGroupName) {
+    if (!this.mBindData.has(pBindGroupName)) {
+      throw new core_1.Exception(`Bind group "${pBindGroupName}" does not exists in pipeline data.`, this);
+    }
+    return this.mBindData.get(pBindGroupName);
   }
 }
 exports.PipelineData = PipelineData;
@@ -7139,8 +7355,14 @@ class ComputePipeline extends gpu_object_1.GpuObject {
   /**
    * Generate native gpu pipeline data layout.
    */
-  generateNative() {
-    // Construct basic GPURenderPipelineDescriptor.
+  generateNative(_pLastNative, pInvalidationReason) {
+    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(ComputePipelineInvalidationType.NativeRebuild)) {
+      const lLoadedPipeline = this.mLoadedPipeline;
+      this.mLoadedPipeline = null;
+      return lLoadedPipeline;
+    }
+    // Construct basic GPUComputePipelineDescriptor.
     const lPipelineDescriptor = {
       layout: this.mShaderModule.shader.layout.native,
       compute: {
@@ -7327,7 +7549,6 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
     this.mIndexable = false;
     this.mBuffer = new core_1.Dictionary();
     this.mParameter = new core_1.Dictionary();
-    // TODO: Generate a struct for each vertex buffer. So it doesnt need a VertexParameterLayoutBuffer.parameter list. Struct is allways alignmenttype packed.
   }
   /**
    * Create vertex parameters from layout.
@@ -7715,19 +7936,32 @@ class VertexParameter extends gpu_object_1.GpuObject {
     return this.mBuffer.get(pBufferName);
   }
   /**
+   * Add raw buffer as vertex parameter.
    *
    * @param pBufferName - Buffer name.
    * @param pBuffer - Buffer.
    */
   set(pBufferName, pBuffer) {
-    // TODO: Validate length.
-    if (pBuffer.size !== this.mIndices.length) {
-      // No not good. What about indexed buffers.
+    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
+    // Validate alignment.
+    if (pBuffer.size % lParameterLayout.layout.fixedSize !== 0) {
+      throw new core_1.Exception('Set vertex parameter buffer does not align with layout.', this);
+    }
+    // Calculate stride count.
+    let lStrideCount = pBuffer.size / lParameterLayout.layout.fixedSize;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      lStrideCount = this.mIndices.length;
+    }
+    // Validate length.
+    if (pBuffer.size !== lParameterLayout.layout.fixedSize * lStrideCount) {
+      throw new core_1.Exception(`Set vertex parameter buffer does not fit needed buffer size (Has:${pBuffer.size} => Should:${lParameterLayout.layout.fixedSize * lStrideCount}).`, this);
     }
     // Extend usage.
     pBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
     // Add buffer.
     this.mBuffer.set(pBufferName, pBuffer);
+    // Invalidate on data set.
+    this.invalidate(VertexParameterInvalidationType.Data);
     return pBuffer;
   }
 }
@@ -12322,7 +12556,37 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d_array<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let textureLayers: f32 = f32(textureNumLayers(cubeTexture));\r\n\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId] + vertex.position;\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec3<f32> = vec3<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32)\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = instancePosition; // Current start.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += vec4<f32>(randomNormalPosition, 1) * sin((timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition[3] = 1; // Reset w coord.\r\n\r\n    var transformedInstancePosition: vec4<f32> = transformationMatrix * randPosition;\r\n\r\n    var textureLayer: u32 = u32(floor(f32(vertex.instanceId) % textureLayers));\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedInstancePosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformedInstancePosition;\r\n    out.textureLayer = textureLayer;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv, fragment.textureLayer), fragment.fragmentPosition, fragment.normal);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubeTextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d_array<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nfn hash(x: u32) -> u32\r\n{\r\n    var result: u32 = x;\r\n    result ^= result >> 16;\r\n    result *= 0x7feb352du;\r\n    result ^= result >> 15;\r\n    result *= 0x846ca68bu;\r\n    result ^= result >> 16;\r\n    return result;\r\n}\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let textureLayers: f32 = f32(textureNumLayers(cubeTexture));\r\n\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];\r\n\r\n    // Generate 4 random numbers.\r\n    var hash1: u32 = hash(vertex.instanceId + 1);\r\n    var hash2: u32 = hash(hash1);\r\n    var hash3: u32 = hash(hash2);\r\n    var hash4: u32 = hash(hash3);\r\n\r\n    // Convert into normals.\r\n    var hashStartDisplacement: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n    var randomNormalPosition: vec4<f32> = vec4<f32>(\r\n        (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32),\r\n        (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32),\r\n        1\r\n    );\r\n\r\n    // Calculate random position and animate a 100m spread. \r\n    var randPosition: vec4<f32> = randomNormalPosition * 1000; // Randomise start spreading 1000m in all directsions.\r\n    randPosition += randomNormalPosition * sin((time.timestamp / animationSeconds) + (hashStartDisplacement * 100)) * 100;\r\n    randPosition.w = 1; // Reset w coord.\r\n\r\n    let randomPositionMatrix: mat4x4<f32> = mat4x4<f32>(\r\n        1, 0, 0, 0,\r\n        0, 1, 0, 0,\r\n        0, 0, 1, 0,\r\n        randPosition.x, randPosition.y, randPosition.z, 1\r\n    );\r\n\r\n    let instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(\r\n        1, 0, 0, 0,\r\n        0, 1, 0, 0,\r\n        0, 0, 1, 0,\r\n        instancePosition.x, instancePosition.y, instancePosition.z, 1\r\n    );\r\n\r\n    var textureLayer: u32 = u32(floor(f32(vertex.instanceId) % textureLayers));\r\n\r\n    var worldposition: vec4<f32> = randomPositionMatrix * instancePositionMatrix * transformationMatrix * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * worldposition;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = worldposition;\r\n    out.textureLayer = textureLayer;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n    @interpolate(flat) @location(3) textureLayer: u32\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv, fragment.textureLayer), fragment.fragmentPosition, fragment.normal);\r\n}");
+
+/***/ }),
+
+/***/ "./page/source/game_objects/leaf_particle/particle-compute-shader.wgsl":
+/*!*****************************************************************************!*\
+  !*** ./page/source/game_objects/leaf_particle/particle-compute-shader.wgsl ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\nstruct Particle {\r\n    position: vec3<f32>,\r\n    velocity: vec3<f32>,\r\n    lifetime: f32\r\n}\r\n@group(0) @binding(0) var<storage, read_write> particles: array<Particle>;\r\n@group(0) @binding(1) var<storage, read_write> indirect: vec4<u32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n/**\r\n * PCG-Hash\r\n */\r\nfn hash(input: u32) -> u32\r\n{\r\n    let state: u32 = input * 747796405u + 2891336453u;\r\n    let word: u32 = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;\r\n    return (word >> 22u) ^ word;\r\n}\r\n\r\noverride animationSeconds: f32 = 3; \r\n\r\nstruct ComputeParams {\r\n    @builtin(global_invocation_id) globalInvocationId : vec3u\r\n}\r\n@compute @workgroup_size(64)\r\nfn compute_main(params: ComputeParams) {\r\n    const MAX_DISTANCE: f32 = 5; //\r\n    const MAX_LIFETIME: f32 = 10; //\r\n\r\n    let id = params.globalInvocationId.x;\r\n    if(id >= arrayLength(&particles)) {\r\n        return;\r\n    }\r\n\r\n    var particle: Particle = particles[id];\r\n\r\n    indirect[1] = 300;\r\n\r\n    // Update time\r\n    particle.lifetime -= time.delta;\r\n\r\n    let cameraDistance: f32 = distance(particle.position, camera.position);\r\n    if(particle.lifetime < 0 || cameraDistance > MAX_DISTANCE) {\r\n        var hash1: u32 = hash(id * 10000  + u32(time.timestamp * 1000));\r\n        var hash2: u32 = hash(hash1);\r\n        var hash3: u32 = hash(hash2);\r\n        var hash4: u32 = hash(hash3);\r\n\r\n        let radi: f32 = (f32(hash1) - pow(2, 31)) * 2 / pow(2, 32);\r\n        let posX: f32 = (f32(hash2) - pow(2, 31)) * 2 / pow(2, 32);\r\n        let posY: f32 = (f32(hash3) - pow(2, 31)) * 2 / pow(2, 32);\r\n        let posZ: f32 = (f32(hash4) - pow(2, 31)) * 2 / pow(2, 32);\r\n\r\n        // Random normalized vector.\r\n        var randomPosition: vec3<f32> =vec3<f32>(posX, posY, posZ);\r\n        randomPosition = normalize(randomPosition);\r\n\r\n        // Scale ball by 10m\r\n        randomPosition *= radi * MAX_DISTANCE;\r\n\r\n        particle.position = randomPosition + camera.position;\r\n        particle.lifetime = MAX_LIFETIME;\r\n        particle.velocity = vec3<f32>(0.1, -0.2, 0);\r\n    }\r\n\r\n    // Move by velocity.\r\n    particle.position += particle.velocity * time.delta ;\r\n\r\n    _ = animationSeconds;\r\n\r\n    particles[id] = particle;\r\n}");
+
+/***/ }),
+
+/***/ "./page/source/game_objects/leaf_particle/particle-shader.wgsl":
+/*!*********************************************************************!*\
+  !*** ./page/source/game_objects/leaf_particle/particle-shader.wgsl ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\nstruct Particle {\r\n    position: vec3<f32>,\r\n    velocity: vec3<f32>,\r\n    lifetime: f32\r\n}\r\n@group(0) @binding(1) var<storage, read> particles: array<Particle>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var textureSampler: sampler;\r\n@group(2) @binding(1) var texture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n    @location(2) alpha: f32\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var particle: Particle = particles[vertex.instanceId];\r\n\r\n    let positionMatrix: mat4x4<f32> = mat4x4<f32>(\r\n        1, 0, 0, 0,\r\n        0, 1, 0, 0,\r\n        0, 0, 1, 0,\r\n        particle.position.x, particle.position.y, particle.position.z, 1,\r\n    );\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * positionMatrix * transformationMatrix * vertex.position ;\r\n    out.uv = vertex.uv;\r\n    out.fragmentPosition = transformationMatrix * positionMatrix * vertex.position;\r\n    out.alpha = min(clamp(particle.lifetime, 0, 1), clamp(10 - particle.lifetime, 0, 1));\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n    @location(2) alpha: f32\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    var color = textureSample(texture, textureSampler, fragment.uv);\r\n    color.a *= fragment.alpha;\r\n\r\n    return color;\r\n}");
 
 /***/ }),
 
@@ -12337,7 +12601,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformationMatrix * (instanceLight.position + vertex.position);\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instanceLight: PointLight = pointLights[vertex.instanceId];\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * (instanceLight.position + vertex.position) * transformationMatrix;\r\n    out.color = instanceLight.color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return fragment.color;\r\n}");
 
 /***/ }),
 
@@ -12352,7 +12616,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var cubeTextureSampler: sampler;\r\n@group(0) @binding(1) var cubeMap: texture_cube<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @location(0) position: vec4<f32>,\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var out: VertexOut;\r\n    out.position = camera.projection * camera.invertedTranslation.rotation  * vertex.position;\r\n    out.fragmentPosition = vertex.position;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return textureSample(cubeMap, cubeTextureSampler, fragment.fragmentPosition.xyz);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var cubeTextureSampler: sampler;\r\n@group(0) @binding(1) var cubeMap: texture_cube<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @location(0) position: vec4<f32>,\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var out: VertexOut;\r\n    out.position = camera.projection * camera.invertedTranslation.rotation  * vertex.position;\r\n    out.fragmentPosition = vertex.position;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(1) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return textureSample(cubeMap, cubeTextureSampler, fragment.fragmentPosition.xyz);\r\n}");
 
 /***/ }),
 
@@ -12367,7 +12631,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\n\r\n@group(1) @binding(1) var<uniform> timestamp: f32;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let translation: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(1, 0, 0, 0),\r\n        vec4<f32>(0, 1, 0, 0),\r\n        vec4<f32>(0, 0, 1, 0),\r\n        transformationMatrix[3]\r\n    );\r\n\r\n    let scaling: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),\r\n        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),\r\n        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),\r\n        vec4<f32>(0, 0, 0, 1),\r\n    );\r\n\r\n    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedPosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = camera.translation.rotation * vertex.normal;\r\n    out.fragmentPosition = transformedPosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    const red: f32 = 53;\r\n    const green: f32 = 214;\r\n    const blue: f32 = 19;\r\n\r\n    const redGreenRatio: f32 = red / green;\r\n    const blueGreenRatio: f32 = blue / green;\r\n\r\n    const ratioTolerance: f32 = 0.5;\r\n\r\n    let curredRedGreenRatio: f32 = videoColor.r / videoColor.g;\r\n    let curredBlueGreenRatio: f32 = videoColor.b / videoColor.g;\r\n\r\n    let compareRed: f32 = abs(curredRedGreenRatio - redGreenRatio);\r\n    let compareBlue: f32 = abs(curredBlueGreenRatio - blueGreenRatio);\r\n    \r\n\r\n    if(compareRed < ratioTolerance && compareBlue < ratioTolerance) {\r\n        return vec4<f32>(videoColor.rgb, 0.0);\r\n    }\r\n\r\n    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, (sin(fragment.uv.y * 750 + timestamp * 20) * 0.5 + 1) * 0.7);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct CameraTransformation {\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>\r\n}\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    translation: CameraTransformation,\r\n    invertedTranslation: CameraTransformation,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var videoTextureSampler: sampler;\r\n@group(2) @binding(1) var videoTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    let translation: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(1, 0, 0, 0),\r\n        vec4<f32>(0, 1, 0, 0),\r\n        vec4<f32>(0, 0, 1, 0),\r\n        transformationMatrix[3]\r\n    );\r\n\r\n    let scaling: mat4x4<f32> = mat4x4(\r\n        vec4<f32>(length(transformationMatrix[0].xyz), 0, 0, 0),\r\n        vec4<f32>(0, length(transformationMatrix[1].xyz), 0, 0),\r\n        vec4<f32>(0, 0, length(transformationMatrix[2].xyz), 0),\r\n        vec4<f32>(0, 0, 0, 1),\r\n    );\r\n\r\n    var transformedPosition: vec4<f32> = translation * camera.translation.rotation * scaling  * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * transformedPosition;\r\n    out.uv = vertex.uv;\r\n    out.normal = camera.translation.rotation * vertex.normal;\r\n    out.fragmentPosition = transformedPosition;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    let videoColor: vec4<f32> = textureSample(videoTexture, videoTextureSampler, fragment.uv);\r\n\r\n    const red: f32 = 53;\r\n    const green: f32 = 214;\r\n    const blue: f32 = 19;\r\n\r\n    const redGreenRatio: f32 = red / green;\r\n    const blueGreenRatio: f32 = blue / green;\r\n\r\n    const ratioTolerance: f32 = 0.5;\r\n\r\n    let curredRedGreenRatio: f32 = videoColor.r / videoColor.g;\r\n    let curredBlueGreenRatio: f32 = videoColor.b / videoColor.g;\r\n\r\n    let compareRed: f32 = abs(curredRedGreenRatio - redGreenRatio);\r\n    let compareBlue: f32 = abs(curredBlueGreenRatio - blueGreenRatio);\r\n    \r\n\r\n    if(compareRed < ratioTolerance && compareBlue < ratioTolerance) {\r\n        return vec4<f32>(videoColor.rgb, 0.0);\r\n    }\r\n\r\n    return vec4<f32>(applyLight(videoColor, fragment.fragmentPosition, fragment.normal).rgb, (sin(fragment.uv.y * 750 + time.timestamp * 20) * 0.5 + 1) * 0.7);\r\n}");
 
 /***/ }),
 
@@ -17022,7 +17286,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("bd4cce5967e802e1ad3a")
+/******/ 		__webpack_require__.h = () => ("c257353a17049af13ca1")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

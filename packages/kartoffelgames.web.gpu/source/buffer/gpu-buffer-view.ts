@@ -68,7 +68,7 @@ export class GpuBufferView<T extends TypedArray> {
 
         // Add data into a data buffer.
         const lDataBuffer: TypedArray = new this.mTypedArrayConstructor(pData);
-
+        
         // Skip new promise creation by returning original promise.
         return this.mBuffer.write(lDataBuffer.buffer, lLocation.offset);
     }

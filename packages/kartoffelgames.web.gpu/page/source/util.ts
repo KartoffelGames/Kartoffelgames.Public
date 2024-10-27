@@ -71,6 +71,7 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.View).dataArray, ['view']);
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Projection).dataArray, ['projection']);
+        pCameraBuffer.write([pCamera.transformation.translationX, pCamera.transformation.translationY, pCamera.transformation.translationZ], ['position']);
 
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).dataArray, ['translation', 'translation']);

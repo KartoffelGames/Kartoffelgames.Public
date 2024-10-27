@@ -38,7 +38,7 @@ export class ComputePassContext {
         if (pPipeline.layout !== pPipelineData.layout) {
             throw new Exception('Pipline data not valid for set pipeline.', this);
         }
-
+        
         // Execute compute.
         if (this.setupEncoderData(pPipeline, pPipelineData)) {
             this.mEncoder.dispatchWorkgroups(pX, pY, pZ);

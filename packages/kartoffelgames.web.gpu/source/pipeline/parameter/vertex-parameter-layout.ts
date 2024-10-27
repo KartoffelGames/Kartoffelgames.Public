@@ -70,8 +70,6 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
         this.mIndexable = false;
         this.mBuffer = new Dictionary<string, VertexParameterLayoutBuffer>();
         this.mParameter = new Dictionary<string, VertexParameterLayoutBufferParameter>();
-
-        // TODO: Generate a struct for each vertex buffer. So it doesnt need a VertexParameterLayoutBuffer.parameter list. Struct is allways alignmenttype packed.
     }
 
     /**

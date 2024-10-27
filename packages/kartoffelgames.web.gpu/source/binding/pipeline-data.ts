@@ -1,19 +1,20 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup, BindGroupInvalidationType } from './bind-group';
 import { PipelineLayout } from './pipeline-layout';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { GpuDevice } from '../gpu/gpu-device';
 
 export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> {
-    private readonly mBindData: Array<BindGroup>;
+    private readonly mBindData: Dictionary<string, BindGroup>;
     private readonly mInvalidationListener: () => void;
     private readonly mLayout: PipelineLayout;
+    private readonly mOrderedBindData: Array<BindGroup>;
 
     /**
      * Orderes pipeline data.
      */
     public get data(): Array<BindGroup> {
-        return this.mBindData;
+        return this.mOrderedBindData;
     }
 
     /**
@@ -35,10 +36,25 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> 
         // Set pipeline layout.
         this.mLayout = pPipelineLayout;
 
+        // Easy access dictionary.
+        this.mBindData = new Dictionary<string, BindGroup>();
+
         // Invalidate pipeline data when any data has changed.
         this.mInvalidationListener = () => {
             this.invalidate(PipelineDataInvalidationType.Data);
         };
+
+        // All bind groups must be set.
+        if (pPipelineLayout.groups.length !== pBindData.length) {
+            // Generate a better error message.
+            for (const lGroupName of pPipelineLayout.groups) {
+                // Get and validate existence of set bind group.
+                const lBindDataGroup: BindGroup | undefined = pBindData.find((pBindGroup) => { return pBindGroup.layout.name === lGroupName; });
+                if (!lBindDataGroup) {
+                    throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
+                }
+            }
+        }
 
         // Validate and order bind data.
         const lBindData: Array<BindGroup> = new Array<BindGroup>();
@@ -57,26 +73,23 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> 
                 throw new Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
             }
 
+            // Restrict double names.
+            if(this.mBindData.has(lBindGroupName)){
+                throw new Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
+            }
+
+            // Set name to bind group mapping.
+            this.mBindData.set(lBindGroupName, lBindGroup);
+
             // Set bind group.
             lBindData[lBindGroupIndex] = lBindGroup;
+            
 
             // Invalidate native data when bind group has changed.
             lBindGroup.addInvalidationListener(this.mInvalidationListener, BindGroupInvalidationType.NativeRebuild);
         }
 
-        // All bind groups must be set.
-        if (pPipelineLayout.groups.length !== lBindData.length) {
-            // Generate a better error message.
-            for (const lGroupName of pPipelineLayout.groups) {
-                // Get and validate existence of set bind group.
-                const lBindDataGroup: BindGroup | undefined = pBindData.find((pBindGroup) => { return pBindGroup.layout.name === lGroupName; });
-                if (!lBindDataGroup) {
-                    throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
-                }
-            }
-        }
-
-        this.mBindData = lBindData;
+        this.mOrderedBindData = lBindData;
     }
 
     /**
@@ -86,9 +99,24 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> 
         super.deconstruct();
 
         // Remove all invalidation listener from bind groups.
-        for (const lBindGroup of this.mBindData) {
+        for (const lBindGroup of this.mOrderedBindData) {
             lBindGroup.removeInvalidationListener(this.mInvalidationListener);
         }
+    }
+
+    /**
+     * Get bind group by name.
+     * 
+     * @param pBindGroupName  - Bind group name.
+     * 
+     * @returns bind group. 
+     */
+    public group(pBindGroupName: string): BindGroup {
+        if(!this.mBindData.has(pBindGroupName)){
+            throw new Exception(`Bind group "${pBindGroupName}" does not exists in pipeline data.`, this);
+        }
+
+        return this.mBindData.get(pBindGroupName)!; 
     }
 }
 

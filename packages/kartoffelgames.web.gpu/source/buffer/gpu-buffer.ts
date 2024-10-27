@@ -189,8 +189,6 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
 
         // When no staging buffer is available, use the slow native.
         if (!lStagingBuffer) {
-
-
             // Write data into mapped range.
             this.device.gpu.queue.writeBuffer(lNative, lOffset, lDataArrayBuffer, 0, lDataByteLength);
 

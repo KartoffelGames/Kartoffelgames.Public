@@ -71,10 +71,10 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
 
             pBindGroupSetup.binding(1, 'instancePositions', ComputeStage.Vertex, StorageBindingType.Read)
-                .withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // World bind group.
@@ -83,10 +83,10 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
         // User bind group
         pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
-                .withSampler(SamplerType.Filter);
+                .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
-                .withTexture(TextureViewDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
+                .asTexture(TextureViewDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
         });
     });
 
@@ -261,7 +261,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
         });
 
         // World bind group.
@@ -316,10 +316,10 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
 
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
-                .withSampler(SamplerType.Filter);
+                .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
-                .withTexture(TextureViewDimension.Cube, TextureFormat.Rgba8unorm);
+                .asTexture(TextureViewDimension.Cube, TextureFormat.Rgba8unorm);
         });
 
         // World bind group.
@@ -425,7 +425,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
         });
 
         // World bind group.
@@ -434,10 +434,10 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
         // User bind group
         pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'videoTextureSampler', ComputeStage.Fragment)
-                .withSampler(SamplerType.Filter);
+                .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
-                .withTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
         });
     });
 
@@ -542,9 +542,9 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             pBindGroupSetup.binding(1, 'particles', ComputeStage.Vertex, StorageBindingType.Read)
-                .withArray().withStruct((pStructSetup) => {
+                .asBuffer().withArray().withStruct((pStructSetup) => {
                     pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
@@ -557,10 +557,10 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
         pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'textureSampler', ComputeStage.Fragment)
-                .withSampler(SamplerType.Filter);
+                .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'texture', ComputeStage.Fragment)
-                .withTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
         });
     });
 
@@ -665,14 +665,15 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'particles', ComputeStage.Compute, StorageBindingType.ReadWrite)
-                .withArray().withStruct((pStructSetup) => {
+                .asBuffer().withArray().withStruct((pStructSetup) => {
                     pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
                     pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
                 });
 
-            pBindGroupSetup.binding(1, 'indirect', ComputeStage.Compute, StorageBindingType.ReadWrite).withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Vector4);
+            pBindGroupSetup.binding(1, 'indirect', ComputeStage.Compute, StorageBindingType.ReadWrite)
+                .asBuffer().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Vector4);
         });
 
         // World bind group.
@@ -710,7 +711,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
 const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex | ComputeStage.Compute).withStruct((pStructSetup) => {
+        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex | ComputeStage.Compute).asBuffer().withStruct((pStructSetup) => {
             pStructSetup.property('viewProjection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             pStructSetup.property('view').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
             pStructSetup.property('projection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
@@ -728,25 +729,25 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
             pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
         });
 
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment | ComputeStage.Compute).withStruct((pTimeStruct) => {
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment | ComputeStage.Compute).asBuffer().withStruct((pTimeStruct) => {
             pTimeStruct.property('timestamp').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
             pTimeStruct.property('delta').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
         });
 
         pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
-            .withStruct((pStruct) => {
+            .asBuffer().withStruct((pStruct) => {
                 pStruct.property('color').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
 
         pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
-            .withArray().withStruct((pStruct) => {
+            .asBuffer().withArray().withStruct((pStruct) => {
                 pStruct.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
                 pStruct.property('color').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
                 pStruct.property('range').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
             });
 
         pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment | ComputeStage.Compute, StorageBindingType.ReadWrite)
-            .withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+            .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
 
     });
 

@@ -4,7 +4,6 @@ import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
-import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
@@ -12,7 +11,7 @@ import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buff
 import { StructBufferMemoryLayoutSetup } from '../../memory_layout/buffer/struct-buffer-memory-layout-setup';
 import { BindGroupLayoutSetupData } from './bind-group-layout-setup';
 
-export class BindGroupLayoutArrayMemoryLayoutSetup<TLayout extends BaseMemoryLayout> extends GpuObjectChildSetup<BindGroupLayoutSetupData, MemoryLayoutCallback<TLayout>> {
+export class BindGroupLayoutBufferMemoryLayoutSetup extends GpuObjectChildSetup<BindGroupLayoutSetupData, MemoryLayoutCallback> {
     private readonly mAlignmentType: BufferAlignmentType;
 
     /**
@@ -22,7 +21,7 @@ export class BindGroupLayoutArrayMemoryLayoutSetup<TLayout extends BaseMemoryLay
      * @param pAlignmentType - Buffers alignment type.
      * @param pDataCallback - Data callback.
      */
-    public constructor(pSetupReference: GpuObjectSetupReferences<BindGroupLayoutSetupData>, pAlignmentType: BufferAlignmentType, pDataCallback: MemoryLayoutCallback<TLayout>) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<BindGroupLayoutSetupData>, pAlignmentType: BufferAlignmentType, pDataCallback: MemoryLayoutCallback) {
         super(pSetupReference, pDataCallback);
 
         this.mAlignmentType = pAlignmentType;
@@ -35,14 +34,14 @@ export class BindGroupLayoutArrayMemoryLayoutSetup<TLayout extends BaseMemoryLay
      *  
      * @returns array setup. 
      */
-    public withArray(pSize: number = -1): BindGroupLayoutArrayMemoryLayoutSetup<BaseBufferMemoryLayout> {
-        return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, (pMemoryLayout: BaseBufferMemoryLayout) => {
+    public withArray(pSize: number = -1): BindGroupLayoutBufferMemoryLayoutSetup {
+        return new BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, (pMemoryLayout: BaseBufferMemoryLayout) => {
             const lLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
                 arraySize: pSize,
                 innerType: pMemoryLayout
             });
 
-            this.sendData(lLayout as unknown as TLayout);
+            this.sendData(lLayout);
         });
     }
 
@@ -65,7 +64,7 @@ export class BindGroupLayoutArrayMemoryLayoutSetup<TLayout extends BaseMemoryLay
         });
 
         // Send created data.
-        this.sendData(lLayout as unknown as TLayout);
+        this.sendData(lLayout);
     }
 
     /**
@@ -79,8 +78,8 @@ export class BindGroupLayoutArrayMemoryLayoutSetup<TLayout extends BaseMemoryLay
         lLayout.setup(pSetupCall);
 
         // Send created data.
-        this.sendData(lLayout as unknown as TLayout);
+        this.sendData(lLayout);
     }
 }
 
-type MemoryLayoutCallback<TLayout extends BaseMemoryLayout> = (pMemoryLayout: TLayout) => void;
+type MemoryLayoutCallback = (pMemoryLayout: BaseBufferMemoryLayout) => void;

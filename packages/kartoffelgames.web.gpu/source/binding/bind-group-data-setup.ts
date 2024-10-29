@@ -74,16 +74,24 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // Unwrap layout.
         const lUnwrapedLayout: UnwrappedBufferLayout = this.unwrapLayouts(this.mBindLayout.layout);
 
+        // Validate data length that should be written.
+        if (lUnwrapedLayout.fixedItemCount > pData.length) {
+            throw new Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
+        }
+
         // Get variable data repetitions.
         let lVariableRepetitionCount: number = 0;
         if (lUnwrapedLayout.variableItemCount > 0) {
             lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
         }
 
-        // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
+        // Variable count should be an integer.
+        if(lVariableRepetitionCount % 1 !== 0){
+            throw new Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
+        }
 
         // Create buffer with correct length.
-        const lBufferData: ArrayBuffer = new ArrayBuffer(this.mBindLayout.layout.fixedSize + (this.mBindLayout.layout.variableSize * lVariableRepetitionCount));
+        const lBufferData: ArrayBuffer = new ArrayBuffer((this.mBindLayout.layout.variableSize * lVariableRepetitionCount) + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets));
         const lBufferDataView: DataView = new DataView(lBufferData);
 
         // Write data.
@@ -107,6 +115,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
                 return;
             }
 
+            // write each single number.
             for (let lItemIndex: number = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
                 // Add and iterate data.
                 this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
@@ -116,7 +125,11 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
                 lByteOffset += pUnwrappedLayout.format.itemByteCount;
             }
         };
-        lWriteLayout(lUnwrapedLayout);
+
+        // Repeat layout for each dynamic offset.
+        for (let lOffsetIndex: number = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
+            lWriteLayout(lUnwrapedLayout);
+        }
 
         // Create buffer with initial data.
         const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
@@ -140,8 +153,6 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
         }
 
-        // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
-
         // Calculate variable item count from initial buffer data.  
         const lVariableItemCount: number = (() => {
             // Use set variable count.
@@ -158,7 +169,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         })();
 
         // Calculate buffer size.
-        const lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+        const lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
 
         // Create buffer.
         const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteSize);
@@ -202,8 +213,8 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             return lItemCount;
         })();
 
-        // Calculate buffer size. // TODO: Extend bytecount when dynamic offsets are enabled.
-        const lByteCount: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+        // Calculate buffer size.
+        const lByteCount: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
 
         // Validate size.
         if (pData.byteLength !== lByteCount) {

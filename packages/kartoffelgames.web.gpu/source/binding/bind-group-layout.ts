@@ -20,6 +20,7 @@ import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-gro
 export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
+    private readonly mOrderedBindingNames: Array<string>;
 
     /**
      * Get binding names.
@@ -28,22 +29,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         // Ensure setup.
         this.ensureSetup();
 
-        return [...this.mBindings.keys()];
-    }
-
-    /**
-     * Get bindings of group in binding order.
-     */
-    public get bindings(): Array<Readonly<BindLayout>> {
-        // Ensure setup.
-        this.ensureSetup();
-
-        const lBindingList: Array<BindLayout> = new Array<BindLayout>();
-        for (const lBinding of this.mBindings.values()) {
-            lBindingList[lBinding.index] = lBinding;
-        }
-
-        return lBindingList;
+        return this.mOrderedBindingNames;
     }
 
     /**
@@ -74,6 +60,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
 
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
+        this.mOrderedBindingNames = new Array<string>();
     }
 
     /**
@@ -121,7 +108,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        for (const lEntry of this.bindings) {
+        for (const lEntry of this.mBindings.values()) {
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
                 visibility: lEntry.visibility,
@@ -151,7 +138,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     lLayoutEntry.buffer = {
                         type: lBufferBindingType,
                         minBindingSize: 0,
-                        hasDynamicOffset: false // TODO: Dynamic offset
+                        hasDynamicOffset: lEntry.dynamicOffsets > 1
                     } satisfies Required<GPUBufferBindingLayout>;
 
                     break;
@@ -244,6 +231,16 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 throw new Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
             }
 
+            // Only buffers can have a dynamic offset.
+            if (lBinding.dynamicOffsetCount > 1 && !(lBinding.layout instanceof BaseBufferMemoryLayout)) {
+                throw new Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
+            }
+
+            // Buffers with dynamic offsets must be fixed in size.
+            if(lBinding.dynamicOffsetCount > 1 && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
+                throw new Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
+            }
+
             // Layout validation for 32bit formats are in setup.
 
             // Shallow copy binding.
@@ -252,7 +249,8 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 index: lBinding.index,
                 layout: lBinding.layout,
                 visibility: lBinding.visibility,
-                storageType: lBinding.storageType
+                storageType: lBinding.storageType,
+                dynamicOffsets: lBinding.dynamicOffsetCount
             });
 
             // Validate dublicate indices.
@@ -263,6 +261,9 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             // Add binding index to already binded indices. 
             lBindingIndices.add(lBinding.index);
             lBindingName.add(lBinding.name);
+
+            // Add binding ordered by index.
+            this.mOrderedBindingNames[lBinding.index] = lBinding.name;
         }
     }
 
@@ -284,4 +285,5 @@ export type BindLayout = {
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
     storageType: StorageBindingType;
+    dynamicOffsets: number;
 };

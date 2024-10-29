@@ -30,7 +30,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType> 
      * @param pPipelineLayout - Pipeline data. 
      * @param pBindData - Every bind data of pipeline layout.
      */
-    public constructor(pDevice: GpuDevice, pPipelineLayout: PipelineLayout, pBindData: Array<BindGroup>) {
+    public constructor(pDevice: GpuDevice, pPipelineLayout: PipelineLayout, pBindData: Array<BindGroup>) { // TODO: Setup? Add bind data with BindGroup and dynamic-offset-index.
         super(pDevice);
 
         // Set pipeline layout.

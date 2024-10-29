@@ -3,7 +3,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
-import { BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup';
+import { BindGroupBindingMemoryLayoutSetuData, BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup';
 
 export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupData> {
     /**
@@ -15,7 +15,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
      * @param pVisibility - Visibility.
      * @param pAccessMode - Access mode.
      */
-    public binding(pIndex: number, pName: string, pVisibility: ComputeStage, pStorageBinding?: StorageBindingType): BindGroupLayoutMemoryLayoutSetup { // TODO: Dynamic offset.
+    public binding(pIndex: number, pName: string, pVisibility: ComputeStage, pStorageBinding?: StorageBindingType): BindGroupLayoutMemoryLayoutSetup {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -25,7 +25,8 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
             index: pIndex,
             visibility: pVisibility,
             layout: null,
-            storageType: pStorageBinding ?? StorageBindingType.None
+            storageType: pStorageBinding ?? StorageBindingType.None,
+            dynamicOffsetCount: 1,
         };
 
         // Set layout.
@@ -35,8 +36,9 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
         const lAlignmentType: BufferAlignmentType = (lBind.storageType === StorageBindingType.None) ? BufferAlignmentType.Uniform : BufferAlignmentType.Storage;
 
         // Create layout memory layout.
-        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, (pMemoryLayout: BaseMemoryLayout) => {
-            lBind.layout = pMemoryLayout;
+        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, (pMemoryLayout: BindGroupBindingMemoryLayoutSetuData) => {
+            lBind.layout = pMemoryLayout.layout;
+            lBind.dynamicOffsetCount = pMemoryLayout.dynamicOffsetCount;
         });
     }
 
@@ -56,6 +58,7 @@ type BindLayoutSetupData = {
     layout: BaseMemoryLayout | null;
     visibility: ComputeStage;
     storageType: StorageBindingType;
+    dynamicOffsetCount: number;
 };
 
 export type BindGroupLayoutSetupData = {

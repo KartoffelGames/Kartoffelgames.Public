@@ -52,19 +52,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         this.mLayout = pVertexParameterLayout;
         this.mBuffer = new Dictionary<string, GpuBuffer>();
 
-        // Create index layout.
-        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
-            alignmentType: BufferAlignmentType.Packed,
-            primitiveFormat: BufferItemFormat.Uint32,
-            primitiveMultiplier: BufferItemMultiplier.Single,
-        });
-
-        // Create index buffer layout.
-        const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
-            arraySize: pIndices.length,
-            innerType: lIndexLayout
-        });
-
         // Save index information.
         this.mIndices = pIndices;
 
@@ -73,6 +60,16 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         if (this.mLayout.indexable) {
             // Decide wich format to use.
             if (pIndices.length < Math.pow(2, 16)) {
+                // Create index buffer layout.
+                const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
+                    arraySize: pIndices.length,
+                    innerType: new PrimitiveBufferMemoryLayout(this.device, {
+                        alignmentType: BufferAlignmentType.Packed,
+                        primitiveFormat: BufferItemFormat.Uint16,
+                        primitiveMultiplier: BufferItemMultiplier.Single,
+                    })
+                });
+
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 2);
                 lIndexBuffer.extendUsage(BufferUsage.Index);
@@ -81,6 +78,16 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 // Create view of buffer.
                 this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
             } else {
+                // Create index buffer layout.
+                const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
+                    arraySize: pIndices.length,
+                    innerType: new PrimitiveBufferMemoryLayout(this.device, {
+                        alignmentType: BufferAlignmentType.Packed,
+                        primitiveFormat: BufferItemFormat.Uint32,
+                        primitiveMultiplier: BufferItemMultiplier.Single,
+                    })
+                });
+
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 4);
                 lIndexBuffer.extendUsage(BufferUsage.Index);

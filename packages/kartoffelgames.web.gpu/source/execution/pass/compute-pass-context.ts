@@ -109,7 +109,7 @@ export class ComputePassContext {
                 this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
 
                 // Set bind group to gpu.
-                this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+                this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
             }
         }
 

@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core';
+import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { GpuBuffer } from './gpu-buffer';
 
@@ -7,6 +7,7 @@ import { GpuBuffer } from './gpu-buffer';
  */
 export class GpuBufferView<T extends TypedArray> {
     private readonly mBuffer: GpuBuffer;
+    private readonly mDynamicOffset: number;
     private readonly mLayout: BaseBufferMemoryLayout;
     private readonly mTypedArrayConstructor: GpuBufferViewFormat<T>;
 
@@ -15,6 +16,13 @@ export class GpuBufferView<T extends TypedArray> {
      */
     public get buffer(): GpuBuffer {
         return this.mBuffer;
+    }
+
+    /**
+     * Index of dynamic offset.
+     */
+    public get dynamicOffsetIndex(): number {
+        return this.mDynamicOffset / this.mLayout.fixedSize;
     }
 
     /**
@@ -36,14 +44,31 @@ export class GpuBufferView<T extends TypedArray> {
      * 
      * @param pBuffer - Views buffer. 
      * @param pLayout - Layout of view.
+     * @param pDynamicOffsetIndex - 
      */
-    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>) {
+    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>, pDynamicOffsetIndex: number = 0) {
+        // Layout must fit into buffer.
+        if (pLayout.fixedSize > pBuffer.size) {
+            throw new Exception(`Buffer view fixed size (${pLayout.fixedSize}) exceedes buffer size (${pBuffer.size}). Buffer must at least be the layouts fixed size.`, this);
+        }
+
+        // Calculate and validate dynamic offset.
+        if (pDynamicOffsetIndex > 0) {
+            // Dynamic offsets can only be applied to fixed buffer layouts.
+            if (pLayout.variableSize > 0) {
+                throw new Exception('Dynamic offsets can only be applied to fixed buffer layouts.', this);
+            }
+
+            const lMinBufferSize: number = pLayout.fixedSize * pDynamicOffsetIndex + pLayout.fixedSize;
+            if (pBuffer.size < lMinBufferSize) {
+                throw new Exception(`Buffer view offset size (${lMinBufferSize}) exceedes buffer size ${pBuffer.size}.`, this);
+            }
+        }
+
         this.mLayout = pLayout;
         this.mBuffer = pBuffer;
         this.mTypedArrayConstructor = pType;
-
-        // TODO: Only on fixed layouts: Check how often the layout fits into the buffer and safe the calculated available offsets.
-        // TODO: Add offset counts to read and write.
+        this.mDynamicOffset = pLayout.fixedSize * pDynamicOffsetIndex;
     }
 
     /**
@@ -54,7 +79,7 @@ export class GpuBufferView<T extends TypedArray> {
     public async read(pLayoutPath: Array<string> = []): Promise<TypedArray> {
         const lLocation = this.mLayout.locationOf(pLayoutPath);
 
-        return new this.mTypedArrayConstructor(await this.mBuffer.read(lLocation.offset, lLocation.size));
+        return new this.mTypedArrayConstructor(await this.mBuffer.read(this.mDynamicOffset + lLocation.offset, lLocation.size));
     }
 
     /**
@@ -68,9 +93,9 @@ export class GpuBufferView<T extends TypedArray> {
 
         // Add data into a data buffer.
         const lDataBuffer: TypedArray = new this.mTypedArrayConstructor(pData);
-        
+
         // Skip new promise creation by returning original promise.
-        return this.mBuffer.write(lDataBuffer.buffer, lLocation.offset);
+        return this.mBuffer.write(lDataBuffer.buffer, this.mDynamicOffset + lLocation.offset);
     }
 }
 

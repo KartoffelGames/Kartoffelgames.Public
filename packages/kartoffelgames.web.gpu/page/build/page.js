@@ -1549,15 +1549,15 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'instancePositions', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).asBuffer().withArray().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
     // User bind group
     pShaderSetup.group(2, 'user', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).asSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'cubeTexture', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex).asTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
   });
   // Create render module from shader.
@@ -1699,7 +1699,7 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1737,8 +1737,8 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
     // Fragment entry.
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(0, 'cubeTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).asSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'cubeMap', compute_stage_enum_1.ComputeStage.Fragment).asTexture(texture_view_dimension_enum_1.TextureViewDimension.Cube, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -1813,14 +1813,14 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
     // User bind group
     pShaderSetup.group(2, 'user', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'videoTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'videoTexture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(0, 'videoTextureSampler', compute_stage_enum_1.ComputeStage.Fragment).asSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'videoTexture', compute_stage_enum_1.ComputeStage.Fragment).asTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
   });
   // Create render module from shader.
@@ -1897,8 +1897,8 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.computeEntryPoint('compute_main').size(64);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
-      pBindGroupSetup.binding(1, 'particles', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStructSetup => {
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'particles', compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).asBuffer().withArray().withStruct(pStructSetup => {
         pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
         pStructSetup.property('rotation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
         pStructSetup.property('velocity').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
@@ -1908,8 +1908,8 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
     pShaderSetup.group(2, 'user', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'textureSampler', compute_stage_enum_1.ComputeStage.Fragment).withSampler(sampler_type_enum_1.SamplerType.Filter);
-      pBindGroupSetup.binding(1, 'texture', compute_stage_enum_1.ComputeStage.Fragment).withTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
+      pBindGroupSetup.binding(0, 'textureSampler', compute_stage_enum_1.ComputeStage.Fragment).asSampler(sampler_type_enum_1.SamplerType.Filter);
+      pBindGroupSetup.binding(1, 'texture', compute_stage_enum_1.ComputeStage.Fragment).asTexture(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension, texture_format_enum_1.TextureFormat.Rgba8unorm);
     });
   });
   // Create render module from shader.
@@ -1989,13 +1989,13 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pShaderSetup.computeEntryPoint('compute_main').size(64);
     // Object bind group.
     pShaderSetup.group(0, 'object', pBindGroupSetup => {
-      pBindGroupSetup.binding(0, 'particles', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withArray().withStruct(pStructSetup => {
+      pBindGroupSetup.binding(0, 'particles', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).asBuffer().withArray().withStruct(pStructSetup => {
         pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
         pStructSetup.property('rotation').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
         pStructSetup.property('velocity').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
         pStructSetup.property('lifetime').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
       });
-      pBindGroupSetup.binding(1, 'indirect', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Uint32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pBindGroupSetup.binding(1, 'indirect', compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Uint32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
     // World bind group.
     pShaderSetup.group(1, pWorldGroup.layout);
@@ -2023,7 +2023,7 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
 };
 const gGenerateWorldBindGroup = pGpu => {
   const lWorldGroupLayout = new bind_group_layout_1.BindGroupLayout(pGpu, 'world').setup(pBindGroupSetup => {
-    pBindGroupSetup.binding(0, 'camera', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Compute).withStruct(pStructSetup => {
+    pBindGroupSetup.binding(0, 'camera', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Compute).asBuffer().withStruct(pStructSetup => {
       pStructSetup.property('viewProjection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       pStructSetup.property('view').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
       pStructSetup.property('projection').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
@@ -2037,19 +2037,19 @@ const gGenerateWorldBindGroup = pGpu => {
       });
       pStructSetup.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3);
     });
-    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute).withStruct(pTimeStruct => {
+    pBindGroupSetup.binding(1, 'timestamp', compute_stage_enum_1.ComputeStage.Vertex | compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute).asBuffer().withStruct(pTimeStruct => {
       pTimeStruct.property('timestamp').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
       pTimeStruct.property('delta').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
     });
-    pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).withStruct(pStruct => {
+    pBindGroupSetup.binding(2, 'ambientLight', compute_stage_enum_1.ComputeStage.Fragment).asBuffer().withStruct(pStruct => {
       pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
     });
-    pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).withArray().withStruct(pStruct => {
+    pBindGroupSetup.binding(3, 'pointLights', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Vertex, storage_binding_type_enum_1.StorageBindingType.Read).asBuffer().withArray().withStruct(pStruct => {
       pStruct.property('position').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
       pStruct.property('color').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
       pStruct.property('range').asPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
     });
-    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
+    pBindGroupSetup.binding(4, 'debugValue', compute_stage_enum_1.ComputeStage.Fragment | compute_stage_enum_1.ComputeStage.Compute, storage_binding_type_enum_1.StorageBindingType.ReadWrite).asBuffer().withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Single);
   });
   /*
    * Camera and world group.
@@ -2519,14 +2519,21 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     }
     // Unwrap layout.
     const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
+    // Validate data length that should be written.
+    if (lUnwrapedLayout.fixedItemCount > pData.length) {
+      throw new core_1.Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
+    }
     // Get variable data repetitions.
     let lVariableRepetitionCount = 0;
     if (lUnwrapedLayout.variableItemCount > 0) {
       lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
     }
-    // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
+    // Variable count should be an integer.
+    if (lVariableRepetitionCount % 1 !== 0) {
+      throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
+    }
     // Create buffer with correct length.
-    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.fixedSize + this.mBindLayout.layout.variableSize * lVariableRepetitionCount);
+    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.variableSize * lVariableRepetitionCount + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
     const lBufferDataView = new DataView(lBufferData);
     // Write data.
     let lDataIndex = 0;
@@ -2546,6 +2553,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
         }
         return;
       }
+      // write each single number.
       for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
         // Add and iterate data.
         this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
@@ -2554,7 +2562,10 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
         lByteOffset += pUnwrappedLayout.format.itemByteCount;
       }
     };
-    lWriteLayout(lUnwrapedLayout);
+    // Repeat layout for each dynamic offset.
+    for (let lOffsetIndex = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
+      lWriteLayout(lUnwrapedLayout);
+    }
     // Create buffer with initial data.
     const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
     // Send created data.
@@ -2573,7 +2584,6 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
       throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
     }
-    // TODO: Add dynamic offsets parameter to extend size by each item. Maybe limit dynamic offsets by static layouts or allow a variablesize parameter.
     // Calculate variable item count from initial buffer data.  
     const lVariableItemCount = (() => {
       // Use set variable count.
@@ -2587,7 +2597,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
     })();
     // Calculate buffer size.
-    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
     // Create buffer.
     const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
     // Send created data.
@@ -2622,8 +2632,8 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       }
       return lItemCount;
     })();
-    // Calculate buffer size. // TODO: Extend bytecount when dynamic offsets are enabled.
-    const lByteCount = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    // Calculate buffer size.
+    const lByteCount = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
     // Validate size.
     if (pData.byteLength !== lByteCount) {
       throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteCount} => Has:${pData.byteLength}) requirements.`, this);
@@ -2868,19 +2878,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
   get bindingNames() {
     // Ensure setup.
     this.ensureSetup();
-    return [...this.mBindings.keys()];
-  }
-  /**
-   * Get bindings of group in binding order.
-   */
-  get bindings() {
-    // Ensure setup.
-    this.ensureSetup();
-    const lBindingList = new Array();
-    for (const lBinding of this.mBindings.values()) {
-      lBindingList[lBinding.index] = lBinding;
-    }
-    return lBindingList;
+    return this.mOrderedBindingNames;
   }
   /**
    * Bind group name.
@@ -2906,6 +2904,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     this.mName = pName;
     // Init bindings.
     this.mBindings = new core_1.Dictionary();
+    this.mOrderedBindingNames = new Array();
   }
   /**
    * Create new bind group from layout.
@@ -2945,7 +2944,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
   generateNative() {
     const lEntryList = new Array();
     // Generate layout entry for each binding.
-    for (const lEntry of this.bindings) {
+    for (const lEntry of this.mBindings.values()) {
       // Generate default properties.
       const lLayoutEntry = {
         visibility: lEntry.visibility,
@@ -2977,7 +2976,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
             lLayoutEntry.buffer = {
               type: lBufferBindingType,
               minBindingSize: 0,
-              hasDynamicOffset: false // TODO: Dynamic offset
+              hasDynamicOffset: lEntry.dynamicOffsets > 1
             };
             break;
           }
@@ -3061,6 +3060,14 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       if (!lBinding.layout) {
         throw new core_1.Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
       }
+      // Only buffers can have a dynamic offset.
+      if (lBinding.dynamicOffsetCount > 1 && !(lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
+      }
+      // Buffers with dynamic offsets must be fixed in size.
+      if (lBinding.dynamicOffsetCount > 1 && lBinding.layout.variableSize > 0) {
+        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
+      }
       // Layout validation for 32bit formats are in setup.
       // Shallow copy binding.
       this.mBindings.set(lBinding.name, {
@@ -3068,7 +3075,8 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         index: lBinding.index,
         layout: lBinding.layout,
         visibility: lBinding.visibility,
-        storageType: lBinding.storageType
+        storageType: lBinding.storageType,
+        dynamicOffsets: lBinding.dynamicOffsetCount
       });
       // Validate dublicate indices.
       if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
@@ -3077,6 +3085,8 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       // Add binding index to already binded indices. 
       lBindingIndices.add(lBinding.index);
       lBindingName.add(lBinding.name);
+      // Add binding ordered by index.
+      this.mOrderedBindingNames[lBinding.index] = lBinding.name;
     }
   }
   /**
@@ -3524,10 +3534,10 @@ exports.PipelineLayout = PipelineLayout;
 
 /***/ }),
 
-/***/ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts":
-/*!*****************************************************************************!*\
-  !*** ./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts ***!
-  \*****************************************************************************/
+/***/ "./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts":
+/*!******************************************************************************!*\
+  !*** ./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts ***!
+  \******************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3536,14 +3546,14 @@ exports.PipelineLayout = PipelineLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.BindGroupLayoutArrayMemoryLayoutSetup = void 0;
+exports.BindGroupLayoutBufferMemoryLayoutSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
 const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
-class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+class BindGroupLayoutBufferMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
    *
@@ -3563,7 +3573,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
    * @returns array setup.
    */
   withArray(pSize = -1) {
-    return new BindGroupLayoutArrayMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+    return new BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
       const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
         arraySize: pSize,
         innerType: pMemoryLayout
@@ -3603,7 +3613,7 @@ class BindGroupLayoutArrayMemoryLayoutSetup extends gpu_object_child_setup_1.Gpu
     this.sendData(lLayout);
   }
 }
-exports.BindGroupLayoutArrayMemoryLayoutSetup = BindGroupLayoutArrayMemoryLayoutSetup;
+exports.BindGroupLayoutBufferMemoryLayoutSetup = BindGroupLayoutBufferMemoryLayoutSetup;
 
 /***/ }),
 
@@ -3620,19 +3630,50 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.BindGroupLayoutMemoryLayoutSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
 const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const bind_group_layout_array_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-array-memory-layout-setup */ "./source/binding/setup/bind-group-layout-array-memory-layout-setup.ts");
-class BindGroupLayoutMemoryLayoutSetup extends bind_group_layout_array_memory_layout_setup_1.BindGroupLayoutArrayMemoryLayoutSetup {
+const bind_group_layout_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-buffer-memory-layout-setup */ "./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts");
+class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pAlignmentType - Buffers alignment type.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
+   * Memory layout as buffer with optional dynamic offsets.
+   * Dynamic offsets are only available for fixed size layouts.
+   *
+   * @param pDynamicOffsets - Number of available dynamic offsets.
+   *
+   * @returns buffer setup.
+   */
+  asBuffer(pDynamicOffsets = 1) {
+    return new bind_group_layout_buffer_memory_layout_setup_1.BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+      this.sendData({
+        layout: pMemoryLayout,
+        dynamicOffsetCount: pDynamicOffsets
+      });
+    });
+  }
   /**
    * Memory layout as sampler.
    *
    * @param pSamplerType - Sampler type.
    */
-  withSampler(pSamplerType) {
+  asSampler(pSamplerType) {
     const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, pSamplerType);
     // Send created data.
-    this.sendData(lLayout);
+    this.sendData({
+      layout: lLayout,
+      dynamicOffsetCount: 1
+    });
   }
   /**
    * Memory layout as texture.
@@ -3641,14 +3682,17 @@ class BindGroupLayoutMemoryLayoutSetup extends bind_group_layout_array_memory_la
    * @param pTextureFormat - Texture format.
    * @param pTextureBindType - Texture binding.
    */
-  withTexture(pTextureDimension, pTextureFormat) {
+  asTexture(pTextureDimension, pTextureFormat) {
     const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
       dimension: pTextureDimension,
       format: pTextureFormat,
       multisampled: false
     });
     // Send created data.
-    this.sendData(lLayout);
+    this.sendData({
+      layout: lLayout,
+      dynamicOffsetCount: 1
+    });
   }
 }
 exports.BindGroupLayoutMemoryLayoutSetup = BindGroupLayoutMemoryLayoutSetup;
@@ -3691,7 +3735,8 @@ class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
       index: pIndex,
       visibility: pVisibility,
       layout: null,
-      storageType: pStorageBinding ?? storage_binding_type_enum_1.StorageBindingType.None
+      storageType: pStorageBinding ?? storage_binding_type_enum_1.StorageBindingType.None,
+      dynamicOffsetCount: 1
     };
     // Set layout.
     this.setupData.bindings.push(lBind);
@@ -3699,7 +3744,8 @@ class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
     const lAlignmentType = lBind.storageType === storage_binding_type_enum_1.StorageBindingType.None ? buffer_alignment_type_enum_1.BufferAlignmentType.Uniform : buffer_alignment_type_enum_1.BufferAlignmentType.Storage;
     // Create layout memory layout.
     return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, pMemoryLayout => {
-      lBind.layout = pMemoryLayout;
+      lBind.layout = pMemoryLayout.layout;
+      lBind.dynamicOffsetCount = pMemoryLayout.dynamicOffsetCount;
     });
   }
   /**
@@ -3719,7 +3765,7 @@ exports.BindGroupLayoutSetup = BindGroupLayoutSetup;
 /*!******************************************!*\
   !*** ./source/buffer/gpu-buffer-view.ts ***!
   \******************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -3730,6 +3776,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.GpuBufferView = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 /**
  * Create a view to look at a gpu buffer.
  */
@@ -3739,6 +3786,12 @@ class GpuBufferView {
    */
   get buffer() {
     return this.mBuffer;
+  }
+  /**
+   * Index of dynamic offset.
+   */
+  get dynamicOffsetIndex() {
+    return this.mDynamicOffset / this.mLayout.fixedSize;
   }
   /**
    * Buffer view format.
@@ -3757,13 +3810,28 @@ class GpuBufferView {
    *
    * @param pBuffer - Views buffer.
    * @param pLayout - Layout of view.
+   * @param pDynamicOffsetIndex -
    */
-  constructor(pBuffer, pLayout, pType) {
+  constructor(pBuffer, pLayout, pType, pDynamicOffsetIndex = 0) {
+    // Layout must fit into buffer.
+    if (pLayout.fixedSize > pBuffer.size) {
+      throw new core_1.Exception(`Buffer view fixed size (${pLayout.fixedSize}) exceedes buffer size (${pBuffer.size}). Buffer must at least be the layouts fixed size.`, this);
+    }
+    // Calculate and validate dynamic offset.
+    if (pDynamicOffsetIndex > 0) {
+      // Dynamic offsets can only be applied to fixed buffer layouts.
+      if (pLayout.variableSize > 0) {
+        throw new core_1.Exception('Dynamic offsets can only be applied to fixed buffer layouts.', this);
+      }
+      const lMinBufferSize = pLayout.fixedSize * pDynamicOffsetIndex + pLayout.fixedSize;
+      if (pBuffer.size < lMinBufferSize) {
+        throw new core_1.Exception(`Buffer view offset size (${lMinBufferSize}) exceedes buffer size ${pBuffer.size}.`, this);
+      }
+    }
     this.mLayout = pLayout;
     this.mBuffer = pBuffer;
     this.mTypedArrayConstructor = pType;
-    // TODO: Only on fixed layouts: Check how often the layout fits into the buffer and safe the calculated available offsets.
-    // TODO: Add offset counts to read and write.
+    this.mDynamicOffset = pLayout.fixedSize * pDynamicOffsetIndex;
   }
   /**
    * Read buffer on layout location.
@@ -3774,7 +3842,7 @@ class GpuBufferView {
     var _this = this;
     return _asyncToGenerator(function* () {
       const lLocation = _this.mLayout.locationOf(pLayoutPath);
-      return new _this.mTypedArrayConstructor(yield _this.mBuffer.read(lLocation.offset, lLocation.size));
+      return new _this.mTypedArrayConstructor(yield _this.mBuffer.read(_this.mDynamicOffset + lLocation.offset, lLocation.size));
     })();
   }
   /**
@@ -3790,7 +3858,7 @@ class GpuBufferView {
       // Add data into a data buffer.
       const lDataBuffer = new _this2.mTypedArrayConstructor(pData);
       // Skip new promise creation by returning original promise.
-      return _this2.mBuffer.write(lDataBuffer.buffer, lLocation.offset);
+      return _this2.mBuffer.write(lDataBuffer.buffer, _this2.mDynamicOffset + lLocation.offset);
     })();
   }
 }
@@ -3927,12 +3995,12 @@ class GpuBuffer extends gpu_resource_object_1.GpuResourceObject {
    *
    * @param pLayout - View layout.
    * @param pType - Type of view.
+   * @param pDynamicOffsetIndex - Index of dynamic offset.
    *
    * @returns view of buffer.
    */
-  view(pLayout, pType) {
-    // TODO: Add some offset information. So it offsets the view by layouts size. 
-    return new gpu_buffer_view_1.GpuBufferView(this, pLayout, pType);
+  view(pLayout, pType, pDynamicOffsetIndex = 0) {
+    return new gpu_buffer_view_1.GpuBufferView(this, pLayout, pType, pDynamicOffsetIndex);
   }
   /**
    * Write data raw without layout.
@@ -4889,7 +4957,7 @@ class ComputePassContext {
         // Set bind group buffer to cache current set bind groups.
         this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
         // Set bind group to gpu.
-        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
       }
     }
     // Use cached pipeline or use new.
@@ -5183,7 +5251,7 @@ class RenderPassContext {
         // Set bind group buffer to cache current set bind groups.
         this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
         // Set bind group to gpu.
-        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native);
+        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
       }
     }
     // Cache for bind group length of this instruction.
@@ -7759,17 +7827,6 @@ class VertexParameter extends gpu_object_1.GpuObject {
     // Set vertex parameter layout.
     this.mLayout = pVertexParameterLayout;
     this.mBuffer = new core_1.Dictionary();
-    // Create index layout.
-    const lIndexLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-      alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
-      primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
-      primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
-    });
-    // Create index buffer layout.
-    const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-      arraySize: pIndices.length,
-      innerType: lIndexLayout
-    });
     // Save index information.
     this.mIndices = pIndices;
     // Create index buffer.
@@ -7777,6 +7834,15 @@ class VertexParameter extends gpu_object_1.GpuObject {
     if (this.mLayout.indexable) {
       // Decide wich format to use.
       if (pIndices.length < Math.pow(2, 16)) {
+        // Create index buffer layout.
+        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+          arraySize: pIndices.length,
+          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
+            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint16,
+            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
+          })
+        });
         // Create index buffer.
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
@@ -7784,6 +7850,15 @@ class VertexParameter extends gpu_object_1.GpuObject {
         // Create view of buffer.
         this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
       } else {
+        // Create index buffer layout.
+        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+          arraySize: pIndices.length,
+          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
+            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
+            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
+          })
+        });
         // Create index buffer.
         const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
         lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
@@ -17283,7 +17358,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("513a027e3d30984f6faf")
+/******/ 		__webpack_require__.h = () => ("8a2174738936683e9aeb")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

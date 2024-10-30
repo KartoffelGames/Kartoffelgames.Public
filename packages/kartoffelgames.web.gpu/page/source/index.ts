@@ -231,11 +231,11 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
         pipeline: lWoodBoxPipeline,
         parameter: lMesh,
         instanceCount: lWidth * lHeight * lDepth,
-        data: lWoodBoxPipeline.layout.withData([
-            lWoodBoxTransformationGroup,
-            pWorldGroup,
-            lWoodBoxUserGroup
-        ])
+        data: lWoodBoxPipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lWoodBoxTransformationGroup);
+            pSetup.addGroup(pWorldGroup);
+            pSetup.addGroup(lWoodBoxUserGroup);
+        })
     };
 };
 
@@ -295,10 +295,10 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         pipeline: lLightBoxPipeline,
         parameter: lMesh,
         instanceCount: lPointLightsBuffer.length / 12,
-        data: lLightBoxPipeline.layout.withData([
-            lLightBoxTransformationGroup,
-            pWorldGroup
-        ])
+        data: lLightBoxPipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lLightBoxTransformationGroup);
+            pSetup.addGroup(pWorldGroup);
+        })
     };
 };
 
@@ -396,10 +396,10 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
         pipeline: lSkyBoxPipeline,
         parameter: lMesh,
         instanceCount: 1,
-        data: lSkyBoxPipeline.layout.withData([
-            lSkyBoxTextureGroup,
-            pWorldGroup
-        ])
+        data: lSkyBoxPipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lSkyBoxTextureGroup);
+            pSetup.addGroup(pWorldGroup);
+        })
     };
 };
 
@@ -510,11 +510,11 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
         pipeline: lPipeline,
         parameter: lMesh,
         instanceCount: 1,
-        data: lPipeline.layout.withData([
-            lTransformationGroup,
-            pWorldGroup,
-            lUserGroup
-        ])
+        data: lPipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lTransformationGroup);
+            pSetup.addGroup(pWorldGroup);
+            pSetup.addGroup(lUserGroup);
+        })
     };
 };
 
@@ -644,11 +644,11 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         pipeline: lParticlePipeline,
         parameter: lMesh,
         instanceCount: 0,
-        data: lParticlePipeline.layout.withData([
-            lParticleTextureGroup,
-            pWorldGroup,
-            lParticleInformationGroup
-        ]),
+        data: lParticlePipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lParticleTextureGroup);
+            pSetup.addGroup(pWorldGroup);
+            pSetup.addGroup(lParticleInformationGroup);
+        }),
         indirectBuffer: lIndirectionBuffer
     };
 
@@ -695,10 +695,10 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     // Create compute instruction
     const lComputeInstruction: ComputeInstruction = {
         pipeline: lComputePipeline,
-        data: lComputePipeline.layout.withData([
-            lParticleComputeInformationGroup,
-            pWorldGroup
-        ]),
+        data: lComputePipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lParticleComputeInformationGroup);
+            pSetup.addGroup(pWorldGroup);
+        }),
         dimensions: {
             x: Math.ceil(lMaxParticleCount / (lParticleComputeModule.workGroupSizeX * lParticleComputeModule.workGroupSizeY * lParticleComputeModule.workGroupSizeZ)),
             y: 1,

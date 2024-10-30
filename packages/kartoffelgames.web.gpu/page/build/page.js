@@ -1683,7 +1683,11 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pipeline: lWoodBoxPipeline,
     parameter: lMesh,
     instanceCount: lWidth * lHeight * lDepth,
-    data: lWoodBoxPipeline.layout.withData([lWoodBoxTransformationGroup, pWorldGroup, lWoodBoxUserGroup])
+    data: lWoodBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lWoodBoxTransformationGroup);
+      pSetup.addGroup(pWorldGroup);
+      pSetup.addGroup(lWoodBoxUserGroup);
+    })
   };
 };
 const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
@@ -1725,7 +1729,10 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pipeline: lLightBoxPipeline,
     parameter: lMesh,
     instanceCount: lPointLightsBuffer.length / 12,
-    data: lLightBoxPipeline.layout.withData([lLightBoxTransformationGroup, pWorldGroup])
+    data: lLightBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lLightBoxTransformationGroup);
+      pSetup.addGroup(pWorldGroup);
+    })
   };
 };
 const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
@@ -1797,7 +1804,10 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pipeline: lSkyBoxPipeline,
     parameter: lMesh,
     instanceCount: 1,
-    data: lSkyBoxPipeline.layout.withData([lSkyBoxTextureGroup, pWorldGroup])
+    data: lSkyBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lSkyBoxTextureGroup);
+      pSetup.addGroup(pWorldGroup);
+    })
   };
 };
 const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
@@ -1879,7 +1889,11 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pipeline: lPipeline,
     parameter: lMesh,
     instanceCount: 1,
-    data: lPipeline.layout.withData([lTransformationGroup, pWorldGroup, lUserGroup])
+    data: lPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lTransformationGroup);
+      pSetup.addGroup(pWorldGroup);
+      pSetup.addGroup(lUserGroup);
+    })
   };
 };
 const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
@@ -1976,7 +1990,11 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
     pipeline: lParticlePipeline,
     parameter: lMesh,
     instanceCount: 0,
-    data: lParticlePipeline.layout.withData([lParticleTextureGroup, pWorldGroup, lParticleInformationGroup]),
+    data: lParticlePipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lParticleTextureGroup);
+      pSetup.addGroup(pWorldGroup);
+      pSetup.addGroup(lParticleInformationGroup);
+    }),
     indirectBuffer: lIndirectionBuffer
   };
   /*
@@ -2012,7 +2030,10 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create compute instruction
   const lComputeInstruction = {
     pipeline: lComputePipeline,
-    data: lComputePipeline.layout.withData([lParticleComputeInformationGroup, pWorldGroup]),
+    data: lComputePipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lParticleComputeInformationGroup);
+      pSetup.addGroup(pWorldGroup);
+    }),
     dimensions: {
       x: Math.ceil(lMaxParticleCount / (lParticleComputeModule.workGroupSizeX * lParticleComputeModule.workGroupSizeY * lParticleComputeModule.workGroupSizeZ)),
       y: 1,
@@ -3289,6 +3310,87 @@ var BindGroupInvalidationType;
 
 /***/ }),
 
+/***/ "./source/binding/pipeline-data-group-setup.ts":
+/*!*****************************************************!*\
+  !*** ./source/binding/pipeline-data-group-setup.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineDataGroupSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
+class PipelineDataGroupSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Apply offset to bind group.
+   *
+   * @param pBindingName - Name of one of binding sof group.
+   * @param pOffsetIndex - Offset index.
+   */
+  withOffset(pBindingName, pOffsetIndex) {
+    this.sendData({
+      bindingName: pBindingName,
+      offsetIndex: pOffsetIndex
+    });
+  }
+}
+exports.PipelineDataGroupSetup = PipelineDataGroupSetup;
+
+/***/ }),
+
+/***/ "./source/binding/pipeline-data-setup.ts":
+/*!***********************************************!*\
+  !*** ./source/binding/pipeline-data-setup.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineDataSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_object_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
+const pipeline_data_group_setup_1 = __webpack_require__(/*! ./pipeline-data-group-setup */ "./source/binding/pipeline-data-group-setup.ts");
+class PipelineDataSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Add bind group to pipeline data.
+   *
+   * @param pBindGroup - Bind group.
+   *
+   * @returns group setup.
+   */
+  addGroup(pBindGroup) {
+    // Create binding group information.
+    const lBindGroup = {
+      bindGroup: pBindGroup,
+      offsets: new core_1.Dictionary()
+    };
+    this.setupData.groups.push(lBindGroup);
+    // Can be used to add "optional" binding offsets to bind group.
+    return new pipeline_data_group_setup_1.PipelineDataGroupSetup(this.setupReferences, pBindingOffsets => {
+      lBindGroup.offsets.set(pBindingOffsets.bindingName, pBindingOffsets.offsetIndex);
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.groups = new Array();
+  }
+}
+exports.PipelineDataSetup = PipelineDataSetup;
+
+/***/ }),
+
 /***/ "./source/binding/pipeline-data.ts":
 /*!*****************************************!*\
   !*** ./source/binding/pipeline-data.ts ***!
@@ -3303,13 +3405,16 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PipelineDataInvalidationType = exports.PipelineData = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
+const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
+const pipeline_data_setup_1 = __webpack_require__(/*! ./pipeline-data-setup */ "./source/binding/pipeline-data-setup.ts");
 class PipelineData extends gpu_object_1.GpuObject {
   /**
    * Orderes pipeline data.
    */
   get data() {
+    // Setup needed.
+    this.ensureSetup();
     return this.mOrderedBindData;
   }
   /**
@@ -3324,7 +3429,7 @@ class PipelineData extends gpu_object_1.GpuObject {
    * @param pPipelineLayout - Pipeline data.
    * @param pBindData - Every bind data of pipeline layout.
    */
-  constructor(pDevice, pPipelineLayout, pBindData) {
+  constructor(pDevice, pPipelineLayout) {
     super(pDevice);
     // Set pipeline layout.
     this.mLayout = pPipelineLayout;
@@ -3334,45 +3439,7 @@ class PipelineData extends gpu_object_1.GpuObject {
     this.mInvalidationListener = () => {
       this.invalidate(PipelineDataInvalidationType.Data);
     };
-    // All bind groups must be set.
-    if (pPipelineLayout.groups.length !== pBindData.length) {
-      // Generate a better error message.
-      for (const lGroupName of pPipelineLayout.groups) {
-        // Get and validate existence of set bind group.
-        const lBindDataGroup = pBindData.find(pBindGroup => {
-          return pBindGroup.layout.name === lGroupName;
-        });
-        if (!lBindDataGroup) {
-          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
-        }
-      }
-    }
-    // Validate and order bind data.
-    const lBindData = new Array();
-    for (const lBindGroup of pBindData) {
-      const lBindGroupName = lBindGroup.layout.name;
-      const lBindGroupIndex = pPipelineLayout.groupIndex(lBindGroupName);
-      // Only distinct bind group names.
-      if (lBindData[lBindGroupIndex]) {
-        throw new core_1.Exception(`Bind group "${lBindGroupName}" was added multiple times to render pass step.`, this);
-      }
-      // Validate same layout bind layout.
-      const lBindGroupLayout = pPipelineLayout.getGroupLayout(lBindGroupName);
-      if (lBindGroup.layout !== lBindGroupLayout) {
-        throw new core_1.Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
-      }
-      // Restrict double names.
-      if (this.mBindData.has(lBindGroupName)) {
-        throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
-      }
-      // Set name to bind group mapping.
-      this.mBindData.set(lBindGroupName, lBindGroup);
-      // Set bind group.
-      lBindData[lBindGroupIndex] = lBindGroup;
-      // Invalidate native data when bind group has changed.
-      lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
-    }
-    this.mOrderedBindData = lBindData;
+    this.mOrderedBindData = new Array();
   }
   /**
    * Deconstruct native object.
@@ -3397,6 +3464,71 @@ class PipelineData extends gpu_object_1.GpuObject {
     }
     return this.mBindData.get(pBindGroupName);
   }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns — this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Setup pipeline data.
+   *
+   * @param pReferences - Setup data references.
+   */
+  onSetup(pReferences) {
+    // All bind groups must be set.
+    if (this.mLayout.groups.length !== pReferences.groups.length) {
+      // Generate a better error message.
+      for (const lGroupName of this.mLayout.groups) {
+        // Get and validate existence of set bind group.
+        const lBindGroupSetupData = pReferences.groups.find(pBindGroup => {
+          return pBindGroup.bindGroup.layout.name === lGroupName;
+        });
+        if (!lBindGroupSetupData) {
+          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
+        }
+      }
+    }
+    // Validate and order bind data.
+    for (const lBindGroupSetupData of pReferences.groups) {
+      const lBindGroupName = lBindGroupSetupData.bindGroup.layout.name;
+      const lBindGroupIndex = this.mLayout.groupIndex(lBindGroupName);
+      const lBindGroup = lBindGroupSetupData.bindGroup;
+      // Only distinct bind group names.
+      if (this.mOrderedBindData[lBindGroupIndex]) {
+        throw new core_1.Exception(`Bind group "${lBindGroupName}" was added multiple times to render pass step.`, this);
+      }
+      // Validate same layout bind layout.
+      const lBindGroupLayout = this.mLayout.getGroupLayout(lBindGroupName);
+      if (lBindGroup.layout !== lBindGroupLayout) {
+        throw new core_1.Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
+      }
+      // Restrict double names.
+      if (this.mBindData.has(lBindGroupName)) {
+        throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
+      }
+      // Set name to bind group mapping.
+      this.mBindData.set(lBindGroupName, lBindGroup);
+      // Set bind group.
+      this.mOrderedBindData[lBindGroupIndex] = lBindGroup;
+      // Invalidate native data when bind group has changed.
+      lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
+    }
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns setup.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new pipeline_data_setup_1.PipelineDataSetup(pReferences);
+  }
 }
 exports.PipelineData = PipelineData;
 var PipelineDataInvalidationType;
@@ -3420,8 +3552,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PipelineLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const pipeline_data_1 = __webpack_require__(/*! ./pipeline-data */ "./source/binding/pipeline-data.ts");
 class PipelineLayout extends gpu_object_1.GpuObject {
   /**
@@ -3508,8 +3640,8 @@ class PipelineLayout extends gpu_object_1.GpuObject {
    *
    * @returns validated pipeline data.
    */
-  withData(pBindData) {
-    return new pipeline_data_1.PipelineData(this.device, this, pBindData);
+  withData(pSetupCallback) {
+    return new pipeline_data_1.PipelineData(this.device, this).setup(pSetupCallback);
   }
   /**
    * Generate native gpu pipeline data layout.
@@ -17358,7 +17490,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("8a2174738936683e9aeb")
+/******/ 		__webpack_require__.h = () => ("6a6e1801c9d4078ec362")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

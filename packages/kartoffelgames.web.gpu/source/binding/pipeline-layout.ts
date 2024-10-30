@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout } from './bind-group-layout';
-import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 import { PipelineData } from './pipeline-data';
-import { BindGroup } from './bind-group';
+import { PipelineDataSetup } from './pipeline-data-setup';
 
 export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpuObjectNative<GPUPipelineLayout> {
     private readonly mBindGroupNames: Dictionary<string, number>;
@@ -110,8 +110,8 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
      * 
      * @returns validated pipeline data. 
      */
-    public withData(pBindData: Array<BindGroup>): PipelineData {
-        return new PipelineData(this.device, this, pBindData);
+    public withData(pSetupCallback: (pSetup: PipelineDataSetup) => void): PipelineData {
+        return new PipelineData(this.device, this).setup(pSetupCallback);
     }
 
     /**

@@ -274,7 +274,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
      * 
      * @returns setup.
      */
-    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<never>): BindGroupLayoutSetup {
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<BindGroupLayoutSetupData>): BindGroupLayoutSetup {
         return new BindGroupLayoutSetup(pReferences);
     }
 }

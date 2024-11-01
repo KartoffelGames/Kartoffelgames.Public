@@ -147,7 +147,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     lLayoutEntry.buffer = {
                         type: lBufferBindingType,
                         minBindingSize: 0,
-                        hasDynamicOffset: lEntry.dynamicOffsets > 1
+                        hasDynamicOffset: lEntry.hasDynamicOffset
                     } satisfies Required<GPUBufferBindingLayout>;
 
                     break;
@@ -241,12 +241,12 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             }
 
             // Only buffers can have a dynamic offset.
-            if (lBinding.dynamicOffsetCount > 1 && !(lBinding.layout instanceof BaseBufferMemoryLayout)) {
+            if (lBinding.hasDynamicOffset && !(lBinding.layout instanceof BaseBufferMemoryLayout)) {
                 throw new Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
             }
 
             // Buffers with dynamic offsets must be fixed in size.
-            if (lBinding.dynamicOffsetCount > 1 && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
+            if (lBinding.hasDynamicOffset && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
                 throw new Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
             }
 
@@ -259,11 +259,11 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 layout: lBinding.layout,
                 visibility: lBinding.visibility,
                 storageType: lBinding.storageType,
-                dynamicOffsets: lBinding.dynamicOffsetCount
+                hasDynamicOffset: lBinding.hasDynamicOffset
             });
 
             // Set dynamic offset flag when any is active.
-            if (lBinding.dynamicOffsetCount > 1) {
+            if (lBinding.hasDynamicOffset) {
                 this.mHasDynamicOffset = true;
             }
 
@@ -299,5 +299,5 @@ export type BindLayout = {
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
     storageType: StorageBindingType;
-    dynamicOffsets: number;
+    hasDynamicOffset: boolean;
 };

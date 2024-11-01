@@ -9,6 +9,7 @@ import { BindLayout } from './bind-group-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { StorageBindingType } from '../constant/storage-binding-type.enum';
 import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
+import { GpuBuffer } from '../buffer/gpu-buffer';
 
 export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, PipelineDataSetup> implements IGpuObjectSetup<PipelineDataSetup> {
     private readonly mBindData: Dictionary<string, PipelineDataGroup>;
@@ -153,12 +154,6 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                         throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} requires a offset."`, this);
                     }
 
-                    // Read and validate assigned offset index of binding.
-                    const lBindingDynamicOffsetIndex: number = lBindGroupSetupData.offsets.get(lBindingName)!;
-                    if (lBindingDynamicOffsetIndex >= lBindingLayout.dynamicOffsets) {
-                        throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
-                    }
-
                     // Read correct alignment limitations for storage type.
                     const lOffsetAlignment: number = (() => {
                         if (lBindingLayout.storageType === StorageBindingType.None) {
@@ -168,12 +163,21 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                         }
                     })();
 
+                    // Read and validate assigned offset index of binding.
+                    const lBindingDynamicOffsetIndex: number = lBindGroupSetupData.offsets.get(lBindingName)!;
+
                     // Get offset byte count.
                     const lBufferMemoryLayout: BaseBufferMemoryLayout = lBindingLayout.layout as BaseBufferMemoryLayout;
-                    const lDynamicOffsetByteCount: number = (Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment) * lBindingDynamicOffsetIndex;
+                    const lSingleLayoutLength: number = Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment;
+
+                    // Read buffer size and validate if it meets offset bound.
+                    const lBufferSize: number = lBindGroup.data(lBindingName).getRaw<GpuBuffer>().size;
+                    if (Math.floor(lBufferSize / lSingleLayoutLength) <= lBindingDynamicOffsetIndex) {
+                        throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
+                    }
 
                     // Save offset byte count in order.
-                    lPipelineDataGroup.offsets.push(lDynamicOffsetByteCount);
+                    lPipelineDataGroup.offsets.push(lSingleLayoutLength * lBindingDynamicOffsetIndex);
                 }
 
                 // Rebuild offset "id".

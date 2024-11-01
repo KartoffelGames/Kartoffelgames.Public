@@ -26,7 +26,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
             visibility: pVisibility,
             layout: null,
             storageType: pStorageBinding ?? StorageBindingType.None,
-            dynamicOffsetCount: 1,
+            hasDynamicOffset: false,
         };
 
         // Set layout.
@@ -38,7 +38,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
         // Create layout memory layout.
         return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, (pMemoryLayout: BindGroupBindingMemoryLayoutSetuData) => {
             lBind.layout = pMemoryLayout.layout;
-            lBind.dynamicOffsetCount = pMemoryLayout.dynamicOffsetCount;
+            lBind.hasDynamicOffset = pMemoryLayout.hasDynamicOffset;
         });
     }
 
@@ -58,7 +58,7 @@ type BindLayoutSetupData = {
     layout: BaseMemoryLayout | null;
     visibility: ComputeStage;
     storageType: StorageBindingType;
-    dynamicOffsetCount: number;
+    hasDynamicOffset: boolean;
 };
 
 export type BindGroupLayoutSetupData = {

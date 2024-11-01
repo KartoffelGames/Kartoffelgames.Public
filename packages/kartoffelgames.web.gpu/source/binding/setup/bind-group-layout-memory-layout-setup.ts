@@ -35,11 +35,11 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
      * 
      * @returns buffer setup.
      */
-    public asBuffer(pDynamicOffsets: number = 1): BindGroupLayoutBufferMemoryLayoutSetup {
+    public asBuffer(pHasDynamicOffset: boolean = false): BindGroupLayoutBufferMemoryLayoutSetup {
         return new BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, (pMemoryLayout: BaseBufferMemoryLayout) => {
             this.sendData({
                 layout: pMemoryLayout,
-                dynamicOffsetCount: pDynamicOffsets
+                hasDynamicOffset: pHasDynamicOffset
             });
         });
     }
@@ -55,7 +55,7 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
         // Send created data.
         this.sendData({
             layout: lLayout,
-            dynamicOffsetCount: 1
+            hasDynamicOffset: false
         });
     }
 
@@ -76,13 +76,13 @@ export class BindGroupLayoutMemoryLayoutSetup extends GpuObjectChildSetup<BindGr
         // Send created data.
         this.sendData({
             layout: lLayout,
-            dynamicOffsetCount: 1
+            hasDynamicOffset: false
         });
     }
 }
 
 export type BindGroupBindingMemoryLayoutSetuData = {
     layout: BaseMemoryLayout;
-    dynamicOffsetCount: number;
+    hasDynamicOffset: boolean;
 };
 type MemoryLayoutCallback = (pMemoryLayout: BindGroupBindingMemoryLayoutSetuData) => void;

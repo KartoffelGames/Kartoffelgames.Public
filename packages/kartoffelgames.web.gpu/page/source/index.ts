@@ -257,10 +257,10 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer(3).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(true).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
 
             pBindGroupSetup.binding(1, 'color', ComputeStage.Vertex)
-                .asBuffer(2).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                .asBuffer(true).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
         // World bind group.
@@ -274,7 +274,7 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
     const lColorBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    lColorBoxTransformationGroup.data('transformationMatrix').createBuffer();
+    lColorBoxTransformationGroup.data('transformationMatrix').createBuffer(3);
     lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new Transform().setScale(1, 1, 1).setTranslation(2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
     lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new Transform().setScale(1, 1, 1).setTranslation(0, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
     lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new Transform().setScale(1, 1, 1).setTranslation(-2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);

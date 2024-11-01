@@ -162,7 +162,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
                 lGroupEntry.resource = { buffer: lBindData.native };
 
                 // Fix buffer size when it has dynamic offsets.
-                if (lBindLayout.dynamicOffsets > 1) {
+                if (lBindLayout.hasDynamicOffset) {
                     lGroupEntry.resource.size = (<BaseBufferMemoryLayout>lBindLayout.layout).fixedSize;
                 }
 

@@ -2,8 +2,10 @@ import { Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuBufferView, GpuBufferViewFormat } from '../buffer/gpu-buffer-view';
 import { BufferItemFormat } from '../constant/buffer-item-format.enum';
+import { StorageBindingType } from '../constant/storage-binding-type.enum';
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
 import { GpuResourceObject } from '../gpu/object/gpu-resource-object';
@@ -17,8 +19,6 @@ import { GpuTexture } from '../texture/gpu-texture';
 import { GpuTextureView } from '../texture/gpu-texture-view';
 import { TextureSampler } from '../texture/texture-sampler';
 import { BindLayout } from './bind-group-layout';
-import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
-import { StorageBindingType } from '../constant/storage-binding-type.enum';
 
 export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataCallback> {
     private readonly mBindLayout: Readonly<BindLayout>;
@@ -63,7 +63,9 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
     /**
      * Create na new buffer.
      * 
-     * @param pData - Buffer data without right alignment.
+     * @param pDataOrVariableLength - Buffer data without applied alignment,
+     *                                repeat count of variable parts of a layout or
+     *                                Offset count when binding has dynamic offsets. 
      * 
      * @returns created buffer.
      */
@@ -119,7 +121,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
         // Calculate buffer size with correct alignment.
         let lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-        if (this.mBindLayout.dynamicOffsets > 1) {
+        if (this.mBindLayout.hasDynamicOffset) {
             // Read correct alignment limitations for storage type.
             const lOffsetAlignment: number = (() => {
                 if (this.mBindLayout.storageType === StorageBindingType.None) {
@@ -131,7 +133,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
             // Apply offset alignment to byte size.
             lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
-            lByteSize *= this.mBindLayout.dynamicOffsets;
+            lByteSize *= Math.floor(pData.byteLength / lByteSize);
         }
 
         // Validate size.
@@ -280,8 +282,9 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
         // Calculate buffer size with correct alignment.
         let lDynamicOffsetAlignment: number = -1;
+        let lDynamicOffsetCount: number = 1;
         let lByteSize: number = (lVariableRepetitionCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-        if (this.mBindLayout.dynamicOffsets > 1) {
+        if (this.mBindLayout.hasDynamicOffset) {
             // Read correct alignment limitations for storage type.
             lDynamicOffsetAlignment = (() => {
                 if (this.mBindLayout.storageType === StorageBindingType.None) {
@@ -291,9 +294,12 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
                 }
             })();
 
+            // Calculate dynamic offset count from data length.
+            lDynamicOffsetCount = (pData.length / lUnwrapedLayout.fixedItemCount);
+
             // Apply offset alignment to byte size.
             lByteSize = Math.ceil(lByteSize / lDynamicOffsetAlignment) * lDynamicOffsetAlignment;
-            lByteSize *= this.mBindLayout.dynamicOffsets;
+            lByteSize *= lDynamicOffsetCount;
         }
 
         // Create buffer with correct length.
@@ -335,7 +341,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         };
 
         // Repeat layout for each dynamic offset.
-        for (let lOffsetIndex: number = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
+        for (let lOffsetIndex: number = 0; lOffsetIndex < lDynamicOffsetCount; lOffsetIndex++) {
             lWriteLayout(lUnwrapedLayout, lDynamicOffsetAlignment);
         }
 
@@ -375,7 +381,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
         // Calculate buffer size with correct alignment.
         let lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-        if (this.mBindLayout.dynamicOffsets > 1) {
+        if (this.mBindLayout.hasDynamicOffset) {
             // Read correct alignment limitations for storage type.
             const lOffsetAlignment: number = (() => {
                 if (this.mBindLayout.storageType === StorageBindingType.None) {
@@ -387,7 +393,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
             // Apply offset alignment to byte size.
             lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
-            lByteSize *= this.mBindLayout.dynamicOffsets;
+            lByteSize *= pVariableSizeCount ?? 1; 
         }
 
         // Create buffer.

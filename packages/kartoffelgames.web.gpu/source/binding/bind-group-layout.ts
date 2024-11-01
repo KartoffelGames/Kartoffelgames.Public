@@ -22,6 +22,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
     private mHasDynamicOffset: boolean;
     private readonly mName: string;
     private readonly mOrderedBindingNames: Array<string>;
+    private readonly mResourceCounter: BindGroupLayoutResourceCounter;
 
     /**
      * Bindgroup has a dynamic offset binding.
@@ -55,6 +56,12 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
     }
 
     /**
+     * Resource counter.
+     */
+    public get resourceCounter(): Readonly<BindGroupLayoutResourceCounter> {
+        return this.mResourceCounter;
+    }
+    /**
      * Constructor.
      * 
      * @param pDevice - Gpu Device reference.
@@ -66,6 +73,15 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         // Set binding group name.
         this.mName = pName;
         this.mHasDynamicOffset = false;
+        this.mResourceCounter = {
+            storageDynamicOffset: 0,
+            uniformDynamicOffset: 0,
+            sampler: 0,
+            sampledTextures: 0,
+            storageTextures: 0,
+            storageBuffers: 0,
+            uniformBuffers: 0
+        };
 
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
@@ -265,6 +281,13 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             // Set dynamic offset flag when any is active.
             if (lBinding.hasDynamicOffset) {
                 this.mHasDynamicOffset = true;
+
+                // Count dynamic resources
+                if (lBinding.storageType === StorageBindingType.None) {
+                    this.mResourceCounter.uniformDynamicOffset++;
+                } else {
+                    this.mResourceCounter.storageDynamicOffset++;
+                }
             }
 
             // Validate dublicate indices.
@@ -278,6 +301,32 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
 
             // Add binding ordered by index.
             this.mOrderedBindingNames[lBinding.index] = lBinding.name;
+
+            // Count resources.
+            switch (true) {
+                case lBinding.layout instanceof SamplerMemoryLayout: {
+                    this.mResourceCounter.sampler++;
+                    break;
+                }
+                case lBinding.layout instanceof TextureViewMemoryLayout: {
+                    if (lBinding.storageType === StorageBindingType.None) {
+                        this.mResourceCounter.sampledTextures++;
+                    } else {
+                        this.mResourceCounter.storageTextures++;
+                    }
+
+                    break;
+                }
+                case lBinding.layout instanceof BaseBufferMemoryLayout: {
+                    if (lBinding.storageType === StorageBindingType.None) {
+                        this.mResourceCounter.uniformBuffers++;
+                    } else {
+                        this.mResourceCounter.storageBuffers++;
+                    }
+
+                    break;
+                }
+            }
         }
     }
 
@@ -300,4 +349,19 @@ export type BindLayout = {
     visibility: ComputeStage;
     storageType: StorageBindingType;
     hasDynamicOffset: boolean;
+};
+
+type BindGroupLayoutResourceCounter = {
+    // Dynamic resources.
+    storageDynamicOffset: number;
+    uniformDynamicOffset: number;
+
+    // Texture resource.
+    sampler: number;
+    sampledTextures: number;
+    storageTextures: number;
+
+    // Buffers.
+    storageBuffers: number;
+    uniformBuffers: number;
 };

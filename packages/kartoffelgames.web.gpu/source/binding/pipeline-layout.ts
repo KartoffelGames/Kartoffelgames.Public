@@ -38,12 +38,16 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
         this.mBindGroupNames = new Dictionary<string, number>();
         this.mBindGroups = new Dictionary<number, BindGroupLayout>();
 
-        // TODO: Check gpu restriction.
-        // maxSampledTexturesPerShaderStage;
-        // maxSamplersPerShaderStage;
-        // maxStorageBuffersPerShaderStage;
-        // maxStorageTexturesPerShaderStage;
-        // maxUniformBuffersPerShaderStage;
+        // Pipeline global resource counter.
+        const lMaxCounter = {
+            dynamicStorageBuffers: 0,
+            dynamicUniformBuffers: 0,
+            sampler: 0,
+            sampledTextures: 0,
+            storageTextures: 0,
+            uniformBuffers: 0,
+            storageBuffers: 0
+        };
 
         // Set initial work groups.
         const lMaxBindGroupCount: number = this.device.capabilities.getLimit(GpuLimit.MaxBindGroups);
@@ -67,6 +71,50 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
 
             // Set bind groups to bind group.
             this.mBindGroups.set(lGroupIndex, lGroup);
+
+            // Count counters.
+            lMaxCounter.dynamicStorageBuffers += lGroup.resourceCounter.storageDynamicOffset;
+            lMaxCounter.dynamicUniformBuffers += lGroup.resourceCounter.uniformDynamicOffset;
+            lMaxCounter.sampler += lGroup.resourceCounter.sampler;
+            lMaxCounter.sampledTextures += lGroup.resourceCounter.sampledTextures;
+            lMaxCounter.storageTextures += lGroup.resourceCounter.storageTextures;
+            lMaxCounter.uniformBuffers += lGroup.resourceCounter.uniformBuffers;
+            lMaxCounter.storageBuffers += lGroup.resourceCounter.storageBuffers;
+        }
+
+        // Max dynamic storage buffers.
+        if (lMaxCounter.dynamicStorageBuffers > this.device.capabilities.getLimit(GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)) {
+            throw new Exception(`Max dynamic storage buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicStorageBuffers}"`, this);
+        }
+
+        // Max dynamic unform buffers.
+        if (lMaxCounter.dynamicUniformBuffers > this.device.capabilities.getLimit(GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)) {
+            throw new Exception(`Max dynamic uniform buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicUniformBuffers}"`, this);
+        }
+
+        // Max sampler. Ignore shader stage limitation. Just apply it to the complete pipeline.
+        if (lMaxCounter.sampler > this.device.capabilities.getLimit(GpuLimit.MaxSamplersPerShaderStage)) {
+            throw new Exception(`Max sampler reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxSamplersPerShaderStage)}" has "${lMaxCounter.sampler}"`, this);
+        }
+
+        // Max sampled textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+        if (lMaxCounter.sampledTextures > this.device.capabilities.getLimit(GpuLimit.MaxSampledTexturesPerShaderStage)) {
+            throw new Exception(`Max sampled textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxSampledTexturesPerShaderStage)}" has "${lMaxCounter.sampledTextures}"`, this);
+        }
+
+        // Max storage textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+        if (lMaxCounter.storageTextures > this.device.capabilities.getLimit(GpuLimit.MaxStorageTexturesPerShaderStage)) {
+            throw new Exception(`Max storage textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxStorageTexturesPerShaderStage)}" has "${lMaxCounter.storageTextures}"`, this);
+        }
+
+        // Max storage buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+        if (lMaxCounter.storageBuffers > this.device.capabilities.getLimit(GpuLimit.MaxStorageBuffersPerShaderStage)) {
+            throw new Exception(`Max storage buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxStorageBuffersPerShaderStage)}" has "${lMaxCounter.storageBuffers}"`, this);
+        }
+
+        // Max uniform buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+        if (lMaxCounter.uniformBuffers > this.device.capabilities.getLimit(GpuLimit.MaxUniformBuffersPerShaderStage)) {
+            throw new Exception(`Max uniform buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(GpuLimit.MaxUniformBuffersPerShaderStage)}" has "${lMaxCounter.uniformBuffers}"`, this);
         }
     }
 

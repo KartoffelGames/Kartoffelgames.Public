@@ -3032,6 +3032,12 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     return this.mOrderedBindingNames;
   }
   /**
+   * Resource counter.
+   */
+  get resourceCounter() {
+    return this.mResourceCounter;
+  }
+  /**
    * Constructor.
    *
    * @param pDevice - Gpu Device reference.
@@ -3042,6 +3048,15 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     // Set binding group name.
     this.mName = pName;
     this.mHasDynamicOffset = false;
+    this.mResourceCounter = {
+      storageDynamicOffset: 0,
+      uniformDynamicOffset: 0,
+      sampler: 0,
+      sampledTextures: 0,
+      storageTextures: 0,
+      storageBuffers: 0,
+      uniformBuffers: 0
+    };
     // Init bindings.
     this.mBindings = new core_1.Dictionary();
     this.mOrderedBindingNames = new Array();
@@ -3221,6 +3236,12 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       // Set dynamic offset flag when any is active.
       if (lBinding.hasDynamicOffset) {
         this.mHasDynamicOffset = true;
+        // Count dynamic resources
+        if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          this.mResourceCounter.uniformDynamicOffset++;
+        } else {
+          this.mResourceCounter.storageDynamicOffset++;
+        }
       }
       // Validate dublicate indices.
       if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
@@ -3231,6 +3252,32 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
       lBindingName.add(lBinding.name);
       // Add binding ordered by index.
       this.mOrderedBindingNames[lBinding.index] = lBinding.name;
+      // Count resources.
+      switch (true) {
+        case lBinding.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout:
+          {
+            this.mResourceCounter.sampler++;
+            break;
+          }
+        case lBinding.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
+          {
+            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              this.mResourceCounter.sampledTextures++;
+            } else {
+              this.mResourceCounter.storageTextures++;
+            }
+            break;
+          }
+        case lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout:
+          {
+            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              this.mResourceCounter.uniformBuffers++;
+            } else {
+              this.mResourceCounter.storageBuffers++;
+            }
+            break;
+          }
+      }
     }
   }
   /**
@@ -3653,7 +3700,7 @@ class PipelineData extends gpu_object_1.GpuObject {
         for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
           // Skip any binding not having a dynamic offset.
           const lBindingLayout = lBindGroupLayout.getBind(lBindingName);
-          if (!lBindGroupLayout.hasDynamicOffset) {
+          if (!lBindingLayout.hasDynamicOffset) {
             continue;
           }
           // Dynamic bindings need a offset.
@@ -3752,12 +3799,15 @@ class PipelineLayout extends gpu_object_1.GpuObject {
     // Init storages.
     this.mBindGroupNames = new core_1.Dictionary();
     this.mBindGroups = new core_1.Dictionary();
-    // TODO: Check gpu restriction.
-    // maxSampledTexturesPerShaderStage;
-    // maxSamplersPerShaderStage;
-    // maxStorageBuffersPerShaderStage;
-    // maxStorageTexturesPerShaderStage;
-    // maxUniformBuffersPerShaderStage;
+    const lMaxCounter = {
+      dynamicStorageBuffers: 0,
+      dynamicUniformBuffers: 0,
+      sampler: 0,
+      sampledTextures: 0,
+      storageTextures: 0,
+      uniformBuffers: 0,
+      storageBuffers: 0
+    };
     // Set initial work groups.
     const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindGroups);
     for (const [lGroupIndex, lGroup] of pInitialGroups) {
@@ -3776,6 +3826,42 @@ class PipelineLayout extends gpu_object_1.GpuObject {
       this.mBindGroupNames.set(lGroup.name, lGroupIndex);
       // Set bind groups to bind group.
       this.mBindGroups.set(lGroupIndex, lGroup);
+      // Count counters.
+      lMaxCounter.dynamicStorageBuffers += lGroup.resourceCounter.storageDynamicOffset;
+      lMaxCounter.dynamicUniformBuffers += lGroup.resourceCounter.uniformDynamicOffset;
+      lMaxCounter.sampler += lGroup.resourceCounter.sampler;
+      lMaxCounter.sampledTextures += lGroup.resourceCounter.sampledTextures;
+      lMaxCounter.storageTextures += lGroup.resourceCounter.storageTextures;
+      lMaxCounter.uniformBuffers += lGroup.resourceCounter.uniformBuffers;
+      lMaxCounter.storageBuffers += lGroup.resourceCounter.storageBuffers;
+    }
+    // Max dynamic storage buffers.
+    if (lMaxCounter.dynamicStorageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)) {
+      throw new core_1.Exception(`Max dynamic storage buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicStorageBuffers}"`, this);
+    }
+    // Max dynamic unform buffers.
+    if (lMaxCounter.dynamicUniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)) {
+      throw new core_1.Exception(`Max dynamic uniform buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicUniformBuffers}"`, this);
+    }
+    // Max sampler. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.sampler > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)) {
+      throw new core_1.Exception(`Max sampler reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)}" has "${lMaxCounter.sampler}"`, this);
+    }
+    // Max sampled textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.sampledTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)) {
+      throw new core_1.Exception(`Max sampled textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)}" has "${lMaxCounter.sampledTextures}"`, this);
+    }
+    // Max storage textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.storageTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)) {
+      throw new core_1.Exception(`Max storage textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)}" has "${lMaxCounter.storageTextures}"`, this);
+    }
+    // Max storage buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.storageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)) {
+      throw new core_1.Exception(`Max storage buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)}" has "${lMaxCounter.storageBuffers}"`, this);
+    }
+    // Max uniform buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.uniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)) {
+      throw new core_1.Exception(`Max uniform buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)}" has "${lMaxCounter.uniformBuffers}"`, this);
     }
   }
   /**
@@ -17699,7 +17785,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("950cc793839d96f524b8")
+/******/ 		__webpack_require__.h = () => ("a7991e3175c9209f8caa")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

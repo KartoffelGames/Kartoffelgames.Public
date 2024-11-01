@@ -151,10 +151,12 @@ export class Transform {
      * @param pY - Movement on worlds Y axis.
      * @param pZ - Movement on worlds Z axis.
      */
-    public addTranslation(pX: number, pY: number, pZ: number): void {
+    public addTranslation(pX: number, pY: number, pZ: number): this {
         this.mTranslation.data[0][3] += pX;
         this.mTranslation.data[1][3] += pY;
         this.mTranslation.data[2][3] += pZ;
+
+        return this;
     }
 
     /**
@@ -217,10 +219,12 @@ export class Transform {
      * @param pHeight - Height multiplier.
      * @param pDepth - Depth multiplier.
      */
-    public setScale(pWidth: number | null, pHeight: number | null, pDepth: number | null): void {
+    public setScale(pWidth: number | null, pHeight: number | null, pDepth: number | null): this {
         this.mScale.data[0][0] = pWidth ?? this.scaleWidth;
         this.mScale.data[1][1] = pHeight ?? this.scaleHeight;
         this.mScale.data[2][2] = pDepth ?? this.scaleDepth;
+
+        return this;
     }
 
     /**
@@ -229,10 +233,12 @@ export class Transform {
      * @param pY - Movement on worlds Y axis.
      * @param pZ - Movement on worlds Z axis.
      */
-    public setTranslation(pX: number | null, pY: number | null, pZ: number | null): void {
+    public setTranslation(pX: number | null, pY: number | null, pZ: number | null): this {
         this.mTranslation.data[0][3] = pX ?? this.translationX;
         this.mTranslation.data[1][3] = pY ?? this.translationY;
         this.mTranslation.data[2][3] = pZ ?? this.translationZ;
+
+        return this;
     }
 
     /**

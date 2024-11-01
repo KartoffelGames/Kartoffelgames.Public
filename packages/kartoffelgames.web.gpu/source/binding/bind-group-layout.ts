@@ -263,7 +263,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             });
 
             // Set dynamic offset flag when any is active.
-            if (lBinding.dynamicOffsetCount > 0) {
+            if (lBinding.dynamicOffsetCount > 1) {
                 this.mHasDynamicOffset = true;
             }
 

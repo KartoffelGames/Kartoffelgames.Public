@@ -7,12 +7,16 @@ export class PipelineDataGroupSetup extends GpuObjectChildSetup<PipelineDataSetu
      * 
      * @param pBindingName - Name of one of binding sof group. 
      * @param pOffsetIndex - Offset index.
+     * 
+     * @returns this.
      */
-    public withOffset(pBindingName: string, pOffsetIndex: number): void {
+    public withOffset(pBindingName: string, pOffsetIndex: number): this {
         this.sendData({
             bindingName: pBindingName,
             offsetIndex: pOffsetIndex
         });
+
+        return this;
     }
 }
 

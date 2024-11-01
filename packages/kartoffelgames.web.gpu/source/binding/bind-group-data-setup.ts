@@ -45,7 +45,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * 
      * @returns view of buffer from bind group layout.
      */
-    public asBufferView<T extends TypedArray>(pValueType: GpuBufferViewFormat<T>): GpuBufferView<T> {
+    public asBufferView<T extends TypedArray>(pValueType: GpuBufferViewFormat<T>, pDynamicOffsetIndex?: number): GpuBufferView<T> {
         const lData: GpuResourceObject = this.getRaw();
         if (!(lData instanceof GpuBuffer)) {
             throw new Exception('Bind data can not be converted into a buffer view.', this);
@@ -55,7 +55,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         const lBufferLayout: BaseBufferMemoryLayout = this.mBindLayout.layout as BaseBufferMemoryLayout;
 
         // Create view.
-        return new GpuBufferView<T>(lData, lBufferLayout, pValueType);
+        return lData.view(lBufferLayout, pValueType, pDynamicOffsetIndex);
     }
 
     /**
@@ -65,114 +65,16 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * 
      * @returns created buffer.
      */
-    public createBuffer(pData: Array<number>): GpuBuffer {
-        // Layout must be a buffer memory layout.
-        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
-            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
+    public createBuffer(pData: Array<number>): GpuBuffer;
+    public createBuffer(pVariableSizeCount?: number): GpuBuffer;
+    public createBuffer(pDataOrVariableLength?: Array<number> | number): GpuBuffer {
+        // Create empty when no data array is set or fill it with the data array.
+        let lBuffer: GpuBuffer;
+        if (Array.isArray(pDataOrVariableLength)) {
+            lBuffer = this.createBufferFromArray(pDataOrVariableLength);
+        } else {
+            lBuffer = this.createEmptyBuffer(pDataOrVariableLength);
         }
-
-        // Unwrap layout.
-        const lUnwrapedLayout: UnwrappedBufferLayout = this.unwrapLayouts(this.mBindLayout.layout);
-
-        // Validate data length that should be written.
-        if (lUnwrapedLayout.fixedItemCount > pData.length) {
-            throw new Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
-        }
-
-        // Get variable data repetitions.
-        let lVariableRepetitionCount: number = 0;
-        if (lUnwrapedLayout.variableItemCount > 0) {
-            lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
-        }
-
-        // Variable count should be an integer.
-        if(lVariableRepetitionCount % 1 !== 0){
-            throw new Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
-        }
-
-        // Create buffer with correct length.
-        const lBufferData: ArrayBuffer = new ArrayBuffer((this.mBindLayout.layout.variableSize * lVariableRepetitionCount) + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets));
-        const lBufferDataView: DataView = new DataView(lBufferData);
-
-        // Write data.
-        let lDataIndex: number = 0;
-        let lByteOffset: number = 0;
-        const lWriteLayout = (pUnwrappedLayout: UnwrappedBufferLayout,) => {
-            // Apply layout alignment to offset.
-            lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
-
-            // buffer layout is a layered format.
-            if (Array.isArray(pUnwrappedLayout.format)) {
-                // Set repetition count to variable count when layout repetition count is uncapped.
-                const lRepetitionCount: number = (pUnwrappedLayout.count !== -1) ? pUnwrappedLayout.count : lVariableRepetitionCount;
-                for (let lLayoutRepetionIndex: number = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
-                    // Add each inner format.
-                    for (const lInnerFormat of pUnwrappedLayout.format) {
-                        lWriteLayout(lInnerFormat);
-                    }
-                }
-
-                return;
-            }
-
-            // write each single number.
-            for (let lItemIndex: number = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
-                // Add and iterate data.
-                this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
-                lDataIndex++;
-
-                // Increase offset by format byte count.
-                lByteOffset += pUnwrappedLayout.format.itemByteCount;
-            }
-        };
-
-        // Repeat layout for each dynamic offset.
-        for (let lOffsetIndex: number = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
-            lWriteLayout(lUnwrapedLayout);
-        }
-
-        // Create buffer with initial data.
-        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
-
-        // Send created data.
-        this.sendData(lBuffer);
-
-        return lBuffer;
-    }
-
-    /**
-     * Create a empty buffer.
-     * 
-     * @param pVariableSizeCount - Variable item count.
-     * 
-     * @returns - Created buffer. 
-     */
-    public createBufferEmpty(pVariableSizeCount: number | null = null): GpuBuffer {
-        // Layout must be a buffer memory layout.
-        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
-            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
-        }
-
-        // Calculate variable item count from initial buffer data.  
-        const lVariableItemCount: number = (() => {
-            // Use set variable count.
-            if (pVariableSizeCount !== null) {
-                return pVariableSizeCount;
-            }
-
-            // No need to calculate was it is allways zero.
-            if (this.mBindLayout.layout.variableSize === 0) {
-                return 0;
-            }
-
-            throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
-        })();
-
-        // Calculate buffer size.
-        const lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
-
-        // Create buffer.
-        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteSize);
 
         // Send created data.
         this.sendData(lBuffer);
@@ -326,6 +228,122 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
 
         // Return same data.
         return pData;
+    }
+
+    /**
+     * Create na new buffer.
+     * 
+     * @param pData - Buffer data without right alignment.
+     * 
+     * @returns created buffer.
+     */
+    private createBufferFromArray(pData: Array<number>): GpuBuffer {
+        // Layout must be a buffer memory layout.
+        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
+            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
+        }
+
+        // Unwrap layout.
+        const lUnwrapedLayout: UnwrappedBufferLayout = this.unwrapLayouts(this.mBindLayout.layout);
+
+        // Validate data length that should be written.
+        if (lUnwrapedLayout.fixedItemCount > pData.length) {
+            throw new Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
+        }
+
+        // Get variable data repetitions.
+        let lVariableRepetitionCount: number = 0;
+        if (lUnwrapedLayout.variableItemCount > 0) {
+            lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
+        }
+
+        // Variable count should be an integer.
+        if (lVariableRepetitionCount % 1 !== 0) {
+            throw new Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
+        }
+
+        // Create buffer with correct length.
+        const lBufferData: ArrayBuffer = new ArrayBuffer((this.mBindLayout.layout.variableSize * lVariableRepetitionCount) + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets));
+        const lBufferDataView: DataView = new DataView(lBufferData);
+
+        // Write data.
+        let lDataIndex: number = 0;
+        let lByteOffset: number = 0;
+        const lWriteLayout = (pUnwrappedLayout: UnwrappedBufferLayout,) => {
+            // Apply layout alignment to offset.
+            lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
+
+            // buffer layout is a layered format.
+            if (Array.isArray(pUnwrappedLayout.format)) {
+                // Set repetition count to variable count when layout repetition count is uncapped.
+                const lRepetitionCount: number = (pUnwrappedLayout.count !== -1) ? pUnwrappedLayout.count : lVariableRepetitionCount;
+                for (let lLayoutRepetionIndex: number = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
+                    // Add each inner format.
+                    for (const lInnerFormat of pUnwrappedLayout.format) {
+                        lWriteLayout(lInnerFormat);
+                    }
+                }
+
+                return;
+            }
+
+            // write each single number.
+            for (let lItemIndex: number = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
+                // Add and iterate data.
+                this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
+                lDataIndex++;
+
+                // Increase offset by format byte count.
+                lByteOffset += pUnwrappedLayout.format.itemByteCount;
+            }
+        };
+
+        // Repeat layout for each dynamic offset.
+        for (let lOffsetIndex: number = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
+            lWriteLayout(lUnwrapedLayout);
+        }
+
+        // Create buffer with initial data.
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
+
+        return lBuffer;
+    }
+
+    /**
+     * Create a empty buffer.
+     * 
+     * @param pVariableSizeCount - Variable item count.
+     * 
+     * @returns - Created buffer. 
+     */
+    private createEmptyBuffer(pVariableSizeCount: number | null = null): GpuBuffer {
+        // Layout must be a buffer memory layout.
+        if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
+            throw new Exception(`Bind data layout is not suitable for buffers.`, this);
+        }
+
+        // Calculate variable item count from initial buffer data.  
+        const lVariableItemCount: number = (() => {
+            // Use set variable count.
+            if (pVariableSizeCount !== null) {
+                return pVariableSizeCount;
+            }
+
+            // No need to calculate was it is allways zero.
+            if (this.mBindLayout.layout.variableSize === 0) {
+                return 0;
+            }
+
+            throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
+        })();
+
+        // Calculate buffer size.
+        const lByteSize: number = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + (this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
+
+        // Create buffer.
+        const lBuffer: GpuBuffer = new GpuBuffer(this.device, lByteSize);
+
+        return lBuffer;
     }
 
     /**

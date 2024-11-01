@@ -142,7 +142,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                 for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
                     // Skip any binding not having a dynamic offset.
                     const lBindingLayout: Readonly<BindLayout> = lBindGroupLayout.getBind(lBindingName);
-                    if (lBindGroupLayout.hasDynamicOffset) {
+                    if (!lBindGroupLayout.hasDynamicOffset) {
                         continue;
                     }
 

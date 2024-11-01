@@ -1153,6 +1153,7 @@ class Transform {
     this.mTranslation.data[0][3] += pX;
     this.mTranslation.data[1][3] += pY;
     this.mTranslation.data[2][3] += pZ;
+    return this;
   }
   /**
    * Get transformation matrix.
@@ -1217,6 +1218,7 @@ class Transform {
     this.mScale.data[0][0] = pWidth ?? this.scaleWidth;
     this.mScale.data[1][1] = pHeight ?? this.scaleHeight;
     this.mScale.data[2][2] = pDepth ?? this.scaleDepth;
+    return this;
   }
   /**
    * Set translation.
@@ -1228,6 +1230,7 @@ class Transform {
     this.mTranslation.data[0][3] = pX ?? this.translationX;
     this.mTranslation.data[1][3] = pY ?? this.translationY;
     this.mTranslation.data[2][3] = pZ ?? this.translationZ;
+    return this;
   }
   /**
    * Translate into rotation direction.
@@ -1522,6 +1525,7 @@ const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
 const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
+const color_cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/color_cube/color-cube-shader.wgsl */ "./page/source/game_objects/color_cube/color-cube-shader.wgsl");
 const particle_compute_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-compute-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-compute-shader.wgsl");
 const particle_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-shader.wgsl");
 const light_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/light/light-box-shader.wgsl */ "./page/source/game_objects/light/light-box-shader.wgsl");
@@ -1565,9 +1569,7 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Transformation and position group. 
   const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
   // Create transformation.
-  const lWoodBoxTransform = new transform_1.Transform();
-  lWoodBoxTransform.setScale(1, 1, 1);
-  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(lWoodBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new transform_1.Transform().setScale(1, 1, 1).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   // Create instance positions.
   const lCubeInstanceTransformationData = new Array();
   for (let lWidthIndex = 0; lWidthIndex < lWidth; lWidthIndex++) {
@@ -1690,6 +1692,68 @@ const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
     })
   };
 };
+const gGenerateColorCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
+  // Create shader.
+  const lColorBoxShader = pGpu.shader(color_cube_shader_wgsl_1.default).setup(pShaderSetup => {
+    // Vertex entry.
+    pShaderSetup.vertexEntryPoint('vertex_main', pVertexParameterSetup => {
+      pVertexParameterSetup.buffer('position', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index).withParameter('position', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+      pVertexParameterSetup.buffer('normal', vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex).withParameter('normal', 1, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+    });
+    // Fragment entry.
+    pShaderSetup.fragmentEntryPoint('fragment_main').addRenderTarget('main', 0, buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+    // Object bind group.
+    pShaderSetup.group(0, 'object', pBindGroupSetup => {
+      pBindGroupSetup.binding(0, 'transformationMatrix', compute_stage_enum_1.ComputeStage.Vertex).asBuffer(3).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44);
+      pBindGroupSetup.binding(1, 'color', compute_stage_enum_1.ComputeStage.Vertex).asBuffer(2).withPrimitive(buffer_item_format_enum_1.BufferItemFormat.Float32, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4);
+    });
+    // World bind group.
+    pShaderSetup.group(1, pWorldGroup.layout);
+  });
+  // Create render module from shader.
+  const lWoodBoxRenderModule = lColorBoxShader.createRenderModule('vertex_main', 'fragment_main');
+  // Transformation and position group. 
+  const lColorBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
+  // Create transformation.
+  lColorBoxTransformationGroup.data('transformationMatrix').createBuffer();
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(3, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(-1, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(-3, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  // Setup cube texture.
+  lColorBoxTransformationGroup.data('color').createBuffer([/* Color 1*/0.89, 0.74, 0.00, 1, /* Color 2*/0.92, 0.48, 0.14, 1]);
+  // Generate render parameter from parameter layout.
+  const lMesh = lWoodBoxRenderModule.vertexParameter.create(cube_mesh_1.CubeVertexIndices);
+  lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
+  lMesh.create('normal', cube_mesh_1.CubeVertexNormalData);
+  // Create pipeline.
+  const lColorBoxPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+  lColorBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
+  return [{
+    pipeline: lColorBoxPipeline,
+    parameter: lMesh,
+    instanceCount: 1,
+    data: lColorBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lColorBoxTransformationGroup).withOffset('color', 0).withOffset('transformationMatrix', 0);
+      pSetup.addGroup(pWorldGroup);
+    })
+  }, {
+    pipeline: lColorBoxPipeline,
+    parameter: lMesh,
+    instanceCount: 1,
+    data: lColorBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lColorBoxTransformationGroup).withOffset('color', 1).withOffset('transformationMatrix', 1);
+      pSetup.addGroup(pWorldGroup);
+    })
+  }, {
+    pipeline: lColorBoxPipeline,
+    parameter: lMesh,
+    instanceCount: 1,
+    data: lColorBoxPipeline.layout.withData(pSetup => {
+      pSetup.addGroup(lColorBoxTransformationGroup).withOffset('color', 0).withOffset('transformationMatrix', 2);
+      pSetup.addGroup(pWorldGroup);
+    })
+  }];
+};
 const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create shader.
   const lLightBoxShader = pGpu.shader(light_box_shader_wgsl_1.default).setup(pShaderSetup => {
@@ -1713,9 +1777,7 @@ const gGenerateLightBoxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Transformation and position group. 
   const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
   // Create transformation.
-  const lLightBoxTransform = new transform_1.Transform();
-  lLightBoxTransform.setScale(1, 1, 1);
-  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(lLightBoxTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new transform_1.Transform().setScale(1, 1, 1).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   const lLightBoxPipeline = lLightBoxRenderModule.create(pRenderTargets);
   lLightBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Front;
   // Generate render parameter from parameter layout.
@@ -1838,10 +1900,7 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Transformation and position group. 
   const lTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
   // Create transformation.
-  const lBillboardTransform = new transform_1.Transform();
-  lBillboardTransform.setScale(15, 8.4, 0);
-  lBillboardTransform.addTranslation(-0.5, -0.5, 100);
-  lTransformationGroup.data('transformationMatrix').createBuffer(lBillboardTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lTransformationGroup.data('transformationMatrix').createBuffer(new transform_1.Transform().addTranslation(-0.5, -0.5, 100).setScale(15, 8.4, 0).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   /*
    * User defined group.
    */
@@ -1930,11 +1989,9 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lParticleRenderModule = lParticleRenderShader.createRenderModule('vertex_main', 'fragment_main');
   // Transformation and position group. 
   const lParticleInformationGroup = lParticleRenderModule.layout.getGroupLayout('object').create();
-  lParticleInformationGroup.data('particles').createBufferEmpty(lMaxParticleCount);
+  lParticleInformationGroup.data('particles').createBuffer(lMaxParticleCount);
   // Create transformation.
-  const lParticleTransform = new transform_1.Transform();
-  lParticleTransform.setScale(0.02, 0.02, 0.02);
-  lParticleInformationGroup.data('transformationMatrix').createBuffer(lParticleTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lParticleInformationGroup.data('transformationMatrix').createBuffer(new transform_1.Transform().setScale(0.02, 0.02, 0.02).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   // Transformation and position group. 
   const lParticleTextureGroup = lParticleRenderShader.layout.getGroupLayout('user').create();
   const lImageTexture = lParticleTextureGroup.data('texture').createTexture().texture;
@@ -2076,7 +2133,7 @@ const gGenerateWorldBindGroup = pGpu => {
    * Camera and world group.
    */
   const lWorldGroup = lWorldGroupLayout.create();
-  lWorldGroup.data('camera').createBufferEmpty();
+  lWorldGroup.data('camera').createBuffer();
   // Create ambient light.
   const lAmbientLight = new ambient_light_1.AmbientLight();
   lAmbientLight.setColor(0.3, 0.3, 0.3);
@@ -2084,9 +2141,9 @@ const gGenerateWorldBindGroup = pGpu => {
   // Create point lights.
   lWorldGroup.data('pointLights').createBuffer([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1, /* Range */200]);
   // Create timestamp.
-  lWorldGroup.data('timestamp').createBufferEmpty();
+  lWorldGroup.data('timestamp').createBuffer();
   // Create debug value.
-  lWorldGroup.data('debugValue').createBufferEmpty();
+  lWorldGroup.data('debugValue').createBuffer();
   const lDebugBuffer = lWorldGroup.data('debugValue').asBufferView(Float32Array);
   window.debugBuffer = () => {
     lDebugBuffer.read().then(pResulto => {
@@ -2138,7 +2195,7 @@ _asyncToGenerator(function* () {
   const lTimestampBuffer = lWorldGroup.data('timestamp').asBufferView(Float32Array);
   const [lParticelRenderInstruction, lParticelComputeInstruction] = gGenerateParticleStep(lGpu, lRenderTargets, lWorldGroup);
   // Create instruction.
-  const lRenderSteps = [gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup), gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup), lParticelRenderInstruction];
+  const lRenderSteps = [gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup), gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup), gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup), ...gGenerateColorCubeStep(lGpu, lRenderTargets, lWorldGroup), lParticelRenderInstruction];
   const lRenderPass = lGpu.renderPass(lRenderTargets, pContext => {
     for (const lStep of lRenderSteps) {
       if (lStep.indirectBuffer) {
@@ -2481,7 +2538,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.BindGroupDataSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const gpu_buffer_view_1 = __webpack_require__(/*! ../buffer/gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
@@ -2516,7 +2572,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
    *
    * @returns view of buffer from bind group layout.
    */
-  asBufferView(pValueType) {
+  asBufferView(pValueType, pDynamicOffsetIndex) {
     const lData = this.getRaw();
     if (!(lData instanceof gpu_buffer_1.GpuBuffer)) {
       throw new core_1.Exception('Bind data can not be converted into a buffer view.', this);
@@ -2524,103 +2580,16 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     // Read layout buffer.
     const lBufferLayout = this.mBindLayout.layout;
     // Create view.
-    return new gpu_buffer_view_1.GpuBufferView(lData, lBufferLayout, pValueType);
+    return lData.view(lBufferLayout, pValueType, pDynamicOffsetIndex);
   }
-  /**
-   * Create na new buffer.
-   *
-   * @param pData - Buffer data without right alignment.
-   *
-   * @returns created buffer.
-   */
-  createBuffer(pData) {
-    // Layout must be a buffer memory layout.
-    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+  createBuffer(pDataOrVariableLength) {
+    // Create empty when no data array is set or fill it with the data array.
+    let lBuffer;
+    if (Array.isArray(pDataOrVariableLength)) {
+      lBuffer = this.createBufferFromArray(pDataOrVariableLength);
+    } else {
+      lBuffer = this.createEmptyBuffer(pDataOrVariableLength);
     }
-    // Unwrap layout.
-    const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
-    // Validate data length that should be written.
-    if (lUnwrapedLayout.fixedItemCount > pData.length) {
-      throw new core_1.Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
-    }
-    // Get variable data repetitions.
-    let lVariableRepetitionCount = 0;
-    if (lUnwrapedLayout.variableItemCount > 0) {
-      lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
-    }
-    // Variable count should be an integer.
-    if (lVariableRepetitionCount % 1 !== 0) {
-      throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
-    }
-    // Create buffer with correct length.
-    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.variableSize * lVariableRepetitionCount + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
-    const lBufferDataView = new DataView(lBufferData);
-    // Write data.
-    let lDataIndex = 0;
-    let lByteOffset = 0;
-    const lWriteLayout = pUnwrappedLayout => {
-      // Apply layout alignment to offset.
-      lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
-      // buffer layout is a layered format.
-      if (Array.isArray(pUnwrappedLayout.format)) {
-        // Set repetition count to variable count when layout repetition count is uncapped.
-        const lRepetitionCount = pUnwrappedLayout.count !== -1 ? pUnwrappedLayout.count : lVariableRepetitionCount;
-        for (let lLayoutRepetionIndex = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
-          // Add each inner format.
-          for (const lInnerFormat of pUnwrappedLayout.format) {
-            lWriteLayout(lInnerFormat);
-          }
-        }
-        return;
-      }
-      // write each single number.
-      for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
-        // Add and iterate data.
-        this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
-        lDataIndex++;
-        // Increase offset by format byte count.
-        lByteOffset += pUnwrappedLayout.format.itemByteCount;
-      }
-    };
-    // Repeat layout for each dynamic offset.
-    for (let lOffsetIndex = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
-      lWriteLayout(lUnwrapedLayout);
-    }
-    // Create buffer with initial data.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
-    // Send created data.
-    this.sendData(lBuffer);
-    return lBuffer;
-  }
-  /**
-   * Create a empty buffer.
-   *
-   * @param pVariableSizeCount - Variable item count.
-   *
-   * @returns - Created buffer.
-   */
-  createBufferEmpty(pVariableSizeCount = null) {
-    // Layout must be a buffer memory layout.
-    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
-    }
-    // Calculate variable item count from initial buffer data.  
-    const lVariableItemCount = (() => {
-      // Use set variable count.
-      if (pVariableSizeCount !== null) {
-        return pVariableSizeCount;
-      }
-      // No need to calculate was it is allways zero.
-      if (this.mBindLayout.layout.variableSize === 0) {
-        return 0;
-      }
-      throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
-    })();
-    // Calculate buffer size.
-    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
-    // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
     // Send created data.
     this.sendData(lBuffer);
     return lBuffer;
@@ -2751,6 +2720,101 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     this.sendData(pData);
     // Return same data.
     return pData;
+  }
+  /**
+   * Create na new buffer.
+   *
+   * @param pData - Buffer data without right alignment.
+   *
+   * @returns created buffer.
+   */
+  createBufferFromArray(pData) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Unwrap layout.
+    const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
+    // Validate data length that should be written.
+    if (lUnwrapedLayout.fixedItemCount > pData.length) {
+      throw new core_1.Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
+    }
+    // Get variable data repetitions.
+    let lVariableRepetitionCount = 0;
+    if (lUnwrapedLayout.variableItemCount > 0) {
+      lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
+    }
+    // Variable count should be an integer.
+    if (lVariableRepetitionCount % 1 !== 0) {
+      throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
+    }
+    // Create buffer with correct length.
+    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.variableSize * lVariableRepetitionCount + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
+    const lBufferDataView = new DataView(lBufferData);
+    // Write data.
+    let lDataIndex = 0;
+    let lByteOffset = 0;
+    const lWriteLayout = pUnwrappedLayout => {
+      // Apply layout alignment to offset.
+      lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
+      // buffer layout is a layered format.
+      if (Array.isArray(pUnwrappedLayout.format)) {
+        // Set repetition count to variable count when layout repetition count is uncapped.
+        const lRepetitionCount = pUnwrappedLayout.count !== -1 ? pUnwrappedLayout.count : lVariableRepetitionCount;
+        for (let lLayoutRepetionIndex = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
+          // Add each inner format.
+          for (const lInnerFormat of pUnwrappedLayout.format) {
+            lWriteLayout(lInnerFormat);
+          }
+        }
+        return;
+      }
+      // write each single number.
+      for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
+        // Add and iterate data.
+        this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
+        lDataIndex++;
+        // Increase offset by format byte count.
+        lByteOffset += pUnwrappedLayout.format.itemByteCount;
+      }
+    };
+    // Repeat layout for each dynamic offset.
+    for (let lOffsetIndex = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
+      lWriteLayout(lUnwrapedLayout);
+    }
+    // Create buffer with initial data.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
+    return lBuffer;
+  }
+  /**
+   * Create a empty buffer.
+   *
+   * @param pVariableSizeCount - Variable item count.
+   *
+   * @returns - Created buffer.
+   */
+  createEmptyBuffer(pVariableSizeCount = null) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Calculate variable item count from initial buffer data.  
+    const lVariableItemCount = (() => {
+      // Use set variable count.
+      if (pVariableSizeCount !== null) {
+        return pVariableSizeCount;
+      }
+      // No need to calculate was it is allways zero.
+      if (this.mBindLayout.layout.variableSize === 0) {
+        return 0;
+      }
+      throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
+    })();
+    // Calculate buffer size.
+    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
+    // Create buffer.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
+    return lBuffer;
   }
   /**
    * Set data in little endian according to the set item format and offset.
@@ -3107,7 +3171,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         dynamicOffsets: lBinding.dynamicOffsetCount
       });
       // Set dynamic offset flag when any is active.
-      if (lBinding.dynamicOffsetCount > 0) {
+      if (lBinding.dynamicOffsetCount > 1) {
         this.mHasDynamicOffset = true;
       }
       // Validate dublicate indices.
@@ -3341,12 +3405,15 @@ class PipelineDataGroupSetup extends gpu_object_child_setup_1.GpuObjectChildSetu
    *
    * @param pBindingName - Name of one of binding sof group.
    * @param pOffsetIndex - Offset index.
+   *
+   * @returns this.
    */
   withOffset(pBindingName, pOffsetIndex) {
     this.sendData({
       bindingName: pBindingName,
       offsetIndex: pOffsetIndex
     });
+    return this;
   }
 }
 exports.PipelineDataGroupSetup = PipelineDataGroupSetup;
@@ -3532,7 +3599,7 @@ class PipelineData extends gpu_object_1.GpuObject {
         for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
           // Skip any binding not having a dynamic offset.
           const lBindingLayout = lBindGroupLayout.getBind(lBindingName);
-          if (lBindGroupLayout.hasDynamicOffset) {
+          if (!lBindGroupLayout.hasDynamicOffset) {
             continue;
           }
           // Dynamic bindings need a offset.
@@ -12797,6 +12864,21 @@ Object.defineProperty(exports, "__esModule", ({value:true}));exports.fromCodePoi
 
 /***/ }),
 
+/***/ "./page/source/game_objects/color_cube/color-cube-shader.wgsl":
+/*!********************************************************************!*\
+  !*** ./page/source/game_objects/color_cube/color-cube-shader.wgsl ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<uniform> color: vec4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\nstruct Camera {\r\n    viewProjection: mat4x4<f32>,\r\n    view: mat4x4<f32>,\r\n    projection: mat4x4<f32>,\r\n    rotation: mat4x4<f32>,\r\n    translation: mat4x4<f32>,\r\n    position: vec3<f32>\r\n}\r\n@group(1) @binding(0) var<uniform> camera: Camera;\r\n\r\nstruct TimeData {\r\n    timestamp: f32,\r\n    delta: f32\r\n}\r\n@group(1) @binding(1) var<uniform> time: TimeData;\r\n\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(2) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(3) var<storage, read> pointLights: array<PointLight>;\r\n\r\n@group(1) @binding(4) var<storage, read_write> debugValue: f32;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var worldposition: vec4<f32> = transformationMatrix * vertex.position;\r\n\r\n    var out: VertexOut;\r\n    out.position = camera.viewProjection * worldposition;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = worldposition;\r\n    out.color = color;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>,\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(fragment.color, fragment.fragmentPosition, fragment.normal);\r\n}");
+
+/***/ }),
+
 /***/ "./page/source/game_objects/cube/cube-shader.wgsl":
 /*!********************************************************!*\
   !*** ./page/source/game_objects/cube/cube-shader.wgsl ***!
@@ -17538,7 +17620,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("6428ca5a40bf147de92d")
+/******/ 		__webpack_require__.h = () => ("a4f415e849d73f72ca6f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

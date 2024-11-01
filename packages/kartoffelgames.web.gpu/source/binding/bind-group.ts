@@ -144,7 +144,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
 
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
-        for (const lBindname of this.layout.bindingNames) {
+        for (const lBindname of this.layout.orderedBindingNames) {
             // Read bind data.
             const lBindData: GpuResourceObject | undefined = this.mBindData.get(lBindname);
             if (!lBindData) {

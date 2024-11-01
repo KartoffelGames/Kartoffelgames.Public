@@ -5,17 +5,19 @@ import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BindGroup, BindGroupInvalidationType } from './bind-group';
 import { PipelineDataSetup, PipelineDataSetupData, PipelineDataSetupDataGroup } from './pipeline-data-setup';
 import { PipelineLayout } from './pipeline-layout';
+import { BindLayout } from './bind-group-layout';
+import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 
 export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, PipelineDataSetup> implements IGpuObjectSetup<PipelineDataSetup> {
-    private readonly mBindData: Dictionary<string, BindGroup>;
+    private readonly mBindData: Dictionary<string, PipelineDataGroup>;
     private readonly mInvalidationListener: () => void;
     private readonly mLayout: PipelineLayout;
-    private readonly mOrderedBindData: Array<BindGroup>;
+    private readonly mOrderedBindData: Array<PipelineDataGroup>;
 
     /**
      * Orderes pipeline data.
      */
-    public get data(): Array<BindGroup> {
+    public get data(): Array<PipelineDataGroup> {
         // Setup needed.
         this.ensureSetup();
 
@@ -42,14 +44,14 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
         this.mLayout = pPipelineLayout;
 
         // Easy access dictionary.
-        this.mBindData = new Dictionary<string, BindGroup>();
+        this.mBindData = new Dictionary<string, PipelineDataGroup>();
 
         // Invalidate pipeline data when any data has changed.
         this.mInvalidationListener = () => {
             this.invalidate(PipelineDataInvalidationType.Data);
         };
 
-        this.mOrderedBindData = new Array<BindGroup>();
+        this.mOrderedBindData = new Array<PipelineDataGroup>();
     }
 
     /**
@@ -60,7 +62,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
 
         // Remove all invalidation listener from bind groups.
         for (const lBindGroup of this.mOrderedBindData) {
-            lBindGroup.removeInvalidationListener(this.mInvalidationListener);
+            lBindGroup.bindGroup.removeInvalidationListener(this.mInvalidationListener);
         }
     }
 
@@ -71,7 +73,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
      * 
      * @returns bind group. 
      */
-    public group(pBindGroupName: string): BindGroup {
+    public group(pBindGroupName: string): PipelineDataGroup {
         if (!this.mBindData.has(pBindGroupName)) {
             throw new Exception(`Bind group "${pBindGroupName}" does not exists in pipeline data.`, this);
         }
@@ -95,7 +97,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
      * 
      * @param pReferences - Setup data references. 
      */
-    protected override onSetup(pReferences: PipelineDataSetupData): void {  // TODO: Setup? Add bind data with BindGroup and dynamic-offset-index.
+    protected override onSetup(pReferences: PipelineDataSetupData): void {
         // All bind groups must be set.
         if (this.mLayout.groups.length !== pReferences.groups.length) {
             // Generate a better error message.
@@ -130,11 +132,45 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                 throw new Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
             }
 
+            // When the bind group has dynamic offsets, build a array of it.
+            const lPipelineDataGroup: PipelineDataGroup = {
+                offsetId: '',
+                bindGroup: lBindGroup,
+                offsets: new Array<number>()
+            };
+            if (lBindGroupLayout.hasDynamicOffset) {
+                for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
+                    // Skip any binding not having a dynamic offset.
+                    const lBindingLayout: Readonly<BindLayout> = lBindGroupLayout.getBind(lBindingName);
+                    if (lBindGroupLayout.hasDynamicOffset) {
+                        continue;
+                    }
+
+                    // Dynamic bindings need a offset.
+                    if (!lBindGroupSetupData.offsets.has(lBindingName)) {
+                        throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} requires a offset."`, this);
+                    }
+
+                    // Read and validate assigned offset index of binding.
+                    const lBindingDynamicOffsetIndex: number = lBindGroupSetupData.offsets.get(lBindingName)!;
+                    if (lBindingDynamicOffsetIndex >= lBindingLayout.dynamicOffsets) {
+                        throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
+                    }
+
+                    // Save offset byte count in order.
+                    const lBufferMemoryLayout: BaseBufferMemoryLayout = lBindingLayout.layout as BaseBufferMemoryLayout;
+                    lPipelineDataGroup.offsets.push(lBufferMemoryLayout.fixedSize * lBindingDynamicOffsetIndex);
+                }
+
+                // Rebuild offset "id".
+                lPipelineDataGroup.offsetId = lPipelineDataGroup.offsets.join('-');
+            }
+
             // Set name to bind group mapping.
-            this.mBindData.set(lBindGroupName, lBindGroup);
+            this.mBindData.set(lBindGroupName, lPipelineDataGroup);
 
             // Set bind group.
-            this.mOrderedBindData[lBindGroupIndex] = lBindGroup;
+            this.mOrderedBindData[lBindGroupIndex] = lPipelineDataGroup;
 
             // Invalidate native data when bind group has changed.
             lBindGroup.addInvalidationListener(this.mInvalidationListener, BindGroupInvalidationType.NativeRebuild);
@@ -153,6 +189,11 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
     }
 }
 
+export type PipelineDataGroup = {
+    offsetId: string;
+    bindGroup: BindGroup;
+    offsets: Array<number>;
+};
 
 export enum PipelineDataInvalidationType {
     Data = 'DataChange',

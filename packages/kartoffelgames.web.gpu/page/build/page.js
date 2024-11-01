@@ -2894,12 +2894,10 @@ const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-lay
  */
 class BindGroupLayout extends gpu_object_1.GpuObject {
   /**
-   * Get binding names.
+   * Bindgroup has a dynamic offset binding.
    */
-  get bindingNames() {
-    // Ensure setup.
-    this.ensureSetup();
-    return this.mOrderedBindingNames;
+  get hasDynamicOffset() {
+    return this.mHasDynamicOffset;
   }
   /**
    * Bind group name.
@@ -2914,6 +2912,14 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     return super.native;
   }
   /**
+   * Get binding names ordered by index.
+   */
+  get orderedBindingNames() {
+    // Ensure setup.
+    this.ensureSetup();
+    return this.mOrderedBindingNames;
+  }
+  /**
    * Constructor.
    *
    * @param pDevice - Gpu Device reference.
@@ -2923,6 +2929,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     super(pDevice);
     // Set binding group name.
     this.mName = pName;
+    this.mHasDynamicOffset = false;
     // Init bindings.
     this.mBindings = new core_1.Dictionary();
     this.mOrderedBindingNames = new Array();
@@ -3099,6 +3106,10 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
         storageType: lBinding.storageType,
         dynamicOffsets: lBinding.dynamicOffsetCount
       });
+      // Set dynamic offset flag when any is active.
+      if (lBinding.dynamicOffsetCount > 0) {
+        this.mHasDynamicOffset = true;
+      }
       // Validate dublicate indices.
       if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
         throw new core_1.Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
@@ -3260,7 +3271,7 @@ class BindGroup extends gpu_object_1.GpuObject {
     // Invalidate group.
     this.invalidate(BindGroupInvalidationType.NativeRebuild);
     const lEntryList = new Array();
-    for (const lBindname of this.layout.bindingNames) {
+    for (const lBindname of this.layout.orderedBindingNames) {
       // Read bind data.
       const lBindData = this.mBindData.get(lBindname);
       if (!lBindData) {
@@ -3448,7 +3459,7 @@ class PipelineData extends gpu_object_1.GpuObject {
     super.deconstruct();
     // Remove all invalidation listener from bind groups.
     for (const lBindGroup of this.mOrderedBindData) {
-      lBindGroup.removeInvalidationListener(this.mInvalidationListener);
+      lBindGroup.bindGroup.removeInvalidationListener(this.mInvalidationListener);
     }
   }
   /**
@@ -3511,10 +3522,39 @@ class PipelineData extends gpu_object_1.GpuObject {
       if (this.mBindData.has(lBindGroupName)) {
         throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
       }
+      // When the bind group has dynamic offsets, build a array of it.
+      const lPipelineDataGroup = {
+        offsetId: '',
+        bindGroup: lBindGroup,
+        offsets: new Array()
+      };
+      if (lBindGroupLayout.hasDynamicOffset) {
+        for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
+          // Skip any binding not having a dynamic offset.
+          const lBindingLayout = lBindGroupLayout.getBind(lBindingName);
+          if (lBindGroupLayout.hasDynamicOffset) {
+            continue;
+          }
+          // Dynamic bindings need a offset.
+          if (!lBindGroupSetupData.offsets.has(lBindingName)) {
+            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} requires a offset."`, this);
+          }
+          // Read and validate assigned offset index of binding.
+          const lBindingDynamicOffsetIndex = lBindGroupSetupData.offsets.get(lBindingName);
+          if (lBindingDynamicOffsetIndex >= lBindingLayout.dynamicOffsets) {
+            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
+          }
+          // Save offset byte count in order.
+          const lBufferMemoryLayout = lBindingLayout.layout;
+          lPipelineDataGroup.offsets.push(lBufferMemoryLayout.fixedSize * lBindingDynamicOffsetIndex);
+        }
+        // Rebuild offset "id".
+        lPipelineDataGroup.offsetId = lPipelineDataGroup.offsets.join('-');
+      }
       // Set name to bind group mapping.
-      this.mBindData.set(lBindGroupName, lBindGroup);
+      this.mBindData.set(lBindGroupName, lPipelineDataGroup);
       // Set bind group.
-      this.mOrderedBindData[lBindGroupIndex] = lBindGroup;
+      this.mOrderedBindData[lBindGroupIndex] = lPipelineDataGroup;
       // Invalidate native data when bind group has changed.
       lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
     }
@@ -5008,9 +5048,9 @@ class ComputePassContext {
    */
   constructor(pEncoder) {
     this.mEncoder = pEncoder;
-    this.mRenderResourceBuffer = {
+    this.mComputeResourceBuffer = {
       pipeline: null,
-      bindGroupList: new Array(),
+      pipelineDataGroupList: new Array(),
       highestBindGroupListIndex: -1
     };
   }
@@ -5076,36 +5116,40 @@ class ComputePassContext {
     // Cache for bind group length of this instruction.
     let lLocalHighestBindGroupListIndex = -1;
     // Add bind groups.
-    const lBindGroupList = pPipelineData.data;
-    for (let lBindGroupIndex = 0; lBindGroupIndex < lBindGroupList.length; lBindGroupIndex++) {
-      const lNewBindGroup = lBindGroupList[lBindGroupIndex];
-      const lCurrentBindGroup = this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex];
+    const lPipelineDataGroupList = pPipelineData.data;
+    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
+      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
+      const lCurrentPipelineDataGroup = this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
       // Extend group list length.
       if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
         lLocalHighestBindGroupListIndex = lBindGroupIndex;
       }
-      // Use cached bind group or use new.
-      if (lNewBindGroup !== lCurrentBindGroup) {
+      // Use cached bind group or use new. Catches null bindings.
+      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
         // Set bind group buffer to cache current set bind groups.
-        this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
+        this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
         // Set bind group to gpu.
-        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
+        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
+        } else {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
+        }
       }
     }
     // Use cached pipeline or use new.
-    if (pPipeline !== this.mRenderResourceBuffer.pipeline) {
-      this.mRenderResourceBuffer.pipeline = pPipeline;
+    if (pPipeline !== this.mComputeResourceBuffer.pipeline) {
+      this.mComputeResourceBuffer.pipeline = pPipeline;
       // Generate and set new pipeline.
       this.mEncoder.setPipeline(lNativePipeline);
       // Only clear bind buffer when a new pipeline is set.
       // Same pipelines must have set the same bind group layouts.
-      if (this.mRenderResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
-        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mRenderResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
+      if (this.mComputeResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mComputeResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
           this.mEncoder.setBindGroup(lBindGroupIndex, null);
         }
       }
       // Update global bind group list length.
-      this.mRenderResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+      this.mComputeResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
     }
     return true;
   }
@@ -5263,7 +5307,7 @@ class RenderPassContext {
       pipeline: null,
       vertexBuffer: new core_1.Dictionary(),
       highestVertexParameterIndex: -1,
-      bindGroupList: new Array(),
+      pipelineDataGroupList: new Array(),
       highestBindGroupListIndex: -1
     };
   }
@@ -5370,20 +5414,24 @@ class RenderPassContext {
     // Cache for bind group length of this instruction.
     let lLocalHighestBindGroupListIndex = -1;
     // Add bind groups.
-    const lBindGroupList = pPipelineData.data;
-    for (let lBindGroupIndex = 0; lBindGroupIndex < lBindGroupList.length; lBindGroupIndex++) {
-      const lNewBindGroup = lBindGroupList[lBindGroupIndex];
-      const lCurrentBindGroup = this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex];
+    const lPipelineDataGroupList = pPipelineData.data;
+    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
+      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
+      const lCurrentPipelineDataGroup = this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
       // Extend group list length.
       if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
         lLocalHighestBindGroupListIndex = lBindGroupIndex;
       }
       // Use cached bind group or use new.
-      if (lNewBindGroup !== lCurrentBindGroup) {
+      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
         // Set bind group buffer to cache current set bind groups.
-        this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
+        this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
         // Set bind group to gpu.
-        this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
+        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
+        } else {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
+        }
       }
     }
     // Cache for bind group length of this instruction.
@@ -17490,7 +17538,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("6a6e1801c9d4078ec362")
+/******/ 		__webpack_require__.h = () => ("6428ca5a40bf147de92d")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

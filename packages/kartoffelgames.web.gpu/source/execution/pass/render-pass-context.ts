@@ -1,11 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BindGroup } from '../../binding/bind-group';
-import { PipelineData } from '../../binding/pipeline-data';
+import { PipelineData, PipelineDataGroup } from '../../binding/pipeline-data';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
 
 export class RenderPassContext {
     private readonly mEncoder: GPURenderPassEncoder | GPURenderBundleEncoder;
@@ -43,7 +42,7 @@ export class RenderPassContext {
             pipeline: null,
             vertexBuffer: new Dictionary<number, GpuBuffer>(),
             highestVertexParameterIndex: -1,
-            bindGroupList: new Array<BindGroup>(),
+            pipelineDataGroupList: new Array<PipelineDataGroup>(),
             highestBindGroupListIndex: -1
         };
     }
@@ -168,10 +167,10 @@ export class RenderPassContext {
         let lLocalHighestBindGroupListIndex: number = -1;
 
         // Add bind groups.
-        const lBindGroupList: Array<BindGroup> = pPipelineData.data;
-        for (let lBindGroupIndex: number = 0; lBindGroupIndex < lBindGroupList.length; lBindGroupIndex++) {
-            const lNewBindGroup: BindGroup | undefined = lBindGroupList[lBindGroupIndex];
-            const lCurrentBindGroup: BindGroup | null = this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex];
+        const lPipelineDataGroupList: Array<PipelineDataGroup> = pPipelineData.data;
+        for (let lBindGroupIndex: number = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
+            const lPipelineDataGroup: PipelineDataGroup | undefined = lPipelineDataGroupList[lBindGroupIndex];
+            const lCurrentPipelineDataGroup: PipelineDataGroup | null = this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
 
             // Extend group list length.
             if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
@@ -179,12 +178,16 @@ export class RenderPassContext {
             }
 
             // Use cached bind group or use new.
-            if (lNewBindGroup !== lCurrentBindGroup) {
+            if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
                 // Set bind group buffer to cache current set bind groups.
-                this.mRenderResourceBuffer.bindGroupList[lBindGroupIndex] = lNewBindGroup;
+                this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
 
                 // Set bind group to gpu.
-                this.mEncoder.setBindGroup(lBindGroupIndex, lNewBindGroup.native); // TODO: Dynamic offset.
+                if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
+                    this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
+                } else {
+                    this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
+                }
             }
         }
 
@@ -315,6 +318,6 @@ type RenderPassContextRenderBuffer = {
     vertexBuffer: Dictionary<number, GpuBuffer>;
     highestVertexParameterIndex: number;
 
-    bindGroupList: Array<BindGroup>;
+    pipelineDataGroupList: Array<PipelineDataGroup>;
     highestBindGroupListIndex: number;
 };

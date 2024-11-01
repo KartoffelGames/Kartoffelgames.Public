@@ -19,17 +19,15 @@ import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-gro
  */
 export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
     private readonly mBindings: Dictionary<string, BindLayout>;
+    private mHasDynamicOffset: boolean;
     private readonly mName: string;
     private readonly mOrderedBindingNames: Array<string>;
 
     /**
-     * Get binding names.
+     * Bindgroup has a dynamic offset binding.
      */
-    public get bindingNames(): Array<string> {
-        // Ensure setup.
-        this.ensureSetup();
-
-        return this.mOrderedBindingNames;
+    public get hasDynamicOffset(): boolean {
+        return this.mHasDynamicOffset;
     }
 
     /**
@@ -47,6 +45,16 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
     }
 
     /**
+     * Get binding names ordered by index.
+     */
+    public get orderedBindingNames(): Array<string> {
+        // Ensure setup.
+        this.ensureSetup();
+
+        return this.mOrderedBindingNames;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pDevice - Gpu Device reference.
@@ -57,6 +65,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
 
         // Set binding group name.
         this.mName = pName;
+        this.mHasDynamicOffset = false;
 
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
@@ -237,7 +246,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             }
 
             // Buffers with dynamic offsets must be fixed in size.
-            if(lBinding.dynamicOffsetCount > 1 && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
+            if (lBinding.dynamicOffsetCount > 1 && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
                 throw new Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
             }
 
@@ -252,6 +261,11 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 storageType: lBinding.storageType,
                 dynamicOffsets: lBinding.dynamicOffsetCount
             });
+
+            // Set dynamic offset flag when any is active.
+            if (lBinding.dynamicOffsetCount > 0) {
+                this.mHasDynamicOffset = true;
+            }
 
             // Validate dublicate indices.
             if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {

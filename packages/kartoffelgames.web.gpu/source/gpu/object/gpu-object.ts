@@ -18,7 +18,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     /**
      * Gpu Device.
      */
-    protected get device(): GpuDevice {
+    public get device(): GpuDevice {
         return this.mDevice;
     }
 

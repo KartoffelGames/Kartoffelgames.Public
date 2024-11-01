@@ -275,9 +275,9 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
 
     // Create transformation.
     lColorBoxTransformationGroup.data('transformationMatrix').createBuffer();
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new Transform().setScale(1, 1, 1).setTranslation(3, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new Transform().setScale(1, 1, 1).setTranslation(-1, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new Transform().setScale(1, 1, 1).setTranslation(-3, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
+    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new Transform().setScale(1, 1, 1).setTranslation(2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
+    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new Transform().setScale(1, 1, 1).setTranslation(0, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
+    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new Transform().setScale(1, 1, 1).setTranslation(-2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
 
     // Setup cube texture.
     lColorBoxTransformationGroup.data('color').createBuffer([

@@ -7,6 +7,8 @@ import { PipelineDataSetup, PipelineDataSetupData, PipelineDataSetupDataGroup } 
 import { PipelineLayout } from './pipeline-layout';
 import { BindLayout } from './bind-group-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { StorageBindingType } from '../constant/storage-binding-type.enum';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 
 export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, PipelineDataSetup> implements IGpuObjectSetup<PipelineDataSetup> {
     private readonly mBindData: Dictionary<string, PipelineDataGroup>;
@@ -157,9 +159,21 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                         throw new Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
                     }
 
-                    // Save offset byte count in order.
+                    // Read correct alignment limitations for storage type.
+                    const lOffsetAlignment: number = (() => {
+                        if (lBindingLayout.storageType === StorageBindingType.None) {
+                            return this.device.capabilities.getLimit(GpuLimit.MinUniformBufferOffsetAlignment);
+                        } else {
+                            return this.device.capabilities.getLimit(GpuLimit.MinStorageBufferOffsetAlignment);
+                        }
+                    })();
+
+                    // Get offset byte count.
                     const lBufferMemoryLayout: BaseBufferMemoryLayout = lBindingLayout.layout as BaseBufferMemoryLayout;
-                    lPipelineDataGroup.offsets.push(lBufferMemoryLayout.fixedSize * lBindingDynamicOffsetIndex);
+                    const lDynamicOffsetByteCount: number = (Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment) * lBindingDynamicOffsetIndex;
+
+                    // Save offset byte count in order.
+                    lPipelineDataGroup.offsets.push(lDynamicOffsetByteCount);
                 }
 
                 // Rebuild offset "id".

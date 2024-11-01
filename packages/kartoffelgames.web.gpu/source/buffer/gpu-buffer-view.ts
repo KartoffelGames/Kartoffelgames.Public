@@ -1,6 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { GpuBuffer } from './gpu-buffer';
+import { StorageBindingType } from '../constant/storage-binding-type.enum';
+import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
 
 /**
  * Create a view to look at a gpu buffer.
@@ -44,13 +46,16 @@ export class GpuBufferView<T extends TypedArray> {
      * 
      * @param pBuffer - Views buffer. 
      * @param pLayout - Layout of view.
-     * @param pDynamicOffsetIndex - 
+     * @param pDynamicOffsetIndex - Index of dynamic offset.
      */
-    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>, pDynamicOffsetIndex: number = 0) {
+    public constructor(pBuffer: GpuBuffer, pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>, pDynamicOffsetIndex: number = 0, pStorageType: StorageBindingType = StorageBindingType.None) {
         // Layout must fit into buffer.
         if (pLayout.fixedSize > pBuffer.size) {
             throw new Exception(`Buffer view fixed size (${pLayout.fixedSize}) exceedes buffer size (${pBuffer.size}). Buffer must at least be the layouts fixed size.`, this);
         }
+
+        // Default dynamic offset.
+        this.mDynamicOffset = 0;
 
         // Calculate and validate dynamic offset.
         if (pDynamicOffsetIndex > 0) {
@@ -59,16 +64,28 @@ export class GpuBufferView<T extends TypedArray> {
                 throw new Exception('Dynamic offsets can only be applied to fixed buffer layouts.', this);
             }
 
-            const lMinBufferSize: number = pLayout.fixedSize * pDynamicOffsetIndex + pLayout.fixedSize;
+            // Read correct alignment limitations for storage type.
+            const lOffsetAlignment: number = (() => {
+                if (pStorageType === StorageBindingType.None) {
+                    return pBuffer.device.capabilities.getLimit(GpuLimit.MinUniformBufferOffsetAlignment);
+                } else {
+                    return pBuffer.device.capabilities.getLimit(GpuLimit.MinStorageBufferOffsetAlignment);
+                }
+            })();
+
+            // Apply offset alignment to byte size.
+            const lMinBufferSize: number = (Math.ceil(pLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment) * (pDynamicOffsetIndex + 1);
             if (pBuffer.size < lMinBufferSize) {
                 throw new Exception(`Buffer view offset size (${lMinBufferSize}) exceedes buffer size ${pBuffer.size}.`, this);
             }
+
+            this.mDynamicOffset = (Math.ceil(pLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment) * pDynamicOffsetIndex;
         }
 
         this.mLayout = pLayout;
         this.mBuffer = pBuffer;
         this.mTypedArrayConstructor = pType;
-        this.mDynamicOffset = pLayout.fixedSize * pDynamicOffsetIndex;
+
     }
 
     /**

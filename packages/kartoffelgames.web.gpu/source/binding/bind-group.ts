@@ -19,7 +19,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
     private readonly mBindData: Dictionary<string, GpuResourceObject<any, any>>;
     private readonly mDataInvalidationListener: WeakMap<GpuResourceObject, BindGroupDataInvalidationListener>;
     private readonly mLayout: BindGroupLayout;
-    
+
     /**
      * Layout of bind group.
      */
@@ -160,6 +160,11 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             // Buffer bind.
             if (lBindData instanceof GpuBuffer) {
                 lGroupEntry.resource = { buffer: lBindData.native };
+
+                // Fix buffer size when it has dynamic offsets.
+                if (lBindLayout.dynamicOffsets > 1) {
+                    lGroupEntry.resource.size = (<BaseBufferMemoryLayout>lBindLayout.layout).fixedSize;
+                }
 
                 lEntryList.push(lGroupEntry);
                 continue;

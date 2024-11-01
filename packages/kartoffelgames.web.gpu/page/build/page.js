@@ -1716,9 +1716,9 @@ const gGenerateColorCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lColorBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
   // Create transformation.
   lColorBoxTransformationGroup.data('transformationMatrix').createBuffer();
-  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(3, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
-  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(-1, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
-  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(-3, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(2, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(0, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
+  lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new transform_1.Transform().setScale(1, 1, 1).setTranslation(-2, -30, 5).getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
   // Setup cube texture.
   lColorBoxTransformationGroup.data('color').createBuffer([/* Color 1*/0.89, 0.74, 0.00, 1, /* Color 2*/0.92, 0.48, 0.14, 1]);
   // Generate render parameter from parameter layout.
@@ -2550,6 +2550,8 @@ const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture
 const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
 const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
 const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
 class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
   /**
    * Constructor.
@@ -2622,14 +2624,27 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       }
       return lItemCount;
     })();
-    // Calculate buffer size.
-    const lByteCount = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
+    // Calculate buffer size with correct alignment.
+    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.dynamicOffsets > 1) {
+      // Read correct alignment limitations for storage type.
+      const lOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
+      lByteSize *= this.mBindLayout.dynamicOffsets;
+    }
     // Validate size.
-    if (pData.byteLength !== lByteCount) {
-      throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteCount} => Has:${pData.byteLength}) requirements.`, this);
+    if (pData.byteLength !== lByteSize) {
+      throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteSize} => Has:${pData.byteLength}) requirements.`, this);
     }
     // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteCount).initialData(pData);
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize).initialData(pData);
     // Send created data.
     this.sendData(lBuffer);
     return lBuffer;
@@ -2748,15 +2763,32 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     if (lVariableRepetitionCount % 1 !== 0) {
       throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
     }
+    // Calculate buffer size with correct alignment.
+    let lDynamicOffsetAlignment = -1;
+    let lByteSize = (lVariableRepetitionCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.dynamicOffsets > 1) {
+      // Read correct alignment limitations for storage type.
+      lDynamicOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lDynamicOffsetAlignment) * lDynamicOffsetAlignment;
+      lByteSize *= this.mBindLayout.dynamicOffsets;
+    }
     // Create buffer with correct length.
-    const lBufferData = new ArrayBuffer(this.mBindLayout.layout.variableSize * lVariableRepetitionCount + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets);
+    const lBufferData = new ArrayBuffer(lByteSize);
     const lBufferDataView = new DataView(lBufferData);
     // Write data.
     let lDataIndex = 0;
     let lByteOffset = 0;
-    const lWriteLayout = pUnwrappedLayout => {
+    const lWriteLayout = (pUnwrappedLayout, pOverwrittenAlignment = -1) => {
+      const lLayoutAlignment = pOverwrittenAlignment !== -1 ? pOverwrittenAlignment : pUnwrappedLayout.alignment;
       // Apply layout alignment to offset.
-      lByteOffset = Math.ceil(lByteOffset / pUnwrappedLayout.alignment) * pUnwrappedLayout.alignment;
+      lByteOffset = Math.ceil(lByteOffset / lLayoutAlignment) * lLayoutAlignment;
       // buffer layout is a layered format.
       if (Array.isArray(pUnwrappedLayout.format)) {
         // Set repetition count to variable count when layout repetition count is uncapped.
@@ -2780,7 +2812,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
     };
     // Repeat layout for each dynamic offset.
     for (let lOffsetIndex = 0; lOffsetIndex < this.mBindLayout.dynamicOffsets; lOffsetIndex++) {
-      lWriteLayout(lUnwrapedLayout);
+      lWriteLayout(lUnwrapedLayout, lDynamicOffsetAlignment);
     }
     // Create buffer with initial data.
     const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
@@ -2810,8 +2842,21 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       }
       throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
     })();
-    // Calculate buffer size.
-    const lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize * this.mBindLayout.dynamicOffsets;
+    // Calculate buffer size with correct alignment.
+    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.dynamicOffsets > 1) {
+      // Read correct alignment limitations for storage type.
+      const lOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
+      lByteSize *= this.mBindLayout.dynamicOffsets;
+    }
     // Create buffer.
     const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
     return lBuffer;
@@ -3353,6 +3398,10 @@ class BindGroup extends gpu_object_1.GpuObject {
         lGroupEntry.resource = {
           buffer: lBindData.native
         };
+        // Fix buffer size when it has dynamic offsets.
+        if (lBindLayout.dynamicOffsets > 1) {
+          lGroupEntry.resource.size = lBindLayout.layout.fixedSize;
+        }
         lEntryList.push(lGroupEntry);
         continue;
       }
@@ -3486,6 +3535,8 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
 const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
 const pipeline_data_setup_1 = __webpack_require__(/*! ./pipeline-data-setup */ "./source/binding/pipeline-data-setup.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 class PipelineData extends gpu_object_1.GpuObject {
   /**
    * Orderes pipeline data.
@@ -3611,9 +3662,19 @@ class PipelineData extends gpu_object_1.GpuObject {
           if (lBindingDynamicOffsetIndex >= lBindingLayout.dynamicOffsets) {
             throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
           }
-          // Save offset byte count in order.
+          // Read correct alignment limitations for storage type.
+          const lOffsetAlignment = (() => {
+            if (lBindingLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+            } else {
+              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+            }
+          })();
+          // Get offset byte count.
           const lBufferMemoryLayout = lBindingLayout.layout;
-          lPipelineDataGroup.offsets.push(lBufferMemoryLayout.fixedSize * lBindingDynamicOffsetIndex);
+          const lDynamicOffsetByteCount = Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment * lBindingDynamicOffsetIndex;
+          // Save offset byte count in order.
+          lPipelineDataGroup.offsets.push(lDynamicOffsetByteCount);
         }
         // Rebuild offset "id".
         lPipelineDataGroup.offsetId = lPipelineDataGroup.offsets.join('-');
@@ -4016,6 +4077,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuBufferView = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Create a view to look at a gpu buffer.
  */
@@ -4049,28 +4112,39 @@ class GpuBufferView {
    *
    * @param pBuffer - Views buffer.
    * @param pLayout - Layout of view.
-   * @param pDynamicOffsetIndex -
+   * @param pDynamicOffsetIndex - Index of dynamic offset.
    */
-  constructor(pBuffer, pLayout, pType, pDynamicOffsetIndex = 0) {
+  constructor(pBuffer, pLayout, pType, pDynamicOffsetIndex = 0, pStorageType = storage_binding_type_enum_1.StorageBindingType.None) {
     // Layout must fit into buffer.
     if (pLayout.fixedSize > pBuffer.size) {
       throw new core_1.Exception(`Buffer view fixed size (${pLayout.fixedSize}) exceedes buffer size (${pBuffer.size}). Buffer must at least be the layouts fixed size.`, this);
     }
+    // Default dynamic offset.
+    this.mDynamicOffset = 0;
     // Calculate and validate dynamic offset.
     if (pDynamicOffsetIndex > 0) {
       // Dynamic offsets can only be applied to fixed buffer layouts.
       if (pLayout.variableSize > 0) {
         throw new core_1.Exception('Dynamic offsets can only be applied to fixed buffer layouts.', this);
       }
-      const lMinBufferSize = pLayout.fixedSize * pDynamicOffsetIndex + pLayout.fixedSize;
+      // Read correct alignment limitations for storage type.
+      const lOffsetAlignment = (() => {
+        if (pStorageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return pBuffer.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return pBuffer.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      const lMinBufferSize = Math.ceil(pLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment * (pDynamicOffsetIndex + 1);
       if (pBuffer.size < lMinBufferSize) {
         throw new core_1.Exception(`Buffer view offset size (${lMinBufferSize}) exceedes buffer size ${pBuffer.size}.`, this);
       }
+      this.mDynamicOffset = Math.ceil(pLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment * pDynamicOffsetIndex;
     }
     this.mLayout = pLayout;
     this.mBuffer = pBuffer;
     this.mTypedArrayConstructor = pType;
-    this.mDynamicOffset = pLayout.fixedSize * pDynamicOffsetIndex;
   }
   /**
    * Read buffer on layout location.
@@ -17620,7 +17694,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("a4f415e849d73f72ca6f")
+/******/ 		__webpack_require__.h = () => ("aeebbe88cd978e7f624f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

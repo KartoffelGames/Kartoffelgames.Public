@@ -1,12 +1,15 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PipelineLayout } from '../binding/pipeline-layout';
 import { ComputeStage } from '../constant/compute-stage.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject } from '../gpu_object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
+import { PipelineLayout } from './pipeline-layout';
 
+/**
+ * Gpu pipeline resource for computing with a compute shader. 
+ */
 export class ComputePipeline extends GpuObject<GPUComputePipeline | null, ComputePipelineInvalidationType> implements IGpuObjectNative<GPUComputePipeline | null> {
     private mLoadedPipeline: GPUComputePipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;

@@ -1,8 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
-import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
-import { GpuBuffer } from './gpu-buffer';
+import { GpuLimit } from '../constant/gpu-limit.enum';
 import { StorageBindingType } from '../constant/storage-binding-type.enum';
-import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
+import { GpuBuffer } from './gpu-buffer';
+import { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout';
 
 /**
  * Create a view to look at a gpu buffer.

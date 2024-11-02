@@ -1,6 +1,5 @@
-import { BindGroup } from '../../source/binding/bind-group';
-import { BindGroupLayout } from '../../source/binding/bind-group-layout';
-import { PipelineData } from '../../source/binding/pipeline-data';
+import { BindGroup } from '../../source/pipeline/bind_group/bind-group';
+import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout';
 import { GpuBuffer } from '../../source/buffer/gpu-buffer';
 import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum';
@@ -18,10 +17,9 @@ import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-
 import { GpuExecution } from '../../source/execution/gpu-execution';
 import { ComputePass } from '../../source/execution/pass/compute-pass';
 import { RenderPass } from '../../source/execution/pass/render-pass';
-import { GpuDevice } from '../../source/gpu/gpu-device';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline';
-import { VertexParameter } from '../../source/pipeline/parameter/vertex-parameter';
-import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/target/render-targets';
+import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter';
+import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets';
 import { VertexFragmentPipeline } from '../../source/pipeline/vertex-fragment-pipeline';
 import { Shader } from '../../source/shader/shader';
 import { ShaderRenderModule } from '../../source/shader/shader-render-module';
@@ -42,6 +40,8 @@ import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, 
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
+import { GpuDevice } from '../../source/device/gpu-device';
+import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data';
 
 const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;

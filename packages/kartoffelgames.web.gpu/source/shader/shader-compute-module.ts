@@ -1,9 +1,12 @@
-import { PipelineLayout } from '../binding/pipeline-layout';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject } from '../gpu_object/gpu-object';
 import { ComputePipeline } from '../pipeline/compute-pipeline';
+import { PipelineLayout } from '../pipeline/pipeline-layout';
 import { Shader } from './shader';
 
+/**
+ * Compute part of a shader programm.
+ */
 export class ShaderComputeModule extends GpuObject {
     private readonly mEntryPoint: string;
     private readonly mShader: Shader;

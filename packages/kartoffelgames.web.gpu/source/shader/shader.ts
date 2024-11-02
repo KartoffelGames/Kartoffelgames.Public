@@ -1,18 +1,22 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ComputeStage } from '../constant/compute-stage.enum';
-import { BindGroupLayout } from '../binding/bind-group-layout';
-import { PipelineLayout } from '../binding/pipeline-layout';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences } from '../gpu/object/gpu-object';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BufferItemFormat } from '../constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum';
-import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
+import { ComputeStage } from '../constant/compute-stage.enum';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject, GpuObjectSetupReferences } from '../gpu_object/gpu-object';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
+import { IGpuObjectSetup } from '../gpu_object/interface/i-gpu-object-setup';
+import { BindGroupLayout } from '../pipeline/bind_group_layout/bind-group-layout';
+import { PipelineLayout } from '../pipeline/pipeline-layout';
+import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout';
 import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
 
+/**
+ * Gpu shader program.
+ * Can be split into its program modules.
+ */
 export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, Set<ComputeStage>>;

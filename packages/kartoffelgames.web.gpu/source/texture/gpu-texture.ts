@@ -1,15 +1,18 @@
 import { Exception } from '@kartoffelgames/core';
+import { GpuLimit } from '../constant/gpu-limit.enum';
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { TextureFormat } from '../constant/texture-format.enum';
 import { TextureUsage } from '../constant/texture-usage.enum';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
-import { GpuLimit } from '../gpu/capabilities/gpu-limit.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
 import { GpuTextureView } from './gpu-texture-view';
+import { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout';
 
+/**
+ * Gpu texture that is alocated on gpu memory.
+ */
 export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> implements IGpuObjectNative<GPUTexture> {
     private mDepth: number;
     private readonly mDimension: TextureDimension;

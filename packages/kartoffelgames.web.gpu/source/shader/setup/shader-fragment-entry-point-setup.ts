@@ -1,8 +1,11 @@
-import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
+import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup';
 import { ShaderSetupReferenceData } from './shader-setup';
 
+/**
+ * Child setup object to render targets to shaders. 
+ */
 export class ShaderFragmentEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, RenderTargetCallback> {
     /**
      * Setup fragment render target.

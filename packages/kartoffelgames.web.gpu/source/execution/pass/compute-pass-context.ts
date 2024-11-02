@@ -1,9 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
-import { PipelineData, PipelineDataGroup } from '../../binding/pipeline-data';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
+import { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data';
 
+/**
+ * Context for a compute pass.
+ * Used to execute compute calles.
+ */
 export class ComputePassContext {
     private readonly mComputeResourceBuffer: ComputePassPassContextRenderBuffer;
     private readonly mEncoder: GPUComputePassEncoder;

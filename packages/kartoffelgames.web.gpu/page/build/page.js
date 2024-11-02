@@ -1503,7 +1503,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const bind_group_layout_1 = __webpack_require__(/*! ../../source/binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
+const bind_group_layout_1 = __webpack_require__(/*! ../../source/pipeline/bind_group_layout/bind-group-layout */ "./source/pipeline/bind_group_layout/bind-group-layout.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../source/buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
@@ -1517,9 +1517,8 @@ const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/cons
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const gpu_device_1 = __webpack_require__(/*! ../../source/gpu/gpu-device */ "./source/gpu/gpu-device.ts");
 const compute_pipeline_1 = __webpack_require__(/*! ../../source/pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
-const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
+const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/render_targets/render-targets */ "./source/pipeline/render_targets/render-targets.ts");
 const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
@@ -1535,6 +1534,7 @@ const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/so
 const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
 const particle_mesh_1 = __webpack_require__(/*! ./meshes/particle-mesh */ "./page/source/meshes/particle-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
+const gpu_device_1 = __webpack_require__(/*! ../../source/device/gpu-device */ "./source/device/gpu-device.ts");
 const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lHeight = 50;
   const lWidth = 50;
@@ -1864,8 +1864,7 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
   const lSkyBoxPipeline = lSkyBoxRenderModule.create(pRenderTargets);
   lSkyBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
-  lSkyBoxPipeline.depthCompare = compare_function_enum_1.CompareFunction.Allways;
-  lSkyBoxPipeline.writeDepth = false;
+  lSkyBoxPipeline.depthConfig(false, compare_function_enum_1.CompareFunction.Allways);
   return {
     pipeline: lSkyBoxPipeline,
     parameter: lMesh,
@@ -1946,7 +1945,7 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create pipeline.
   const lPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
-  lPipeline.writeDepth = false;
+  lPipeline.depthConfig(false);
   lPipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   return {
     pipeline: lPipeline,
@@ -2042,8 +2041,7 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lMesh.create('position-uv', particle_mesh_1.ParticleVertexPositionUvData);
   const lParticlePipeline = lParticleRenderModule.create(pRenderTargets);
   lParticlePipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
-  lParticlePipeline.depthCompare = compare_function_enum_1.CompareFunction.Less;
-  lParticlePipeline.writeDepth = true;
+  lParticlePipeline.depthConfig(true, compare_function_enum_1.CompareFunction.Less);
   lParticlePipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32    
   const lIndirectionBuffer = new gpu_buffer_1.GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([particle_mesh_1.ParticleVertexIndices.length, 0, 0, 0]));
@@ -2527,781 +2525,9 @@ exports.UpdateFpsDisplay = (() => {
 
 /***/ }),
 
-/***/ "./source/binding/bind-group-data-setup.ts":
-/*!*************************************************!*\
-  !*** ./source/binding/bind-group-data-setup.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupDataSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const buffer_item_format_enum_1 = __webpack_require__(/*! ../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const gpu_texture_1 = __webpack_require__(/*! ../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
-const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
-class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pLayout - Target layout.
-   * @param pCurrentData - Current set data.
-   * @param pSetupReference - Setup data references.
-   * @param pDataCallback - Bind data callback.
-   */
-  constructor(pLayout, pCurrentData, pSetupReference, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-    // Set initial data.
-    this.mCurrentData = pCurrentData;
-    this.mBindLayout = pLayout;
-  }
-  /**
-   * Create a view with the attached buffer and binding layout.
-   *
-   * @param pValueType - Number item type of view.
-   *
-   * @returns view of buffer from bind group layout.
-   */
-  asBufferView(pValueType, pDynamicOffsetIndex) {
-    const lData = this.getRaw();
-    if (!(lData instanceof gpu_buffer_1.GpuBuffer)) {
-      throw new core_1.Exception('Bind data can not be converted into a buffer view.', this);
-    }
-    // Read layout buffer.
-    const lBufferLayout = this.mBindLayout.layout;
-    // Create view.
-    return lData.view(lBufferLayout, pValueType, pDynamicOffsetIndex);
-  }
-  createBuffer(pDataOrVariableLength) {
-    // Create empty when no data array is set or fill it with the data array.
-    let lBuffer;
-    if (Array.isArray(pDataOrVariableLength)) {
-      lBuffer = this.createBufferFromArray(pDataOrVariableLength);
-    } else {
-      lBuffer = this.createEmptyBuffer(pDataOrVariableLength);
-    }
-    // Send created data.
-    this.sendData(lBuffer);
-    return lBuffer;
-  }
-  /**
-   * Create and init buffer with raw array buffer data.
-   * Data needs to have the right alignment and size.
-   *
-   * @param pData - Raw data.
-   *
-   * @returns - Created buffer.
-   */
-  createBufferWithRawData(pData) {
-    // Layout must be a buffer memory layout.
-    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
-    }
-    // Calculate variable item count from initial buffer data.  
-    const lVariableItemCount = (() => {
-      // No need to calculate was it is allways zero.
-      if (this.mBindLayout.layout.variableSize === 0) {
-        return 0;
-      }
-      // Get initial buffer data byte length.
-      const lBufferByteLength = pData.byteLength;
-      // calculate item count and check if initial data meets requirments.
-      const lItemCount = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
-      if (lItemCount % 1 > 0) {
-        throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet alignment.`, this);
-      }
-      return lItemCount;
-    })();
-    // Calculate buffer size with correct alignment.
-    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-    if (this.mBindLayout.hasDynamicOffset) {
-      // Read correct alignment limitations for storage type.
-      const lOffsetAlignment = (() => {
-        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
-        } else {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
-        }
-      })();
-      // Apply offset alignment to byte size.
-      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
-      lByteSize *= Math.floor(pData.byteLength / lByteSize);
-    }
-    // Validate size.
-    if (pData.byteLength !== lByteSize) {
-      throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteSize} => Has:${pData.byteLength}) requirements.`, this);
-    }
-    // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize).initialData(pData);
-    // Send created data.
-    this.sendData(lBuffer);
-    return lBuffer;
-  }
-  /**
-   * Create new sampler.
-   *
-   * @returns created texture sampler.
-   */
-  createSampler() {
-    // Layout must be a sampler memory layout.
-    if (!(this.mBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for samplers.`, this);
-    }
-    // Create texture sampler.
-    const lSampler = new texture_sampler_1.TextureSampler(this.device, this.mBindLayout.layout);
-    // Send created data.
-    this.sendData(lSampler);
-    return lSampler;
-  }
-  /**
-   * Create texture view.
-   * Generates a new texture.
-   *
-    * @returns created texture view.
-   */
-  createTexture() {
-    // Layout must be a texture viw memory layout.
-    if (!(this.mBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for image textures.`, this);
-    }
-    // Generate texture dimension from view dimensions.
-    const lTextureDimension = (() => {
-      switch (this.mBindLayout.layout.dimension) {
-        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
-          {
-            return texture_dimension_enum_1.TextureDimension.OneDimension;
-          }
-        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
-        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
-        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
-        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
-          {
-            return texture_dimension_enum_1.TextureDimension.TwoDimension;
-          }
-        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
-          {
-            return texture_dimension_enum_1.TextureDimension.ThreeDimension;
-          }
-      }
-    })();
-    // Create texture.
-    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
-      dimension: lTextureDimension,
-      format: this.mBindLayout.layout.format,
-      multisampled: this.mBindLayout.layout.multisampled
-    });
-    // Create view from texture.
-    const lTextureView = lTexture.useAs(this.mBindLayout.layout.dimension);
-    // Send created texture to parent bind group.
-    this.sendData(lTextureView);
-    return lTextureView;
-  }
-  /**
-   * Get current binded data.
-   *
-   * @returns current set bind data.
-   *
-   * @throws {@link Exception}
-   * When no data was set.
-   */
-  getRaw() {
-    // Validate existence.
-    if (!this.mCurrentData) {
-      throw new core_1.Exception('No binding data was set.', this);
-    }
-    // Return current set data.
-    return this.mCurrentData;
-  }
-  /**
-   * Set already created bind data.
-   *
-   * @param pData - Created data.
-   *
-   * @returns set data.
-   */
-  set(pData) {
-    this.sendData(pData);
-    // Return same data.
-    return pData;
-  }
-  /**
-   * Create na new buffer.
-   *
-   * @param pData - Buffer data without right alignment.
-   *
-   * @returns created buffer.
-   */
-  createBufferFromArray(pData) {
-    // Layout must be a buffer memory layout.
-    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
-    }
-    // Unwrap layout.
-    const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
-    // Validate data length that should be written.
-    if (lUnwrapedLayout.fixedItemCount > pData.length) {
-      throw new core_1.Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
-    }
-    // Get variable data repetitions.
-    let lVariableRepetitionCount = 0;
-    if (lUnwrapedLayout.variableItemCount > 0) {
-      lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
-    }
-    // Variable count should be an integer.
-    if (lVariableRepetitionCount % 1 !== 0) {
-      throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
-    }
-    // Calculate buffer size with correct alignment.
-    let lDynamicOffsetAlignment = -1;
-    let lDynamicOffsetCount = 1;
-    let lByteSize = (lVariableRepetitionCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-    if (this.mBindLayout.hasDynamicOffset) {
-      // Read correct alignment limitations for storage type.
-      lDynamicOffsetAlignment = (() => {
-        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
-        } else {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
-        }
-      })();
-      // Calculate dynamic offset count from data length.
-      lDynamicOffsetCount = pData.length / lUnwrapedLayout.fixedItemCount;
-      // Apply offset alignment to byte size.
-      lByteSize = Math.ceil(lByteSize / lDynamicOffsetAlignment) * lDynamicOffsetAlignment;
-      lByteSize *= lDynamicOffsetCount;
-    }
-    // Create buffer with correct length.
-    const lBufferData = new ArrayBuffer(lByteSize);
-    const lBufferDataView = new DataView(lBufferData);
-    // Write data.
-    let lDataIndex = 0;
-    let lByteOffset = 0;
-    const lWriteLayout = (pUnwrappedLayout, pOverwrittenAlignment = -1) => {
-      const lLayoutAlignment = pOverwrittenAlignment !== -1 ? pOverwrittenAlignment : pUnwrappedLayout.alignment;
-      // Apply layout alignment to offset.
-      lByteOffset = Math.ceil(lByteOffset / lLayoutAlignment) * lLayoutAlignment;
-      // buffer layout is a layered format.
-      if (Array.isArray(pUnwrappedLayout.format)) {
-        // Set repetition count to variable count when layout repetition count is uncapped.
-        const lRepetitionCount = pUnwrappedLayout.count !== -1 ? pUnwrappedLayout.count : lVariableRepetitionCount;
-        for (let lLayoutRepetionIndex = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
-          // Add each inner format.
-          for (const lInnerFormat of pUnwrappedLayout.format) {
-            lWriteLayout(lInnerFormat);
-          }
-        }
-        return;
-      }
-      // write each single number.
-      for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
-        // Add and iterate data.
-        this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
-        lDataIndex++;
-        // Increase offset by format byte count.
-        lByteOffset += pUnwrappedLayout.format.itemByteCount;
-      }
-    };
-    // Repeat layout for each dynamic offset.
-    for (let lOffsetIndex = 0; lOffsetIndex < lDynamicOffsetCount; lOffsetIndex++) {
-      lWriteLayout(lUnwrapedLayout, lDynamicOffsetAlignment);
-    }
-    // Create buffer with initial data.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
-    return lBuffer;
-  }
-  /**
-   * Create a empty buffer.
-   *
-   * @param pVariableSizeCount - Variable item count.
-   *
-   * @returns - Created buffer.
-   */
-  createEmptyBuffer(pVariableSizeCount = null) {
-    // Layout must be a buffer memory layout.
-    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
-    }
-    // Calculate variable item count from initial buffer data.  
-    const lVariableItemCount = (() => {
-      // Use set variable count.
-      if (pVariableSizeCount !== null) {
-        return pVariableSizeCount;
-      }
-      // No need to calculate was it is allways zero.
-      if (this.mBindLayout.layout.variableSize === 0) {
-        return 0;
-      }
-      throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
-    })();
-    // Calculate buffer size with correct alignment.
-    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
-    if (this.mBindLayout.hasDynamicOffset) {
-      // Read correct alignment limitations for storage type.
-      const lOffsetAlignment = (() => {
-        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
-        } else {
-          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
-        }
-      })();
-      // Apply offset alignment to byte size.
-      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
-      lByteSize *= pVariableSizeCount ?? 1;
-    }
-    // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
-    return lBuffer;
-  }
-  /**
-   * Set data in little endian according to the set item format and offset.
-   *
-   * @param pBufferDataView - Data view of buffer.
-   * @param pByteOffset - Byte offset in buffer.
-   * @param pFormat - Format to write.
-   * @param pData - Data to write.
-   */
-  setBufferData(pBufferDataView, pByteOffset, pFormat, pData) {
-    switch (pFormat) {
-      case buffer_item_format_enum_1.BufferItemFormat.Float32:
-        {
-          pBufferDataView.setFloat32(pByteOffset, pData, true);
-          break;
-        }
-      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
-        {
-          pBufferDataView.setUint32(pByteOffset, pData, true);
-          break;
-        }
-      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
-        {
-          pBufferDataView.setInt32(pByteOffset, pData, true);
-          break;
-        }
-      // Unsupported
-      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
-      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
-      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
-      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
-      case buffer_item_format_enum_1.BufferItemFormat.Float16:
-      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
-      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
-      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
-      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
-      default:
-        {
-          throw new core_1.Exception(`Currently "${pFormat}" is not supported for uniform parameter.`, this);
-        }
-    }
-  }
-  /**
-   * Unwrap layout.
-   *
-   * @param pLayout - Buffer layout.
-   *
-   * @returns - unwrapped layout.
-   */
-  unwrapLayouts(pLayout) {
-    // Recursion end condition. Primitives have no inner formats.
-    if (pLayout instanceof primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout) {
-      // Read item count and format of parameter.
-      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pLayout.itemMultiplier);
-      const lParameterItemFormat = pLayout.itemFormat;
-      // Add formats for each item of parameter.
-      return {
-        // Global data.
-        fixedItemCount: lParameterItemCount,
-        variableItemCount: 0,
-        // Local layout data.
-        count: lParameterItemCount,
-        alignment: pLayout.alignment,
-        format: {
-          itemFormat: lParameterItemFormat,
-          itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
-        }
-      };
-    }
-    // Recursive array.
-    if (pLayout instanceof array_buffer_memory_layout_1.ArrayBufferMemoryLayout) {
-      // Unwrap inner format.
-      const lInnerFormatUnwrapped = this.unwrapLayouts(pLayout.innerType);
-      // Add formats for each item of parameter.
-      return {
-        // Global data.
-        fixedItemCount: Math.max(pLayout.arraySize, 0) * lInnerFormatUnwrapped.fixedItemCount,
-        variableItemCount: pLayout.variableSize > 0 ? lInnerFormatUnwrapped.fixedItemCount : 0,
-        // Local layout data.
-        count: pLayout.fixedSize || -1,
-        alignment: pLayout.alignment,
-        format: [lInnerFormatUnwrapped]
-      };
-    }
-    // Recursive struct.
-    if (pLayout instanceof struct_buffer_memory_layout_1.StructBufferMemoryLayout) {
-      let lFixedItemCount = 0;
-      let lVariableItemCount = 0;
-      // Create new unwrapped layout for each property.
-      const lPropertyFormats = new Array();
-      for (const lProperty of pLayout.properties) {
-        // Unwrap property format.
-        const lPropertyFormatUnwrapped = this.unwrapLayouts(lProperty.layout);
-        // Count of fixed and variable item size.
-        lFixedItemCount += lPropertyFormatUnwrapped.fixedItemCount;
-        lVariableItemCount += lPropertyFormatUnwrapped.variableItemCount;
-        lPropertyFormats.push(lPropertyFormatUnwrapped);
-      }
-      // Add formats for each item of parameter.
-      return {
-        // Global data.
-        fixedItemCount: lFixedItemCount,
-        variableItemCount: lVariableItemCount,
-        // Local layout data.
-        count: 1,
-        alignment: pLayout.alignment,
-        format: lPropertyFormats
-      };
-    }
-    throw new core_1.Exception('Memory layout not suppored for bindings', this);
-  }
-}
-exports.BindGroupDataSetup = BindGroupDataSetup;
-
-/***/ }),
-
-/***/ "./source/binding/bind-group-layout.ts":
-/*!*********************************************!*\
-  !*** ./source/binding/bind-group-layout.ts ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
-const bind_group_layout_setup_1 = __webpack_require__(/*! ./setup/bind-group-layout-setup */ "./source/binding/setup/bind-group-layout-setup.ts");
-/**
- * Bind group layout. Fixed at creation.
- */
-class BindGroupLayout extends gpu_object_1.GpuObject {
-  /**
-   * Bindgroup has a dynamic offset binding.
-   */
-  get hasDynamicOffset() {
-    return this.mHasDynamicOffset;
-  }
-  /**
-   * Bind group name.
-   */
-  get name() {
-    return this.mName;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Get binding names ordered by index.
-   */
-  get orderedBindingNames() {
-    // Ensure setup.
-    this.ensureSetup();
-    return this.mOrderedBindingNames;
-  }
-  /**
-   * Resource counter.
-   */
-  get resourceCounter() {
-    return this.mResourceCounter;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Gpu Device reference.
-   * @param pName - Name of binding group.
-   */
-  constructor(pDevice, pName) {
-    super(pDevice);
-    // Set binding group name.
-    this.mName = pName;
-    this.mHasDynamicOffset = false;
-    this.mResourceCounter = {
-      storageDynamicOffset: 0,
-      uniformDynamicOffset: 0,
-      sampler: 0,
-      sampledTextures: 0,
-      storageTextures: 0,
-      storageBuffers: 0,
-      uniformBuffers: 0
-    };
-    // Init bindings.
-    this.mBindings = new core_1.Dictionary();
-    this.mOrderedBindingNames = new Array();
-  }
-  /**
-   * Create new bind group from layout.
-   *
-   * @returns new bind group.
-   */
-  create() {
-    // Ensure setup.
-    this.ensureSetup();
-    return new bind_group_1.BindGroup(this.device, this);
-  }
-  /**
-   * Get full bind information.
-   * @param pName - Bind name.
-   */
-  getBind(pName) {
-    // Ensure setup.
-    this.ensureSetup();
-    if (!this.mBindings.has(pName)) {
-      throw new core_1.Exception(`Bind ${pName} does not exist.`, this);
-    }
-    return this.mBindings.get(pName);
-  }
-  /**
-   * Call setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns — this.
-   */
-  setup(pSetupCallback) {
-    return super.setup(pSetupCallback);
-  }
-  /**
-   * Generate native bind data group layout object.
-   */
-  generateNative() {
-    const lEntryList = new Array();
-    // Generate layout entry for each binding.
-    for (const lEntry of this.mBindings.values()) {
-      // Generate default properties.
-      const lLayoutEntry = {
-        visibility: lEntry.visibility,
-        binding: lEntry.index
-      };
-      // Different binding for different
-      switch (true) {
-        // Buffer layouts.
-        case lEntry.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout:
-          {
-            // Convert bind type info bufer binding type.
-            const lBufferBindingType = (() => {
-              switch (lEntry.storageType) {
-                case storage_binding_type_enum_1.StorageBindingType.None:
-                  {
-                    return 'uniform';
-                  }
-                case storage_binding_type_enum_1.StorageBindingType.Read:
-                  {
-                    return 'read-only-storage';
-                  }
-                default:
-                  {
-                    return 'storage';
-                  }
-              }
-            })();
-            // Create buffer layout with all optional values.
-            lLayoutEntry.buffer = {
-              type: lBufferBindingType,
-              minBindingSize: 0,
-              hasDynamicOffset: lEntry.hasDynamicOffset
-            };
-            break;
-          }
-        // Sampler layouts.
-        case lEntry.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout:
-          {
-            // Create sampler layout with all optional values.
-            lLayoutEntry.sampler = {
-              type: lEntry.layout.samplerType
-            };
-            break;
-          }
-        // Texture layouts.
-        case lEntry.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
-          {
-            // Uniform bind when without storage binding.
-            if (lEntry.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-              // Read texture capabilities.
-              const lTextureFormatCapabilities = this.device.formatValidator.capabilityOf(lEntry.layout.format);
-              // Create image texture bind information.
-              lLayoutEntry.texture = {
-                sampleType: lTextureFormatCapabilities.sampleTypes.primary,
-                multisampled: lEntry.layout.multisampled,
-                viewDimension: lEntry.layout.dimension
-              };
-              break;
-            }
-            // Storage textures need to be write only.
-            let lStorageAccess;
-            switch (lEntry.storageType) {
-              case storage_binding_type_enum_1.StorageBindingType.ReadWrite:
-                {
-                  lStorageAccess = 'read-write';
-                  break;
-                }
-              case storage_binding_type_enum_1.StorageBindingType.Write:
-                {
-                  lStorageAccess = 'write-only';
-                  break;
-                }
-              case storage_binding_type_enum_1.StorageBindingType.Read:
-                {
-                  lStorageAccess = 'read-only';
-                  break;
-                }
-            }
-            // Create storage texture bind information.
-            lLayoutEntry.storageTexture = {
-              access: lStorageAccess,
-              format: lEntry.layout.format,
-              viewDimension: lEntry.layout.dimension
-            };
-          }
-      }
-      // Add binding entry to bindings.
-      lEntryList.push(lLayoutEntry);
-    }
-    // Create binding group layout.
-    return this.device.gpu.createBindGroupLayout({
-      label: `BindGroupLayout-${this.mName}`,
-      entries: lEntryList
-    });
-  }
-  /**
-   * Setup bind group.
-   *
-   * @param pReferences - Setup data references.
-   */
-  onSetup(pReferences) {
-    // Check capabilities.
-    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindingsPerBindGroup);
-    if (pReferences.bindings.length > lMaxBindGroupCount - 1) {
-      throw new core_1.Exception(`Bind group "${this.mName}" exceeds max binding count.`, this);
-    }
-    // Validation set.
-    const lBindingIndices = new Set();
-    const lBindingName = new Set();
-    // Add each binding.
-    for (const lBinding of pReferences.bindings) {
-      // Validate layout.
-      if (!lBinding.layout) {
-        throw new core_1.Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
-      }
-      // Only buffers can have a dynamic offset.
-      if (lBinding.hasDynamicOffset && !(lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
-      }
-      // Buffers with dynamic offsets must be fixed in size.
-      if (lBinding.hasDynamicOffset && lBinding.layout.variableSize > 0) {
-        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
-      }
-      // Layout validation for 32bit formats are in setup.
-      // Shallow copy binding.
-      this.mBindings.set(lBinding.name, {
-        name: lBinding.name,
-        index: lBinding.index,
-        layout: lBinding.layout,
-        visibility: lBinding.visibility,
-        storageType: lBinding.storageType,
-        hasDynamicOffset: lBinding.hasDynamicOffset
-      });
-      // Set dynamic offset flag when any is active.
-      if (lBinding.hasDynamicOffset) {
-        this.mHasDynamicOffset = true;
-        // Count dynamic resources
-        if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-          this.mResourceCounter.uniformDynamicOffset++;
-        } else {
-          this.mResourceCounter.storageDynamicOffset++;
-        }
-      }
-      // Validate dublicate indices.
-      if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
-        throw new core_1.Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
-      }
-      // Add binding index to already binded indices. 
-      lBindingIndices.add(lBinding.index);
-      lBindingName.add(lBinding.name);
-      // Add binding ordered by index.
-      this.mOrderedBindingNames[lBinding.index] = lBinding.name;
-      // Count resources.
-      switch (true) {
-        case lBinding.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout:
-          {
-            this.mResourceCounter.sampler++;
-            break;
-          }
-        case lBinding.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
-          {
-            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-              this.mResourceCounter.sampledTextures++;
-            } else {
-              this.mResourceCounter.storageTextures++;
-            }
-            break;
-          }
-        case lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout:
-          {
-            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-              this.mResourceCounter.uniformBuffers++;
-            } else {
-              this.mResourceCounter.storageBuffers++;
-            }
-            break;
-          }
-      }
-    }
-  }
-  /**
-   * Create setup object. Return null to skip any setups.
-   *
-   * @param pReferences - Setup references.
-   *
-   * @returns setup.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new bind_group_layout_setup_1.BindGroupLayoutSetup(pReferences);
-  }
-}
-exports.BindGroupLayout = BindGroupLayout;
-
-/***/ }),
-
-/***/ "./source/binding/bind-group.ts":
+/***/ "./source/base-memory-layout.ts":
 /*!**************************************!*\
-  !*** ./source/binding/bind-group.ts ***!
+  !*** ./source/base-memory-layout.ts ***!
   \**************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -3311,849 +2537,22 @@ exports.BindGroupLayout = BindGroupLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.BindGroupInvalidationType = exports.BindGroup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const gpu_texture_view_1 = __webpack_require__(/*! ../texture/gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
-const texture_sampler_1 = __webpack_require__(/*! ../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
-const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/binding/bind-group-data-setup.ts");
-class BindGroup extends gpu_object_1.GpuObject {
+exports.BaseMemoryLayout = void 0;
+const gpu_object_1 = __webpack_require__(/*! ./gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Base memory layout.
+ * Represents a memory slot used by a shader.
+ */
+class BaseMemoryLayout extends gpu_object_1.GpuObject {
   /**
-   * Layout of bind group.
+   * Constuctor.
+   * @param pDevice - Device reference.
    */
-  get layout() {
-    return this.mLayout;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Gpu Device reference.
-   */
-  constructor(pDevice, pBindGroupLayout) {
+  constructor(pDevice) {
     super(pDevice);
-    this.mLayout = pBindGroupLayout;
-    this.mBindData = new core_1.Dictionary();
-    this.mDataInvalidationListener = new WeakMap();
-  }
-  /**
-   * Read binding data references.
-   *
-   * @param pBindName - Binding name.
-   *
-   * @returns Data setup object.
-   */
-  data(pBindName) {
-    const lBindLayout = this.mLayout.getBind(pBindName);
-    const lData = this.mBindData.get(pBindName) ?? null;
-    // Construct setup data to data.
-    const lDataSetupReferences = {
-      device: this.device,
-      inSetup: true,
-      // No need to defuse setup.
-      data: null
-    };
-    return new bind_group_data_setup_1.BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, pData => {
-      // Validate if layout fits bind data and dynamicly extend usage type of bind data.
-      switch (true) {
-        // Textures must use a buffer memory layout.
-        case pData instanceof gpu_buffer_1.GpuBuffer:
-          {
-            if (!(lBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
-              throw new core_1.Exception(`Buffer added to bind data "${pBindName}" but binding does not expect a buffer.`, this);
-            }
-            // Extend buffer usage based on if it is a storage or not.
-            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
-              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Storage);
-            } else {
-              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Uniform);
-            }
-            break;
-          }
-        // Samplers must use a texture sampler memory layout.
-        case pData instanceof texture_sampler_1.TextureSampler:
-          {
-            if (!(lBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
-              throw new core_1.Exception(`Texture sampler added to bind data "${pBindName}" but binding does not expect a texture sampler.`, this);
-            }
-            break;
-          }
-        // Textures must use a texture memory layout.
-        case pData instanceof gpu_texture_view_1.GpuTextureView:
-          {
-            if (!(lBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
-              throw new core_1.Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
-            }
-            // Extend buffer usage based on if it is a storage or not.
-            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
-              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
-            } else {
-              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
-            }
-            break;
-          }
-        default:
-          {
-            throw new core_1.Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
-          }
-      }
-      // Remove invalidationlistener from old data.
-      const lOldData = this.mBindData.get(pBindName);
-      if (lOldData) {
-        const lBindDataInvalidationListener = this.mDataInvalidationListener.get(lOldData);
-        if (lBindDataInvalidationListener) {
-          lOldData.removeInvalidationListener(lBindDataInvalidationListener);
-        }
-      }
-      // Set data.
-      this.mBindData.set(pBindName, pData);
-      // Trigger update data is invalid.
-      pData.addInvalidationListener(() => {
-        this.invalidate(BindGroupInvalidationType.NativeRebuild);
-      }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-      // Trigger update on data change. 
-      this.invalidate(BindGroupInvalidationType.NativeRebuild);
-    });
-  }
-  /**
-   * Generate native gpu bind data group.
-   */
-  generateNative() {
-    // Invalidate group.
-    this.invalidate(BindGroupInvalidationType.NativeRebuild);
-    const lEntryList = new Array();
-    for (const lBindname of this.layout.orderedBindingNames) {
-      // Read bind data.
-      const lBindData = this.mBindData.get(lBindname);
-      if (!lBindData) {
-        throw new core_1.Exception(`Data for binding "${lBindname}" is not set.`, this);
-      }
-      // Read bind layout.
-      const lBindLayout = this.layout.getBind(lBindname);
-      // Set resource to group entry for each 
-      const lGroupEntry = {
-        binding: lBindLayout.index,
-        resource: null
-      };
-      // Buffer bind.
-      if (lBindData instanceof gpu_buffer_1.GpuBuffer) {
-        lGroupEntry.resource = {
-          buffer: lBindData.native
-        };
-        // Fix buffer size when it has dynamic offsets.
-        if (lBindLayout.hasDynamicOffset) {
-          lGroupEntry.resource.size = lBindLayout.layout.fixedSize;
-        }
-        lEntryList.push(lGroupEntry);
-        continue;
-      }
-      // Sampler bind
-      if (lBindData instanceof texture_sampler_1.TextureSampler) {
-        lGroupEntry.resource = lBindData.native;
-        lEntryList.push(lGroupEntry);
-        continue;
-      }
-      // Texture bind.
-      if (lBindData instanceof gpu_texture_view_1.GpuTextureView) {
-        lGroupEntry.resource = lBindData.native;
-        lEntryList.push(lGroupEntry);
-        continue;
-      }
-      throw new core_1.Exception(`Bind type for "${lBindData}" not supported`, this);
-    }
-    return this.device.gpu.createBindGroup({
-      label: 'Bind-Group',
-      layout: this.layout.native,
-      entries: lEntryList
-    });
   }
 }
-exports.BindGroup = BindGroup;
-var BindGroupInvalidationType;
-(function (BindGroupInvalidationType) {
-  BindGroupInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(BindGroupInvalidationType || (exports.BindGroupInvalidationType = BindGroupInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/binding/pipeline-data-group-setup.ts":
-/*!*****************************************************!*\
-  !*** ./source/binding/pipeline-data-group-setup.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PipelineDataGroupSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-class PipelineDataGroupSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Apply offset to bind group.
-   *
-   * @param pBindingName - Name of one of binding sof group.
-   * @param pOffsetIndex - Offset index.
-   *
-   * @returns this.
-   */
-  withOffset(pBindingName, pOffsetIndex) {
-    this.sendData({
-      bindingName: pBindingName,
-      offsetIndex: pOffsetIndex
-    });
-    return this;
-  }
-}
-exports.PipelineDataGroupSetup = PipelineDataGroupSetup;
-
-/***/ }),
-
-/***/ "./source/binding/pipeline-data-setup.ts":
-/*!***********************************************!*\
-  !*** ./source/binding/pipeline-data-setup.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PipelineDataSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const pipeline_data_group_setup_1 = __webpack_require__(/*! ./pipeline-data-group-setup */ "./source/binding/pipeline-data-group-setup.ts");
-class PipelineDataSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Add bind group to pipeline data.
-   *
-   * @param pBindGroup - Bind group.
-   *
-   * @returns group setup.
-   */
-  addGroup(pBindGroup) {
-    // Create binding group information.
-    const lBindGroup = {
-      bindGroup: pBindGroup,
-      offsets: new core_1.Dictionary()
-    };
-    this.setupData.groups.push(lBindGroup);
-    // Can be used to add "optional" binding offsets to bind group.
-    return new pipeline_data_group_setup_1.PipelineDataGroupSetup(this.setupReferences, pBindingOffsets => {
-      lBindGroup.offsets.set(pBindingOffsets.bindingName, pBindingOffsets.offsetIndex);
-    });
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data reference.
-   */
-  fillDefaultData(pDataReference) {
-    pDataReference.groups = new Array();
-  }
-}
-exports.PipelineDataSetup = PipelineDataSetup;
-
-/***/ }),
-
-/***/ "./source/binding/pipeline-data.ts":
-/*!*****************************************!*\
-  !*** ./source/binding/pipeline-data.ts ***!
-  \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PipelineDataInvalidationType = exports.PipelineData = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/binding/bind-group.ts");
-const pipeline_data_setup_1 = __webpack_require__(/*! ./pipeline-data-setup */ "./source/binding/pipeline-data-setup.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-class PipelineData extends gpu_object_1.GpuObject {
-  /**
-   * Orderes pipeline data.
-   */
-  get data() {
-    // Setup needed.
-    this.ensureSetup();
-    return this.mOrderedBindData;
-  }
-  /**
-   * Pipline layout of data.
-   */
-  get layout() {
-    return this.mLayout;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pPipelineLayout - Pipeline data.
-   * @param pBindData - Every bind data of pipeline layout.
-   */
-  constructor(pDevice, pPipelineLayout) {
-    super(pDevice);
-    // Set pipeline layout.
-    this.mLayout = pPipelineLayout;
-    // Easy access dictionary.
-    this.mBindData = new core_1.Dictionary();
-    // Invalidate pipeline data when any data has changed.
-    this.mInvalidationListener = () => {
-      this.invalidate(PipelineDataInvalidationType.Data);
-    };
-    this.mOrderedBindData = new Array();
-  }
-  /**
-   * Deconstruct native object.
-   */
-  deconstruct() {
-    super.deconstruct();
-    // Remove all invalidation listener from bind groups.
-    for (const lBindGroup of this.mOrderedBindData) {
-      lBindGroup.bindGroup.removeInvalidationListener(this.mInvalidationListener);
-    }
-  }
-  /**
-   * Get bind group by name.
-   *
-   * @param pBindGroupName  - Bind group name.
-   *
-   * @returns bind group.
-   */
-  group(pBindGroupName) {
-    if (!this.mBindData.has(pBindGroupName)) {
-      throw new core_1.Exception(`Bind group "${pBindGroupName}" does not exists in pipeline data.`, this);
-    }
-    return this.mBindData.get(pBindGroupName);
-  }
-  /**
-   * Call setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns — this.
-   */
-  setup(pSetupCallback) {
-    return super.setup(pSetupCallback);
-  }
-  /**
-   * Setup pipeline data.
-   *
-   * @param pReferences - Setup data references.
-   */
-  onSetup(pReferences) {
-    // All bind groups must be set.
-    if (this.mLayout.groups.length !== pReferences.groups.length) {
-      // Generate a better error message.
-      for (const lGroupName of this.mLayout.groups) {
-        // Get and validate existence of set bind group.
-        const lBindGroupSetupData = pReferences.groups.find(pBindGroup => {
-          return pBindGroup.bindGroup.layout.name === lGroupName;
-        });
-        if (!lBindGroupSetupData) {
-          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
-        }
-      }
-    }
-    // Validate and order bind data.
-    for (const lBindGroupSetupData of pReferences.groups) {
-      const lBindGroupName = lBindGroupSetupData.bindGroup.layout.name;
-      const lBindGroupIndex = this.mLayout.groupIndex(lBindGroupName);
-      const lBindGroup = lBindGroupSetupData.bindGroup;
-      // Only distinct bind group names.
-      if (this.mOrderedBindData[lBindGroupIndex]) {
-        throw new core_1.Exception(`Bind group "${lBindGroupName}" was added multiple times to render pass step.`, this);
-      }
-      // Validate same layout bind layout.
-      const lBindGroupLayout = this.mLayout.getGroupLayout(lBindGroupName);
-      if (lBindGroup.layout !== lBindGroupLayout) {
-        throw new core_1.Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
-      }
-      // Restrict double names.
-      if (this.mBindData.has(lBindGroupName)) {
-        throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
-      }
-      // When the bind group has dynamic offsets, build a array of it.
-      const lPipelineDataGroup = {
-        offsetId: '',
-        bindGroup: lBindGroup,
-        offsets: new Array()
-      };
-      if (lBindGroupLayout.hasDynamicOffset) {
-        for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
-          // Skip any binding not having a dynamic offset.
-          const lBindingLayout = lBindGroupLayout.getBind(lBindingName);
-          if (!lBindingLayout.hasDynamicOffset) {
-            continue;
-          }
-          // Dynamic bindings need a offset.
-          if (!lBindGroupSetupData.offsets.has(lBindingName)) {
-            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} requires a offset."`, this);
-          }
-          // Read correct alignment limitations for storage type.
-          const lOffsetAlignment = (() => {
-            if (lBindingLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
-              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
-            } else {
-              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
-            }
-          })();
-          // Read and validate assigned offset index of binding.
-          const lBindingDynamicOffsetIndex = lBindGroupSetupData.offsets.get(lBindingName);
-          // Get offset byte count.
-          const lBufferMemoryLayout = lBindingLayout.layout;
-          const lSingleLayoutLength = Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment;
-          // Read buffer size and validate if it meets offset bound.
-          const lBufferSize = lBindGroup.data(lBindingName).getRaw().size;
-          if (Math.floor(lBufferSize / lSingleLayoutLength) <= lBindingDynamicOffsetIndex) {
-            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
-          }
-          // Save offset byte count in order.
-          lPipelineDataGroup.offsets.push(lSingleLayoutLength * lBindingDynamicOffsetIndex);
-        }
-        // Rebuild offset "id".
-        lPipelineDataGroup.offsetId = lPipelineDataGroup.offsets.join('-');
-      }
-      // Set name to bind group mapping.
-      this.mBindData.set(lBindGroupName, lPipelineDataGroup);
-      // Set bind group.
-      this.mOrderedBindData[lBindGroupIndex] = lPipelineDataGroup;
-      // Invalidate native data when bind group has changed.
-      lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
-    }
-  }
-  /**
-   * Create setup object. Return null to skip any setups.
-   *
-   * @param pReferences - Setup references.
-   *
-   * @returns setup.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new pipeline_data_setup_1.PipelineDataSetup(pReferences);
-  }
-}
-exports.PipelineData = PipelineData;
-var PipelineDataInvalidationType;
-(function (PipelineDataInvalidationType) {
-  PipelineDataInvalidationType["Data"] = "DataChange";
-})(PipelineDataInvalidationType || (exports.PipelineDataInvalidationType = PipelineDataInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/binding/pipeline-layout.ts":
-/*!*******************************************!*\
-  !*** ./source/binding/pipeline-layout.ts ***!
-  \*******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.PipelineLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const pipeline_data_1 = __webpack_require__(/*! ./pipeline-data */ "./source/binding/pipeline-data.ts");
-class PipelineLayout extends gpu_object_1.GpuObject {
-  /**
-   * Bind group names.
-   */
-  get groups() {
-    return [...this.mBindGroupNames.keys()];
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Gpu Device reference.
-   * @param pInitialGroups - Initial groups.
-   */
-  constructor(pDevice, pInitialGroups) {
-    super(pDevice);
-    // Init storages.
-    this.mBindGroupNames = new core_1.Dictionary();
-    this.mBindGroups = new core_1.Dictionary();
-    // Pipeline global resource counter.
-    const lMaxCounter = {
-      dynamicStorageBuffers: 0,
-      dynamicUniformBuffers: 0,
-      sampler: 0,
-      sampledTextures: 0,
-      storageTextures: 0,
-      uniformBuffers: 0,
-      storageBuffers: 0
-    };
-    // Set initial work groups.
-    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindGroups);
-    for (const [lGroupIndex, lGroup] of pInitialGroups) {
-      if (lGroupIndex > lMaxBindGroupCount - 1) {
-        throw new core_1.Exception(`Bind group limit exceeded with index: ${lGroupIndex} and group "${lGroup.name}"`, this);
-      }
-      // Restrict dublicate names.
-      if (this.mBindGroupNames.has(lGroup.name)) {
-        throw new core_1.Exception(`Can add group name "${lGroup.name}" only once.`, this);
-      }
-      // Restrict dublicate locations.
-      if (this.mBindGroups.has(lGroupIndex)) {
-        throw new core_1.Exception(`Can add group location index "${lGroupIndex}" only once.`, this);
-      }
-      // Set name to index mapping.
-      this.mBindGroupNames.set(lGroup.name, lGroupIndex);
-      // Set bind groups to bind group.
-      this.mBindGroups.set(lGroupIndex, lGroup);
-      // Count counters.
-      lMaxCounter.dynamicStorageBuffers += lGroup.resourceCounter.storageDynamicOffset;
-      lMaxCounter.dynamicUniformBuffers += lGroup.resourceCounter.uniformDynamicOffset;
-      lMaxCounter.sampler += lGroup.resourceCounter.sampler;
-      lMaxCounter.sampledTextures += lGroup.resourceCounter.sampledTextures;
-      lMaxCounter.storageTextures += lGroup.resourceCounter.storageTextures;
-      lMaxCounter.uniformBuffers += lGroup.resourceCounter.uniformBuffers;
-      lMaxCounter.storageBuffers += lGroup.resourceCounter.storageBuffers;
-    }
-    // Max dynamic storage buffers.
-    if (lMaxCounter.dynamicStorageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)) {
-      throw new core_1.Exception(`Max dynamic storage buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicStorageBuffers}"`, this);
-    }
-    // Max dynamic unform buffers.
-    if (lMaxCounter.dynamicUniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)) {
-      throw new core_1.Exception(`Max dynamic uniform buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicUniformBuffers}"`, this);
-    }
-    // Max sampler. Ignore shader stage limitation. Just apply it to the complete pipeline.
-    if (lMaxCounter.sampler > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)) {
-      throw new core_1.Exception(`Max sampler reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)}" has "${lMaxCounter.sampler}"`, this);
-    }
-    // Max sampled textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
-    if (lMaxCounter.sampledTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)) {
-      throw new core_1.Exception(`Max sampled textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)}" has "${lMaxCounter.sampledTextures}"`, this);
-    }
-    // Max storage textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
-    if (lMaxCounter.storageTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)) {
-      throw new core_1.Exception(`Max storage textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)}" has "${lMaxCounter.storageTextures}"`, this);
-    }
-    // Max storage buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
-    if (lMaxCounter.storageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)) {
-      throw new core_1.Exception(`Max storage buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)}" has "${lMaxCounter.storageBuffers}"`, this);
-    }
-    // Max uniform buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
-    if (lMaxCounter.uniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)) {
-      throw new core_1.Exception(`Max uniform buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)}" has "${lMaxCounter.uniformBuffers}"`, this);
-    }
-  }
-  /**
-   * Get bind group layout by name.
-   *
-   * @param pGroupName - Group name.
-   */
-  getGroupLayout(pGroupName) {
-    const lGroupIndex = this.mBindGroupNames.get(pGroupName);
-    // Throw on unaccessable group.
-    if (typeof lGroupIndex === 'undefined') {
-      throw new core_1.Exception(`Bind group layout (${pGroupName}) does not exists.`, this);
-    }
-    // Bind group should allways exist.
-    return this.mBindGroups.get(lGroupIndex);
-  }
-  /**
-   * Get group binding index by name.
-   *
-   * @param pGroupName - Group name.
-   *
-   * @returns group binding index.
-   */
-  groupIndex(pGroupName) {
-    const lBindGroupIndex = this.mBindGroupNames.get(pGroupName);
-    if (typeof lBindGroupIndex === 'undefined') {
-      throw new core_1.Exception(`Pipeline does not contain a group with name "${pGroupName}".`, this);
-    }
-    return lBindGroupIndex;
-  }
-  /**
-   * Create pipeline data.
-   *
-   * @param pBindData - Any bind group of pipeline layout.
-   *
-   * @returns validated pipeline data.
-   */
-  withData(pSetupCallback) {
-    return new pipeline_data_1.PipelineData(this.device, this).setup(pSetupCallback);
-  }
-  /**
-   * Generate native gpu pipeline data layout.
-   */
-  generateNative() {
-    // Generate pipeline layout from bind group layouts.
-    const lPipelineLayoutDescriptor = {
-      bindGroupLayouts: new Array()
-    };
-    for (const [lGroupIndex, lBindGroupLayout] of this.mBindGroups) {
-      lPipelineLayoutDescriptor.bindGroupLayouts[lGroupIndex] = lBindGroupLayout.native;
-    }
-    // Validate continunity.
-    if (this.mBindGroups.size !== lPipelineLayoutDescriptor.bindGroupLayouts.length) {
-      throw new core_1.Exception(`Bind group gap detected. Group not set.`, this);
-    }
-    // Generate pipeline layout from descriptor.
-    return this.device.gpu.createPipelineLayout(lPipelineLayoutDescriptor);
-  }
-}
-exports.PipelineLayout = PipelineLayout;
-
-/***/ }),
-
-/***/ "./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts":
-/*!******************************************************************************!*\
-  !*** ./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts ***!
-  \******************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupLayoutBufferMemoryLayoutSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
-class BindGroupLayoutBufferMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   * @param pAlignmentType - Buffers alignment type.
-   * @param pDataCallback - Data callback.
-   */
-  constructor(pSetupReference, pAlignmentType, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-    this.mAlignmentType = pAlignmentType;
-  }
-  /**
-   * Inner type as array.
-   *
-   * @param pSize - Optional. Set size fixed.
-   *
-   * @returns array setup.
-   */
-  withArray(pSize = -1) {
-    return new BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
-      const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-        arraySize: pSize,
-        innerType: pMemoryLayout
-      });
-      this.sendData(lLayout);
-    });
-  }
-  /**
-   * Inner type as primitive.
-   *
-   * @param pPrimitiveFormat - Primitive format.
-   * @param pPrimitiveMultiplier - Value multiplier.
-   */
-  withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
-    // Validate for 32bit formats.
-    if (pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Float32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Uint32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Sint32) {
-      throw new core_1.Exception('Uniform layout must be a 32bit format.', this);
-    }
-    const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-      alignmentType: this.mAlignmentType,
-      primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier
-    });
-    // Send created data.
-    this.sendData(lLayout);
-  }
-  /**
-   * Inner type as struct
-   *
-   * @param pSetupCall - Struct setup call.
-   */
-  withStruct(pSetupCall) {
-    // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
-    lLayout.setup(pSetupCall);
-    // Send created data.
-    this.sendData(lLayout);
-  }
-}
-exports.BindGroupLayoutBufferMemoryLayoutSetup = BindGroupLayoutBufferMemoryLayoutSetup;
-
-/***/ }),
-
-/***/ "./source/binding/setup/bind-group-layout-memory-layout-setup.ts":
-/*!***********************************************************************!*\
-  !*** ./source/binding/setup/bind-group-layout-memory-layout-setup.ts ***!
-  \***********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupLayoutMemoryLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const sampler_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/sampler-memory-layout */ "./source/memory_layout/texture/sampler-memory-layout.ts");
-const texture_view_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const bind_group_layout_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-buffer-memory-layout-setup */ "./source/binding/setup/bind-group-layout-buffer-memory-layout-setup.ts");
-class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   * @param pAlignmentType - Buffers alignment type.
-   * @param pDataCallback - Data callback.
-   */
-  constructor(pSetupReference, pAlignmentType, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-    this.mAlignmentType = pAlignmentType;
-  }
-  /**
-   * Memory layout as buffer with optional dynamic offsets.
-   * Dynamic offsets are only available for fixed size layouts.
-   *
-   * @param pDynamicOffsets - Number of available dynamic offsets.
-   *
-   * @returns buffer setup.
-   */
-  asBuffer(pHasDynamicOffset = false) {
-    return new bind_group_layout_buffer_memory_layout_setup_1.BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
-      this.sendData({
-        layout: pMemoryLayout,
-        hasDynamicOffset: pHasDynamicOffset
-      });
-    });
-  }
-  /**
-   * Memory layout as sampler.
-   *
-   * @param pSamplerType - Sampler type.
-   */
-  asSampler(pSamplerType) {
-    const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, pSamplerType);
-    // Send created data.
-    this.sendData({
-      layout: lLayout,
-      hasDynamicOffset: false
-    });
-  }
-  /**
-   * Memory layout as texture.
-   *
-   * @param pTextureDimension - Texture dimension.
-   * @param pTextureFormat - Texture format.
-   * @param pTextureBindType - Texture binding.
-   */
-  asTexture(pTextureDimension, pTextureFormat) {
-    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
-      dimension: pTextureDimension,
-      format: pTextureFormat,
-      multisampled: false
-    });
-    // Send created data.
-    this.sendData({
-      layout: lLayout,
-      hasDynamicOffset: false
-    });
-  }
-}
-exports.BindGroupLayoutMemoryLayoutSetup = BindGroupLayoutMemoryLayoutSetup;
-
-/***/ }),
-
-/***/ "./source/binding/setup/bind-group-layout-setup.ts":
-/*!*********************************************************!*\
-  !*** ./source/binding/setup/bind-group-layout-setup.ts ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupLayoutSetup = void 0;
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/binding/setup/bind-group-layout-memory-layout-setup.ts");
-class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Add binding to group.
-   *
-   * @param pName - Binding name.
-   * @param pIndex - - Binding index.
-   * @param pUsage - Buffer usage.
-   * @param pVisibility - Visibility.
-   * @param pAccessMode - Access mode.
-   */
-  binding(pIndex, pName, pVisibility, pStorageBinding) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Create empty bind layout.
-    const lBind = {
-      name: pName,
-      index: pIndex,
-      visibility: pVisibility,
-      layout: null,
-      storageType: pStorageBinding ?? storage_binding_type_enum_1.StorageBindingType.None,
-      hasDynamicOffset: false
-    };
-    // Set layout.
-    this.setupData.bindings.push(lBind);
-    // Aligment type of memory layout. When it is not a storage buffer then is is a uniform buffer.
-    const lAlignmentType = lBind.storageType === storage_binding_type_enum_1.StorageBindingType.None ? buffer_alignment_type_enum_1.BufferAlignmentType.Uniform : buffer_alignment_type_enum_1.BufferAlignmentType.Storage;
-    // Create layout memory layout.
-    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, pMemoryLayout => {
-      lBind.layout = pMemoryLayout.layout;
-      lBind.hasDynamicOffset = pMemoryLayout.hasDynamicOffset;
-    });
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data reference.
-   */
-  fillDefaultData(pDataReference) {
-    pDataReference.bindings = new Array();
-  }
-}
-exports.BindGroupLayoutSetup = BindGroupLayoutSetup;
+exports.BaseMemoryLayout = BaseMemoryLayout;
 
 /***/ }),
 
@@ -4173,8 +2572,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuBufferView = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
 /**
  * Create a view to look at a gpu buffer.
  */
@@ -4292,7 +2691,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
 const gpu_buffer_view_1 = __webpack_require__(/*! ./gpu-buffer-view */ "./source/buffer/gpu-buffer-view.ts");
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -4540,6 +2939,770 @@ exports.GpuBuffer = GpuBuffer;
 
 /***/ }),
 
+/***/ "./source/buffer/memory_layout/array-buffer-memory-layout.ts":
+/*!*******************************************************************!*\
+  !*** ./source/buffer/memory_layout/array-buffer-memory-layout.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ArrayBufferMemoryLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+/**
+ * Memory layout for a array buffer or part of a buffer.
+ */
+class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
+  /**
+   * Type byte alignment.
+   */
+  get alignment() {
+    return this.mAlignment;
+  }
+  /**
+   * Array item count.
+   */
+  get arraySize() {
+    return this.mArraySize;
+  }
+  /**
+   * Type size in byte.
+   */
+  get fixedSize() {
+    if (this.arraySize < 1) {
+      return 0;
+    }
+    return this.arraySize * Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
+  }
+  /**
+   * Array type.
+   * Is negative when array is variable sized.
+   */
+  get innerType() {
+    return this.mInnerType;
+  }
+  /**
+   * Size of the variable part of layout in bytes.
+   */
+  get variableSize() {
+    if (this.arraySize > 0) {
+      return 0;
+    }
+    return Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pParameter - Parameter.
+   */
+  constructor(pDevice, pParameter) {
+    super(pDevice, pParameter.innerType.alignmentType);
+    // Static properties.
+    this.mArraySize = pParameter.arraySize;
+    this.mInnerType = pParameter.innerType;
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (pParameter.innerType.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+          {
+            return pParameter.innerType.alignment;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            // For uniforms, arrays buffers are aligned by 16 byte
+            return Math.ceil(pParameter.innerType.alignment / 16) * 16;
+          }
+      }
+    })();
+    if (this.mInnerType.variableSize > 0) {
+      throw new core_1.Exception(`Array memory layout must be of fixed size.`, this);
+    }
+  }
+  /**
+   * Get location of path.
+   * @param pPathName - Path name. Divided by dots.
+   */
+  locationOf(pPathName) {
+    const lPathName = [...pPathName];
+    // Complete array.
+    const lItemIndexString = lPathName.shift();
+    if (!lItemIndexString) {
+      // Only valid for static arrays.
+      if (this.variableSize > 0) {
+        throw new core_1.Exception('Getting the offset and size location for dynamic arrays is not supported.', this);
+      }
+      return {
+        size: this.fixedSize,
+        offset: 0
+      };
+    }
+    // Validate item index.
+    if (isNaN(lItemIndexString)) {
+      throw new core_1.Exception('Array index must be a number.', this);
+    }
+    // Calculate size of single item.
+    const lArrayItemSize = Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
+    const lArrayItemOffset = parseInt(lItemIndexString) * lArrayItemSize;
+    // Single item.
+    if (lPathName.length === 0) {
+      return {
+        size: lArrayItemSize,
+        offset: lArrayItemOffset
+      };
+    }
+    // Inner property.
+    const lInnerLocation = this.innerType.locationOf(lPathName);
+    return {
+      size: lInnerLocation.size,
+      offset: lArrayItemOffset + lInnerLocation.offset
+    };
+  }
+}
+exports.ArrayBufferMemoryLayout = ArrayBufferMemoryLayout;
+
+/***/ }),
+
+/***/ "./source/buffer/memory_layout/base-buffer-memory-layout.ts":
+/*!******************************************************************!*\
+  !*** ./source/buffer/memory_layout/base-buffer-memory-layout.ts ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BaseBufferMemoryLayout = void 0;
+const base_memory_layout_1 = __webpack_require__(/*! ../../base-memory-layout */ "./source/base-memory-layout.ts");
+/**
+ * Basic memory layout for gpu buffers.
+ */
+class BaseBufferMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
+  /**
+   * Buffer value alignment type.
+   */
+  get alignmentType() {
+    return this.mAlignmentType;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   */
+  constructor(pDevice, pAlignmentType) {
+    super(pDevice);
+    this.mAlignmentType = pAlignmentType;
+  }
+}
+exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
+
+/***/ }),
+
+/***/ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts":
+/*!***********************************************************************!*\
+  !*** ./source/buffer/memory_layout/primitive-buffer-memory-layout.ts ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PrimitiveBufferMemoryLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+/**
+ * Memory layout for a primitive number buffer or part of a buffer.
+ */
+class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
+  /**
+   * Get item count for multiplier type.
+   *
+   * @param pMultiplier - Multiplier type.
+   *
+   * @returns item count of multiplier.
+   */
+  static itemCountOfMultiplier(pMultiplier) {
+    switch (pMultiplier) {
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
+        {
+          return 1;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
+        {
+          return 2;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
+        {
+          return 3;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
+        {
+          return 4;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
+        {
+          return 4;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
+        {
+          return 6;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
+        {
+          return 8;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
+        {
+          return 6;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
+        {
+          return 9;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
+        {
+          return 12;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
+        {
+          return 8;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
+        {
+          return 0;
+        }
+      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
+        {
+          return 16;
+        }
+    }
+  }
+  /**
+   * Get byte count of item format.
+   *
+   * @param pItemFormat - Item format.
+   *
+   * @returns byte count of format.
+   */
+  static itemFormatByteCount(pItemFormat) {
+    switch (pItemFormat) {
+      case buffer_item_format_enum_1.BufferItemFormat.Float16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Float32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+        return 4;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+        return 2;
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+        return 1;
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+        return 1;
+    }
+  }
+  /**
+   * Type byte alignment.
+   */
+  get alignment() {
+    return this.mAlignment;
+  }
+  /**
+   * Fixed buffer size in bytes.
+   */
+  get fixedSize() {
+    return this.mSize;
+  }
+  /**
+   * Byte count of underlying format.
+   */
+  get formatByteCount() {
+    return this.mFormatByteCount;
+  }
+  /**
+   * Format of single value.
+   */
+  get itemFormat() {
+    return this.mItemFormat;
+  }
+  /**
+   * Format multiplication.
+   */
+  get itemMultiplier() {
+    return this.mItemMultiplier;
+  }
+  /**
+   * Buffer size in bytes.
+   */
+  get variableSize() {
+    return 0;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pParameter - Parameter.
+   */
+  constructor(pDevice, pParameter) {
+    super(pDevice, pParameter.alignmentType);
+    // Set default size by format.
+    this.mFormatByteCount = PrimitiveBufferMemoryLayout.itemFormatByteCount(pParameter.primitiveFormat);
+    this.mItemFormat = pParameter.primitiveFormat;
+    this.mItemMultiplier = pParameter.primitiveMultiplier;
+    this.mSize = this.mFormatByteCount * PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pParameter.primitiveMultiplier);
+    // Calculate alignment and size.
+    this.mAlignment = (() => {
+      switch (pParameter.primitiveMultiplier) {
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
+          return this.mFormatByteCount;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
+          return this.mFormatByteCount * 2;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
+          return this.mFormatByteCount * 2;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
+          return this.mFormatByteCount * 2;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
+          return this.mFormatByteCount * 2;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
+          return this.mFormatByteCount * 4;
+        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
+          return this.mFormatByteCount * 4;
+      }
+    })();
+    // Override size of primitive.
+    if (pParameter.overrideSize) {
+      if (this.mSize > pParameter.overrideSize) {
+        throw new core_1.Exception('Overriden buffer byte size can not be lower than the actual byte size.', this);
+      }
+      this.mAlignment = pParameter.overrideSize;
+    }
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (pParameter.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            return this.mAlignment;
+          }
+      }
+    })();
+    // Override alignment of primitive.
+    if (pParameter.overrideAlignment) {
+      if (pParameter.overrideAlignment % this.mAlignment !== 0) {
+        throw new core_1.Exception('Overriden alignment must be dividable by its actual alignment value.', this);
+      }
+      this.mAlignment = pParameter.overrideAlignment;
+    }
+  }
+  /**
+   * Get location of path.
+   * @param pPathName - Path name. Divided by dots.
+   */
+  locationOf(pPathName) {
+    // Only validate name.
+    if (pPathName.length !== 0) {
+      throw new core_1.Exception(`Simple buffer layout has no properties.`, this);
+    }
+    return {
+      size: this.fixedSize,
+      offset: 0
+    };
+  }
+}
+exports.PrimitiveBufferMemoryLayout = PrimitiveBufferMemoryLayout;
+
+/***/ }),
+
+/***/ "./source/buffer/memory_layout/struct-buffer-memory-layout-property-setup.ts":
+/*!***********************************************************************************!*\
+  !*** ./source/buffer/memory_layout/struct-buffer-memory-layout-property-setup.ts ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StructBufferMemoryLayoutPropertySetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ./array-buffer-memory-layout */ "./source/buffer/memory_layout/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buffer-memory-layout */ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ./struct-buffer-memory-layout */ "./source/buffer/memory_layout/struct-buffer-memory-layout.ts");
+/**
+ * Child setup to add types to struct properties.
+ */
+class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pUsage - Buffer usage.
+   * @param pSetupReference - Setup references.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
+   * Buffer as array.
+   *
+   * @param pSize - Optional. Set size fixed.
+   *
+   * @returns array setup.
+   */
+  asArray(pSize = -1) {
+    return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+      const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+        arraySize: pSize,
+        innerType: pMemoryLayout
+      });
+      this.sendData(lLayout);
+    });
+  }
+  /**
+   * Memory layout as primitive.
+   *
+   * @param pPrimitiveFormat - Primitive format.
+   * @param pPrimitiveMultiplier - Value multiplier.
+   */
+  asPrimitive(pPrimitiveFormat, pPrimitiveMultiplier, pAlignment = null) {
+    const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+      alignmentType: this.mAlignmentType,
+      primitiveFormat: pPrimitiveFormat,
+      primitiveMultiplier: pPrimitiveMultiplier,
+      overrideAlignment: pAlignment
+    });
+    // Send created data.
+    this.sendData(lLayout);
+  }
+  /**
+   * Memory layout as struct
+   *
+   * @param pSetupCall - Struct setup call.
+   */
+  asStruct(pSetupCall) {
+    // Create and setup struct buffer memory layout.
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
+    lLayout.setup(pSetupCall);
+    // Send created data.
+    this.sendData(lLayout);
+  }
+}
+exports.StructBufferMemoryLayoutPropertySetup = StructBufferMemoryLayoutPropertySetup;
+
+/***/ }),
+
+/***/ "./source/buffer/memory_layout/struct-buffer-memory-layout-setup.ts":
+/*!**************************************************************************!*\
+  !*** ./source/buffer/memory_layout/struct-buffer-memory-layout-setup.ts ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StructBufferMemoryLayoutSetup = void 0;
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+const struct_buffer_memory_layout_property_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-property-setup */ "./source/buffer/memory_layout/struct-buffer-memory-layout-property-setup.ts");
+/**
+ * Setup object to add properties to a struct layout.
+ */
+class StructBufferMemoryLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   */
+  constructor(pSetupReference, pAlignmentType) {
+    super(pSetupReference);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
+   * Add propery.
+   *
+   * @param pName - Propery name.
+   *
+   * @returns property setup.
+   */
+  property(pName) {
+    // Create empty property.
+    const lProperty = {
+      name: pName,
+      orderIndex: this.setupData.properties.length,
+      layout: null
+    };
+    // Add empty property.
+    this.setupData.properties.push(lProperty);
+    // Create and return property setup.
+    return new struct_buffer_memory_layout_property_setup_1.StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+      lProperty.layout = pMemoryLayout;
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.properties = new Array();
+  }
+}
+exports.StructBufferMemoryLayoutSetup = StructBufferMemoryLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/buffer/memory_layout/struct-buffer-memory-layout.ts":
+/*!********************************************************************!*\
+  !*** ./source/buffer/memory_layout/struct-buffer-memory-layout.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StructBufferMemoryLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-setup */ "./source/buffer/memory_layout/struct-buffer-memory-layout-setup.ts");
+/**
+ * Memory layout for a struct buffer or part of a buffer.
+ */
+class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
+  /**
+   * Alignment of type.
+   */
+  get alignment() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return this.mAlignment;
+  }
+  /**
+   * Type size in byte.
+   */
+  get fixedSize() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return this.mFixedSize;
+  }
+  /**
+   * Ordered inner property names.
+   */
+  get properties() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return [...this.mInnerProperties];
+  }
+  /**
+   * Size of variable part of struct.
+   */
+  get variableSize() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return this.mVariableSize;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pParameter - Parameter.
+   */
+  constructor(pDevice, pAlignmentType) {
+    super(pDevice, pAlignmentType);
+    // Calculated properties.
+    this.mAlignment = 0;
+    this.mFixedSize = 0;
+    this.mVariableSize = 0;
+    // Static properties.
+    this.mInnerProperties = new Array();
+  }
+  /**
+   * Get location of path.
+   * @param pPathName - Path name. Divided by dots.
+   */
+  locationOf(pPathName) {
+    // Ensure setup was called.
+    this.ensureSetup();
+    const lPathName = [...pPathName];
+    // Complete array.
+    const lPropertyName = lPathName.shift();
+    if (!lPropertyName) {
+      if (this.mVariableSize > 0) {
+        throw new core_1.Exception(`Can't read location of a memory layout with a variable size.`, this);
+      }
+      return {
+        size: this.fixedSize,
+        offset: 0
+      };
+    }
+    // Recalculate size.
+    let lPropertyOffset = 0;
+    let lFoundProperty = null;
+    for (const lProperty of this.mInnerProperties) {
+      // Increase offset to needed alignment.
+      lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.layout.alignment) * lProperty.layout.alignment;
+      // Inner property is found. Skip searching.
+      // Alignment just applied so it can be skipped later.
+      if (lProperty.name === lPropertyName) {
+        lFoundProperty = lProperty;
+        break;
+      }
+      // Increase offset for complete property. 
+      // Only last property can have a variable size, so we can only save the fixed size.
+      lPropertyOffset += lProperty.layout.fixedSize;
+    }
+    // Validate property.
+    if (!lFoundProperty) {
+      throw new core_1.Exception(`Struct buffer layout property "${lPropertyName}" not found.`, this);
+    }
+    const lPropertyLocation = lFoundProperty.layout.locationOf(lPathName);
+    return {
+      size: lPropertyLocation.size,
+      offset: lPropertyOffset + lPropertyLocation.offset
+    };
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns this.
+   */
+  setup(pSetupCallback) {
+    super.setup(pSetupCallback);
+    return this;
+  }
+  /**
+   * Setup struct layout.
+   *
+   * @param pReferences - Setup data references.
+   */
+  onSetup(pReferences) {
+    // Add each property
+    for (const lProperty of pReferences.properties) {
+      if (!lProperty.layout) {
+        throw new core_1.Exception(`Struct propery layout was not set.`, this);
+      }
+      this.mInnerProperties.push({
+        orderIndex: lProperty.orderIndex,
+        name: lProperty.name,
+        layout: lProperty.layout
+      });
+    }
+    // Order properties.
+    this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
+      return pA.orderIndex - pB.orderIndex;
+    });
+    // Calculate size.
+    let lRawDataSize = 0;
+    for (let lIndex = 0; lIndex < this.mInnerProperties.length; lIndex++) {
+      const lPropertyLayout = this.mInnerProperties[lIndex].layout;
+      if (lPropertyLayout.variableSize > 0 && lIndex !== this.mInnerProperties.length - 1) {
+        throw new core_1.Exception(`Only the last property of a struct memory layout can have a variable size.`, this);
+      }
+      // Increase offset to needed alignment.
+      lRawDataSize = Math.ceil(lRawDataSize / lPropertyLayout.alignment) * lPropertyLayout.alignment;
+      // Increase offset for type.
+      lRawDataSize += lPropertyLayout.fixedSize;
+      // Alignment is the highest alignment of all properties.
+      if (lPropertyLayout.alignment > this.mAlignment) {
+        this.mAlignment = lPropertyLayout.alignment;
+      }
+      // Set variable size. Can only be the last property.
+      if (lPropertyLayout.variableSize > 0) {
+        this.mVariableSize = lPropertyLayout.variableSize;
+      }
+    }
+    // Apply struct alignment to raw data size.
+    this.mFixedSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+    // Change alignment based on alignment type.
+    this.mAlignment = (() => {
+      switch (this.alignmentType) {
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
+          {
+            return 1;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
+          {
+            return this.mAlignment;
+          }
+        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
+          {
+            // For uniforms, struct buffers are aligned by 16 byte
+            return Math.ceil(this.mAlignment / 16) * 16;
+          }
+      }
+    })();
+  }
+  /**
+   * Create setup object.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns setup object.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new struct_buffer_memory_layout_setup_1.StructBufferMemoryLayoutSetup(pReferences, this.alignmentType);
+  }
+}
+exports.StructBufferMemoryLayout = StructBufferMemoryLayout;
+
+/***/ }),
+
 /***/ "./source/constant/buffer-alignment-type.enum.ts":
 /*!*******************************************************!*\
   !*** ./source/constant/buffer-alignment-type.enum.ts ***!
@@ -4728,6 +3891,96 @@ var FilterMode;
   FilterMode["Nearest"] = "nearest";
   FilterMode["Linear"] = "linear";
 })(FilterMode || (exports.FilterMode = FilterMode = {}));
+
+/***/ }),
+
+/***/ "./source/constant/gpu-feature.enum.ts":
+/*!*********************************************!*\
+  !*** ./source/constant/gpu-feature.enum.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuFeature = void 0;
+/**
+ * Gpu feature names.
+ */
+var GpuFeature;
+(function (GpuFeature) {
+  GpuFeature["DepthClipControl"] = "depth-clip-control";
+  GpuFeature["Depth32floatStencil8"] = "depth32float-stencil8";
+  GpuFeature["TextureCompressionBc"] = "texture-compression-bc";
+  GpuFeature["TextureCompressionBcSliced3d"] = "texture-compression-bc-sliced-3d";
+  GpuFeature["TextureCompressionEtc2"] = "texture-compression-etc2";
+  GpuFeature["TextureCompressionAstc"] = "texture-compression-astc";
+  GpuFeature["TimestampQuery"] = "timestamp-query";
+  GpuFeature["IndirectFirstInstance"] = "indirect-first-instance";
+  GpuFeature["ShaderF16"] = "shader-f16";
+  GpuFeature["Rg11b10ufloatRenderable"] = "rg11b10ufloat-renderable";
+  GpuFeature["Bgra8unormStorage"] = "bgra8unorm-storage";
+  GpuFeature["Float32Filterable"] = "float32-filterable";
+  GpuFeature["ClipDistances"] = "clip-distances";
+  GpuFeature["DualSourceBlendin"] = "dual-source-blending";
+})(GpuFeature || (exports.GpuFeature = GpuFeature = {}));
+
+/***/ }),
+
+/***/ "./source/constant/gpu-limit.enum.ts":
+/*!*******************************************!*\
+  !*** ./source/constant/gpu-limit.enum.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuLimit = void 0;
+/**
+ * Gpu limit names.
+ */
+var GpuLimit;
+(function (GpuLimit) {
+  GpuLimit["MaxTextureDimension1D"] = "maxTextureDimension1D";
+  GpuLimit["MaxTextureDimension2D"] = "maxTextureDimension2D";
+  GpuLimit["MaxTextureDimension3D"] = "maxTextureDimension3D";
+  GpuLimit["MaxTextureArrayLayers"] = "maxTextureArrayLayers";
+  GpuLimit["MaxBindGroups"] = "maxBindGroups";
+  GpuLimit["MaxBindGroupsPlusVertexBuffers"] = "maxBindGroupsPlusVertexBuffers";
+  GpuLimit["MaxBindingsPerBindGroup"] = "maxBindingsPerBindGroup";
+  GpuLimit["MaxDynamicUniformBuffersPerPipelineLayout"] = "maxDynamicUniformBuffersPerPipelineLayout";
+  GpuLimit["MaxDynamicStorageBuffersPerPipelineLayout"] = "maxDynamicStorageBuffersPerPipelineLayout";
+  GpuLimit["MaxSampledTexturesPerShaderStage"] = "maxSampledTexturesPerShaderStage";
+  GpuLimit["MaxSamplersPerShaderStage"] = "maxSamplersPerShaderStage";
+  GpuLimit["MaxStorageBuffersPerShaderStage"] = "maxStorageBuffersPerShaderStage";
+  GpuLimit["MaxStorageTexturesPerShaderStage"] = "maxStorageTexturesPerShaderStage";
+  GpuLimit["MaxUniformBuffersPerShaderStage"] = "maxUniformBuffersPerShaderStage";
+  GpuLimit["MaxUniformBufferBindingSize"] = "maxUniformBufferBindingSize";
+  GpuLimit["MaxStorageBufferBindingSize"] = "maxStorageBufferBindingSize";
+  GpuLimit["MinUniformBufferOffsetAlignment"] = "minUniformBufferOffsetAlignment";
+  GpuLimit["MinStorageBufferOffsetAlignment"] = "minStorageBufferOffsetAlignment";
+  GpuLimit["MaxVertexBuffers"] = "maxVertexBuffers";
+  GpuLimit["MaxBufferSize"] = "maxBufferSize";
+  GpuLimit["MaxVertexAttributes"] = "maxVertexAttributes";
+  GpuLimit["MaxVertexBufferArrayStride"] = "maxVertexBufferArrayStride";
+  GpuLimit["MaxInterStageShaderComponents"] = "maxInterStageShaderComponents";
+  GpuLimit["MaxInterStageShaderVariables"] = "maxInterStageShaderVariables";
+  GpuLimit["MaxColorAttachments"] = "maxColorAttachments";
+  GpuLimit["MaxColorAttachmentBytesPerSample"] = "maxColorAttachmentBytesPerSample";
+  GpuLimit["MaxComputeWorkgroupStorageSize"] = "maxComputeWorkgroupStorageSize";
+  GpuLimit["MaxComputeInvocationsPerWorkgroup"] = "maxComputeInvocationsPerWorkgroup";
+  GpuLimit["MaxComputeWorkgroupSizeX"] = "maxComputeWorkgroupSizeX";
+  GpuLimit["MaxComputeWorkgroupSizeY"] = "maxComputeWorkgroupSizeY";
+  GpuLimit["MaxComputeWorkgroupSizeZ"] = "maxComputeWorkgroupSizeZ";
+  GpuLimit["MaxComputeWorkgroupsPerDimension"] = "maxComputeWorkgroupsPerDimension";
+})(GpuLimit || (exports.GpuLimit = GpuLimit = {}));
 
 /***/ }),
 
@@ -5217,10 +4470,10 @@ var WrappingMode;
 
 /***/ }),
 
-/***/ "./source/execution/gpu-execution.ts":
-/*!*******************************************!*\
-  !*** ./source/execution/gpu-execution.ts ***!
-  \*******************************************/
+/***/ "./source/device/capabilities/gpu-device-capabilities.ts":
+/*!***************************************************************!*\
+  !*** ./source/device/capabilities/gpu-device-capabilities.ts ***!
+  \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5229,830 +4482,14 @@ var WrappingMode;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.GpuExecution = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-class GpuExecution extends gpu_object_1.GpuObject {
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pExecution - Main execution function.
-   */
-  constructor(pDevice, pExecution) {
-    super(pDevice);
-    this.mExecutionFunction = pExecution;
-  }
-  /**
-   * Execute with context.
-   */
-  execute() {
-    // Create command encoder.
-    const lCommandEncoder = this.device.gpu.createCommandEncoder({
-      label: 'Execution'
-    });
-    // Call execution with encoder context.
-    this.mExecutionFunction({
-      commandEncoder: lCommandEncoder
-    });
-    // Submit commands to queue and clear command encoder.
-    this.device.gpu.queue.submit([lCommandEncoder.finish()]);
-  }
-}
-exports.GpuExecution = GpuExecution;
-
-/***/ }),
-
-/***/ "./source/execution/pass/compute-pass-context.ts":
-/*!*******************************************************!*\
-  !*** ./source/execution/pass/compute-pass-context.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ComputePassContext = void 0;
+exports.GpuDeviceCapabilities = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-class ComputePassContext {
-  /**
-   * Constructor.
-   *
-   * @param pEncoder - Encoder.
-   */
-  constructor(pEncoder) {
-    this.mEncoder = pEncoder;
-    this.mComputeResourceBuffer = {
-      pipeline: null,
-      pipelineDataGroupList: new Array(),
-      highestBindGroupListIndex: -1
-    };
-  }
-  /**
-   * Compute direct with set parameter.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pPipelineData - Pipline bind data groups.
-   * @param pX - Workgroup x dimension.
-   * @param pY - Workgroup y dimension.
-   * @param pZ - Workgroup z dimension.
-   */
-  computeDirect(pPipeline, pPipelineData, pX = 1, pY = 1, pZ = 1) {
-    // Validate pipeline data matches pipeline layout of pipeline.
-    if (pPipeline.layout !== pPipelineData.layout) {
-      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
-    }
-    // Execute compute.
-    if (this.setupEncoderData(pPipeline, pPipelineData)) {
-      this.mEncoder.dispatchWorkgroups(pX, pY, pZ);
-    }
-  }
-  /**
-   * Compute indirect with parameters set in buffer.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pPipelineData - Pipline bind data groups.
-   * @param pIndirectBuffer - Buffer with indirect parameter data.
-   */
-  computeIndirect(pPipeline, pPipelineData, pIndirectBuffer) {
-    // Validate pipeline data matches pipeline layout of pipeline.
-    if (pPipeline.layout !== pPipelineData.layout) {
-      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
-    }
-    // Extend usage.
-    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
-    // Execute compute.
-    if (this.setupEncoderData(pPipeline, pPipelineData)) {
-      // Validate buffer length
-      // 4 Byte * 3 => 12 Byte => Indexed draw 
-      if (pIndirectBuffer.size === 20) {
-        // Start indirect call.
-        this.mEncoder.dispatchWorkgroupsIndirect(pIndirectBuffer.native, 0);
-      } else {
-        throw new core_1.Exception('Indirect compute calls can only be done with 20 or 16 byte long buffers', this);
-      }
-    }
-  }
-  /**
-   * Set pipeline and any bind data.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pPipelineData - Pipeline binding data.
-   *
-   * @returns true when everything has been successfully set.
-   */
-  setupEncoderData(pPipeline, pPipelineData) {
-    // Skip pipelines that are currently loading.
-    const lNativePipeline = pPipeline.native;
-    if (lNativePipeline === null) {
-      return false;
-    }
-    // Cache for bind group length of this instruction.
-    let lLocalHighestBindGroupListIndex = -1;
-    // Add bind groups.
-    const lPipelineDataGroupList = pPipelineData.data;
-    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
-      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
-      const lCurrentPipelineDataGroup = this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
-      // Extend group list length.
-      if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
-        lLocalHighestBindGroupListIndex = lBindGroupIndex;
-      }
-      // Use cached bind group or use new. Catches null bindings.
-      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
-        // Set bind group buffer to cache current set bind groups.
-        this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
-        // Set bind group to gpu.
-        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
-          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
-        } else {
-          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
-        }
-      }
-    }
-    // Use cached pipeline or use new.
-    if (pPipeline !== this.mComputeResourceBuffer.pipeline) {
-      this.mComputeResourceBuffer.pipeline = pPipeline;
-      // Generate and set new pipeline.
-      this.mEncoder.setPipeline(lNativePipeline);
-      // Only clear bind buffer when a new pipeline is set.
-      // Same pipelines must have set the same bind group layouts.
-      if (this.mComputeResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
-        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mComputeResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
-          this.mEncoder.setBindGroup(lBindGroupIndex, null);
-        }
-      }
-      // Update global bind group list length.
-      this.mComputeResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
-    }
-    return true;
-  }
-}
-exports.ComputePassContext = ComputePassContext;
-
-/***/ }),
-
-/***/ "./source/execution/pass/compute-pass.ts":
-/*!***********************************************!*\
-  !*** ./source/execution/pass/compute-pass.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ComputePass = void 0;
-const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const compute_pass_context_1 = __webpack_require__(/*! ./compute-pass-context */ "./source/execution/pass/compute-pass-context.ts");
-class ComputePass extends gpu_object_1.GpuObject {
-  /**
-   * Constructor.
-   * @param pDevice - Device reference.
-   */
-  constructor(pDevice, pExecution) {
-    super(pDevice);
-    this.mExecutionFunction = pExecution;
-    this.mQueries = {};
-  }
-  /**
-   * Execute steps in a row.
-   * @param pExecutionContext - Executor context.
-   */
-  execute(pExecutionContext) {
-    // Read render pass descriptor and inject timestamp query when it is setup.
-    const lComputePassDescriptor = {};
-    if (this.mQueries.timestamp) {
-      lComputePassDescriptor.timestampWrites = this.mQueries.timestamp.query;
-    }
-    // Pass descriptor is set, when the pipeline ist set.
-    const lComputePassEncoder = pExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
-    // Direct execute function.
-    this.mExecutionFunction(new compute_pass_context_1.ComputePassContext(lComputePassEncoder));
-    // End compute pass.
-    lComputePassEncoder.end();
-    // Resolve query.
-    if (this.mQueries.timestamp) {
-      pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
-    }
-  }
-  /**
-   * Probe timestamp data from render pass.
-   * Resolves into two big ints with start and end time in nanoseconds.
-   *
-   * @returns Promise that resolves with the latest timestamp data.
-   */
-  probeTimestamp() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      // Skip when not enabled.
-      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
-        return [0n, 0n];
-      }
-      // Init timestamp query when not already set.
-      if (!_this.mQueries.timestamp) {
-        // Create timestamp query.
-        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
-          type: 'timestamp',
-          count: 2
-        });
-        // Create timestamp buffer.
-        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
-        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
-        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
-        // Create query.
-        _this.mQueries.timestamp = {
-          query: {
-            querySet: lTimestampQuerySet,
-            beginningOfPassWriteIndex: 0,
-            endOfPassWriteIndex: 1
-          },
-          buffer: lTimestampBuffer,
-          resolver: null
-        };
-      }
-      // Use existing resolver.
-      if (_this.mQueries.timestamp.resolver) {
-        return _this.mQueries.timestamp.resolver;
-      }
-      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
-        // Reset resolver.
-        _this.mQueries.timestamp.resolver = null;
-        // Read and resolve timestamp data.
-        const lTimedata = new BigUint64Array(pData);
-        return [lTimedata[0], lTimedata[1]];
-      });
-      return _this.mQueries.timestamp.resolver;
-    })();
-  }
-}
-exports.ComputePass = ComputePass;
-
-/***/ }),
-
-/***/ "./source/execution/pass/render-pass-context.ts":
-/*!******************************************************!*\
-  !*** ./source/execution/pass/render-pass-context.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderPassContext = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-class RenderPassContext {
-  /**
-   * Used resource.
-   * Only filled when recording is enabled.
-   */
-  get usedResources() {
-    return this.mUsedResources;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pEncoder - Encoder.
-   * @param pRenderTargets - Render targets.
-   * @param pRecordResources - Records used resources on render.
-   */
-  constructor(pEncoder, pRenderTargets, pRecordResources) {
-    this.mEncoder = pEncoder;
-    this.mRenderTargets = pRenderTargets;
-    this.mRecordResources = pRecordResources;
-    this.mUsedResources = {
-      parameter: new Set(),
-      indirectBuffer: new Set(),
-      pipelines: new Set(),
-      pipelineData: new Set()
-    };
-    this.mRenderResourceBuffer = {
-      pipeline: null,
-      vertexBuffer: new core_1.Dictionary(),
-      highestVertexParameterIndex: -1,
-      pipelineDataGroupList: new Array(),
-      highestBindGroupListIndex: -1
-    };
-  }
-  /**
-   * Draw direct with set parameter.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pParameter - Vertex parameter.
-   * @param pPipelineData - Pipline bind data groups.
-   * @param pInstanceCount - Instance count.
-   * @param pInstanceOffset - Instance offset.
-   */
-  drawDirect(pPipeline, pParameter, pPipelineData, pInstanceCount = 1, pInstanceOffset = 0) {
-    // Validate same render targets.
-    if (this.mRenderTargets !== pPipeline.renderTargets) {
-      throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
-    }
-    // Validate parameter.
-    if (pParameter.layout !== pPipeline.module.vertexParameter) {
-      throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
-    }
-    // Validate pipeline data matches pipeline layout of pipeline.
-    if (pPipeline.layout !== pPipelineData.layout) {
-      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
-    }
-    // Record resource when config is set.
-    if (this.mRecordResources) {
-      // Pipelines.
-      if (!this.mUsedResources.pipelines.has(pPipeline)) {
-        this.mUsedResources.pipelines.add(pPipeline);
-      }
-      // Parameter
-      if (!this.mUsedResources.parameter.has(pParameter)) {
-        this.mUsedResources.parameter.add(pParameter);
-      }
-      // Pipeline data.
-      if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
-        this.mUsedResources.pipelineData.add(pPipelineData);
-      }
-    }
-    // Execute draw.
-    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
-      this.executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset);
-    }
-  }
-  /**
-   * Draw indirect with parameters set in buffer.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pParameter - Vertex parameter.
-   * @param pPipelineData - Pipline bind data groups.
-   * @param pIndirectBuffer - Buffer with indirect parameter data.
-   */
-  drawIndirect(pPipeline, pParameter, pPipelineData, pIndirectBuffer) {
-    // Extend usage.
-    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
-    // Validate same render targets.
-    if (this.mRenderTargets !== pPipeline.renderTargets) {
-      throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
-    }
-    // Validate parameter.
-    if (pParameter.layout !== pPipeline.module.vertexParameter) {
-      throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
-    }
-    // Validate pipeline data matches pipeline layout of pipeline.
-    if (pPipeline.layout !== pPipelineData.layout) {
-      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
-    }
-    // Record resource when config is set.
-    if (this.mRecordResources) {
-      // Pipelines.
-      if (!this.mUsedResources.pipelines.has(pPipeline)) {
-        this.mUsedResources.pipelines.add(pPipeline);
-      }
-      // Parameter
-      if (!this.mUsedResources.parameter.has(pParameter)) {
-        this.mUsedResources.parameter.add(pParameter);
-      }
-      // Pipeline data.
-      if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
-        this.mUsedResources.pipelineData.add(pPipelineData);
-      }
-    }
-    // Execute draw.
-    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
-      this.executeIndirectDraw(pParameter, pIndirectBuffer);
-    }
-  }
-  /**
-   * Set pipeline and any bind and vertex data.
-   *
-   * @param pPipeline - Pipeline.
-   * @param pParameter  - Pipeline vertex parameter.
-   * @param pPipelineData - Pipeline binding data.
-   *
-   * @returns true when everything has been successfully set.
-   */
-  setupEncoderData(pPipeline, pParameter, pPipelineData) {
-    // Skip pipelines that are currently loading.
-    const lNativePipeline = pPipeline.native;
-    if (lNativePipeline === null) {
-      return false;
-    }
-    // Cache for bind group length of this instruction.
-    let lLocalHighestBindGroupListIndex = -1;
-    // Add bind groups.
-    const lPipelineDataGroupList = pPipelineData.data;
-    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
-      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
-      const lCurrentPipelineDataGroup = this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
-      // Extend group list length.
-      if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
-        lLocalHighestBindGroupListIndex = lBindGroupIndex;
-      }
-      // Use cached bind group or use new.
-      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
-        // Set bind group buffer to cache current set bind groups.
-        this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
-        // Set bind group to gpu.
-        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
-          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
-        } else {
-          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
-        }
-      }
-    }
-    // Cache for bind group length of this instruction.
-    let lLocalHighestVertexParameterListIndex = -1;
-    // Add vertex attribute buffer.
-    const lBufferNames = pPipeline.module.vertexParameter.bufferNames;
-    for (let lBufferIndex = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
-      // Read buffer information.
-      const lAttributeBufferName = lBufferNames[lBufferIndex];
-      const lNewAttributeBuffer = pParameter.get(lAttributeBufferName);
-      // Extend group list length.
-      if (lBufferIndex > lLocalHighestVertexParameterListIndex) {
-        lLocalHighestVertexParameterListIndex = lBufferIndex;
-      }
-      // Use cached vertex buffer or use new.
-      if (lNewAttributeBuffer !== this.mRenderResourceBuffer.vertexBuffer.get(lBufferIndex)) {
-        this.mRenderResourceBuffer.vertexBuffer.set(lBufferIndex, lNewAttributeBuffer);
-        this.mEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
-      }
-    }
-    // Use cached pipeline or use new.
-    if (pPipeline !== this.mRenderResourceBuffer.pipeline) {
-      this.mRenderResourceBuffer.pipeline = pPipeline;
-      // Generate and set new pipeline.
-      this.mEncoder.setPipeline(lNativePipeline);
-      // Only clear bind buffer when a new pipeline is set.
-      // Same pipelines must have set the same bind group layouts.
-      if (this.mRenderResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
-        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mRenderResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
-          this.mEncoder.setBindGroup(lBindGroupIndex, null);
-        }
-      }
-      // Update global bind group list length.
-      this.mRenderResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
-      // Only clear vertex buffer when a new pipeline is set.
-      // Same pipeline must have the same vertex parameter layout.
-      if (this.mRenderResourceBuffer.highestVertexParameterIndex > lLocalHighestVertexParameterListIndex) {
-        for (let lVertexParameterBufferIndex = lLocalHighestVertexParameterListIndex + 1; lVertexParameterBufferIndex < this.mRenderResourceBuffer.highestVertexParameterIndex + 1; lVertexParameterBufferIndex++) {
-          this.mEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
-        }
-      }
-      // Update global bind group list length.
-      this.mRenderResourceBuffer.highestVertexParameterIndex = lLocalHighestVertexParameterListIndex;
-    }
-    return true;
-  }
-  /**
-   * Execute direct draw call.
-   *
-   * @param pParameter - Vertex parameter.
-   * @param pInstanceCount - Index count.
-   * @param pInstanceOffset - Instance offset.
-   */
-  executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset) {
-    // Draw indexed when parameters are indexable.
-    if (pParameter.layout.indexable) {
-      // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
-      if (pParameter.indexBuffer.format === Uint16Array) {
-        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint16');
-      } else {
-        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
-      }
-      // Create draw call.
-      this.mEncoder.drawIndexed(pParameter.indexBuffer.length, pInstanceCount, 0, 0, pInstanceOffset);
-    } else {
-      // Create draw call.
-      this.mEncoder.draw(pParameter.vertexCount, pInstanceCount, 0, pInstanceOffset);
-    }
-  }
-  /**
-   * Execute a indirect draw call.
-   * If indexed or normal indirect calls are used is defined by the buffer length.
-   *
-   * @param pParameter - Vertex parameter.
-   * @param pBuffer - Indirect buffer.
-   */
-  executeIndirectDraw(pParameter, pBuffer) {
-    // 4 Byte * 5 => 20 Byte => Indexed draw 
-    // 4 Byte * 4 => 16 Byte => Normal draw 
-    if (pBuffer.size === 20) {
-      // Buffer does not match when parameters are not indexable.
-      if (!pParameter.layout.indexable) {
-        throw new core_1.Exception('Indirect indexed draw call failed, because parameter are not indexable', this);
-      }
-      // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
-      if (pParameter.indexBuffer.format === Uint16Array) {
-        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint16');
-      } else {
-        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
-      }
-      // Start indirect indexed call.
-      this.mEncoder.drawIndexedIndirect(pBuffer.native, 0);
-    } else if (pBuffer.size === 16) {
-      // Start indirect call.
-      this.mEncoder.drawIndirect(pBuffer.native, 0);
-    } else {
-      throw new core_1.Exception('Indirect draw calls can only be done with 20 or 16 byte long buffers', this);
-    }
-  }
-}
-exports.RenderPassContext = RenderPassContext;
-
-/***/ }),
-
-/***/ "./source/execution/pass/render-pass.ts":
-/*!**********************************************!*\
-  !*** ./source/execution/pass/render-pass.ts ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderPass = void 0;
-const pipeline_data_1 = __webpack_require__(/*! ../../binding/pipeline-data */ "./source/binding/pipeline-data.ts");
-const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-const vertex_parameter_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
-const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
-const render_pass_context_1 = __webpack_require__(/*! ./render-pass-context */ "./source/execution/pass/render-pass-context.ts");
-class RenderPass extends gpu_object_1.GpuObject {
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pRenderTargets - Render targets.
-   * @param pStaticBundle - Bundle is static and does not update very often.
-   */
-  constructor(pDevice, pRenderTargets, pStaticBundle, pExecution) {
-    super(pDevice);
-    // Set config.
-    this.mExecutionFunction = pExecution;
-    this.mQueries = {};
-    this.mRenderTargets = pRenderTargets;
-    this.mBundleConfig = {
-      enabled: pStaticBundle,
-      bundle: null,
-      descriptor: null,
-      usedResources: {
-        parameter: new Set(),
-        indirectBuffer: new Set(),
-        pipelines: new Set(),
-        pipelineData: new Set()
-      },
-      resourceInvalidator: () => {
-        // Only invalidate bundle on resource changes.
-        this.mBundleConfig.bundle = null;
-      }
-    };
-    // RenderTargets cant change texture formats, so the bundle descriptor does not need to be rebuild.
-    // When textures are resized, the new render descriptor with updated views gets applied automaticly on execute.
-  }
-  /**
-   * Execute steps in a row.
-   *
-   * @param pExecutor - Executor context.
-   */
-  execute(pExecutionContext) {
-    // Read render pass descriptor and inject timestamp query when it is setup.
-    const lRenderPassDescriptor = this.mRenderTargets.native;
-    if (this.mQueries.timestamp) {
-      lRenderPassDescriptor.timestampWrites = this.mQueries.timestamp.query;
-    }
-    // Pass descriptor is set, when the pipeline is set.
-    const lRenderPassEncoder = pExecutionContext.commandEncoder.beginRenderPass(lRenderPassDescriptor);
-    // Execute cached or execute direct based on static or variable bundles.
-    if (this.mBundleConfig.enabled) {
-      this.cachedExecute(lRenderPassEncoder);
-    } else {
-      // Directly execute nothing gets cached.
-      this.mExecutionFunction(new render_pass_context_1.RenderPassContext(lRenderPassEncoder, this.mRenderTargets, false));
-    }
-    // End render queue.
-    lRenderPassEncoder.end();
-    // Resolve query.
-    if (this.mQueries.timestamp) {
-      pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
-    }
-    // Execute optional resolve targets.
-    this.resolveCanvasTargets(pExecutionContext);
-  }
-  /**
-   * Probe timestamp data from render pass.
-   * Resolves into two big ints with start and end time in nanoseconds.
-   *
-   * @returns Promise that resolves with the latest timestamp data.
-   */
-  probeTimestamp() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      // Skip when not enabled.
-      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
-        return [0n, 0n];
-      }
-      // Init timestamp query when not already set.
-      if (!_this.mQueries.timestamp) {
-        // Create timestamp query.
-        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
-          type: 'timestamp',
-          count: 2
-        });
-        // Create timestamp buffer.
-        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
-        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
-        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
-        // Create query.
-        _this.mQueries.timestamp = {
-          query: {
-            querySet: lTimestampQuerySet,
-            beginningOfPassWriteIndex: 0,
-            endOfPassWriteIndex: 1
-          },
-          buffer: lTimestampBuffer,
-          resolver: null
-        };
-      }
-      // Use existing resolver.
-      if (_this.mQueries.timestamp.resolver) {
-        return _this.mQueries.timestamp.resolver;
-      }
-      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
-        // Reset resolver.
-        _this.mQueries.timestamp.resolver = null;
-        // Read and resolve timestamp data.
-        const lTimedata = new BigUint64Array(pData);
-        return [lTimedata[0], lTimedata[1]];
-      });
-      return _this.mQueries.timestamp.resolver;
-    })();
-  }
-  /**
-   * Execute render pass as cached bundle.
-   *
-   * @param pExecutor - Executor context.
-   */
-  cachedExecute(pRenderPassEncoder) {
-    if (!this.mBundleConfig.descriptor) {
-      // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
-      const lRenderBundleEncoderDescriptor = {
-        colorFormats: this.mRenderTargets.colorTargetNames.map(pColorTargetName => {
-          return this.mRenderTargets.colorTarget(pColorTargetName).layout.format;
-        }),
-        // Render target multisample level.
-        sampleCount: this.mRenderTargets.multisampled ? 4 : 1,
-        // Enable depth or stencil write.
-        depthReadOnly: false,
-        stencilReadOnly: false
-      };
-      // Optional depth stencil.
-      if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
-        lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthStencilTarget().layout.format;
-      }
-      // Save descriptor.
-      this.mBundleConfig.descriptor = lRenderBundleEncoderDescriptor;
-    }
-    // Generate new bundle when not already cached or render target got changed.
-    if (!this.mBundleConfig.bundle) {
-      // Clear old invalidation listener on old bundles.
-      for (const lParameter of this.mBundleConfig.usedResources.parameter) {
-        lParameter.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
-      }
-      for (const lBuffer of this.mBundleConfig.usedResources.indirectBuffer) {
-        lBuffer.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
-      }
-      for (const lBindgroup of this.mBundleConfig.usedResources.pipelineData) {
-        lBindgroup.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
-      }
-      for (const lPipeline of this.mBundleConfig.usedResources.pipelines) {
-        lPipeline.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
-      }
-      // Clear used resources.
-      this.mBundleConfig.usedResources.indirectBuffer.clear();
-      this.mBundleConfig.usedResources.pipelineData.clear();
-      this.mBundleConfig.usedResources.pipelines.clear();
-      // Create render bundle.
-      const lRenderBundleEncoder = this.device.gpu.createRenderBundleEncoder(this.mBundleConfig.descriptor);
-      // Create context.
-      const lRenderPassContext = new render_pass_context_1.RenderPassContext(lRenderBundleEncoder, this.mRenderTargets, true);
-      // Fill render queue.
-      this.mExecutionFunction(lRenderPassContext);
-      // Save render bundle.
-      this.mBundleConfig.bundle = lRenderBundleEncoder.finish();
-      // Save and track used resources.
-      for (const lParameter of this.mBundleConfig.usedResources.parameter) {
-        lParameter.addInvalidationListener(this.mBundleConfig.resourceInvalidator, vertex_parameter_1.VertexParameterInvalidationType.Data);
-      }
-      for (const lBuffer of lRenderPassContext.usedResources.indirectBuffer) {
-        this.mBundleConfig.usedResources.indirectBuffer.add(lBuffer);
-        lBuffer.addInvalidationListener(this.mBundleConfig.resourceInvalidator, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-      }
-      for (const lBindgroup of lRenderPassContext.usedResources.pipelineData) {
-        this.mBundleConfig.usedResources.pipelineData.add(lBindgroup);
-        lBindgroup.addInvalidationListener(this.mBundleConfig.resourceInvalidator, pipeline_data_1.PipelineDataInvalidationType.Data);
-      }
-      for (const lPipeline of lRenderPassContext.usedResources.pipelines) {
-        this.mBundleConfig.usedResources.pipelines.add(lPipeline);
-        lPipeline.addInvalidationListener(this.mBundleConfig.resourceInvalidator, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeRebuild);
-      }
-    }
-    // Add cached render bundle.
-    pRenderPassEncoder.executeBundles([this.mBundleConfig.bundle]);
-  }
-  /**
-   * Resolve gpu textures into canvas textures.
-   *
-   * @param pExecutionContext - Executor context.
-   */
-  resolveCanvasTargets(pExecutionContext) {
-    // Skip when nothing to be resolved.
-    if (this.mRenderTargets.resolveCanvasList.length === 0) {
-      return;
-    }
-    if (this.mRenderTargets.multisampled) {
-      // Generate resolve target descriptor with operation that does nothing.
-      const lColorTargetList = this.mRenderTargets.resolveCanvasList.map(pResolveTexture => {
-        return {
-          view: pResolveTexture.source.native,
-          resolveTarget: pResolveTexture.canvas.native.createView(),
-          loadOp: 'load',
-          storeOp: 'store'
-        };
-      });
-      // Begin and end render pass. Render pass does only resolve targets.
-      pExecutionContext.commandEncoder.beginRenderPass({
-        colorAttachments: lColorTargetList
-      }).end();
-    } else {
-      // Copy targets into canvas.
-      for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
-        // Create External source.
-        const lSource = {
-          texture: lResolveTexture.source.texture.native,
-          aspect: 'all',
-          mipLevel: lResolveTexture.source.mipLevelStart
-        };
-        // Generate native texture.
-        const lDestination = {
-          texture: lResolveTexture.canvas.native,
-          aspect: 'all',
-          mipLevel: 0
-        };
-        // Clamp copy sizes to lowest.
-        const lCopySize = {
-          width: this.mRenderTargets.width,
-          height: this.mRenderTargets.height,
-          depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
-        };
-        pExecutionContext.commandEncoder.copyTextureToTexture(lSource, lDestination, lCopySize);
-      }
-    }
-  }
-}
-exports.RenderPass = RenderPass;
-
-/***/ }),
-
-/***/ "./source/gpu/capabilities/gpu-capabilities.ts":
-/*!*****************************************************!*\
-  !*** ./source/gpu/capabilities/gpu-capabilities.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuCapabilities = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_feature_enum_1 = __webpack_require__(/*! ./gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ./gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
 /**
  * Gpu limits and features.
  */
-class GpuCapabilities {
+class GpuDeviceCapabilities {
   /**
    * Constructor.
    *
@@ -6094,1011 +4531,13 @@ class GpuCapabilities {
     return this.mFeatures.has(pFeature);
   }
 }
-exports.GpuCapabilities = GpuCapabilities;
+exports.GpuDeviceCapabilities = GpuDeviceCapabilities;
 
 /***/ }),
 
-/***/ "./source/gpu/capabilities/gpu-feature.enum.ts":
-/*!*****************************************************!*\
-  !*** ./source/gpu/capabilities/gpu-feature.enum.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuFeature = void 0;
-/**
- * Gpu feature names.
- */
-var GpuFeature;
-(function (GpuFeature) {
-  GpuFeature["DepthClipControl"] = "depth-clip-control";
-  GpuFeature["Depth32floatStencil8"] = "depth32float-stencil8";
-  GpuFeature["TextureCompressionBc"] = "texture-compression-bc";
-  GpuFeature["TextureCompressionBcSliced3d"] = "texture-compression-bc-sliced-3d";
-  GpuFeature["TextureCompressionEtc2"] = "texture-compression-etc2";
-  GpuFeature["TextureCompressionAstc"] = "texture-compression-astc";
-  GpuFeature["TimestampQuery"] = "timestamp-query";
-  GpuFeature["IndirectFirstInstance"] = "indirect-first-instance";
-  GpuFeature["ShaderF16"] = "shader-f16";
-  GpuFeature["Rg11b10ufloatRenderable"] = "rg11b10ufloat-renderable";
-  GpuFeature["Bgra8unormStorage"] = "bgra8unorm-storage";
-  GpuFeature["Float32Filterable"] = "float32-filterable";
-  GpuFeature["ClipDistances"] = "clip-distances";
-  GpuFeature["DualSourceBlendin"] = "dual-source-blending";
-})(GpuFeature || (exports.GpuFeature = GpuFeature = {}));
-
-/***/ }),
-
-/***/ "./source/gpu/capabilities/gpu-limit.enum.ts":
-/*!***************************************************!*\
-  !*** ./source/gpu/capabilities/gpu-limit.enum.ts ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuLimit = void 0;
-/**
- * Gpu limit names.
- */
-var GpuLimit;
-(function (GpuLimit) {
-  GpuLimit["MaxTextureDimension1D"] = "maxTextureDimension1D";
-  GpuLimit["MaxTextureDimension2D"] = "maxTextureDimension2D";
-  GpuLimit["MaxTextureDimension3D"] = "maxTextureDimension3D";
-  GpuLimit["MaxTextureArrayLayers"] = "maxTextureArrayLayers";
-  GpuLimit["MaxBindGroups"] = "maxBindGroups";
-  GpuLimit["MaxBindGroupsPlusVertexBuffers"] = "maxBindGroupsPlusVertexBuffers";
-  GpuLimit["MaxBindingsPerBindGroup"] = "maxBindingsPerBindGroup";
-  GpuLimit["MaxDynamicUniformBuffersPerPipelineLayout"] = "maxDynamicUniformBuffersPerPipelineLayout";
-  GpuLimit["MaxDynamicStorageBuffersPerPipelineLayout"] = "maxDynamicStorageBuffersPerPipelineLayout";
-  GpuLimit["MaxSampledTexturesPerShaderStage"] = "maxSampledTexturesPerShaderStage";
-  GpuLimit["MaxSamplersPerShaderStage"] = "maxSamplersPerShaderStage";
-  GpuLimit["MaxStorageBuffersPerShaderStage"] = "maxStorageBuffersPerShaderStage";
-  GpuLimit["MaxStorageTexturesPerShaderStage"] = "maxStorageTexturesPerShaderStage";
-  GpuLimit["MaxUniformBuffersPerShaderStage"] = "maxUniformBuffersPerShaderStage";
-  GpuLimit["MaxUniformBufferBindingSize"] = "maxUniformBufferBindingSize";
-  GpuLimit["MaxStorageBufferBindingSize"] = "maxStorageBufferBindingSize";
-  GpuLimit["MinUniformBufferOffsetAlignment"] = "minUniformBufferOffsetAlignment";
-  GpuLimit["MinStorageBufferOffsetAlignment"] = "minStorageBufferOffsetAlignment";
-  GpuLimit["MaxVertexBuffers"] = "maxVertexBuffers";
-  GpuLimit["MaxBufferSize"] = "maxBufferSize";
-  GpuLimit["MaxVertexAttributes"] = "maxVertexAttributes";
-  GpuLimit["MaxVertexBufferArrayStride"] = "maxVertexBufferArrayStride";
-  GpuLimit["MaxInterStageShaderComponents"] = "maxInterStageShaderComponents";
-  GpuLimit["MaxInterStageShaderVariables"] = "maxInterStageShaderVariables";
-  GpuLimit["MaxColorAttachments"] = "maxColorAttachments";
-  GpuLimit["MaxColorAttachmentBytesPerSample"] = "maxColorAttachmentBytesPerSample";
-  GpuLimit["MaxComputeWorkgroupStorageSize"] = "maxComputeWorkgroupStorageSize";
-  GpuLimit["MaxComputeInvocationsPerWorkgroup"] = "maxComputeInvocationsPerWorkgroup";
-  GpuLimit["MaxComputeWorkgroupSizeX"] = "maxComputeWorkgroupSizeX";
-  GpuLimit["MaxComputeWorkgroupSizeY"] = "maxComputeWorkgroupSizeY";
-  GpuLimit["MaxComputeWorkgroupSizeZ"] = "maxComputeWorkgroupSizeZ";
-  GpuLimit["MaxComputeWorkgroupsPerDimension"] = "maxComputeWorkgroupsPerDimension";
-})(GpuLimit || (exports.GpuLimit = GpuLimit = {}));
-
-/***/ }),
-
-/***/ "./source/gpu/gpu-device.ts":
-/*!**********************************!*\
-  !*** ./source/gpu/gpu-device.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuDevice = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/execution/gpu-execution.ts");
-const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/execution/pass/compute-pass.ts");
-const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/execution/pass/render-pass.ts");
-const render_targets_1 = __webpack_require__(/*! ../pipeline/target/render-targets */ "./source/pipeline/target/render-targets.ts");
-const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/shader/shader.ts");
-const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
-const texture_format_capabilities_1 = __webpack_require__(/*! ../texture/texture-format-capabilities */ "./source/texture/texture-format-capabilities.ts");
-const gpu_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-capabilities */ "./source/gpu/capabilities/gpu-capabilities.ts");
-class GpuDevice {
-  static {
-    this.mAdapters = new core_1.Dictionary();
-  }
-  static {
-    this.mDevices = new core_1.Dictionary();
-  }
-  /**
-   * Request new gpu device.
-   * @param pGenerator - Native object generator.
-   */
-  static request(pPerformance) {
-    return _asyncToGenerator(function* () {
-      // TODO: Required and optional requirements. Load available features and limits from adapter and request in device.
-      // Try to load cached adapter. When not cached, request new one.
-      const lAdapter = GpuDevice.mAdapters.get(pPerformance) ?? (yield window.navigator.gpu.requestAdapter({
-        powerPreference: pPerformance
-      }));
-      if (!lAdapter) {
-        throw new core_1.Exception('Error requesting GPU adapter', GpuDevice);
-      }
-      GpuDevice.mAdapters.set(pPerformance, lAdapter);
-      // Try to load cached device. When not cached, request new one. // TODO: Required features.
-      const lDevice = GpuDevice.mDevices.get(lAdapter) ?? (yield lAdapter.requestDevice({
-        requiredFeatures: ['timestamp-query']
-      }));
-      if (!lDevice) {
-        throw new core_1.Exception('Error requesting GPU device', GpuDevice);
-      }
-      GpuDevice.mDevices.set(lAdapter, lDevice);
-      return new GpuDevice(lDevice);
-    })();
-  }
-  /**
-   * Gpu capabilities.
-   */
-  get capabilities() {
-    return this.mCapabilities;
-  }
-  /**
-   * Texture format validator.
-   */
-  get formatValidator() {
-    return this.mFormatValidator;
-  }
-  /**
-   * Get frame count.
-   */
-  get frameCount() {
-    return this.mFrameCounter;
-  }
-  /**
-   * Gpu device.
-   */
-  get gpu() {
-    return this.mGpuDevice;
-  }
-  /**
-   * Constructor.
-   * @param pGenerator - Native GPU-Object Generator.
-   */
-  constructor(pDevice) {
-    this.mGpuDevice = pDevice;
-    // Setup capabilities.
-    this.mCapabilities = new gpu_capabilities_1.GpuCapabilities(pDevice);
-    // Set default for frame counter.
-    this.mFrameCounter = 0;
-    // Init form validator.
-    this.mFormatValidator = new texture_format_capabilities_1.TextureFormatCapabilities(this);
-    // Frame change listener.
-    this.mFrameChangeListener = new core_1.List();
-  }
-  /**
-   * Add listener called on frame change.
-   *
-   * @param pListener - Listener.
-   */
-  addFrameChangeListener(pListener) {
-    this.mFrameChangeListener.push(pListener);
-  }
-  /**
-   * Create or use a html canvas to create a canvas texture.
-   *
-   * @param pCanvas - Created canvas element.
-   *
-   * @returns canvas texture.
-   */
-  canvas(pCanvas) {
-    // Create or use canvas.
-    const lCanvas = pCanvas ?? document.createElement('canvas');
-    return new canvas_texture_1.CanvasTexture(this, lCanvas);
-  }
-  /**
-   * Create new compute pass.
-   *
-   * @returns new compute pass.
-   */
-  computePass(pExecution) {
-    return new compute_pass_1.ComputePass(this, pExecution);
-  }
-  /**
-   * Create pass executor.
-   *
-   * @param pOnExecute - On executor execute.
-   */
-  executor(pOnExecute) {
-    return new gpu_execution_1.GpuExecution(this, pOnExecute);
-  }
-  /**
-   * Remove listener called on frame change.
-   *
-   * @param pListener - Listener.
-   */
-  removeFrameChangeListener(pListener) {
-    this.mFrameChangeListener.remove(pListener);
-  }
-  /**
-   * Create new render pass.
-   *
-   * @param pRenderTargets - Render targets of pass.
-   * @param pStaticBundle - Bundle is static and does not update very often.
-   *
-   * @returns new render pass.
-   */
-  renderPass(pRenderTargets, pExecution, pStaticBundle = true) {
-    return new render_pass_1.RenderPass(this, pRenderTargets, pStaticBundle, pExecution);
-  }
-  /**
-   * Create render target object.
-   *
-   * @param pMultisampled - Render targets are multisampled.
-   *
-   * @returns render target object.
-   */
-  renderTargets(pMultisampled = false) {
-    return new render_targets_1.RenderTargets(this, pMultisampled);
-  }
-  /**
-   * Create shader.
-   *
-   * @param pSource - Shader source as wgsl.
-   */
-  shader(pSource) {
-    return new shader_1.Shader(this, pSource);
-  }
-  /**
-   * Start new frame.
-   */
-  startNewFrame() {
-    this.mFrameCounter++;
-    // Call all frame change listener.
-    for (const lListener of this.mFrameChangeListener) {
-      lListener();
-    }
-  }
-}
-exports.GpuDevice = GpuDevice;
-
-/***/ }),
-
-/***/ "./source/gpu/object/gpu-object-child-setup.ts":
-/*!*****************************************************!*\
-  !*** ./source/gpu/object/gpu-object-child-setup.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuObjectChildSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-class GpuObjectChildSetup {
-  /**
-   * Gpu device reference.
-   */
-  get device() {
-    return this.mSetupReference.device;
-  }
-  /**
-   * Setup data.
-   */
-  get setupData() {
-    // References should be setup at this point.
-    return this.mSetupReference.data;
-  }
-  /**
-   * Setup references.
-   */
-  get setupReferences() {
-    return this.mSetupReference;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   * @param pDataCallback - Setup data callback.
-   */
-  constructor(pSetupReference, pDataCallback) {
-    this.mSetupReference = pSetupReference;
-    this.mSetupCallback = pDataCallback;
-  }
-  /**
-   * Ensure that current call is used inside a setup call.
-   */
-  ensureThatInSetup() {
-    // Lock setup to a setup call.
-    if (!this.mSetupReference.inSetup) {
-      throw new core_1.Exception('Can only setup in a setup call.', this);
-    }
-  }
-  /**
-   * Send data back to parent setup.
-   *
-   * @param pData - Setup complete data.
-   */
-  sendData(...pData) {
-    this.mSetupCallback(...pData);
-  }
-}
-exports.GpuObjectChildSetup = GpuObjectChildSetup;
-
-/***/ }),
-
-/***/ "./source/gpu/object/gpu-object-invalidation-reasons.ts":
-/*!**************************************************************!*\
-  !*** ./source/gpu/object/gpu-object-invalidation-reasons.ts ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuObjectInvalidationReasons = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-class GpuObjectInvalidationReasons {
-  /**
-   * Life time was reached.
-   */
-  get deconstruct() {
-    return this.mDeconstruct;
-  }
-  set deconstruct(pDeconstruct) {
-    if (!pDeconstruct) {
-      throw new core_1.Exception(`Deconstruct reason can not be reverted. Sadly.`, this);
-    }
-    this.mDeconstruct = pDeconstruct;
-  }
-  /**
-   * Constructor.
-   */
-  constructor() {
-    this.mReasons = new Set();
-    this.mDeconstruct = false;
-  }
-  /**
-   * Add update reason.
-   * @param pReason - Update reason.
-   */
-  add(pReason) {
-    this.mReasons.add(pReason);
-  }
-  /**
-   * If update reason has any existing reason.
-   */
-  any() {
-    return this.mReasons.size > 0 || this.mDeconstruct;
-  }
-  /**
-   * Clear all reasons.
-   */
-  clear() {
-    this.mReasons.clear();
-  }
-  /**
-   * Check for update reason.
-   * @param pReason - Update reason.
-   */
-  has(pReason) {
-    return this.mReasons.has(pReason);
-  }
-}
-exports.GpuObjectInvalidationReasons = GpuObjectInvalidationReasons;
-
-/***/ }),
-
-/***/ "./source/gpu/object/gpu-object-setup.ts":
-/*!***********************************************!*\
-  !*** ./source/gpu/object/gpu-object-setup.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuObjectSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-class GpuObjectSetup {
-  /**
-   * Gpu device reference.
-   */
-  get device() {
-    return this.mSetupReference.device;
-  }
-  /**
-   * Setup data.
-   */
-  get setupData() {
-    // References should be setup at this point.
-    return this.mSetupReference.data;
-  }
-  /**
-   * Setup references.
-   */
-  get setupReferences() {
-    return this.mSetupReference;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   */
-  constructor(pSetupReference) {
-    this.mSetupReference = pSetupReference;
-    // Fill default data to setup references.
-    this.fillDefaultData(pSetupReference.data);
-  }
-  /**
-   * Ensure that current call is used inside a setup call.
-   */
-  ensureThatInSetup() {
-    // Lock setup to a setup call.
-    if (!this.mSetupReference.inSetup) {
-      throw new core_1.Exception('Can only setup in a setup call.', this);
-    }
-  }
-}
-exports.GpuObjectSetup = GpuObjectSetup;
-
-/***/ }),
-
-/***/ "./source/gpu/object/gpu-object.ts":
-/*!*****************************************!*\
-  !*** ./source/gpu/object/gpu-object.ts ***!
-  \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuObject = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/gpu/object/gpu-object-invalidation-reasons.ts");
-/**
- * Gpu object with a native internal object.
- */
-class GpuObject {
-  /**
-   * Gpu Device.
-   */
-  get device() {
-    return this.mDevice;
-  }
-  /**
-   * Object was setup.
-   */
-  get isSetup() {
-    return this.mIsSetup;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return this.readNative();
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Gpu device.
-   * @param pNativeLifeTime - Lifetime of native object.
-   */
-  constructor(pDevice) {
-    // Save static settings.
-    this.mDevice = pDevice;
-    this.mIsSetup = false;
-    // Init default settings and config.
-    this.mDeconstructed = false;
-    this.mNativeObject = null;
-    // Init lists.
-    this.mUpdateListener = new core_1.Dictionary();
-    this.mUpdateListenerAffectedTyped = new WeakMap();
-    this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
-  }
-  /**
-   * Add invalidation listener.
-   *
-   * @param pListener - Listener.
-   * @param pAffected - Trigger listener only on those reasons.
-   *
-   * @returns this.
-   */
-  addInvalidationListener(pListener, pFirstAffected, ...pAffected) {
-    if (this.mUpdateListenerAffectedTyped.has(pListener)) {
-      throw new core_1.Exception(`Invalidation listener can't be applied twice.`, this);
-    }
-    // Concat first and optional types.
-    const lAffectedList = [pFirstAffected, ...pAffected];
-    // Listener to each affected
-    for (const lAffectedType of lAffectedList) {
-      // Init new affected bucket.
-      if (!this.mUpdateListener.has(lAffectedType)) {
-        this.mUpdateListener.set(lAffectedType, new core_1.List());
-      }
-      // Assign listener to affected type.
-      this.mUpdateListener.get(lAffectedType).push(pListener);
-    }
-    // Map listener to affected types.
-    this.mUpdateListenerAffectedTyped.set(pListener, lAffectedList);
-    return this;
-  }
-  /**
-   * Deconstruct native object.
-   */
-  deconstruct() {
-    this.mInvalidationReasons.deconstruct = true;
-    // Clear and destroy old native when any update reason exists.
-    if (this.mNativeObject !== null) {
-      this.destroyNative(this.mNativeObject, this.mInvalidationReasons);
-      this.mNativeObject = null;
-    }
-    this.mDeconstructed = true;
-  }
-  /**
-   * Invalidate native gpu object so it will be created again.
-   */
-  invalidate(...pReasons) {
-    // Single reason execution function.
-    const lExecuteReasonListener = pReason => {
-      // Skip reasons that already occurred or no native was created.
-      // This step ensures to execute invalidation listener for all gpu objects that doesn't create natives. 
-      if (this.mNativeObject !== null && this.mInvalidationReasons.has(pReason)) {
-        return;
-      }
-      // Add invalidation reason.
-      this.mInvalidationReasons.add(pReason);
-      // Read listener list.
-      const lListenerList = this.mUpdateListener.get(pReason);
-      if (!lListenerList || lListenerList.length === 0) {
-        return;
-      }
-      // Single execution of listener when only one exists.
-      if (lListenerList.length === 1) {
-        lListenerList[0](pReason);
-      } else {
-        for (const lListener of lListenerList) {
-          lListener(pReason);
-        }
-      }
-    };
-    // Invalidate for each reason. Single reason execution when only one exists.
-    if (pReasons.length === 1) {
-      lExecuteReasonListener(pReasons[0]);
-    } else {
-      for (const lReason of pReasons) {
-        lExecuteReasonListener(lReason);
-      }
-    }
-  }
-  /**
-   * Add invalidation listener.
-   * @param pListener - Listener.
-   */
-  removeInvalidationListener(pListener) {
-    // Get all affected types of listener.
-    const lAffectedList = this.mUpdateListenerAffectedTyped.get(pListener);
-    if (!lAffectedList) {
-      return;
-    }
-    // Remove all listener from each affected type.
-    for (const lAffectedType of lAffectedList) {
-      this.mUpdateListener.get(lAffectedType).remove(pListener);
-    }
-    // Remove listener from affected mapping.
-    this.mUpdateListenerAffectedTyped.delete(pListener);
-  }
-  /**
-   * Destroy native object.
-   *
-   * @param _pNative - Native object.
-   * @param _pReasons - Reason why it should be destroyed.
-   */
-  destroyNative(_pNative, _pReasons) {
-    return;
-  }
-  /**
-   * Throws when the gpu object not setup.
-   */
-  ensureSetup() {
-    if (!this.mIsSetup) {
-      throw new core_1.Exception('Gpu object must be setup to access properties.', this);
-    }
-  }
-  /**
-   * Generate new native object.
-   * Return null when no native can be generated.
-   *
-   * @param _pCurrentNative - Current native element.
-   * @param _pReasons - Reason why it should be newly generated.
-   */
-  generateNative(_pCurrentNative, _pReasons) {
-    return null;
-  }
-  /**
-   * Setup with setup object.
-   *
-   * @param _pReferences - Used references.
-   */
-  onSetup(_pReferences) {
-    return;
-  }
-  /**
-   * Create setup object.
-   * Return null to skip any setups.
-   *
-   * @param _pReferences - Unfilled setup references.
-   *
-   * @returns Setup object.
-   */
-  onSetupObjectCreate(_pReferences) {
-    return null;
-  }
-  /**
-   * Call setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns this.
-   */
-  setup(pSetupCallback) {
-    // Dont call twice.
-    if (this.mIsSetup) {
-      throw new core_1.Exception(`Render targets setup can't be called twice.`, this);
-    }
-    // Create unfilled
-    const lSetupReferences = {
-      inSetup: true,
-      device: this.mDevice,
-      data: {}
-    };
-    // Creates setup object.
-    const lSetupObject = this.onSetupObjectCreate(lSetupReferences);
-    if (lSetupObject !== null) {
-      // Call optional user setup.
-      if (pSetupCallback) {
-        pSetupCallback(lSetupObject);
-      }
-      // Call gpu object setup. At this point all references should be filled.
-      this.onSetup(lSetupReferences.data);
-    }
-    // Defuse setup references.
-    lSetupReferences.inSetup = false;
-    // Set gpu object as setup.
-    this.mIsSetup = true;
-    return this;
-  }
-  /**
-   * Update native object.
-   *
-   * @param _pNative - Native object.
-   * @param _pReasons - Reason why it should be updated.
-   *
-   * @returns true when native element was updated, false when it should be created anew.
-   */
-  updateNative(_pNative, _pReasons) {
-    return false;
-  }
-  /**
-   * Read up to date native object.
-   * Invalidates, destroys and generates the native object.
-   *
-   * @returns native object.
-   */
-  readNative() {
-    // Restrict deconstructed access.
-    if (this.mDeconstructed) {
-      throw new core_1.Exception(`Native GPU object was deconstructed and can't be used again.`, this);
-    }
-    // Ensure the setup was called.
-    if (!this.isSetup) {
-      // Call empty update.
-      this.setup();
-    }
-    // When native is generated and is invalid, try to update it.
-    if (this.mNativeObject !== null && this.mInvalidationReasons.any()) {
-      // Try to update native.
-      const lUpdateSuccessfull = this.updateNative(this.mNativeObject, this.mInvalidationReasons);
-      if (lUpdateSuccessfull) {
-        this.mInvalidationReasons.clear();
-      }
-    }
-    // When no native is generated or update was not successfull.
-    if (this.mNativeObject === null || this.mInvalidationReasons.any()) {
-      // Save current native.
-      const lCurrentNative = this.mNativeObject;
-      // Generate new native.
-      this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
-      // Destroy old native when existing.
-      if (lCurrentNative !== null) {
-        this.destroyNative(lCurrentNative, this.mInvalidationReasons);
-      }
-      // Reset all update reasons.
-      this.mInvalidationReasons.clear();
-    }
-    return this.mNativeObject;
-  }
-}
-exports.GpuObject = GpuObject;
-
-/***/ }),
-
-/***/ "./source/gpu/object/gpu-resource-object.ts":
-/*!**************************************************!*\
-  !*** ./source/gpu/object/gpu-resource-object.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuResourceObjectInvalidationType = exports.GpuResourceObject = void 0;
-const gpu_object_1 = __webpack_require__(/*! ./gpu-object */ "./source/gpu/object/gpu-object.ts");
-/**
- * Gpu resource object.
- * Takes actual memory space on gpu hardware.
- */
-class GpuResourceObject extends gpu_object_1.GpuObject {
-  /**
-   * Texture usage.
-   */
-  get usage() {
-    return this.mResourceUsage;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   */
-  constructor(pDevice) {
-    super(pDevice);
-    // Set static config.
-    this.mResourceUsage = 0;
-  }
-  /**
-   * Extend usage of resource.
-   * Might trigger a resource rebuild.
-   *
-   * @param pUsage - Usage.
-   */
-  extendUsage(pUsage) {
-    // Update onyl when not already set.
-    if ((this.mResourceUsage & pUsage) === 0) {
-      this.mResourceUsage = this.mResourceUsage | pUsage;
-      this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
-    }
-    return this;
-  }
-}
-exports.GpuResourceObject = GpuResourceObject;
-var GpuResourceObjectInvalidationType;
-(function (GpuResourceObjectInvalidationType) {
-  GpuResourceObjectInvalidationType["ResourceRebuild"] = "ResourceRebuild";
-})(GpuResourceObjectInvalidationType || (exports.GpuResourceObjectInvalidationType = GpuResourceObjectInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/memory_layout/base-memory-layout.ts":
-/*!****************************************************!*\
-  !*** ./source/memory_layout/base-memory-layout.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BaseMemoryLayout = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-/**
- * Base memory layout.
- * Represents a memory slot used by a shader.
- */
-class BaseMemoryLayout extends gpu_object_1.GpuObject {
-  /**
-   * Constuctor.
-   * @param pDevice - Device reference.
-   */
-  constructor(pDevice) {
-    super(pDevice);
-  }
-}
-exports.BaseMemoryLayout = BaseMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/array-buffer-memory-layout.ts":
-/*!*******************************************************************!*\
-  !*** ./source/memory_layout/buffer/array-buffer-memory-layout.ts ***!
-  \*******************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ArrayBufferMemoryLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-class ArrayBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
-  /**
-   * Type byte alignment.
-   */
-  get alignment() {
-    return this.mAlignment;
-  }
-  /**
-   * Array item count.
-   */
-  get arraySize() {
-    return this.mArraySize;
-  }
-  /**
-   * Type size in byte.
-   */
-  get fixedSize() {
-    if (this.arraySize < 1) {
-      return 0;
-    }
-    return this.arraySize * Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
-  }
-  /**
-   * Array type.
-   * Is negative when array is variable sized.
-   */
-  get innerType() {
-    return this.mInnerType;
-  }
-  /**
-   * Size of the variable part of layout in bytes.
-   */
-  get variableSize() {
-    if (this.arraySize > 0) {
-      return 0;
-    }
-    return Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
-   */
-  constructor(pDevice, pParameter) {
-    super(pDevice, pParameter.innerType.alignmentType);
-    // Static properties.
-    this.mArraySize = pParameter.arraySize;
-    this.mInnerType = pParameter.innerType;
-    // Change alignment based on alignment type.
-    this.mAlignment = (() => {
-      switch (pParameter.innerType.alignmentType) {
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
-          {
-            return 1;
-          }
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
-          {
-            return pParameter.innerType.alignment;
-          }
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
-          {
-            // For uniforms, arrays buffers are aligned by 16 byte
-            return Math.ceil(pParameter.innerType.alignment / 16) * 16;
-          }
-      }
-    })();
-    if (this.mInnerType.variableSize > 0) {
-      throw new core_1.Exception(`Array memory layout must be of fixed size.`, this);
-    }
-  }
-  /**
-   * Get location of path.
-   * @param pPathName - Path name. Divided by dots.
-   */
-  locationOf(pPathName) {
-    const lPathName = [...pPathName];
-    // Complete array.
-    const lItemIndexString = lPathName.shift();
-    if (!lItemIndexString) {
-      // Only valid for static arrays.
-      if (this.variableSize > 0) {
-        throw new core_1.Exception('Getting the offset and size location for dynamic arrays is not supported.', this);
-      }
-      return {
-        size: this.fixedSize,
-        offset: 0
-      };
-    }
-    // Validate item index.
-    if (isNaN(lItemIndexString)) {
-      throw new core_1.Exception('Array index must be a number.', this);
-    }
-    // Calculate size of single item.
-    const lArrayItemSize = Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
-    const lArrayItemOffset = parseInt(lItemIndexString) * lArrayItemSize;
-    // Single item.
-    if (lPathName.length === 0) {
-      return {
-        size: lArrayItemSize,
-        offset: lArrayItemOffset
-      };
-    }
-    // Inner property.
-    const lInnerLocation = this.innerType.locationOf(lPathName);
-    return {
-      size: lInnerLocation.size,
-      offset: lArrayItemOffset + lInnerLocation.offset
-    };
-  }
-}
-exports.ArrayBufferMemoryLayout = ArrayBufferMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/base-buffer-memory-layout.ts":
-/*!******************************************************************!*\
-  !*** ./source/memory_layout/buffer/base-buffer-memory-layout.ts ***!
-  \******************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BaseBufferMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
-class BaseBufferMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
-  /**
-   * Buffer value alignment type.
-   */
-  get alignmentType() {
-    return this.mAlignmentType;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   */
-  constructor(pDevice, pAlignmentType) {
-    super(pDevice);
-    this.mAlignmentType = pAlignmentType;
-  }
-}
-exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts":
+/***/ "./source/device/capabilities/gpu-texture-format-capabilities.ts":
 /*!***********************************************************************!*\
-  !*** ./source/memory_layout/buffer/primitive-buffer-memory-layout.ts ***!
+  !*** ./source/device/capabilities/gpu-texture-format-capabilities.ts ***!
   \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -7108,3732 +4547,15 @@ exports.BaseBufferMemoryLayout = BaseBufferMemoryLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.PrimitiveBufferMemoryLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
-const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
-  /**
-   * Get item count for multiplier type.
-   *
-   * @param pMultiplier - Multiplier type.
-   *
-   * @returns item count of multiplier.
-   */
-  static itemCountOfMultiplier(pMultiplier) {
-    switch (pMultiplier) {
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
-        {
-          return 1;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
-        {
-          return 2;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
-        {
-          return 3;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
-        {
-          return 4;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
-        {
-          return 4;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
-        {
-          return 6;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
-        {
-          return 8;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
-        {
-          return 6;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
-        {
-          return 9;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
-        {
-          return 12;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
-        {
-          return 8;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
-        {
-          return 0;
-        }
-      case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
-        {
-          return 16;
-        }
-    }
-  }
-  /**
-   * Get byte count of item format.
-   *
-   * @param pItemFormat - Item format.
-   *
-   * @returns byte count of format.
-   */
-  static itemFormatByteCount(pItemFormat) {
-    switch (pItemFormat) {
-      case buffer_item_format_enum_1.BufferItemFormat.Float16:
-        return 2;
-      case buffer_item_format_enum_1.BufferItemFormat.Float32:
-        return 4;
-      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
-        return 4;
-      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
-        return 4;
-      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
-        return 1;
-      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
-        return 1;
-      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
-        return 2;
-      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
-        return 2;
-      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
-        return 2;
-      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
-        return 2;
-      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
-        return 1;
-      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
-        return 1;
-    }
-  }
-  /**
-   * Type byte alignment.
-   */
-  get alignment() {
-    return this.mAlignment;
-  }
-  /**
-   * Fixed buffer size in bytes.
-   */
-  get fixedSize() {
-    return this.mSize;
-  }
-  /**
-   * Byte count of underlying format.
-   */
-  get formatByteCount() {
-    return this.mFormatByteCount;
-  }
-  /**
-   * Format of single value.
-   */
-  get itemFormat() {
-    return this.mItemFormat;
-  }
-  /**
-   * Format multiplication.
-   */
-  get itemMultiplier() {
-    return this.mItemMultiplier;
-  }
-  /**
-   * Buffer size in bytes.
-   */
-  get variableSize() {
-    return 0;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
-   */
-  constructor(pDevice, pParameter) {
-    super(pDevice, pParameter.alignmentType);
-    // Set default size by format.
-    this.mFormatByteCount = PrimitiveBufferMemoryLayout.itemFormatByteCount(pParameter.primitiveFormat);
-    this.mItemFormat = pParameter.primitiveFormat;
-    this.mItemMultiplier = pParameter.primitiveMultiplier;
-    this.mSize = this.mFormatByteCount * PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pParameter.primitiveMultiplier);
-    // Calculate alignment and size.
-    this.mAlignment = (() => {
-      switch (pParameter.primitiveMultiplier) {
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Single:
-          return this.mFormatByteCount;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2:
-          return this.mFormatByteCount * 2;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix22:
-          return this.mFormatByteCount * 2;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix23:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix24:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix32:
-          return this.mFormatByteCount * 2;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix33:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix34:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix42:
-          return this.mFormatByteCount * 2;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix43:
-          return this.mFormatByteCount * 4;
-        case buffer_item_multiplier_enum_1.BufferItemMultiplier.Matrix44:
-          return this.mFormatByteCount * 4;
-      }
-    })();
-    // Override size of primitive.
-    if (pParameter.overrideSize) {
-      if (this.mSize > pParameter.overrideSize) {
-        throw new core_1.Exception('Overriden buffer byte size can not be lower than the actual byte size.', this);
-      }
-      this.mAlignment = pParameter.overrideSize;
-    }
-    // Change alignment based on alignment type.
-    this.mAlignment = (() => {
-      switch (pParameter.alignmentType) {
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
-          {
-            return 1;
-          }
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
-          {
-            return this.mAlignment;
-          }
-      }
-    })();
-    // Override alignment of primitive.
-    if (pParameter.overrideAlignment) {
-      if (pParameter.overrideAlignment % this.mAlignment !== 0) {
-        throw new core_1.Exception('Overriden alignment must be dividable by its actual alignment value.', this);
-      }
-      this.mAlignment = pParameter.overrideAlignment;
-    }
-  }
-  /**
-   * Get location of path.
-   * @param pPathName - Path name. Divided by dots.
-   */
-  locationOf(pPathName) {
-    // Only validate name.
-    if (pPathName.length !== 0) {
-      throw new core_1.Exception(`Simple buffer layout has no properties.`, this);
-    }
-    return {
-      size: this.fixedSize,
-      offset: 0
-    };
-  }
-}
-exports.PrimitiveBufferMemoryLayout = PrimitiveBufferMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts":
-/*!***********************************************************************************!*\
-  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts ***!
-  \***********************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.StructBufferMemoryLayoutPropertySetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ./array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ./primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ./struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
-class StructBufferMemoryLayoutPropertySetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pUsage - Buffer usage.
-   * @param pSetupReference - Setup references.
-   * @param pDataCallback - Data callback.
-   */
-  constructor(pSetupReference, pAlignmentType, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-    this.mAlignmentType = pAlignmentType;
-  }
-  /**
-   * Buffer as array.
-   *
-   * @param pSize - Optional. Set size fixed.
-   *
-   * @returns array setup.
-   */
-  asArray(pSize = -1) {
-    return new StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
-      const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-        arraySize: pSize,
-        innerType: pMemoryLayout
-      });
-      this.sendData(lLayout);
-    });
-  }
-  /**
-   * Memory layout as primitive.
-   *
-   * @param pPrimitiveFormat - Primitive format.
-   * @param pPrimitiveMultiplier - Value multiplier.
-   */
-  asPrimitive(pPrimitiveFormat, pPrimitiveMultiplier, pAlignment = null) {
-    const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-      alignmentType: this.mAlignmentType,
-      primitiveFormat: pPrimitiveFormat,
-      primitiveMultiplier: pPrimitiveMultiplier,
-      overrideAlignment: pAlignment
-    });
-    // Send created data.
-    this.sendData(lLayout);
-  }
-  /**
-   * Memory layout as struct
-   *
-   * @param pSetupCall - Struct setup call.
-   */
-  asStruct(pSetupCall) {
-    // Create and setup struct buffer memory layout.
-    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
-    lLayout.setup(pSetupCall);
-    // Send created data.
-    this.sendData(lLayout);
-  }
-}
-exports.StructBufferMemoryLayoutPropertySetup = StructBufferMemoryLayoutPropertySetup;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts":
-/*!**************************************************************************!*\
-  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts ***!
-  \**************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.StructBufferMemoryLayoutSetup = void 0;
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const struct_buffer_memory_layout_property_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-property-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-property-setup.ts");
-class StructBufferMemoryLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   */
-  constructor(pSetupReference, pAlignmentType) {
-    super(pSetupReference);
-    this.mAlignmentType = pAlignmentType;
-  }
-  /**
-   * Add propery.
-   *
-   * @param pName - Propery name.
-   *
-   * @returns property setup.
-   */
-  property(pName) {
-    // Create empty property.
-    const lProperty = {
-      name: pName,
-      orderIndex: this.setupData.properties.length,
-      layout: null
-    };
-    // Add empty property.
-    this.setupData.properties.push(lProperty);
-    // Create and return property setup.
-    return new struct_buffer_memory_layout_property_setup_1.StructBufferMemoryLayoutPropertySetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
-      lProperty.layout = pMemoryLayout;
-    });
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data reference.
-   */
-  fillDefaultData(pDataReference) {
-    pDataReference.properties = new Array();
-  }
-}
-exports.StructBufferMemoryLayoutSetup = StructBufferMemoryLayoutSetup;
-
-/***/ }),
-
-/***/ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts":
-/*!********************************************************************!*\
-  !*** ./source/memory_layout/buffer/struct-buffer-memory-layout.ts ***!
-  \********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.StructBufferMemoryLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/memory_layout/buffer/base-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./struct-buffer-memory-layout-setup */ "./source/memory_layout/buffer/struct-buffer-memory-layout-setup.ts");
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-class StructBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
-  /**
-   * Alignment of type.
-   */
-  get alignment() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return this.mAlignment;
-  }
-  /**
-   * Type size in byte.
-   */
-  get fixedSize() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return this.mFixedSize;
-  }
-  /**
-   * Ordered inner property names.
-   */
-  get properties() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return [...this.mInnerProperties];
-  }
-  /**
-   * Size of variable part of struct.
-   */
-  get variableSize() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return this.mVariableSize;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
-   */
-  constructor(pDevice, pAlignmentType) {
-    super(pDevice, pAlignmentType);
-    // Calculated properties.
-    this.mAlignment = 0;
-    this.mFixedSize = 0;
-    this.mVariableSize = 0;
-    // Static properties.
-    this.mInnerProperties = new Array();
-  }
-  /**
-   * Get location of path.
-   * @param pPathName - Path name. Divided by dots.
-   */
-  locationOf(pPathName) {
-    // Ensure setup was called.
-    this.ensureSetup();
-    const lPathName = [...pPathName];
-    // Complete array.
-    const lPropertyName = lPathName.shift();
-    if (!lPropertyName) {
-      if (this.mVariableSize > 0) {
-        throw new core_1.Exception(`Can't read location of a memory layout with a variable size.`, this);
-      }
-      return {
-        size: this.fixedSize,
-        offset: 0
-      };
-    }
-    // Recalculate size.
-    let lPropertyOffset = 0;
-    let lFoundProperty = null;
-    for (const lProperty of this.mInnerProperties) {
-      // Increase offset to needed alignment.
-      lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.layout.alignment) * lProperty.layout.alignment;
-      // Inner property is found. Skip searching.
-      // Alignment just applied so it can be skipped later.
-      if (lProperty.name === lPropertyName) {
-        lFoundProperty = lProperty;
-        break;
-      }
-      // Increase offset for complete property. 
-      // Only last property can have a variable size, so we can only save the fixed size.
-      lPropertyOffset += lProperty.layout.fixedSize;
-    }
-    // Validate property.
-    if (!lFoundProperty) {
-      throw new core_1.Exception(`Struct buffer layout property "${lPropertyName}" not found.`, this);
-    }
-    const lPropertyLocation = lFoundProperty.layout.locationOf(lPathName);
-    return {
-      size: lPropertyLocation.size,
-      offset: lPropertyOffset + lPropertyLocation.offset
-    };
-  }
-  /**
-   * Call setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns this.
-   */
-  setup(pSetupCallback) {
-    super.setup(pSetupCallback);
-    return this;
-  }
-  /**
-   * Setup struct layout.
-   *
-   * @param pReferences - Setup data references.
-   */
-  onSetup(pReferences) {
-    // Add each property
-    for (const lProperty of pReferences.properties) {
-      if (!lProperty.layout) {
-        throw new core_1.Exception(`Struct propery layout was not set.`, this);
-      }
-      this.mInnerProperties.push({
-        orderIndex: lProperty.orderIndex,
-        name: lProperty.name,
-        layout: lProperty.layout
-      });
-    }
-    // Order properties.
-    this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
-      return pA.orderIndex - pB.orderIndex;
-    });
-    // Calculate size.
-    let lRawDataSize = 0;
-    for (let lIndex = 0; lIndex < this.mInnerProperties.length; lIndex++) {
-      const lPropertyLayout = this.mInnerProperties[lIndex].layout;
-      if (lPropertyLayout.variableSize > 0 && lIndex !== this.mInnerProperties.length - 1) {
-        throw new core_1.Exception(`Only the last property of a struct memory layout can have a variable size.`, this);
-      }
-      // Increase offset to needed alignment.
-      lRawDataSize = Math.ceil(lRawDataSize / lPropertyLayout.alignment) * lPropertyLayout.alignment;
-      // Increase offset for type.
-      lRawDataSize += lPropertyLayout.fixedSize;
-      // Alignment is the highest alignment of all properties.
-      if (lPropertyLayout.alignment > this.mAlignment) {
-        this.mAlignment = lPropertyLayout.alignment;
-      }
-      // Set variable size. Can only be the last property.
-      if (lPropertyLayout.variableSize > 0) {
-        this.mVariableSize = lPropertyLayout.variableSize;
-      }
-    }
-    // Apply struct alignment to raw data size.
-    this.mFixedSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
-    // Change alignment based on alignment type.
-    this.mAlignment = (() => {
-      switch (this.alignmentType) {
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Packed:
-          {
-            return 1;
-          }
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Storage:
-          {
-            return this.mAlignment;
-          }
-        case buffer_alignment_type_enum_1.BufferAlignmentType.Uniform:
-          {
-            // For uniforms, struct buffers are aligned by 16 byte
-            return Math.ceil(this.mAlignment / 16) * 16;
-          }
-      }
-    })();
-  }
-  /**
-   * Create setup object.
-   *
-   * @param pReferences - Setup references.
-   *
-   * @returns setup object.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new struct_buffer_memory_layout_setup_1.StructBufferMemoryLayoutSetup(pReferences, this.alignmentType);
-  }
-}
-exports.StructBufferMemoryLayout = StructBufferMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/texture/sampler-memory-layout.ts":
-/*!***************************************************************!*\
-  !*** ./source/memory_layout/texture/sampler-memory-layout.ts ***!
-  \***************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.SamplerMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
-/**
- * Memory layouts for texture samplers.
- */
-class SamplerMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
-  /**
-   * Sampler type.
-   */
-  get samplerType() {
-    return this.mSamplerType;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   */
-  constructor(pDevice, pType) {
-    super(pDevice);
-    this.mSamplerType = pType;
-  }
-}
-exports.SamplerMemoryLayout = SamplerMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/memory_layout/texture/texture-view-memory-layout.ts":
-/*!********************************************************************!*\
-  !*** ./source/memory_layout/texture/texture-view-memory-layout.ts ***!
-  \********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureViewMemoryLayout = void 0;
-const base_memory_layout_1 = __webpack_require__(/*! ../base-memory-layout */ "./source/memory_layout/base-memory-layout.ts");
-/**
- * Memory layout for textures.
- */
-class TextureViewMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
-  /**
-   * Texture dimension.
-   */
-  get dimension() {
-    return this.mDimension;
-  }
-  /**
-   * Texture format.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Texture uses multisample.
-   */
-  get multisampled() {
-    return this.mMultisampled;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pParameter - Parameter.
-   */
-  constructor(pDevice, pParameter) {
-    super(pDevice);
-    // Set defauls.
-    this.mDimension = pParameter.dimension;
-    this.mFormat = pParameter.format;
-    this.mMultisampled = pParameter.multisampled;
-  }
-}
-exports.TextureViewMemoryLayout = TextureViewMemoryLayout;
-
-/***/ }),
-
-/***/ "./source/pipeline/compute-pipeline.ts":
-/*!*********************************************!*\
-  !*** ./source/pipeline/compute-pipeline.ts ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-class ComputePipeline extends gpu_object_1.GpuObject {
-  /**
-   * Pipeline layout.
-   */
-  get layout() {
-    return this.mShaderModule.shader.layout;
-  }
-  /**
-   * Pipeline shader.
-   */
-  get module() {
-    return this.mShaderModule;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Constructor.
-   * Set default data.
-   * @param pDevice - Device.
-   * @param pShader - Pipeline shader.
-   */
-  constructor(pDevice, pShader) {
-    super(pDevice);
-    this.mShaderModule = pShader;
-    // Loaded pipeline for async creation.
-    this.mLoadedPipeline = null;
-    // Pipeline constants.
-    this.mParameter = new core_1.Dictionary();
-  }
-  /**
-   * Set optional parameter of pipeline.
-   *
-   * @param pParameterName - name of parameter.
-   * @param pValue - Value.
-   *
-   * @returns this.
-   */
-  setParameter(pParameterName, pValue) {
-    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
-    // Set parameter for each assigned compute stage.
-    for (const lUsage of lParameterUsage) {
-      // Init parameters for computestage when not set.
-      if (!this.mParameter.has(lUsage)) {
-        this.mParameter.set(lUsage, {});
-      }
-      // Set value for compute stage.
-      this.mParameter.get(lUsage)[pParameterName] = pValue;
-    }
-    // Generate pipeline anew.
-    this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
-    return this;
-  }
-  /**
-   * Generate native gpu pipeline data layout.
-   */
-  generateNative(_pLastNative, pInvalidationReason) {
-    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
-    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(ComputePipelineInvalidationType.NativeRebuild)) {
-      const lLoadedPipeline = this.mLoadedPipeline;
-      this.mLoadedPipeline = null;
-      return lLoadedPipeline;
-    }
-    // Construct basic GPUComputePipelineDescriptor.
-    const lPipelineDescriptor = {
-      layout: this.mShaderModule.shader.layout.native,
-      compute: {
-        module: this.mShaderModule.shader.native,
-        entryPoint: this.mShaderModule.entryPoint,
-        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Compute) ?? {}
-      }
-    };
-    // Load pipeline asyncron and update native after promise resolve.
-    this.device.gpu.createComputePipelineAsync(lPipelineDescriptor).then(pPipeline => {
-      this.mLoadedPipeline = pPipeline;
-      this.invalidate(ComputePipelineInvalidationType.NativeLoaded);
-    });
-    // Null as long as pipeline is loading.
-    return null;
-  }
-}
-exports.ComputePipeline = ComputePipeline;
-var ComputePipelineInvalidationType;
-(function (ComputePipelineInvalidationType) {
-  ComputePipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
-  ComputePipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
-})(ComputePipelineInvalidationType || (exports.ComputePipelineInvalidationType = ComputePipelineInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts":
-/*!***************************************************************************!*\
-  !*** ./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts ***!
-  \***************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexParameterBufferLayoutSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-class VertexParameterBufferLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Add new parameter to vertex layout.
-   *
-   * @param pName - Parameter name.
-   * @param pLocation - Parameter location.
-   * @param pFormat - Parameter data format.
-   * @param pMultiplier - Data multiplication.
-   * @param pAdditionalOffset - Additional offset. Offset 0 aligns right after the last parameter.
-   * @returns
-   */
-  withParameter(pName, pLocation, pFormat, pMultiplier, pAlignment = null) {
-    // Send layout data.
-    this.sendData({
-      name: pName,
-      location: pLocation,
-      format: pFormat,
-      multiplier: pMultiplier,
-      alignment: pAlignment
-    });
-    return this;
-  }
-}
-exports.VertexParameterBufferLayoutSetup = VertexParameterBufferLayoutSetup;
-
-/***/ }),
-
-/***/ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts":
-/*!********************************************************************!*\
-  !*** ./source/pipeline/parameter/vertex-parameter-layout-setup.ts ***!
-  \********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexParameterLayoutSetup = void 0;
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const vertex_parameter_buffer_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-buffer-layout-setup */ "./source/pipeline/parameter/vertex-parameter-buffer-layout-setup.ts");
-class VertexParameterLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Add a new buffer layout to vertex parameter layout.
-   *
-   * @param pStepMode - Buffer step mode.
-   *
-   * @returns vertex buffer layout setup
-   */
-  buffer(pBufferName, pStepMode) {
-    // Create buffer.
-    const lBuffer = {
-      name: pBufferName,
-      stepMode: pStepMode,
-      parameter: new Array()
-    };
-    // Add buffer to result.
-    this.setupData.buffer.push(lBuffer);
-    // Create and return buffer setup.
-    return new vertex_parameter_buffer_layout_setup_1.VertexParameterBufferLayoutSetup(this.setupReferences, pLayout => {
-      lBuffer.parameter.push(pLayout);
-    });
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data.
-   */
-  fillDefaultData(pDataReference) {
-    pDataReference.buffer = new Array();
-  }
-}
-exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
-
-/***/ }),
-
-/***/ "./source/pipeline/parameter/vertex-parameter-layout.ts":
-/*!**************************************************************!*\
-  !*** ./source/pipeline/parameter/vertex-parameter-layout.ts ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexParameterLayout = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/struct-buffer-memory-layout */ "./source/memory_layout/buffer/struct-buffer-memory-layout.ts");
-const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/pipeline/parameter/vertex-parameter.ts");
-const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/pipeline/parameter/vertex-parameter-layout-setup.ts");
-/**
- * Vertex parameter layout.
- */
-class VertexParameterLayout extends gpu_object_1.GpuObject {
-  /**
-   * Get all parameter buffer names.
-   */
-  get bufferNames() {
-    // Setup must be called.
-    this.ensureSetup();
-    return [...this.mBuffer.keys()];
-  }
-  /**
-   * If parameters are indexable.
-   * Meanins every parameter is eighter stepmode index or instance.
-   * When even one parameter has a stepmode of vertex, any index parameters must be converted.
-   */
-  get indexable() {
-    // Setup must be called.
-    this.ensureSetup();
-    return this.mIndexable;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Get all parameter names.
-   */
-  get parameterNames() {
-    // Setup must be called.
-    this.ensureSetup();
-    return [...this.mParameter.keys()];
-  }
-  /**
-   * Construct.
-   *
-   * @param pDevice - Device reference.
-   * @param pLayout - Simple layout of parameter.
-   */
-  constructor(pDevice) {
-    super(pDevice);
-    this.mIndexable = false;
-    this.mBuffer = new core_1.Dictionary();
-    this.mParameter = new core_1.Dictionary();
-  }
-  /**
-   * Create vertex parameters from layout.
-   * @param pIndexData - Index data.
-   */
-  create(pIndexData) {
-    return new vertex_parameter_1.VertexParameter(this.device, this, pIndexData);
-  }
-  /**
-   * Get vertex parameter layout definition by name.
-   *
-   * @param pName - Parameter name.
-   */
-  parameter(pName) {
-    const lLayout = this.mParameter.get(pName);
-    if (!lLayout) {
-      throw new core_1.Exception(`Vertex parameter "${pName}" is not defined.`, this);
-    }
-    return lLayout;
-  }
-  /**
-   * Get vertex parameter layout definition by name.
-   *
-   * @param pBufferName - Parameter name.
-   */
-  parameterBuffer(pBufferName) {
-    const lLayout = this.mBuffer.get(pBufferName);
-    if (!lLayout) {
-      throw new core_1.Exception(`Vertex parameter buffer "${pBufferName}" is not defined.`, this);
-    }
-    return lLayout;
-  }
-  /**
-   * Call setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns — this.
-   */
-  setup(pSetupCallback) {
-    return super.setup(pSetupCallback);
-  }
-  /**
-   * Generate new native object.
-   */
-  generateNative() {
-    // Create vertex buffer layout for each parameter.
-    const lLayoutList = new Array();
-    for (const lBuffer of this.mBuffer.values()) {
-      let lCurrentBufferByteLength = 0;
-      // Create parameter layouts.
-      const lVertexAttributes = new Array();
-      for (const lParameter of lBuffer.layout.properties) {
-        // Convert parameter layout to primitive buffer layout.
-        const lPrimitiveParameterLayout = lParameter.layout;
-        // Convert multiplier to value.
-        const lItemMultiplier = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lPrimitiveParameterLayout.itemMultiplier);
-        // Convert multiplier to float32 format.
-        let lFormat = `${lPrimitiveParameterLayout.itemFormat}x${lItemMultiplier}`;
-        if (lPrimitiveParameterLayout.itemMultiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
-          lFormat = lPrimitiveParameterLayout.itemFormat;
-        }
-        // Read location of parameter.
-        const lParameterLocation = this.mParameter.get(lParameter.name).location;
-        // Create buffer layout.
-        lVertexAttributes.push({
-          format: lFormat,
-          offset: lCurrentBufferByteLength,
-          shaderLocation: lParameterLocation
-        });
-        // Apply alignment and extend buffer size by parameter length.
-        lCurrentBufferByteLength = Math.ceil(lCurrentBufferByteLength / lPrimitiveParameterLayout.alignment) * lPrimitiveParameterLayout.alignment;
-        lCurrentBufferByteLength += lPrimitiveParameterLayout.fixedSize;
-      }
-      // Convert stepmode.
-      let lStepmode = 'vertex';
-      if (lBuffer.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Instance) {
-        lStepmode = 'instance';
-      }
-      lLayoutList.push({
-        stepMode: lStepmode,
-        arrayStride: lBuffer.layout.fixedSize,
-        attributes: lVertexAttributes
-      });
-    }
-    return lLayoutList;
-  }
-  /**
-   * Setup with setup object.
-   *
-   * @param pReferences - Used references.
-   */
-  onSetup(pReferences) {
-    let lCanBeIndexed = true;
-    // Build allowed multiplier list.
-    const lAllowedMultiplier = new Set([buffer_item_multiplier_enum_1.BufferItemMultiplier.Single, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4]);
-    // Create each buffer.
-    const lParameterIndicies = new Array();
-    for (const lBufferSetupData of pReferences.buffer) {
-      // Create struct layout with packed alignment.
-      const lBufferLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, buffer_alignment_type_enum_1.BufferAlignmentType.Packed);
-      lBufferLayout.setup(pSetup => {
-        for (const lParameterSetupData of lBufferSetupData.parameter) {
-          // No double locations.
-          if (lParameterIndicies[lParameterSetupData.location]) {
-            throw new core_1.Exception(`Vertex parameter location "${lParameterSetupData.location}" can't be defined twice.`, this);
-          }
-          // Validate multiplier.
-          if (!lAllowedMultiplier.has(lParameterSetupData.multiplier)) {
-            throw new core_1.Exception(`Vertex parameter item multiplier "${lParameterSetupData.multiplier}" not supported.`, this);
-          }
-          // Add parameter as struct property.
-          pSetup.property(lParameterSetupData.name).asPrimitive(lParameterSetupData.format, lParameterSetupData.multiplier, lParameterSetupData.alignment);
-          // Add to parameter list.
-          this.mParameter.set(lParameterSetupData.name, {
-            name: lParameterSetupData.name,
-            location: lParameterSetupData.location
-          });
-          // Save location index for checkind double
-          lParameterIndicies[lParameterSetupData.location] = true;
-        }
-      });
-      // Create buffer description.
-      this.mBuffer.set(lBufferSetupData.name, {
-        name: lBufferSetupData.name,
-        stepMode: lBufferSetupData.stepMode,
-        layout: lBufferLayout
-      });
-      // When one buffer is not indexable than no buffer is it.
-      if (lBufferSetupData.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
-        lCanBeIndexed = false;
-      }
-    }
-    // Validate continuity of parameter locations.
-    if (lParameterIndicies.length !== this.mParameter.size) {
-      throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
-    }
-    this.mIndexable = lCanBeIndexed;
-  }
-  /**
-   * Create setup object. Return null to skip any setups.
-   *
-   * @param pReferences - Setup references.
-   *
-   * @returns created setup.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new vertex_parameter_layout_setup_1.VertexParameterLayoutSetup(pReferences);
-  }
-}
-exports.VertexParameterLayout = VertexParameterLayout;
-
-/***/ }),
-
-/***/ "./source/pipeline/parameter/vertex-parameter.ts":
-/*!*******************************************************!*\
-  !*** ./source/pipeline/parameter/vertex-parameter.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
-const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
-const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
-const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
-const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/memory_layout/buffer/array-buffer-memory-layout.ts");
-const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/memory_layout/buffer/primitive-buffer-memory-layout.ts");
-class VertexParameter extends gpu_object_1.GpuObject {
-  /**
-   * Get index buffer.
-   */
-  get indexBuffer() {
-    return this.mIndexBufferView;
-  }
-  /**
-   * Get parameter layout.
-   */
-  get layout() {
-    return this.mLayout;
-  }
-  /**
-   * Vertex count.
-   */
-  get vertexCount() {
-    return this.mIndices.length;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device reference.
-   * @param pVertexParameterLayout - Parameter layout.
-   * @param pIndices - Index buffer data.
-   */
-  constructor(pDevice, pVertexParameterLayout, pIndices) {
-    super(pDevice);
-    // Set vertex parameter layout.
-    this.mLayout = pVertexParameterLayout;
-    this.mBuffer = new core_1.Dictionary();
-    // Save index information.
-    this.mIndices = pIndices;
-    // Create index buffer.
-    this.mIndexBufferView = null;
-    if (this.mLayout.indexable) {
-      // Decide wich format to use.
-      if (pIndices.length < Math.pow(2, 16)) {
-        // Create index buffer layout.
-        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-          arraySize: pIndices.length,
-          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
-            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint16,
-            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
-          })
-        });
-        // Create index buffer.
-        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
-        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
-        lIndexBuffer.initialData(new Uint16Array(pIndices));
-        // Create view of buffer.
-        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
-      } else {
-        // Create index buffer layout.
-        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
-          arraySize: pIndices.length,
-          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
-            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
-            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
-            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
-          })
-        });
-        // Create index buffer.
-        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
-        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
-        lIndexBuffer.initialData(new Uint32Array(pIndices));
-        // Create view of buffer.
-        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
-      }
-    }
-  }
-  /**
-   * Set parameter data.
-   * @param pName - parameter buffer name.
-   * @param pData - Parameter data with ignored alignments.
-   */
-  create(pBufferName, pData) {
-    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
-    // Get item count of layout. => Vec3<float> + int + Vex2<uint> => 6 Items
-    const lStrideParameter = new Array();
-    let lStrideDataCount = 0;
-    for (const lBufferParameter of lParameterLayout.layout.properties) {
-      const lParameterLayout = lBufferParameter.layout;
-      // Read item count and format of parameter.
-      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lParameterLayout.itemMultiplier);
-      const lParameterItemFormat = lParameterLayout.itemFormat;
-      // Add stride data count.
-      lStrideDataCount += lParameterItemCount;
-      // Add formats for each item of parameter.
-      lStrideParameter.push({
-        count: lParameterItemCount,
-        format: lParameterItemFormat,
-        alignment: lParameterLayout.alignment,
-        itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
-      });
-    }
-    // Buffer data must align with layout.
-    if (pData.length % lStrideDataCount !== 0) {
-      throw new core_1.Exception('Vertex parameter buffer data does not align with layout.', this);
-    }
-    // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
-    let lData = pData;
-    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
-      // Dublicate dependent on index information.
-      lData = new Array();
-      for (const lIndex of this.mIndices) {
-        const lDataStart = lIndex * lStrideDataCount;
-        const lDataEnd = lDataStart + lStrideDataCount;
-        // Copy vertex parameter data.
-        lData.push(...pData.slice(lDataStart, lDataEnd));
-      }
-    }
-    // Calculate struct count in buffer. Fallback to vertex mode when buffer is in index step mode but parameters cant be indexed.
-    let lStrideCount = lData.length / lStrideDataCount;
-    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
-      lStrideCount = this.mIndices.length;
-    }
-    // Create buffer data.
-    const lBufferData = new ArrayBuffer(lParameterLayout.layout.fixedSize * lStrideCount);
-    const lBufferDataView = new DataView(lBufferData);
-    // Set data in little endian according to the set item format and offset. 
-    const lSetData = (pByteOffset, pFormat, pData) => {
-      switch (pFormat) {
-        case buffer_item_format_enum_1.BufferItemFormat.Float32:
-          {
-            lBufferDataView.setFloat32(pByteOffset, pData, true);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Uint32:
-          {
-            lBufferDataView.setUint32(pByteOffset, pData, true);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Sint32:
-          {
-            lBufferDataView.setInt32(pByteOffset, pData, true);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Uint8:
-          {
-            lBufferDataView.setUint8(pByteOffset, pData);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Sint8:
-          {
-            lBufferDataView.setInt8(pByteOffset, pData);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Uint16:
-          {
-            lBufferDataView.setUint16(pByteOffset, pData, true);
-            break;
-          }
-        case buffer_item_format_enum_1.BufferItemFormat.Sint16:
-          {
-            lBufferDataView.setInt16(pByteOffset, pData, true);
-            break;
-          }
-        // Unsupported
-        case buffer_item_format_enum_1.BufferItemFormat.Float16:
-        case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
-        case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
-        case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
-        case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
-        default:
-          {
-            throw new core_1.Exception(`Currently "${pFormat}" is not supported for vertex parameter.`, this);
-          }
-      }
-    };
-    // Add data with correct alignment.
-    let lDataIndex = 0;
-    let lByteOffset = 0;
-    for (let lStrideIndex = 0; lStrideIndex < lStrideCount; lStrideIndex++) {
-      for (const lStrideItem of lStrideParameter) {
-        // Apply stride item alignment to offset.
-        lByteOffset = Math.ceil(lByteOffset / lStrideItem.alignment) * lStrideItem.alignment;
-        // Add each parameter to buffer.
-        for (let lStrideItemIndex = 0; lStrideItemIndex < lStrideItem.count; lStrideItemIndex++) {
-          // Add and iterate data.
-          lSetData(lByteOffset, lStrideItem.format, lData[lDataIndex]);
-          lDataIndex++;
-          // Increase offset by format byte count.
-          lByteOffset += lStrideItem.itemByteCount;
-        }
-      }
-      // Apply stride alignment
-      lByteOffset = Math.ceil(lByteOffset / lParameterLayout.layout.alignment) * lParameterLayout.layout.alignment;
-    }
-    // Load typed array from layout format.
-    const lParameterBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
-    // Extend buffer to be a vertex buffer.
-    lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
-    // Save gpu buffer in correct index.
-    this.mBuffer.set(pBufferName, lParameterBuffer);
-    // Invalidate on data set.
-    this.invalidate(VertexParameterInvalidationType.Data);
-    return lParameterBuffer;
-  }
-  /**
-   * Get parameter buffer.
-   * @param pBufferName - Parameter buffer name.
-   */
-  get(pBufferName) {
-    // Validate.
-    if (!this.mBuffer.has(pBufferName)) {
-      throw new core_1.Exception(`Vertex parameter buffer for "${pBufferName}" not set.`, this);
-    }
-    return this.mBuffer.get(pBufferName);
-  }
-  /**
-   * Add raw buffer as vertex parameter.
-   *
-   * @param pBufferName - Buffer name.
-   * @param pBuffer - Buffer.
-   */
-  set(pBufferName, pBuffer) {
-    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
-    // Validate alignment.
-    if (pBuffer.size % lParameterLayout.layout.fixedSize !== 0) {
-      throw new core_1.Exception('Set vertex parameter buffer does not align with layout.', this);
-    }
-    // Calculate stride count.
-    let lStrideCount = pBuffer.size / lParameterLayout.layout.fixedSize;
-    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
-      lStrideCount = this.mIndices.length;
-    }
-    // Validate length.
-    if (pBuffer.size !== lParameterLayout.layout.fixedSize * lStrideCount) {
-      throw new core_1.Exception(`Set vertex parameter buffer does not fit needed buffer size (Has:${pBuffer.size} => Should:${lParameterLayout.layout.fixedSize * lStrideCount}).`, this);
-    }
-    // Extend usage.
-    pBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
-    // Add buffer.
-    this.mBuffer.set(pBufferName, pBuffer);
-    // Invalidate on data set.
-    this.invalidate(VertexParameterInvalidationType.Data);
-    return pBuffer;
-  }
-}
-exports.VertexParameter = VertexParameter;
-var VertexParameterInvalidationType;
-(function (VertexParameterInvalidationType) {
-  VertexParameterInvalidationType["Data"] = "DataChange";
-})(VertexParameterInvalidationType || (exports.VertexParameterInvalidationType = VertexParameterInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/pipeline/target/render-targets-setup.ts":
-/*!********************************************************!*\
-  !*** ./source/pipeline/target/render-targets-setup.ts ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderTargetsSetup = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const render_targets_texture_setup_1 = __webpack_require__(/*! ./render-targets-texture-setup */ "./source/pipeline/target/render-targets-texture-setup.ts");
-class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Constructor
-   *
-   * @param pSetupReference -Setup references.
-   */
-  constructor(pSetupReference, pMultisampled) {
-    super(pSetupReference);
-    // Set static multisampled state.
-    this.mMultisampled = pMultisampled;
-  }
-  /**
-   * Add color target.
-   *
-   * @param pName - Color target name.
-   * @param pLocationIndex - Target location index.
-   * @param pKeepOnEnd - Keep information after render pass end.
-   * @param pClearValue - Clear value on render pass start. Omit to never clear.
-   */
-  addColor(pName, pLocationIndex, pKeepOnEnd = true, pClearValue) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Convert render attachment to a location mapping. 
-    const lTarget = {
-      name: pName,
-      index: pLocationIndex,
-      clearValue: pClearValue ?? null,
-      storeOperation: pKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear,
-      textureView: null,
-      resolveCanvas: null
-    };
-    // Add to color attachment list.
-    this.setupData.colorTargets.push(lTarget);
-    // Return texture setup. Set texture on texture resolve.
-    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
-      lTarget.textureView = pTexture.view;
-      lTarget.resolveCanvas = pTexture.resolveCanvas;
-    });
-  }
-  /**
-   * Add depth and stencil target. Actual usage of depth and stencil is the used texture format.
-   *
-   * @param pDepthKeepOnEnd - Keep information after render pass end.
-   * @param pDepthClearValue - Clear value on render pass start. Omit to never clear.
-   * @param pStencilKeepOnEnd - Keep information after render pass end.
-   * @param pStencilClearValue - Clear value on render pass start. Omit to never clear.
-   */
-  addDepthStencil(pDepthKeepOnEnd = null, pDepthClearValue = null, pStencilKeepOnEnd = null, pStencilClearValue = null) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    this.setupData.depthStencil = {
-      textureView: null
-    };
-    // Setup depth when values where set.
-    if (pDepthKeepOnEnd !== null || pDepthClearValue !== null) {
-      this.setupData.depthStencil.depth = {
-        clearValue: pDepthClearValue ?? null,
-        storeOperation: pDepthKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear
-      };
-    }
-    // Setup stencil when values where set.
-    if (pStencilKeepOnEnd !== null || pStencilClearValue !== null) {
-      this.setupData.depthStencil.stencil = {
-        clearValue: pStencilClearValue ?? null,
-        storeOperation: pStencilKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear
-      };
-    }
-    // Return texture setup. Set texture on texture resolve.
-    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
-      // Restrict used texture type to a frame buffer.
-      if (pTexture.resolveCanvas) {
-        throw new core_1.Exception(`Can't use a canvas texture as depth or stencil texture.`, this);
-      }
-      this.setupData.depthStencil.textureView = pTexture.view;
-    });
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data reference.
-   */
-  fillDefaultData(pDataReference) {
-    pDataReference.colorTargets = new Array();
-  }
-}
-exports.RenderTargetsSetup = RenderTargetsSetup;
-
-/***/ }),
-
-/***/ "./source/pipeline/target/render-targets-texture-setup.ts":
-/*!****************************************************************!*\
-  !*** ./source/pipeline/target/render-targets-texture-setup.ts ***!
-  \****************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderTargetTextureSetup = void 0;
-const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-const gpu_texture_1 = __webpack_require__(/*! ../../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
-class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Constructor.
-   *
-   * @param pSetupReference - Setup references.
-   * @param pMultisampled - Multisample state.
-   * @param pDataCallback - Setup data callback.
-   */
-  constructor(pSetupReference, pMultisampled, pDataCallback) {
-    super(pSetupReference, pDataCallback);
-    // Set static multisampled state.
-    this.mMultisampled = pMultisampled;
-  }
-  /**
-   * Create new color render target.
-   *
-   * @param pFormat - Texture format.
-   * @param pResolve - Optional resolve target.
-   *
-   * @returns created texture view.
-   */
-  new(pFormat, pResolve = null) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Create new texture.
-    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
-      format: pFormat,
-      dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
-      multisampled: this.mMultisampled
-    });
-    // Create view from texture.
-    const lTextureView = lTexture.useAs(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension);
-    // Callback texture.
-    this.sendData({
-      view: lTextureView,
-      resolveCanvas: pResolve
-    });
-    return lTextureView;
-  }
-  /**
-   * Use a existing texture.
-   *
-   * @param pTexture - Existing texture.
-   */
-  use(pTextureView, pResolve = null) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Callback texture.
-    this.sendData({
-      view: pTextureView,
-      resolveCanvas: pResolve
-    });
-    // Return same data.
-    return pTextureView;
-  }
-}
-exports.RenderTargetTextureSetup = RenderTargetTextureSetup;
-
-/***/ }),
-
-/***/ "./source/pipeline/target/render-targets.ts":
-/*!**************************************************!*\
-  !*** ./source/pipeline/target/render-targets.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderTargetsInvalidationType = exports.RenderTargets = void 0;
+exports.GpuTextureFormatCapabilities = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_format_enum_1 = __webpack_require__(/*! ../../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
+const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/pipeline/target/render-targets-setup.ts");
-/**
- * Group of textures with the same size and multisample level.
- */
-class RenderTargets extends gpu_object_1.GpuObject {
-  /**
-   * Color attachment names ordered by index.
-   */
-  get colorTargetNames() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    // Create color attachment list in order.
-    const lColorAttachmentNameList = new Array();
-    for (const lColorAttachment of this.mColorTargets.values()) {
-      lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
-    }
-    return lColorAttachmentNameList;
-  }
-  /**
-   * Stencil attachment texture.
-   */
-  get hasDepth() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return !!this.mDepthStencilTarget?.depth;
-  }
-  /**
-   * Stencil attachment texture.
-   */
-  get hasStencil() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    return !!this.mDepthStencilTarget?.stencil;
-  }
-  /**
-   * Render target height.
-   */
-  get height() {
-    return this.mSize.height;
-  }
-  /**
-   * Render target multisample level.
-   */
-  get multisampled() {
-    return this.mMultisampled;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * List of all resolve canvases.
-   */
-  get resolveCanvasList() {
-    return this.mResolveCanvasList;
-  }
-  /**
-   * Render target height.
-   */
-  get width() {
-    return this.mSize.width;
-  }
-  /**
-   * Constuctor.
-   * @param pDevice - Gpu device reference.
-   */
-  constructor(pDevice, pMultisampled) {
-    super(pDevice);
-    // Set statics.
-    this.mMultisampled = pMultisampled;
-    // Set default size. 
-    this.mSize = {
-      width: 1,
-      height: 1
-    };
-    // Setup initial data.
-    this.mDepthStencilTarget = null;
-    this.mColorTargets = new Array();
-    this.mColorTargetNames = new core_1.Dictionary();
-    this.mTargetViewUpdateQueue = new Set();
-    this.mResolveCanvasList = new Array();
-  }
-  /**
-   * Get color target by name.
-   *
-   * @param pTargetName - Target name.
-   *
-   * @returns target texture.
-   */
-  colorTarget(pTargetName) {
-    // Read index of color target.
-    const lColorTargetIndex = this.mColorTargetNames.get(pTargetName) ?? null;
-    if (lColorTargetIndex === null) {
-      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
-    }
-    return this.mColorTargets[lColorTargetIndex].texture.target;
-  }
-  /**
-   * Get depth attachment texture.
-   */
-  depthStencilTarget() {
-    // Ensure setup was called.
-    this.ensureSetup();
-    // No depth texture setup.
-    if (!this.mDepthStencilTarget || !this.mDepthStencilTarget.depth) {
-      throw new core_1.Exception(`Depth or stencil target does not exists.`, this);
-    }
-    return this.mDepthStencilTarget.target;
-  }
-  /**
-   * Check for color target existence.
-   *
-   * @param pTargetName - Color target name.
-   *
-   * @returns true when color target exists.
-   */
-  hasColorTarget(pTargetName) {
-    return this.mColorTargetNames.has(pTargetName);
-  }
-  /**
-   * Resize all render targets.
-   *
-   * @param pWidth - New texture width.
-   * @param pHeight - New texture height.
-   * @param pMultisampleLevel - New texture multisample level.
-   *
-   * @returns this.
-   */
-  resize(pHeight, pWidth) {
-    // Set 2D size dimensions
-    this.mSize.width = pWidth;
-    this.mSize.height = pHeight;
-    // Apply resize for all textures.
-    // This trigger RenderTargetsInvalidationType.NativeUpdate for textures set in setTextureInvalidationListener.
-    this.applyResize();
-    // Trigger resize invalidation. Does not automaticly trigger rebuild.
-    this.invalidate(RenderTargetsInvalidationType.Resize);
-    return this;
-  }
-  /**
-   * Call setup.
-   * Exposes internal setup.
-   *
-   * @param pSetupCallback - Setup callback.
-   *
-   * @returns this.
-   */
-  setup(pSetupCallback) {
-    return super.setup(pSetupCallback);
-  }
-  /**
-   * Generate native gpu bind data group.
-   */
-  generateNative() {
-    // Create color attachments.
-    const lColorAttachments = new Array();
-    for (const lColorAttachment of this.mColorTargets) {
-      // Convert Texture operation to load operations.
-      const lStoreOperation = lColorAttachment.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
-      // Create basic color attachment.
-      const lPassColorAttachment = {
-        view: lColorAttachment.texture.target.native,
-        storeOp: lStoreOperation,
-        loadOp: 'clear' // Placeholder
-      };
-      // Set clear value 
-      if (lColorAttachment.clearValue !== null) {
-        lPassColorAttachment.clearValue = lColorAttachment.clearValue;
-        lPassColorAttachment.loadOp = 'clear';
-      } else {
-        lPassColorAttachment.loadOp = 'load';
-      }
-      lColorAttachments.push(lPassColorAttachment);
-    }
-    // Create descriptor with color attachments.
-    const lDescriptor = {
-      colorAttachments: lColorAttachments
-    };
-    // Set optional depth attachment.
-    if (this.mDepthStencilTarget) {
-      const lDepthStencilTexture = this.mDepthStencilTarget.target;
-      // Add texture view for depth.
-      lDescriptor.depthStencilAttachment = {
-        view: lDepthStencilTexture.native
-      };
-      // Add depth values when depth formats are used.
-      if (this.mDepthStencilTarget.depth) {
-        // Set clear value of depth texture.
-        if (this.mDepthStencilTarget.depth.clearValue !== null) {
-          lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTarget.depth.clearValue;
-          lDescriptor.depthStencilAttachment.depthLoadOp = 'clear';
-        } else {
-          lDescriptor.depthStencilAttachment.depthLoadOp = 'load';
-        }
-        // Convert Texture operation to load operations.
-        lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTarget.depth.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
-      }
-      // Add stencil values when stencil formats are used.
-      if (this.mDepthStencilTarget.stencil) {
-        // Set clear value of stencil texture.
-        if (this.mDepthStencilTarget.stencil.clearValue !== null) {
-          lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTarget.stencil.clearValue;
-          lDescriptor.depthStencilAttachment.stencilLoadOp = 'clear';
-        } else {
-          lDescriptor.depthStencilAttachment.stencilLoadOp = 'load';
-        }
-        // Convert Texture operation to load operations.
-        lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTarget.stencil.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
-      }
-    }
-    return lDescriptor;
-  }
-  /**
-   * Setup object based on setup data.
-   *
-   * @param pReferenceData - Referenced setup data.
-   */
-  onSetup(pReferenceData) {
-    // Enforce gpu color attachment limits.
-    const lMaxRenderTargets = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxColorAttachments);
-    if (pReferenceData.colorTargets.length > lMaxRenderTargets - 1) {
-      throw new core_1.Exception(`Max color targets count exeeced.`, this);
-    }
-    // Setup depth stencil targets.
-    if (pReferenceData.depthStencil) {
-      // Validate existence of depth stencil texture.
-      if (!pReferenceData.depthStencil.textureView) {
-        throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
-      }
-      // Only two dimensional textures.
-      if (pReferenceData.depthStencil.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
-        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
-      }
-      // Save setup texture.
-      this.mDepthStencilTarget = {
-        target: pReferenceData.depthStencil.textureView
-      };
-      // Add render attachment texture usage to depth stencil texture.
-      pReferenceData.depthStencil.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-      // Passthrough depth stencil texture changes.
-      this.setTextureInvalidationListener(pReferenceData.depthStencil.textureView, -1);
-      // Read capability of used depth stencil texture format.
-      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.textureView.layout.format);
-      // Setup depth texture.
-      if (pReferenceData.depthStencil.depth) {
-        // Validate if depth texture
-        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Depth)) {
-          throw new core_1.Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
-        }
-        this.mDepthStencilTarget.depth = {
-          clearValue: pReferenceData.depthStencil.depth.clearValue,
-          storeOperation: pReferenceData.depthStencil.depth.storeOperation
-        };
-      }
-      // Setup stencil texture.
-      if (pReferenceData.depthStencil.stencil) {
-        // Validate if depth texture
-        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Stencil)) {
-          throw new core_1.Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
-        }
-        this.mDepthStencilTarget.stencil = {
-          clearValue: pReferenceData.depthStencil.stencil.clearValue,
-          storeOperation: pReferenceData.depthStencil.stencil.storeOperation
-        };
-      }
-    }
-    // Setup color targets.
-    for (const lAttachment of pReferenceData.colorTargets.values()) {
-      // Validate existence of color texture.
-      if (!lAttachment.textureView) {
-        throw new core_1.Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
-      }
-      // No double names.
-      if (this.mColorTargetNames.has(lAttachment.name)) {
-        throw new core_1.Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
-      }
-      // No double location indices.
-      if (this.mColorTargets[lAttachment.index]) {
-        throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
-      }
-      // When a resolve canvas is specified, the texture must have the same texture format.
-      if (lAttachment.resolveCanvas && lAttachment.resolveCanvas.format !== lAttachment.textureView.layout.format) {
-        throw new core_1.Exception(`Color attachment can only be resolved into a canvas with the same texture format.`, this);
-      }
-      // Only two dimensional textures.
-      if (lAttachment.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
-        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
-      }
-      // Only two dimensional textures.
-      if (lAttachment.textureView.mipLevelStart !== 0) {
-        throw new core_1.Exception(`Color attachment can only rendered into mip level 0.`, this);
-      }
-      // Passthrough color texture changes. Any change.
-      this.setTextureInvalidationListener(lAttachment.textureView, lAttachment.index);
-      // Add render attachment texture usage to color texture.
-      lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-      // Save color target name and index mapping.
-      this.mColorTargetNames.set(lAttachment.name, lAttachment.index);
-      // Set resolve canvas.
-      if (lAttachment.resolveCanvas) {
-        // Add copy source to texture usage to be copied into canvas.
-        lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.CopySource);
-        this.mResolveCanvasList.push({
-          source: lAttachment.textureView,
-          canvas: lAttachment.resolveCanvas
-        });
-      }
-      // Convert setup into storage data.
-      this.mColorTargets[lAttachment.index] = {
-        name: lAttachment.name,
-        index: lAttachment.index,
-        clearValue: lAttachment.clearValue,
-        storeOperation: lAttachment.storeOperation,
-        texture: {
-          target: lAttachment.textureView,
-          resolveCanvas: lAttachment.resolveCanvas
-        }
-      };
-    }
-    // Validate attachment list.
-    if (this.mColorTargetNames.size !== this.mColorTargets.length) {
-      throw new core_1.Exception(`Color attachment locations must be in order.`, this);
-    }
-  }
-  /**
-   * On setup object creation. Create setup object.
-   *
-   * @param pReferences - Setup references.
-   *
-   * @returns build setup object.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new render_targets_setup_1.RenderTargetsSetup(pReferences, this.mMultisampled);
-  }
-  /**
-   * Try to update views of pass descriptor.
-   *
-   * @param pNative - Native pass descriptor.
-   * @param pReasons - Update reason.
-   *
-   * @returns true when native was updated.
-   */
-  updateNative(pNative) {
-    // Update depth stencil view. -1 Marks depth stencil texture updates. 
-    if (this.mTargetViewUpdateQueue.has(-1) && pNative.depthStencilAttachment) {
-      pNative.depthStencilAttachment.view = this.mDepthStencilTarget.target.native;
-      // Remove depth stencil from update queue.
-      this.mTargetViewUpdateQueue.delete(-1);
-    }
-    // Update color attachments.
-    for (const lTargetIndex of this.mTargetViewUpdateQueue) {
-      // Read current attachment.
-      const lCurrentAttachment = pNative.colorAttachments[lTargetIndex];
-      // Read setup attachments.
-      const lColorAttachment = this.mColorTargets[lTargetIndex];
-      // Update view.
-      lCurrentAttachment.view = lColorAttachment.texture.target.native;
-    }
-    // Reset updateable views.
-    this.mTargetViewUpdateQueue.clear();
-    return true;
-  }
-  /**
-   * Resize all textures.
-   */
-  applyResize() {
-    // Update buffer texture sizes.
-    for (const lAttachment of this.mColorTargets) {
-      lAttachment.texture.target.texture.height = this.mSize.height;
-      lAttachment.texture.target.texture.width = this.mSize.width;
-      if (lAttachment.texture.resolveCanvas) {
-        lAttachment.texture.resolveCanvas.height = this.mSize.height;
-        lAttachment.texture.resolveCanvas.width = this.mSize.width;
-      }
-    }
-    // Update target texture sizes.
-    if (this.mDepthStencilTarget) {
-      this.mDepthStencilTarget.target.texture.height = this.mSize.height;
-      this.mDepthStencilTarget.target.texture.width = this.mSize.width;
-    }
-  }
-  /**
-   * Add all needed texture invalidation listener for passthrow and descriptor invalidation.
-   *
-   * @param pTexture - Texture.
-   */
-  setTextureInvalidationListener(pTexture, pTextureIndex) {
-    // Update descriptor only on view changes.
-    pTexture.addInvalidationListener(() => {
-      // Invalidate.
-      this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
-      // Set texture as updateable.
-      this.mTargetViewUpdateQueue.add(pTextureIndex);
-    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-}
-exports.RenderTargets = RenderTargets;
-var RenderTargetsInvalidationType;
-(function (RenderTargetsInvalidationType) {
-  RenderTargetsInvalidationType["NativeUpdate"] = "NativeUpdate";
-  RenderTargetsInvalidationType["Resize"] = "Resize";
-})(RenderTargetsInvalidationType || (exports.RenderTargetsInvalidationType = RenderTargetsInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/pipeline/vertex-fragment-pipeline-target-config.ts":
-/*!*******************************************************************!*\
-  !*** ./source/pipeline/vertex-fragment-pipeline-target-config.ts ***!
-  \*******************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexFragmentPipelineTargetConfig = void 0;
-class VertexFragmentPipelineTargetConfig {
-  /**
-   * Constructor.
-   *
-   * @param pCallback - Data callback.
-   */
-  constructor(pDataReference, pCallback) {
-    this.mCallback = pCallback;
-    this.mDataReference = pDataReference;
-  }
-  /**
-   * Set alpha blends.
-   *
-   * @param pOperation - Blend operation.
-   * @param pSourceFactor - Factor of source value.
-   * @param pDestinationFactor - Factor of destination value.
-   *
-   * @returns this.
-   */
-  alphaBlend(pOperation, pSourceFactor, pDestinationFactor) {
-    // Set data.
-    this.mDataReference.alphaBlend = {
-      operation: pOperation,
-      sourceFactor: pSourceFactor,
-      destinationFactor: pDestinationFactor
-    };
-    // Callback change.
-    this.mCallback();
-    return this;
-  }
-  /**
-   * Set color blends.
-   *
-   * @param pOperation - Blend operation.
-   * @param pSourceFactor - Factor of source value.
-   * @param pDestinationFactor - Factor of destination value.
-   *
-   * @returns this.
-   */
-  colorBlend(pOperation, pSourceFactor, pDestinationFactor) {
-    // Set data.
-    this.mDataReference.colorBlend = {
-      operation: pOperation,
-      sourceFactor: pSourceFactor,
-      destinationFactor: pDestinationFactor
-    };
-    // Callback change.
-    this.mCallback();
-    return this;
-  }
-  /**
-   * Set texture aspect writemask.
-   *
-   * @param pAspects - Aspect to write into.
-   *
-   * @returns this.
-   */
-  writeMask(...pAspects) {
-    // Set data.
-    this.mDataReference.aspectWriteMask = new Set(pAspects);
-    // Callback change.
-    this.mCallback();
-    return this;
-  }
-}
-exports.VertexFragmentPipelineTargetConfig = VertexFragmentPipelineTargetConfig;
-
-/***/ }),
-
-/***/ "./source/pipeline/vertex-fragment-pipeline.ts":
-/*!*****************************************************!*\
-  !*** ./source/pipeline/vertex-fragment-pipeline.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
-const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
-const primitive_front_face_enum_1 = __webpack_require__(/*! ../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
-const primitive_topology_enum_1 = __webpack_require__(/*! ../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
-const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/pipeline/vertex-fragment-pipeline-target-config.ts");
-class VertexFragmentPipeline extends gpu_object_1.GpuObject {
-  /**
-   * Set depth compare function.
-   */
-  get depthCompare() {
-    return this.mDepthCompare;
-  }
-  set depthCompare(pValue) {
-    this.mDepthCompare = pValue;
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-  }
-  /**
-   * Pipeline layout.
-   */
-  get layout() {
-    return this.mShaderModule.shader.layout;
-  }
-  /**
-   * Pipeline shader.
-   */
-  get module() {
-    return this.mShaderModule;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Defines which polygon orientation will be culled.
-   */
-  get primitiveCullMode() {
-    return this.mPrimitiveCullMode;
-  }
-  set primitiveCullMode(pValue) {
-    this.mPrimitiveCullMode = pValue;
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-  }
-  /**
-   * Defines which polygons are considered front-facing.
-   */
-  get primitiveFrontFace() {
-    return this.mPrimitiveFrontFace;
-  }
-  set primitiveFrontFace(pValue) {
-    this.mPrimitiveFrontFace = pValue;
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-  }
-  /**
-   * The type of primitive to be constructed from the vertex inputs.
-   */
-  get primitiveTopology() {
-    return this.mPrimitiveTopology;
-  }
-  set primitiveTopology(pValue) {
-    this.mPrimitiveTopology = pValue;
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-  }
-  /**
-   * Render targets.
-   */
-  get renderTargets() {
-    return this.mRenderTargets;
-  }
-  /**
-   * Set depth write enabled / disabled.
-   */
-  get writeDepth() {
-    return this.mDepthWriteEnabled;
-  }
-  set writeDepth(pValue) {
-    this.mDepthWriteEnabled = pValue;
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-  }
-  /**
-   * Constructor.
-   * Set default data.
-   *
-   * @param pDevice - Device.
-   * @param pShaderRenderModule - Pipeline shader.
-   */
-  constructor(pDevice, pShaderRenderModule, pRenderTargets) {
-    super(pDevice);
-    // Loaded pipeline for async creation.
-    this.mLoadedPipeline = null;
-    // Set config objects.
-    this.mShaderModule = pShaderRenderModule;
-    this.mRenderTargets = pRenderTargets;
-    this.mRenderTargetConfig = new core_1.Dictionary();
-    // Pipeline constants.
-    this.mParameter = new core_1.Dictionary();
-    // Depth default settings.
-    this.mDepthCompare = compare_function_enum_1.CompareFunction.Less;
-    this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
-    // Primitive default settings.
-    this.mPrimitiveTopology = primitive_topology_enum_1.PrimitiveTopology.TriangleList;
-    this.mPrimitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
-    this.mPrimitiveFrontFace = primitive_front_face_enum_1.PrimitiveFrontFace.ClockWise;
-  }
-  /**
-   * Set optional parameter of pipeline.
-   *
-   * @param pParameterName - name of parameter.
-   * @param pValue - Value.
-   *
-   * @returns this.
-   */
-  setParameter(pParameterName, pValue) {
-    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
-    // Set parameter for each assigned compute stage.
-    for (const lUsage of lParameterUsage) {
-      // Init parameters for computestage when not set.
-      if (!this.mParameter.has(lUsage)) {
-        this.mParameter.set(lUsage, {});
-      }
-      // Set value for compute stage.
-      this.mParameter.get(lUsage)[pParameterName] = pValue;
-    }
-    // Generate pipeline anew.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    return this;
-  }
-  /**
-   * Create or update target config.
-   *
-   * @param pTargetName - Target name.
-   *
-   * @returns config object.
-   */
-  targetConfig(pTargetName) {
-    if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
-      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
-    }
-    // Create default config when not already set.
-    if (!this.mRenderTargetConfig.has(pTargetName)) {
-      this.mRenderTargetConfig.set(pTargetName, {
-        colorBlend: {
-          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
-          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
-          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
-        },
-        alphaBlend: {
-          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
-          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
-          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
-        },
-        aspectWriteMask: new Set([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha])
-      });
-    }
-    return new vertex_fragment_pipeline_target_config_1.VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName), () => {
-      // Generate pipeline anew.
-      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    });
-  }
-  /**
-   * Generate native gpu pipeline data layout.
-   */
-  generateNative(_pLastNative, pInvalidationReason) {
-    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
-    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(VertexFragmentPipelineInvalidationType.NativeRebuild)) {
-      const lLoadedPipeline = this.mLoadedPipeline;
-      this.mLoadedPipeline = null;
-      return lLoadedPipeline;
-    }
-    // Generate pipeline layout from bind group layouts.
-    const lPipelineLayout = this.mShaderModule.shader.layout.native;
-    // Construct basic GPURenderPipelineDescriptor.
-    const lPipelineDescriptor = {
-      layout: lPipelineLayout,
-      vertex: {
-        module: this.mShaderModule.shader.native,
-        entryPoint: this.mShaderModule.vertexEntryPoint,
-        buffers: this.mShaderModule.vertexParameter.native,
-        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Vertex) ?? {}
-      },
-      primitive: this.generatePrimitive()
-    };
-    // Optional fragment state.
-    if (this.module.fragmentEntryPoint) {
-      // Generate fragment targets only when fragment state is needed.
-      const lFragmentTargetList = new Array();
-      for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
-        const lRenderTarget = this.mRenderTargets.colorTarget(lRenderTargetName);
-        lFragmentTargetList.push({
-          format: lRenderTarget.layout.format,
-          blend: this.generateRenderTargetBlendState(lRenderTargetName),
-          writeMask: this.generateRenderTargetWriteMask(lRenderTargetName)
-        });
-      }
-      lPipelineDescriptor.fragment = {
-        module: this.mShaderModule.shader.native,
-        entryPoint: this.module.fragmentEntryPoint,
-        targets: lFragmentTargetList,
-        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Fragment) ?? {}
-      };
-    }
-    // Setup optional depth attachment.
-    if (this.mRenderTargets.hasDepth) {
-      lPipelineDescriptor.depthStencil = {
-        depthWriteEnabled: this.writeDepth,
-        depthCompare: this.depthCompare,
-        format: this.mRenderTargets.depthStencilTarget().layout.format
-      };
-    }
-    // TODO: Stencil.
-    // Set multisample count.
-    if (this.mRenderTargets.multisampled) {
-      lPipelineDescriptor.multisample = {
-        count: 4
-      };
-    }
-    // Load pipeline asyncron and update native after promise resolve.
-    this.device.gpu.createRenderPipelineAsync(lPipelineDescriptor).then(pPipeline => {
-      this.mLoadedPipeline = pPipeline;
-      this.invalidate(VertexFragmentPipelineInvalidationType.NativeLoaded);
-    });
-    // Null as long as pipeline is loading.
-    return null;
-  }
-  /**
-   * Primitive settings.
-   */
-  generatePrimitive() {
-    // Convert topology to native. Set strip format for strip topology.
-    let lStripIndexFormat = undefined;
-    switch (this.primitiveTopology) {
-      case primitive_topology_enum_1.PrimitiveTopology.LineStrip:
-      case primitive_topology_enum_1.PrimitiveTopology.TriangleStrip:
-        {
-          lStripIndexFormat = 'uint32';
-          break;
-        }
-    }
-    // Create primitive state.
-    const lPrimitiveState = {
-      topology: this.primitiveTopology,
-      frontFace: this.primitiveFrontFace,
-      cullMode: this.primitiveCullMode,
-      unclippedDepth: false
-    };
-    // Set optional strip format.
-    if (lStripIndexFormat) {
-      lPrimitiveState.stripIndexFormat = lStripIndexFormat;
-    }
-    return lPrimitiveState;
-  }
-  /**
-   * Generate blend state for render target.
-   *
-   * @param pTargetName - Render target name.
-   *
-   * @returns generated blend state.
-   */
-  generateRenderTargetBlendState(pTargetName) {
-    const lConfig = this.mRenderTargetConfig.get(pTargetName);
-    // Set defaults for blend state.
-    const lBlendState = {
-      color: {
-        operation: 'add',
-        srcFactor: 'one',
-        dstFactor: 'zero'
-      },
-      alpha: {
-        operation: 'add',
-        srcFactor: 'one',
-        dstFactor: 'zero'
-      }
-    };
-    // Set alpha and alpha blend when set.
-    if (lConfig) {
-      lBlendState.alpha = {
-        operation: lConfig.alphaBlend.operation,
-        srcFactor: lConfig.alphaBlend.sourceFactor,
-        dstFactor: lConfig.alphaBlend.destinationFactor
-      };
-      lBlendState.color = {
-        operation: lConfig.colorBlend.operation,
-        srcFactor: lConfig.colorBlend.sourceFactor,
-        dstFactor: lConfig.colorBlend.destinationFactor
-      };
-    }
-    return lBlendState;
-  }
-  /**
-   * Generate gpu color write mask for the set render target.
-   *
-   * @param pTargetName - Target name.
-   *
-   * @returns color write flags.
-   */
-  generateRenderTargetWriteMask(pTargetName) {
-    const lConfig = this.mRenderTargetConfig.get(pTargetName);
-    // Convert color aspects config to write mask.
-    let lWriteMask = 0xf;
-    if (lConfig) {
-      lWriteMask = 0x0;
-      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
-        lWriteMask += 0x1;
-      }
-      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Green)) {
-        lWriteMask += 0x2;
-      }
-      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
-        lWriteMask += 0x4;
-      }
-      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Alpha)) {
-        lWriteMask += 0x8;
-      }
-    }
-    return lWriteMask;
-  }
-}
-exports.VertexFragmentPipeline = VertexFragmentPipeline;
-var VertexFragmentPipelineInvalidationType;
-(function (VertexFragmentPipelineInvalidationType) {
-  VertexFragmentPipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
-  VertexFragmentPipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
-})(VertexFragmentPipelineInvalidationType || (exports.VertexFragmentPipelineInvalidationType = VertexFragmentPipelineInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/shader/setup/shader-compute-entry-point-setup.ts":
-/*!*****************************************************************!*\
-  !*** ./source/shader/setup/shader-compute-entry-point-setup.ts ***!
-  \*****************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderComputeEntryPointSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-class ShaderComputeEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Setup compute entry with a static size.
-   */
-  size(pX, pY = 1, pZ = 1) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Callback size.
-    this.sendData(pX, pY, pZ);
-  }
-}
-exports.ShaderComputeEntryPointSetup = ShaderComputeEntryPointSetup;
-
-/***/ }),
-
-/***/ "./source/shader/setup/shader-fragment-entry-point-setup.ts":
-/*!******************************************************************!*\
-  !*** ./source/shader/setup/shader-fragment-entry-point-setup.ts ***!
-  \******************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderFragmentEntryPointSetup = void 0;
-const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-child-setup */ "./source/gpu/object/gpu-object-child-setup.ts");
-class ShaderFragmentEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
-  /**
-   * Setup fragment render target.
-   */
-  addRenderTarget(pName, pLocationIndex, pDataFormat, pDataMultiplier) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    const lRenderTarget = {
-      name: pName,
-      location: pLocationIndex,
-      format: pDataFormat,
-      multiplier: pDataMultiplier
-    };
-    // Callback size.
-    this.sendData(lRenderTarget);
-    return this;
-  }
-}
-exports.ShaderFragmentEntryPointSetup = ShaderFragmentEntryPointSetup;
-
-/***/ }),
-
-/***/ "./source/shader/setup/shader-setup.ts":
-/*!*********************************************!*\
-  !*** ./source/shader/setup/shader-setup.ts ***!
-  \*********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderSetup = void 0;
-const bind_group_layout_1 = __webpack_require__(/*! ../../binding/bind-group-layout */ "./source/binding/bind-group-layout.ts");
-const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu/object/gpu-object-setup */ "./source/gpu/object/gpu-object-setup.ts");
-const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/parameter/vertex-parameter-layout */ "./source/pipeline/parameter/vertex-parameter-layout.ts");
-const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/shader/setup/shader-compute-entry-point-setup.ts");
-const shader_fragment_entry_point_setup_1 = __webpack_require__(/*! ./shader-fragment-entry-point-setup */ "./source/shader/setup/shader-fragment-entry-point-setup.ts");
-class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
-  /**
-   * Setup compute entry point.
-   * When size is not called, the compute entry point will be setup with a dynamic size.
-   *
-   * @param pName - Compute entry name.
-   */
-  computeEntryPoint(pName) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Create dynamic compute entry point.
-    const lEntryPoint = {
-      name: pName,
-      workgroupDimension: null
-    };
-    // Append compute entry.
-    this.setupData.computeEntrypoints.push(lEntryPoint);
-    // Return compute entry setup object.
-    return new shader_compute_entry_point_setup_1.ShaderComputeEntryPointSetup(this.setupReferences, (pX, pY, pZ) => {
-      lEntryPoint.workgroupDimension = {
-        x: pX,
-        y: pY,
-        z: pZ
-      };
-    });
-  }
-  /**
-   * Setup fragment entry point.
-   *
-   * @param pName - Fragment entry name.
-   */
-  fragmentEntryPoint(pName) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Create empty fragment entry point.
-    const lEntryPoint = {
-      name: pName,
-      renderTargets: new Array()
-    };
-    // Append compute entry.
-    this.setupData.fragmentEntrypoints.push(lEntryPoint);
-    // Return fragment entry setup object.
-    return new shader_fragment_entry_point_setup_1.ShaderFragmentEntryPointSetup(this.setupReferences, pRenderTarget => {
-      lEntryPoint.renderTargets.push(pRenderTarget);
-    });
-  }
-  group(pIndex, pGroupOrName, pSetupCall) {
-    // Use existing or create new bind group.
-    let lBindGroupLayout;
-    if (typeof pGroupOrName === 'string') {
-      // Create new group
-      lBindGroupLayout = new bind_group_layout_1.BindGroupLayout(this.device, pGroupOrName).setup(pSetupCall);
-    } else {
-      // Use existing group.
-      lBindGroupLayout = pGroupOrName;
-    }
-    // Register group.
-    this.setupData.bindingGroups.push({
-      index: pIndex,
-      group: lBindGroupLayout
-    });
-    return lBindGroupLayout;
-  }
-  /**
-   * Add static pipeline parameters definitions.
-   *
-   * @param pName- Parameter name.
-   * @param pFormat - Parameter format.
-   *
-   * @returns this.
-   */
-  parameter(pName, ...pStageUsage) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Add parameter.
-    this.setupData.parameter.push({
-      name: pName,
-      usage: pStageUsage
-    });
-    return this;
-  }
-  /**
-   * Setup vertex entry point.
-   *
-   * @param pName - Vertex entry name.
-   */
-  vertexEntryPoint(pName, pSetupCallback) {
-    // Lock setup to a setup call.
-    this.ensureThatInSetup();
-    // Create and setup vertex parameter.
-    const lVertexParameterLayout = new vertex_parameter_layout_1.VertexParameterLayout(this.device).setup(pSetupCallback);
-    // Create empty fragment entry point.
-    const lEntryPoint = {
-      name: pName,
-      parameter: lVertexParameterLayout
-    };
-    // Append compute entry.
-    this.setupData.vertexEntrypoints.push(lEntryPoint);
-    return lVertexParameterLayout;
-  }
-  /**
-   * Fill in default data before the setup starts.
-   *
-   * @param pDataReference - Setup data reference.
-   */
-  fillDefaultData(pDataReference) {
-    // Entry points.
-    pDataReference.computeEntrypoints = new Array();
-    pDataReference.fragmentEntrypoints = new Array();
-    pDataReference.vertexEntrypoints = new Array();
-    // Parameter.
-    pDataReference.parameter = new Array();
-    // Bind groups.
-    pDataReference.bindingGroups = new Array();
-  }
-}
-exports.ShaderSetup = ShaderSetup;
-
-/***/ }),
-
-/***/ "./source/shader/shader-compute-module.ts":
-/*!************************************************!*\
-  !*** ./source/shader/shader-compute-module.ts ***!
-  \************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderComputeModule = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
-class ShaderComputeModule extends gpu_object_1.GpuObject {
-  /**
-   * Compute entry point.
-   */
-  get entryPoint() {
-    return this.mEntryPoint;
-  }
-  /**
-   * Shader pipeline layout.
-   */
-  get layout() {
-    return this.mShader.layout;
-  }
-  /**
-   * Module shader.
-   */
-  get shader() {
-    return this.mShader;
-  }
-  /**
-   * Workgroup size x.
-   */
-  get workGroupSizeX() {
-    return this.mSize[0];
-  }
-  /**
-   * Workgroup size y.
-   */
-  get workGroupSizeY() {
-    return this.mSize[1];
-  }
-  /**
-   * Workgroup size z.
-   */
-  get workGroupSizeZ() {
-    return this.mSize[2];
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pShader - Shader.
-   * @param pEntryPointName - Compute entry point.
-   * @param pSize - Workgroup size.
-   */
-  constructor(pDevice, pShader, pEntryPointName, pSize) {
-    super(pDevice);
-    this.mEntryPoint = pEntryPointName;
-    this.mShader = pShader;
-    this.mSize = pSize ?? [-1, -1, -1];
-  }
-  /**
-   * Create a new compute pipeline.
-   *
-   * @returns new compute pipeline.
-   */
-  create() {
-    return new compute_pipeline_1.ComputePipeline(this.device, this);
-  }
-}
-exports.ShaderComputeModule = ShaderComputeModule;
-
-/***/ }),
-
-/***/ "./source/shader/shader-render-module.ts":
-/*!***********************************************!*\
-  !*** ./source/shader/shader-render-module.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderRenderModule = void 0;
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
-class ShaderRenderModule extends gpu_object_1.GpuObject {
-  /**
-   * Fragment entry point.
-   */
-  get fragmentEntryPoint() {
-    return this.mFragmentEntryPoint;
-  }
-  /**
-   * Shader pipeline layout.
-   */
-  get layout() {
-    return this.mShader.layout;
-  }
-  /**
-   * Module shader.
-   */
-  get shader() {
-    return this.mShader;
-  }
-  /**
-   * Compute entry point.
-   */
-  get vertexEntryPoint() {
-    return this.mVertexEntryPoint;
-  }
-  /**
-   * Vertex parameter.
-   */
-  get vertexParameter() {
-    return this.mVertexParameter;
-  }
-  /**
-   * Constructor.
-   *
-   * @param pDevice - Device reference.
-   * @param pShader - Shader.
-   * @param pEntryPointName - Compute entry point.
-   * @param pSize - Workgroup size.
-   */
-  constructor(pDevice, pShader, pVertexEntryPointName, pVertexParameter, pFragmentEntryPointName) {
-    super(pDevice);
-    this.mVertexEntryPoint = pVertexEntryPointName;
-    this.mVertexParameter = pVertexParameter;
-    this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
-    this.mShader = pShader;
-  }
-  /**
-   * Create a new render pipeline for set render targets.
-   *
-   * @param pRenderTargets - Render targets of pipeline.
-   *
-   * @returns new render pipeline.
-   */
-  create(pRenderTargets) {
-    return new vertex_fragment_pipeline_1.VertexFragmentPipeline(this.device, this, pRenderTargets);
-  }
-}
-exports.ShaderRenderModule = ShaderRenderModule;
-
-/***/ }),
-
-/***/ "./source/shader/shader.ts":
-/*!*********************************!*\
-  !*** ./source/shader/shader.ts ***!
-  \*********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Shader = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const pipeline_layout_1 = __webpack_require__(/*! ../binding/pipeline-layout */ "./source/binding/pipeline-layout.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/shader/setup/shader-setup.ts");
-const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/shader/shader-compute-module.ts");
-const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/shader/shader-render-module.ts");
-class Shader extends gpu_object_1.GpuObject {
-  /**
-   * Shader pipeline layout.
-   */
-  get layout() {
-    // Ensure setup is called.
-    this.ensureSetup();
-    return this.mPipelineLayout;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Gpu Device reference.
-   * @param pSource - Shader source as wgsl code.
-   * @param pLayout - Shader layout information.
-   */
-  constructor(pDevice, pSource, pSourceMap = null) {
-    super(pDevice);
-    // Create shader information for source.
-    this.mSource = pSource;
-    this.mSourceMap = pSourceMap;
-    // Init default unset values.
-    this.mParameter = new core_1.Dictionary();
-    this.mPipelineLayout = null;
-    this.mEntryPoints = {
-      compute: new core_1.Dictionary(),
-      vertex: new core_1.Dictionary(),
-      fragment: new core_1.Dictionary()
-    };
-  }
-  /**
-   * Create a compute module from shader entry point.
-   *
-   * @param pEntryName - Compute entry name.
-   *
-   * @returns shader compute module.
-   */
-  createComputeModule(pEntryName) {
-    // Ensure setup is called.
-    this.ensureSetup();
-    const lEntryPoint = this.mEntryPoints.compute.get(pEntryName);
-    if (!lEntryPoint) {
-      throw new core_1.Exception(`Compute entry point "${pEntryName}" does not exists.`, this);
-    }
-    // Return shader module without defined workgroup sizes.
-    if (!lEntryPoint.static) {
-      return new shader_compute_module_1.ShaderComputeModule(this.device, this, pEntryName);
-    }
-    // Define workgroup sizes.
-    return new shader_compute_module_1.ShaderComputeModule(this.device, this, pEntryName, [lEntryPoint.workgroupDimension.x ?? 1, lEntryPoint.workgroupDimension.y ?? 1, lEntryPoint.workgroupDimension.z ?? 1]);
-  }
-  /**
-   * Create a render module from a vertex and fragment entry point.
-   *
-   * @param pVertexEntryName - Vertex entry point.
-   * @param pFragmentEntryName - Optional fragment entry point.
-   *
-   * @returns shader render module.
-   */
-  createRenderModule(pVertexEntryName, pFragmentEntryName) {
-    // Ensure setup is called.
-    this.ensureSetup();
-    const lVertexEntryPoint = this.mEntryPoints.vertex.get(pVertexEntryName);
-    if (!lVertexEntryPoint) {
-      throw new core_1.Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
-    }
-    // Return shader module without fragment entry.
-    if (!pFragmentEntryName) {
-      return new shader_render_module_1.ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter);
-    }
-    // Validate fragment entry point.
-    const lFragmentEntryPoint = this.mEntryPoints.fragment.get(pFragmentEntryName);
-    if (!lFragmentEntryPoint) {
-      throw new core_1.Exception(`Fragment entry point "${pFragmentEntryName}" does not exists.`, this);
-    }
-    return new shader_render_module_1.ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName);
-  }
-  /**
-   * Get shader pipeline parameters.
-   *
-   * @param pParameterName - Parameter name.
-   */
-  parameter(pParameterName) {
-    // Ensure setup is called.
-    this.ensureSetup();
-    // Try to read parameter type.
-    const lParameterType = this.mParameter.get(pParameterName);
-    if (!lParameterType) {
-      throw new core_1.Exception(`Shader has parameter "${pParameterName}" not defined.`, this);
-    }
-    return new Set(lParameterType);
-  }
-  /**
-   * Setup render targets.
-   * Can only be called once and is the only way to create or add target textures.
-   *
-   * @param pSetup - Setup call.
-   *
-   * @returns this.
-   */
-  setup(pSetupCallback) {
-    return super.setup(pSetupCallback);
-  }
-  /**
-   * Generate shader module.
-   */
-  generateNative() {
-    // Read pipeline for compilation hints.
-    const lPipelineLayout = this.mPipelineLayout.native;
-    // Create compilationHints for every entry point
-    const lCompilationHints = new Array();
-    for (const lEntryName of [...this.mEntryPoints.vertex.keys(), ...this.mEntryPoints.fragment.keys(), ...this.mEntryPoints.compute.keys()]) {
-      lCompilationHints.push({
-        entryPoint: lEntryName,
-        layout: lPipelineLayout
-      });
-    }
-    // Create shader module use hints to speed up compilation on safari.
-    return this.device.gpu.createShaderModule({
-      code: this.mSource,
-      compilationHints: lCompilationHints,
-      sourceMap: this.mSourceMap ?? {}
-    });
-  }
-  /**
-   * Setup with setup object.
-   *
-   * @param pReferences - Used references.
-   */
-  onSetup(pReferences) {
-    // Setup parameter.
-    for (const lParameter of pReferences.parameter) {
-      // Dont override parameters.
-      if (this.mParameter.has(lParameter.name)) {
-        throw new core_1.Exception(`Can't add parameter "${lParameter.name}" more than once.`, this);
-      }
-      // Add parameter.
-      this.mParameter.set(lParameter.name, new Set(lParameter.usage));
-    }
-    // Convert fragment entry point informations
-    for (const lFragmentEntry of pReferences.fragmentEntrypoints) {
-      // Restrict doublicate fragment entry names.
-      if (this.mEntryPoints.fragment.has(lFragmentEntry.name)) {
-        throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was setup more than once.`, this);
-      }
-      // Convert all render attachments to a location mapping.
-      const lRenderTargetLocations = new Set();
-      const lRenderTargets = new core_1.Dictionary();
-      for (const lRenderTarget of lFragmentEntry.renderTargets) {
-        // Restrict doublicate fragment entry render target names.
-        if (lRenderTargets.has(lRenderTarget.name)) {
-          throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment name "${lRenderTarget.name}".`, this);
-        }
-        // Restrict doublicate fragment entry render target locations.
-        if (lRenderTargetLocations.has(lRenderTarget.location)) {
-          throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment location index "${lRenderTarget.location}".`, this);
-        }
-        // Add location to location index buffer. Used for finding dublicates.
-        lRenderTargetLocations.add(lRenderTarget.location);
-        // Add target to list. 
-        lRenderTargets.set(lRenderTarget.name, {
-          name: lRenderTarget.name,
-          location: lRenderTarget.location,
-          format: lRenderTarget.format,
-          multiplier: lRenderTarget.multiplier
-        });
-      }
-      // Set fragment entry point definition. 
-      this.mEntryPoints.fragment.set(lFragmentEntry.name, {
-        renderTargets: lRenderTargets
-      });
-    }
-    // Convert vertex entry point informations
-    for (const lVertexEntry of pReferences.vertexEntrypoints) {
-      // Restrict doublicate vertex entry names.
-      if (this.mEntryPoints.vertex.has(lVertexEntry.name)) {
-        throw new core_1.Exception(`Vertex entry "${lVertexEntry.name}" was setup more than once.`, this);
-      }
-      // Set vertex entry point definition. 
-      this.mEntryPoints.vertex.set(lVertexEntry.name, {
-        parameter: lVertexEntry.parameter
-      });
-    }
-    // Convert compute entry point informations
-    for (const lComputeEntry of pReferences.computeEntrypoints) {
-      // Restrict doublicate compute entry names.
-      if (this.mEntryPoints.compute.has(lComputeEntry.name)) {
-        throw new core_1.Exception(`Vertex entry "${lComputeEntry.name}" was setup more than once.`, this);
-      }
-      // Set vertex entry point definition. 
-      this.mEntryPoints.compute.set(lComputeEntry.name, {
-        static: lComputeEntry.workgroupDimension !== null,
-        workgroupDimension: {
-          x: lComputeEntry.workgroupDimension?.x ?? null,
-          y: lComputeEntry.workgroupDimension?.y ?? null,
-          z: lComputeEntry.workgroupDimension?.z ?? null
-        }
-      });
-    }
-    // Generate initial pipeline layout.
-    const lInitialPipelineLayout = new core_1.Dictionary();
-    for (const lGroup of pReferences.bindingGroups) {
-      // Set bind group layout with group index.
-      lInitialPipelineLayout.set(lGroup.index, lGroup.group);
-    }
-    this.mPipelineLayout = new pipeline_layout_1.PipelineLayout(this.device, lInitialPipelineLayout);
-  }
-  /**
-   * Create setup object. Return null to skip any setups.
-   *
-   *  @param pReferences - Unfilled setup references.
-   *
-   *  @returns Setup object.
-   */
-  onSetupObjectCreate(pReferences) {
-    return new shader_setup_1.ShaderSetup(pReferences);
-  }
-}
-exports.Shader = Shader;
-
-/***/ }),
-
-/***/ "./source/texture/canvas-texture.ts":
-/*!******************************************!*\
-  !*** ./source/texture/canvas-texture.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/gpu/object/gpu-object.ts");
-/**
- * Canvas texture. Can only be used as render attachment or to be copied into.
- * Allways 2D with preferred format.
- */
-class CanvasTexture extends gpu_object_1.GpuObject {
-  /**
-   * HTML canvas element.
-   */
-  get canvas() {
-    return this.mCanvas;
-  }
-  /**
-   * Texture depth.
-   */
-  get depth() {
-    return 1;
-  }
-  /**
-   * Texture dimension.
-   */
-  get dimension() {
-    return texture_dimension_enum_1.TextureDimension.ThreeDimension;
-  }
-  /**
-   * Canvas format.
-   */
-  get format() {
-    return this.device.formatValidator.preferredCanvasFormat;
-  }
-  /**
-   * Texture height.
-   */
-  get height() {
-    return this.mCanvas.height;
-  }
-  set height(pValue) {
-    this.mCanvas.height = pValue;
-  }
-  /**
-   * Texture mip level count.
-   */
-  get mipCount() {
-    return 1;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Texture width.
-   */
-  get width() {
-    return this.mCanvas.width;
-  }
-  set width(pValue) {
-    this.mCanvas.width = pValue;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   * @param pLayout - Texture layout.
-   * @param pCanvas - Canvas of texture.
-   */
-  constructor(pDevice, pCanvas) {
-    super(pDevice);
-    // Set canvas reference.
-    this.mCanvas = pCanvas;
-    this.mContext = null;
-    // Set defaults.
-    this.height = 1;
-    this.width = 1;
-    // Rebuild view on every frame.
-    this.mFrameListener = () => {
-      this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
-    };
-    this.device.addFrameChangeListener(this.mFrameListener);
-  }
-  /**
-   * Destory texture object.
-   * @param _pNativeObject - Native canvas texture.
-   */
-  destroyNative(_pNativeObject, pReasons) {
-    // Only destroy context when child data/layout has changes.
-    if (pReasons.deconstruct) {
-      // Remove frame listener.
-      this.device.removeFrameChangeListener(this.mFrameListener);
-      // Destory context.
-      this.mContext.unconfigure();
-      this.mContext = null;
-    }
-  }
-  /**
-   * Generate native canvas texture view.
-   */
-  generateNative() {
-    // Configure new context when not alread configured or destroyed.
-    if (!this.mContext) {
-      // Create and configure canvas context.
-      this.mContext = this.canvas.getContext('webgpu');
-      this.mContext.configure({
-        device: this.device.gpu,
-        format: this.device.formatValidator.preferredCanvasFormat,
-        usage: texture_usage_enum_1.TextureUsage.CopyDestination | texture_usage_enum_1.TextureUsage.RenderAttachment,
-        alphaMode: 'opaque'
-      });
-    }
-    // Read current texture of canvas. Needs to be retrieved for each frame.
-    const lTexture = this.mContext.getCurrentTexture();
-    lTexture.label = 'Canvas-Texture';
-    return lTexture;
-  }
-}
-exports.CanvasTexture = CanvasTexture;
-var CanvasTextureInvalidationType;
-(function (CanvasTextureInvalidationType) {
-  CanvasTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
-})(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
-
-/***/ }),
-
-/***/ "./source/texture/gpu-texture-view.ts":
-/*!********************************************!*\
-  !*** ./source/texture/gpu-texture-view.ts ***!
-  \********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuTextureView = void 0;
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-class GpuTextureView extends gpu_resource_object_1.GpuResourceObject {
-  /**
-   * End index of depth or array level.
-   */
-  get arrayLayerEnd() {
-    return this.mArrayLayerEnd;
-  }
-  set arrayLayerEnd(pArrayLayer) {
-    this.mArrayLayerEnd = pArrayLayer;
-    // Invalidate view.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Staring index of depth or array level.
-   */
-  get arrayLayerStart() {
-    return this.mArrayLayerStart;
-  }
-  set arrayLayerStart(pArrayLayerIndex) {
-    this.mArrayLayerStart = pArrayLayerIndex;
-    // Invalidate view.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Texture layout.
-   */
-  get layout() {
-    return this.mLayout;
-  }
-  /**
-   * End index of mip level.
-   */
-  get mipLevelEnd() {
-    return this.mMipLevelEnd;
-  }
-  set mipLevelEnd(pMipLevel) {
-    this.mMipLevelEnd = pMipLevel;
-    // Invalidate view.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Staring index of mip level.
-   */
-  get mipLevelStart() {
-    return this.mMipLevelStart;
-  }
-  set mipLevelStart(pMipLevel) {
-    this.mMipLevelStart = pMipLevel;
-    // Invalidate view.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Views texture.
-   */
-  get texture() {
-    return this.mTexture;
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   * @param pTexture - Texture of view.
-   */
-  constructor(pDevice, pTexture, pLayout) {
-    super(pDevice);
-    // Set statics.
-    this.mTexture = pTexture;
-    this.mLayout = pLayout;
-    // Set defaults.
-    this.mMipLevelStart = 0;
-    this.mMipLevelEnd = -1;
-    this.mArrayLayerStart = 0;
-    this.mArrayLayerEnd = -1;
-    // Trigger View rebuild on texture rebuilds.
-    pTexture.addInvalidationListener(() => {
-      this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Generate native canvas texture view.
-   */
-  generateNative() {
-    // Read native texture.
-    const lNativeTexture = this.mTexture.native;
-    // When mip end level or array end layer is not set, use textures max. 
-    const lMipLevelEnd = this.mMipLevelEnd < 0 ? lNativeTexture.mipLevelCount - 1 : this.mMipLevelEnd;
-    const lArrayLayerEnd = this.mArrayLayerEnd < 0 ? lNativeTexture.depthOrArrayLayers - 1 : this.mArrayLayerEnd;
-    // Validate dimension based on 
-    const lDimensionViewDepthCount = (() => {
-      switch (this.mLayout.dimension) {
-        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
-        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
-          {
-            return 1;
-          }
-        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
-          {
-            return 6;
-          }
-        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
-          {
-            return Math.floor((lArrayLayerEnd - this.mArrayLayerStart + 1) / 6) * 6;
-          }
-        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
-        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
-          {
-            return lArrayLayerEnd - this.mArrayLayerStart + 1;
-          }
-        default:
-          {
-            return 1;
-          }
-      }
-    })();
-    // Create and configure canvas context.
-    return lNativeTexture.createView({
-      aspect: 'all',
-      format: this.mLayout.format,
-      dimension: this.mLayout.dimension,
-      // Mip start and end.
-      baseMipLevel: this.mMipLevelStart,
-      mipLevelCount: lMipLevelEnd - this.mMipLevelStart + 1,
-      // Array layer start and end.
-      baseArrayLayer: this.mArrayLayerStart,
-      arrayLayerCount: lDimensionViewDepthCount
-    });
-  }
-}
-exports.GpuTextureView = GpuTextureView;
-
-/***/ }),
-
-/***/ "./source/texture/gpu-texture.ts":
-/*!***************************************!*\
-  !*** ./source/texture/gpu-texture.ts ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuTexture = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
-const gpu_limit_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-limit.enum */ "./source/gpu/capabilities/gpu-limit.enum.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
-const texture_view_memory_layout_1 = __webpack_require__(/*! ../memory_layout/texture/texture-view-memory-layout */ "./source/memory_layout/texture/texture-view-memory-layout.ts");
-const gpu_texture_view_1 = __webpack_require__(/*! ./gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
-class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
-  /**
-   * Texture depth.
-   */
-  get depth() {
-    return this.mDepth;
-  }
-  set depth(pDepth) {
-    this.mDepth = pDepth;
-    // Invalidate texture.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Texture dimension.
-   */
-  get dimension() {
-    return this.mDimension;
-  }
-  /**
-   * Texture format.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Texture height.
-   */
-  get height() {
-    return this.mHeight;
-  }
-  set height(pHeight) {
-    this.mHeight = pHeight;
-    // Invalidate texture.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Texture mip level count.
-   */
-  get mipCount() {
-    return this.mMipLevelCount;
-  }
-  set mipCount(pMipCount) {
-    this.mMipLevelCount = pMipCount;
-    // Invalidate texture.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Texture multi sampled.
-   */
-  get multiSampled() {
-    return this.mMultisampled;
-  }
-  /**
-   * Native gpu object.
-   */
-  get native() {
-    return super.native;
-  }
-  /**
-   * Texture width.
-   */
-  get width() {
-    return this.mWidth;
-  }
-  set width(pWidth) {
-    this.mWidth = pWidth;
-    // Invalidate texture.
-    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
-  }
-  /**
-   * Constructor.
-   * @param pDevice - Device.
-   * @param pLayout - Texture layout.
-   * @param pCanvas - Canvas of texture.
-   */
-  constructor(pDevice, pParameter) {
-    super(pDevice);
-    // Allways add copy source/destination and copy over information on rebuild. 
-    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
-    this.extendUsage(texture_usage_enum_1.TextureUsage.CopySource);
-    // Set static config.
-    this.mDimension = pParameter.dimension;
-    this.mFormat = pParameter.format;
-    this.mMultisampled = pParameter.multisampled;
-    // Set defaults.
-    this.mMipLevelCount = 1;
-    this.mDepth = 1;
-    this.mHeight = 1;
-    this.mWidth = 1;
-  }
-  copyFrom(...pTextures) {
-    // Convert into none optional config.
-    const lCopyConfig = new Array();
-    for (let lTextureIndex = 0; lTextureIndex < pTextures.length; lTextureIndex++) {
-      const lCopyTexture = pTextures[lTextureIndex];
-      // Create new config from data.
-      if (!('data' in lCopyTexture)) {
-        // Wild instance checks.
-        switch (true) {
-          case lCopyTexture instanceof GpuTexture:
-            {
-              lCopyConfig.push({
-                data: lCopyTexture,
-                mipLevel: 0,
-                external: false,
-                dimension: {
-                  width: lCopyTexture.width,
-                  height: lCopyTexture.height,
-                  depthOrArrayLayers: lCopyTexture.depth
-                },
-                sourceOrigin: {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                },
-                targetOrigin: {
-                  x: 0,
-                  y: 0,
-                  z: lTextureIndex
-                }
-              });
-              continue;
-            }
-          case lCopyTexture instanceof ImageBitmap:
-            {
-              lCopyConfig.push({
-                data: lCopyTexture,
-                mipLevel: 0,
-                external: true,
-                dimension: {
-                  width: lCopyTexture.width,
-                  height: lCopyTexture.height,
-                  depthOrArrayLayers: 1
-                },
-                sourceOrigin: {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                },
-                targetOrigin: {
-                  x: 0,
-                  y: 0,
-                  z: lTextureIndex
-                }
-              });
-              continue;
-            }
-        }
-        // Not hit. But better to read.
-        continue;
-      }
-      // Get data type.
-      const lExternal = !(lCopyTexture instanceof GpuTexture);
-      // Fill in missing values with defaults.
-      lCopyConfig.push({
-        data: lCopyTexture.data,
-        external: lExternal,
-        mipLevel: lCopyTexture.mipLevel ?? 0,
-        dimension: {
-          width: lCopyTexture.dimension?.width ?? lCopyTexture.data.width,
-          height: lCopyTexture.dimension?.height ?? lCopyTexture.data.height,
-          depthOrArrayLayers: lCopyTexture.dimension?.depth ?? ('depth' in lCopyTexture.data ? lCopyTexture.data.depth : 1)
-        },
-        sourceOrigin: lCopyTexture.sourceOrigin ?? {
-          x: 0,
-          y: 0,
-          z: 0
-        },
-        targetOrigin: lCopyTexture.targetOrigin ?? {
-          x: 0,
-          y: 0,
-          z: 0
-        }
-      });
-    }
-    // Extend usage to be able to copy from external and gpu textures.
-    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
-    this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
-    // Generate native texture.
-    const lDestination = {
-      texture: this.native,
-      aspect: 'all'
-    };
-    // Create copy command encoder to store copy actions.
-    const lCommandDecoder = this.device.gpu.createCommandEncoder();
-    for (const lSourceTexture of lCopyConfig) {
-      // Skip copy of textures outside of targets mip level.
-      if (lDestination.texture.mipLevelCount < lSourceTexture.mipLevel) {
-        continue;
-      }
-      // Apply destination config.
-      lDestination.origin = lSourceTexture.targetOrigin;
-      lDestination.mipLevel = lSourceTexture.mipLevel;
-      // Calculate target max size for the specific mip map.
-      const lDestinationMaxSize = {
-        width: Math.floor(lDestination.texture.width / Math.pow(2, lDestination.mipLevel)),
-        height: Math.floor(lDestination.texture.height / Math.pow(2, lDestination.mipLevel)),
-        // On 3D textures the depth count to the mip.
-        depthOrArrayLayers: lDestination.texture.dimension === '3d' ? Math.floor(lDestination.texture.depthOrArrayLayers / Math.pow(2, lDestination.mipLevel)) : lDestination.texture.depthOrArrayLayers
-      };
-      // Clamp copy sizes to lowest.
-      const lClampedCopySize = {
-        width: Math.min(lDestinationMaxSize.width - lSourceTexture.targetOrigin.x, lSourceTexture.dimension.width - lSourceTexture.sourceOrigin.x),
-        height: Math.min(lDestinationMaxSize.height - lSourceTexture.targetOrigin.y, lSourceTexture.dimension.height - lSourceTexture.sourceOrigin.y),
-        depthOrArrayLayers: Math.min(lDestinationMaxSize.depthOrArrayLayers - lSourceTexture.targetOrigin.z, lSourceTexture.dimension.depthOrArrayLayers - lSourceTexture.sourceOrigin.z)
-      };
-      // Omit copy when nothing should by copied.
-      if (lClampedCopySize.width < 1 || lClampedCopySize.height < 1 || lClampedCopySize.depthOrArrayLayers < 1) {
-        continue;
-      }
-      // Copy external.
-      if (lSourceTexture.external) {
-        // Create External source.
-        const lSource = {
-          source: lSourceTexture.data,
-          origin: [lSourceTexture.sourceOrigin.x, lSourceTexture.sourceOrigin.y]
-        };
-        // Add external copy into queue.
-        this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lClampedCopySize);
-        continue;
-      }
-      // Create copy source information.
-      const lSource = {
-        texture: lSourceTexture.data.native,
-        aspect: 'all',
-        origin: lSourceTexture.targetOrigin,
-        mipLevel: 0
-      };
-      // Add copy action to command queue.
-      lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
-    }
-    // Submit copy actions.
-    this.device.gpu.queue.submit([lCommandDecoder.finish()]);
-  }
-  /**
-   * Use texture as view.
-   * @returns Texture view.
-   */
-  useAs(pDimension /* Others Optional, layer, mip ... */) {
-    // Use dimension form parameter or convert texture dimension to view dimension.
-    const lViewDimension = pDimension ?? (() => {
-      switch (this.mDimension) {
-        case texture_dimension_enum_1.TextureDimension.OneDimension:
-          {
-            return texture_view_dimension_enum_1.TextureViewDimension.OneDimension;
-          }
-        case texture_dimension_enum_1.TextureDimension.TwoDimension:
-          {
-            return texture_view_dimension_enum_1.TextureViewDimension.TwoDimension;
-          }
-        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
-          {
-            return texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension;
-          }
-      }
-    })();
-    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
-      format: this.mFormat,
-      dimension: lViewDimension,
-      multisampled: this.mMultisampled
-    });
-    return new gpu_texture_view_1.GpuTextureView(this.device, this, lLayout);
-  }
-  /**
-   * Destory texture object.
-   *
-   * @param _pNativeObject - Native gpu texture.
-   */
-  destroyNative(pNativeObject) {
-    pNativeObject.destroy();
-  }
-  /**
-   * Generate native canvas texture view.
-   */
-  generateNative(pOldTexture) {
-    // Generate gpu dimension from memory layout dimension and enforce limits.
-    const lTextureDimensions = (() => {
-      switch (this.mDimension) {
-        case texture_dimension_enum_1.TextureDimension.OneDimension:
-          {
-            // Enforce dimension limits.
-            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
-            if (this.mWidth > lDimensionLimit) {
-              throw new core_1.Exception(`Texture dimension exeeced for 1D Texture(${this.mWidth}).`, this);
-            }
-            return {
-              textureDimension: '1d',
-              clampedDimensions: [this.mWidth, 1, 1]
-            };
-          }
-        case texture_dimension_enum_1.TextureDimension.TwoDimension:
-          {
-            // Enforce dimension limits.
-            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
-            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit) {
-              throw new core_1.Exception(`Texture dimension exeeced for 2D Texture(${this.mWidth}, ${this.mHeight}).`, this);
-            }
-            // Enforce array layer limits.
-            const lArrayLayerLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureArrayLayers);
-            if (this.mDepth > lArrayLayerLimit) {
-              throw new core_1.Exception(`Texture array layer exeeced for 2D Texture(${this.mDepth}).`, this);
-            }
-            return {
-              textureDimension: '2d',
-              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
-            };
-          }
-        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
-          {
-            // Enforce dimension limits.
-            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension3D);
-            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit || this.mDepth > lDimensionLimit) {
-              throw new core_1.Exception(`Texture dimension exeeced for 3D Texture(${this.mWidth}, ${this.mHeight}, ${this.mDepth}).`, this);
-            }
-            return {
-              textureDimension: '3d',
-              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
-            };
-          }
-      }
-    })();
-    // Calculate max mip count.
-    let lMaxMipCount;
-    if (lTextureDimensions.textureDimension === '3d') {
-      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
-    } else {
-      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
-    }
-    // Create and configure canvas context.
-    const lNewTexture = this.device.gpu.createTexture({
-      label: 'GPU-Texture',
-      size: lTextureDimensions.clampedDimensions,
-      format: this.mFormat,
-      usage: this.usage,
-      dimension: lTextureDimensions.textureDimension,
-      sampleCount: this.mMultisampled ? 4 : 1,
-      mipLevelCount: Math.min(this.mMipLevelCount, lMaxMipCount)
-    });
-    // Copy old texture data into new texture.
-    if (pOldTexture !== null && lNewTexture.sampleCount === 1) {
-      // Create copy command encoder to store copy actions.
-      const lCommandDecoder = this.device.gpu.createCommandEncoder();
-      // Copy each mip level.
-      const lCopyMipCount = Math.min(lNewTexture.mipLevelCount, pOldTexture.mipLevelCount);
-      for (let lMipLevel = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
-        // Create copy source settings.
-        const lSource = {
-          texture: pOldTexture,
-          aspect: 'all',
-          origin: [0, 0, 0],
-          mipLevel: lMipLevel
-        };
-        // Create copy destination settings.
-        const lDestination = {
-          texture: lNewTexture,
-          aspect: 'all',
-          origin: [0, 0, 0],
-          mipLevel: lMipLevel
-        };
-        // Destination clamped sizes to mip level.
-        const lDestinationMaxSize = {
-          width: Math.floor(lNewTexture.width / Math.pow(2, lMipLevel)),
-          height: Math.floor(lNewTexture.height / Math.pow(2, lMipLevel)),
-          // On 3D textures the depth count to the mip.
-          depthOrArrayLayers: lNewTexture.dimension === '3d' ? Math.floor(lNewTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) : lNewTexture.depthOrArrayLayers
-        };
-        // Source clamped sizes to mip level.
-        const lSourceMaxSize = {
-          width: Math.floor(pOldTexture.width / Math.pow(2, lMipLevel)),
-          height: Math.floor(pOldTexture.height / Math.pow(2, lMipLevel)),
-          // On 3D textures the depth count to the mip.
-          depthOrArrayLayers: pOldTexture.dimension === '3d' ? Math.floor(pOldTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) : pOldTexture.depthOrArrayLayers
-        };
-        // Clamp copy sizes to lowest.
-        const lClampedCopySize = {
-          width: Math.min(lSourceMaxSize.width, lDestinationMaxSize.width),
-          height: Math.min(lSourceMaxSize.height, lDestinationMaxSize.height),
-          depthOrArrayLayers: Math.min(lSourceMaxSize.depthOrArrayLayers, lDestinationMaxSize.depthOrArrayLayers)
-        };
-        // Add copy action to command queue.
-        lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
-      }
-      // Submit copy actions.
-      this.device.gpu.queue.submit([lCommandDecoder.finish()]);
-    }
-    return lNewTexture;
-  }
-}
-exports.GpuTexture = GpuTexture;
-
-/***/ }),
-
-/***/ "./source/texture/texture-format-capabilities.ts":
-/*!*******************************************************!*\
-  !*** ./source/texture/texture-format-capabilities.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureFormatCapabilities = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
-const texture_format_enum_1 = __webpack_require__(/*! ../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
-const texture_sample_type_enum_1 = __webpack_require__(/*! ../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
-const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../gpu/capabilities/gpu-feature.enum */ "./source/gpu/capabilities/gpu-feature.enum.ts");
-class TextureFormatCapabilities {
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
+class GpuTextureFormatCapabilities {
   /**
    * Get prefered canvas format.
    */
@@ -12403,7 +6125,6412 @@ class TextureFormatCapabilities {
     return [];
   }
 }
-exports.TextureFormatCapabilities = TextureFormatCapabilities;
+exports.GpuTextureFormatCapabilities = GpuTextureFormatCapabilities;
+
+/***/ }),
+
+/***/ "./source/device/gpu-device.ts":
+/*!*************************************!*\
+  !*** ./source/device/gpu-device.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuDevice = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_execution_1 = __webpack_require__(/*! ../execution/gpu-execution */ "./source/execution/gpu-execution.ts");
+const compute_pass_1 = __webpack_require__(/*! ../execution/pass/compute-pass */ "./source/execution/pass/compute-pass.ts");
+const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "./source/execution/pass/render-pass.ts");
+const render_targets_1 = __webpack_require__(/*! ../pipeline/render_targets/render-targets */ "./source/pipeline/render_targets/render-targets.ts");
+const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/shader/shader.ts");
+const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
+const gpu_texture_format_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-texture-format-capabilities */ "./source/device/capabilities/gpu-texture-format-capabilities.ts");
+const gpu_device_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-device-capabilities */ "./source/device/capabilities/gpu-device-capabilities.ts");
+class GpuDevice {
+  static {
+    this.mAdapters = new core_1.Dictionary();
+  }
+  static {
+    this.mDevices = new core_1.Dictionary();
+  }
+  /**
+   * Request new gpu device.
+   * @param pGenerator - Native object generator.
+   */
+  static request(pPerformance) {
+    return _asyncToGenerator(function* () {
+      // TODO: Required and optional requirements. Load available features and limits from adapter and request in device.
+      // Try to load cached adapter. When not cached, request new one.
+      const lAdapter = GpuDevice.mAdapters.get(pPerformance) ?? (yield window.navigator.gpu.requestAdapter({
+        powerPreference: pPerformance
+      }));
+      if (!lAdapter) {
+        throw new core_1.Exception('Error requesting GPU adapter', GpuDevice);
+      }
+      GpuDevice.mAdapters.set(pPerformance, lAdapter);
+      // Try to load cached device. When not cached, request new one. // TODO: Required features.
+      const lDevice = GpuDevice.mDevices.get(lAdapter) ?? (yield lAdapter.requestDevice({
+        requiredFeatures: ['timestamp-query']
+      }));
+      if (!lDevice) {
+        throw new core_1.Exception('Error requesting GPU device', GpuDevice);
+      }
+      GpuDevice.mDevices.set(lAdapter, lDevice);
+      return new GpuDevice(lDevice);
+    })();
+  }
+  /**
+   * Gpu capabilities.
+   */
+  get capabilities() {
+    return this.mCapabilities;
+  }
+  /**
+   * Texture format validator.
+   */
+  get formatValidator() {
+    return this.mFormatValidator;
+  }
+  /**
+   * Get frame count.
+   */
+  get frameCount() {
+    return this.mFrameCounter;
+  }
+  /**
+   * Gpu device.
+   */
+  get gpu() {
+    return this.mGpuDevice;
+  }
+  /**
+   * Constructor.
+   * @param pGenerator - Native GPU-Object Generator.
+   */
+  constructor(pDevice) {
+    this.mGpuDevice = pDevice;
+    // Setup capabilities.
+    this.mCapabilities = new gpu_device_capabilities_1.GpuDeviceCapabilities(pDevice);
+    // Set default for frame counter.
+    this.mFrameCounter = 0;
+    // Init form validator.
+    this.mFormatValidator = new gpu_texture_format_capabilities_1.GpuTextureFormatCapabilities(this);
+    // Frame change listener.
+    this.mFrameChangeListener = new core_1.List();
+  }
+  /**
+   * Add listener called on frame change.
+   *
+   * @param pListener - Listener.
+   */
+  addFrameChangeListener(pListener) {
+    this.mFrameChangeListener.push(pListener);
+  }
+  /**
+   * Create or use a html canvas to create a canvas texture.
+   *
+   * @param pCanvas - Created canvas element.
+   *
+   * @returns canvas texture.
+   */
+  canvas(pCanvas) {
+    // Create or use canvas.
+    const lCanvas = pCanvas ?? document.createElement('canvas');
+    return new canvas_texture_1.CanvasTexture(this, lCanvas);
+  }
+  /**
+   * Create new compute pass.
+   *
+   * @returns new compute pass.
+   */
+  computePass(pExecution) {
+    return new compute_pass_1.ComputePass(this, pExecution);
+  }
+  /**
+   * Create pass executor.
+   *
+   * @param pOnExecute - On executor execute.
+   */
+  executor(pOnExecute) {
+    return new gpu_execution_1.GpuExecution(this, pOnExecute);
+  }
+  /**
+   * Remove listener called on frame change.
+   *
+   * @param pListener - Listener.
+   */
+  removeFrameChangeListener(pListener) {
+    this.mFrameChangeListener.remove(pListener);
+  }
+  /**
+   * Create new render pass.
+   *
+   * @param pRenderTargets - Render targets of pass.
+   * @param pStaticBundle - Bundle is static and does not update very often.
+   *
+   * @returns new render pass.
+   */
+  renderPass(pRenderTargets, pExecution, pStaticBundle = true) {
+    return new render_pass_1.RenderPass(this, pRenderTargets, pStaticBundle, pExecution);
+  }
+  /**
+   * Create render target object.
+   *
+   * @param pMultisampled - Render targets are multisampled.
+   *
+   * @returns render target object.
+   */
+  renderTargets(pMultisampled = false) {
+    return new render_targets_1.RenderTargets(this, pMultisampled);
+  }
+  /**
+   * Create shader.
+   *
+   * @param pSource - Shader source as wgsl.
+   */
+  shader(pSource) {
+    return new shader_1.Shader(this, pSource);
+  }
+  /**
+   * Start new frame.
+   */
+  startNewFrame() {
+    this.mFrameCounter++;
+    // Call all frame change listener.
+    for (const lListener of this.mFrameChangeListener) {
+      lListener();
+    }
+  }
+}
+exports.GpuDevice = GpuDevice;
+
+/***/ }),
+
+/***/ "./source/execution/gpu-execution.ts":
+/*!*******************************************!*\
+  !*** ./source/execution/gpu-execution.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuExecution = void 0;
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Bundles execute calls to execute them bunched.
+ */
+class GpuExecution extends gpu_object_1.GpuObject {
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pExecution - Main execution function.
+   */
+  constructor(pDevice, pExecution) {
+    super(pDevice);
+    this.mExecutionFunction = pExecution;
+  }
+  /**
+   * Execute with context.
+   */
+  execute() {
+    // Create command encoder.
+    const lCommandEncoder = this.device.gpu.createCommandEncoder({
+      label: 'Execution'
+    });
+    // Call execution with encoder context.
+    this.mExecutionFunction({
+      commandEncoder: lCommandEncoder
+    });
+    // Submit commands to queue and clear command encoder.
+    this.device.gpu.queue.submit([lCommandEncoder.finish()]);
+  }
+}
+exports.GpuExecution = GpuExecution;
+
+/***/ }),
+
+/***/ "./source/execution/pass/compute-pass-context.ts":
+/*!*******************************************************!*\
+  !*** ./source/execution/pass/compute-pass-context.ts ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ComputePassContext = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+/**
+ * Context for a compute pass.
+ * Used to execute compute calles.
+ */
+class ComputePassContext {
+  /**
+   * Constructor.
+   *
+   * @param pEncoder - Encoder.
+   */
+  constructor(pEncoder) {
+    this.mEncoder = pEncoder;
+    this.mComputeResourceBuffer = {
+      pipeline: null,
+      pipelineDataGroupList: new Array(),
+      highestBindGroupListIndex: -1
+    };
+  }
+  /**
+   * Compute direct with set parameter.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pX - Workgroup x dimension.
+   * @param pY - Workgroup y dimension.
+   * @param pZ - Workgroup z dimension.
+   */
+  computeDirect(pPipeline, pPipelineData, pX = 1, pY = 1, pZ = 1) {
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Execute compute.
+    if (this.setupEncoderData(pPipeline, pPipelineData)) {
+      this.mEncoder.dispatchWorkgroups(pX, pY, pZ);
+    }
+  }
+  /**
+   * Compute indirect with parameters set in buffer.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pIndirectBuffer - Buffer with indirect parameter data.
+   */
+  computeIndirect(pPipeline, pPipelineData, pIndirectBuffer) {
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Extend usage.
+    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
+    // Execute compute.
+    if (this.setupEncoderData(pPipeline, pPipelineData)) {
+      // Validate buffer length
+      // 4 Byte * 3 => 12 Byte => Indexed draw 
+      if (pIndirectBuffer.size === 20) {
+        // Start indirect call.
+        this.mEncoder.dispatchWorkgroupsIndirect(pIndirectBuffer.native, 0);
+      } else {
+        throw new core_1.Exception('Indirect compute calls can only be done with 20 or 16 byte long buffers', this);
+      }
+    }
+  }
+  /**
+   * Set pipeline and any bind data.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pPipelineData - Pipeline binding data.
+   *
+   * @returns true when everything has been successfully set.
+   */
+  setupEncoderData(pPipeline, pPipelineData) {
+    // Skip pipelines that are currently loading.
+    const lNativePipeline = pPipeline.native;
+    if (lNativePipeline === null) {
+      return false;
+    }
+    // Cache for bind group length of this instruction.
+    let lLocalHighestBindGroupListIndex = -1;
+    // Add bind groups.
+    const lPipelineDataGroupList = pPipelineData.data;
+    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
+      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
+      const lCurrentPipelineDataGroup = this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
+      // Extend group list length.
+      if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+        lLocalHighestBindGroupListIndex = lBindGroupIndex;
+      }
+      // Use cached bind group or use new. Catches null bindings.
+      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
+        // Set bind group buffer to cache current set bind groups.
+        this.mComputeResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
+        // Set bind group to gpu.
+        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
+        } else {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
+        }
+      }
+    }
+    // Use cached pipeline or use new.
+    if (pPipeline !== this.mComputeResourceBuffer.pipeline) {
+      this.mComputeResourceBuffer.pipeline = pPipeline;
+      // Generate and set new pipeline.
+      this.mEncoder.setPipeline(lNativePipeline);
+      // Only clear bind buffer when a new pipeline is set.
+      // Same pipelines must have set the same bind group layouts.
+      if (this.mComputeResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mComputeResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, null);
+        }
+      }
+      // Update global bind group list length.
+      this.mComputeResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+    }
+    return true;
+  }
+}
+exports.ComputePassContext = ComputePassContext;
+
+/***/ }),
+
+/***/ "./source/execution/pass/compute-pass.ts":
+/*!***********************************************!*\
+  !*** ./source/execution/pass/compute-pass.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ComputePass = void 0;
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const compute_pass_context_1 = __webpack_require__(/*! ./compute-pass-context */ "./source/execution/pass/compute-pass-context.ts");
+/**
+ * Gpu compute pass.
+ */
+class ComputePass extends gpu_object_1.GpuObject {
+  /**
+   * Constructor.
+   * @param pDevice - Device reference.
+   */
+  constructor(pDevice, pExecution) {
+    super(pDevice);
+    this.mExecutionFunction = pExecution;
+    this.mQueries = {};
+  }
+  /**
+   * Execute steps in a row.
+   * @param pExecutionContext - Executor context.
+   */
+  execute(pExecutionContext) {
+    // Read render pass descriptor and inject timestamp query when it is setup.
+    const lComputePassDescriptor = {};
+    if (this.mQueries.timestamp) {
+      lComputePassDescriptor.timestampWrites = this.mQueries.timestamp.query;
+    }
+    // Pass descriptor is set, when the pipeline ist set.
+    const lComputePassEncoder = pExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
+    // Direct execute function.
+    this.mExecutionFunction(new compute_pass_context_1.ComputePassContext(lComputePassEncoder));
+    // End compute pass.
+    lComputePassEncoder.end();
+    // Resolve query.
+    if (this.mQueries.timestamp) {
+      pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+    }
+  }
+  /**
+   * Probe timestamp data from render pass.
+   * Resolves into two big ints with start and end time in nanoseconds.
+   *
+   * @returns Promise that resolves with the latest timestamp data.
+   */
+  probeTimestamp() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Skip when not enabled.
+      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
+        return [0n, 0n];
+      }
+      // Init timestamp query when not already set.
+      if (!_this.mQueries.timestamp) {
+        // Create timestamp query.
+        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
+          type: 'timestamp',
+          count: 2
+        });
+        // Create timestamp buffer.
+        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
+        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
+        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
+        // Create query.
+        _this.mQueries.timestamp = {
+          query: {
+            querySet: lTimestampQuerySet,
+            beginningOfPassWriteIndex: 0,
+            endOfPassWriteIndex: 1
+          },
+          buffer: lTimestampBuffer,
+          resolver: null
+        };
+      }
+      // Use existing resolver.
+      if (_this.mQueries.timestamp.resolver) {
+        return _this.mQueries.timestamp.resolver;
+      }
+      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
+        // Reset resolver.
+        _this.mQueries.timestamp.resolver = null;
+        // Read and resolve timestamp data.
+        const lTimedata = new BigUint64Array(pData);
+        return [lTimedata[0], lTimedata[1]];
+      });
+      return _this.mQueries.timestamp.resolver;
+    })();
+  }
+}
+exports.ComputePass = ComputePass;
+
+/***/ }),
+
+/***/ "./source/execution/pass/render-pass-context.ts":
+/*!******************************************************!*\
+  !*** ./source/execution/pass/render-pass-context.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPassContext = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+/**
+ * Context for a render pass.
+ * Used to execute draw calles.
+ */
+class RenderPassContext {
+  /**
+   * Used resource.
+   * Only filled when recording is enabled.
+   */
+  get usedResources() {
+    return this.mUsedResources;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pEncoder - Encoder.
+   * @param pRenderTargets - Render targets.
+   * @param pRecordResources - Records used resources on render.
+   */
+  constructor(pEncoder, pRenderTargets, pRecordResources) {
+    this.mEncoder = pEncoder;
+    this.mRenderTargets = pRenderTargets;
+    this.mRecordResources = pRecordResources;
+    this.mUsedResources = {
+      parameter: new Set(),
+      indirectBuffer: new Set(),
+      pipelines: new Set(),
+      pipelineData: new Set()
+    };
+    this.mRenderResourceBuffer = {
+      pipeline: null,
+      vertexBuffer: new core_1.Dictionary(),
+      highestVertexParameterIndex: -1,
+      pipelineDataGroupList: new Array(),
+      highestBindGroupListIndex: -1
+    };
+  }
+  /**
+   * Draw direct with set parameter.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pParameter - Vertex parameter.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pInstanceCount - Instance count.
+   * @param pInstanceOffset - Instance offset.
+   */
+  drawDirect(pPipeline, pParameter, pPipelineData, pInstanceCount = 1, pInstanceOffset = 0) {
+    // Validate same render targets.
+    if (this.mRenderTargets !== pPipeline.renderTargets) {
+      throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
+    }
+    // Validate parameter.
+    if (pParameter.layout !== pPipeline.module.vertexParameter) {
+      throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
+    }
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Record resource when config is set.
+    if (this.mRecordResources) {
+      // Pipelines.
+      if (!this.mUsedResources.pipelines.has(pPipeline)) {
+        this.mUsedResources.pipelines.add(pPipeline);
+      }
+      // Parameter
+      if (!this.mUsedResources.parameter.has(pParameter)) {
+        this.mUsedResources.parameter.add(pParameter);
+      }
+      // Pipeline data.
+      if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
+        this.mUsedResources.pipelineData.add(pPipelineData);
+      }
+    }
+    // Execute draw.
+    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+      this.executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset);
+    }
+  }
+  /**
+   * Draw indirect with parameters set in buffer.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pParameter - Vertex parameter.
+   * @param pPipelineData - Pipline bind data groups.
+   * @param pIndirectBuffer - Buffer with indirect parameter data.
+   */
+  drawIndirect(pPipeline, pParameter, pPipelineData, pIndirectBuffer) {
+    // Extend usage.
+    pIndirectBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Indirect);
+    // Validate same render targets.
+    if (this.mRenderTargets !== pPipeline.renderTargets) {
+      throw new core_1.Exception('Pipelines render targets not valid for this render pass.', this);
+    }
+    // Validate parameter.
+    if (pParameter.layout !== pPipeline.module.vertexParameter) {
+      throw new core_1.Exception('Vertex parameter not valid for set pipeline.', this);
+    }
+    // Validate pipeline data matches pipeline layout of pipeline.
+    if (pPipeline.layout !== pPipelineData.layout) {
+      throw new core_1.Exception('Pipline data not valid for set pipeline.', this);
+    }
+    // Record resource when config is set.
+    if (this.mRecordResources) {
+      // Pipelines.
+      if (!this.mUsedResources.pipelines.has(pPipeline)) {
+        this.mUsedResources.pipelines.add(pPipeline);
+      }
+      // Parameter
+      if (!this.mUsedResources.parameter.has(pParameter)) {
+        this.mUsedResources.parameter.add(pParameter);
+      }
+      // Pipeline data.
+      if (!this.mUsedResources.pipelineData.has(pPipelineData)) {
+        this.mUsedResources.pipelineData.add(pPipelineData);
+      }
+    }
+    // Execute draw.
+    if (this.setupEncoderData(pPipeline, pParameter, pPipelineData)) {
+      this.executeIndirectDraw(pParameter, pIndirectBuffer);
+    }
+  }
+  /**
+   * Set pipeline and any bind and vertex data.
+   *
+   * @param pPipeline - Pipeline.
+   * @param pParameter  - Pipeline vertex parameter.
+   * @param pPipelineData - Pipeline binding data.
+   *
+   * @returns true when everything has been successfully set.
+   */
+  setupEncoderData(pPipeline, pParameter, pPipelineData) {
+    // Skip pipelines that are currently loading.
+    const lNativePipeline = pPipeline.native;
+    if (lNativePipeline === null) {
+      return false;
+    }
+    // Cache for bind group length of this instruction.
+    let lLocalHighestBindGroupListIndex = -1;
+    // Add bind groups.
+    const lPipelineDataGroupList = pPipelineData.data;
+    for (let lBindGroupIndex = 0; lBindGroupIndex < lPipelineDataGroupList.length; lBindGroupIndex++) {
+      const lPipelineDataGroup = lPipelineDataGroupList[lBindGroupIndex];
+      const lCurrentPipelineDataGroup = this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex];
+      // Extend group list length.
+      if (lBindGroupIndex > lLocalHighestBindGroupListIndex) {
+        lLocalHighestBindGroupListIndex = lBindGroupIndex;
+      }
+      // Use cached bind group or use new.
+      if (!lCurrentPipelineDataGroup || lPipelineDataGroup.bindGroup !== lCurrentPipelineDataGroup.bindGroup || lPipelineDataGroup.offsetId !== lCurrentPipelineDataGroup.offsetId) {
+        // Set bind group buffer to cache current set bind groups.
+        this.mRenderResourceBuffer.pipelineDataGroupList[lBindGroupIndex] = lPipelineDataGroup;
+        // Set bind group to gpu.
+        if (lPipelineDataGroup.bindGroup.layout.hasDynamicOffset) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native, lPipelineDataGroup.offsets);
+        } else {
+          this.mEncoder.setBindGroup(lBindGroupIndex, lPipelineDataGroup.bindGroup.native);
+        }
+      }
+    }
+    // Cache for bind group length of this instruction.
+    let lLocalHighestVertexParameterListIndex = -1;
+    // Add vertex attribute buffer.
+    const lBufferNames = pPipeline.module.vertexParameter.bufferNames;
+    for (let lBufferIndex = 0; lBufferIndex < lBufferNames.length; lBufferIndex++) {
+      // Read buffer information.
+      const lAttributeBufferName = lBufferNames[lBufferIndex];
+      const lNewAttributeBuffer = pParameter.get(lAttributeBufferName);
+      // Extend group list length.
+      if (lBufferIndex > lLocalHighestVertexParameterListIndex) {
+        lLocalHighestVertexParameterListIndex = lBufferIndex;
+      }
+      // Use cached vertex buffer or use new.
+      if (lNewAttributeBuffer !== this.mRenderResourceBuffer.vertexBuffer.get(lBufferIndex)) {
+        this.mRenderResourceBuffer.vertexBuffer.set(lBufferIndex, lNewAttributeBuffer);
+        this.mEncoder.setVertexBuffer(lBufferIndex, lNewAttributeBuffer.native);
+      }
+    }
+    // Use cached pipeline or use new.
+    if (pPipeline !== this.mRenderResourceBuffer.pipeline) {
+      this.mRenderResourceBuffer.pipeline = pPipeline;
+      // Generate and set new pipeline.
+      this.mEncoder.setPipeline(lNativePipeline);
+      // Only clear bind buffer when a new pipeline is set.
+      // Same pipelines must have set the same bind group layouts.
+      if (this.mRenderResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
+        for (let lBindGroupIndex = lLocalHighestBindGroupListIndex + 1; lBindGroupIndex < this.mRenderResourceBuffer.highestBindGroupListIndex + 1; lBindGroupIndex++) {
+          this.mEncoder.setBindGroup(lBindGroupIndex, null);
+        }
+      }
+      // Update global bind group list length.
+      this.mRenderResourceBuffer.highestBindGroupListIndex = lLocalHighestBindGroupListIndex;
+      // Only clear vertex buffer when a new pipeline is set.
+      // Same pipeline must have the same vertex parameter layout.
+      if (this.mRenderResourceBuffer.highestVertexParameterIndex > lLocalHighestVertexParameterListIndex) {
+        for (let lVertexParameterBufferIndex = lLocalHighestVertexParameterListIndex + 1; lVertexParameterBufferIndex < this.mRenderResourceBuffer.highestVertexParameterIndex + 1; lVertexParameterBufferIndex++) {
+          this.mEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
+        }
+      }
+      // Update global bind group list length.
+      this.mRenderResourceBuffer.highestVertexParameterIndex = lLocalHighestVertexParameterListIndex;
+    }
+    return true;
+  }
+  /**
+   * Execute direct draw call.
+   *
+   * @param pParameter - Vertex parameter.
+   * @param pInstanceCount - Index count.
+   * @param pInstanceOffset - Instance offset.
+   */
+  executeDirectDraw(pParameter, pInstanceCount, pInstanceOffset) {
+    // Draw indexed when parameters are indexable.
+    if (pParameter.layout.indexable) {
+      // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+      if (pParameter.indexBuffer.format === Uint16Array) {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint16');
+      } else {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
+      }
+      // Create draw call.
+      this.mEncoder.drawIndexed(pParameter.indexBuffer.length, pInstanceCount, 0, 0, pInstanceOffset);
+    } else {
+      // Create draw call.
+      this.mEncoder.draw(pParameter.vertexCount, pInstanceCount, 0, pInstanceOffset);
+    }
+  }
+  /**
+   * Execute a indirect draw call.
+   * If indexed or normal indirect calls are used is defined by the buffer length.
+   *
+   * @param pParameter - Vertex parameter.
+   * @param pBuffer - Indirect buffer.
+   */
+  executeIndirectDraw(pParameter, pBuffer) {
+    // 4 Byte * 5 => 20 Byte => Indexed draw 
+    // 4 Byte * 4 => 16 Byte => Normal draw 
+    if (pBuffer.size === 20) {
+      // Buffer does not match when parameters are not indexable.
+      if (!pParameter.layout.indexable) {
+        throw new core_1.Exception('Indirect indexed draw call failed, because parameter are not indexable', this);
+      }
+      // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
+      if (pParameter.indexBuffer.format === Uint16Array) {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint16');
+      } else {
+        this.mEncoder.setIndexBuffer(pParameter.indexBuffer.buffer.native, 'uint32');
+      }
+      // Start indirect indexed call.
+      this.mEncoder.drawIndexedIndirect(pBuffer.native, 0);
+    } else if (pBuffer.size === 16) {
+      // Start indirect call.
+      this.mEncoder.drawIndirect(pBuffer.native, 0);
+    } else {
+      throw new core_1.Exception('Indirect draw calls can only be done with 20 or 16 byte long buffers', this);
+    }
+  }
+}
+exports.RenderPassContext = RenderPassContext;
+
+/***/ }),
+
+/***/ "./source/execution/pass/render-pass.ts":
+/*!**********************************************!*\
+  !*** ./source/execution/pass/render-pass.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPass = void 0;
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+const pipeline_data_1 = __webpack_require__(/*! ../../pipeline/pipeline_data/pipeline-data */ "./source/pipeline/pipeline_data/pipeline-data.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
+const vertex_parameter_1 = __webpack_require__(/*! ../../pipeline/vertex_parameter/vertex-parameter */ "./source/pipeline/vertex_parameter/vertex-parameter.ts");
+const render_pass_context_1 = __webpack_require__(/*! ./render-pass-context */ "./source/execution/pass/render-pass-context.ts");
+/**
+ * Gpu render pass. Has the ability to bundle render calls for static lists.
+ */
+class RenderPass extends gpu_object_1.GpuObject {
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pRenderTargets - Render targets.
+   * @param pStaticBundle - Bundle is static and does not update very often.
+   */
+  constructor(pDevice, pRenderTargets, pStaticBundle, pExecution) {
+    super(pDevice);
+    // Set config.
+    this.mExecutionFunction = pExecution;
+    this.mQueries = {};
+    this.mRenderTargets = pRenderTargets;
+    this.mBundleConfig = {
+      enabled: pStaticBundle,
+      bundle: null,
+      descriptor: null,
+      usedResources: {
+        parameter: new Set(),
+        indirectBuffer: new Set(),
+        pipelines: new Set(),
+        pipelineData: new Set()
+      },
+      resourceInvalidator: () => {
+        // Only invalidate bundle on resource changes.
+        this.mBundleConfig.bundle = null;
+      }
+    };
+    // RenderTargets cant change texture formats, so the bundle descriptor does not need to be rebuild.
+    // When textures are resized, the new render descriptor with updated views gets applied automaticly on execute.
+  }
+  /**
+   * Execute steps in a row.
+   *
+   * @param pExecutor - Executor context.
+   */
+  execute(pExecutionContext) {
+    // Read render pass descriptor and inject timestamp query when it is setup.
+    const lRenderPassDescriptor = this.mRenderTargets.native;
+    if (this.mQueries.timestamp) {
+      lRenderPassDescriptor.timestampWrites = this.mQueries.timestamp.query;
+    }
+    // Pass descriptor is set, when the pipeline is set.
+    const lRenderPassEncoder = pExecutionContext.commandEncoder.beginRenderPass(lRenderPassDescriptor);
+    // Execute cached or execute direct based on static or variable bundles.
+    if (this.mBundleConfig.enabled) {
+      this.cachedExecute(lRenderPassEncoder);
+    } else {
+      // Directly execute nothing gets cached.
+      this.mExecutionFunction(new render_pass_context_1.RenderPassContext(lRenderPassEncoder, this.mRenderTargets, false));
+    }
+    // End render queue.
+    lRenderPassEncoder.end();
+    // Resolve query.
+    if (this.mQueries.timestamp) {
+      pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+    }
+    // Execute optional resolve targets.
+    this.resolveCanvasTargets(pExecutionContext);
+  }
+  /**
+   * Probe timestamp data from render pass.
+   * Resolves into two big ints with start and end time in nanoseconds.
+   *
+   * @returns Promise that resolves with the latest timestamp data.
+   */
+  probeTimestamp() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Skip when not enabled.
+      if (!_this.device.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TimestampQuery)) {
+        return [0n, 0n];
+      }
+      // Init timestamp query when not already set.
+      if (!_this.mQueries.timestamp) {
+        // Create timestamp query.
+        const lTimestampQuerySet = _this.device.gpu.createQuerySet({
+          type: 'timestamp',
+          count: 2
+        });
+        // Create timestamp buffer.
+        const lTimestampBuffer = new gpu_buffer_1.GpuBuffer(_this.device, 16);
+        lTimestampBuffer.extendUsage(GPUBufferUsage.QUERY_RESOLVE);
+        lTimestampBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.CopySource);
+        // Create query.
+        _this.mQueries.timestamp = {
+          query: {
+            querySet: lTimestampQuerySet,
+            beginningOfPassWriteIndex: 0,
+            endOfPassWriteIndex: 1
+          },
+          buffer: lTimestampBuffer,
+          resolver: null
+        };
+      }
+      // Use existing resolver.
+      if (_this.mQueries.timestamp.resolver) {
+        return _this.mQueries.timestamp.resolver;
+      }
+      _this.mQueries.timestamp.resolver = _this.mQueries.timestamp.buffer.read(0, 16).then(pData => {
+        // Reset resolver.
+        _this.mQueries.timestamp.resolver = null;
+        // Read and resolve timestamp data.
+        const lTimedata = new BigUint64Array(pData);
+        return [lTimedata[0], lTimedata[1]];
+      });
+      return _this.mQueries.timestamp.resolver;
+    })();
+  }
+  /**
+   * Execute render pass as cached bundle.
+   *
+   * @param pExecutor - Executor context.
+   */
+  cachedExecute(pRenderPassEncoder) {
+    if (!this.mBundleConfig.descriptor) {
+      // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
+      const lRenderBundleEncoderDescriptor = {
+        colorFormats: this.mRenderTargets.colorTargetNames.map(pColorTargetName => {
+          return this.mRenderTargets.colorTarget(pColorTargetName).layout.format;
+        }),
+        // Render target multisample level.
+        sampleCount: this.mRenderTargets.multisampled ? 4 : 1,
+        // Enable depth or stencil write.
+        depthReadOnly: false,
+        stencilReadOnly: false
+      };
+      // Optional depth stencil.
+      if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
+        lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthStencilTarget().layout.format;
+      }
+      // Save descriptor.
+      this.mBundleConfig.descriptor = lRenderBundleEncoderDescriptor;
+    }
+    // Generate new bundle when not already cached or render target got changed.
+    if (!this.mBundleConfig.bundle) {
+      // Clear old invalidation listener on old bundles.
+      for (const lParameter of this.mBundleConfig.usedResources.parameter) {
+        lParameter.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
+      }
+      for (const lBuffer of this.mBundleConfig.usedResources.indirectBuffer) {
+        lBuffer.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
+      }
+      for (const lBindgroup of this.mBundleConfig.usedResources.pipelineData) {
+        lBindgroup.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
+      }
+      for (const lPipeline of this.mBundleConfig.usedResources.pipelines) {
+        lPipeline.removeInvalidationListener(this.mBundleConfig.resourceInvalidator);
+      }
+      // Clear used resources.
+      this.mBundleConfig.usedResources.indirectBuffer.clear();
+      this.mBundleConfig.usedResources.pipelineData.clear();
+      this.mBundleConfig.usedResources.pipelines.clear();
+      // Create render bundle.
+      const lRenderBundleEncoder = this.device.gpu.createRenderBundleEncoder(this.mBundleConfig.descriptor);
+      // Create context.
+      const lRenderPassContext = new render_pass_context_1.RenderPassContext(lRenderBundleEncoder, this.mRenderTargets, true);
+      // Fill render queue.
+      this.mExecutionFunction(lRenderPassContext);
+      // Save render bundle.
+      this.mBundleConfig.bundle = lRenderBundleEncoder.finish();
+      // Save and track used resources.
+      for (const lParameter of this.mBundleConfig.usedResources.parameter) {
+        lParameter.addInvalidationListener(this.mBundleConfig.resourceInvalidator, vertex_parameter_1.VertexParameterInvalidationType.Data);
+      }
+      for (const lBuffer of lRenderPassContext.usedResources.indirectBuffer) {
+        this.mBundleConfig.usedResources.indirectBuffer.add(lBuffer);
+        lBuffer.addInvalidationListener(this.mBundleConfig.resourceInvalidator, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+      }
+      for (const lBindgroup of lRenderPassContext.usedResources.pipelineData) {
+        this.mBundleConfig.usedResources.pipelineData.add(lBindgroup);
+        lBindgroup.addInvalidationListener(this.mBundleConfig.resourceInvalidator, pipeline_data_1.PipelineDataInvalidationType.Data);
+      }
+      for (const lPipeline of lRenderPassContext.usedResources.pipelines) {
+        this.mBundleConfig.usedResources.pipelines.add(lPipeline);
+        lPipeline.addInvalidationListener(this.mBundleConfig.resourceInvalidator, vertex_fragment_pipeline_1.VertexFragmentPipelineInvalidationType.NativeRebuild);
+      }
+    }
+    // Add cached render bundle.
+    pRenderPassEncoder.executeBundles([this.mBundleConfig.bundle]);
+  }
+  /**
+   * Resolve gpu textures into canvas textures.
+   *
+   * @param pExecutionContext - Executor context.
+   */
+  resolveCanvasTargets(pExecutionContext) {
+    // Skip when nothing to be resolved.
+    if (this.mRenderTargets.resolveCanvasList.length === 0) {
+      return;
+    }
+    if (this.mRenderTargets.multisampled) {
+      // Generate resolve target descriptor with operation that does nothing.
+      const lColorTargetList = this.mRenderTargets.resolveCanvasList.map(pResolveTexture => {
+        return {
+          view: pResolveTexture.source.native,
+          resolveTarget: pResolveTexture.canvas.native.createView(),
+          loadOp: 'load',
+          storeOp: 'store'
+        };
+      });
+      // Begin and end render pass. Render pass does only resolve targets.
+      pExecutionContext.commandEncoder.beginRenderPass({
+        colorAttachments: lColorTargetList
+      }).end();
+    } else {
+      // Copy targets into canvas.
+      for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
+        // Create External source.
+        const lSource = {
+          texture: lResolveTexture.source.texture.native,
+          aspect: 'all',
+          mipLevel: lResolveTexture.source.mipLevelStart
+        };
+        // Generate native texture.
+        const lDestination = {
+          texture: lResolveTexture.canvas.native,
+          aspect: 'all',
+          mipLevel: 0
+        };
+        // Clamp copy sizes to lowest.
+        const lCopySize = {
+          width: this.mRenderTargets.width,
+          height: this.mRenderTargets.height,
+          depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
+        };
+        pExecutionContext.commandEncoder.copyTextureToTexture(lSource, lDestination, lCopySize);
+      }
+    }
+  }
+}
+exports.RenderPass = RenderPass;
+
+/***/ }),
+
+/***/ "./source/gpu_object/gpu-object-child-setup.ts":
+/*!*****************************************************!*\
+  !*** ./source/gpu_object/gpu-object-child-setup.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuObjectChildSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+/**
+ * Helper object for setup objects. Returns results with a callback.
+ */
+class GpuObjectChildSetup {
+  /**
+   * Gpu device reference.
+   */
+  get device() {
+    return this.mSetupReference.device;
+  }
+  /**
+   * Setup data.
+   */
+  get setupData() {
+    // References should be setup at this point.
+    return this.mSetupReference.data;
+  }
+  /**
+   * Setup references.
+   */
+  get setupReferences() {
+    return this.mSetupReference;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pDataCallback - Setup data callback.
+   */
+  constructor(pSetupReference, pDataCallback) {
+    this.mSetupReference = pSetupReference;
+    this.mSetupCallback = pDataCallback;
+  }
+  /**
+   * Ensure that current call is used inside a setup call.
+   */
+  ensureThatInSetup() {
+    // Lock setup to a setup call.
+    if (!this.mSetupReference.inSetup) {
+      throw new core_1.Exception('Can only setup in a setup call.', this);
+    }
+  }
+  /**
+   * Send data back to parent setup.
+   *
+   * @param pData - Setup complete data.
+   */
+  sendData(...pData) {
+    this.mSetupCallback(...pData);
+  }
+}
+exports.GpuObjectChildSetup = GpuObjectChildSetup;
+
+/***/ }),
+
+/***/ "./source/gpu_object/gpu-object-invalidation-reasons.ts":
+/*!**************************************************************!*\
+  !*** ./source/gpu_object/gpu-object-invalidation-reasons.ts ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuObjectInvalidationReasons = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+/**
+ * Reason list why a gpu object was invalidated.
+ */
+class GpuObjectInvalidationReasons {
+  /**
+   * Life time was reached.
+   */
+  get deconstruct() {
+    return this.mDeconstruct;
+  }
+  set deconstruct(pDeconstruct) {
+    if (!pDeconstruct) {
+      throw new core_1.Exception(`Deconstruct reason can not be reverted. Sadly.`, this);
+    }
+    this.mDeconstruct = pDeconstruct;
+  }
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this.mReasons = new Set();
+    this.mDeconstruct = false;
+  }
+  /**
+   * Add update reason.
+   * @param pReason - Update reason.
+   */
+  add(pReason) {
+    this.mReasons.add(pReason);
+  }
+  /**
+   * If update reason has any existing reason.
+   */
+  any() {
+    return this.mReasons.size > 0 || this.mDeconstruct;
+  }
+  /**
+   * Clear all reasons.
+   */
+  clear() {
+    this.mReasons.clear();
+  }
+  /**
+   * Check for update reason.
+   * @param pReason - Update reason.
+   */
+  has(pReason) {
+    return this.mReasons.has(pReason);
+  }
+}
+exports.GpuObjectInvalidationReasons = GpuObjectInvalidationReasons;
+
+/***/ }),
+
+/***/ "./source/gpu_object/gpu-object-setup.ts":
+/*!***********************************************!*\
+  !*** ./source/gpu_object/gpu-object-setup.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuObjectSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+/**
+ * Gpu setup object.
+ */
+class GpuObjectSetup {
+  /**
+   * Gpu device reference.
+   */
+  get device() {
+    return this.mSetupReference.device;
+  }
+  /**
+   * Setup data.
+   */
+  get setupData() {
+    // References should be setup at this point.
+    return this.mSetupReference.data;
+  }
+  /**
+   * Setup references.
+   */
+  get setupReferences() {
+    return this.mSetupReference;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   */
+  constructor(pSetupReference) {
+    this.mSetupReference = pSetupReference;
+    // Fill default data to setup references.
+    this.fillDefaultData(pSetupReference.data);
+  }
+  /**
+   * Ensure that current call is used inside a setup call.
+   */
+  ensureThatInSetup() {
+    // Lock setup to a setup call.
+    if (!this.mSetupReference.inSetup) {
+      throw new core_1.Exception('Can only setup in a setup call.', this);
+    }
+  }
+}
+exports.GpuObjectSetup = GpuObjectSetup;
+
+/***/ }),
+
+/***/ "./source/gpu_object/gpu-object.ts":
+/*!*****************************************!*\
+  !*** ./source/gpu_object/gpu-object.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuObject = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_object_invalidation_reasons_1 = __webpack_require__(/*! ./gpu-object-invalidation-reasons */ "./source/gpu_object/gpu-object-invalidation-reasons.ts");
+/**
+ * Object that handles gpu data, resources or configs.
+ */
+class GpuObject {
+  /**
+   * Gpu Device.
+   */
+  get device() {
+    return this.mDevice;
+  }
+  /**
+   * Object was setup.
+   */
+  get isSetup() {
+    return this.mIsSetup;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return this.readNative();
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Gpu device.
+   * @param pNativeLifeTime - Lifetime of native object.
+   */
+  constructor(pDevice) {
+    // Save static settings.
+    this.mDevice = pDevice;
+    this.mIsSetup = false;
+    // Init default settings and config.
+    this.mDeconstructed = false;
+    this.mNativeObject = null;
+    // Init lists.
+    this.mUpdateListener = new core_1.Dictionary();
+    this.mUpdateListenerAffectedTyped = new WeakMap();
+    this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
+  }
+  /**
+   * Add invalidation listener.
+   *
+   * @param pListener - Listener.
+   * @param pAffected - Trigger listener only on those reasons.
+   *
+   * @returns this.
+   */
+  addInvalidationListener(pListener, pFirstAffected, ...pAffected) {
+    if (this.mUpdateListenerAffectedTyped.has(pListener)) {
+      throw new core_1.Exception(`Invalidation listener can't be applied twice.`, this);
+    }
+    // Concat first and optional types.
+    const lAffectedList = [pFirstAffected, ...pAffected];
+    // Listener to each affected
+    for (const lAffectedType of lAffectedList) {
+      // Init new affected bucket.
+      if (!this.mUpdateListener.has(lAffectedType)) {
+        this.mUpdateListener.set(lAffectedType, new core_1.List());
+      }
+      // Assign listener to affected type.
+      this.mUpdateListener.get(lAffectedType).push(pListener);
+    }
+    // Map listener to affected types.
+    this.mUpdateListenerAffectedTyped.set(pListener, lAffectedList);
+    return this;
+  }
+  /**
+   * Deconstruct native object.
+   */
+  deconstruct() {
+    this.mInvalidationReasons.deconstruct = true;
+    // Clear and destroy old native when any update reason exists.
+    if (this.mNativeObject !== null) {
+      this.destroyNative(this.mNativeObject, this.mInvalidationReasons);
+      this.mNativeObject = null;
+    }
+    this.mDeconstructed = true;
+  }
+  /**
+   * Invalidate native gpu object so it will be created again.
+   */
+  invalidate(...pReasons) {
+    // Single reason execution function.
+    const lExecuteReasonListener = pReason => {
+      // Skip reasons that already occurred or no native was created.
+      // This step ensures to execute invalidation listener for all gpu objects that doesn't create natives. 
+      if (this.mNativeObject !== null && this.mInvalidationReasons.has(pReason)) {
+        return;
+      }
+      // Add invalidation reason.
+      this.mInvalidationReasons.add(pReason);
+      // Read listener list.
+      const lListenerList = this.mUpdateListener.get(pReason);
+      if (!lListenerList || lListenerList.length === 0) {
+        return;
+      }
+      // Single execution of listener when only one exists.
+      if (lListenerList.length === 1) {
+        lListenerList[0](pReason);
+      } else {
+        for (const lListener of lListenerList) {
+          lListener(pReason);
+        }
+      }
+    };
+    // Invalidate for each reason. Single reason execution when only one exists.
+    if (pReasons.length === 1) {
+      lExecuteReasonListener(pReasons[0]);
+    } else {
+      for (const lReason of pReasons) {
+        lExecuteReasonListener(lReason);
+      }
+    }
+  }
+  /**
+   * Add invalidation listener.
+   * @param pListener - Listener.
+   */
+  removeInvalidationListener(pListener) {
+    // Get all affected types of listener.
+    const lAffectedList = this.mUpdateListenerAffectedTyped.get(pListener);
+    if (!lAffectedList) {
+      return;
+    }
+    // Remove all listener from each affected type.
+    for (const lAffectedType of lAffectedList) {
+      this.mUpdateListener.get(lAffectedType).remove(pListener);
+    }
+    // Remove listener from affected mapping.
+    this.mUpdateListenerAffectedTyped.delete(pListener);
+  }
+  /**
+   * Destroy native object.
+   *
+   * @param _pNative - Native object.
+   * @param _pReasons - Reason why it should be destroyed.
+   */
+  destroyNative(_pNative, _pReasons) {
+    return;
+  }
+  /**
+   * Throws when the gpu object not setup.
+   */
+  ensureSetup() {
+    if (!this.mIsSetup) {
+      throw new core_1.Exception('Gpu object must be setup to access properties.', this);
+    }
+  }
+  /**
+   * Generate new native object.
+   * Return null when no native can be generated.
+   *
+   * @param _pCurrentNative - Current native element.
+   * @param _pReasons - Reason why it should be newly generated.
+   */
+  generateNative(_pCurrentNative, _pReasons) {
+    return null;
+  }
+  /**
+   * Setup with setup object.
+   *
+   * @param _pReferences - Used references.
+   */
+  onSetup(_pReferences) {
+    return;
+  }
+  /**
+   * Create setup object.
+   * Return null to skip any setups.
+   *
+   * @param _pReferences - Unfilled setup references.
+   *
+   * @returns Setup object.
+   */
+  onSetupObjectCreate(_pReferences) {
+    return null;
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns this.
+   */
+  setup(pSetupCallback) {
+    // Dont call twice.
+    if (this.mIsSetup) {
+      throw new core_1.Exception(`Render targets setup can't be called twice.`, this);
+    }
+    // Create unfilled
+    const lSetupReferences = {
+      inSetup: true,
+      device: this.mDevice,
+      data: {}
+    };
+    // Creates setup object.
+    const lSetupObject = this.onSetupObjectCreate(lSetupReferences);
+    if (lSetupObject !== null) {
+      // Call optional user setup.
+      if (pSetupCallback) {
+        pSetupCallback(lSetupObject);
+      }
+      // Call gpu object setup. At this point all references should be filled.
+      this.onSetup(lSetupReferences.data);
+    }
+    // Defuse setup references.
+    lSetupReferences.inSetup = false;
+    // Set gpu object as setup.
+    this.mIsSetup = true;
+    return this;
+  }
+  /**
+   * Update native object.
+   *
+   * @param _pNative - Native object.
+   * @param _pReasons - Reason why it should be updated.
+   *
+   * @returns true when native element was updated, false when it should be created anew.
+   */
+  updateNative(_pNative, _pReasons) {
+    return false;
+  }
+  /**
+   * Read up to date native object.
+   * Invalidates, destroys and generates the native object.
+   *
+   * @returns native object.
+   */
+  readNative() {
+    // Restrict deconstructed access.
+    if (this.mDeconstructed) {
+      throw new core_1.Exception(`Native GPU object was deconstructed and can't be used again.`, this);
+    }
+    // Ensure the setup was called.
+    if (!this.isSetup) {
+      // Call empty update.
+      this.setup();
+    }
+    // When native is generated and is invalid, try to update it.
+    if (this.mNativeObject !== null && this.mInvalidationReasons.any()) {
+      // Try to update native.
+      const lUpdateSuccessfull = this.updateNative(this.mNativeObject, this.mInvalidationReasons);
+      if (lUpdateSuccessfull) {
+        this.mInvalidationReasons.clear();
+      }
+    }
+    // When no native is generated or update was not successfull.
+    if (this.mNativeObject === null || this.mInvalidationReasons.any()) {
+      // Save current native.
+      const lCurrentNative = this.mNativeObject;
+      // Generate new native.
+      this.mNativeObject = this.generateNative(lCurrentNative, this.mInvalidationReasons);
+      // Destroy old native when existing.
+      if (lCurrentNative !== null) {
+        this.destroyNative(lCurrentNative, this.mInvalidationReasons);
+      }
+      // Reset all update reasons.
+      this.mInvalidationReasons.clear();
+    }
+    return this.mNativeObject;
+  }
+}
+exports.GpuObject = GpuObject;
+
+/***/ }),
+
+/***/ "./source/gpu_object/gpu-resource-object.ts":
+/*!**************************************************!*\
+  !*** ./source/gpu_object/gpu-resource-object.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuResourceObjectInvalidationType = exports.GpuResourceObject = void 0;
+const gpu_object_1 = __webpack_require__(/*! ./gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Gpu resource object.
+ * Takes actual memory space on gpu hardware.
+ */
+class GpuResourceObject extends gpu_object_1.GpuObject {
+  /**
+   * Texture usage.
+   */
+  get usage() {
+    return this.mResourceUsage;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   */
+  constructor(pDevice) {
+    super(pDevice);
+    // Set static config.
+    this.mResourceUsage = 0;
+  }
+  /**
+   * Extend usage of resource.
+   * Might trigger a resource rebuild.
+   *
+   * @param pUsage - Usage.
+   */
+  extendUsage(pUsage) {
+    // Update onyl when not already set.
+    if ((this.mResourceUsage & pUsage) === 0) {
+      this.mResourceUsage = this.mResourceUsage | pUsage;
+      this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
+    }
+    return this;
+  }
+}
+exports.GpuResourceObject = GpuResourceObject;
+var GpuResourceObjectInvalidationType;
+(function (GpuResourceObjectInvalidationType) {
+  GpuResourceObjectInvalidationType["ResourceRebuild"] = "ResourceRebuild";
+})(GpuResourceObjectInvalidationType || (exports.GpuResourceObjectInvalidationType = GpuResourceObjectInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group/bind-group-data-setup.ts":
+/*!*************************************************************!*\
+  !*** ./source/pipeline/bind_group/bind-group-data-setup.ts ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupDataSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/array-buffer-memory-layout */ "./source/buffer/memory_layout/array-buffer-memory-layout.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/primitive-buffer-memory-layout */ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/struct-buffer-memory-layout */ "./source/buffer/memory_layout/struct-buffer-memory-layout.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+const gpu_texture_1 = __webpack_require__(/*! ../../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/sampler-memory-layout */ "./source/texture/memory_layout/sampler-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/texture-view-memory-layout */ "./source/texture/memory_layout/texture-view-memory-layout.ts");
+const texture_sampler_1 = __webpack_require__(/*! ../../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+/**
+ * Setup child object for setup bind group gpu data resources.
+ */
+class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pLayout - Target layout.
+   * @param pCurrentData - Current set data.
+   * @param pSetupReference - Setup data references.
+   * @param pDataCallback - Bind data callback.
+   */
+  constructor(pLayout, pCurrentData, pSetupReference, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    // Set initial data.
+    this.mCurrentData = pCurrentData;
+    this.mBindLayout = pLayout;
+  }
+  /**
+   * Create a view with the attached buffer and binding layout.
+   *
+   * @param pValueType - Number item type of view.
+   *
+   * @returns view of buffer from bind group layout.
+   */
+  asBufferView(pValueType, pDynamicOffsetIndex) {
+    const lData = this.getRaw();
+    if (!(lData instanceof gpu_buffer_1.GpuBuffer)) {
+      throw new core_1.Exception('Bind data can not be converted into a buffer view.', this);
+    }
+    // Read layout buffer.
+    const lBufferLayout = this.mBindLayout.layout;
+    // Create view.
+    return lData.view(lBufferLayout, pValueType, pDynamicOffsetIndex);
+  }
+  createBuffer(pDataOrVariableLength) {
+    // Create empty when no data array is set or fill it with the data array.
+    let lBuffer;
+    if (Array.isArray(pDataOrVariableLength)) {
+      lBuffer = this.createBufferFromArray(pDataOrVariableLength);
+    } else {
+      lBuffer = this.createEmptyBuffer(pDataOrVariableLength);
+    }
+    // Send created data.
+    this.sendData(lBuffer);
+    return lBuffer;
+  }
+  /**
+   * Create and init buffer with raw array buffer data.
+   * Data needs to have the right alignment and size.
+   *
+   * @param pData - Raw data.
+   *
+   * @returns - Created buffer.
+   */
+  createBufferWithRawData(pData) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Calculate variable item count from initial buffer data.  
+    const lVariableItemCount = (() => {
+      // No need to calculate was it is allways zero.
+      if (this.mBindLayout.layout.variableSize === 0) {
+        return 0;
+      }
+      // Get initial buffer data byte length.
+      const lBufferByteLength = pData.byteLength;
+      // calculate item count and check if initial data meets requirments.
+      const lItemCount = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
+      if (lItemCount % 1 > 0) {
+        throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet alignment.`, this);
+      }
+      return lItemCount;
+    })();
+    // Calculate buffer size with correct alignment.
+    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.hasDynamicOffset) {
+      // Read correct alignment limitations for storage type.
+      const lOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
+      lByteSize *= Math.floor(pData.byteLength / lByteSize);
+    }
+    // Validate size.
+    if (pData.byteLength !== lByteSize) {
+      throw new core_1.Exception(`Raw bind group data buffer data "${this.mBindLayout.name}" does not meet data size (Should:${lByteSize} => Has:${pData.byteLength}) requirements.`, this);
+    }
+    // Create buffer.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize).initialData(pData);
+    // Send created data.
+    this.sendData(lBuffer);
+    return lBuffer;
+  }
+  /**
+   * Create new sampler.
+   *
+   * @returns created texture sampler.
+   */
+  createSampler() {
+    // Layout must be a sampler memory layout.
+    if (!(this.mBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for samplers.`, this);
+    }
+    // Create texture sampler.
+    const lSampler = new texture_sampler_1.TextureSampler(this.device, this.mBindLayout.layout);
+    // Send created data.
+    this.sendData(lSampler);
+    return lSampler;
+  }
+  /**
+   * Create texture view.
+   * Generates a new texture.
+   *
+    * @returns created texture view.
+   */
+  createTexture() {
+    // Layout must be a texture viw memory layout.
+    if (!(this.mBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for image textures.`, this);
+    }
+    // Generate texture dimension from view dimensions.
+    const lTextureDimension = (() => {
+      switch (this.mBindLayout.layout.dimension) {
+        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.OneDimension;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
+        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.TwoDimension;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
+          {
+            return texture_dimension_enum_1.TextureDimension.ThreeDimension;
+          }
+      }
+    })();
+    // Create texture.
+    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
+      dimension: lTextureDimension,
+      format: this.mBindLayout.layout.format,
+      multisampled: this.mBindLayout.layout.multisampled
+    });
+    // Create view from texture.
+    const lTextureView = lTexture.useAs(this.mBindLayout.layout.dimension);
+    // Send created texture to parent bind group.
+    this.sendData(lTextureView);
+    return lTextureView;
+  }
+  /**
+   * Get current binded data.
+   *
+   * @returns current set bind data.
+   *
+   * @throws {@link Exception}
+   * When no data was set.
+   */
+  getRaw() {
+    // Validate existence.
+    if (!this.mCurrentData) {
+      throw new core_1.Exception('No binding data was set.', this);
+    }
+    // Return current set data.
+    return this.mCurrentData;
+  }
+  /**
+   * Set already created bind data.
+   *
+   * @param pData - Created data.
+   *
+   * @returns set data.
+   */
+  set(pData) {
+    this.sendData(pData);
+    // Return same data.
+    return pData;
+  }
+  /**
+   * Create na new buffer.
+   *
+   * @param pData - Buffer data without right alignment.
+   *
+   * @returns created buffer.
+   */
+  createBufferFromArray(pData) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Unwrap layout.
+    const lUnwrapedLayout = this.unwrapLayouts(this.mBindLayout.layout);
+    // Validate data length that should be written.
+    if (lUnwrapedLayout.fixedItemCount > pData.length) {
+      throw new core_1.Exception(`Data has not enough numbers (count: ${pData.length}) to fill fixed buffer data (count: ${lUnwrapedLayout.fixedItemCount}).`, this);
+    }
+    // Get variable data repetitions.
+    let lVariableRepetitionCount = 0;
+    if (lUnwrapedLayout.variableItemCount > 0) {
+      lVariableRepetitionCount = (pData.length - lUnwrapedLayout.fixedItemCount) / lUnwrapedLayout.variableItemCount;
+    }
+    // Variable count should be an integer.
+    if (lVariableRepetitionCount % 1 !== 0) {
+      throw new core_1.Exception(`Data has not the right alignment to fill variable spaces without null space.`, this);
+    }
+    // Calculate buffer size with correct alignment.
+    let lDynamicOffsetAlignment = -1;
+    let lDynamicOffsetCount = 1;
+    let lByteSize = (lVariableRepetitionCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.hasDynamicOffset) {
+      // Read correct alignment limitations for storage type.
+      lDynamicOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Calculate dynamic offset count from data length.
+      lDynamicOffsetCount = pData.length / lUnwrapedLayout.fixedItemCount;
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lDynamicOffsetAlignment) * lDynamicOffsetAlignment;
+      lByteSize *= lDynamicOffsetCount;
+    }
+    // Create buffer with correct length.
+    const lBufferData = new ArrayBuffer(lByteSize);
+    const lBufferDataView = new DataView(lBufferData);
+    // Write data.
+    let lDataIndex = 0;
+    let lByteOffset = 0;
+    const lWriteLayout = (pUnwrappedLayout, pOverwrittenAlignment = -1) => {
+      const lLayoutAlignment = pOverwrittenAlignment !== -1 ? pOverwrittenAlignment : pUnwrappedLayout.alignment;
+      // Apply layout alignment to offset.
+      lByteOffset = Math.ceil(lByteOffset / lLayoutAlignment) * lLayoutAlignment;
+      // buffer layout is a layered format.
+      if (Array.isArray(pUnwrappedLayout.format)) {
+        // Set repetition count to variable count when layout repetition count is uncapped.
+        const lRepetitionCount = pUnwrappedLayout.count !== -1 ? pUnwrappedLayout.count : lVariableRepetitionCount;
+        for (let lLayoutRepetionIndex = 0; lLayoutRepetionIndex < lRepetitionCount; lLayoutRepetionIndex++) {
+          // Add each inner format.
+          for (const lInnerFormat of pUnwrappedLayout.format) {
+            lWriteLayout(lInnerFormat);
+          }
+        }
+        return;
+      }
+      // write each single number.
+      for (let lItemIndex = 0; lItemIndex < pUnwrappedLayout.count; lItemIndex++) {
+        // Add and iterate data.
+        this.setBufferData(lBufferDataView, lByteOffset, pUnwrappedLayout.format.itemFormat, pData[lDataIndex]);
+        lDataIndex++;
+        // Increase offset by format byte count.
+        lByteOffset += pUnwrappedLayout.format.itemByteCount;
+      }
+    };
+    // Repeat layout for each dynamic offset.
+    for (let lOffsetIndex = 0; lOffsetIndex < lDynamicOffsetCount; lOffsetIndex++) {
+      lWriteLayout(lUnwrapedLayout, lDynamicOffsetAlignment);
+    }
+    // Create buffer with initial data.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
+    return lBuffer;
+  }
+  /**
+   * Create a empty buffer.
+   *
+   * @param pVariableSizeCount - Variable item count.
+   *
+   * @returns - Created buffer.
+   */
+  createEmptyBuffer(pVariableSizeCount = null) {
+    // Layout must be a buffer memory layout.
+    if (!(this.mBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+      throw new core_1.Exception(`Bind data layout is not suitable for buffers.`, this);
+    }
+    // Calculate variable item count from initial buffer data.  
+    const lVariableItemCount = (() => {
+      // Use set variable count.
+      if (pVariableSizeCount !== null) {
+        return pVariableSizeCount;
+      }
+      // No need to calculate was it is allways zero.
+      if (this.mBindLayout.layout.variableSize === 0) {
+        return 0;
+      }
+      throw new core_1.Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
+    })();
+    // Calculate buffer size with correct alignment.
+    let lByteSize = (lVariableItemCount ?? 0) * this.mBindLayout.layout.variableSize + this.mBindLayout.layout.fixedSize;
+    if (this.mBindLayout.hasDynamicOffset) {
+      // Read correct alignment limitations for storage type.
+      const lOffsetAlignment = (() => {
+        if (this.mBindLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+        } else {
+          return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+        }
+      })();
+      // Apply offset alignment to byte size.
+      lByteSize = Math.ceil(lByteSize / lOffsetAlignment) * lOffsetAlignment;
+      lByteSize *= pVariableSizeCount ?? 1;
+    }
+    // Create buffer.
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, lByteSize);
+    return lBuffer;
+  }
+  /**
+   * Set data in little endian according to the set item format and offset.
+   *
+   * @param pBufferDataView - Data view of buffer.
+   * @param pByteOffset - Byte offset in buffer.
+   * @param pFormat - Format to write.
+   * @param pData - Data to write.
+   */
+  setBufferData(pBufferDataView, pByteOffset, pFormat, pData) {
+    switch (pFormat) {
+      case buffer_item_format_enum_1.BufferItemFormat.Float32:
+        {
+          pBufferDataView.setFloat32(pByteOffset, pData, true);
+          break;
+        }
+      case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+        {
+          pBufferDataView.setUint32(pByteOffset, pData, true);
+          break;
+        }
+      case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+        {
+          pBufferDataView.setInt32(pByteOffset, pData, true);
+          break;
+        }
+      // Unsupported
+      case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+      case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+      case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+      case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+      case buffer_item_format_enum_1.BufferItemFormat.Float16:
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+      case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+      case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+      default:
+        {
+          throw new core_1.Exception(`Currently "${pFormat}" is not supported for uniform parameter.`, this);
+        }
+    }
+  }
+  /**
+   * Unwrap layout.
+   *
+   * @param pLayout - Buffer layout.
+   *
+   * @returns - unwrapped layout.
+   */
+  unwrapLayouts(pLayout) {
+    // Recursion end condition. Primitives have no inner formats.
+    if (pLayout instanceof primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout) {
+      // Read item count and format of parameter.
+      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(pLayout.itemMultiplier);
+      const lParameterItemFormat = pLayout.itemFormat;
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: lParameterItemCount,
+        variableItemCount: 0,
+        // Local layout data.
+        count: lParameterItemCount,
+        alignment: pLayout.alignment,
+        format: {
+          itemFormat: lParameterItemFormat,
+          itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+        }
+      };
+    }
+    // Recursive array.
+    if (pLayout instanceof array_buffer_memory_layout_1.ArrayBufferMemoryLayout) {
+      // Unwrap inner format.
+      const lInnerFormatUnwrapped = this.unwrapLayouts(pLayout.innerType);
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: Math.max(pLayout.arraySize, 0) * lInnerFormatUnwrapped.fixedItemCount,
+        variableItemCount: pLayout.variableSize > 0 ? lInnerFormatUnwrapped.fixedItemCount : 0,
+        // Local layout data.
+        count: pLayout.fixedSize || -1,
+        alignment: pLayout.alignment,
+        format: [lInnerFormatUnwrapped]
+      };
+    }
+    // Recursive struct.
+    if (pLayout instanceof struct_buffer_memory_layout_1.StructBufferMemoryLayout) {
+      let lFixedItemCount = 0;
+      let lVariableItemCount = 0;
+      // Create new unwrapped layout for each property.
+      const lPropertyFormats = new Array();
+      for (const lProperty of pLayout.properties) {
+        // Unwrap property format.
+        const lPropertyFormatUnwrapped = this.unwrapLayouts(lProperty.layout);
+        // Count of fixed and variable item size.
+        lFixedItemCount += lPropertyFormatUnwrapped.fixedItemCount;
+        lVariableItemCount += lPropertyFormatUnwrapped.variableItemCount;
+        lPropertyFormats.push(lPropertyFormatUnwrapped);
+      }
+      // Add formats for each item of parameter.
+      return {
+        // Global data.
+        fixedItemCount: lFixedItemCount,
+        variableItemCount: lVariableItemCount,
+        // Local layout data.
+        count: 1,
+        alignment: pLayout.alignment,
+        format: lPropertyFormats
+      };
+    }
+    throw new core_1.Exception('Memory layout not suppored for bindings', this);
+  }
+}
+exports.BindGroupDataSetup = BindGroupDataSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group/bind-group.ts":
+/*!**************************************************!*\
+  !*** ./source/pipeline/bind_group/bind-group.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupInvalidationType = exports.BindGroup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const texture_sampler_1 = __webpack_require__(/*! ../../texture/texture-sampler */ "./source/texture/texture-sampler.ts");
+const bind_group_data_setup_1 = __webpack_require__(/*! ./bind-group-data-setup */ "./source/pipeline/bind_group/bind-group-data-setup.ts");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+const gpu_texture_view_1 = __webpack_require__(/*! ../../texture/gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/sampler-memory-layout */ "./source/texture/memory_layout/sampler-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/texture-view-memory-layout */ "./source/texture/memory_layout/texture-view-memory-layout.ts");
+/**
+ * Pipeline bind group unbound from a group binding index.
+ */
+class BindGroup extends gpu_object_1.GpuObject {
+  /**
+   * Layout of bind group.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Gpu Device reference.
+   */
+  constructor(pDevice, pBindGroupLayout) {
+    super(pDevice);
+    this.mLayout = pBindGroupLayout;
+    this.mBindData = new core_1.Dictionary();
+    this.mDataInvalidationListener = new WeakMap();
+  }
+  /**
+   * Read binding data references.
+   *
+   * @param pBindName - Binding name.
+   *
+   * @returns Data setup object.
+   */
+  data(pBindName) {
+    const lBindLayout = this.mLayout.getBind(pBindName);
+    const lData = this.mBindData.get(pBindName) ?? null;
+    // Construct setup data to data.
+    const lDataSetupReferences = {
+      device: this.device,
+      inSetup: true,
+      // No need to defuse setup.
+      data: null
+    };
+    return new bind_group_data_setup_1.BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, pData => {
+      // Validate if layout fits bind data and dynamicly extend usage type of bind data.
+      switch (true) {
+        // Textures must use a buffer memory layout.
+        case pData instanceof gpu_buffer_1.GpuBuffer:
+          {
+            if (!(lBindLayout.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+              throw new core_1.Exception(`Buffer added to bind data "${pBindName}" but binding does not expect a buffer.`, this);
+            }
+            // Extend buffer usage based on if it is a storage or not.
+            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
+              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Storage);
+            } else {
+              pData.extendUsage(buffer_usage_enum_1.BufferUsage.Uniform);
+            }
+            break;
+          }
+        // Samplers must use a texture sampler memory layout.
+        case pData instanceof texture_sampler_1.TextureSampler:
+          {
+            if (!(lBindLayout.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout)) {
+              throw new core_1.Exception(`Texture sampler added to bind data "${pBindName}" but binding does not expect a texture sampler.`, this);
+            }
+            break;
+          }
+        // Textures must use a texture memory layout.
+        case pData instanceof gpu_texture_view_1.GpuTextureView:
+          {
+            if (!(lBindLayout.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout)) {
+              throw new core_1.Exception(`Texture added to bind data "${pBindName}" but binding does not expect a texture.`, this);
+            }
+            // Extend buffer usage based on if it is a storage or not.
+            if (lBindLayout.storageType !== storage_binding_type_enum_1.StorageBindingType.None) {
+              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.Storage);
+            } else {
+              pData.texture.extendUsage(texture_usage_enum_1.TextureUsage.TextureBinding);
+            }
+            break;
+          }
+        default:
+          {
+            throw new core_1.Exception(`Unsupported resource added to bind data "${pBindName}".`, this);
+          }
+      }
+      // Remove invalidationlistener from old data.
+      const lOldData = this.mBindData.get(pBindName);
+      if (lOldData) {
+        const lBindDataInvalidationListener = this.mDataInvalidationListener.get(lOldData);
+        if (lBindDataInvalidationListener) {
+          lOldData.removeInvalidationListener(lBindDataInvalidationListener);
+        }
+      }
+      // Set data.
+      this.mBindData.set(pBindName, pData);
+      // Trigger update data is invalid.
+      pData.addInvalidationListener(() => {
+        this.invalidate(BindGroupInvalidationType.NativeRebuild);
+      }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+      // Trigger update on data change. 
+      this.invalidate(BindGroupInvalidationType.NativeRebuild);
+    });
+  }
+  /**
+   * Generate native gpu bind data group.
+   */
+  generateNative() {
+    // Invalidate group.
+    this.invalidate(BindGroupInvalidationType.NativeRebuild);
+    const lEntryList = new Array();
+    for (const lBindname of this.layout.orderedBindingNames) {
+      // Read bind data.
+      const lBindData = this.mBindData.get(lBindname);
+      if (!lBindData) {
+        throw new core_1.Exception(`Data for binding "${lBindname}" is not set.`, this);
+      }
+      // Read bind layout.
+      const lBindLayout = this.layout.getBind(lBindname);
+      // Set resource to group entry for each 
+      const lGroupEntry = {
+        binding: lBindLayout.index,
+        resource: null
+      };
+      // Buffer bind.
+      if (lBindData instanceof gpu_buffer_1.GpuBuffer) {
+        lGroupEntry.resource = {
+          buffer: lBindData.native
+        };
+        // Fix buffer size when it has dynamic offsets.
+        if (lBindLayout.hasDynamicOffset) {
+          lGroupEntry.resource.size = lBindLayout.layout.fixedSize;
+        }
+        lEntryList.push(lGroupEntry);
+        continue;
+      }
+      // Sampler bind
+      if (lBindData instanceof texture_sampler_1.TextureSampler) {
+        lGroupEntry.resource = lBindData.native;
+        lEntryList.push(lGroupEntry);
+        continue;
+      }
+      // Texture bind.
+      if (lBindData instanceof gpu_texture_view_1.GpuTextureView) {
+        lGroupEntry.resource = lBindData.native;
+        lEntryList.push(lGroupEntry);
+        continue;
+      }
+      throw new core_1.Exception(`Bind type for "${lBindData}" not supported`, this);
+    }
+    return this.device.gpu.createBindGroup({
+      label: 'Bind-Group',
+      layout: this.layout.native,
+      entries: lEntryList
+    });
+  }
+}
+exports.BindGroup = BindGroup;
+var BindGroupInvalidationType;
+(function (BindGroupInvalidationType) {
+  BindGroupInvalidationType["NativeRebuild"] = "NativeRebuild";
+})(BindGroupInvalidationType || (exports.BindGroupInvalidationType = BindGroupInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group_layout/bind-group-layout-buffer-memory-layout-setup.ts":
+/*!*******************************************************************************************!*\
+  !*** ./source/pipeline/bind_group_layout/bind-group-layout-buffer-memory-layout-setup.ts ***!
+  \*******************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupLayoutBufferMemoryLayoutSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/array-buffer-memory-layout */ "./source/buffer/memory_layout/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/primitive-buffer-memory-layout */ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/struct-buffer-memory-layout */ "./source/buffer/memory_layout/struct-buffer-memory-layout.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+/**
+ * Buffer memory layout setup object for bind group layouts.
+ */
+class BindGroupLayoutBufferMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pAlignmentType - Buffers alignment type.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
+   * Inner type as array.
+   *
+   * @param pSize - Optional. Set size fixed.
+   *
+   * @returns array setup.
+   */
+  withArray(pSize = -1) {
+    return new BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+      const lLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+        arraySize: pSize,
+        innerType: pMemoryLayout
+      });
+      this.sendData(lLayout);
+    });
+  }
+  /**
+   * Inner type as primitive.
+   *
+   * @param pPrimitiveFormat - Primitive format.
+   * @param pPrimitiveMultiplier - Value multiplier.
+   */
+  withPrimitive(pPrimitiveFormat, pPrimitiveMultiplier) {
+    // Validate for 32bit formats.
+    if (pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Float32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Uint32 && pPrimitiveFormat !== buffer_item_format_enum_1.BufferItemFormat.Sint32) {
+      throw new core_1.Exception('Uniform layout must be a 32bit format.', this);
+    }
+    const lLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+      alignmentType: this.mAlignmentType,
+      primitiveFormat: pPrimitiveFormat,
+      primitiveMultiplier: pPrimitiveMultiplier
+    });
+    // Send created data.
+    this.sendData(lLayout);
+  }
+  /**
+   * Inner type as struct
+   *
+   * @param pSetupCall - Struct setup call.
+   */
+  withStruct(pSetupCall) {
+    // Create and setup struct buffer memory layout.
+    const lLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, this.mAlignmentType);
+    lLayout.setup(pSetupCall);
+    // Send created data.
+    this.sendData(lLayout);
+  }
+}
+exports.BindGroupLayoutBufferMemoryLayoutSetup = BindGroupLayoutBufferMemoryLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group_layout/bind-group-layout-memory-layout-setup.ts":
+/*!************************************************************************************!*\
+  !*** ./source/pipeline/bind_group_layout/bind-group-layout-memory-layout-setup.ts ***!
+  \************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupLayoutMemoryLayoutSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/sampler-memory-layout */ "./source/texture/memory_layout/sampler-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/texture-view-memory-layout */ "./source/texture/memory_layout/texture-view-memory-layout.ts");
+const bind_group_layout_buffer_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-buffer-memory-layout-setup */ "./source/pipeline/bind_group_layout/bind-group-layout-buffer-memory-layout-setup.ts");
+/**
+ * Child setup object to set types to single bindings.
+ */
+class BindGroupLayoutMemoryLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pAlignmentType - Buffers alignment type.
+   * @param pDataCallback - Data callback.
+   */
+  constructor(pSetupReference, pAlignmentType, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    this.mAlignmentType = pAlignmentType;
+  }
+  /**
+   * Memory layout as buffer with optional dynamic offsets.
+   * Dynamic offsets are only available for fixed size layouts.
+   *
+   * @param pDynamicOffsets - Number of available dynamic offsets.
+   *
+   * @returns buffer setup.
+   */
+  asBuffer(pHasDynamicOffset = false) {
+    return new bind_group_layout_buffer_memory_layout_setup_1.BindGroupLayoutBufferMemoryLayoutSetup(this.setupReferences, this.mAlignmentType, pMemoryLayout => {
+      this.sendData({
+        layout: pMemoryLayout,
+        hasDynamicOffset: pHasDynamicOffset
+      });
+    });
+  }
+  /**
+   * Memory layout as sampler.
+   *
+   * @param pSamplerType - Sampler type.
+   */
+  asSampler(pSamplerType) {
+    const lLayout = new sampler_memory_layout_1.SamplerMemoryLayout(this.device, pSamplerType);
+    // Send created data.
+    this.sendData({
+      layout: lLayout,
+      hasDynamicOffset: false
+    });
+  }
+  /**
+   * Memory layout as texture.
+   *
+   * @param pTextureDimension - Texture dimension.
+   * @param pTextureFormat - Texture format.
+   * @param pTextureBindType - Texture binding.
+   */
+  asTexture(pTextureDimension, pTextureFormat) {
+    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
+      dimension: pTextureDimension,
+      format: pTextureFormat,
+      multisampled: false
+    });
+    // Send created data.
+    this.sendData({
+      layout: lLayout,
+      hasDynamicOffset: false
+    });
+  }
+}
+exports.BindGroupLayoutMemoryLayoutSetup = BindGroupLayoutMemoryLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group_layout/bind-group-layout-setup.ts":
+/*!**********************************************************************!*\
+  !*** ./source/pipeline/bind_group_layout/bind-group-layout-setup.ts ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupLayoutSetup = void 0;
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+const bind_group_layout_memory_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-memory-layout-setup */ "./source/pipeline/bind_group_layout/bind-group-layout-memory-layout-setup.ts");
+/**
+ * setup object to add bindings to bind group layouts.
+ */
+class BindGroupLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Add binding to group.
+   *
+   * @param pName - Binding name.
+   * @param pIndex - - Binding index.
+   * @param pUsage - Buffer usage.
+   * @param pVisibility - Visibility.
+   * @param pAccessMode - Access mode.
+   */
+  binding(pIndex, pName, pVisibility, pStorageBinding) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Create empty bind layout.
+    const lBind = {
+      name: pName,
+      index: pIndex,
+      visibility: pVisibility,
+      layout: null,
+      storageType: pStorageBinding ?? storage_binding_type_enum_1.StorageBindingType.None,
+      hasDynamicOffset: false
+    };
+    // Set layout.
+    this.setupData.bindings.push(lBind);
+    // Aligment type of memory layout. When it is not a storage buffer then is is a uniform buffer.
+    const lAlignmentType = lBind.storageType === storage_binding_type_enum_1.StorageBindingType.None ? buffer_alignment_type_enum_1.BufferAlignmentType.Uniform : buffer_alignment_type_enum_1.BufferAlignmentType.Storage;
+    // Create layout memory layout.
+    return new bind_group_layout_memory_layout_setup_1.BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, pMemoryLayout => {
+      lBind.layout = pMemoryLayout.layout;
+      lBind.hasDynamicOffset = pMemoryLayout.hasDynamicOffset;
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.bindings = new Array();
+  }
+}
+exports.BindGroupLayoutSetup = BindGroupLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/bind_group_layout/bind-group-layout.ts":
+/*!****************************************************************!*\
+  !*** ./source/pipeline/bind_group_layout/bind-group-layout.ts ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/base-buffer-memory-layout */ "./source/buffer/memory_layout/base-buffer-memory-layout.ts");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const sampler_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/sampler-memory-layout */ "./source/texture/memory_layout/sampler-memory-layout.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ../../texture/memory_layout/texture-view-memory-layout */ "./source/texture/memory_layout/texture-view-memory-layout.ts");
+const bind_group_1 = __webpack_require__(/*! ../bind_group/bind-group */ "./source/pipeline/bind_group/bind-group.ts");
+const bind_group_layout_setup_1 = __webpack_require__(/*! ./bind-group-layout-setup */ "./source/pipeline/bind_group_layout/bind-group-layout-setup.ts");
+/**
+ * Bind group layout. Fixed at creation.
+ */
+class BindGroupLayout extends gpu_object_1.GpuObject {
+  /**
+   * Bindgroup has a dynamic offset binding.
+   */
+  get hasDynamicOffset() {
+    return this.mHasDynamicOffset;
+  }
+  /**
+   * Bind group name.
+   */
+  get name() {
+    return this.mName;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Get binding names ordered by index.
+   */
+  get orderedBindingNames() {
+    // Ensure setup.
+    this.ensureSetup();
+    return this.mOrderedBindingNames;
+  }
+  /**
+   * Resource counter.
+   */
+  get resourceCounter() {
+    return this.mResourceCounter;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Gpu Device reference.
+   * @param pName - Name of binding group.
+   */
+  constructor(pDevice, pName) {
+    super(pDevice);
+    // Set binding group name.
+    this.mName = pName;
+    this.mHasDynamicOffset = false;
+    this.mResourceCounter = {
+      storageDynamicOffset: 0,
+      uniformDynamicOffset: 0,
+      sampler: 0,
+      sampledTextures: 0,
+      storageTextures: 0,
+      storageBuffers: 0,
+      uniformBuffers: 0
+    };
+    // Init bindings.
+    this.mBindings = new core_1.Dictionary();
+    this.mOrderedBindingNames = new Array();
+  }
+  /**
+   * Create new bind group from layout.
+   *
+   * @returns new bind group.
+   */
+  create() {
+    // Ensure setup.
+    this.ensureSetup();
+    return new bind_group_1.BindGroup(this.device, this);
+  }
+  /**
+   * Get full bind information.
+   * @param pName - Bind name.
+   */
+  getBind(pName) {
+    // Ensure setup.
+    this.ensureSetup();
+    if (!this.mBindings.has(pName)) {
+      throw new core_1.Exception(`Bind ${pName} does not exist.`, this);
+    }
+    return this.mBindings.get(pName);
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns — this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Generate native bind data group layout object.
+   */
+  generateNative() {
+    const lEntryList = new Array();
+    // Generate layout entry for each binding.
+    for (const lEntry of this.mBindings.values()) {
+      // Generate default properties.
+      const lLayoutEntry = {
+        visibility: lEntry.visibility,
+        binding: lEntry.index
+      };
+      // Different binding for different
+      switch (true) {
+        // Buffer layouts.
+        case lEntry.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout:
+          {
+            // Convert bind type info bufer binding type.
+            const lBufferBindingType = (() => {
+              switch (lEntry.storageType) {
+                case storage_binding_type_enum_1.StorageBindingType.None:
+                  {
+                    return 'uniform';
+                  }
+                case storage_binding_type_enum_1.StorageBindingType.Read:
+                  {
+                    return 'read-only-storage';
+                  }
+                default:
+                  {
+                    return 'storage';
+                  }
+              }
+            })();
+            // Create buffer layout with all optional values.
+            lLayoutEntry.buffer = {
+              type: lBufferBindingType,
+              minBindingSize: 0,
+              hasDynamicOffset: lEntry.hasDynamicOffset
+            };
+            break;
+          }
+        // Sampler layouts.
+        case lEntry.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout:
+          {
+            // Create sampler layout with all optional values.
+            lLayoutEntry.sampler = {
+              type: lEntry.layout.samplerType
+            };
+            break;
+          }
+        // Texture layouts.
+        case lEntry.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
+          {
+            // Uniform bind when without storage binding.
+            if (lEntry.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              // Read texture capabilities.
+              const lTextureFormatCapabilities = this.device.formatValidator.capabilityOf(lEntry.layout.format);
+              // Create image texture bind information.
+              lLayoutEntry.texture = {
+                sampleType: lTextureFormatCapabilities.sampleTypes.primary,
+                multisampled: lEntry.layout.multisampled,
+                viewDimension: lEntry.layout.dimension
+              };
+              break;
+            }
+            // Storage textures need to be write only.
+            let lStorageAccess;
+            switch (lEntry.storageType) {
+              case storage_binding_type_enum_1.StorageBindingType.ReadWrite:
+                {
+                  lStorageAccess = 'read-write';
+                  break;
+                }
+              case storage_binding_type_enum_1.StorageBindingType.Write:
+                {
+                  lStorageAccess = 'write-only';
+                  break;
+                }
+              case storage_binding_type_enum_1.StorageBindingType.Read:
+                {
+                  lStorageAccess = 'read-only';
+                  break;
+                }
+            }
+            // Create storage texture bind information.
+            lLayoutEntry.storageTexture = {
+              access: lStorageAccess,
+              format: lEntry.layout.format,
+              viewDimension: lEntry.layout.dimension
+            };
+          }
+      }
+      // Add binding entry to bindings.
+      lEntryList.push(lLayoutEntry);
+    }
+    // Create binding group layout.
+    return this.device.gpu.createBindGroupLayout({
+      label: `BindGroupLayout-${this.mName}`,
+      entries: lEntryList
+    });
+  }
+  /**
+   * Setup bind group.
+   *
+   * @param pReferences - Setup data references.
+   */
+  onSetup(pReferences) {
+    // Check capabilities.
+    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindingsPerBindGroup);
+    if (pReferences.bindings.length > lMaxBindGroupCount - 1) {
+      throw new core_1.Exception(`Bind group "${this.mName}" exceeds max binding count.`, this);
+    }
+    // Validation set.
+    const lBindingIndices = new Set();
+    const lBindingName = new Set();
+    // Add each binding.
+    for (const lBinding of pReferences.bindings) {
+      // Validate layout.
+      if (!lBinding.layout) {
+        throw new core_1.Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
+      }
+      // Only buffers can have a dynamic offset.
+      if (lBinding.hasDynamicOffset && !(lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout)) {
+        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
+      }
+      // Buffers with dynamic offsets must be fixed in size.
+      if (lBinding.hasDynamicOffset && lBinding.layout.variableSize > 0) {
+        throw new core_1.Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
+      }
+      // Layout validation for 32bit formats are in setup.
+      // Shallow copy binding.
+      this.mBindings.set(lBinding.name, {
+        name: lBinding.name,
+        index: lBinding.index,
+        layout: lBinding.layout,
+        visibility: lBinding.visibility,
+        storageType: lBinding.storageType,
+        hasDynamicOffset: lBinding.hasDynamicOffset
+      });
+      // Set dynamic offset flag when any is active.
+      if (lBinding.hasDynamicOffset) {
+        this.mHasDynamicOffset = true;
+        // Count dynamic resources
+        if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+          this.mResourceCounter.uniformDynamicOffset++;
+        } else {
+          this.mResourceCounter.storageDynamicOffset++;
+        }
+      }
+      // Validate dublicate indices.
+      if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
+        throw new core_1.Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
+      }
+      // Add binding index to already binded indices. 
+      lBindingIndices.add(lBinding.index);
+      lBindingName.add(lBinding.name);
+      // Add binding ordered by index.
+      this.mOrderedBindingNames[lBinding.index] = lBinding.name;
+      // Count resources.
+      switch (true) {
+        case lBinding.layout instanceof sampler_memory_layout_1.SamplerMemoryLayout:
+          {
+            this.mResourceCounter.sampler++;
+            break;
+          }
+        case lBinding.layout instanceof texture_view_memory_layout_1.TextureViewMemoryLayout:
+          {
+            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              this.mResourceCounter.sampledTextures++;
+            } else {
+              this.mResourceCounter.storageTextures++;
+            }
+            break;
+          }
+        case lBinding.layout instanceof base_buffer_memory_layout_1.BaseBufferMemoryLayout:
+          {
+            if (lBinding.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              this.mResourceCounter.uniformBuffers++;
+            } else {
+              this.mResourceCounter.storageBuffers++;
+            }
+            break;
+          }
+      }
+    }
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns setup.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new bind_group_layout_setup_1.BindGroupLayoutSetup(pReferences);
+  }
+}
+exports.BindGroupLayout = BindGroupLayout;
+
+/***/ }),
+
+/***/ "./source/pipeline/compute-pipeline.ts":
+/*!*********************************************!*\
+  !*** ./source/pipeline/compute-pipeline.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ComputePipelineInvalidationType = exports.ComputePipeline = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Gpu pipeline resource for computing with a compute shader.
+ */
+class ComputePipeline extends gpu_object_1.GpuObject {
+  /**
+   * Pipeline layout.
+   */
+  get layout() {
+    return this.mShaderModule.shader.layout;
+  }
+  /**
+   * Pipeline shader.
+   */
+  get module() {
+    return this.mShaderModule;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Constructor.
+   * Set default data.
+   * @param pDevice - Device.
+   * @param pShader - Pipeline shader.
+   */
+  constructor(pDevice, pShader) {
+    super(pDevice);
+    this.mShaderModule = pShader;
+    // Loaded pipeline for async creation.
+    this.mLoadedPipeline = null;
+    // Pipeline constants.
+    this.mParameter = new core_1.Dictionary();
+  }
+  /**
+   * Set optional parameter of pipeline.
+   *
+   * @param pParameterName - name of parameter.
+   * @param pValue - Value.
+   *
+   * @returns this.
+   */
+  setParameter(pParameterName, pValue) {
+    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
+    // Set parameter for each assigned compute stage.
+    for (const lUsage of lParameterUsage) {
+      // Init parameters for computestage when not set.
+      if (!this.mParameter.has(lUsage)) {
+        this.mParameter.set(lUsage, {});
+      }
+      // Set value for compute stage.
+      this.mParameter.get(lUsage)[pParameterName] = pValue;
+    }
+    // Generate pipeline anew.
+    this.invalidate(ComputePipelineInvalidationType.NativeRebuild);
+    return this;
+  }
+  /**
+   * Generate native gpu pipeline data layout.
+   */
+  generateNative(_pLastNative, pInvalidationReason) {
+    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(ComputePipelineInvalidationType.NativeRebuild)) {
+      const lLoadedPipeline = this.mLoadedPipeline;
+      this.mLoadedPipeline = null;
+      return lLoadedPipeline;
+    }
+    // Construct basic GPUComputePipelineDescriptor.
+    const lPipelineDescriptor = {
+      layout: this.mShaderModule.shader.layout.native,
+      compute: {
+        module: this.mShaderModule.shader.native,
+        entryPoint: this.mShaderModule.entryPoint,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Compute) ?? {}
+      }
+    };
+    // Load pipeline asyncron and update native after promise resolve.
+    this.device.gpu.createComputePipelineAsync(lPipelineDescriptor).then(pPipeline => {
+      this.mLoadedPipeline = pPipeline;
+      this.invalidate(ComputePipelineInvalidationType.NativeLoaded);
+    });
+    // Null as long as pipeline is loading.
+    return null;
+  }
+}
+exports.ComputePipeline = ComputePipeline;
+var ComputePipelineInvalidationType;
+(function (ComputePipelineInvalidationType) {
+  ComputePipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
+  ComputePipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
+})(ComputePipelineInvalidationType || (exports.ComputePipelineInvalidationType = ComputePipelineInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/pipeline-layout.ts":
+/*!********************************************!*\
+  !*** ./source/pipeline/pipeline-layout.ts ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const pipeline_data_1 = __webpack_require__(/*! ./pipeline_data/pipeline-data */ "./source/pipeline/pipeline_data/pipeline-data.ts");
+/**
+ * Gpu pipeline layout.
+ */
+class PipelineLayout extends gpu_object_1.GpuObject {
+  /**
+   * Bind group names.
+   */
+  get groups() {
+    return [...this.mBindGroupNames.keys()];
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Gpu Device reference.
+   * @param pInitialGroups - Initial groups.
+   */
+  constructor(pDevice, pInitialGroups) {
+    super(pDevice);
+    // Init storages.
+    this.mBindGroupNames = new core_1.Dictionary();
+    this.mBindGroups = new core_1.Dictionary();
+    // Pipeline global resource counter.
+    const lMaxCounter = {
+      dynamicStorageBuffers: 0,
+      dynamicUniformBuffers: 0,
+      sampler: 0,
+      sampledTextures: 0,
+      storageTextures: 0,
+      uniformBuffers: 0,
+      storageBuffers: 0
+    };
+    // Set initial work groups.
+    const lMaxBindGroupCount = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxBindGroups);
+    for (const [lGroupIndex, lGroup] of pInitialGroups) {
+      if (lGroupIndex > lMaxBindGroupCount - 1) {
+        throw new core_1.Exception(`Bind group limit exceeded with index: ${lGroupIndex} and group "${lGroup.name}"`, this);
+      }
+      // Restrict dublicate names.
+      if (this.mBindGroupNames.has(lGroup.name)) {
+        throw new core_1.Exception(`Can add group name "${lGroup.name}" only once.`, this);
+      }
+      // Restrict dublicate locations.
+      if (this.mBindGroups.has(lGroupIndex)) {
+        throw new core_1.Exception(`Can add group location index "${lGroupIndex}" only once.`, this);
+      }
+      // Set name to index mapping.
+      this.mBindGroupNames.set(lGroup.name, lGroupIndex);
+      // Set bind groups to bind group.
+      this.mBindGroups.set(lGroupIndex, lGroup);
+      // Count counters.
+      lMaxCounter.dynamicStorageBuffers += lGroup.resourceCounter.storageDynamicOffset;
+      lMaxCounter.dynamicUniformBuffers += lGroup.resourceCounter.uniformDynamicOffset;
+      lMaxCounter.sampler += lGroup.resourceCounter.sampler;
+      lMaxCounter.sampledTextures += lGroup.resourceCounter.sampledTextures;
+      lMaxCounter.storageTextures += lGroup.resourceCounter.storageTextures;
+      lMaxCounter.uniformBuffers += lGroup.resourceCounter.uniformBuffers;
+      lMaxCounter.storageBuffers += lGroup.resourceCounter.storageBuffers;
+    }
+    // Max dynamic storage buffers.
+    if (lMaxCounter.dynamicStorageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)) {
+      throw new core_1.Exception(`Max dynamic storage buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicStorageBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicStorageBuffers}"`, this);
+    }
+    // Max dynamic unform buffers.
+    if (lMaxCounter.dynamicUniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)) {
+      throw new core_1.Exception(`Max dynamic uniform buffer reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxDynamicUniformBuffersPerPipelineLayout)}" has "${lMaxCounter.dynamicUniformBuffers}"`, this);
+    }
+    // Max sampler. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.sampler > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)) {
+      throw new core_1.Exception(`Max sampler reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSamplersPerShaderStage)}" has "${lMaxCounter.sampler}"`, this);
+    }
+    // Max sampled textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.sampledTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)) {
+      throw new core_1.Exception(`Max sampled textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxSampledTexturesPerShaderStage)}" has "${lMaxCounter.sampledTextures}"`, this);
+    }
+    // Max storage textures. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.storageTextures > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)) {
+      throw new core_1.Exception(`Max storage textures reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageTexturesPerShaderStage)}" has "${lMaxCounter.storageTextures}"`, this);
+    }
+    // Max storage buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.storageBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)) {
+      throw new core_1.Exception(`Max storage buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxStorageBuffersPerShaderStage)}" has "${lMaxCounter.storageBuffers}"`, this);
+    }
+    // Max uniform buffers. Ignore shader stage limitation. Just apply it to the complete pipeline.
+    if (lMaxCounter.uniformBuffers > this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)) {
+      throw new core_1.Exception(`Max uniform buffers reached pipeline. Max allowed "${this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxUniformBuffersPerShaderStage)}" has "${lMaxCounter.uniformBuffers}"`, this);
+    }
+  }
+  /**
+   * Get bind group layout by name.
+   *
+   * @param pGroupName - Group name.
+   */
+  getGroupLayout(pGroupName) {
+    const lGroupIndex = this.mBindGroupNames.get(pGroupName);
+    // Throw on unaccessable group.
+    if (typeof lGroupIndex === 'undefined') {
+      throw new core_1.Exception(`Bind group layout (${pGroupName}) does not exists.`, this);
+    }
+    // Bind group should allways exist.
+    return this.mBindGroups.get(lGroupIndex);
+  }
+  /**
+   * Get group binding index by name.
+   *
+   * @param pGroupName - Group name.
+   *
+   * @returns group binding index.
+   */
+  groupIndex(pGroupName) {
+    const lBindGroupIndex = this.mBindGroupNames.get(pGroupName);
+    if (typeof lBindGroupIndex === 'undefined') {
+      throw new core_1.Exception(`Pipeline does not contain a group with name "${pGroupName}".`, this);
+    }
+    return lBindGroupIndex;
+  }
+  /**
+   * Create pipeline data.
+   *
+   * @param pBindData - Any bind group of pipeline layout.
+   *
+   * @returns validated pipeline data.
+   */
+  withData(pSetupCallback) {
+    return new pipeline_data_1.PipelineData(this.device, this).setup(pSetupCallback);
+  }
+  /**
+   * Generate native gpu pipeline data layout.
+   */
+  generateNative() {
+    // Generate pipeline layout from bind group layouts.
+    const lPipelineLayoutDescriptor = {
+      bindGroupLayouts: new Array()
+    };
+    for (const [lGroupIndex, lBindGroupLayout] of this.mBindGroups) {
+      lPipelineLayoutDescriptor.bindGroupLayouts[lGroupIndex] = lBindGroupLayout.native;
+    }
+    // Validate continunity.
+    if (this.mBindGroups.size !== lPipelineLayoutDescriptor.bindGroupLayouts.length) {
+      throw new core_1.Exception(`Bind group gap detected. Group not set.`, this);
+    }
+    // Generate pipeline layout from descriptor.
+    return this.device.gpu.createPipelineLayout(lPipelineLayoutDescriptor);
+  }
+}
+exports.PipelineLayout = PipelineLayout;
+
+/***/ }),
+
+/***/ "./source/pipeline/pipeline_data/pipeline-data-group-setup.ts":
+/*!********************************************************************!*\
+  !*** ./source/pipeline/pipeline_data/pipeline-data-group-setup.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineDataGroupSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+/**
+ * Child setup for a single pipeline data group binding buffer.
+ */
+class PipelineDataGroupSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Apply offset to bind group.
+   *
+   * @param pBindingName - Name of one of binding sof group.
+   * @param pOffsetIndex - Offset index.
+   *
+   * @returns this.
+   */
+  withOffset(pBindingName, pOffsetIndex) {
+    this.sendData({
+      bindingName: pBindingName,
+      offsetIndex: pOffsetIndex
+    });
+    return this;
+  }
+}
+exports.PipelineDataGroupSetup = PipelineDataGroupSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/pipeline_data/pipeline-data-setup.ts":
+/*!**************************************************************!*\
+  !*** ./source/pipeline/pipeline_data/pipeline-data-setup.ts ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineDataSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const pipeline_data_group_setup_1 = __webpack_require__(/*! ./pipeline-data-group-setup */ "./source/pipeline/pipeline_data/pipeline-data-group-setup.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+/**
+ * Setup object for a pipline data.
+ */
+class PipelineDataSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Add bind group to pipeline data.
+   *
+   * @param pBindGroup - Bind group.
+   *
+   * @returns group setup.
+   */
+  addGroup(pBindGroup) {
+    // Create binding group information.
+    const lBindGroup = {
+      bindGroup: pBindGroup,
+      offsets: new core_1.Dictionary()
+    };
+    this.setupData.groups.push(lBindGroup);
+    // Can be used to add "optional" binding offsets to bind group.
+    return new pipeline_data_group_setup_1.PipelineDataGroupSetup(this.setupReferences, pBindingOffsets => {
+      lBindGroup.offsets.set(pBindingOffsets.bindingName, pBindingOffsets.offsetIndex);
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.groups = new Array();
+  }
+}
+exports.PipelineDataSetup = PipelineDataSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/pipeline_data/pipeline-data.ts":
+/*!********************************************************!*\
+  !*** ./source/pipeline/pipeline_data/pipeline-data.ts ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.PipelineDataInvalidationType = exports.PipelineData = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const storage_binding_type_enum_1 = __webpack_require__(/*! ../../constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const bind_group_1 = __webpack_require__(/*! ../bind_group/bind-group */ "./source/pipeline/bind_group/bind-group.ts");
+const pipeline_data_setup_1 = __webpack_require__(/*! ./pipeline-data-setup */ "./source/pipeline/pipeline_data/pipeline-data-setup.ts");
+/**
+ * Bundle of bind groups.
+ * Handles validation and offset calculations.
+ */
+class PipelineData extends gpu_object_1.GpuObject {
+  /**
+   * Orderes pipeline data.
+   */
+  get data() {
+    // Setup needed.
+    this.ensureSetup();
+    return this.mOrderedBindData;
+  }
+  /**
+   * Pipline layout of data.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pPipelineLayout - Pipeline data.
+   * @param pBindData - Every bind data of pipeline layout.
+   */
+  constructor(pDevice, pPipelineLayout) {
+    super(pDevice);
+    // Set pipeline layout.
+    this.mLayout = pPipelineLayout;
+    // Easy access dictionary.
+    this.mBindData = new core_1.Dictionary();
+    // Invalidate pipeline data when any data has changed.
+    this.mInvalidationListener = () => {
+      this.invalidate(PipelineDataInvalidationType.Data);
+    };
+    this.mOrderedBindData = new Array();
+  }
+  /**
+   * Deconstruct native object.
+   */
+  deconstruct() {
+    super.deconstruct();
+    // Remove all invalidation listener from bind groups.
+    for (const lBindGroup of this.mOrderedBindData) {
+      lBindGroup.bindGroup.removeInvalidationListener(this.mInvalidationListener);
+    }
+  }
+  /**
+   * Get bind group by name.
+   *
+   * @param pBindGroupName  - Bind group name.
+   *
+   * @returns bind group.
+   */
+  group(pBindGroupName) {
+    if (!this.mBindData.has(pBindGroupName)) {
+      throw new core_1.Exception(`Bind group "${pBindGroupName}" does not exists in pipeline data.`, this);
+    }
+    return this.mBindData.get(pBindGroupName);
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns — this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Setup pipeline data.
+   *
+   * @param pReferences - Setup data references.
+   */
+  onSetup(pReferences) {
+    // All bind groups must be set.
+    if (this.mLayout.groups.length !== pReferences.groups.length) {
+      // Generate a better error message.
+      for (const lGroupName of this.mLayout.groups) {
+        // Get and validate existence of set bind group.
+        const lBindGroupSetupData = pReferences.groups.find(pBindGroup => {
+          return pBindGroup.bindGroup.layout.name === lGroupName;
+        });
+        if (!lBindGroupSetupData) {
+          throw new core_1.Exception(`Required bind group "${lGroupName}" not set.`, this);
+        }
+      }
+    }
+    // Validate and order bind data.
+    for (const lBindGroupSetupData of pReferences.groups) {
+      const lBindGroupName = lBindGroupSetupData.bindGroup.layout.name;
+      const lBindGroupIndex = this.mLayout.groupIndex(lBindGroupName);
+      const lBindGroup = lBindGroupSetupData.bindGroup;
+      // Only distinct bind group names.
+      if (this.mOrderedBindData[lBindGroupIndex]) {
+        throw new core_1.Exception(`Bind group "${lBindGroupName}" was added multiple times to render pass step.`, this);
+      }
+      // Validate same layout bind layout.
+      const lBindGroupLayout = this.mLayout.getGroupLayout(lBindGroupName);
+      if (lBindGroup.layout !== lBindGroupLayout) {
+        throw new core_1.Exception(`Source bind group layout for "${lBindGroupName}" does not match target layout.`, this);
+      }
+      // Restrict double names.
+      if (this.mBindData.has(lBindGroupName)) {
+        throw new core_1.Exception(`Bind group "${lBindGroupName}" name already exists in pipeline data.`, this);
+      }
+      // When the bind group has dynamic offsets, build a array of it.
+      const lPipelineDataGroup = {
+        offsetId: '',
+        bindGroup: lBindGroup,
+        offsets: new Array()
+      };
+      if (lBindGroupLayout.hasDynamicOffset) {
+        for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
+          // Skip any binding not having a dynamic offset.
+          const lBindingLayout = lBindGroupLayout.getBind(lBindingName);
+          if (!lBindingLayout.hasDynamicOffset) {
+            continue;
+          }
+          // Dynamic bindings need a offset.
+          if (!lBindGroupSetupData.offsets.has(lBindingName)) {
+            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} requires a offset."`, this);
+          }
+          // Read correct alignment limitations for storage type.
+          const lOffsetAlignment = (() => {
+            if (lBindingLayout.storageType === storage_binding_type_enum_1.StorageBindingType.None) {
+              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinUniformBufferOffsetAlignment);
+            } else {
+              return this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MinStorageBufferOffsetAlignment);
+            }
+          })();
+          // Read and validate assigned offset index of binding.
+          const lBindingDynamicOffsetIndex = lBindGroupSetupData.offsets.get(lBindingName);
+          // Get offset byte count.
+          const lBufferMemoryLayout = lBindingLayout.layout;
+          const lSingleLayoutLength = Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment;
+          // Read buffer size and validate if it meets offset bound.
+          const lBufferSize = lBindGroup.data(lBindingName).getRaw().size;
+          if (Math.floor(lBufferSize / lSingleLayoutLength) <= lBindingDynamicOffsetIndex) {
+            throw new core_1.Exception(`Binding "${lBindingName}" of group "${lBindGroupName} exceedes dynamic offset limits."`, this);
+          }
+          // Save offset byte count in order.
+          lPipelineDataGroup.offsets.push(lSingleLayoutLength * lBindingDynamicOffsetIndex);
+        }
+        // Rebuild offset "id".
+        lPipelineDataGroup.offsetId = lPipelineDataGroup.offsets.join('-');
+      }
+      // Set name to bind group mapping.
+      this.mBindData.set(lBindGroupName, lPipelineDataGroup);
+      // Set bind group.
+      this.mOrderedBindData[lBindGroupIndex] = lPipelineDataGroup;
+      // Invalidate native data when bind group has changed.
+      lBindGroup.addInvalidationListener(this.mInvalidationListener, bind_group_1.BindGroupInvalidationType.NativeRebuild);
+    }
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns setup.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new pipeline_data_setup_1.PipelineDataSetup(pReferences);
+  }
+}
+exports.PipelineData = PipelineData;
+var PipelineDataInvalidationType;
+(function (PipelineDataInvalidationType) {
+  PipelineDataInvalidationType["Data"] = "DataChange";
+})(PipelineDataInvalidationType || (exports.PipelineDataInvalidationType = PipelineDataInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/render_targets/render-targets-setup.ts":
+/*!****************************************************************!*\
+  !*** ./source/pipeline/render_targets/render-targets-setup.ts ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderTargetsSetup = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+const render_targets_texture_setup_1 = __webpack_require__(/*! ./render-targets-texture-setup */ "./source/pipeline/render_targets/render-targets-texture-setup.ts");
+/**
+ * Render target setup.
+ */
+class RenderTargetsSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Constructor
+   *
+   * @param pSetupReference -Setup references.
+   */
+  constructor(pSetupReference, pMultisampled) {
+    super(pSetupReference);
+    // Set static multisampled state.
+    this.mMultisampled = pMultisampled;
+  }
+  /**
+   * Add color target.
+   *
+   * @param pName - Color target name.
+   * @param pLocationIndex - Target location index.
+   * @param pKeepOnEnd - Keep information after render pass end.
+   * @param pClearValue - Clear value on render pass start. Omit to never clear.
+   */
+  addColor(pName, pLocationIndex, pKeepOnEnd = true, pClearValue) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Convert render attachment to a location mapping. 
+    const lTarget = {
+      name: pName,
+      index: pLocationIndex,
+      clearValue: pClearValue ?? null,
+      storeOperation: pKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear,
+      textureView: null,
+      resolveCanvas: null
+    };
+    // Add to color attachment list.
+    this.setupData.colorTargets.push(lTarget);
+    // Return texture setup. Set texture on texture resolve.
+    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
+      lTarget.textureView = pTexture.view;
+      lTarget.resolveCanvas = pTexture.resolveCanvas;
+    });
+  }
+  /**
+   * Add depth and stencil target. Actual usage of depth and stencil is the used texture format.
+   *
+   * @param pDepthKeepOnEnd - Keep information after render pass end.
+   * @param pDepthClearValue - Clear value on render pass start. Omit to never clear.
+   * @param pStencilKeepOnEnd - Keep information after render pass end.
+   * @param pStencilClearValue - Clear value on render pass start. Omit to never clear.
+   */
+  addDepthStencil(pDepthKeepOnEnd = null, pDepthClearValue = null, pStencilKeepOnEnd = null, pStencilClearValue = null) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    this.setupData.depthStencil = {
+      textureView: null
+    };
+    // Setup depth when values where set.
+    if (pDepthKeepOnEnd !== null || pDepthClearValue !== null) {
+      this.setupData.depthStencil.depth = {
+        clearValue: pDepthClearValue ?? null,
+        storeOperation: pDepthKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear
+      };
+    }
+    // Setup stencil when values where set.
+    if (pStencilKeepOnEnd !== null || pStencilClearValue !== null) {
+      this.setupData.depthStencil.stencil = {
+        clearValue: pStencilClearValue ?? null,
+        storeOperation: pStencilKeepOnEnd ? texture_operation_enum_1.TextureOperation.Keep : texture_operation_enum_1.TextureOperation.Clear
+      };
+    }
+    // Return texture setup. Set texture on texture resolve.
+    return new render_targets_texture_setup_1.RenderTargetTextureSetup(this.setupReferences, this.mMultisampled, pTexture => {
+      // Restrict used texture type to a frame buffer.
+      if (pTexture.resolveCanvas) {
+        throw new core_1.Exception(`Can't use a canvas texture as depth or stencil texture.`, this);
+      }
+      this.setupData.depthStencil.textureView = pTexture.view;
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.colorTargets = new Array();
+  }
+}
+exports.RenderTargetsSetup = RenderTargetsSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/render_targets/render-targets-texture-setup.ts":
+/*!************************************************************************!*\
+  !*** ./source/pipeline/render_targets/render-targets-texture-setup.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderTargetTextureSetup = void 0;
+const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+const gpu_texture_1 = __webpack_require__(/*! ../../texture/gpu-texture */ "./source/texture/gpu-texture.ts");
+/**
+ * Child setup to add or create textures to render target bundles.
+ */
+class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Constructor.
+   *
+   * @param pSetupReference - Setup references.
+   * @param pMultisampled - Multisample state.
+   * @param pDataCallback - Setup data callback.
+   */
+  constructor(pSetupReference, pMultisampled, pDataCallback) {
+    super(pSetupReference, pDataCallback);
+    // Set static multisampled state.
+    this.mMultisampled = pMultisampled;
+  }
+  /**
+   * Create new color render target.
+   *
+   * @param pFormat - Texture format.
+   * @param pResolve - Optional resolve target.
+   *
+   * @returns created texture view.
+   */
+  new(pFormat, pResolve = null) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Create new texture.
+    const lTexture = new gpu_texture_1.GpuTexture(this.device, {
+      format: pFormat,
+      dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
+      multisampled: this.mMultisampled
+    });
+    // Create view from texture.
+    const lTextureView = lTexture.useAs(texture_view_dimension_enum_1.TextureViewDimension.TwoDimension);
+    // Callback texture.
+    this.sendData({
+      view: lTextureView,
+      resolveCanvas: pResolve
+    });
+    return lTextureView;
+  }
+  /**
+   * Use a existing texture.
+   *
+   * @param pTexture - Existing texture.
+   */
+  use(pTextureView, pResolve = null) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Callback texture.
+    this.sendData({
+      view: pTextureView,
+      resolveCanvas: pResolve
+    });
+    // Return same data.
+    return pTextureView;
+  }
+}
+exports.RenderTargetTextureSetup = RenderTargetTextureSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/render_targets/render-targets.ts":
+/*!**********************************************************!*\
+  !*** ./source/pipeline/render_targets/render-targets.ts ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderTargetsInvalidationType = exports.RenderTargets = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-operation.enum */ "./source/constant/texture-operation.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/pipeline/render_targets/render-targets-setup.ts");
+/**
+ * Group of textures with the same size and multisample level.
+ * Bundled for attaching it to render passes.
+ */
+class RenderTargets extends gpu_object_1.GpuObject {
+  /**
+   * Color attachment names ordered by index.
+   */
+  get colorTargetNames() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    // Create color attachment list in order.
+    const lColorAttachmentNameList = new Array();
+    for (const lColorAttachment of this.mColorTargets.values()) {
+      lColorAttachmentNameList[lColorAttachment.index] = lColorAttachment.name;
+    }
+    return lColorAttachmentNameList;
+  }
+  /**
+   * Stencil attachment texture.
+   */
+  get hasDepth() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return !!this.mDepthStencilTarget?.depth;
+  }
+  /**
+   * Stencil attachment texture.
+   */
+  get hasStencil() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    return !!this.mDepthStencilTarget?.stencil;
+  }
+  /**
+   * Render target height.
+   */
+  get height() {
+    return this.mSize.height;
+  }
+  /**
+   * Render target multisample level.
+   */
+  get multisampled() {
+    return this.mMultisampled;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * List of all resolve canvases.
+   */
+  get resolveCanvasList() {
+    return this.mResolveCanvasList;
+  }
+  /**
+   * Render target height.
+   */
+  get width() {
+    return this.mSize.width;
+  }
+  /**
+   * Constuctor.
+   * @param pDevice - Gpu device reference.
+   */
+  constructor(pDevice, pMultisampled) {
+    super(pDevice);
+    // Set statics.
+    this.mMultisampled = pMultisampled;
+    // Set default size. 
+    this.mSize = {
+      width: 1,
+      height: 1
+    };
+    // Setup initial data.
+    this.mDepthStencilTarget = null;
+    this.mColorTargets = new Array();
+    this.mColorTargetNames = new core_1.Dictionary();
+    this.mTargetViewUpdateQueue = new Set();
+    this.mResolveCanvasList = new Array();
+  }
+  /**
+   * Get color target by name.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns target texture.
+   */
+  colorTarget(pTargetName) {
+    // Read index of color target.
+    const lColorTargetIndex = this.mColorTargetNames.get(pTargetName) ?? null;
+    if (lColorTargetIndex === null) {
+      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
+    }
+    return this.mColorTargets[lColorTargetIndex].texture.target;
+  }
+  /**
+   * Get depth attachment texture.
+   */
+  depthStencilTarget() {
+    // Ensure setup was called.
+    this.ensureSetup();
+    // No depth texture setup.
+    if (!this.mDepthStencilTarget || !this.mDepthStencilTarget.depth) {
+      throw new core_1.Exception(`Depth or stencil target does not exists.`, this);
+    }
+    return this.mDepthStencilTarget.target;
+  }
+  /**
+   * Check for color target existence.
+   *
+   * @param pTargetName - Color target name.
+   *
+   * @returns true when color target exists.
+   */
+  hasColorTarget(pTargetName) {
+    return this.mColorTargetNames.has(pTargetName);
+  }
+  /**
+   * Resize all render targets.
+   *
+   * @param pWidth - New texture width.
+   * @param pHeight - New texture height.
+   * @param pMultisampleLevel - New texture multisample level.
+   *
+   * @returns this.
+   */
+  resize(pHeight, pWidth) {
+    // Set 2D size dimensions
+    this.mSize.width = pWidth;
+    this.mSize.height = pHeight;
+    // Apply resize for all textures.
+    // This trigger RenderTargetsInvalidationType.NativeUpdate for textures set in setTextureInvalidationListener.
+    this.applyResize();
+    // Trigger resize invalidation. Does not automaticly trigger rebuild.
+    this.invalidate(RenderTargetsInvalidationType.Resize);
+    return this;
+  }
+  /**
+   * Call setup.
+   * Exposes internal setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Generate native gpu bind data group.
+   */
+  generateNative() {
+    // Create color attachments.
+    const lColorAttachments = new Array();
+    for (const lColorAttachment of this.mColorTargets) {
+      // Convert Texture operation to load operations.
+      const lStoreOperation = lColorAttachment.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
+      // Create basic color attachment.
+      const lPassColorAttachment = {
+        view: lColorAttachment.texture.target.native,
+        storeOp: lStoreOperation,
+        loadOp: 'clear' // Placeholder
+      };
+      // Set clear value 
+      if (lColorAttachment.clearValue !== null) {
+        lPassColorAttachment.clearValue = lColorAttachment.clearValue;
+        lPassColorAttachment.loadOp = 'clear';
+      } else {
+        lPassColorAttachment.loadOp = 'load';
+      }
+      lColorAttachments.push(lPassColorAttachment);
+    }
+    // Create descriptor with color attachments.
+    const lDescriptor = {
+      colorAttachments: lColorAttachments
+    };
+    // Set optional depth attachment.
+    if (this.mDepthStencilTarget) {
+      const lDepthStencilTexture = this.mDepthStencilTarget.target;
+      // Add texture view for depth.
+      lDescriptor.depthStencilAttachment = {
+        view: lDepthStencilTexture.native
+      };
+      // Add depth values when depth formats are used.
+      if (this.mDepthStencilTarget.depth) {
+        // Set clear value of depth texture.
+        if (this.mDepthStencilTarget.depth.clearValue !== null) {
+          lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTarget.depth.clearValue;
+          lDescriptor.depthStencilAttachment.depthLoadOp = 'clear';
+        } else {
+          lDescriptor.depthStencilAttachment.depthLoadOp = 'load';
+        }
+        // Convert Texture operation to load operations.
+        lDescriptor.depthStencilAttachment.depthStoreOp = this.mDepthStencilTarget.depth.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
+      }
+      // Add stencil values when stencil formats are used.
+      if (this.mDepthStencilTarget.stencil) {
+        // Set clear value of stencil texture.
+        if (this.mDepthStencilTarget.stencil.clearValue !== null) {
+          lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTarget.stencil.clearValue;
+          lDescriptor.depthStencilAttachment.stencilLoadOp = 'clear';
+        } else {
+          lDescriptor.depthStencilAttachment.stencilLoadOp = 'load';
+        }
+        // Convert Texture operation to load operations.
+        lDescriptor.depthStencilAttachment.stencilStoreOp = this.mDepthStencilTarget.stencil.storeOperation === texture_operation_enum_1.TextureOperation.Keep ? 'store' : 'discard';
+      }
+    }
+    return lDescriptor;
+  }
+  /**
+   * Setup object based on setup data.
+   *
+   * @param pReferenceData - Referenced setup data.
+   */
+  onSetup(pReferenceData) {
+    // Enforce gpu color attachment limits.
+    const lMaxRenderTargets = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxColorAttachments);
+    if (pReferenceData.colorTargets.length > lMaxRenderTargets - 1) {
+      throw new core_1.Exception(`Max color targets count exeeced.`, this);
+    }
+    // Setup depth stencil targets.
+    if (pReferenceData.depthStencil) {
+      // Validate existence of depth stencil texture.
+      if (!pReferenceData.depthStencil.textureView) {
+        throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
+      }
+      // Only two dimensional textures.
+      if (pReferenceData.depthStencil.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
+        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
+      }
+      // Save setup texture.
+      this.mDepthStencilTarget = {
+        target: pReferenceData.depthStencil.textureView
+      };
+      // Add render attachment texture usage to depth stencil texture.
+      pReferenceData.depthStencil.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      // Passthrough depth stencil texture changes.
+      this.setTextureInvalidationListener(pReferenceData.depthStencil.textureView, -1);
+      // Read capability of used depth stencil texture format.
+      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.textureView.layout.format);
+      // Setup depth texture.
+      if (pReferenceData.depthStencil.depth) {
+        // Validate if depth texture
+        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Depth)) {
+          throw new core_1.Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
+        }
+        this.mDepthStencilTarget.depth = {
+          clearValue: pReferenceData.depthStencil.depth.clearValue,
+          storeOperation: pReferenceData.depthStencil.depth.storeOperation
+        };
+      }
+      // Setup stencil texture.
+      if (pReferenceData.depthStencil.stencil) {
+        // Validate if depth texture
+        if (!lFormatCapability.aspects.has(texture_aspect_enum_1.TextureAspect.Stencil)) {
+          throw new core_1.Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
+        }
+        this.mDepthStencilTarget.stencil = {
+          clearValue: pReferenceData.depthStencil.stencil.clearValue,
+          storeOperation: pReferenceData.depthStencil.stencil.storeOperation
+        };
+      }
+    }
+    // Setup color targets.
+    for (const lAttachment of pReferenceData.colorTargets.values()) {
+      // Validate existence of color texture.
+      if (!lAttachment.textureView) {
+        throw new core_1.Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
+      }
+      // No double names.
+      if (this.mColorTargetNames.has(lAttachment.name)) {
+        throw new core_1.Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
+      }
+      // No double location indices.
+      if (this.mColorTargets[lAttachment.index]) {
+        throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
+      }
+      // When a resolve canvas is specified, the texture must have the same texture format.
+      if (lAttachment.resolveCanvas && lAttachment.resolveCanvas.format !== lAttachment.textureView.layout.format) {
+        throw new core_1.Exception(`Color attachment can only be resolved into a canvas with the same texture format.`, this);
+      }
+      // Only two dimensional textures.
+      if (lAttachment.textureView.layout.dimension !== texture_view_dimension_enum_1.TextureViewDimension.TwoDimension) {
+        throw new core_1.Exception(`Color attachment can only two dimensional.`, this);
+      }
+      // Only two dimensional textures.
+      if (lAttachment.textureView.mipLevelStart !== 0) {
+        throw new core_1.Exception(`Color attachment can only rendered into mip level 0.`, this);
+      }
+      // Passthrough color texture changes. Any change.
+      this.setTextureInvalidationListener(lAttachment.textureView, lAttachment.index);
+      // Add render attachment texture usage to color texture.
+      lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+      // Save color target name and index mapping.
+      this.mColorTargetNames.set(lAttachment.name, lAttachment.index);
+      // Set resolve canvas.
+      if (lAttachment.resolveCanvas) {
+        // Add copy source to texture usage to be copied into canvas.
+        lAttachment.textureView.texture.extendUsage(texture_usage_enum_1.TextureUsage.CopySource);
+        this.mResolveCanvasList.push({
+          source: lAttachment.textureView,
+          canvas: lAttachment.resolveCanvas
+        });
+      }
+      // Convert setup into storage data.
+      this.mColorTargets[lAttachment.index] = {
+        name: lAttachment.name,
+        index: lAttachment.index,
+        clearValue: lAttachment.clearValue,
+        storeOperation: lAttachment.storeOperation,
+        texture: {
+          target: lAttachment.textureView,
+          resolveCanvas: lAttachment.resolveCanvas
+        }
+      };
+    }
+    // Validate attachment list.
+    if (this.mColorTargetNames.size !== this.mColorTargets.length) {
+      throw new core_1.Exception(`Color attachment locations must be in order.`, this);
+    }
+  }
+  /**
+   * On setup object creation. Create setup object.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns build setup object.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new render_targets_setup_1.RenderTargetsSetup(pReferences, this.mMultisampled);
+  }
+  /**
+   * Try to update views of pass descriptor.
+   *
+   * @param pNative - Native pass descriptor.
+   * @param pReasons - Update reason.
+   *
+   * @returns true when native was updated.
+   */
+  updateNative(pNative) {
+    // Update depth stencil view. -1 Marks depth stencil texture updates. 
+    if (this.mTargetViewUpdateQueue.has(-1) && pNative.depthStencilAttachment) {
+      pNative.depthStencilAttachment.view = this.mDepthStencilTarget.target.native;
+      // Remove depth stencil from update queue.
+      this.mTargetViewUpdateQueue.delete(-1);
+    }
+    // Update color attachments.
+    for (const lTargetIndex of this.mTargetViewUpdateQueue) {
+      // Read current attachment.
+      const lCurrentAttachment = pNative.colorAttachments[lTargetIndex];
+      // Read setup attachments.
+      const lColorAttachment = this.mColorTargets[lTargetIndex];
+      // Update view.
+      lCurrentAttachment.view = lColorAttachment.texture.target.native;
+    }
+    // Reset updateable views.
+    this.mTargetViewUpdateQueue.clear();
+    return true;
+  }
+  /**
+   * Resize all textures.
+   */
+  applyResize() {
+    // Update buffer texture sizes.
+    for (const lAttachment of this.mColorTargets) {
+      lAttachment.texture.target.texture.height = this.mSize.height;
+      lAttachment.texture.target.texture.width = this.mSize.width;
+      if (lAttachment.texture.resolveCanvas) {
+        lAttachment.texture.resolveCanvas.height = this.mSize.height;
+        lAttachment.texture.resolveCanvas.width = this.mSize.width;
+      }
+    }
+    // Update target texture sizes.
+    if (this.mDepthStencilTarget) {
+      this.mDepthStencilTarget.target.texture.height = this.mSize.height;
+      this.mDepthStencilTarget.target.texture.width = this.mSize.width;
+    }
+  }
+  /**
+   * Add all needed texture invalidation listener for passthrow and descriptor invalidation.
+   *
+   * @param pTexture - Texture.
+   */
+  setTextureInvalidationListener(pTexture, pTextureIndex) {
+    // Update descriptor only on view changes.
+    pTexture.addInvalidationListener(() => {
+      // Invalidate.
+      this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
+      // Set texture as updateable.
+      this.mTargetViewUpdateQueue.add(pTextureIndex);
+    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+}
+exports.RenderTargets = RenderTargets;
+var RenderTargetsInvalidationType;
+(function (RenderTargetsInvalidationType) {
+  RenderTargetsInvalidationType["NativeUpdate"] = "NativeUpdate";
+  RenderTargetsInvalidationType["Resize"] = "Resize";
+})(RenderTargetsInvalidationType || (exports.RenderTargetsInvalidationType = RenderTargetsInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex-fragment-pipeline-target-config.ts":
+/*!*******************************************************************!*\
+  !*** ./source/pipeline/vertex-fragment-pipeline-target-config.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexFragmentPipelineTargetConfig = void 0;
+class VertexFragmentPipelineTargetConfig {
+  /**
+   * Constructor.
+   *
+   * @param pCallback - Data callback.
+   */
+  constructor(pDataReference, pCallback) {
+    this.mCallback = pCallback;
+    this.mDataReference = pDataReference;
+  }
+  /**
+   * Set alpha blends.
+   *
+   * @param pOperation - Blend operation.
+   * @param pSourceFactor - Factor of source value.
+   * @param pDestinationFactor - Factor of destination value.
+   *
+   * @returns this.
+   */
+  alphaBlend(pOperation, pSourceFactor, pDestinationFactor) {
+    // Set data.
+    this.mDataReference.alphaBlend = {
+      operation: pOperation,
+      sourceFactor: pSourceFactor,
+      destinationFactor: pDestinationFactor
+    };
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set color blends.
+   *
+   * @param pOperation - Blend operation.
+   * @param pSourceFactor - Factor of source value.
+   * @param pDestinationFactor - Factor of destination value.
+   *
+   * @returns this.
+   */
+  colorBlend(pOperation, pSourceFactor, pDestinationFactor) {
+    // Set data.
+    this.mDataReference.colorBlend = {
+      operation: pOperation,
+      sourceFactor: pSourceFactor,
+      destinationFactor: pDestinationFactor
+    };
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set texture aspect writemask.
+   *
+   * @param pAspects - Aspect to write into.
+   *
+   * @returns this.
+   */
+  writeMask(...pAspects) {
+    // Set data.
+    this.mDataReference.aspectWriteMask = new Set(pAspects);
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+}
+exports.VertexFragmentPipelineTargetConfig = VertexFragmentPipelineTargetConfig;
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex-fragment-pipeline.ts":
+/*!*****************************************************!*\
+  !*** ./source/pipeline/vertex-fragment-pipeline.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
+const primitive_front_face_enum_1 = __webpack_require__(/*! ../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
+const primitive_topology_enum_1 = __webpack_require__(/*! ../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/pipeline/vertex-fragment-pipeline-target-config.ts");
+/**
+ * Gpu pipeline resource for rendering with a vertex and fragment shader.
+ */
+class VertexFragmentPipeline extends gpu_object_1.GpuObject {
+  /**
+   * Pipeline layout.
+   */
+  get layout() {
+    return this.mShaderModule.shader.layout;
+  }
+  /**
+   * Pipeline shader.
+   */
+  get module() {
+    return this.mShaderModule;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Defines which polygon orientation will be culled.
+   */
+  get primitiveCullMode() {
+    return this.mPrimitiveCullMode;
+  }
+  set primitiveCullMode(pValue) {
+    this.mPrimitiveCullMode = pValue;
+    // Invalidate pipeline on setting change.
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+  }
+  /**
+   * Defines which polygons are considered front-facing.
+   */
+  get primitiveFrontFace() {
+    return this.mPrimitiveFrontFace;
+  }
+  set primitiveFrontFace(pValue) {
+    this.mPrimitiveFrontFace = pValue;
+    // Invalidate pipeline on setting change.
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+  }
+  /**
+   * The type of primitive to be constructed from the vertex inputs.
+   */
+  get primitiveTopology() {
+    return this.mPrimitiveTopology;
+  }
+  set primitiveTopology(pValue) {
+    this.mPrimitiveTopology = pValue;
+    // Invalidate pipeline on setting change.
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+  }
+  /**
+   * Render targets.
+   */
+  get renderTargets() {
+    return this.mRenderTargets;
+  }
+  /**
+   * Constructor.
+   * Set default data.
+   *
+   * @param pDevice - Device.
+   * @param pShaderRenderModule - Pipeline shader.
+   */
+  constructor(pDevice, pShaderRenderModule, pRenderTargets) {
+    super(pDevice);
+    // Loaded pipeline for async creation.
+    this.mLoadedPipeline = null;
+    // Set config objects.
+    this.mShaderModule = pShaderRenderModule;
+    this.mRenderTargets = pRenderTargets;
+    this.mRenderTargetConfig = new core_1.Dictionary();
+    // Pipeline constants.
+    this.mParameter = new core_1.Dictionary();
+    // Depth default settings.
+    this.mDepthConfiguration = {
+      depthWriteEnabled: this.mRenderTargets.hasDepth,
+      depthCompare: compare_function_enum_1.CompareFunction.Less
+    };
+    // Primitive default settings.
+    this.mPrimitiveTopology = primitive_topology_enum_1.PrimitiveTopology.TriangleList;
+    this.mPrimitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
+    this.mPrimitiveFrontFace = primitive_front_face_enum_1.PrimitiveFrontFace.ClockWise;
+  }
+  /**
+   * Set depth process configuration.
+   *
+   * @param pEnabled - Enable depth write.
+   * @param pCompare - Depth read compare function.
+   */
+  depthConfig(pEnabled, pCompare) {
+    this.mDepthConfiguration.depthWriteEnabled = pEnabled;
+    if (pCompare) {
+      this.mDepthConfiguration.depthCompare = pCompare;
+    }
+    // Invalidate pipeline on setting change.
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+  }
+  /**
+   * Set optional parameter of pipeline.
+   *
+   * @param pParameterName - name of parameter.
+   * @param pValue - Value.
+   *
+   * @returns this.
+   */
+  setParameter(pParameterName, pValue) {
+    const lParameterUsage = this.mShaderModule.shader.parameter(pParameterName);
+    // Set parameter for each assigned compute stage.
+    for (const lUsage of lParameterUsage) {
+      // Init parameters for computestage when not set.
+      if (!this.mParameter.has(lUsage)) {
+        this.mParameter.set(lUsage, {});
+      }
+      // Set value for compute stage.
+      this.mParameter.get(lUsage)[pParameterName] = pValue;
+    }
+    // Generate pipeline anew.
+    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    return this;
+  }
+  /**
+   * Create or update target config.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns config object.
+   */
+  targetConfig(pTargetName) {
+    if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
+      throw new core_1.Exception(`Color target "${pTargetName}" does not exists.`, this);
+    }
+    // Create default config when not already set.
+    if (!this.mRenderTargetConfig.has(pTargetName)) {
+      this.mRenderTargetConfig.set(pTargetName, {
+        colorBlend: {
+          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
+          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
+          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
+        },
+        alphaBlend: {
+          operation: texture_blend_operation_enum_1.TextureBlendOperation.Add,
+          sourceFactor: texture_blend_factor_enum_1.TextureBlendFactor.One,
+          destinationFactor: texture_blend_factor_enum_1.TextureBlendFactor.Zero
+        },
+        aspectWriteMask: new Set([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha])
+      });
+    }
+    return new vertex_fragment_pipeline_target_config_1.VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName), () => {
+      // Generate pipeline anew.
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    });
+  }
+  /**
+   * Generate native gpu pipeline data layout.
+   */
+  generateNative(_pLastNative, pInvalidationReason) {
+    // When a pipeline was loaded, return the loaded instead of creating a new pipeline.
+    if (this.mLoadedPipeline !== null && !pInvalidationReason.has(VertexFragmentPipelineInvalidationType.NativeRebuild)) {
+      const lLoadedPipeline = this.mLoadedPipeline;
+      this.mLoadedPipeline = null;
+      return lLoadedPipeline;
+    }
+    // Generate pipeline layout from bind group layouts.
+    const lPipelineLayout = this.mShaderModule.shader.layout.native;
+    // Construct basic GPURenderPipelineDescriptor.
+    const lPipelineDescriptor = {
+      layout: lPipelineLayout,
+      vertex: {
+        module: this.mShaderModule.shader.native,
+        entryPoint: this.mShaderModule.vertexEntryPoint,
+        buffers: this.mShaderModule.vertexParameter.native,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Vertex) ?? {}
+      },
+      primitive: this.generatePrimitive()
+    };
+    // Optional fragment state.
+    if (this.module.fragmentEntryPoint) {
+      // Generate fragment targets only when fragment state is needed.
+      const lFragmentTargetList = new Array();
+      for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
+        const lRenderTarget = this.mRenderTargets.colorTarget(lRenderTargetName);
+        lFragmentTargetList.push({
+          format: lRenderTarget.layout.format,
+          blend: this.generateRenderTargetBlendState(lRenderTargetName),
+          writeMask: this.generateRenderTargetWriteMask(lRenderTargetName)
+        });
+      }
+      lPipelineDescriptor.fragment = {
+        module: this.mShaderModule.shader.native,
+        entryPoint: this.module.fragmentEntryPoint,
+        targets: lFragmentTargetList,
+        constants: this.mParameter.get(compute_stage_enum_1.ComputeStage.Fragment) ?? {}
+      };
+    }
+    // Setup optional depth or and stencil attachment.
+    if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
+      lPipelineDescriptor.depthStencil = {
+        format: this.mRenderTargets.depthStencilTarget().layout.format
+      };
+      // Setup depth options.
+      if (this.mRenderTargets.hasDepth) {
+        lPipelineDescriptor.depthStencil.depthWriteEnabled = this.mDepthConfiguration.depthWriteEnabled;
+        lPipelineDescriptor.depthStencil.depthCompare = this.mDepthConfiguration.depthCompare;
+        // TODO: Additional depth config.
+        lPipelineDescriptor.depthStencil.depthBias;
+        lPipelineDescriptor.depthStencil.depthBiasSlopeScale;
+        lPipelineDescriptor.depthStencil.depthBiasClamp;
+      }
+      // Setup stencil options.
+      if (this.mRenderTargets.hasStencil) {
+        // TODO: Stencil.
+        lPipelineDescriptor.depthStencil.stencilBack;
+        lPipelineDescriptor.depthStencil.stencilFront;
+        lPipelineDescriptor.depthStencil.stencilReadMask;
+        lPipelineDescriptor.depthStencil.stencilWriteMask;
+      }
+    }
+    // Set multisample count.
+    if (this.mRenderTargets.multisampled) {
+      lPipelineDescriptor.multisample = {
+        count: 4
+      };
+    }
+    // Load pipeline asyncron and update native after promise resolve.
+    this.device.gpu.createRenderPipelineAsync(lPipelineDescriptor).then(pPipeline => {
+      this.mLoadedPipeline = pPipeline;
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeLoaded);
+    });
+    // Null as long as pipeline is loading.
+    return null;
+  }
+  /**
+   * Primitive settings.
+   */
+  generatePrimitive() {
+    // Convert topology to native. Set strip format for strip topology.
+    let lStripIndexFormat = undefined;
+    switch (this.primitiveTopology) {
+      case primitive_topology_enum_1.PrimitiveTopology.LineStrip:
+      case primitive_topology_enum_1.PrimitiveTopology.TriangleStrip:
+        {
+          lStripIndexFormat = 'uint32';
+          break;
+        }
+    }
+    // Create primitive state.
+    const lPrimitiveState = {
+      topology: this.primitiveTopology,
+      frontFace: this.primitiveFrontFace,
+      cullMode: this.primitiveCullMode,
+      unclippedDepth: false
+    };
+    // Set optional strip format.
+    if (lStripIndexFormat) {
+      lPrimitiveState.stripIndexFormat = lStripIndexFormat;
+    }
+    return lPrimitiveState;
+  }
+  /**
+   * Generate blend state for render target.
+   *
+   * @param pTargetName - Render target name.
+   *
+   * @returns generated blend state.
+   */
+  generateRenderTargetBlendState(pTargetName) {
+    const lConfig = this.mRenderTargetConfig.get(pTargetName);
+    // Set defaults for blend state.
+    const lBlendState = {
+      color: {
+        operation: 'add',
+        srcFactor: 'one',
+        dstFactor: 'zero'
+      },
+      alpha: {
+        operation: 'add',
+        srcFactor: 'one',
+        dstFactor: 'zero'
+      }
+    };
+    // Set alpha and alpha blend when set.
+    if (lConfig) {
+      lBlendState.alpha = {
+        operation: lConfig.alphaBlend.operation,
+        srcFactor: lConfig.alphaBlend.sourceFactor,
+        dstFactor: lConfig.alphaBlend.destinationFactor
+      };
+      lBlendState.color = {
+        operation: lConfig.colorBlend.operation,
+        srcFactor: lConfig.colorBlend.sourceFactor,
+        dstFactor: lConfig.colorBlend.destinationFactor
+      };
+    }
+    return lBlendState;
+  }
+  /**
+   * Generate gpu color write mask for the set render target.
+   *
+   * @param pTargetName - Target name.
+   *
+   * @returns color write flags.
+   */
+  generateRenderTargetWriteMask(pTargetName) {
+    const lConfig = this.mRenderTargetConfig.get(pTargetName);
+    // Convert color aspects config to write mask.
+    let lWriteMask = 0xf;
+    if (lConfig) {
+      lWriteMask = 0x0;
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
+        lWriteMask += 0x1;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Green)) {
+        lWriteMask += 0x2;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Red)) {
+        lWriteMask += 0x4;
+      }
+      if (lConfig.aspectWriteMask.has(texture_aspect_enum_1.TextureAspect.Alpha)) {
+        lWriteMask += 0x8;
+      }
+    }
+    return lWriteMask;
+  }
+}
+exports.VertexFragmentPipeline = VertexFragmentPipeline;
+var VertexFragmentPipelineInvalidationType;
+(function (VertexFragmentPipelineInvalidationType) {
+  VertexFragmentPipelineInvalidationType["NativeRebuild"] = "NativeRebuild";
+  VertexFragmentPipelineInvalidationType["NativeLoaded"] = "NativeLoaded";
+})(VertexFragmentPipelineInvalidationType || (exports.VertexFragmentPipelineInvalidationType = VertexFragmentPipelineInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex_parameter/vertex-parameter-buffer-layout-setup.ts":
+/*!**********************************************************************************!*\
+  !*** ./source/pipeline/vertex_parameter/vertex-parameter-buffer-layout-setup.ts ***!
+  \**********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterBufferLayoutSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+/**
+ * Child setup object to divide and add new names parameters to a vertex parameter buffer layout.
+ */
+class VertexParameterBufferLayoutSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Add new parameter to vertex layout.
+   *
+   * @param pName - Parameter name.
+   * @param pLocation - Parameter location.
+   * @param pFormat - Parameter data format.
+   * @param pMultiplier - Data multiplication.
+   * @param pAdditionalOffset - Additional offset. Offset 0 aligns right after the last parameter.
+   * @returns
+   */
+  withParameter(pName, pLocation, pFormat, pMultiplier, pAlignment = null) {
+    // Send layout data.
+    this.sendData({
+      name: pName,
+      location: pLocation,
+      format: pFormat,
+      multiplier: pMultiplier,
+      alignment: pAlignment
+    });
+    return this;
+  }
+}
+exports.VertexParameterBufferLayoutSetup = VertexParameterBufferLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex_parameter/vertex-parameter-layout-setup.ts":
+/*!***************************************************************************!*\
+  !*** ./source/pipeline/vertex_parameter/vertex-parameter-layout-setup.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterLayoutSetup = void 0;
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+const vertex_parameter_buffer_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-buffer-layout-setup */ "./source/pipeline/vertex_parameter/vertex-parameter-buffer-layout-setup.ts");
+/**
+ * setup object for vertex layouts.
+ */
+class VertexParameterLayoutSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Add a new buffer layout to vertex parameter layout.
+   *
+   * @param pStepMode - Buffer step mode.
+   *
+   * @returns vertex buffer layout setup
+   */
+  buffer(pBufferName, pStepMode) {
+    // Create buffer.
+    const lBuffer = {
+      name: pBufferName,
+      stepMode: pStepMode,
+      parameter: new Array()
+    };
+    // Add buffer to result.
+    this.setupData.buffer.push(lBuffer);
+    // Create and return buffer setup.
+    return new vertex_parameter_buffer_layout_setup_1.VertexParameterBufferLayoutSetup(this.setupReferences, pLayout => {
+      lBuffer.parameter.push(pLayout);
+    });
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data.
+   */
+  fillDefaultData(pDataReference) {
+    pDataReference.buffer = new Array();
+  }
+}
+exports.VertexParameterLayoutSetup = VertexParameterLayoutSetup;
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex_parameter/vertex-parameter-layout.ts":
+/*!*********************************************************************!*\
+  !*** ./source/pipeline/vertex_parameter/vertex-parameter-layout.ts ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/primitive-buffer-memory-layout */ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts");
+const struct_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/struct-buffer-memory-layout */ "./source/buffer/memory_layout/struct-buffer-memory-layout.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const vertex_parameter_1 = __webpack_require__(/*! ./vertex-parameter */ "./source/pipeline/vertex_parameter/vertex-parameter.ts");
+const vertex_parameter_layout_setup_1 = __webpack_require__(/*! ./vertex-parameter-layout-setup */ "./source/pipeline/vertex_parameter/vertex-parameter-layout-setup.ts");
+/**
+ * Vertex parameter layout.
+ */
+class VertexParameterLayout extends gpu_object_1.GpuObject {
+  /**
+   * Get all parameter buffer names.
+   */
+  get bufferNames() {
+    // Setup must be called.
+    this.ensureSetup();
+    return [...this.mBuffer.keys()];
+  }
+  /**
+   * If parameters are indexable.
+   * Meanins every parameter is eighter stepmode index or instance.
+   * When even one parameter has a stepmode of vertex, any index parameters must be converted.
+   */
+  get indexable() {
+    // Setup must be called.
+    this.ensureSetup();
+    return this.mIndexable;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Get all parameter names.
+   */
+  get parameterNames() {
+    // Setup must be called.
+    this.ensureSetup();
+    return [...this.mParameter.keys()];
+  }
+  /**
+   * Construct.
+   *
+   * @param pDevice - Device reference.
+   * @param pLayout - Simple layout of parameter.
+   */
+  constructor(pDevice) {
+    super(pDevice);
+    this.mIndexable = false;
+    this.mBuffer = new core_1.Dictionary();
+    this.mParameter = new core_1.Dictionary();
+  }
+  /**
+   * Create vertex parameters from layout.
+   * @param pIndexData - Index data.
+   */
+  create(pIndexData) {
+    return new vertex_parameter_1.VertexParameter(this.device, this, pIndexData);
+  }
+  /**
+   * Get vertex parameter layout definition by name.
+   *
+   * @param pName - Parameter name.
+   */
+  parameter(pName) {
+    const lLayout = this.mParameter.get(pName);
+    if (!lLayout) {
+      throw new core_1.Exception(`Vertex parameter "${pName}" is not defined.`, this);
+    }
+    return lLayout;
+  }
+  /**
+   * Get vertex parameter layout definition by name.
+   *
+   * @param pBufferName - Parameter name.
+   */
+  parameterBuffer(pBufferName) {
+    const lLayout = this.mBuffer.get(pBufferName);
+    if (!lLayout) {
+      throw new core_1.Exception(`Vertex parameter buffer "${pBufferName}" is not defined.`, this);
+    }
+    return lLayout;
+  }
+  /**
+   * Call setup.
+   *
+   * @param pSetupCallback - Setup callback.
+   *
+   * @returns — this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Generate new native object.
+   */
+  generateNative() {
+    // Create vertex buffer layout for each parameter.
+    const lLayoutList = new Array();
+    for (const lBuffer of this.mBuffer.values()) {
+      let lCurrentBufferByteLength = 0;
+      // Create parameter layouts.
+      const lVertexAttributes = new Array();
+      for (const lParameter of lBuffer.layout.properties) {
+        // Convert parameter layout to primitive buffer layout.
+        const lPrimitiveParameterLayout = lParameter.layout;
+        // Convert multiplier to value.
+        const lItemMultiplier = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lPrimitiveParameterLayout.itemMultiplier);
+        // Convert multiplier to float32 format.
+        let lFormat = `${lPrimitiveParameterLayout.itemFormat}x${lItemMultiplier}`;
+        if (lPrimitiveParameterLayout.itemMultiplier === buffer_item_multiplier_enum_1.BufferItemMultiplier.Single) {
+          lFormat = lPrimitiveParameterLayout.itemFormat;
+        }
+        // Read location of parameter.
+        const lParameterLocation = this.mParameter.get(lParameter.name).location;
+        // Create buffer layout.
+        lVertexAttributes.push({
+          format: lFormat,
+          offset: lCurrentBufferByteLength,
+          shaderLocation: lParameterLocation
+        });
+        // Apply alignment and extend buffer size by parameter length.
+        lCurrentBufferByteLength = Math.ceil(lCurrentBufferByteLength / lPrimitiveParameterLayout.alignment) * lPrimitiveParameterLayout.alignment;
+        lCurrentBufferByteLength += lPrimitiveParameterLayout.fixedSize;
+      }
+      // Convert stepmode.
+      let lStepmode = 'vertex';
+      if (lBuffer.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Instance) {
+        lStepmode = 'instance';
+      }
+      lLayoutList.push({
+        stepMode: lStepmode,
+        arrayStride: lBuffer.layout.fixedSize,
+        attributes: lVertexAttributes
+      });
+    }
+    return lLayoutList;
+  }
+  /**
+   * Setup with setup object.
+   *
+   * @param pReferences - Used references.
+   */
+  onSetup(pReferences) {
+    let lCanBeIndexed = true;
+    // Build allowed multiplier list.
+    const lAllowedMultiplier = new Set([buffer_item_multiplier_enum_1.BufferItemMultiplier.Single, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector2, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector3, buffer_item_multiplier_enum_1.BufferItemMultiplier.Vector4]);
+    // Create each buffer.
+    const lParameterIndicies = new Array();
+    for (const lBufferSetupData of pReferences.buffer) {
+      // Create struct layout with packed alignment.
+      const lBufferLayout = new struct_buffer_memory_layout_1.StructBufferMemoryLayout(this.device, buffer_alignment_type_enum_1.BufferAlignmentType.Packed);
+      lBufferLayout.setup(pSetup => {
+        for (const lParameterSetupData of lBufferSetupData.parameter) {
+          // No double locations.
+          if (lParameterIndicies[lParameterSetupData.location]) {
+            throw new core_1.Exception(`Vertex parameter location "${lParameterSetupData.location}" can't be defined twice.`, this);
+          }
+          // Validate multiplier.
+          if (!lAllowedMultiplier.has(lParameterSetupData.multiplier)) {
+            throw new core_1.Exception(`Vertex parameter item multiplier "${lParameterSetupData.multiplier}" not supported.`, this);
+          }
+          // Add parameter as struct property.
+          pSetup.property(lParameterSetupData.name).asPrimitive(lParameterSetupData.format, lParameterSetupData.multiplier, lParameterSetupData.alignment);
+          // Add to parameter list.
+          this.mParameter.set(lParameterSetupData.name, {
+            name: lParameterSetupData.name,
+            location: lParameterSetupData.location
+          });
+          // Save location index for checkind double
+          lParameterIndicies[lParameterSetupData.location] = true;
+        }
+      });
+      // Create buffer description.
+      this.mBuffer.set(lBufferSetupData.name, {
+        name: lBufferSetupData.name,
+        stepMode: lBufferSetupData.stepMode,
+        layout: lBufferLayout
+      });
+      // When one buffer is not indexable than no buffer is it.
+      if (lBufferSetupData.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Vertex) {
+        lCanBeIndexed = false;
+      }
+    }
+    // Validate continuity of parameter locations.
+    if (lParameterIndicies.length !== this.mParameter.size) {
+      throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
+    }
+    this.mIndexable = lCanBeIndexed;
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   * @param pReferences - Setup references.
+   *
+   * @returns created setup.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new vertex_parameter_layout_setup_1.VertexParameterLayoutSetup(pReferences);
+  }
+}
+exports.VertexParameterLayout = VertexParameterLayout;
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex_parameter/vertex-parameter.ts":
+/*!**************************************************************!*\
+  !*** ./source/pipeline/vertex_parameter/vertex-parameter.ts ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexParameterInvalidationType = exports.VertexParameter = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
+const buffer_alignment_type_enum_1 = __webpack_require__(/*! ../../constant/buffer-alignment-type.enum */ "./source/constant/buffer-alignment-type.enum.ts");
+const buffer_item_format_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
+const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
+const buffer_usage_enum_1 = __webpack_require__(/*! ../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
+const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/array-buffer-memory-layout */ "./source/buffer/memory_layout/array-buffer-memory-layout.ts");
+const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../buffer/memory_layout/primitive-buffer-memory-layout */ "./source/buffer/memory_layout/primitive-buffer-memory-layout.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Vertex parameters used for a single render draw call.
+ * Flats out parameters that are indexed when another vertex data is not indexed.
+ */
+class VertexParameter extends gpu_object_1.GpuObject {
+  /**
+   * Get index buffer.
+   */
+  get indexBuffer() {
+    return this.mIndexBufferView;
+  }
+  /**
+   * Get parameter layout.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
+   * Vertex count.
+   */
+  get vertexCount() {
+    return this.mIndices.length;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device reference.
+   * @param pVertexParameterLayout - Parameter layout.
+   * @param pIndices - Index buffer data.
+   */
+  constructor(pDevice, pVertexParameterLayout, pIndices) {
+    super(pDevice);
+    // Set vertex parameter layout.
+    this.mLayout = pVertexParameterLayout;
+    this.mBuffer = new core_1.Dictionary();
+    // Save index information.
+    this.mIndices = pIndices;
+    // Create index buffer.
+    this.mIndexBufferView = null;
+    if (this.mLayout.indexable) {
+      // Decide wich format to use.
+      if (pIndices.length < Math.pow(2, 16)) {
+        // Create index buffer layout.
+        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+          arraySize: pIndices.length,
+          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
+            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint16,
+            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
+          })
+        });
+        // Create index buffer.
+        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 2);
+        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+        lIndexBuffer.initialData(new Uint16Array(pIndices));
+        // Create view of buffer.
+        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
+      } else {
+        // Create index buffer layout.
+        const lIndexBufferLayout = new array_buffer_memory_layout_1.ArrayBufferMemoryLayout(this.device, {
+          arraySize: pIndices.length,
+          innerType: new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+            alignmentType: buffer_alignment_type_enum_1.BufferAlignmentType.Packed,
+            primitiveFormat: buffer_item_format_enum_1.BufferItemFormat.Uint32,
+            primitiveMultiplier: buffer_item_multiplier_enum_1.BufferItemMultiplier.Single
+          })
+        });
+        // Create index buffer.
+        const lIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, pIndices.length * 4);
+        lIndexBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Index);
+        lIndexBuffer.initialData(new Uint32Array(pIndices));
+        // Create view of buffer.
+        this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
+      }
+    }
+  }
+  /**
+   * Set parameter data.
+   * @param pName - parameter buffer name.
+   * @param pData - Parameter data with ignored alignments.
+   */
+  create(pBufferName, pData) {
+    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
+    // Get item count of layout. => Vec3<float> + int + Vex2<uint> => 6 Items
+    const lStrideParameter = new Array();
+    let lStrideDataCount = 0;
+    for (const lBufferParameter of lParameterLayout.layout.properties) {
+      const lParameterLayout = lBufferParameter.layout;
+      // Read item count and format of parameter.
+      const lParameterItemCount = primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lParameterLayout.itemMultiplier);
+      const lParameterItemFormat = lParameterLayout.itemFormat;
+      // Add stride data count.
+      lStrideDataCount += lParameterItemCount;
+      // Add formats for each item of parameter.
+      lStrideParameter.push({
+        count: lParameterItemCount,
+        format: lParameterItemFormat,
+        alignment: lParameterLayout.alignment,
+        itemByteCount: primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+      });
+    }
+    // Buffer data must align with layout.
+    if (pData.length % lStrideDataCount !== 0) {
+      throw new core_1.Exception('Vertex parameter buffer data does not align with layout.', this);
+    }
+    // When parameter is indexed but vertex parameter are not indexed, extend data. Based on index data.
+    let lData = pData;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      // Dublicate dependent on index information.
+      lData = new Array();
+      for (const lIndex of this.mIndices) {
+        const lDataStart = lIndex * lStrideDataCount;
+        const lDataEnd = lDataStart + lStrideDataCount;
+        // Copy vertex parameter data.
+        lData.push(...pData.slice(lDataStart, lDataEnd));
+      }
+    }
+    // Calculate struct count in buffer. Fallback to vertex mode when buffer is in index step mode but parameters cant be indexed.
+    let lStrideCount = lData.length / lStrideDataCount;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      lStrideCount = this.mIndices.length;
+    }
+    // Create buffer data.
+    const lBufferData = new ArrayBuffer(lParameterLayout.layout.fixedSize * lStrideCount);
+    const lBufferDataView = new DataView(lBufferData);
+    // Set data in little endian according to the set item format and offset. 
+    const lSetData = (pByteOffset, pFormat, pData) => {
+      switch (pFormat) {
+        case buffer_item_format_enum_1.BufferItemFormat.Float32:
+          {
+            lBufferDataView.setFloat32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint32:
+          {
+            lBufferDataView.setUint32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint32:
+          {
+            lBufferDataView.setInt32(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint8:
+          {
+            lBufferDataView.setUint8(pByteOffset, pData);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint8:
+          {
+            lBufferDataView.setInt8(pByteOffset, pData);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Uint16:
+          {
+            lBufferDataView.setUint16(pByteOffset, pData, true);
+            break;
+          }
+        case buffer_item_format_enum_1.BufferItemFormat.Sint16:
+          {
+            lBufferDataView.setInt16(pByteOffset, pData, true);
+            break;
+          }
+        // Unsupported
+        case buffer_item_format_enum_1.BufferItemFormat.Float16:
+        case buffer_item_format_enum_1.BufferItemFormat.Unorm16:
+        case buffer_item_format_enum_1.BufferItemFormat.Snorm16:
+        case buffer_item_format_enum_1.BufferItemFormat.Unorm8:
+        case buffer_item_format_enum_1.BufferItemFormat.Snorm8:
+        default:
+          {
+            throw new core_1.Exception(`Currently "${pFormat}" is not supported for vertex parameter.`, this);
+          }
+      }
+    };
+    // Add data with correct alignment.
+    let lDataIndex = 0;
+    let lByteOffset = 0;
+    for (let lStrideIndex = 0; lStrideIndex < lStrideCount; lStrideIndex++) {
+      for (const lStrideItem of lStrideParameter) {
+        // Apply stride item alignment to offset.
+        lByteOffset = Math.ceil(lByteOffset / lStrideItem.alignment) * lStrideItem.alignment;
+        // Add each parameter to buffer.
+        for (let lStrideItemIndex = 0; lStrideItemIndex < lStrideItem.count; lStrideItemIndex++) {
+          // Add and iterate data.
+          lSetData(lByteOffset, lStrideItem.format, lData[lDataIndex]);
+          lDataIndex++;
+          // Increase offset by format byte count.
+          lByteOffset += lStrideItem.itemByteCount;
+        }
+      }
+      // Apply stride alignment
+      lByteOffset = Math.ceil(lByteOffset / lParameterLayout.layout.alignment) * lParameterLayout.layout.alignment;
+    }
+    // Load typed array from layout format.
+    const lParameterBuffer = new gpu_buffer_1.GpuBuffer(this.device, lBufferData.byteLength).initialData(lBufferData);
+    // Extend buffer to be a vertex buffer.
+    lParameterBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
+    // Save gpu buffer in correct index.
+    this.mBuffer.set(pBufferName, lParameterBuffer);
+    // Invalidate on data set.
+    this.invalidate(VertexParameterInvalidationType.Data);
+    return lParameterBuffer;
+  }
+  /**
+   * Get parameter buffer.
+   * @param pBufferName - Parameter buffer name.
+   */
+  get(pBufferName) {
+    // Validate.
+    if (!this.mBuffer.has(pBufferName)) {
+      throw new core_1.Exception(`Vertex parameter buffer for "${pBufferName}" not set.`, this);
+    }
+    return this.mBuffer.get(pBufferName);
+  }
+  /**
+   * Add raw buffer as vertex parameter.
+   *
+   * @param pBufferName - Buffer name.
+   * @param pBuffer - Buffer.
+   */
+  set(pBufferName, pBuffer) {
+    const lParameterLayout = this.mLayout.parameterBuffer(pBufferName);
+    // Validate alignment.
+    if (pBuffer.size % lParameterLayout.layout.fixedSize !== 0) {
+      throw new core_1.Exception('Set vertex parameter buffer does not align with layout.', this);
+    }
+    // Calculate stride count.
+    let lStrideCount = pBuffer.size / lParameterLayout.layout.fixedSize;
+    if (!this.mLayout.indexable && lParameterLayout.stepMode === vertex_parameter_step_mode_enum_1.VertexParameterStepMode.Index) {
+      lStrideCount = this.mIndices.length;
+    }
+    // Validate length.
+    if (pBuffer.size !== lParameterLayout.layout.fixedSize * lStrideCount) {
+      throw new core_1.Exception(`Set vertex parameter buffer does not fit needed buffer size (Has:${pBuffer.size} => Should:${lParameterLayout.layout.fixedSize * lStrideCount}).`, this);
+    }
+    // Extend usage.
+    pBuffer.extendUsage(buffer_usage_enum_1.BufferUsage.Vertex);
+    // Add buffer.
+    this.mBuffer.set(pBufferName, pBuffer);
+    // Invalidate on data set.
+    this.invalidate(VertexParameterInvalidationType.Data);
+    return pBuffer;
+  }
+}
+exports.VertexParameter = VertexParameter;
+var VertexParameterInvalidationType;
+(function (VertexParameterInvalidationType) {
+  VertexParameterInvalidationType["Data"] = "DataChange";
+})(VertexParameterInvalidationType || (exports.VertexParameterInvalidationType = VertexParameterInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/shader/setup/shader-compute-entry-point-setup.ts":
+/*!*****************************************************************!*\
+  !*** ./source/shader/setup/shader-compute-entry-point-setup.ts ***!
+  \*****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderComputeEntryPointSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+/**
+ * Child setup object to add compute entry points for shaders.
+ */
+class ShaderComputeEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Setup compute entry with a static size.
+   */
+  size(pX, pY = 1, pZ = 1) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Callback size.
+    this.sendData(pX, pY, pZ);
+  }
+}
+exports.ShaderComputeEntryPointSetup = ShaderComputeEntryPointSetup;
+
+/***/ }),
+
+/***/ "./source/shader/setup/shader-fragment-entry-point-setup.ts":
+/*!******************************************************************!*\
+  !*** ./source/shader/setup/shader-fragment-entry-point-setup.ts ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderFragmentEntryPointSetup = void 0;
+const gpu_object_child_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-child-setup */ "./source/gpu_object/gpu-object-child-setup.ts");
+/**
+ * Child setup object to render targets to shaders.
+ */
+class ShaderFragmentEntryPointSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
+  /**
+   * Setup fragment render target.
+   */
+  addRenderTarget(pName, pLocationIndex, pDataFormat, pDataMultiplier) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    const lRenderTarget = {
+      name: pName,
+      location: pLocationIndex,
+      format: pDataFormat,
+      multiplier: pDataMultiplier
+    };
+    // Callback size.
+    this.sendData(lRenderTarget);
+    return this;
+  }
+}
+exports.ShaderFragmentEntryPointSetup = ShaderFragmentEntryPointSetup;
+
+/***/ }),
+
+/***/ "./source/shader/setup/shader-setup.ts":
+/*!*********************************************!*\
+  !*** ./source/shader/setup/shader-setup.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderSetup = void 0;
+const gpu_object_setup_1 = __webpack_require__(/*! ../../gpu_object/gpu-object-setup */ "./source/gpu_object/gpu-object-setup.ts");
+const bind_group_layout_1 = __webpack_require__(/*! ../../pipeline/bind_group_layout/bind-group-layout */ "./source/pipeline/bind_group_layout/bind-group-layout.ts");
+const vertex_parameter_layout_1 = __webpack_require__(/*! ../../pipeline/vertex_parameter/vertex-parameter-layout */ "./source/pipeline/vertex_parameter/vertex-parameter-layout.ts");
+const shader_compute_entry_point_setup_1 = __webpack_require__(/*! ./shader-compute-entry-point-setup */ "./source/shader/setup/shader-compute-entry-point-setup.ts");
+const shader_fragment_entry_point_setup_1 = __webpack_require__(/*! ./shader-fragment-entry-point-setup */ "./source/shader/setup/shader-fragment-entry-point-setup.ts");
+/**
+ * Setup object to setup all layout and constant informations for shaders.
+ */
+class ShaderSetup extends gpu_object_setup_1.GpuObjectSetup {
+  /**
+   * Setup compute entry point.
+   * When size is not called, the compute entry point will be setup with a dynamic size.
+   *
+   * @param pName - Compute entry name.
+   */
+  computeEntryPoint(pName) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Create dynamic compute entry point.
+    const lEntryPoint = {
+      name: pName,
+      workgroupDimension: null
+    };
+    // Append compute entry.
+    this.setupData.computeEntrypoints.push(lEntryPoint);
+    // Return compute entry setup object.
+    return new shader_compute_entry_point_setup_1.ShaderComputeEntryPointSetup(this.setupReferences, (pX, pY, pZ) => {
+      lEntryPoint.workgroupDimension = {
+        x: pX,
+        y: pY,
+        z: pZ
+      };
+    });
+  }
+  /**
+   * Setup fragment entry point.
+   *
+   * @param pName - Fragment entry name.
+   */
+  fragmentEntryPoint(pName) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Create empty fragment entry point.
+    const lEntryPoint = {
+      name: pName,
+      renderTargets: new Array()
+    };
+    // Append compute entry.
+    this.setupData.fragmentEntrypoints.push(lEntryPoint);
+    // Return fragment entry setup object.
+    return new shader_fragment_entry_point_setup_1.ShaderFragmentEntryPointSetup(this.setupReferences, pRenderTarget => {
+      lEntryPoint.renderTargets.push(pRenderTarget);
+    });
+  }
+  group(pIndex, pGroupOrName, pSetupCall) {
+    // Use existing or create new bind group.
+    let lBindGroupLayout;
+    if (typeof pGroupOrName === 'string') {
+      // Create new group
+      lBindGroupLayout = new bind_group_layout_1.BindGroupLayout(this.device, pGroupOrName).setup(pSetupCall);
+    } else {
+      // Use existing group.
+      lBindGroupLayout = pGroupOrName;
+    }
+    // Register group.
+    this.setupData.bindingGroups.push({
+      index: pIndex,
+      group: lBindGroupLayout
+    });
+    return lBindGroupLayout;
+  }
+  /**
+   * Add static pipeline parameters definitions.
+   *
+   * @param pName- Parameter name.
+   * @param pFormat - Parameter format.
+   *
+   * @returns this.
+   */
+  parameter(pName, ...pStageUsage) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Add parameter.
+    this.setupData.parameter.push({
+      name: pName,
+      usage: pStageUsage
+    });
+    return this;
+  }
+  /**
+   * Setup vertex entry point.
+   *
+   * @param pName - Vertex entry name.
+   */
+  vertexEntryPoint(pName, pSetupCallback) {
+    // Lock setup to a setup call.
+    this.ensureThatInSetup();
+    // Create and setup vertex parameter.
+    const lVertexParameterLayout = new vertex_parameter_layout_1.VertexParameterLayout(this.device).setup(pSetupCallback);
+    // Create empty fragment entry point.
+    const lEntryPoint = {
+      name: pName,
+      parameter: lVertexParameterLayout
+    };
+    // Append compute entry.
+    this.setupData.vertexEntrypoints.push(lEntryPoint);
+    return lVertexParameterLayout;
+  }
+  /**
+   * Fill in default data before the setup starts.
+   *
+   * @param pDataReference - Setup data reference.
+   */
+  fillDefaultData(pDataReference) {
+    // Entry points.
+    pDataReference.computeEntrypoints = new Array();
+    pDataReference.fragmentEntrypoints = new Array();
+    pDataReference.vertexEntrypoints = new Array();
+    // Parameter.
+    pDataReference.parameter = new Array();
+    // Bind groups.
+    pDataReference.bindingGroups = new Array();
+  }
+}
+exports.ShaderSetup = ShaderSetup;
+
+/***/ }),
+
+/***/ "./source/shader/shader-compute-module.ts":
+/*!************************************************!*\
+  !*** ./source/shader/shader-compute-module.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderComputeModule = void 0;
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const compute_pipeline_1 = __webpack_require__(/*! ../pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
+/**
+ * Compute part of a shader programm.
+ */
+class ShaderComputeModule extends gpu_object_1.GpuObject {
+  /**
+   * Compute entry point.
+   */
+  get entryPoint() {
+    return this.mEntryPoint;
+  }
+  /**
+   * Shader pipeline layout.
+   */
+  get layout() {
+    return this.mShader.layout;
+  }
+  /**
+   * Module shader.
+   */
+  get shader() {
+    return this.mShader;
+  }
+  /**
+   * Workgroup size x.
+   */
+  get workGroupSizeX() {
+    return this.mSize[0];
+  }
+  /**
+   * Workgroup size y.
+   */
+  get workGroupSizeY() {
+    return this.mSize[1];
+  }
+  /**
+   * Workgroup size z.
+   */
+  get workGroupSizeZ() {
+    return this.mSize[2];
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pShader - Shader.
+   * @param pEntryPointName - Compute entry point.
+   * @param pSize - Workgroup size.
+   */
+  constructor(pDevice, pShader, pEntryPointName, pSize) {
+    super(pDevice);
+    this.mEntryPoint = pEntryPointName;
+    this.mShader = pShader;
+    this.mSize = pSize ?? [-1, -1, -1];
+  }
+  /**
+   * Create a new compute pipeline.
+   *
+   * @returns new compute pipeline.
+   */
+  create() {
+    return new compute_pipeline_1.ComputePipeline(this.device, this);
+  }
+}
+exports.ShaderComputeModule = ShaderComputeModule;
+
+/***/ }),
+
+/***/ "./source/shader/shader-render-module.ts":
+/*!***********************************************!*\
+  !*** ./source/shader/shader-render-module.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderRenderModule = void 0;
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
+/**
+ * Render parts of a shader programm.
+ * Uses vertex and fragment shader.
+ */
+class ShaderRenderModule extends gpu_object_1.GpuObject {
+  /**
+   * Fragment entry point.
+   */
+  get fragmentEntryPoint() {
+    return this.mFragmentEntryPoint;
+  }
+  /**
+   * Shader pipeline layout.
+   */
+  get layout() {
+    return this.mShader.layout;
+  }
+  /**
+   * Module shader.
+   */
+  get shader() {
+    return this.mShader;
+  }
+  /**
+   * Compute entry point.
+   */
+  get vertexEntryPoint() {
+    return this.mVertexEntryPoint;
+  }
+  /**
+   * Vertex parameter.
+   */
+  get vertexParameter() {
+    return this.mVertexParameter;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pShader - Shader.
+   * @param pEntryPointName - Compute entry point.
+   * @param pSize - Workgroup size.
+   */
+  constructor(pDevice, pShader, pVertexEntryPointName, pVertexParameter, pFragmentEntryPointName) {
+    super(pDevice);
+    this.mVertexEntryPoint = pVertexEntryPointName;
+    this.mVertexParameter = pVertexParameter;
+    this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
+    this.mShader = pShader;
+  }
+  /**
+   * Create a new render pipeline for set render targets.
+   *
+   * @param pRenderTargets - Render targets of pipeline.
+   *
+   * @returns new render pipeline.
+   */
+  create(pRenderTargets) {
+    return new vertex_fragment_pipeline_1.VertexFragmentPipeline(this.device, this, pRenderTargets);
+  }
+}
+exports.ShaderRenderModule = ShaderRenderModule;
+
+/***/ }),
+
+/***/ "./source/shader/shader.ts":
+/*!*********************************!*\
+  !*** ./source/shader/shader.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Shader = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const pipeline_layout_1 = __webpack_require__(/*! ../pipeline/pipeline-layout */ "./source/pipeline/pipeline-layout.ts");
+const shader_setup_1 = __webpack_require__(/*! ./setup/shader-setup */ "./source/shader/setup/shader-setup.ts");
+const shader_compute_module_1 = __webpack_require__(/*! ./shader-compute-module */ "./source/shader/shader-compute-module.ts");
+const shader_render_module_1 = __webpack_require__(/*! ./shader-render-module */ "./source/shader/shader-render-module.ts");
+/**
+ * Gpu shader program.
+ * Can be split into its program modules.
+ */
+class Shader extends gpu_object_1.GpuObject {
+  /**
+   * Shader pipeline layout.
+   */
+  get layout() {
+    // Ensure setup is called.
+    this.ensureSetup();
+    return this.mPipelineLayout;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Gpu Device reference.
+   * @param pSource - Shader source as wgsl code.
+   * @param pLayout - Shader layout information.
+   */
+  constructor(pDevice, pSource, pSourceMap = null) {
+    super(pDevice);
+    // Create shader information for source.
+    this.mSource = pSource;
+    this.mSourceMap = pSourceMap;
+    // Init default unset values.
+    this.mParameter = new core_1.Dictionary();
+    this.mPipelineLayout = null;
+    this.mEntryPoints = {
+      compute: new core_1.Dictionary(),
+      vertex: new core_1.Dictionary(),
+      fragment: new core_1.Dictionary()
+    };
+  }
+  /**
+   * Create a compute module from shader entry point.
+   *
+   * @param pEntryName - Compute entry name.
+   *
+   * @returns shader compute module.
+   */
+  createComputeModule(pEntryName) {
+    // Ensure setup is called.
+    this.ensureSetup();
+    const lEntryPoint = this.mEntryPoints.compute.get(pEntryName);
+    if (!lEntryPoint) {
+      throw new core_1.Exception(`Compute entry point "${pEntryName}" does not exists.`, this);
+    }
+    // Return shader module without defined workgroup sizes.
+    if (!lEntryPoint.static) {
+      return new shader_compute_module_1.ShaderComputeModule(this.device, this, pEntryName);
+    }
+    // Define workgroup sizes.
+    return new shader_compute_module_1.ShaderComputeModule(this.device, this, pEntryName, [lEntryPoint.workgroupDimension.x ?? 1, lEntryPoint.workgroupDimension.y ?? 1, lEntryPoint.workgroupDimension.z ?? 1]);
+  }
+  /**
+   * Create a render module from a vertex and fragment entry point.
+   *
+   * @param pVertexEntryName - Vertex entry point.
+   * @param pFragmentEntryName - Optional fragment entry point.
+   *
+   * @returns shader render module.
+   */
+  createRenderModule(pVertexEntryName, pFragmentEntryName) {
+    // Ensure setup is called.
+    this.ensureSetup();
+    const lVertexEntryPoint = this.mEntryPoints.vertex.get(pVertexEntryName);
+    if (!lVertexEntryPoint) {
+      throw new core_1.Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
+    }
+    // Return shader module without fragment entry.
+    if (!pFragmentEntryName) {
+      return new shader_render_module_1.ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter);
+    }
+    // Validate fragment entry point.
+    const lFragmentEntryPoint = this.mEntryPoints.fragment.get(pFragmentEntryName);
+    if (!lFragmentEntryPoint) {
+      throw new core_1.Exception(`Fragment entry point "${pFragmentEntryName}" does not exists.`, this);
+    }
+    return new shader_render_module_1.ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName);
+  }
+  /**
+   * Get shader pipeline parameters.
+   *
+   * @param pParameterName - Parameter name.
+   */
+  parameter(pParameterName) {
+    // Ensure setup is called.
+    this.ensureSetup();
+    // Try to read parameter type.
+    const lParameterType = this.mParameter.get(pParameterName);
+    if (!lParameterType) {
+      throw new core_1.Exception(`Shader has parameter "${pParameterName}" not defined.`, this);
+    }
+    return new Set(lParameterType);
+  }
+  /**
+   * Setup render targets.
+   * Can only be called once and is the only way to create or add target textures.
+   *
+   * @param pSetup - Setup call.
+   *
+   * @returns this.
+   */
+  setup(pSetupCallback) {
+    return super.setup(pSetupCallback);
+  }
+  /**
+   * Generate shader module.
+   */
+  generateNative() {
+    // Read pipeline for compilation hints.
+    const lPipelineLayout = this.mPipelineLayout.native;
+    // Create compilationHints for every entry point
+    const lCompilationHints = new Array();
+    for (const lEntryName of [...this.mEntryPoints.vertex.keys(), ...this.mEntryPoints.fragment.keys(), ...this.mEntryPoints.compute.keys()]) {
+      lCompilationHints.push({
+        entryPoint: lEntryName,
+        layout: lPipelineLayout
+      });
+    }
+    // Create shader module use hints to speed up compilation on safari.
+    return this.device.gpu.createShaderModule({
+      code: this.mSource,
+      compilationHints: lCompilationHints,
+      sourceMap: this.mSourceMap ?? {}
+    });
+  }
+  /**
+   * Setup with setup object.
+   *
+   * @param pReferences - Used references.
+   */
+  onSetup(pReferences) {
+    // Setup parameter.
+    for (const lParameter of pReferences.parameter) {
+      // Dont override parameters.
+      if (this.mParameter.has(lParameter.name)) {
+        throw new core_1.Exception(`Can't add parameter "${lParameter.name}" more than once.`, this);
+      }
+      // Add parameter.
+      this.mParameter.set(lParameter.name, new Set(lParameter.usage));
+    }
+    // Convert fragment entry point informations
+    for (const lFragmentEntry of pReferences.fragmentEntrypoints) {
+      // Restrict doublicate fragment entry names.
+      if (this.mEntryPoints.fragment.has(lFragmentEntry.name)) {
+        throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was setup more than once.`, this);
+      }
+      // Convert all render attachments to a location mapping.
+      const lRenderTargetLocations = new Set();
+      const lRenderTargets = new core_1.Dictionary();
+      for (const lRenderTarget of lFragmentEntry.renderTargets) {
+        // Restrict doublicate fragment entry render target names.
+        if (lRenderTargets.has(lRenderTarget.name)) {
+          throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment name "${lRenderTarget.name}".`, this);
+        }
+        // Restrict doublicate fragment entry render target locations.
+        if (lRenderTargetLocations.has(lRenderTarget.location)) {
+          throw new core_1.Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment location index "${lRenderTarget.location}".`, this);
+        }
+        // Add location to location index buffer. Used for finding dublicates.
+        lRenderTargetLocations.add(lRenderTarget.location);
+        // Add target to list. 
+        lRenderTargets.set(lRenderTarget.name, {
+          name: lRenderTarget.name,
+          location: lRenderTarget.location,
+          format: lRenderTarget.format,
+          multiplier: lRenderTarget.multiplier
+        });
+      }
+      // Set fragment entry point definition. 
+      this.mEntryPoints.fragment.set(lFragmentEntry.name, {
+        renderTargets: lRenderTargets
+      });
+    }
+    // Convert vertex entry point informations
+    for (const lVertexEntry of pReferences.vertexEntrypoints) {
+      // Restrict doublicate vertex entry names.
+      if (this.mEntryPoints.vertex.has(lVertexEntry.name)) {
+        throw new core_1.Exception(`Vertex entry "${lVertexEntry.name}" was setup more than once.`, this);
+      }
+      // Set vertex entry point definition. 
+      this.mEntryPoints.vertex.set(lVertexEntry.name, {
+        parameter: lVertexEntry.parameter
+      });
+    }
+    // Convert compute entry point informations
+    for (const lComputeEntry of pReferences.computeEntrypoints) {
+      // Restrict doublicate compute entry names.
+      if (this.mEntryPoints.compute.has(lComputeEntry.name)) {
+        throw new core_1.Exception(`Vertex entry "${lComputeEntry.name}" was setup more than once.`, this);
+      }
+      // Set vertex entry point definition. 
+      this.mEntryPoints.compute.set(lComputeEntry.name, {
+        static: lComputeEntry.workgroupDimension !== null,
+        workgroupDimension: {
+          x: lComputeEntry.workgroupDimension?.x ?? null,
+          y: lComputeEntry.workgroupDimension?.y ?? null,
+          z: lComputeEntry.workgroupDimension?.z ?? null
+        }
+      });
+    }
+    // Generate initial pipeline layout.
+    const lInitialPipelineLayout = new core_1.Dictionary();
+    for (const lGroup of pReferences.bindingGroups) {
+      // Set bind group layout with group index.
+      lInitialPipelineLayout.set(lGroup.index, lGroup.group);
+    }
+    this.mPipelineLayout = new pipeline_layout_1.PipelineLayout(this.device, lInitialPipelineLayout);
+  }
+  /**
+   * Create setup object. Return null to skip any setups.
+   *
+   *  @param pReferences - Unfilled setup references.
+   *
+   *  @returns Setup object.
+   */
+  onSetupObjectCreate(pReferences) {
+    return new shader_setup_1.ShaderSetup(pReferences);
+  }
+}
+exports.Shader = Shader;
+
+/***/ }),
+
+/***/ "./source/texture/canvas-texture.ts":
+/*!******************************************!*\
+  !*** ./source/texture/canvas-texture.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CanvasTextureInvalidationType = exports.CanvasTexture = void 0;
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+/**
+ * Canvas texture. Can only be used as render attachment or to be copied into.
+ * Allways 2D with preferred format.
+ */
+class CanvasTexture extends gpu_object_1.GpuObject {
+  /**
+   * HTML canvas element.
+   */
+  get canvas() {
+    return this.mCanvas;
+  }
+  /**
+   * Texture depth.
+   */
+  get depth() {
+    return 1;
+  }
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return texture_dimension_enum_1.TextureDimension.ThreeDimension;
+  }
+  /**
+   * Canvas format.
+   */
+  get format() {
+    return this.device.formatValidator.preferredCanvasFormat;
+  }
+  /**
+   * Texture height.
+   */
+  get height() {
+    return this.mCanvas.height;
+  }
+  set height(pValue) {
+    this.mCanvas.height = pValue;
+  }
+  /**
+   * Texture mip level count.
+   */
+  get mipCount() {
+    return 1;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Texture width.
+   */
+  get width() {
+    return this.mCanvas.width;
+  }
+  set width(pValue) {
+    this.mCanvas.width = pValue;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   * @param pLayout - Texture layout.
+   * @param pCanvas - Canvas of texture.
+   */
+  constructor(pDevice, pCanvas) {
+    super(pDevice);
+    // Set canvas reference.
+    this.mCanvas = pCanvas;
+    this.mContext = null;
+    // Set defaults.
+    this.height = 1;
+    this.width = 1;
+    // Rebuild view on every frame.
+    this.mFrameListener = () => {
+      this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
+    };
+    this.device.addFrameChangeListener(this.mFrameListener);
+  }
+  /**
+   * Destory texture object.
+   * @param _pNativeObject - Native canvas texture.
+   */
+  destroyNative(_pNativeObject, pReasons) {
+    // Only destroy context when child data/layout has changes.
+    if (pReasons.deconstruct) {
+      // Remove frame listener.
+      this.device.removeFrameChangeListener(this.mFrameListener);
+      // Destory context.
+      this.mContext.unconfigure();
+      this.mContext = null;
+    }
+  }
+  /**
+   * Generate native canvas texture view.
+   */
+  generateNative() {
+    // Configure new context when not alread configured or destroyed.
+    if (!this.mContext) {
+      // Create and configure canvas context.
+      this.mContext = this.canvas.getContext('webgpu');
+      this.mContext.configure({
+        device: this.device.gpu,
+        format: this.device.formatValidator.preferredCanvasFormat,
+        usage: texture_usage_enum_1.TextureUsage.CopyDestination | texture_usage_enum_1.TextureUsage.RenderAttachment,
+        alphaMode: 'opaque'
+      });
+    }
+    // Read current texture of canvas. Needs to be retrieved for each frame.
+    const lTexture = this.mContext.getCurrentTexture();
+    lTexture.label = 'Canvas-Texture';
+    return lTexture;
+  }
+}
+exports.CanvasTexture = CanvasTexture;
+var CanvasTextureInvalidationType;
+(function (CanvasTextureInvalidationType) {
+  CanvasTextureInvalidationType["NativeRebuild"] = "NativeRebuild";
+})(CanvasTextureInvalidationType || (exports.CanvasTextureInvalidationType = CanvasTextureInvalidationType = {}));
+
+/***/ }),
+
+/***/ "./source/texture/gpu-texture-view.ts":
+/*!********************************************!*\
+  !*** ./source/texture/gpu-texture-view.ts ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuTextureView = void 0;
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+/**
+ * View to a gpu texture.
+ */
+class GpuTextureView extends gpu_resource_object_1.GpuResourceObject {
+  /**
+   * End index of depth or array level.
+   */
+  get arrayLayerEnd() {
+    return this.mArrayLayerEnd;
+  }
+  set arrayLayerEnd(pArrayLayer) {
+    this.mArrayLayerEnd = pArrayLayer;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Staring index of depth or array level.
+   */
+  get arrayLayerStart() {
+    return this.mArrayLayerStart;
+  }
+  set arrayLayerStart(pArrayLayerIndex) {
+    this.mArrayLayerStart = pArrayLayerIndex;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Texture layout.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
+   * End index of mip level.
+   */
+  get mipLevelEnd() {
+    return this.mMipLevelEnd;
+  }
+  set mipLevelEnd(pMipLevel) {
+    this.mMipLevelEnd = pMipLevel;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Staring index of mip level.
+   */
+  get mipLevelStart() {
+    return this.mMipLevelStart;
+  }
+  set mipLevelStart(pMipLevel) {
+    this.mMipLevelStart = pMipLevel;
+    // Invalidate view.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Views texture.
+   */
+  get texture() {
+    return this.mTexture;
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   * @param pTexture - Texture of view.
+   */
+  constructor(pDevice, pTexture, pLayout) {
+    super(pDevice);
+    // Set statics.
+    this.mTexture = pTexture;
+    this.mLayout = pLayout;
+    // Set defaults.
+    this.mMipLevelStart = 0;
+    this.mMipLevelEnd = -1;
+    this.mArrayLayerStart = 0;
+    this.mArrayLayerEnd = -1;
+    // Trigger View rebuild on texture rebuilds.
+    pTexture.addInvalidationListener(() => {
+      this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+    }, gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Generate native canvas texture view.
+   */
+  generateNative() {
+    // Read native texture.
+    const lNativeTexture = this.mTexture.native;
+    // When mip end level or array end layer is not set, use textures max. 
+    const lMipLevelEnd = this.mMipLevelEnd < 0 ? lNativeTexture.mipLevelCount - 1 : this.mMipLevelEnd;
+    const lArrayLayerEnd = this.mArrayLayerEnd < 0 ? lNativeTexture.depthOrArrayLayers - 1 : this.mArrayLayerEnd;
+    // Validate dimension based on 
+    const lDimensionViewDepthCount = (() => {
+      switch (this.mLayout.dimension) {
+        case texture_view_dimension_enum_1.TextureViewDimension.OneDimension:
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimension:
+          {
+            return 1;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.Cube:
+          {
+            return 6;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.CubeArray:
+          {
+            return Math.floor((lArrayLayerEnd - this.mArrayLayerStart + 1) / 6) * 6;
+          }
+        case texture_view_dimension_enum_1.TextureViewDimension.TwoDimensionArray:
+        case texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension:
+          {
+            return lArrayLayerEnd - this.mArrayLayerStart + 1;
+          }
+        default:
+          {
+            return 1;
+          }
+      }
+    })();
+    // Create and configure canvas context.
+    return lNativeTexture.createView({
+      aspect: 'all',
+      format: this.mLayout.format,
+      dimension: this.mLayout.dimension,
+      // Mip start and end.
+      baseMipLevel: this.mMipLevelStart,
+      mipLevelCount: lMipLevelEnd - this.mMipLevelStart + 1,
+      // Array layer start and end.
+      baseArrayLayer: this.mArrayLayerStart,
+      arrayLayerCount: lDimensionViewDepthCount
+    });
+  }
+}
+exports.GpuTextureView = GpuTextureView;
+
+/***/ }),
+
+/***/ "./source/texture/gpu-texture.ts":
+/*!***************************************!*\
+  !*** ./source/texture/gpu-texture.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuTexture = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_limit_enum_1 = __webpack_require__(/*! ../constant/gpu-limit.enum */ "./source/constant/gpu-limit.enum.ts");
+const texture_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
+const texture_view_dimension_enum_1 = __webpack_require__(/*! ../constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+const gpu_texture_view_1 = __webpack_require__(/*! ./gpu-texture-view */ "./source/texture/gpu-texture-view.ts");
+const texture_view_memory_layout_1 = __webpack_require__(/*! ./memory_layout/texture-view-memory-layout */ "./source/texture/memory_layout/texture-view-memory-layout.ts");
+/**
+ * Gpu texture that is alocated on gpu memory.
+ */
+class GpuTexture extends gpu_resource_object_1.GpuResourceObject {
+  /**
+   * Texture depth.
+   */
+  get depth() {
+    return this.mDepth;
+  }
+  set depth(pDepth) {
+    this.mDepth = pDepth;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return this.mDimension;
+  }
+  /**
+   * Texture format.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Texture height.
+   */
+  get height() {
+    return this.mHeight;
+  }
+  set height(pHeight) {
+    this.mHeight = pHeight;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Texture mip level count.
+   */
+  get mipCount() {
+    return this.mMipLevelCount;
+  }
+  set mipCount(pMipCount) {
+    this.mMipLevelCount = pMipCount;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Texture multi sampled.
+   */
+  get multiSampled() {
+    return this.mMultisampled;
+  }
+  /**
+   * Native gpu object.
+   */
+  get native() {
+    return super.native;
+  }
+  /**
+   * Texture width.
+   */
+  get width() {
+    return this.mWidth;
+  }
+  set width(pWidth) {
+    this.mWidth = pWidth;
+    // Invalidate texture.
+    this.invalidate(gpu_resource_object_1.GpuResourceObjectInvalidationType.ResourceRebuild);
+  }
+  /**
+   * Constructor.
+   * @param pDevice - Device.
+   * @param pLayout - Texture layout.
+   * @param pCanvas - Canvas of texture.
+   */
+  constructor(pDevice, pParameter) {
+    super(pDevice);
+    // Allways add copy source/destination and copy over information on rebuild. 
+    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
+    this.extendUsage(texture_usage_enum_1.TextureUsage.CopySource);
+    // Set static config.
+    this.mDimension = pParameter.dimension;
+    this.mFormat = pParameter.format;
+    this.mMultisampled = pParameter.multisampled;
+    // Set defaults.
+    this.mMipLevelCount = 1;
+    this.mDepth = 1;
+    this.mHeight = 1;
+    this.mWidth = 1;
+  }
+  copyFrom(...pTextures) {
+    // Convert into none optional config.
+    const lCopyConfig = new Array();
+    for (let lTextureIndex = 0; lTextureIndex < pTextures.length; lTextureIndex++) {
+      const lCopyTexture = pTextures[lTextureIndex];
+      // Create new config from data.
+      if (!('data' in lCopyTexture)) {
+        // Wild instance checks.
+        switch (true) {
+          case lCopyTexture instanceof GpuTexture:
+            {
+              lCopyConfig.push({
+                data: lCopyTexture,
+                mipLevel: 0,
+                external: false,
+                dimension: {
+                  width: lCopyTexture.width,
+                  height: lCopyTexture.height,
+                  depthOrArrayLayers: lCopyTexture.depth
+                },
+                sourceOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                targetOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: lTextureIndex
+                }
+              });
+              continue;
+            }
+          case lCopyTexture instanceof ImageBitmap:
+            {
+              lCopyConfig.push({
+                data: lCopyTexture,
+                mipLevel: 0,
+                external: true,
+                dimension: {
+                  width: lCopyTexture.width,
+                  height: lCopyTexture.height,
+                  depthOrArrayLayers: 1
+                },
+                sourceOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                targetOrigin: {
+                  x: 0,
+                  y: 0,
+                  z: lTextureIndex
+                }
+              });
+              continue;
+            }
+        }
+        // Not hit. But better to read.
+        continue;
+      }
+      // Get data type.
+      const lExternal = !(lCopyTexture instanceof GpuTexture);
+      // Fill in missing values with defaults.
+      lCopyConfig.push({
+        data: lCopyTexture.data,
+        external: lExternal,
+        mipLevel: lCopyTexture.mipLevel ?? 0,
+        dimension: {
+          width: lCopyTexture.dimension?.width ?? lCopyTexture.data.width,
+          height: lCopyTexture.dimension?.height ?? lCopyTexture.data.height,
+          depthOrArrayLayers: lCopyTexture.dimension?.depth ?? ('depth' in lCopyTexture.data ? lCopyTexture.data.depth : 1)
+        },
+        sourceOrigin: lCopyTexture.sourceOrigin ?? {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        targetOrigin: lCopyTexture.targetOrigin ?? {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      });
+    }
+    // Extend usage to be able to copy from external and gpu textures.
+    this.extendUsage(texture_usage_enum_1.TextureUsage.CopyDestination);
+    this.extendUsage(texture_usage_enum_1.TextureUsage.RenderAttachment);
+    // Generate native texture.
+    const lDestination = {
+      texture: this.native,
+      aspect: 'all'
+    };
+    // Create copy command encoder to store copy actions.
+    const lCommandDecoder = this.device.gpu.createCommandEncoder();
+    for (const lSourceTexture of lCopyConfig) {
+      // Skip copy of textures outside of targets mip level.
+      if (lDestination.texture.mipLevelCount < lSourceTexture.mipLevel) {
+        continue;
+      }
+      // Apply destination config.
+      lDestination.origin = lSourceTexture.targetOrigin;
+      lDestination.mipLevel = lSourceTexture.mipLevel;
+      // Calculate target max size for the specific mip map.
+      const lDestinationMaxSize = {
+        width: Math.floor(lDestination.texture.width / Math.pow(2, lDestination.mipLevel)),
+        height: Math.floor(lDestination.texture.height / Math.pow(2, lDestination.mipLevel)),
+        // On 3D textures the depth count to the mip.
+        depthOrArrayLayers: lDestination.texture.dimension === '3d' ? Math.floor(lDestination.texture.depthOrArrayLayers / Math.pow(2, lDestination.mipLevel)) : lDestination.texture.depthOrArrayLayers
+      };
+      // Clamp copy sizes to lowest.
+      const lClampedCopySize = {
+        width: Math.min(lDestinationMaxSize.width - lSourceTexture.targetOrigin.x, lSourceTexture.dimension.width - lSourceTexture.sourceOrigin.x),
+        height: Math.min(lDestinationMaxSize.height - lSourceTexture.targetOrigin.y, lSourceTexture.dimension.height - lSourceTexture.sourceOrigin.y),
+        depthOrArrayLayers: Math.min(lDestinationMaxSize.depthOrArrayLayers - lSourceTexture.targetOrigin.z, lSourceTexture.dimension.depthOrArrayLayers - lSourceTexture.sourceOrigin.z)
+      };
+      // Omit copy when nothing should by copied.
+      if (lClampedCopySize.width < 1 || lClampedCopySize.height < 1 || lClampedCopySize.depthOrArrayLayers < 1) {
+        continue;
+      }
+      // Copy external.
+      if (lSourceTexture.external) {
+        // Create External source.
+        const lSource = {
+          source: lSourceTexture.data,
+          origin: [lSourceTexture.sourceOrigin.x, lSourceTexture.sourceOrigin.y]
+        };
+        // Add external copy into queue.
+        this.device.gpu.queue.copyExternalImageToTexture(lSource, lDestination, lClampedCopySize);
+        continue;
+      }
+      // Create copy source information.
+      const lSource = {
+        texture: lSourceTexture.data.native,
+        aspect: 'all',
+        origin: lSourceTexture.targetOrigin,
+        mipLevel: 0
+      };
+      // Add copy action to command queue.
+      lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
+    }
+    // Submit copy actions.
+    this.device.gpu.queue.submit([lCommandDecoder.finish()]);
+  }
+  /**
+   * Use texture as view.
+   * @returns Texture view.
+   */
+  useAs(pDimension /* Others Optional, layer, mip ... */) {
+    // Use dimension form parameter or convert texture dimension to view dimension.
+    const lViewDimension = pDimension ?? (() => {
+      switch (this.mDimension) {
+        case texture_dimension_enum_1.TextureDimension.OneDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.OneDimension;
+          }
+        case texture_dimension_enum_1.TextureDimension.TwoDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.TwoDimension;
+          }
+        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
+          {
+            return texture_view_dimension_enum_1.TextureViewDimension.ThreeDimension;
+          }
+      }
+    })();
+    const lLayout = new texture_view_memory_layout_1.TextureViewMemoryLayout(this.device, {
+      format: this.mFormat,
+      dimension: lViewDimension,
+      multisampled: this.mMultisampled
+    });
+    return new gpu_texture_view_1.GpuTextureView(this.device, this, lLayout);
+  }
+  /**
+   * Destory texture object.
+   *
+   * @param _pNativeObject - Native gpu texture.
+   */
+  destroyNative(pNativeObject) {
+    pNativeObject.destroy();
+  }
+  /**
+   * Generate native canvas texture view.
+   */
+  generateNative(pOldTexture) {
+    // Generate gpu dimension from memory layout dimension and enforce limits.
+    const lTextureDimensions = (() => {
+      switch (this.mDimension) {
+        case texture_dimension_enum_1.TextureDimension.OneDimension:
+          {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
+            if (this.mWidth > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 1D Texture(${this.mWidth}).`, this);
+            }
+            return {
+              textureDimension: '1d',
+              clampedDimensions: [this.mWidth, 1, 1]
+            };
+          }
+        case texture_dimension_enum_1.TextureDimension.TwoDimension:
+          {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension1D);
+            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 2D Texture(${this.mWidth}, ${this.mHeight}).`, this);
+            }
+            // Enforce array layer limits.
+            const lArrayLayerLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureArrayLayers);
+            if (this.mDepth > lArrayLayerLimit) {
+              throw new core_1.Exception(`Texture array layer exeeced for 2D Texture(${this.mDepth}).`, this);
+            }
+            return {
+              textureDimension: '2d',
+              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+            };
+          }
+        case texture_dimension_enum_1.TextureDimension.ThreeDimension:
+          {
+            // Enforce dimension limits.
+            const lDimensionLimit = this.device.capabilities.getLimit(gpu_limit_enum_1.GpuLimit.MaxTextureDimension3D);
+            if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit || this.mDepth > lDimensionLimit) {
+              throw new core_1.Exception(`Texture dimension exeeced for 3D Texture(${this.mWidth}, ${this.mHeight}, ${this.mDepth}).`, this);
+            }
+            return {
+              textureDimension: '3d',
+              clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
+            };
+          }
+      }
+    })();
+    // Calculate max mip count.
+    let lMaxMipCount;
+    if (lTextureDimensions.textureDimension === '3d') {
+      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight, this.mDepth)));
+    } else {
+      lMaxMipCount = 1 + Math.floor(Math.log2(Math.max(this.mWidth, this.mHeight)));
+    }
+    // Create and configure canvas context.
+    const lNewTexture = this.device.gpu.createTexture({
+      label: 'GPU-Texture',
+      size: lTextureDimensions.clampedDimensions,
+      format: this.mFormat,
+      usage: this.usage,
+      dimension: lTextureDimensions.textureDimension,
+      sampleCount: this.mMultisampled ? 4 : 1,
+      mipLevelCount: Math.min(this.mMipLevelCount, lMaxMipCount)
+    });
+    // Copy old texture data into new texture.
+    if (pOldTexture !== null && lNewTexture.sampleCount === 1) {
+      // Create copy command encoder to store copy actions.
+      const lCommandDecoder = this.device.gpu.createCommandEncoder();
+      // Copy each mip level.
+      const lCopyMipCount = Math.min(lNewTexture.mipLevelCount, pOldTexture.mipLevelCount);
+      for (let lMipLevel = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
+        // Create copy source settings.
+        const lSource = {
+          texture: pOldTexture,
+          aspect: 'all',
+          origin: [0, 0, 0],
+          mipLevel: lMipLevel
+        };
+        // Create copy destination settings.
+        const lDestination = {
+          texture: lNewTexture,
+          aspect: 'all',
+          origin: [0, 0, 0],
+          mipLevel: lMipLevel
+        };
+        // Destination clamped sizes to mip level.
+        const lDestinationMaxSize = {
+          width: Math.floor(lNewTexture.width / Math.pow(2, lMipLevel)),
+          height: Math.floor(lNewTexture.height / Math.pow(2, lMipLevel)),
+          // On 3D textures the depth count to the mip.
+          depthOrArrayLayers: lNewTexture.dimension === '3d' ? Math.floor(lNewTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) : lNewTexture.depthOrArrayLayers
+        };
+        // Source clamped sizes to mip level.
+        const lSourceMaxSize = {
+          width: Math.floor(pOldTexture.width / Math.pow(2, lMipLevel)),
+          height: Math.floor(pOldTexture.height / Math.pow(2, lMipLevel)),
+          // On 3D textures the depth count to the mip.
+          depthOrArrayLayers: pOldTexture.dimension === '3d' ? Math.floor(pOldTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) : pOldTexture.depthOrArrayLayers
+        };
+        // Clamp copy sizes to lowest.
+        const lClampedCopySize = {
+          width: Math.min(lSourceMaxSize.width, lDestinationMaxSize.width),
+          height: Math.min(lSourceMaxSize.height, lDestinationMaxSize.height),
+          depthOrArrayLayers: Math.min(lSourceMaxSize.depthOrArrayLayers, lDestinationMaxSize.depthOrArrayLayers)
+        };
+        // Add copy action to command queue.
+        lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
+      }
+      // Submit copy actions.
+      this.device.gpu.queue.submit([lCommandDecoder.finish()]);
+    }
+    return lNewTexture;
+  }
+}
+exports.GpuTexture = GpuTexture;
+
+/***/ }),
+
+/***/ "./source/texture/memory_layout/sampler-memory-layout.ts":
+/*!***************************************************************!*\
+  !*** ./source/texture/memory_layout/sampler-memory-layout.ts ***!
+  \***************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SamplerMemoryLayout = void 0;
+const base_memory_layout_1 = __webpack_require__(/*! ../../base-memory-layout */ "./source/base-memory-layout.ts");
+/**
+ * Memory layouts for texture samplers.
+ */
+class SamplerMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
+  /**
+   * Sampler type.
+   */
+  get samplerType() {
+    return this.mSamplerType;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   */
+  constructor(pDevice, pType) {
+    super(pDevice);
+    this.mSamplerType = pType;
+  }
+}
+exports.SamplerMemoryLayout = SamplerMemoryLayout;
+
+/***/ }),
+
+/***/ "./source/texture/memory_layout/texture-view-memory-layout.ts":
+/*!********************************************************************!*\
+  !*** ./source/texture/memory_layout/texture-view-memory-layout.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureViewMemoryLayout = void 0;
+const base_memory_layout_1 = __webpack_require__(/*! ../../base-memory-layout */ "./source/base-memory-layout.ts");
+/**
+ * Memory layout for textures views.
+ */
+class TextureViewMemoryLayout extends base_memory_layout_1.BaseMemoryLayout {
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return this.mDimension;
+  }
+  /**
+   * Texture format.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Texture uses multisample.
+   */
+  get multisampled() {
+    return this.mMultisampled;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pParameter - Parameter.
+   */
+  constructor(pDevice, pParameter) {
+    super(pDevice);
+    // Set defauls.
+    this.mDimension = pParameter.dimension;
+    this.mFormat = pParameter.format;
+    this.mMultisampled = pParameter.multisampled;
+  }
+}
+exports.TextureViewMemoryLayout = TextureViewMemoryLayout;
 
 /***/ }),
 
@@ -12424,7 +12551,10 @@ const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgame
 const filter_mode_enum_1 = __webpack_require__(/*! ../constant/filter-mode.enum */ "./source/constant/filter-mode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const wrapping_mode_enum_1 = __webpack_require__(/*! ../constant/wrapping-mode.enum */ "./source/constant/wrapping-mode.enum.ts");
-const gpu_resource_object_1 = __webpack_require__(/*! ../gpu/object/gpu-resource-object */ "./source/gpu/object/gpu-resource-object.ts");
+const gpu_resource_object_1 = __webpack_require__(/*! ../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
+/**
+ * Gpu texture sampler resource.
+ */
 class TextureSampler extends gpu_resource_object_1.GpuResourceObject {
   /**
    * When provided the sampler will be a comparison sampler with the specified compare function.
@@ -17887,7 +18017,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("79675d07899867c3e02b")
+/******/ 		__webpack_require__.h = () => ("f7f70f0b99124e55d306")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

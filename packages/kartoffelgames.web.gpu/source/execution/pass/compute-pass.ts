@@ -1,11 +1,14 @@
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
-import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/object/gpu-object';
+import { GpuFeature } from '../../constant/gpu-feature.enum';
+import { GpuDevice } from '../../device/gpu-device';
+import { GpuObject } from '../../gpu_object/gpu-object';
 import { GpuExecutionContext } from '../gpu-execution';
 import { ComputePassContext } from './compute-pass-context';
 
+/**
+ * Gpu compute pass.
+ */
 export class ComputePass extends GpuObject {
     private readonly mExecutionFunction: ComputePassExecutionFunction;
     private readonly mQueries: ComputePassQuery;

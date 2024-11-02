@@ -1,11 +1,14 @@
 import { TextureUsage } from '../constant/texture-usage.enum';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { TextureViewMemoryLayout } from '../memory_layout/texture/texture-view-memory-layout';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
 import { GpuTexture } from './gpu-texture';
+import { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout';
 
+/**
+ * View to a gpu texture.
+ */
 export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
     private mArrayLayerEnd: number;
     private mArrayLayerStart: number;

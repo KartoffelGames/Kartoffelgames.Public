@@ -7,16 +7,19 @@ import { PrimitiveTopology } from '../constant/primitive-topology.enum';
 import { TextureAspect } from '../constant/texture-aspect.enum';
 import { TextureBlendFactor } from '../constant/texture-blend-factor.enum';
 import { TextureBlendOperation } from '../constant/texture-blend-operation.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../gpu/object/gpu-object-invalidation-reasons';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject } from '../gpu_object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { GpuTextureView } from '../texture/gpu-texture-view';
-import { RenderTargets } from './target/render-targets';
+import { PipelineLayout } from './pipeline-layout';
+import { RenderTargets } from './render_targets/render-targets';
 import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
-import { PipelineLayout } from '../binding/pipeline-layout';
 
+/**
+ * Gpu pipeline resource for rendering with a vertex and fragment shader. 
+ */
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
     private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfig;
     private mLoadedPipeline: GPURenderPipeline | null;

@@ -1,11 +1,15 @@
-import { PipelineLayout } from '../binding/pipeline-layout';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
-import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
-import { RenderTargets } from '../pipeline/target/render-targets';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject } from '../gpu_object/gpu-object';
+import { PipelineLayout } from '../pipeline/pipeline-layout';
+import { RenderTargets } from '../pipeline/render_targets/render-targets';
 import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
+import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout';
 import { Shader } from './shader';
 
+/**
+ * Render parts of a shader programm.
+ * Uses vertex and fragment shader.
+ */
 export class ShaderRenderModule extends GpuObject {
     private readonly mFragmentEntryPoint: string | null;
     private readonly mShader: Shader;

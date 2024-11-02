@@ -1,6 +1,9 @@
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuObject } from '../gpu_object/gpu-object';
 
+/**
+ * Bundles execute calls to execute them bunched.
+ */
 export class GpuExecution extends GpuObject {
     private readonly mExecutionFunction: GpuExecutionFunction;
 

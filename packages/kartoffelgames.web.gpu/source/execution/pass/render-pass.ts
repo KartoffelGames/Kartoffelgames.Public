@@ -1,16 +1,19 @@
-import { PipelineData, PipelineDataInvalidationType } from '../../binding/pipeline-data';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuFeature } from '../../gpu/capabilities/gpu-feature.enum';
-import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/object/gpu-object';
-import { GpuResourceObjectInvalidationType } from '../../gpu/object/gpu-resource-object';
-import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/parameter/vertex-parameter';
-import { RenderTargets } from '../../pipeline/target/render-targets';
+import { GpuFeature } from '../../constant/gpu-feature.enum';
+import { GpuDevice } from '../../device/gpu-device';
+import { GpuObject } from '../../gpu_object/gpu-object';
+import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object';
+import { PipelineData, PipelineDataInvalidationType } from '../../pipeline/pipeline_data/pipeline-data';
+import { RenderTargets } from '../../pipeline/render_targets/render-targets';
 import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
+import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/vertex_parameter/vertex-parameter';
 import { GpuExecutionContext } from '../gpu-execution';
 import { RenderPassContext } from './render-pass-context';
 
+/**
+ * Gpu render pass. Has the ability to bundle render calls for static lists.
+ */
 export class RenderPass extends GpuObject {
     private readonly mBundleConfig: RenderBundleConfig;
     private readonly mExecutionFunction: RenderPassExecutionFunction;

@@ -3,11 +3,14 @@ import { CompareFunction } from '../constant/compare-function.enum';
 import { FilterMode } from '../constant/filter-mode.enum';
 import { SamplerType } from '../constant/sampler-type.enum';
 import { WrappingMode } from '../constant/wrapping-mode.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
+import { SamplerMemoryLayout } from './memory_layout/sampler-memory-layout';
 
+/**
+ * Gpu texture sampler resource.
+ */
 export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements IGpuObjectNative<GPUSampler> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;

@@ -1,13 +1,16 @@
 import { ComputeStage } from '../../constant/compute-stage.enum';
-import { BindGroupLayout } from '../../binding/bind-group-layout';
-import { BindGroupLayoutSetup } from '../../binding/setup/bind-group-layout-setup';
-import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { VertexParameterLayout } from '../../pipeline/parameter/vertex-parameter-layout';
-import { VertexParameterLayoutSetup } from '../../pipeline/parameter/vertex-parameter-layout-setup';
+import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup';
+import { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout';
+import { BindGroupLayoutSetup } from '../../pipeline/bind_group_layout/bind-group-layout-setup';
+import { VertexParameterLayout } from '../../pipeline/vertex_parameter/vertex-parameter-layout';
+import { VertexParameterLayoutSetup } from '../../pipeline/vertex_parameter/vertex-parameter-layout-setup';
 import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
 import { ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
 
+/**
+ * Setup object to setup all layout and constant informations for shaders.
+ */
 export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
     /**
      * Setup compute entry point.

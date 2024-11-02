@@ -1,11 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PipelineData, PipelineDataGroup } from '../../binding/pipeline-data';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
-import { RenderTargets } from '../../pipeline/target/render-targets';
+import { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data';
+import { RenderTargets } from '../../pipeline/render_targets/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
+import { VertexParameter } from '../../pipeline/vertex_parameter/vertex-parameter';
 
+/**
+ * Context for a render pass.
+ * Used to execute draw calles.
+ */
 export class RenderPassContext {
     private readonly mEncoder: GPURenderPassEncoder | GPURenderBundleEncoder;
     private readonly mRecordResources: boolean;

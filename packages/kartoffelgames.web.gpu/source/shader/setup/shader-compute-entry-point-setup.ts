@@ -1,6 +1,9 @@
-import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
+import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup';
 import { ShaderSetupReferenceData } from './shader-setup';
 
+/**
+ * Child setup object to add compute entry points for shaders. 
+ */
 export class ShaderComputeEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, ComputeSizeCallback> {
     /**
      * Setup compute entry with a static size.

@@ -1,10 +1,10 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../constant/buffer-usage.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu/object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
-import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { GpuDevice } from '../device/gpu-device';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
 import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view';
+import { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.

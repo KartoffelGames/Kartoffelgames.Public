@@ -104,7 +104,9 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
     public constructor(pDevice: GpuDevice, pParameter: GpuTextureParameter) {
         super(pDevice);
 
-        // TODO: Allways add copy source/destination and copy over information on rebuild. 
+        // Allways add copy source/destination and copy over information on rebuild. 
+        this.extendUsage(TextureUsage.CopyDestination);
+        this.extendUsage(TextureUsage.CopySource);
 
         // Set static config.
         this.mDimension = pParameter.dimension;
@@ -182,7 +184,6 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
                 sourceOrigin: lCopyTexture.sourceOrigin ?? { x: 0, y: 0, z: 0 },
                 targetOrigin: lCopyTexture.targetOrigin ?? { x: 0, y: 0, z: 0 }
             });
-
         }
 
         // Extend usage to be able to copy from external and gpu textures.
@@ -253,7 +254,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
                 continue;
             }
 
-            // Create External source.
+            // Create copy source information.
             const lSource: GPUImageCopyTexture = {
                 texture: lSourceTexture.data.native,
                 aspect: 'all',
@@ -310,7 +311,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
     /**
      * Generate native canvas texture view.
      */
-    protected override generateNative(): GPUTexture {
+    protected override generateNative(pOldTexture: GPUTexture): GPUTexture {
         // Generate gpu dimension from memory layout dimension and enforce limits.
         const lTextureDimensions: { textureDimension: GPUTextureDimension, clampedDimensions: [number, number, number]; } = (() => {
             switch (this.mDimension) {
@@ -368,7 +369,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
         }
 
         // Create and configure canvas context.
-        return this.device.gpu.createTexture({
+        const lNewTexture: GPUTexture = this.device.gpu.createTexture({
             label: 'GPU-Texture',
             size: lTextureDimensions.clampedDimensions,
             format: this.mFormat as GPUTextureFormat,
@@ -377,6 +378,69 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
             sampleCount: this.mMultisampled ? 4 : 1,
             mipLevelCount: Math.min(this.mMipLevelCount, lMaxMipCount)
         });
+
+        // Copy old texture data into new texture.
+        if (pOldTexture !== null && lNewTexture.sampleCount === 1) {
+            // Create copy command encoder to store copy actions.
+            const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
+
+            // Copy each mip level.
+            const lCopyMipCount: number = Math.min(lNewTexture.mipLevelCount, pOldTexture.mipLevelCount);
+            for (let lMipLevel: number = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
+
+                // Create copy source settings.
+                const lSource: GPUImageCopyTexture = {
+                    texture: pOldTexture,
+                    aspect: 'all',
+                    origin: [0, 0, 0],
+                    mipLevel: lMipLevel
+                };
+
+                // Create copy destination settings.
+                const lDestination: GPUImageCopyTexture = {
+                    texture: lNewTexture,
+                    aspect: 'all',
+                    origin: [0, 0, 0],
+                    mipLevel: lMipLevel
+                };
+
+                // Destination clamped sizes to mip level.
+                const lDestinationMaxSize: GpuTextureDimension = {
+                    width: Math.floor(lNewTexture.width / Math.pow(2, lMipLevel)),
+                    height: Math.floor(lNewTexture.height / Math.pow(2, lMipLevel)),
+                    // On 3D textures the depth count to the mip.
+                    depthOrArrayLayers: (lNewTexture.dimension === '3d') ?
+                        Math.floor(lNewTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) :
+                        lNewTexture.depthOrArrayLayers,
+                };
+
+                // Source clamped sizes to mip level.
+                const lSourceMaxSize: GpuTextureDimension = {
+                    width: Math.floor(pOldTexture.width / Math.pow(2, lMipLevel)),
+                    height: Math.floor(pOldTexture.height / Math.pow(2, lMipLevel)),
+                    // On 3D textures the depth count to the mip.
+                    depthOrArrayLayers: (pOldTexture.dimension === '3d') ?
+                        Math.floor(pOldTexture.depthOrArrayLayers / Math.pow(2, lMipLevel)) :
+                        pOldTexture.depthOrArrayLayers,
+                };
+
+                // Clamp copy sizes to lowest.
+                const lClampedCopySize: GpuTextureDimension = {
+                    width: Math.min(lSourceMaxSize.width, lDestinationMaxSize.width),
+                    height: Math.min(lSourceMaxSize.height, lDestinationMaxSize.height),
+                    depthOrArrayLayers: Math.min(lSourceMaxSize.depthOrArrayLayers, lDestinationMaxSize.depthOrArrayLayers)
+                };
+
+
+                // Add copy action to command queue.
+                lCommandDecoder.copyTextureToTexture(lSource, lDestination, lClampedCopySize);
+            }
+
+            // Submit copy actions.
+            this.device.gpu.queue.submit([lCommandDecoder.finish()]);
+        }
+
+        return lNewTexture;
     }
 }
 

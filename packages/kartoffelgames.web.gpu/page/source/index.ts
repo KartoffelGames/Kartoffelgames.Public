@@ -207,6 +207,11 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
 
         // Copy images into texture.
         lImageTexture.copyFrom(...lImageList);
+
+        // Test for keeping information on resize.
+        lImageTexture.width = lImageTexture.width * 2;
+        lImageTexture.native;
+        lImageTexture.width = lImageTexture.width / 2;
     })();
 
     // Setup Sampler.

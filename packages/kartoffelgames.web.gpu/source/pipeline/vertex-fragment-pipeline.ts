@@ -18,8 +18,7 @@ import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-t
 import { PipelineLayout } from '../binding/pipeline-layout';
 
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
-    private mDepthCompare: CompareFunction;
-    private mDepthWriteEnabled: boolean;
+    private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfig;
     private mLoadedPipeline: GPURenderPipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private mPrimitiveCullMode: PrimitiveCullMode;
@@ -28,18 +27,6 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     private readonly mRenderTargetConfig: Dictionary<string, VertexFragmentPipelineTargetConfigData>;
     private readonly mRenderTargets: RenderTargets;
     private readonly mShaderModule: ShaderRenderModule;
-
-    /**
-     * Set depth compare function.
-     */
-    public get depthCompare(): CompareFunction {
-        return this.mDepthCompare;
-    } set depthCompare(pValue: CompareFunction) {
-        this.mDepthCompare = pValue;
-
-        // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }
 
     /**
      * Pipeline layout.
@@ -106,18 +93,6 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     }
 
     /**
-     * Set depth write enabled / disabled.
-     */
-    public get writeDepth(): boolean {
-        return this.mDepthWriteEnabled;
-    } set writeDepth(pValue: boolean) {
-        this.mDepthWriteEnabled = pValue;
-
-        // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
-    }
-
-    /**
      * Constructor.
      * Set default data.
      * 
@@ -139,13 +114,32 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         this.mParameter = new Dictionary<ComputeStage, Record<string, number>>();
 
         // Depth default settings.
-        this.mDepthCompare = CompareFunction.Less;
-        this.mDepthWriteEnabled = this.mRenderTargets.hasDepth;
+        this.mDepthConfiguration = {
+            depthWriteEnabled: this.mRenderTargets.hasDepth,
+            depthCompare: CompareFunction.Less
+        };
 
         // Primitive default settings.
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;
         this.mPrimitiveCullMode = PrimitiveCullMode.Back;
         this.mPrimitiveFrontFace = PrimitiveFrontFace.ClockWise;
+    }
+
+    /**
+     * Set depth process configuration.
+     * 
+     * @param pEnabled - Enable depth write.
+     * @param pCompare - Depth read compare function.
+     */
+    public depthConfig(pEnabled: boolean, pCompare?: CompareFunction): void {
+        this.mDepthConfiguration.depthWriteEnabled = pEnabled;
+
+        if (pCompare) {
+            this.mDepthConfiguration.depthCompare = pCompare;
+        }
+
+        // Invalidate pipeline on setting change.
+        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     }
 
     /**
@@ -260,16 +254,32 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
             };
         }
 
-        // Setup optional depth attachment.
-        if (this.mRenderTargets.hasDepth) {
+        // Setup optional depth or and stencil attachment.
+        if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
             lPipelineDescriptor.depthStencil = {
-                depthWriteEnabled: this.writeDepth,
-                depthCompare: this.depthCompare,
-                format: this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat,
+                format: this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat
             };
-        }
 
-        // TODO: Stencil.
+            // Setup depth options.
+            if (this.mRenderTargets.hasDepth) {
+                lPipelineDescriptor.depthStencil.depthWriteEnabled = this.mDepthConfiguration.depthWriteEnabled;
+                lPipelineDescriptor.depthStencil.depthCompare = this.mDepthConfiguration.depthCompare;
+
+                // TODO: Additional depth config.
+                lPipelineDescriptor.depthStencil.depthBias;
+                lPipelineDescriptor.depthStencil.depthBiasSlopeScale;
+                lPipelineDescriptor.depthStencil.depthBiasClamp;
+            }
+
+            // Setup stencil options.
+            if (this.mRenderTargets.hasStencil) {
+                // TODO: Stencil.
+                lPipelineDescriptor.depthStencil.stencilBack;
+                lPipelineDescriptor.depthStencil.stencilFront;
+                lPipelineDescriptor.depthStencil.stencilReadMask;
+                lPipelineDescriptor.depthStencil.stencilWriteMask;
+            }
+        }
 
         // Set multisample count.
         if (this.mRenderTargets.multisampled) {
@@ -391,6 +401,11 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         return lWriteMask;
     }
 }
+
+type VertexFragmentPipelineDepthConfig = {
+    depthCompare: CompareFunction;
+    depthWriteEnabled: boolean;
+};
 
 export enum VertexFragmentPipelineInvalidationType {
     NativeRebuild = 'NativeRebuild',

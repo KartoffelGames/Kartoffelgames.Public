@@ -482,8 +482,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
 
     const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
-    lSkyBoxPipeline.depthCompare = CompareFunction.Allways;
-    lSkyBoxPipeline.writeDepth = false;
+    lSkyBoxPipeline.depthConfig(false, CompareFunction.Allways);
 
     return {
         pipeline: lSkyBoxPipeline,
@@ -591,7 +590,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
-    lPipeline.writeDepth = false;
+    lPipeline.depthConfig(false);
     lPipeline.targetConfig('color')
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
@@ -719,8 +718,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
     const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargets);
     lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
-    lParticlePipeline.depthCompare = CompareFunction.Less;
-    lParticlePipeline.writeDepth = true;
+    lParticlePipeline.depthConfig(true, CompareFunction.Less);
     lParticlePipeline.targetConfig('color')
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);

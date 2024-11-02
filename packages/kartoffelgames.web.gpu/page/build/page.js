@@ -10875,6 +10875,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R8unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -10899,6 +10900,7 @@ class TextureFormatCapabilities {
         textureBinding: true,
         renderAttachment: false,
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R8snorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -10927,6 +10929,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R8uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -10955,6 +10958,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R8sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -10984,6 +10988,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R16uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11012,6 +11017,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R16sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11040,6 +11046,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R16float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11068,6 +11075,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg8unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11092,6 +11100,7 @@ class TextureFormatCapabilities {
         textureBinding: true,
         renderAttachment: false,
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg8snorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11120,6 +11129,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg8uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11148,6 +11158,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg8sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11177,6 +11188,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R32uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11209,6 +11221,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R32sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11241,6 +11254,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.R32float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11273,6 +11287,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg16uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11301,6 +11316,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg16sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11329,6 +11345,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg16float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11357,6 +11374,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba8unorm, texture_format_enum_1.TextureFormat.Rgba8unormSrgb],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11389,6 +11407,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba8unormSrgb, texture_format_enum_1.TextureFormat.Rgba8unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11413,6 +11432,7 @@ class TextureFormatCapabilities {
         textureBinding: true,
         renderAttachment: false,
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba8snorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11445,6 +11465,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba8uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11477,6 +11498,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba8sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11509,6 +11531,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Bgra8unorm, texture_format_enum_1.TextureFormat.Bgra8unormSrgb],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11541,6 +11564,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Bgra8unormSrgb, texture_format_enum_1.TextureFormat.Bgra8unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11566,6 +11590,7 @@ class TextureFormatCapabilities {
         textureBinding: true,
         renderAttachment: false,
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgb9e5ufloat],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11594,6 +11619,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgb10a2uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11622,6 +11648,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgb10a2unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11650,6 +11677,7 @@ class TextureFormatCapabilities {
           multisample: true
         } : false,
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg11b10ufloat],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11679,6 +11707,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg32uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11711,6 +11740,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg32sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11743,6 +11773,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rg32float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11775,6 +11806,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba16uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11807,6 +11839,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba16sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11839,6 +11872,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba16float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11872,6 +11906,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba32uint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11904,6 +11939,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba32sint],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11936,6 +11972,7 @@ class TextureFormatCapabilities {
           multisample: false
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Rgba32float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11969,6 +12006,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Stencil8],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -11997,6 +12035,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Depth16unorm],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -12025,6 +12064,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Depth24plus],
           textureSource: true,
           textureDestination: true,
           imageSource: false,
@@ -12053,6 +12093,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Depth24plusStencil8],
           textureSource: true,
           textureDestination: true,
           imageSource: false,
@@ -12082,6 +12123,7 @@ class TextureFormatCapabilities {
           multisample: true
         },
         copy: {
+          compatible: [texture_format_enum_1.TextureFormat.Depth32float],
           textureSource: true,
           textureDestination: true,
           imageSource: true,
@@ -12112,6 +12154,7 @@ class TextureFormatCapabilities {
             multisample: true
           },
           copy: {
+            compatible: [texture_format_enum_1.TextureFormat.Depth32floatStencil8],
             textureSource: true,
             textureDestination: true,
             imageSource: true,
@@ -12123,7 +12166,7 @@ class TextureFormatCapabilities {
     }
     // BC compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionBc)) {
-      const lBcTextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
+      const lBcTextureFormatCapability = (pFormat, pAspects, pByteOfAspect, pCompatible) => {
         const lFormat = {
           format: pFormat,
           aspect: {
@@ -12140,6 +12183,7 @@ class TextureFormatCapabilities {
             textureBinding: true,
             renderAttachment: false,
             copy: {
+              compatible: [pFormat, ...pCompatible],
               textureSource: true,
               textureDestination: true,
               imageSource: true,
@@ -12153,24 +12197,24 @@ class TextureFormatCapabilities {
         }
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Runorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Runorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Rsnorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgSnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2, [texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc1RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2, [texture_format_enum_1.TextureFormat.Bc1RgbaUnorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc2RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc2RgbaUnorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc3RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc3RgbaUnorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Runorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Runorm, [texture_aspect_enum_1.TextureAspect.Red], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc4Rsnorm, [texture_aspect_enum_1.TextureAspect.Red], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc5RgSnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbUfloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc6hRgbFloat, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 4, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability(texture_format_enum_1.TextureFormat.Bc7RgbaUnormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Bc7RgbaUnorm]));
     }
     // ETC2 compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionEtc2)) {
-      const lEtc2TextureFormatCapability = (pFormat, pAspects, pByteOfAspect) => {
+      const lEtc2TextureFormatCapability = (pFormat, pAspects, pByteOfAspect, pCompatible) => {
         const lFormat = {
           format: pFormat,
           aspect: {
@@ -12187,6 +12231,7 @@ class TextureFormatCapabilities {
             textureBinding: true,
             renderAttachment: false,
             copy: {
+              compatible: [pFormat, ...pCompatible],
               textureSource: true,
               textureDestination: true,
               imageSource: true,
@@ -12197,20 +12242,20 @@ class TextureFormatCapabilities {
         };
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11unorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11snorm, [texture_aspect_enum_1.TextureAspect.Red], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11snorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2, [texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue], 2, [texture_format_enum_1.TextureFormat.Etc2Rgb8unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2, [texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgb8a1unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 2, [texture_format_enum_1.TextureFormat.Etc2Rgb8a1unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.Etc2Rgba8unormSrgb, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha], 4, [texture_format_enum_1.TextureFormat.Etc2Rgba8unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11unorm, [texture_aspect_enum_1.TextureAspect.Red], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacR11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacR11snorm, [texture_aspect_enum_1.TextureAspect.Red], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11unorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8, []));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability(texture_format_enum_1.TextureFormat.EacRg11snorm, [texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green], 8, []));
     }
     // ASTC compressed formats
     if (pDevice.capabilities.hasFeature(gpu_feature_enum_1.GpuFeature.TextureCompressionAstc)) {
-      const lAstcTextureFormatCapability = (pFormat, pCompressionLevel) => {
+      const lAstcTextureFormatCapability = (pFormat, pCompressionLevel, pCompatible) => {
         const lFormat = {
           format: pFormat,
           aspect: {
@@ -12227,6 +12272,7 @@ class TextureFormatCapabilities {
             textureBinding: true,
             renderAttachment: false,
             copy: {
+              compatible: [pFormat, ...pCompatible],
               textureSource: true,
               textureDestination: true,
               imageSource: true,
@@ -12237,34 +12283,34 @@ class TextureFormatCapabilities {
         };
         return lFormat;
       };
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unorm, [4, 4]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, [4, 4]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unorm, [5, 4]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, [5, 4]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unorm, [5, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, [5, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unorm, [6, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, [6, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unorm, [6, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, [6, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unorm, [8, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, [8, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unorm, [8, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, [8, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unorm, [8, 8]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, [8, 8]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unorm, [10, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, [10, 5]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unorm, [10, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, [10, 6]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unorm, [10, 8]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, [10, 8]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unorm, [10, 10]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, [10, 10]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unorm, [12, 10]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, [12, 10]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unorm, [12, 12]));
-      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, [12, 12]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unorm, [4, 4], [texture_format_enum_1.TextureFormat.Astc4x4unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc4x4unormSrgb, [4, 4], [texture_format_enum_1.TextureFormat.Astc4x4unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unorm, [5, 4], [texture_format_enum_1.TextureFormat.Astc5x4unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x4unormSrgb, [5, 4], [texture_format_enum_1.TextureFormat.Astc5x4unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unorm, [5, 5], [texture_format_enum_1.TextureFormat.Astc5x5unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc5x5unormSrgb, [5, 5], [texture_format_enum_1.TextureFormat.Astc5x5unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unorm, [6, 5], [texture_format_enum_1.TextureFormat.Astc6x5unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x5unormSrgb, [6, 5], [texture_format_enum_1.TextureFormat.Astc6x5unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unorm, [6, 6], [texture_format_enum_1.TextureFormat.Astc6x6unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc6x6unormSrgb, [6, 6], [texture_format_enum_1.TextureFormat.Astc6x6unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unorm, [8, 5], [texture_format_enum_1.TextureFormat.Astc8x5unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x5unormSrgb, [8, 5], [texture_format_enum_1.TextureFormat.Astc8x5unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unorm, [8, 6], [texture_format_enum_1.TextureFormat.Astc8x6unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x6unormSrgb, [8, 6], [texture_format_enum_1.TextureFormat.Astc8x6unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unorm, [8, 8], [texture_format_enum_1.TextureFormat.Astc8x8unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc8x8unormSrgb, [8, 8], [texture_format_enum_1.TextureFormat.Astc8x8unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unorm, [10, 5], [texture_format_enum_1.TextureFormat.Astc10x5unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x5unormSrgb, [10, 5], [texture_format_enum_1.TextureFormat.Astc10x5unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unorm, [10, 6], [texture_format_enum_1.TextureFormat.Astc10x6unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x6unormSrgb, [10, 6], [texture_format_enum_1.TextureFormat.Astc10x6unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unorm, [10, 8], [texture_format_enum_1.TextureFormat.Astc10x8unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x8unormSrgb, [10, 8], [texture_format_enum_1.TextureFormat.Astc10x8unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unorm, [10, 10], [texture_format_enum_1.TextureFormat.Astc10x10unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc10x10unormSrgb, [10, 10], [texture_format_enum_1.TextureFormat.Astc10x10unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unorm, [12, 10], [texture_format_enum_1.TextureFormat.Astc12x10unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x10unormSrgb, [12, 10], [texture_format_enum_1.TextureFormat.Astc12x10unorm]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unorm, [12, 12], [texture_format_enum_1.TextureFormat.Astc12x12unormSrgb]));
+      this.mFormatCapabilitys.set(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(texture_format_enum_1.TextureFormat.Astc12x12unormSrgb, [12, 12], [texture_format_enum_1.TextureFormat.Astc12x12unorm]));
     }
   }
   /**
@@ -12323,6 +12369,7 @@ class TextureFormatCapabilities {
     })();
     return {
       format: lCapabilityDefinition.format,
+      copyCompatible: new Set(lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.compatible : []),
       textureUsages: lTextureUsages,
       dimensions: new Set(lCapabilityDefinition.dimensions),
       aspects: new Set(lCapabilityDefinition.aspect.types),
@@ -17840,7 +17887,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("8f839c1e462ed00064b9")
+/******/ 		__webpack_require__.h = () => ("79675d07899867c3e02b")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

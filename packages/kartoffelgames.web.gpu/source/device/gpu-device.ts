@@ -1,41 +1,86 @@
-import { Dictionary, Exception, List } from '@kartoffelgames/core';
+import { Exception, List } from '@kartoffelgames/core';
+import { GpuFeature } from '../constant/gpu-feature.enum';
+import { GpuLimit } from '../constant/gpu-limit.enum';
 import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
 import { ComputePass, ComputePassExecutionFunction } from '../execution/pass/compute-pass';
 import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass';
 import { RenderTargets } from '../pipeline/render_targets/render-targets';
 import { Shader } from '../shader/shader';
 import { CanvasTexture } from '../texture/canvas-texture';
-import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities';
+import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities';
 
 export class GpuDevice {
-    private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
-    private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
-
     /**
      * Request new gpu device.
+     * 
      * @param pGenerator - Native object generator.
      */
-    public static async request(pPerformance: GPUPowerPreference): Promise<GpuDevice> {
-        // TODO: Required and optional requirements. Load available features and limits from adapter and request in device.
-
+    public static async request(pPerformance: GPUPowerPreference, pOptions?: GpuDeviceLimitConfiguration): Promise<GpuDevice> {
         // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = GpuDevice.mAdapters.get(pPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
+        const lAdapter: GPUAdapter | null = await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
         if (!lAdapter) {
             throw new Exception('Error requesting GPU adapter', GpuDevice);
         }
 
-        GpuDevice.mAdapters.set(pPerformance, lAdapter);
+        // Fill in required features and limits.
+        const lFeatures: Array<GpuFeature> = new Array<GpuFeature>();
+        const lLimits: Record<string, number> = {};
+        if (pOptions) {
+            // Setup gpu features.
+            if (pOptions.features) {
+                // Fill in required features.
+                for (const lFeature of pOptions.features) {
+                    // Exit when required feature is not available.
+                    if (!lAdapter.features.has(lFeature.name)) {
+                        // Exit when feature was not optional.
+                        if (lFeature.required) {
+                            throw new Exception(`No Gpu found with the required feature "${lFeature.name}"`, this);
+                        }
 
-        // Try to load cached device. When not cached, request new one. // TODO: Required features.
-        const lDevice: GPUDevice | null = GpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice({
-            requiredFeatures: ['timestamp-query']
+                        // Skip optional features.
+                        continue;
+                    }
+
+                    lFeatures.push(lFeature.name);
+                }
+            }
+
+            // Setup gpu limits.
+            if (pOptions.limits) {
+                // Fill in required features.
+                for (const lLimit of pOptions.limits) {
+                    // Read available limit.
+                    const lAdapterLimit: number | undefined = lAdapter.limits[lLimit.name];
+                    if (typeof lAdapterLimit === 'undefined') {
+                        throw new Exception(`Gpu does not support any "${lLimit.name}" limit.`, this);
+                    }
+
+                    // Check for adapter available limit.
+                    let lAvailableLimit: number = lLimit.value;
+                    if (lAdapterLimit < lLimit.value) {
+                        // Exit when required limit is not available.
+                        if (lLimit.required) {
+                            throw new Exception(`No Gpu found with the required limit "${lLimit.name}" (has: ${lAdapterLimit}, required: ${lLimit.value})`, this);
+                        }
+
+                        // When not required, use the highest available limit.
+                        lAvailableLimit = lAdapterLimit;
+                    }
+
+                    lLimits[lLimit.name] = lAvailableLimit;
+                }
+            }
+        }
+
+        // Try to load cached device. When not cached, request new one.
+        const lDevice: GPUDevice | null = await lAdapter.requestDevice({
+            requiredFeatures: lFeatures as Array<GPUFeatureName>,
+            requiredLimits: lLimits
         });
         if (!lDevice) {
             throw new Exception('Error requesting GPU device', GpuDevice);
         }
-
-        GpuDevice.mDevices.set(lAdapter, lDevice);
 
         return new GpuDevice(lDevice);
     }
@@ -77,6 +122,7 @@ export class GpuDevice {
 
     /**
      * Constructor.
+     * 
      * @param pGenerator - Native GPU-Object Generator.
      */
     private constructor(pDevice: GPUDevice) {
@@ -191,3 +237,15 @@ export class GpuDevice {
 }
 
 export type GpuDeviceFrameChangeListener = () => void;
+
+type GpuDeviceLimitConfiguration = {
+    features?: Array<{
+        name: GpuFeature,
+        required?: boolean;
+    }>;
+    limits?: Array<{
+        name: GpuLimit,
+        value: number,
+        required?: boolean;
+    }>;
+};

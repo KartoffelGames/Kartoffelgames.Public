@@ -1535,6 +1535,7 @@ const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source
 const particle_mesh_1 = __webpack_require__(/*! ./meshes/particle-mesh */ "./page/source/meshes/particle-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
 const gpu_device_1 = __webpack_require__(/*! ../../source/device/gpu-device */ "./source/device/gpu-device.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../source/constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
 const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lHeight = 50;
   const lWidth = 50;
@@ -2156,7 +2157,12 @@ const gGenerateWorldBindGroup = pGpu => {
   return lWorldGroup;
 };
 _asyncToGenerator(function* () {
-  const lGpu = yield gpu_device_1.GpuDevice.request('high-performance');
+  const lGpu = yield gpu_device_1.GpuDevice.request('high-performance', {
+    features: [{
+      name: gpu_feature_enum_1.GpuFeature.TimestampQuery,
+      required: true
+    }]
+  });
   // Create canvas.
   const lCanvasTexture = lGpu.canvas(document.getElementById('canvas'));
   // Create and configure render targets.
@@ -6151,38 +6157,75 @@ const render_pass_1 = __webpack_require__(/*! ../execution/pass/render-pass */ "
 const render_targets_1 = __webpack_require__(/*! ../pipeline/render_targets/render-targets */ "./source/pipeline/render_targets/render-targets.ts");
 const shader_1 = __webpack_require__(/*! ../shader/shader */ "./source/shader/shader.ts");
 const canvas_texture_1 = __webpack_require__(/*! ../texture/canvas-texture */ "./source/texture/canvas-texture.ts");
-const gpu_texture_format_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-texture-format-capabilities */ "./source/device/capabilities/gpu-texture-format-capabilities.ts");
 const gpu_device_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-device-capabilities */ "./source/device/capabilities/gpu-device-capabilities.ts");
+const gpu_texture_format_capabilities_1 = __webpack_require__(/*! ./capabilities/gpu-texture-format-capabilities */ "./source/device/capabilities/gpu-texture-format-capabilities.ts");
 class GpuDevice {
-  static {
-    this.mAdapters = new core_1.Dictionary();
-  }
-  static {
-    this.mDevices = new core_1.Dictionary();
-  }
   /**
    * Request new gpu device.
+   *
    * @param pGenerator - Native object generator.
    */
-  static request(pPerformance) {
+  static request(pPerformance, pOptions) {
+    var _this = this;
     return _asyncToGenerator(function* () {
-      // TODO: Required and optional requirements. Load available features and limits from adapter and request in device.
       // Try to load cached adapter. When not cached, request new one.
-      const lAdapter = GpuDevice.mAdapters.get(pPerformance) ?? (yield window.navigator.gpu.requestAdapter({
+      const lAdapter = yield window.navigator.gpu.requestAdapter({
         powerPreference: pPerformance
-      }));
+      });
       if (!lAdapter) {
         throw new core_1.Exception('Error requesting GPU adapter', GpuDevice);
       }
-      GpuDevice.mAdapters.set(pPerformance, lAdapter);
-      // Try to load cached device. When not cached, request new one. // TODO: Required features.
-      const lDevice = GpuDevice.mDevices.get(lAdapter) ?? (yield lAdapter.requestDevice({
-        requiredFeatures: ['timestamp-query']
-      }));
+      // Fill in required features and limits.
+      const lFeatures = new Array();
+      const lLimits = {};
+      if (pOptions) {
+        // Setup gpu features.
+        if (pOptions.features) {
+          // Fill in required features.
+          for (const lFeature of pOptions.features) {
+            // Exit when required feature is not available.
+            if (!lAdapter.features.has(lFeature.name)) {
+              // Exit when feature was not optional.
+              if (lFeature.required) {
+                throw new core_1.Exception(`No Gpu found with the required feature "${lFeature.name}"`, _this);
+              }
+              // Skip optional features.
+              continue;
+            }
+            lFeatures.push(lFeature.name);
+          }
+        }
+        // Setup gpu limits.
+        if (pOptions.limits) {
+          // Fill in required features.
+          for (const lLimit of pOptions.limits) {
+            // Read available limit.
+            const lAdapterLimit = lAdapter.limits[lLimit.name];
+            if (typeof lAdapterLimit === 'undefined') {
+              throw new core_1.Exception(`Gpu does not support any "${lLimit.name}" limit.`, _this);
+            }
+            // Check for adapter available limit.
+            let lAvailableLimit = lLimit.value;
+            if (lAdapterLimit < lLimit.value) {
+              // Exit when required limit is not available.
+              if (lLimit.required) {
+                throw new core_1.Exception(`No Gpu found with the required limit "${lLimit.name}" (has: ${lAdapterLimit}, required: ${lLimit.value})`, _this);
+              }
+              // When not required, use the highest available limit.
+              lAvailableLimit = lAdapterLimit;
+            }
+            lLimits[lLimit.name] = lAvailableLimit;
+          }
+        }
+      }
+      // Try to load cached device. When not cached, request new one.
+      const lDevice = yield lAdapter.requestDevice({
+        requiredFeatures: lFeatures,
+        requiredLimits: lLimits
+      });
       if (!lDevice) {
         throw new core_1.Exception('Error requesting GPU device', GpuDevice);
       }
-      GpuDevice.mDevices.set(lAdapter, lDevice);
       return new GpuDevice(lDevice);
     })();
   }
@@ -6212,6 +6255,7 @@ class GpuDevice {
   }
   /**
    * Constructor.
+   *
    * @param pGenerator - Native GPU-Object Generator.
    */
   constructor(pDevice) {
@@ -18017,7 +18061,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("f7f70f0b99124e55d306")
+/******/ 		__webpack_require__.h = () => ("18cbb76629540eedd61b")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

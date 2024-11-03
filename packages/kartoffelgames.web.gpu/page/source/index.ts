@@ -42,6 +42,7 @@ import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/pa
 import { InitCameraControls, UpdateFpsDisplay } from './util';
 import { GpuDevice } from '../../source/device/gpu-device';
 import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data';
+import { GpuFeature } from '../../source/constant/gpu-feature.enum';
 
 const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;
@@ -872,7 +873,11 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
 };
 
 (async () => {
-    const lGpu: GpuDevice = await GpuDevice.request('high-performance');
+    const lGpu: GpuDevice = await GpuDevice.request('high-performance', {
+        features: [
+            { name: GpuFeature.TimestampQuery, required: true }
+        ]
+    });
 
     // Create canvas.
     const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);

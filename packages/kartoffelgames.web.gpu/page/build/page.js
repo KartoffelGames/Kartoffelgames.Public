@@ -4582,12 +4582,12 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuTextureFormatCapabilities = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
 const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
 const texture_dimension_enum_1 = __webpack_require__(/*! ../../constant/texture-dimension.enum */ "./source/constant/texture-dimension.enum.ts");
 const texture_format_enum_1 = __webpack_require__(/*! ../../constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_sample_type_enum_1 = __webpack_require__(/*! ../../constant/texture-sample-type.enum */ "./source/constant/texture-sample-type.enum.ts");
 const texture_usage_enum_1 = __webpack_require__(/*! ../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
 class GpuTextureFormatCapabilities {
   /**
    * Get prefered canvas format.
@@ -6149,13 +6149,6 @@ class GpuTextureFormatCapabilities {
         imageTarget: lCapabilityDefinition.usage.copy ? lCapabilityDefinition.usage.copy.imageDestination : false
       }
     };
-  }
-  /**
-   * Find right format for used capability.
-   */
-  formatSuggestion(_pCapability) {
-    // TODO: Find right suggestion for parameters.
-    return [];
   }
 }
 exports.GpuTextureFormatCapabilities = GpuTextureFormatCapabilities;
@@ -18346,7 +18339,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("831f8f6de0704e28938a")
+/******/ 		__webpack_require__.h = () => ("e51daca144b50abc24df")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

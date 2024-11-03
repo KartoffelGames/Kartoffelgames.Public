@@ -1,10 +1,10 @@
-import { DeepPartial, Dictionary, Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { GpuFeature } from '../../constant/gpu-feature.enum';
 import { TextureAspect } from '../../constant/texture-aspect.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureSampleType } from '../../constant/texture-sample-type.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
-import { GpuFeature } from '../../constant/gpu-feature.enum';
 import { GpuDevice } from '../gpu-device';
 
 export class GpuTextureFormatCapabilities {
@@ -1462,14 +1462,6 @@ export class GpuTextureFormatCapabilities {
                 imageTarget: (lCapabilityDefinition.usage.copy) ? lCapabilityDefinition.usage.copy.imageDestination : false,
             }
         };
-    }
-
-    /**
-     * Find right format for used capability.
-     */
-    public formatSuggestion(_pCapability: DeepPartial<TextureFormatCapabilityDefinition>): Array<TextureFormat> {
-        // TODO: Find right suggestion for parameters.
-        return [];
     }
 }
 

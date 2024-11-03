@@ -1,19 +1,19 @@
 import { CompareFunction } from '../../constant/compare-function.enum';
-import { VertexFragmentPipelineDepthConfigData } from './vertex-fragment-pipeline';
+import { VertexFragmentPipelineDepthConfigurationData } from './vertex-fragment-pipeline';
 
 /**
  * Configuration object for pipeline depth target. 
  */
 export class VertexFragmentPipelineDepthConfiguration {
     private readonly mCallback: VertexFragmentPipelineDepthConfigurationCallback;
-    private readonly mDataReference: VertexFragmentPipelineDepthConfigData;
+    private readonly mDataReference: VertexFragmentPipelineDepthConfigurationData;
 
     /**
      * Constructor.
      * 
      * @param pCallback - Data callback.
      */
-    public constructor(pDataReference: VertexFragmentPipelineDepthConfigData, pCallback: VertexFragmentPipelineDepthConfigurationCallback) {
+    public constructor(pDataReference: VertexFragmentPipelineDepthConfigurationData, pCallback: VertexFragmentPipelineDepthConfigurationCallback) {
         this.mCallback = pCallback;
         this.mDataReference = pDataReference;
     }

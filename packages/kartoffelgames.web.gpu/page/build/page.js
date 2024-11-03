@@ -4079,6 +4079,33 @@ var SamplerType;
 
 /***/ }),
 
+/***/ "./source/constant/stencil-operation.enum.ts":
+/*!***************************************************!*\
+  !*** ./source/constant/stencil-operation.enum.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StencilOperation = void 0;
+var StencilOperation;
+(function (StencilOperation) {
+  StencilOperation["Keep"] = "keep";
+  StencilOperation["Zero"] = "zero";
+  StencilOperation["Replace"] = "replace";
+  StencilOperation["Invert"] = "invert";
+  StencilOperation["IncrementClamp"] = "increment-clamp";
+  StencilOperation["DecrementClamp"] = "decrement-clamp";
+  StencilOperation["IncrementWrap"] = "increment-wrap";
+  StencilOperation["DecrementWrap"] = "decrement-wrap";
+})(StencilOperation || (exports.StencilOperation = StencilOperation = {}));
+
+/***/ }),
+
 /***/ "./source/constant/storage-binding-type.enum.ts":
 /*!******************************************************!*\
   !*** ./source/constant/storage-binding-type.enum.ts ***!
@@ -10215,6 +10242,119 @@ exports.VertexFragmentPipelineDepthConfiguration = VertexFragmentPipelineDepthCo
 
 /***/ }),
 
+/***/ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-stencil-configuration.ts":
+/*!****************************************************************************************************!*\
+  !*** ./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-stencil-configuration.ts ***!
+  \****************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexFragmentPipelineStencilConfiguration = void 0;
+/**
+ * Configuration object for pipeline stencil target.
+ */
+class VertexFragmentPipelineStencilConfiguration {
+  /**
+   * Constructor.
+   *
+   * @param pCallback - Data callback.
+   */
+  constructor(pDataReference, pCallback) {
+    this.mCallback = pCallback;
+    this.mDataReference = pDataReference;
+  }
+  /**
+   * Back operations.
+   *
+   * @param pCompare - Compare function.
+   * @param pFailOperation - Operation on compare fail.
+   * @param pPassOperation  - Operation on compare pass.
+   * @param pDepthFailOperation  - Operation on depth compare fail.
+   *
+   * @returns this.
+   */
+  back(pCompare, pFailOperation, pPassOperation, pDepthFailOperation) {
+    // Set data.
+    this.mDataReference.stencilBack.compare = pCompare;
+    // Optionals.
+    if (pFailOperation) {
+      this.mDataReference.stencilBack.failOperation = pFailOperation;
+    }
+    if (pPassOperation) {
+      this.mDataReference.stencilBack.passOperation = pPassOperation;
+    }
+    if (pDepthFailOperation) {
+      this.mDataReference.stencilBack.depthFailOperation = pDepthFailOperation;
+    }
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Front operations.
+   *
+   * @param pCompare - Compare function.
+   * @param pFailOperation - Operation on compare fail.
+   * @param pPassOperation  - Operation on compare pass.
+   * @param pDepthFailOperation  - Operation on depth compare fail.
+   *
+   * @returns this.
+   */
+  front(pCompare, pFailOperation, pPassOperation, pDepthFailOperation) {
+    // Set data.
+    this.mDataReference.stencilFront.compare = pCompare;
+    // Optionals.
+    if (pFailOperation) {
+      this.mDataReference.stencilFront.failOperation = pFailOperation;
+    }
+    if (pPassOperation) {
+      this.mDataReference.stencilFront.passOperation = pPassOperation;
+    }
+    if (pDepthFailOperation) {
+      this.mDataReference.stencilFront.depthFailOperation = pDepthFailOperation;
+    }
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set writemask witch bit will be read for comparison tests.
+   *
+   * @param pBitMask - Bitmask.
+   *
+   * @returns this.
+   */
+  readMask(pBitMask) {
+    // Set data.
+    this.mDataReference.stencilReadMask = pBitMask;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set writemask witch bit will be written for comparison tests.
+   *
+   * @param pBitMask - Bitmask.
+   *
+   * @returns this.
+   */
+  writeMask(pBitMask) {
+    // Set data.
+    this.mDataReference.stencilWriteMask = pBitMask;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+}
+exports.VertexFragmentPipelineStencilConfiguration = VertexFragmentPipelineStencilConfiguration;
+
+/***/ }),
+
 /***/ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts":
 /*!***************************************************************************************************!*\
   !*** ./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts ***!
@@ -10319,12 +10459,14 @@ const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stag
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
 const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
+const stencil_operation_enum_1 = __webpack_require__(/*! ../../constant/stencil-operation.enum */ "./source/constant/stencil-operation.enum.ts");
 const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
 const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
 const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
-const vertex_fragment_pipeline_target_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts");
 const vertex_fragment_pipeline_depth_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-depth-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-depth-configuration.ts");
+const vertex_fragment_pipeline_stencil_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-stencil-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-stencil-configuration.ts");
+const vertex_fragment_pipeline_target_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts");
 /**
  * Gpu pipeline resource for rendering with a vertex and fragment shader.
  */
@@ -10411,6 +10553,23 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       depthBiasSlopeScale: 0,
       depthBiasClamp: 0
     };
+    // Default stencil settings.
+    this.mStencilConfiguration = {
+      stencilReadMask: 0,
+      stencilWriteMask: 0,
+      stencilBack: {
+        compare: compare_function_enum_1.CompareFunction.Allways,
+        failOperation: stencil_operation_enum_1.StencilOperation.Keep,
+        depthFailOperation: stencil_operation_enum_1.StencilOperation.Keep,
+        passOperation: stencil_operation_enum_1.StencilOperation.Keep
+      },
+      stencilFront: {
+        compare: compare_function_enum_1.CompareFunction.Allways,
+        failOperation: stencil_operation_enum_1.StencilOperation.Keep,
+        depthFailOperation: stencil_operation_enum_1.StencilOperation.Keep,
+        passOperation: stencil_operation_enum_1.StencilOperation.Keep
+      }
+    };
     // Primitive default settings.
     this.mPrimitiveTopology = primitive_topology_enum_1.PrimitiveTopology.TriangleList;
     this.mPrimitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
@@ -10447,6 +10606,15 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     // Generate pipeline anew.
     this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     return this;
+  }
+  /**
+   * Set stencil process configuration.
+   */
+  stencilConfig() {
+    return new vertex_fragment_pipeline_stencil_configuration_1.VertexFragmentPipelineStencilConfiguration(this.mStencilConfiguration, () => {
+      // Generate pipeline anew.
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    });
   }
   /**
    * Create or update target config.
@@ -10543,11 +10711,20 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       }
       // Setup stencil options.
       if (this.mRenderTargets.hasStencil) {
-        // TODO: Stencil.
-        lPipelineDescriptor.depthStencil.stencilBack;
-        lPipelineDescriptor.depthStencil.stencilFront;
-        lPipelineDescriptor.depthStencil.stencilReadMask;
-        lPipelineDescriptor.depthStencil.stencilWriteMask;
+        lPipelineDescriptor.depthStencil.stencilReadMask = this.mStencilConfiguration.stencilReadMask;
+        lPipelineDescriptor.depthStencil.stencilWriteMask = this.mStencilConfiguration.stencilWriteMask;
+        lPipelineDescriptor.depthStencil.stencilBack = {
+          compare: this.mStencilConfiguration.stencilBack.compare,
+          failOp: this.mStencilConfiguration.stencilBack.failOperation,
+          depthFailOp: this.mStencilConfiguration.stencilBack.depthFailOperation,
+          passOp: this.mStencilConfiguration.stencilBack.passOperation
+        };
+        lPipelineDescriptor.depthStencil.stencilFront = {
+          compare: this.mStencilConfiguration.stencilFront.compare,
+          failOp: this.mStencilConfiguration.stencilFront.failOperation,
+          depthFailOp: this.mStencilConfiguration.stencilFront.depthFailOperation,
+          passOp: this.mStencilConfiguration.stencilFront.passOperation
+        };
       }
     }
     // Set multisample count.
@@ -18169,7 +18346,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("0cf3ab77b37dee35636c")
+/******/ 		__webpack_require__.h = () => ("831f8f6de0704e28938a")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

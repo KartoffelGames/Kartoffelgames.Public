@@ -4,6 +4,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
+import { StencilOperation } from '../../constant/stencil-operation.enum';
 import { TextureAspect } from '../../constant/texture-aspect.enum';
 import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
 import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
@@ -15,14 +16,15 @@ import { ShaderRenderModule } from '../../shader/shader-render-module';
 import { GpuTextureView } from '../../texture/gpu-texture-view';
 import { PipelineLayout } from '../pipeline-layout';
 import { RenderTargets } from '../render_targets/render-targets';
-import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration';
 import { VertexFragmentPipelineDepthConfiguration } from './vertex-fragment-pipeline-depth-configuration';
+import { VertexFragmentPipelineStencilConfiguration } from './vertex-fragment-pipeline-stencil-configuration';
+import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration';
 
 /**
  * Gpu pipeline resource for rendering with a vertex and fragment shader. 
  */
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
-    private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfigData;
+    private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfigurationData;
     private mLoadedPipeline: GPURenderPipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private mPrimitiveCullMode: PrimitiveCullMode;
@@ -31,6 +33,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     private readonly mRenderTargetConfig: Dictionary<string, VertexFragmentPipelineTargetConfigData>;
     private readonly mRenderTargets: RenderTargets;
     private readonly mShaderModule: ShaderRenderModule;
+    private readonly mStencilConfiguration: VertexFragmentPipelineStencilConfigurationData;
 
     /**
      * Pipeline layout.
@@ -126,6 +129,24 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
             depthBiasClamp: 0
         };
 
+        // Default stencil settings.
+        this.mStencilConfiguration = {
+            stencilReadMask: 0,
+            stencilWriteMask: 0,
+            stencilBack: {
+                compare: CompareFunction.Allways,
+                failOperation: StencilOperation.Keep,
+                depthFailOperation: StencilOperation.Keep,
+                passOperation: StencilOperation.Keep,
+            },
+            stencilFront: {
+                compare: CompareFunction.Allways,
+                failOperation: StencilOperation.Keep,
+                depthFailOperation: StencilOperation.Keep,
+                passOperation: StencilOperation.Keep,
+            }
+        };
+
         // Primitive default settings.
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;
         this.mPrimitiveCullMode = PrimitiveCullMode.Back;
@@ -168,6 +189,16 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
 
         return this;
+    }
+
+    /**
+     * Set stencil process configuration.
+     */
+    public stencilConfig(): VertexFragmentPipelineStencilConfiguration {
+        return new VertexFragmentPipelineStencilConfiguration(this.mStencilConfiguration, () => {
+            // Generate pipeline anew.
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+        });
     }
 
     /**
@@ -278,11 +309,20 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
             // Setup stencil options.
             if (this.mRenderTargets.hasStencil) {
-                // TODO: Stencil.
-                lPipelineDescriptor.depthStencil.stencilBack;
-                lPipelineDescriptor.depthStencil.stencilFront;
-                lPipelineDescriptor.depthStencil.stencilReadMask;
-                lPipelineDescriptor.depthStencil.stencilWriteMask;
+                lPipelineDescriptor.depthStencil.stencilReadMask = this.mStencilConfiguration.stencilReadMask;
+                lPipelineDescriptor.depthStencil.stencilWriteMask = this.mStencilConfiguration.stencilWriteMask;
+                lPipelineDescriptor.depthStencil.stencilBack = {
+                    compare: this.mStencilConfiguration.stencilBack.compare,
+                    failOp: this.mStencilConfiguration.stencilBack.failOperation,
+                    depthFailOp: this.mStencilConfiguration.stencilBack.depthFailOperation,
+                    passOp: this.mStencilConfiguration.stencilBack.passOperation
+                };
+                lPipelineDescriptor.depthStencil.stencilFront = {
+                    compare: this.mStencilConfiguration.stencilFront.compare,
+                    failOp: this.mStencilConfiguration.stencilFront.failOperation,
+                    depthFailOp: this.mStencilConfiguration.stencilFront.depthFailOperation,
+                    passOp: this.mStencilConfiguration.stencilFront.passOperation
+                };
             }
         }
 
@@ -407,12 +447,27 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     }
 }
 
-export type VertexFragmentPipelineDepthConfigData = {
+export type VertexFragmentPipelineDepthConfigurationData = {
     depthCompare: CompareFunction;
     depthWriteEnabled: boolean;
     depthBias: number;
     depthBiasSlopeScale: number;
     depthBiasClamp: number;
+};
+
+
+type VertexFragmentPipelineStencilConfigurationFaceData = {
+    compare: CompareFunction;
+    failOperation: StencilOperation;
+    depthFailOperation: StencilOperation;
+    passOperation: StencilOperation;
+};
+
+export type VertexFragmentPipelineStencilConfigurationData = {
+    stencilBack: VertexFragmentPipelineStencilConfigurationFaceData;
+    stencilFront: VertexFragmentPipelineStencilConfigurationFaceData;
+    stencilReadMask: number;
+    stencilWriteMask: number;
 };
 
 export enum VertexFragmentPipelineInvalidationType {

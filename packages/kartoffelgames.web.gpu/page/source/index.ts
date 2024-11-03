@@ -1,11 +1,10 @@
-import { BindGroup } from '../../source/pipeline/bind_group/bind-group';
-import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout';
 import { GpuBuffer } from '../../source/buffer/gpu-buffer';
 import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum';
 import { CompareFunction } from '../../source/constant/compare-function.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
+import { GpuFeature } from '../../source/constant/gpu-feature.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { SamplerType } from '../../source/constant/sampler-type.enum';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
@@ -14,13 +13,17 @@ import { TextureBlendOperation } from '../../source/constant/texture-blend-opera
 import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
+import { GpuDevice } from '../../source/device/gpu-device';
 import { GpuExecution } from '../../source/execution/gpu-execution';
 import { ComputePass } from '../../source/execution/pass/compute-pass';
 import { RenderPass } from '../../source/execution/pass/render-pass';
+import { BindGroup } from '../../source/pipeline/bind_group/bind-group';
+import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline';
-import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter';
+import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data';
 import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline } from '../../source/pipeline/vertex-fragment-pipeline';
+import { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
+import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter';
 import { Shader } from '../../source/shader/shader';
 import { ShaderRenderModule } from '../../source/shader/shader-render-module';
 import { CanvasTexture } from '../../source/texture/canvas-texture';
@@ -29,8 +32,8 @@ import { AmbientLight } from './camera/light/ambient-light';
 import { Transform, TransformMatrix } from './camera/transform';
 import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
 import { ViewProjection } from './camera/view_projection/view-projection';
-import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import colorCubeShader from './game_objects/color_cube/color-cube-shader.wgsl';
+import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import particleComputeShader from './game_objects/leaf_particle/particle-compute-shader.wgsl';
 import particleShader from './game_objects/leaf_particle/particle-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
@@ -40,9 +43,6 @@ import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, 
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
 import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh';
 import { InitCameraControls, UpdateFpsDisplay } from './util';
-import { GpuDevice } from '../../source/device/gpu-device';
-import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data';
-import { GpuFeature } from '../../source/constant/gpu-feature.enum';
 
 const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;
@@ -483,7 +483,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
 
     const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
-    lSkyBoxPipeline.depthConfig(false, CompareFunction.Allways);
+    lSkyBoxPipeline.depthConfig().enableWrite(false).compareWith(CompareFunction.Allways);
 
     return {
         pipeline: lSkyBoxPipeline,
@@ -591,7 +591,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
-    lPipeline.depthConfig(false);
+    lPipeline.depthConfig().enableWrite(false);
     lPipeline.targetConfig('color')
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
@@ -719,7 +719,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
     const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargets);
     lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
-    lParticlePipeline.depthConfig(true, CompareFunction.Less);
+    lParticlePipeline.depthConfig().enableWrite(true).compareWith(CompareFunction.Less);
     lParticlePipeline.targetConfig('color')
         .alphaBlend(TextureBlendOperation.Add, TextureBlendFactor.One, TextureBlendFactor.OneMinusSrcAlpha)
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);

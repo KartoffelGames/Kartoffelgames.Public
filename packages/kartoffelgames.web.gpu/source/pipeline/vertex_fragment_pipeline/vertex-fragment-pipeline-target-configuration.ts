@@ -1,9 +1,12 @@
-import { TextureAspect } from '../constant/texture-aspect.enum';
-import { TextureBlendFactor } from '../constant/texture-blend-factor.enum';
-import { TextureBlendOperation } from '../constant/texture-blend-operation.enum';
+import { TextureAspect } from '../../constant/texture-aspect.enum';
+import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
+import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
 import { VertexFragmentPipelineTargetConfigData } from './vertex-fragment-pipeline';
 
-export class VertexFragmentPipelineTargetConfig {
+/**
+ * Configuration object for piplines target.
+ */
+export class VertexFragmentPipelineTargetConfiguration {
     private readonly mCallback: VertexFragmentPipelineTargetConfigCallback;
     private readonly mDataReference: VertexFragmentPipelineTargetConfigData;
 

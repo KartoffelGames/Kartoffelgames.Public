@@ -1503,12 +1503,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const bind_group_layout_1 = __webpack_require__(/*! ../../source/pipeline/bind_group_layout/bind-group-layout */ "./source/pipeline/bind_group_layout/bind-group-layout.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../source/buffer/gpu-buffer */ "./source/buffer/gpu-buffer.ts");
 const buffer_item_format_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-format.enum */ "./source/constant/buffer-item-format.enum.ts");
 const buffer_item_multiplier_enum_1 = __webpack_require__(/*! ../../source/constant/buffer-item-multiplier.enum */ "./source/constant/buffer-item-multiplier.enum.ts");
 const compare_function_enum_1 = __webpack_require__(/*! ../../source/constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
 const compute_stage_enum_1 = __webpack_require__(/*! ../../source/constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const gpu_feature_enum_1 = __webpack_require__(/*! ../../source/constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
 const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../source/constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
 const sampler_type_enum_1 = __webpack_require__(/*! ../../source/constant/sampler-type.enum */ "./source/constant/sampler-type.enum.ts");
 const storage_binding_type_enum_1 = __webpack_require__(/*! ../../source/constant/storage-binding-type.enum */ "./source/constant/storage-binding-type.enum.ts");
@@ -1517,14 +1517,16 @@ const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../source/cons
 const texture_format_enum_1 = __webpack_require__(/*! ../../source/constant/texture-format.enum */ "./source/constant/texture-format.enum.ts");
 const texture_view_dimension_enum_1 = __webpack_require__(/*! ../../source/constant/texture-view-dimension.enum */ "./source/constant/texture-view-dimension.enum.ts");
 const vertex_parameter_step_mode_enum_1 = __webpack_require__(/*! ../../source/constant/vertex-parameter-step-mode.enum */ "./source/constant/vertex-parameter-step-mode.enum.ts");
+const gpu_device_1 = __webpack_require__(/*! ../../source/device/gpu-device */ "./source/device/gpu-device.ts");
+const bind_group_layout_1 = __webpack_require__(/*! ../../source/pipeline/bind_group_layout/bind-group-layout */ "./source/pipeline/bind_group_layout/bind-group-layout.ts");
 const compute_pipeline_1 = __webpack_require__(/*! ../../source/pipeline/compute-pipeline */ "./source/pipeline/compute-pipeline.ts");
 const render_targets_1 = __webpack_require__(/*! ../../source/pipeline/render_targets/render-targets */ "./source/pipeline/render_targets/render-targets.ts");
 const ambient_light_1 = __webpack_require__(/*! ./camera/light/ambient-light */ "./page/source/camera/light/ambient-light.ts");
 const transform_1 = __webpack_require__(/*! ./camera/transform */ "./page/source/camera/transform.ts");
 const perspective_projection_1 = __webpack_require__(/*! ./camera/view_projection/projection/perspective-projection */ "./page/source/camera/view_projection/projection/perspective-projection.ts");
 const view_projection_1 = __webpack_require__(/*! ./camera/view_projection/view-projection */ "./page/source/camera/view_projection/view-projection.ts");
-const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
 const color_cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/color_cube/color-cube-shader.wgsl */ "./page/source/game_objects/color_cube/color-cube-shader.wgsl");
+const cube_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/cube/cube-shader.wgsl */ "./page/source/game_objects/cube/cube-shader.wgsl");
 const particle_compute_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-compute-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-compute-shader.wgsl");
 const particle_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/leaf_particle/particle-shader.wgsl */ "./page/source/game_objects/leaf_particle/particle-shader.wgsl");
 const light_box_shader_wgsl_1 = __webpack_require__(/*! ./game_objects/light/light-box-shader.wgsl */ "./page/source/game_objects/light/light-box-shader.wgsl");
@@ -1534,8 +1536,6 @@ const canvas_mesh_1 = __webpack_require__(/*! ./meshes/canvas-mesh */ "./page/so
 const cube_mesh_1 = __webpack_require__(/*! ./meshes/cube-mesh */ "./page/source/meshes/cube-mesh.ts");
 const particle_mesh_1 = __webpack_require__(/*! ./meshes/particle-mesh */ "./page/source/meshes/particle-mesh.ts");
 const util_1 = __webpack_require__(/*! ./util */ "./page/source/util.ts");
-const gpu_device_1 = __webpack_require__(/*! ../../source/device/gpu-device */ "./source/device/gpu-device.ts");
-const gpu_feature_enum_1 = __webpack_require__(/*! ../../source/constant/gpu-feature.enum */ "./source/constant/gpu-feature.enum.ts");
 const gGenerateCubeStep = (pGpu, pRenderTargets, pWorldGroup) => {
   const lHeight = 50;
   const lWidth = 50;
@@ -1865,7 +1865,7 @@ const gGenerateSkyboxStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lMesh.create('position', cube_mesh_1.CubeVertexPositionData);
   const lSkyBoxPipeline = lSkyBoxRenderModule.create(pRenderTargets);
   lSkyBoxPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
-  lSkyBoxPipeline.depthConfig(false, compare_function_enum_1.CompareFunction.Allways);
+  lSkyBoxPipeline.depthConfig().enableWrite(false).compareWith(compare_function_enum_1.CompareFunction.Allways);
   return {
     pipeline: lSkyBoxPipeline,
     parameter: lMesh,
@@ -1946,7 +1946,7 @@ const gGenerateVideoCanvasStep = (pGpu, pRenderTargets, pWorldGroup) => {
   // Create pipeline.
   const lPipeline = lWoodBoxRenderModule.create(pRenderTargets);
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
-  lPipeline.depthConfig(false);
+  lPipeline.depthConfig().enableWrite(false);
   lPipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   return {
     pipeline: lPipeline,
@@ -2042,7 +2042,7 @@ const gGenerateParticleStep = (pGpu, pRenderTargets, pWorldGroup) => {
   lMesh.create('position-uv', particle_mesh_1.ParticleVertexPositionUvData);
   const lParticlePipeline = lParticleRenderModule.create(pRenderTargets);
   lParticlePipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.None;
-  lParticlePipeline.depthConfig(true, compare_function_enum_1.CompareFunction.Less);
+  lParticlePipeline.depthConfig().enableWrite(true).compareWith(compare_function_enum_1.CompareFunction.Less);
   lParticlePipeline.targetConfig('color').alphaBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.One, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha).colorBlend(texture_blend_operation_enum_1.TextureBlendOperation.Add, texture_blend_factor_enum_1.TextureBlendFactor.SrcAlpha, texture_blend_factor_enum_1.TextureBlendFactor.OneMinusSrcAlpha);
   // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32    
   const lIndirectionBuffer = new gpu_buffer_1.GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([particle_mesh_1.ParticleVertexIndices.length, 0, 0, 0]));
@@ -6948,7 +6948,7 @@ const gpu_feature_enum_1 = __webpack_require__(/*! ../../constant/gpu-feature.en
 const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
 const gpu_resource_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-resource-object */ "./source/gpu_object/gpu-resource-object.ts");
 const pipeline_data_1 = __webpack_require__(/*! ../../pipeline/pipeline_data/pipeline-data */ "./source/pipeline/pipeline_data/pipeline-data.ts");
-const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts");
 const vertex_parameter_1 = __webpack_require__(/*! ../../pipeline/vertex_parameter/vertex-parameter */ "./source/pipeline/vertex_parameter/vertex-parameter.ts");
 const render_pass_context_1 = __webpack_require__(/*! ./render-pass-context */ "./source/execution/pass/render-pass-context.ts");
 /**
@@ -10114,10 +10114,10 @@ var RenderTargetsInvalidationType;
 
 /***/ }),
 
-/***/ "./source/pipeline/vertex-fragment-pipeline-target-config.ts":
-/*!*******************************************************************!*\
-  !*** ./source/pipeline/vertex-fragment-pipeline-target-config.ts ***!
-  \*******************************************************************/
+/***/ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-depth-configuration.ts":
+/*!**************************************************************************************************!*\
+  !*** ./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-depth-configuration.ts ***!
+  \**************************************************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -10126,8 +10126,112 @@ var RenderTargetsInvalidationType;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.VertexFragmentPipelineTargetConfig = void 0;
-class VertexFragmentPipelineTargetConfig {
+exports.VertexFragmentPipelineDepthConfiguration = void 0;
+/**
+ * Configuration object for pipeline depth target.
+ */
+class VertexFragmentPipelineDepthConfiguration {
+  /**
+   * Constructor.
+   *
+   * @param pCallback - Data callback.
+   */
+  constructor(pDataReference, pCallback) {
+    this.mCallback = pCallback;
+    this.mDataReference = pDataReference;
+  }
+  /**
+   * Set constant depth bias added to each fragment
+   *
+   * @param pFunction - Constant depth bias added to each fragment
+   *
+   * @returns this.
+   */
+  bias(pBias) {
+    // Set data.
+    this.mDataReference.depthBias = pBias;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set the maximum depth bias of a fragment.
+   *
+   * @param pFunction - The maximum depth bias of a fragment.
+   *
+   * @returns this.
+   */
+  biasClamp(pBias) {
+    // Set data.
+    this.mDataReference.depthBiasClamp = pBias;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set depth bias that scales with the fragment’s slope
+   *
+   * @param pFunction - Depth bias that scales with the fragment’s slope
+   *
+   * @returns this.
+   */
+  biasSlopeScale(pBias) {
+    // Set data.
+    this.mDataReference.depthBiasSlopeScale = pBias;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Set the depth compare function.
+   *
+   * @param pFunction - Compare function
+   *
+   * @returns this.
+   */
+  compareWith(pFunction) {
+    // Set data.
+    this.mDataReference.depthCompare = pFunction;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+  /**
+   * Enable depth write.
+   *
+   * @param pEnable - Enable state of depth write.
+   *
+   * @returns this.
+   */
+  enableWrite(pEnable) {
+    // Set data.
+    this.mDataReference.depthWriteEnabled = pEnable;
+    // Callback change.
+    this.mCallback();
+    return this;
+  }
+}
+exports.VertexFragmentPipelineDepthConfiguration = VertexFragmentPipelineDepthConfiguration;
+
+/***/ }),
+
+/***/ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts":
+/*!***************************************************************************************************!*\
+  !*** ./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts ***!
+  \***************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexFragmentPipelineTargetConfiguration = void 0;
+/**
+ * Configuration object for piplines target.
+ */
+class VertexFragmentPipelineTargetConfiguration {
   /**
    * Constructor.
    *
@@ -10192,14 +10296,14 @@ class VertexFragmentPipelineTargetConfig {
     return this;
   }
 }
-exports.VertexFragmentPipelineTargetConfig = VertexFragmentPipelineTargetConfig;
+exports.VertexFragmentPipelineTargetConfiguration = VertexFragmentPipelineTargetConfiguration;
 
 /***/ }),
 
-/***/ "./source/pipeline/vertex-fragment-pipeline.ts":
-/*!*****************************************************!*\
-  !*** ./source/pipeline/vertex-fragment-pipeline.ts ***!
-  \*****************************************************/
+/***/ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts":
+/*!******************************************************************************!*\
+  !*** ./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts ***!
+  \******************************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10210,16 +10314,17 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexFragmentPipelineInvalidationType = exports.VertexFragmentPipeline = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const compare_function_enum_1 = __webpack_require__(/*! ../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
-const compute_stage_enum_1 = __webpack_require__(/*! ../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
-const primitive_cullmode_enum_1 = __webpack_require__(/*! ../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
-const primitive_front_face_enum_1 = __webpack_require__(/*! ../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
-const primitive_topology_enum_1 = __webpack_require__(/*! ../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
-const texture_aspect_enum_1 = __webpack_require__(/*! ../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
-const texture_blend_factor_enum_1 = __webpack_require__(/*! ../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
-const texture_blend_operation_enum_1 = __webpack_require__(/*! ../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
-const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
-const vertex_fragment_pipeline_target_config_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-config */ "./source/pipeline/vertex-fragment-pipeline-target-config.ts");
+const compare_function_enum_1 = __webpack_require__(/*! ../../constant/compare-function.enum */ "./source/constant/compare-function.enum.ts");
+const compute_stage_enum_1 = __webpack_require__(/*! ../../constant/compute-stage.enum */ "./source/constant/compute-stage.enum.ts");
+const primitive_cullmode_enum_1 = __webpack_require__(/*! ../../constant/primitive-cullmode.enum */ "./source/constant/primitive-cullmode.enum.ts");
+const primitive_front_face_enum_1 = __webpack_require__(/*! ../../constant/primitive-front-face.enum */ "./source/constant/primitive-front-face.enum.ts");
+const primitive_topology_enum_1 = __webpack_require__(/*! ../../constant/primitive-topology.enum */ "./source/constant/primitive-topology.enum.ts");
+const texture_aspect_enum_1 = __webpack_require__(/*! ../../constant/texture-aspect.enum */ "./source/constant/texture-aspect.enum.ts");
+const texture_blend_factor_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-factor.enum */ "./source/constant/texture-blend-factor.enum.ts");
+const texture_blend_operation_enum_1 = __webpack_require__(/*! ../../constant/texture-blend-operation.enum */ "./source/constant/texture-blend-operation.enum.ts");
+const gpu_object_1 = __webpack_require__(/*! ../../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
+const vertex_fragment_pipeline_target_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-target-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-target-configuration.ts");
+const vertex_fragment_pipeline_depth_configuration_1 = __webpack_require__(/*! ./vertex-fragment-pipeline-depth-configuration */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline-depth-configuration.ts");
 /**
  * Gpu pipeline resource for rendering with a vertex and fragment shader.
  */
@@ -10301,7 +10406,10 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
     // Depth default settings.
     this.mDepthConfiguration = {
       depthWriteEnabled: this.mRenderTargets.hasDepth,
-      depthCompare: compare_function_enum_1.CompareFunction.Less
+      depthCompare: compare_function_enum_1.CompareFunction.Less,
+      depthBias: 0,
+      depthBiasSlopeScale: 0,
+      depthBiasClamp: 0
     };
     // Primitive default settings.
     this.mPrimitiveTopology = primitive_topology_enum_1.PrimitiveTopology.TriangleList;
@@ -10310,17 +10418,12 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
   }
   /**
    * Set depth process configuration.
-   *
-   * @param pEnabled - Enable depth write.
-   * @param pCompare - Depth read compare function.
    */
-  depthConfig(pEnabled, pCompare) {
-    this.mDepthConfiguration.depthWriteEnabled = pEnabled;
-    if (pCompare) {
-      this.mDepthConfiguration.depthCompare = pCompare;
-    }
-    // Invalidate pipeline on setting change.
-    this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+  depthConfig() {
+    return new vertex_fragment_pipeline_depth_configuration_1.VertexFragmentPipelineDepthConfiguration(this.mDepthConfiguration, () => {
+      // Generate pipeline anew.
+      this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    });
   }
   /**
    * Set optional parameter of pipeline.
@@ -10372,7 +10475,7 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
         aspectWriteMask: new Set([texture_aspect_enum_1.TextureAspect.Red, texture_aspect_enum_1.TextureAspect.Green, texture_aspect_enum_1.TextureAspect.Blue, texture_aspect_enum_1.TextureAspect.Alpha])
       });
     }
-    return new vertex_fragment_pipeline_target_config_1.VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName), () => {
+    return new vertex_fragment_pipeline_target_configuration_1.VertexFragmentPipelineTargetConfiguration(this.mRenderTargetConfig.get(pTargetName), () => {
       // Generate pipeline anew.
       this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
     });
@@ -10428,10 +10531,15 @@ class VertexFragmentPipeline extends gpu_object_1.GpuObject {
       if (this.mRenderTargets.hasDepth) {
         lPipelineDescriptor.depthStencil.depthWriteEnabled = this.mDepthConfiguration.depthWriteEnabled;
         lPipelineDescriptor.depthStencil.depthCompare = this.mDepthConfiguration.depthCompare;
-        // TODO: Additional depth config.
-        lPipelineDescriptor.depthStencil.depthBias;
-        lPipelineDescriptor.depthStencil.depthBiasSlopeScale;
-        lPipelineDescriptor.depthStencil.depthBiasClamp;
+        lPipelineDescriptor.depthStencil.depthBias = this.mDepthConfiguration.depthBias;
+        lPipelineDescriptor.depthStencil.depthBiasSlopeScale = this.mDepthConfiguration.depthBiasSlopeScale;
+        lPipelineDescriptor.depthStencil.depthBiasClamp = this.mDepthConfiguration.depthBiasClamp;
+        // Bias settings must be zero for list topologies.
+        if (this.mPrimitiveTopology === primitive_topology_enum_1.PrimitiveTopology.LineList || this.mPrimitiveTopology === primitive_topology_enum_1.PrimitiveTopology.LineStrip || this.mPrimitiveTopology === primitive_topology_enum_1.PrimitiveTopology.PointList) {
+          if (lPipelineDescriptor.depthStencil.depthBias !== 0 || lPipelineDescriptor.depthStencil.depthBiasSlopeScale !== 0 || lPipelineDescriptor.depthStencil.depthBiasClamp !== 0) {
+            throw new core_1.Exception(`Pipelines depth bias settings must be zero for "${this.mPrimitiveTopology}"-Topology`, this);
+          }
+        }
       }
       // Setup stencil options.
       if (this.mRenderTargets.hasStencil) {
@@ -11461,7 +11569,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.ShaderRenderModule = void 0;
 const gpu_object_1 = __webpack_require__(/*! ../gpu_object/gpu-object */ "./source/gpu_object/gpu-object.ts");
-const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex-fragment-pipeline.ts");
+const vertex_fragment_pipeline_1 = __webpack_require__(/*! ../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline */ "./source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts");
 /**
  * Render parts of a shader programm.
  * Uses vertex and fragment shader.
@@ -18061,7 +18169,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("18cbb76629540eedd61b")
+/******/ 		__webpack_require__.h = () => ("0cf3ab77b37dee35636c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

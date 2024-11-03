@@ -1,27 +1,28 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { CompareFunction } from '../constant/compare-function.enum';
-import { ComputeStage } from '../constant/compute-stage.enum';
-import { PrimitiveCullMode } from '../constant/primitive-cullmode.enum';
-import { PrimitiveFrontFace } from '../constant/primitive-front-face.enum';
-import { PrimitiveTopology } from '../constant/primitive-topology.enum';
-import { TextureAspect } from '../constant/texture-aspect.enum';
-import { TextureBlendFactor } from '../constant/texture-blend-factor.enum';
-import { TextureBlendOperation } from '../constant/texture-blend-operation.enum';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObject } from '../gpu_object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
-import { ShaderRenderModule } from '../shader/shader-render-module';
-import { GpuTextureView } from '../texture/gpu-texture-view';
-import { PipelineLayout } from './pipeline-layout';
-import { RenderTargets } from './render_targets/render-targets';
-import { VertexFragmentPipelineTargetConfig } from './vertex-fragment-pipeline-target-config';
+import { CompareFunction } from '../../constant/compare-function.enum';
+import { ComputeStage } from '../../constant/compute-stage.enum';
+import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
+import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
+import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
+import { TextureAspect } from '../../constant/texture-aspect.enum';
+import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
+import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
+import { GpuDevice } from '../../device/gpu-device';
+import { GpuObject } from '../../gpu_object/gpu-object';
+import { GpuObjectInvalidationReasons } from '../../gpu_object/gpu-object-invalidation-reasons';
+import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native';
+import { ShaderRenderModule } from '../../shader/shader-render-module';
+import { GpuTextureView } from '../../texture/gpu-texture-view';
+import { PipelineLayout } from '../pipeline-layout';
+import { RenderTargets } from '../render_targets/render-targets';
+import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration';
+import { VertexFragmentPipelineDepthConfiguration } from './vertex-fragment-pipeline-depth-configuration';
 
 /**
  * Gpu pipeline resource for rendering with a vertex and fragment shader. 
  */
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
-    private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfig;
+    private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfigData;
     private mLoadedPipeline: GPURenderPipeline | null;
     private readonly mParameter: Dictionary<ComputeStage, Record<string, number>>;
     private mPrimitiveCullMode: PrimitiveCullMode;
@@ -119,7 +120,10 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         // Depth default settings.
         this.mDepthConfiguration = {
             depthWriteEnabled: this.mRenderTargets.hasDepth,
-            depthCompare: CompareFunction.Less
+            depthCompare: CompareFunction.Less,
+            depthBias: 0,
+            depthBiasSlopeScale: 0,
+            depthBiasClamp: 0
         };
 
         // Primitive default settings.
@@ -130,19 +134,12 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
     /**
      * Set depth process configuration.
-     * 
-     * @param pEnabled - Enable depth write.
-     * @param pCompare - Depth read compare function.
      */
-    public depthConfig(pEnabled: boolean, pCompare?: CompareFunction): void {
-        this.mDepthConfiguration.depthWriteEnabled = pEnabled;
-
-        if (pCompare) {
-            this.mDepthConfiguration.depthCompare = pCompare;
-        }
-
-        // Invalidate pipeline on setting change.
-        this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+    public depthConfig(): VertexFragmentPipelineDepthConfiguration {
+        return new VertexFragmentPipelineDepthConfiguration(this.mDepthConfiguration, () => {
+            // Generate pipeline anew.
+            this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
+        });
     }
 
     /**
@@ -180,7 +177,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
      * 
      * @returns config object. 
      */
-    public targetConfig(pTargetName: string): VertexFragmentPipelineTargetConfig {
+    public targetConfig(pTargetName: string): VertexFragmentPipelineTargetConfiguration {
         if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
             throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
         }
@@ -202,7 +199,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
             });
         }
 
-        return new VertexFragmentPipelineTargetConfig(this.mRenderTargetConfig.get(pTargetName)!, () => {
+        return new VertexFragmentPipelineTargetConfiguration(this.mRenderTargetConfig.get(pTargetName)!, () => {
             // Generate pipeline anew.
             this.invalidate(VertexFragmentPipelineInvalidationType.NativeRebuild);
         });
@@ -267,11 +264,16 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
             if (this.mRenderTargets.hasDepth) {
                 lPipelineDescriptor.depthStencil.depthWriteEnabled = this.mDepthConfiguration.depthWriteEnabled;
                 lPipelineDescriptor.depthStencil.depthCompare = this.mDepthConfiguration.depthCompare;
+                lPipelineDescriptor.depthStencil.depthBias = this.mDepthConfiguration.depthBias;
+                lPipelineDescriptor.depthStencil.depthBiasSlopeScale = this.mDepthConfiguration.depthBiasSlopeScale;
+                lPipelineDescriptor.depthStencil.depthBiasClamp = this.mDepthConfiguration.depthBiasClamp;
 
-                // TODO: Additional depth config.
-                lPipelineDescriptor.depthStencil.depthBias;
-                lPipelineDescriptor.depthStencil.depthBiasSlopeScale;
-                lPipelineDescriptor.depthStencil.depthBiasClamp;
+                // Bias settings must be zero for list topologies.
+                if (this.mPrimitiveTopology === PrimitiveTopology.LineList || this.mPrimitiveTopology === PrimitiveTopology.LineStrip || this.mPrimitiveTopology === PrimitiveTopology.PointList) {
+                    if (lPipelineDescriptor.depthStencil.depthBias !== 0 || lPipelineDescriptor.depthStencil.depthBiasSlopeScale !== 0 || lPipelineDescriptor.depthStencil.depthBiasClamp !== 0) {
+                        throw new Exception(`Pipelines depth bias settings must be zero for "${this.mPrimitiveTopology}"-Topology`, this);
+                    }
+                }
             }
 
             // Setup stencil options.
@@ -405,9 +407,12 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     }
 }
 
-type VertexFragmentPipelineDepthConfig = {
+export type VertexFragmentPipelineDepthConfigData = {
     depthCompare: CompareFunction;
     depthWriteEnabled: boolean;
+    depthBias: number;
+    depthBiasSlopeScale: number;
+    depthBiasClamp: number;
 };
 
 export enum VertexFragmentPipelineInvalidationType {

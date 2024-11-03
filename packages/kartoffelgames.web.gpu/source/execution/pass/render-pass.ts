@@ -6,7 +6,7 @@ import { GpuObject } from '../../gpu_object/gpu-object';
 import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object';
 import { PipelineData, PipelineDataInvalidationType } from '../../pipeline/pipeline_data/pipeline-data';
 import { RenderTargets } from '../../pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex-fragment-pipeline';
+import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
 import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/vertex_parameter/vertex-parameter';
 import { GpuExecutionContext } from '../gpu-execution';
 import { RenderPassContext } from './render-pass-context';

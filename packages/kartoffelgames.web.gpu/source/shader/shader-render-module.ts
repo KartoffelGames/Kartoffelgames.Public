@@ -2,7 +2,7 @@ import { GpuDevice } from '../device/gpu-device';
 import { GpuObject } from '../gpu_object/gpu-object';
 import { PipelineLayout } from '../pipeline/pipeline-layout';
 import { RenderTargets } from '../pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
+import { VertexFragmentPipeline } from '../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
 import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout';
 import { Shader } from './shader';
 

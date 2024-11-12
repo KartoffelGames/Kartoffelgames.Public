@@ -56,7 +56,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
      */
     protected override onValidateIntegrity(): void {
         // Switch statement must be of a unsigned integer type.
-        if (this.mExpression.resolveType.typeName !== PgslTypeName.UnsignedInteger) {
+        if (this.mExpression.resolveType.baseType !== PgslTypeName.UnsignedInteger) {
             throw new Exception('Switch expression must be of a unsigned integer type.', this);
         }
 
@@ -65,7 +65,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
             // Validate any case value.
             for (const lCaseValue of lCase.cases) {
                 // Must be unsigned integer.
-                if (this.mExpression.resolveType.typeName !== PgslTypeName.UnsignedInteger) {
+                if (this.mExpression.resolveType.baseType !== PgslTypeName.UnsignedInteger) {
                     throw new Exception('Case expression must be of a unsigned integer type.', this);
                 }
 

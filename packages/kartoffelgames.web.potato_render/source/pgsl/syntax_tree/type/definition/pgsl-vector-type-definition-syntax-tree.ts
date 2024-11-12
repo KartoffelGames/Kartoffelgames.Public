@@ -1,12 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslVectorTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
+/**
+ * Vector type definition.
+ */
+export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
+    private readonly mVectorType: PgslVectorTypeName;
 
     /**
      * Inner type of vector.
@@ -18,75 +21,61 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pVectorType - Concreate vector dimension.
+     * @param pInnerType - Inner type of vector.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslVectorTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
+    public constructor(pVectorType: PgslVectorTypeName, pInnerType: BasePgslTypeDefinitionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mInnerType = pData.innerType;
+        this.mInnerType = pInnerType;
+        this.mVectorType = pVectorType;
+
+        // Append inner type to child list.
+        this.appendChild(this.mInnerType);
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected determinateIdentifier(this: null, pData: PgslVectorTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_VECTOR->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
+    protected override isExplicitCastable(pTarget: this): boolean {
+        // It is when inner types are.
+        return this.mInnerType.explicitCastable(pTarget.mInnerType);
     }
 
     /**
-     * Determinate if declaration is a composite type.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected override determinateIsComposite(): boolean {
-        return true;
+    protected override isImplicitCastable(pTarget: this): boolean {
+        // It is when inner types are.
+        return this.mInnerType.implicitCastable(pTarget.mInnerType);
     }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected override determinateIsConstructable(): boolean {
-        return this.mInnerType.isConstructable;
-    }
-
-    /**
-     * Determinate if declaration has a fixed byte length.
-     */
-    protected override determinateIsFixed(): boolean {
-        return this.mInnerType.isFixed;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return this.mInnerType.isPlainType;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return this.mInnerType.isShareable;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return this.mInnerType.isStorable;
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Vector,
+            setupData: null,
+            typeAttributes: {
+                composite: true,
+                constructable: this.mInnerType.isConstructable,
+                fixed: this.mInnerType.isFixed,
+                indexable: true,
+                plain: this.mInnerType.isPlainType,
+                hostSharable: this.mInnerType.isHostShareable,
+                storable: this.mInnerType.isStorable
+            }
+        };
     }
 
     /**
@@ -94,7 +83,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override onValidateIntegrity(): void {
         // Must be scalar.
-        if (!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree) && this.mInnerType.typeName !== PgslTypeName.Boolean) {
+        if (this.mInnerType.baseType !== PgslBaseType.Numberic && this.mInnerType.baseType !== PgslBaseType.Boolean) {
             throw new Exception('Vector type must be a scalar value', this);
         }
     }

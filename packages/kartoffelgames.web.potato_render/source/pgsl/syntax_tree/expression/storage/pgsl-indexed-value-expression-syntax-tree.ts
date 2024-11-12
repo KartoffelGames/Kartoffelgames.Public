@@ -98,7 +98,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         }
 
         // Value needs to be a unsigned numeric value.
-        if (this.mIndex.resolveType.typeName !== PgslTypeName.Integer) {
+        if (this.mIndex.resolveType.baseType !== PgslTypeName.Integer) {
             throw new Exception(`Index needs to be a unsigned numeric value.`, this);
         }
     }

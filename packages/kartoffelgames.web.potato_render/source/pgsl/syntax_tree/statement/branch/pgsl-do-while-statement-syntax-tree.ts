@@ -46,7 +46,7 @@ export class PgslDoWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<
      */
     protected override onValidateIntegrity(): void {
         // Expression must be a boolean.
-        if (this.mExpression.resolveType.typeName !== PgslTypeName.Boolean) {
+        if (this.mExpression.resolveType.baseType !== PgslTypeName.Boolean) {
             throw new Exception('Expression of do-while loops must resolve into a boolean.', this);
         }
     }

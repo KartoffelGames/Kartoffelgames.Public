@@ -1,12 +1,12 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslAccessMode } from '../../../enum/pgsl-access-mode.enum';
 import { PgslTexelFormat } from '../../../enum/pgsl-texel-format.enum';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-string-value-expression-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslTextureTypeName } from '../enum/pgsl-texture-type-name.enum';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
 
 export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslTextureTypeDefinitionSyntaxTreeStructureData> {
@@ -42,16 +42,14 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return lMapping;
     })();
 
-    private mAccess!: PgslAccessMode | null;
-    private mFormat!: PgslTexelFormat | null;
-    private mSampledType!: PgslNumericTypeDefinitionSyntaxTree | null;
-    private readonly mTemplateList!: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>;
+    private readonly mTemplateList: Array<BasePgslExpressionSyntaxTree>;
+    private readonly mTextureType: PgslTextureTypeName;
 
     /**
      * Storage access mode.
      */
     public get access(): PgslAccessMode | null {
-        this.ensureValidity();
+        this.ensureSetup();
 
         return this.mAccess;
     }
@@ -60,7 +58,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Textel format.
      */
     public get format(): PgslTexelFormat | null {
-        this.ensureValidity();
+        this.ensureSetup();
 
         return this.mFormat;
     }
@@ -69,7 +67,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Sampled type.
      */
     public get sampledType(): PgslNumericTypeDefinitionSyntaxTree | null {
-        this.ensureValidity();
+        this.ensureSetup();
 
         return this.mSampledType;
     }
@@ -81,102 +79,32 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslTextureTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
+    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<BasePgslExpressionSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mTemplateList = pData.template ?? new Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>();
-
-        // Set empty data.
-        this.mSampledType = null;
-        this.mFormat = null;
-        this.mAccess = null;
+        this.mTextureType = pTextureType;
+        this.mTemplateList = pTemplateList;
     }
 
     /**
-     * Determinate structures identifier.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected determinateIdentifier(this: null, pData: PgslTextureTypeDefinitionSyntaxTreeStructureData): string {
-        // Convert template list into identifier list.
-        const lTemplateListIdentifier: string = pData.template?.map<string>((pParameter) => {
-            if (pParameter instanceof PgslStringValueExpressionSyntaxTree) {
-                return pParameter.value;
-            }
-
-            if (pParameter instanceof BasePgslTypeDefinitionSyntaxTree) {
-                return pParameter.identifier;
-            }
-
-            return 'NULL';
-        }).join(', ') ?? '';
-
-        // Create identifier
-        return `ID:TYPE-DEF_TEXTURE->${pData.typeName.toUpperCase()}->[${lTemplateListIdentifier}]`;
-    }
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a constructable.
-     */
-    protected determinateIsConstructable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration has a fixed byte length.
-     */
-    protected determinateIsFixed(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a storable type.
-     */
-    protected override determinateIsStorable(): boolean {
-        return false;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        const lTextureTemplates: Array<typeof PgslNumericTypeDefinitionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree> = PgslTextureTypeDefinitionSyntaxTree.mTemplateMapping.get(this.typeName as unknown as PgslTextureTypeName)!;
+    protected override onSetup(): PgslTypeDefinitionAttributes<PgslTextureTypeDefinitionSyntaxTreeStructureData> {
+        const lTextureTemplates: Array<typeof PgslNumericTypeDefinitionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree> = PgslTextureTypeDefinitionSyntaxTree.mTemplateMapping.get(this.mTextureType)!;
 
         // Ensure same length.
         if (lTextureTemplates.length !== this.mTemplateList.length) {
             throw new Exception(`Texture type needs "${lTextureTemplates.length}" template parameter.`, this);
         }
+
+        const lSetupData: PgslTextureTypeDefinitionSyntaxTreeStructureData = {
+            access: null,
+            format: null,
+            sampledType: null,
+        };
 
         // Validate templates.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
@@ -190,7 +118,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
 
             // One parameter is allways a type, two parameters allways a string.
             if (lTextureTemplates.length === 1) {
-                this.mSampledType = lActualParameterValue as PgslNumericTypeDefinitionSyntaxTree;
+                lSetupData.sampledType = lActualParameterValue as PgslNumericTypeDefinitionSyntaxTree;
             } else {
                 if (lTemplateIndex === 0) {
                     const lFormatString: PgslTexelFormat | undefined = EnumUtil.cast<PgslTexelFormat>(PgslTexelFormat, (<PgslStringValueExpressionSyntaxTree>lActualParameterValue).value);
@@ -198,21 +126,44 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                         throw new Exception(`Unknown texel format.`, this);
                     }
 
-                    this.mFormat = lFormatString;
+                    lSetupData.format = lFormatString;
                 } else {
                     const lAccessModeString: PgslAccessMode | undefined = EnumUtil.cast<PgslAccessMode>(PgslAccessMode, (<PgslStringValueExpressionSyntaxTree>lActualParameterValue).value);
                     if (!lAccessModeString) {
                         throw new Exception(`Unknown access mode.`, this);
                     }
 
-                    this.mAccess = lAccessModeString;
+                    lSetupData.access = lAccessModeString;
                 }
             }
         }
+
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Texture,
+            setupData: lSetupData,
+            typeAttributes: {
+                composite: false,
+                constructable: true,
+                fixed: false,
+                indexable: false,
+                plain: true,
+                hostSharable: false,
+                storable: true
+            }
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+
     }
 }
 
 export type PgslTextureTypeDefinitionSyntaxTreeStructureData = {
-    typeName: PgslTextureTypeName;
-    template?: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>;
+    access: PgslAccessMode | null;
+    format: PgslTexelFormat | null;
+    sampledType: PgslNumericTypeDefinitionSyntaxTree | null;
 };

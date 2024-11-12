@@ -128,7 +128,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      */
     protected override onValidateIntegrity(): void {
         // Value validation does not apply to pointers.
-        if (!(this.mTypeDeclaration.type.typeName !== PgslTypeName.Pointer)) {
+        if (!(this.mTypeDeclaration.type.baseType !== PgslTypeName.Pointer)) {
             // Type needs to be storable.
             if (!this.mTypeDeclaration.type.isStorable) {
                 throw new Exception(`Type is not storable or a pointer of it.`, this);

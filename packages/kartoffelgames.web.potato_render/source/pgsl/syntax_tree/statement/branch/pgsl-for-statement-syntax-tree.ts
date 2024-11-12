@@ -74,7 +74,7 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pgsl
      */
     protected override onValidateIntegrity(): void {
         // Expression must be a boolean.
-        if (this.mExpression && this.mExpression.resolveType.typeName !== PgslTypeName.Boolean) {
+        if (this.mExpression && this.mExpression.resolveType.baseType !== PgslTypeName.Boolean) {
             throw new Exception('Expression of for loops must resolve into a boolean.', this);
         }
 

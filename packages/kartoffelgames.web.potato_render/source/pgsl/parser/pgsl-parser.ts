@@ -45,9 +45,10 @@ import { PgslTypeName } from '../syntax_tree/type/enum/pgsl-type-name.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../syntax_tree/type/pgsl-type-declaration-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
-    private mParserBuffer: ParserBuffer;
+    private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
 
     /**
      * Constructor.
@@ -56,11 +57,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         super(new PgslLexer());
 
         // Setup buffer.
-        this.mParserBuffer = {
-            aliasDeclarations: new Set<string>(),
-            enumDeclaration: new Set<string>(),
-            structDeclaration: new Set<string>()
-        };
+        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
         // Define helper graphs.
         this.defineCore();
@@ -102,11 +99,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         lDocument.validateIntegrity();
 
         // Clear old parsing buffers.
-        this.mParserBuffer = {
-            aliasDeclarations: new Set<string>(),
-            enumDeclaration: new Set<string>(),
-            structDeclaration: new Set<string>()
-        };
+        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
         return lDocument;
     }
@@ -254,7 +247,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         const lParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
                         if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                             // Replace variable name expression with type expression.
-                            if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
+                            if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
                                 lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                     {
@@ -302,7 +295,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     const lParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
                     if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                         // Replace variable name expression with type expression.
-                        if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
+                        if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
                             lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                 {
@@ -450,7 +443,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 if (pData.leftExpression instanceof PgslVariableNameExpressionSyntaxTree) {
                     // Check variable name with the currently existing declared enums. 
                     const lVariableName: string = pData.leftExpression.name;
-                    if (this.mParserBuffer.enumDeclaration.has(lVariableName)) {
+                    if (this.mTypeFactory.enumNames.has(lVariableName)) {
                         // Return enum value structure data instead.
                         return new PgslEnumValueExpressionSyntaxTree({
                             name: lVariableName,
@@ -977,7 +970,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('type', this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration')).single(PgslToken.Semicolon),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclarationSyntaxTree => {
                 // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
-                this.mParserBuffer.aliasDeclarations.add(pData.name);
+                this.mTypeFactory.addAliasPredefinition(pData.name);
 
                 // Create structure.
                 return new PgslAliasDeclarationSyntaxTree({
@@ -1013,7 +1006,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.BlockEnd),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumDeclarationSyntaxTree => {
                 // Add enum name to buffer.
-                this.mParserBuffer.enumDeclaration.add(pData.name);
+                this.mTypeFactory.addEnumPredefinition(pData.name);
 
                 // Build enum data structure.
                 const lData: ConstructorParameters<typeof PgslEnumDeclarationSyntaxTree>[0] = {
@@ -1037,9 +1030,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
-                // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
-                this.mParserBuffer.aliasDeclarations.add(pData.name);
-
                 // Create structure.
                 return new PgslStructPropertyDeclarationSyntaxTree({
                     attributes: pData.attributes,
@@ -1064,7 +1054,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.BlockEnd),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructDeclarationSyntaxTree => {
                 // Add struct name to struct buffer.
-                this.mParserBuffer.structDeclaration.add(pData.name);
+                this.mTypeFactory.addStructPredefinition(pData.name);
 
                 // Create base data.
                 const lData: ConstructorParameters<typeof PgslStructDeclarationSyntaxTree>[0] = {
@@ -1185,9 +1175,3 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.setRootGraphPart('Module');
     }
 }
-
-type ParserBuffer = {
-    aliasDeclarations: Set<string>;
-    enumDeclaration: Set<string>;
-    structDeclaration: Set<string>;
-};

@@ -1,10 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslPointerTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mReferencedType!: BasePgslTypeDefinitionSyntaxTree;
+/**
+ * Pointer type definition.
+ */
+export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+    private readonly mReferencedType: BasePgslTypeDefinitionSyntaxTree;
 
     /**
      * Referenced type of pointer.
@@ -16,76 +19,59 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pReferenceType - References type of pointer.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslPointerTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, PgslTypeName.Pointer, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
+    public constructor(pReferenceType: BasePgslTypeDefinitionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mReferencedType = pData.referencedType;
+        this.mReferencedType = pReferenceType;
+
+        // Append inner type to child list.
+        this.appendChild(pReferenceType);
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected determinateIdentifier(this: null, pData: PgslPointerTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_POINTER->${pData.referencedType.identifier}`;
-    }
-
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // A pointer is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected override determinateIsConstructable(): boolean {
+    protected override isImplicitCastable(_pTarget: this): boolean {
+        // A pointer is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected override determinateIsFixed(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return true;
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Pointer,
+            setupData: null,
+            typeAttributes: {
+                composite: false,
+                constructable: false,
+                fixed: false,
+                indexable: false,
+                plain: false,
+                hostSharable: false,
+                storable: true
+            }
+        };
     }
 
     /**

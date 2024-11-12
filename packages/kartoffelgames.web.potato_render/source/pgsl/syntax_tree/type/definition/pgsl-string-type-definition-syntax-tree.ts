@@ -1,84 +1,50 @@
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStringTypeDefinitionSyntaxTreeStructureData> {
+/**
+ * Boolean type definition.
+ */
+export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
     /**
-     * Constructor.
+     * Check if type is explicit castable into target type.
      * 
-     * @param pData - Initial data.
-     * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
+     * @param _pTarget - Target type.
      */
-    public constructor(pData: PgslStringTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, PgslTypeName.String, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
-    }
-
-    /**
-     * Determinate structures identifier.
-     */
-    protected determinateIdentifier(this: null, _pData: PgslStringTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_STRING->STRING`;
-    }
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // A string is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected determinateIsConstructable(): boolean {
+    protected override isImplicitCastable(_pTarget: this): boolean {
+        // A string is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected determinateIsFixed(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return false;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing to validate.
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.String,
+            setupData: null,
+            typeAttributes: {
+                composite: false,
+                constructable: false,
+                fixed: false,
+                indexable: false,
+                plain: false,
+                hostSharable: false,
+                storable: false
+            }
+        };
     }
 }
 

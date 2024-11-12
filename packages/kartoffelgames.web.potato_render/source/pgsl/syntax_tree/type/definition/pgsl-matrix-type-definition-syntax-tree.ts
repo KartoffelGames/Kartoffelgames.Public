@@ -1,128 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslMatrixTypeName } from '../enum/pgsl-matrix-type-name.enum';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
 
-export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslMatrixTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
-    private mVectorType!: PgslVectorTypeDefinitionSyntaxTree | null;
-
+/**
+ * Matrix type definition.
+ */
+export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
     /**
-     * Inner type of matrix.
+     * Matrix type to underlying vector type mapping.
      */
-    public get innerType(): BasePgslTypeDefinitionSyntaxTree {
-        return this.mInnerType;
-    }
-
-    /**
-     * Inner vector type.
-     */
-    public get vectorType(): PgslVectorTypeDefinitionSyntaxTree {
-        this.ensureValidity();
-
-        // Init value.
-        if (this.mVectorType === null) {
-            this.mVectorType = this.determinateVectorType();
-        }
-
-        return this.mVectorType;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pData - Initial data.
-     * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
-     */
-    public constructor(pData: PgslMatrixTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
-
-        // Set data.
-        this.mInnerType = pData.innerType;
-
-        // Set empty data.
-        this.mVectorType = null;
-    }
-
-    /**
-     * Determinate structures identifier.
-     */
-    protected determinateIdentifier(this: null, pData: PgslMatrixTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_MATRIX->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
-    }
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if declaration is a constructable.
-     */
-    protected override determinateIsConstructable(): boolean {
-        return this.mInnerType.isConstructable;
-    }
-
-    /**
-     * Determinate if declaration has a fixed byte length.
-     */
-    protected override determinateIsFixed(): boolean {
-        return this.mInnerType.isFixed;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return this.mInnerType.isPlainType;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return this.mInnerType.isShareable;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return this.mInnerType.isStorable;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Must be scalar.
-        if (!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-            throw new Exception('Matrix type must be a numeric value', this);
-        }
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    private determinateVectorType(): PgslVectorTypeDefinitionSyntaxTree {
+    private static readonly mVectorTypeMapping: Dictionary<PgslMatrixTypeName, PgslVectorTypeName> = (() => {
         // Create mapping for matrix type to vector type.
         const lMatrixToVectorMapping: Dictionary<PgslMatrixTypeName, PgslVectorTypeName> = new Dictionary<PgslMatrixTypeName, PgslVectorTypeName>();
         lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix22, PgslVectorTypeName.Vector2);
@@ -135,15 +26,100 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix43, PgslVectorTypeName.Vector3);
         lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix44, PgslVectorTypeName.Vector4);
 
-        // Create vector type.
-        return new PgslVectorTypeDefinitionSyntaxTree({
-            typeName: lMatrixToVectorMapping.get(this.typeName as unknown as PgslMatrixTypeName)!,
-            innerType: this.mInnerType,
-        }, this.meta).setParent(this).validateIntegrity();
+        return lMatrixToVectorMapping;
+    })();
+
+    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
+    private readonly mMatrixType: PgslMatrixTypeName;
+    private readonly mVectorTypeDefinition: PgslVectorTypeDefinitionSyntaxTree;
+
+    /**
+     * Inner type of matrix.
+     */
+    public get innerType(): BasePgslTypeDefinitionSyntaxTree {
+        return this.mInnerType;
+    }
+
+    /**
+     * Inner vector type.
+     */
+    public get vectorType(): PgslVectorTypeDefinitionSyntaxTree {
+        return this.mVectorTypeDefinition;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pMatixType - Matrix dimension type.
+     * @param pInnerType - Inner type of matrix.
+     * @param pMeta - Syntax tree meta data.
+     */
+    public constructor(pMatixType: PgslMatrixTypeName, pInnerType: BasePgslTypeDefinitionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
+
+        // Set data.
+        this.mInnerType = pInnerType;
+        this.mMatrixType = pMatixType;
+
+        // Append inner type to child list.
+        this.appendChild(this.mInnerType);
+
+        // Create underlying vector type.
+        this.mVectorTypeDefinition = new PgslVectorTypeDefinitionSyntaxTree(PgslMatrixTypeDefinitionSyntaxTree.mVectorTypeMapping.get(this.mMatrixType)!, this.mInnerType, pMeta);
+
+        // Set vector type as child syntax.
+        this.appendChild(this.mVectorTypeDefinition);
+    }
+
+    /**
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pTarget - Target type.
+     */
+    protected override isExplicitCastable(pTarget: this): boolean {
+        // It is when inner types are.
+        return this.mInnerType.explicitCastable(pTarget.mInnerType);
+    }
+
+    /**
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
+     */
+    protected override isImplicitCastable(pTarget: this): boolean {
+        // It is when inner types are.
+        return this.mInnerType.implicitCastable(pTarget.mInnerType);
+    }
+
+    /**
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
+     */
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Matrix,
+            setupData: null,
+            typeAttributes: {
+                composite: true,
+                constructable: this.mInnerType.isConstructable,
+                fixed: this.mInnerType.isFixed,
+                indexable: true,
+                plain: this.mInnerType.isPlainType,
+                hostSharable: this.mInnerType.isHostShareable,
+                storable: this.mInnerType.isStorable
+            }
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+        // Must be scalar.
+        if (!(this.mInnerType.baseType !== PgslBaseType.Numberic)) {
+            throw new Exception('Matrix type must be a numeric value', this);
+        }
     }
 }
-
-export type PgslMatrixTypeDefinitionSyntaxTreeStructureData = {
-    typeName: PgslMatrixTypeName;
-    innerType: BasePgslTypeDefinitionSyntaxTree;
-};

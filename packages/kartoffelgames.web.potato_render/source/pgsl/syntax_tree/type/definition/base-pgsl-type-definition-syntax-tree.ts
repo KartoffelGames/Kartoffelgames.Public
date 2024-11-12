@@ -1,174 +1,135 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 
 /**
  * PGSL base type definition.
  */
-export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
-    private readonly mIdentifier: string;
-    private mIsComposite!: boolean | null;
-    private mIsConstructable!: boolean | null;
-    private mIsFixed!: boolean | null;
-    private mIsIndexable!: boolean | null;
-    private mIsPlainType!: boolean | null;
-    private mIsShareable!: boolean | null;
-    private mIsStorable!: boolean | null;
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private mLoadedFromCache!: boolean;
-    private readonly mTypeName!: PgslTypeName;
+export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown> extends BasePgslSyntaxTree<PgslTypeDefinitionAttributes<TTypeSetupData>> {
+    /**
+     * Base type of definition.
+     */
+    public get aliased(): boolean {
+        // Must be setup.
+        this.ensureSetup();
+
+        return !!this.setupData.aliased;
+    }
 
     /**
-     * Structure unique identifier.
+     * Base type of definition.
      */
-    public get identifier(): string {
-        return this.mIdentifier;
+    public get aliasedType(): BasePgslTypeDefinitionSyntaxTree {
+        // Must be setup.
+        this.ensureSetup();
+
+        // Return alised type when it is aliased.
+        if (this.setupData.aliased) {
+            return this.setupData.aliased;
+        }
+
+        return this;
+    }
+
+    /**
+     * Base type of definition.
+     */
+    public get baseType(): PgslBaseType {
+        // Must be setup.
+        this.ensureSetup();
+
+        return this.setupData.baseType;
     }
 
     /**
      * If declaration is a composite type.
      */
     public get isComposite(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsComposite === null) {
-            this.mIsComposite = this.determinateIsComposite();
-        }
-
-        return this.mIsComposite;
+        return this.setupData.typeAttributes.composite;
     }
 
     /**
      * If declaration has a fixed byte length.
      */
     public get isConstructable(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsConstructable === null) {
-            this.mIsConstructable = this.determinateIsConstructable();
-        }
-
-        return this.mIsConstructable;
+        return this.setupData.typeAttributes.constructable;
     }
 
     /**
      * If declaration has a fixed byte length.
      */
     public get isFixed(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsFixed === null) {
-            this.mIsFixed = this.determinateIsFixed();
-        }
+        return this.setupData.typeAttributes.fixed;
+    }
 
-        return this.mIsFixed;
+    /**
+     * If is sharable with the host.
+     */
+    public get isHostShareable(): boolean {
+        // Must be setup.
+        this.ensureSetup();
+
+        return this.setupData.typeAttributes.hostSharable;
     }
 
     /**
      * Composite value with properties that can be access by index.
      */
     public get isIndexable(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsIndexable === null) {
-            this.mIsIndexable = this.determinateIsIndexable();
-        }
-
-        return this.mIsIndexable;
+        return this.setupData.typeAttributes.indexable;
     }
 
     /**
      * If is a plain type.
      */
     public get isPlainType(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsPlainType === null) {
-            this.mIsPlainType = this.determinateIsPlain();
-        }
-
-        return this.mIsPlainType;
-    }
-
-    /**
-     * If is sharable with the host.
-     */
-    public get isShareable(): boolean {
-        this.ensureValidity();
-
-        // Init value.
-        if (this.mIsShareable === null) {
-            this.mIsShareable = this.determinateIsShareable();
-        }
-
-        return this.mIsShareable;
+        return this.setupData.typeAttributes.plain;
     }
 
     /**
      * If value is storable in a variable.
      */
     public get isStorable(): boolean {
-        this.ensureValidity();
+        // Must be setup.
+        this.ensureSetup();
 
-        // Init value.
-        if (this.mIsStorable === null) {
-            this.mIsStorable = this.determinateIsStorable();
-        }
-
-        return this.mIsStorable;
+        return this.setupData.typeAttributes.storable;
     }
 
     /**
-     * When element was loaded from cache and not newly created.
+     * Types setup data.
      */
-    public get loadedFromCache(): boolean {
-        return this.mLoadedFromCache;
-    }
+    protected get typeSetupData(): TTypeSetupData {
+        // Must be setup.
+        this.ensureSetup();
 
-    /**
-     * Type name of definition.
-     */
-    public get typeName(): PgslTypeName {
-        return this.mTypeName;
+        return this.setupData.setupData;
     }
 
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
-     * @param pTypeName - Base type name of definition.
+     * @param pBaseType - Base type name of definition.
+     * @param pMemoryDefinition - Memory definition of type.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pTypeName: PgslTypeName, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
         // Call super and prevent reasigning empty data to cached structures.
-        super(pData, pMeta, pBuildIn);
-
-        // Load idenifier and check if a cached structure exists.
-        this.mIdentifier = this.determinateIdentifier.call(null, pData);
-        if (BasePgslSyntaxTree.mStructureCache.has(this.mIdentifier)) {
-            const lCachedStructure: this = BasePgslSyntaxTree.mStructureCache.get(this.mIdentifier)! as this;
-            lCachedStructure.mLoadedFromCache = true;
-
-            return lCachedStructure;
-        }
-
-        // Set type name.
-        this.mTypeName = pTypeName;
-
-        // Set data default
-        this.mLoadedFromCache = false;
-        this.mIsComposite = null;
-        this.mIsConstructable = null;
-        this.mIsFixed = null;
-        this.mIsIndexable = null;
-        this.mIsShareable = null;
-        this.mIsStorable = null;
-        this.mIsPlainType = null;
+        super(pMeta);
     }
 
     /**
@@ -178,47 +139,165 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      * 
      * @returns if both structures are equal.
      */
-    public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        return pTarget.identifier === this.identifier;
+    public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): pTarget is this {
+        // Ensure setups.
+        this.ensureSetup();
+        pTarget.ensureSetup();
+
+        // Same storable definition.
+        if (this.setupData.typeAttributes.storable !== pTarget.setupData.typeAttributes.storable) {
+            return false;
+        }
+
+        // Same hostSharable definition.
+        if (this.setupData.typeAttributes.hostSharable !== pTarget.setupData.typeAttributes.hostSharable) {
+            return false;
+        }
+
+        // Same plain definition.
+        if (this.setupData.typeAttributes.plain !== pTarget.setupData.typeAttributes.plain) {
+            return false;
+        }
+
+        // Same composite definition.
+        if (this.setupData.typeAttributes.composite !== pTarget.setupData.typeAttributes.composite) {
+            return false;
+        }
+
+        // Same constructable definition.
+        if (this.setupData.typeAttributes.constructable !== pTarget.setupData.typeAttributes.constructable) {
+            return false;
+        }
+
+        // Same fixed definition.
+        if (this.setupData.typeAttributes.fixed !== pTarget.setupData.typeAttributes.fixed) {
+            return false;
+        }
+
+        // Same indexable definition.
+        if (this.setupData.typeAttributes.indexable !== pTarget.setupData.typeAttributes.indexable) {
+            return false;
+        }
+
+        // Same base type.
+        return this.setupData.baseType === pTarget.setupData.baseType;
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected abstract determinateIdentifier(this: null, pData: TData): string;
+    public explicitCastable(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Ensure setups.
+        this.ensureSetup();
+        pTarget.ensureSetup();
+
+        // When they are the same, they are castable.
+        if (this.equals(pTarget)) {
+            return true;
+        }
+
+        // Should at least has the same base type.
+        if (this.setupData.baseType !== pTarget.setupData.baseType) {
+            return false;
+        }
+
+        return this.isExplicitCastable(pTarget as unknown as this);
+    }
 
     /**
-     * Determinate if declaration is a composite type.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected abstract determinateIsComposite(): boolean;
+    public implicitCastable(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // When they are not explicit castable, they never be able to implicit cast.
+        if (!this.explicitCastable(pTarget)) {
+            return false;
+        }
+
+        // When they are the same, they are castable.
+        if (this.equals(pTarget)) {
+            return true;
+        }
+
+        return this.isImplicitCastable(pTarget as this);
+    }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected abstract determinateIsConstructable(): boolean;
+    protected abstract isExplicitCastable(pTarget: this): boolean;
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected abstract determinateIsFixed(): boolean;
+    protected abstract isImplicitCastable(pTarget: this): boolean;
 
     /**
-     * Determinate if composite value with properties that can be access by index
+     * Required override.
      */
-    protected abstract determinateIsIndexable(): boolean;
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected abstract determinateIsPlain(): boolean;
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected abstract determinateIsShareable(): boolean;
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected abstract determinateIsStorable(): boolean;
+    protected abstract override onSetup(): PgslTypeDefinitionAttributes<TTypeSetupData>;
 }
+
+export type PgslTypeDefinitionAttributes<TTypeSetupData> = {
+    /**
+     * Type is alliased.
+     */
+    aliased: false | BasePgslTypeDefinitionSyntaxTree;
+
+    /**
+     * Own setup data.
+     */
+    setupData: TTypeSetupData;
+
+    /**
+     * Basic type.
+     */
+    baseType: PgslBaseType;
+
+    /**
+     * Type information.
+     */
+    typeAttributes: {
+        /**
+         * Value is storable in a variable.
+         */
+        storable: boolean;
+
+        /**
+         * Sharable with the host
+         */
+        hostSharable: boolean;
+
+        /**
+         * Declaration is a plain type.
+         */
+        plain: boolean;
+
+        /**
+         * Declaration is a composite type.
+         */
+        composite: boolean;
+
+        /**
+         * declaration is a constructable.
+         */
+        constructable: boolean;
+
+        /**
+         * declaration has a fixed byte length.
+         */
+        fixed: boolean;
+
+        /**
+         * composite value with properties that can be access by index
+         */
+        indexable: boolean;
+    };
+};

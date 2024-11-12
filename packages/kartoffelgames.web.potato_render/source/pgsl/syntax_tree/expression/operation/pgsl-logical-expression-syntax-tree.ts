@@ -97,12 +97,12 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onValidateIntegrity(): void {
         // Validate left side type.
-        if (this.mLeftExpression.resolveType.typeName !== PgslTypeName.Boolean) {
+        if (this.mLeftExpression.resolveType.baseType !== PgslTypeName.Boolean) {
             throw new Exception('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (this.mRightExpression.resolveType.typeName !== PgslTypeName.Boolean) {
+        if (this.mRightExpression.resolveType.baseType !== PgslTypeName.Boolean) {
             throw new Exception('Right side of logical expression needs to be a boolean', this);
         }
     }

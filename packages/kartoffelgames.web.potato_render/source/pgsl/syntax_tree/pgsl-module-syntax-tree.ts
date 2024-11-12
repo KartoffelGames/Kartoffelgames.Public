@@ -159,13 +159,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     }
 
     /**
-     * Determinate structures identifier.
-     */
-    protected determinateIdentifier(this: null, _pData: PgslModuleSyntaxTreeStructureData): string {
-        return `ID:CORE_MODULE`;
-    }
-
-    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {

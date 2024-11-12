@@ -28,13 +28,4 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
         // Set data.
         this.mAttributeList = pAttributeList;
     }
-
-    /**
-     * Determinate structures identifier.
-     */
-    protected determinateIdentifier(this: null, _pData: TData): string {
-        // Declarations should allways be unique.
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-        return `ID:DECLARATION::${(Math.random() * 0xffffffffffffff).toString(36)}`;
-    }
 }

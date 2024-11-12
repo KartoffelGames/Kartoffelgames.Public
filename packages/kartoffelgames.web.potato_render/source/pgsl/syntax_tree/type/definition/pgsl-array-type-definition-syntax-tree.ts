@@ -1,12 +1,14 @@
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslLiteralValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-literal-value-expression-syntax-tree';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslArrayTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
-    private readonly mLengthExpression!: BasePgslExpressionSyntaxTree | null;
+/**
+ * Array type definition.
+ */
+export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
+    private readonly mLengthExpression: BasePgslExpressionSyntaxTree | null;
 
     /**
      * Inner type of array.
@@ -25,98 +27,68 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pType - Inner array type.
+     * @param pLengthExpression - Length expression.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslArrayTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, PgslTypeName.Array, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
+    public constructor(pType: BasePgslTypeDefinitionSyntaxTree, pLengthExpression: BasePgslExpressionSyntaxTree | null, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
-        this.mLengthExpression = pData.lengthExpression ?? null;
-        this.mInnerType = pData.type;
+        this.mLengthExpression = pLengthExpression ?? null;
+        this.mInnerType = pType;
+
+        // Append inner type to child list.
+        this.appendChild(this.mInnerType);
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected determinateIdentifier(this: null, pData: PgslArrayTypeDefinitionSyntaxTreeStructureData): string {
-        // Convert template list into identifier list.
-        let lTemplateListIdentifier: string = pData.type.identifier;
-        if (pData.lengthExpression) {
-            // Set literal value as length identifier.
-            if (pData.lengthExpression instanceof PgslLiteralValueExpressionSyntaxTree) {
-                lTemplateListIdentifier += pData.lengthExpression.value;
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-            lTemplateListIdentifier += (Math.random() * 0xffffffffffffff).toFixed(32);
-        }
-
-        // Create identifier
-        return `ID:TYPE-DEF_ARRAY->[${lTemplateListIdentifier}]`;
-    }
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // Never castable.
         return false;
     }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected determinateIsConstructable(): boolean {
-        // Must have a fixed footprint so must have a second length template parameter.
+    protected override isImplicitCastable(pTarget: this): boolean {
+        // Must be fixed.
         if (!this.isFixed) {
             return false;
         }
 
-        return this.mInnerType.isConstructable;
+        // When inner types are implicit castable.
+        return this.mInnerType.implicitCastable(pTarget.innerType);
     }
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected determinateIsFixed(): boolean {
-        // Allways variable when no length expression is set.
-        if (!this.mLengthExpression) {
-            return false;
-        }
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        const lIsFixed: boolean = (!this.mLengthExpression) ? false : this.mLengthExpression.isConstant;
+        const lIsConstructable: boolean = (!lIsFixed) ? false : this.mInnerType.isConstructable;
 
-        return this.mLengthExpression.isConstant;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return this.mInnerType.isPlainType;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return this.mInnerType.isShareable;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return this.mInnerType.isStorable;
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Array,
+            setupData: null,
+            typeAttributes: {
+                composite: false,
+                constructable: lIsConstructable,
+                fixed: lIsFixed,
+                indexable: true,
+                plain: this.mInnerType.isPlainType,
+                hostSharable: this.mInnerType.isHostShareable,
+                storable: this.mInnerType.isStorable
+            }
+        };
     }
 
     /**

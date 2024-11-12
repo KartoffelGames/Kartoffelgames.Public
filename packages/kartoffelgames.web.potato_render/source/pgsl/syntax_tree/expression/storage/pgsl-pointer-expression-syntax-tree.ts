@@ -71,7 +71,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onValidateIntegrity(): void {
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if (this.mVariable.resolveType.typeName !== PgslTypeName.Pointer) {
+        if (this.mVariable.resolveType.baseType !== PgslTypeName.Pointer) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
     }

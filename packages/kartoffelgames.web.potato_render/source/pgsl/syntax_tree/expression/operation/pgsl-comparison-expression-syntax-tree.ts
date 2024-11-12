@@ -101,7 +101,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
             return new PgslVectorTypeDefinitionSyntaxTree({
                 innerType: lBooleanDefinition,
-                typeName: this.mLeftExpression.resolveType.typeName as unknown as PgslVectorTypeName
+                typeName: this.mLeftExpression.resolveType.baseType as unknown as PgslVectorTypeName
             }, this.meta).setParent(this).validateIntegrity();
         }
 
@@ -128,13 +128,13 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Both values need to be numeric or boolean.
-        if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lValueType.typeName !== PgslTypeName.Boolean) {
+        if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lValueType.baseType !== PgslTypeName.Boolean) {
             throw new Exception(`None numeric or boolean values can't be compared`, this);
         }
 
         // Validate boolean compare.
         if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(this.mOperator)) {
-            if (lValueType.typeName === PgslTypeName.Boolean) {
+            if (lValueType.baseType === PgslTypeName.Boolean) {
                 throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
             }
         }

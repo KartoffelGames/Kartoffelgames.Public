@@ -113,7 +113,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
                 break;
             }
             case PgslOperator.Not: {
-                if (lValueType.typeName !== PgslTypeName.Boolean) {
+                if (lValueType.baseType !== PgslTypeName.Boolean) {
                     throw new Exception(`Boolean negation only valid for boolean type.`, this);
                 }
 

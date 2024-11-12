@@ -1,9 +1,12 @@
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslSamplerTypeName } from '../enum/pgsl-sampler-build-name.enum';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslSamplerTypeDefinitionSyntaxTreeStructureData> {
+/**
+ * Sampler type definition.
+ */
+export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<null> {
     private readonly mComparision!: boolean;
 
     /**
@@ -20,81 +23,53 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+    public constructor(pSamplerType: PgslSamplerTypeName, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
-        }
+        super(pMeta);
 
         // Set data.
-        this.mComparision = pData.typeName === PgslSamplerTypeName.SamplerComparison;
+        this.mComparision = pSamplerType === PgslSamplerTypeName.SamplerComparison;
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected determinateIdentifier(this: null, pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_SAMPLER->${pData.typeName.toUpperCase()}`;
-    }
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // Never castable.
         return false;
     }
 
     /**
-     * Determinate if declaration is a constructable.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected override determinateIsConstructable(): boolean {
+    protected override isImplicitCastable(_pTarget: this): boolean {
+        // Never castable.
         return false;
     }
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected override determinateIsFixed(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if composite value with properties that can be access by index.
-     */
-    protected override determinateIsIndexable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return false;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing to validate.
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Sampler,
+            setupData: null,
+            typeAttributes: {
+                composite: false,
+                constructable: false,
+                fixed: true,
+                indexable: false,
+                plain: false,
+                hostSharable: false,
+                storable: false
+            }
+        };
     }
 }
-
-export type PgslSamplerTypeDefinitionSyntaxTreeStructureData = {
-    typeName: PgslSamplerTypeName;
-};

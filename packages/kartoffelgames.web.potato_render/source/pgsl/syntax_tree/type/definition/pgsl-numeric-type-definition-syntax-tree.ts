@@ -1,89 +1,97 @@
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslNumericTypeDefinitionSyntaxTreeStructureData> {
+/**
+ * Numeric type definition.
+ */
+export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+    private readonly mNumericType: PgslNumericTypeName;
+
+    /**
+     * Explicit numeric type.
+     */
+    public get numericType(): PgslNumericTypeName {
+        return this.mNumericType;
+    }
+
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pNumericType - Contrete numeric type.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
-        if (this.loadedFromCache) {
-            return this;
+    public constructor(pNumericType: PgslNumericTypeName, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
+
+        this.mNumericType = pNumericType;
+    }
+
+    /**
+     * Compare this type with a target type for equality.
+     * 
+     * @param pTarget - Target comparison type. 
+     * 
+     * @returns true when both types describes the same type.
+     */
+    public override equals(pTarget: BasePgslTypeDefinitionSyntaxTree): pTarget is this {
+        // Base equals.
+        if (!super.equals(pTarget)) {
+            return false;
         }
+
+        return this.mNumericType !== pTarget.mNumericType;
     }
 
     /**
-     * Determinate structures identifier.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
      */
-    protected determinateIdentifier(this: null, pData: PgslNumericTypeDefinitionSyntaxTreeStructureData): string {
-        return `ID:TYPE-DEF_NUMERIC->${pData.typeName.toUpperCase()}`;
-    }
-
-
-    /**
-     * Determinate if declaration is a composite type.
-     */
-    protected override determinateIsComposite(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a constructable.
-     */
-    protected override determinateIsConstructable(): boolean {
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // All numberic values are explicit castable.
         return true;
     }
 
     /**
-     * Determinate if declaration has a fixed byte length.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    protected override determinateIsFixed(): boolean {
+    protected override isImplicitCastable(pTarget: this): boolean {
+        // Abstract float is allways castable.
+        if (pTarget.mNumericType === PgslNumericTypeName.AbstractFloat) {
+            return true;
+        }
+
+        // Abstract int is allways castable.
+        if (pTarget.mNumericType === PgslNumericTypeName.AbstractInteger) {
+            return true;
+        }
+
         return true;
     }
 
     /**
-     * Determinate if composite value with properties that can be access by index.
+     * Setup syntax tree.
+     * 
+     * @returns setup data.
      */
-    protected override determinateIsIndexable(): boolean {
-        return false;
-    }
-
-    /**
-     * Determinate if declaration is a plain type.
-     */
-    protected override determinateIsPlain(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if is sharable with the host.
-     */
-    protected override determinateIsShareable(): boolean {
-        return true;
-    }
-
-    /**
-     * Determinate if value is storable in a variable.
-     */
-    protected override determinateIsStorable(): boolean {
-        return true;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing to validate.
+    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+        return {
+            aliased: false,
+            baseType: PgslBaseType.Numberic,
+            setupData: null,
+            typeAttributes: {
+                composite: false,
+                constructable: true,
+                fixed: true,
+                indexable: false,
+                plain: true,
+                hostSharable: true,
+                storable: true
+            }
+        };
     }
 }
-
-export type PgslNumericTypeDefinitionSyntaxTreeStructureData = {
-    typeName: PgslNumericTypeName;
-};

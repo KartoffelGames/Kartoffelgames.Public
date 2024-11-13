@@ -1,7 +1,7 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslAccessMode } from '../../../enum/pgsl-access-mode.enum';
 import { PgslTexelFormat } from '../../../enum/pgsl-texel-format.enum';
-import { BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslBaseType } from '../enum/pgsl-base-type.enum';
@@ -42,7 +42,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return lMapping;
     })();
 
-    private readonly mTemplateList: Array<BasePgslExpressionSyntaxTree>;
+    private readonly mTemplateList: Array<BasePgslExpressionSyntaxTree | BasePgslTypeDefinitionSyntaxTree>;
     private readonly mTextureType: PgslTextureTypeName;
 
     /**
@@ -51,7 +51,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     public get access(): PgslAccessMode | null {
         this.ensureSetup();
 
-        return this.mAccess;
+        return this.setupData.data.access;
     }
 
     /**
@@ -60,7 +60,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     public get format(): PgslTexelFormat | null {
         this.ensureSetup();
 
-        return this.mFormat;
+        return this.setupData.data.format;
     }
 
     /**
@@ -69,7 +69,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     public get sampledType(): PgslNumericTypeDefinitionSyntaxTree | null {
         this.ensureSetup();
 
-        return this.mSampledType;
+        return this.setupData.data.sampledType;
     }
 
     /**
@@ -79,12 +79,32 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<BasePgslExpressionSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<BasePgslExpressionSyntaxTree | BasePgslTypeDefinitionSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
         this.mTextureType = pTextureType;
         this.mTemplateList = pTemplateList;
+    }
+
+    /**
+     * Check if type is explicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
+     */
+    protected override isExplicitCastable(_pTarget: this): boolean {
+        // A texture is never explicit nor implicit castable.
+        return false;
+    }
+
+    /**
+     * Check if type is implicit castable into target type.
+     * 
+     * @param _pTarget - Target type.
+     */
+    protected override isImplicitCastable(_pTarget: this): boolean {
+        // A texture is never explicit nor implicit castable.
+        return false;
     }
 
     /**
@@ -118,7 +138,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
 
             // One parameter is allways a type, two parameters allways a string.
             if (lTextureTemplates.length === 1) {
-                lSetupData.sampledType = lActualParameterValue as PgslNumericTypeDefinitionSyntaxTree;
+                lSetupData.sampledType = lActualParameterValue as unknown as PgslNumericTypeDefinitionSyntaxTree;
             } else {
                 if (lTemplateIndex === 0) {
                     const lFormatString: PgslTexelFormat | undefined = EnumUtil.cast<PgslTexelFormat>(PgslTexelFormat, (<PgslStringValueExpressionSyntaxTree>lActualParameterValue).value);
@@ -141,7 +161,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: false,
             baseType: PgslBaseType.Texture,
-            setupData: lSetupData,
+            data: lSetupData,
             typeAttributes: {
                 composite: false,
                 constructable: true,
@@ -158,7 +178,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-
+        // TODO: How can we move the validation out of 
     }
 }
 

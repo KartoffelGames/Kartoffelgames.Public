@@ -100,7 +100,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         return {
             aliased: false,
             baseType: PgslBaseType.Matrix,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: true,
                 constructable: this.mInnerType.isConstructable,

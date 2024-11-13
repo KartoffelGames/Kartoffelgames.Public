@@ -11,5 +11,6 @@ export enum PgslBaseType {
     Pointer = 'pointer',
     BuildIn = 'buildIn',
     Void = 'void',
-    Alias = 'alias'
+    Alias = 'alias',
+    Enum = 'enum'
 }

@@ -1,13 +1,12 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { PgslAliasDeclarationSyntaxTree } from '../declaration/pgsl-alias-declaration-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from '../declaration/pgsl-enum-declaration-syntax-tree';
-import { PgslStructDeclarationSyntaxTree } from '../declaration/pgsl-struct-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './definition/base-pgsl-type-definition-syntax-tree';
+import { PgslAliasedTypeDefinitionSyntaxTree } from './definition/pgsl-aliased-type-definition-syntax-tree';
 import { PgslArrayTypeDefinitionSyntaxTree } from './definition/pgsl-array-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from './definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslBuildInTypeDefinitionSyntaxTree } from './definition/pgsl-build-in-type-definition-syntax-tree';
+import { PgslEnumTypeDefinitionSyntaxTree } from './definition/pgsl-enum-type-definition-syntax-tree';
 import { PgslMatrixTypeDefinitionSyntaxTree } from './definition/pgsl-matrix-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from './definition/pgsl-pointer-type-definition-syntax-tree';
@@ -209,16 +208,16 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveAlias(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve alias
-        const lAlias: PgslAliasDeclarationSyntaxTree | null = this.document.resolveAlias(pRawName);
-        if (lAlias) {
-            if (pRawTemplate) {
-                throw new Exception(`Alias can't have templates values.`, this);
-            }
-
-            return lAlias.type;
+        if (!this.mTypePredefinition.aliasNames.has(pRawName)) {
+            return null;
         }
 
-        return null;
+        // No templares allowed.
+        if (pRawTemplate) {
+            throw new Exception(`Alias can't have templates values.`, this);
+        }
+
+        return new PgslAliasedTypeDefinitionSyntaxTree(pRawName, pMeta);
     }
 
     /**
@@ -313,9 +312,8 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      * @param pMeta - Type definition meta data.
      */
     private resolveEnum(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
-        // Resolve enum
-        const lEnum: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(pRawName);
-        if (!lEnum) {
+        // Resolve enum.
+        if (!this.mTypePredefinition.enumNames.has(pRawName)) {
             return null;
         }
 
@@ -324,7 +322,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
             throw new Exception(`Enum can't have templates values.`, this);
         }
 
-        return lEnum.type;
+        return new PgslEnumTypeDefinitionSyntaxTree(pRawName, pMeta);
     }
 
     /**
@@ -474,46 +472,8 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
             return null;
         }
 
-        // BuildInType parameter.
-        const lParameter: ConstructorParameters<typeof PgslTextureTypeDefinitionSyntaxTree>[0] = {
-            typeName: lTypeName
-        };
-
-        // When a template is present, try to add it.
-        if (pRawTemplate) {
-            // Limit template length.
-            if (pRawTemplate.length > 2) {
-                throw new Exception(`Texture type only supports two parameter.`, this);
-            }
-
-            const lTemplateList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
-
-            // First format parameter.
-            if (pRawTemplate.length > 0) {
-                const lTypeParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
-                if (!(lTypeParameter instanceof BasePgslExpressionSyntaxTree)) {
-                    throw new Exception(`Texture type expression needs to be a value expression.`, this);
-                }
-
-                lTemplateList.push(lTypeParameter);
-            }
-
-            // Second access parameter.
-            if (pRawTemplate.length > 1) {
-                const lAccessParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
-                if (!(lAccessParameter instanceof BasePgslExpressionSyntaxTree)) {
-                    throw new Exception(`Texture type expression needs to be a value expression.`, this);
-                }
-
-                lTemplateList.push(lAccessParameter);
-            }
-
-            // Set template list.
-            lParameter.template = lTemplateList;
-        }
-
         // Build texture type definition.
-        return new PgslTextureTypeDefinitionSyntaxTree(lParameter, this.meta).setParent(this).validateIntegrity();
+        return new PgslTextureTypeDefinitionSyntaxTree(lTypeName, pRawTemplate, pMeta);
     }
 
     /**

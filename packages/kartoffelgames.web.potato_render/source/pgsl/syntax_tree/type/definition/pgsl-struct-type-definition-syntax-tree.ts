@@ -16,7 +16,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     public get struct(): PgslStructDeclarationSyntaxTree {
         this.ensureSetup();
 
-        return this.setupData?.setupData.struct;
+        return this.setupData?.data.struct;
     }
 
     /**
@@ -107,7 +107,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         return {
             aliased: false,
             baseType: PgslBaseType.Struct,
-            setupData: {
+            data: {
                 struct: lStruct
             },
             typeAttributes: {

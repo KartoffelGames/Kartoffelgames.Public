@@ -61,7 +61,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: false,
             baseType: PgslBaseType.Pointer,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: false,

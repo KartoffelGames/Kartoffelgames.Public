@@ -34,7 +34,7 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         return {
             aliased: false,
             baseType: PgslBaseType.String,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: false,

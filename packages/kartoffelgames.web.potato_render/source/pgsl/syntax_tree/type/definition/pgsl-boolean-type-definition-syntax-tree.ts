@@ -34,7 +34,7 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: false,
             baseType: PgslBaseType.Boolean,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: true,

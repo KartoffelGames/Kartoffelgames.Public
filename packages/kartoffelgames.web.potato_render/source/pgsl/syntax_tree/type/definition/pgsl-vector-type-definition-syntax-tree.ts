@@ -65,7 +65,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         return {
             aliased: false,
             baseType: PgslBaseType.Vector,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: true,
                 constructable: this.mInnerType.isConstructable,

@@ -5,7 +5,6 @@ import { PgslBaseType } from '../enum/pgsl-base-type.enum';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../pgsl-type-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree';
@@ -68,7 +67,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: lAliasedType,
             baseType: PgslBaseType.BuildIn,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: lAliasedType.isComposite,
                 constructable: lAliasedType.isConstructable,
@@ -182,8 +181,3 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
 }
 
 type BuildInTypeTemplate = BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree | null;
-
-export type PgslBuildInTypeDefinitionSyntaxTreeStructureData = {
-    type: PgslBuildInTypeName;
-    template?: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree;
-};

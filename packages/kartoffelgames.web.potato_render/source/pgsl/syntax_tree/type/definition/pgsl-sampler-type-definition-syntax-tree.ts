@@ -60,7 +60,7 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: false,
             baseType: PgslBaseType.Sampler,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: false,

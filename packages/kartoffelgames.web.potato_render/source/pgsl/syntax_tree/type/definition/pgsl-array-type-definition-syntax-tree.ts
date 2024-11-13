@@ -78,7 +78,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
         return {
             aliased: false,
             baseType: PgslBaseType.Array,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: lIsConstructable,

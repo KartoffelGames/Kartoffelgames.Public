@@ -117,7 +117,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown>
         // Must be setup.
         this.ensureSetup();
 
-        return this.setupData.setupData;
+        return this.setupData.data;
     }
 
     /**
@@ -254,7 +254,7 @@ export type PgslTypeDefinitionAttributes<TTypeSetupData> = {
     /**
      * Own setup data.
      */
-    setupData: TTypeSetupData;
+    data: TTypeSetupData;
 
     /**
      * Basic type.

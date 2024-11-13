@@ -25,10 +25,13 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * Underlying type of enum.
      */
     public get type(): BasePgslTypeDefinitionSyntaxTree {
-        this.ensureValidity();
+        this.ensureSetup();
 
         // The best way of getting the first value.
-        return this.mValues.values().next().value;
+        const lExpression: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree = this.mValues.values().next().value;
+
+        // Get type of value.
+        return lExpression.resolveType;
     }
 
     /**

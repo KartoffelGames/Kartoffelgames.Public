@@ -82,7 +82,7 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         return {
             aliased: false,
             baseType: PgslBaseType.Numberic,
-            setupData: null,
+            data: null,
             typeAttributes: {
                 composite: false,
                 constructable: true,

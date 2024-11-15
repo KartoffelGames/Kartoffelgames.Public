@@ -15,13 +15,14 @@ import { PgslStringTypeDefinitionSyntaxTree } from './definition/pgsl-string-typ
 import { PgslStructTypeDefinitionSyntaxTree } from './definition/pgsl-struct-type-definition-syntax-tree';
 import { PgslTextureTypeDefinitionSyntaxTree } from './definition/pgsl-texture-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslBaseType } from './enum/pgsl-base-type.enum';
 import { PgslBuildInTypeName } from './enum/pgsl-build-in-type-name.enum';
 import { PgslMatrixTypeName } from './enum/pgsl-matrix-type-name.enum';
 import { PgslNumericTypeName } from './enum/pgsl-numeric-type-name.enum';
 import { PgslSamplerTypeName } from './enum/pgsl-sampler-build-name.enum';
 import { PgslTextureTypeName } from './enum/pgsl-texture-type-name.enum';
-import { PgslTypeName } from './enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from './enum/pgsl-vector-type-name.enum';
+import { PgslVoidTypeDefinitionSyntaxTree } from './definition/pgsl-void-type-definition-syntax-tree';
 
 /**
  * General PGSL syntax tree factory of a type definition.
@@ -120,9 +121,13 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
             return this.resolvePointer(pTypeName, lTemplateList, pMeta);
         }
 
-        // TODO: Void
-
         let lTypeDefinition: BasePgslTypeDefinitionSyntaxTree | null = null;
+
+        // Try to parse to void type.
+        lTypeDefinition = this.resolveVoid(pTypeName, lTemplateList, pMeta);
+        if (lTypeDefinition) {
+            return lTypeDefinition;
+        }
 
         // Try to parse to struct type.
         lTypeDefinition = this.resolveStruct(pTypeName, lTemplateList, pMeta);
@@ -130,7 +135,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
             return lTypeDefinition;
         }
 
-        // Try to parse alias type.  // TODO: Alias
+        // Try to parse alias type.
         lTypeDefinition = this.resolveAlias(pTypeName, lTemplateList, pMeta);
         if (lTypeDefinition) {
             return lTypeDefinition;
@@ -229,7 +234,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveArray(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve array type.
-        if (pRawName !== PgslTypeName.Array) {
+        if (pRawName !== PgslBaseType.Array) {
             return null;
         }
 
@@ -274,7 +279,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveBoolean(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve boolean type.
-        if (pRawName !== PgslTypeName.Boolean) {
+        if (pRawName !== PgslBaseType.Boolean) {
             return null;
         }
 
@@ -424,7 +429,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveString(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve string type.
-        if (pRawName !== PgslTypeName.String) {
+        if (pRawName !== PgslBaseType.String) {
             return null;
         }
 
@@ -503,6 +508,27 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
 
         // Build vector definition.
         return new PgslVectorTypeDefinitionSyntaxTree(lTypeName, lVectorInnerTypeTemplate, pMeta);
+    }
+
+    /**
+     * Try to resolve raw type as void type.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     * @param pMeta - Type definition meta data.
+     */
+    private resolveVoid(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
+        // Resolve void type.
+        if (pRawName !== PgslBaseType.Void) {
+            return null;
+        }
+
+        // Void should not have any templates.
+        if (pRawTemplate) {
+            throw new Exception(`Void can't have templates values.`, this);
+        }
+
+        return new PgslVoidTypeDefinitionSyntaxTree(pMeta);
     }
 }
 

@@ -1,104 +1,67 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL base expression.
  */
-export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
-    private mIsConstant: boolean | null;
-    private mIsCreationFixed: boolean | null;
-    private mIsStorage: boolean | null;
-    private mResolveType: BasePgslTypeDefinitionSyntaxTree | null;
-
+export abstract class BasePgslExpressionSyntaxTree<TSetupData = unknown> extends BasePgslSyntaxTree<PgslExpressionSyntaxTreeSetupData<TSetupData>> { 
     /**
      * If expression is a constant expression.
      */
     public get isConstant(): boolean {
-        this.ensureValidity();
+        this.ensureSetup();
 
-        // Constant was not set.
-        if (this.mIsConstant === null) {
-            this.mIsConstant = this.determinateIsConstant();
-        }
-
-        return this.mIsConstant;
+        return this.setupData.expression.isConstant;
     }
 
     /**
      * If expression is a constant expression.
      */
     public get isCreationFixed(): boolean {
-        this.ensureValidity();
+        this.ensureSetup();
 
-        // Constant was not set.
-        if (this.mIsCreationFixed === null) {
-            this.mIsCreationFixed = this.determinateIsCreationFixed();
-        }
-
-        return this.mIsCreationFixed;
+        return this.setupData.expression.isFixed;
     }
 
     /**
      * If expression is value storage.
      */
     public get isStorage(): boolean {
-        this.ensureValidity();
+        this.ensureSetup();
 
-        // Constant was not set.
-        if (this.mIsStorage === null) {
-            this.mIsStorage = this.determinateIsStorage();
-        }
-
-        return this.mIsStorage;
+        return this.setupData.expression.isStorage;
     }
 
     /**
      * Type the expression will resolve into.
      */
     public get resolveType(): BasePgslTypeDefinitionSyntaxTree {
-        this.ensureValidity();
+        this.ensureSetup();
 
-        // Constant was not set.
-        if (this.mResolveType === null) {
-            this.mResolveType = this.determinateResolveType();
-        }
-
-        return this.mResolveType;
+        return this.setupData.expression.resolveType;
     }
 
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
-
-        this.mIsConstant = null;
-        this.mIsCreationFixed = null;
-        this.mIsStorage = null;
-        this.mResolveType = null;
+    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
      */
-    protected abstract determinateIsConstant(): boolean;
-
-    /**
-     * On creation fixed state request.
-     */
-    protected abstract determinateIsCreationFixed(): boolean;
-
-    /**
-     * On is storage set.
-     */
-    protected abstract determinateIsStorage(): boolean;
-
-    /**
-     * On type resolve of expression
-     */
-    protected abstract determinateResolveType(): BasePgslTypeDefinitionSyntaxTree;
+    protected abstract override onSetup(): PgslExpressionSyntaxTreeSetupData<TSetupData>;
 }
+
+export type PgslExpressionSyntaxTreeSetupData<TSetupData = unknown> = {
+    expression: {
+        isConstant: boolean;
+        isFixed: boolean;
+        isStorage: boolean;
+        resolveType: BasePgslTypeDefinitionSyntaxTree;
+    };
+    data: TSetupData;
+};

@@ -247,14 +247,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                             // Replace variable name expression with type expression.
                             if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
-                                lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.meta, lParameter.name, false);
+                                lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
                             }
                         }
                     }
                 }
 
                 // Create type definition syntax tree.
-                return this.mTypeFactory.generate(this.createTokenBoundParameter(pStartToken, pEndToken), pData.name, !!pData.pointer, pData.templateList);
+                return this.mTypeFactory.generate(pData.name, !!pData.pointer, pData.templateList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -288,13 +288,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         // Replace variable name expression with type expression.
                         if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
-                            lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.meta, lParameter.name, false);
+                            lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
                         }
                     }
                 }
 
                 // Create type definition syntax tree.
-                return this.mTypeFactory.generate(this.createTokenBoundParameter(pStartToken, pEndToken), pData.name, !!pData.pointer, lParameterList);
+                return this.mTypeFactory.generate(pData.name, !!pData.pointer, lParameterList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
     }
@@ -904,7 +904,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
                 // Build data structure.
                 const lData: ConstructorParameters<typeof PgslVariableDeclarationSyntaxTree>[0] = {
-                    attributes: pData.attributes,
                     name: pData.variableName,
                     type: pData.type,
                     declarationType: pData.declarationType
@@ -915,7 +914,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     lData.expression = pData.initialization.expression;
                 }
 
-                return new PgslVariableDeclarationSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslVariableDeclarationSyntaxTree(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -929,11 +928,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.mTypeFactory.addAliasPredefinition(pData.name);
 
                 // Create structure.
-                return new PgslAliasDeclarationSyntaxTree({
-                    attributes: pData.attributes,
-                    name: pData.name,
-                    type: pData.type
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslAliasDeclarationSyntaxTree(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -964,19 +959,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 // Add enum name to buffer.
                 this.mTypeFactory.addEnumPredefinition(pData.name);
 
-                // Build enum data structure.
-                const lData: ConstructorParameters<typeof PgslEnumDeclarationSyntaxTree>[0] = {
-                    attributes: pData.attributes,
-                    name: pData.name,
-                    items: new Array<{ name: string, value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree; }>()
-                };
-
                 // Only add values when they exist.
+                const lEnumValueList = new Array<{ name: string, value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree; }>();
                 if (pData.values) {
-                    lData.items.push(pData.values, ...pData.values.additional);
+                    lEnumValueList.push(pData.values, ...pData.values.additional);
                 }
 
-                return new PgslEnumDeclarationSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslEnumDeclarationSyntaxTree(pData.name, lEnumValueList, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -987,11 +976,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('type', this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
                 // Create structure.
-                return new PgslStructPropertyDeclarationSyntaxTree({
-                    attributes: pData.attributes,
-                    name: pData.name,
-                    type: pData.type
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslStructPropertyDeclarationSyntaxTree(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -1012,21 +997,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 // Add struct name to struct buffer.
                 this.mTypeFactory.addStructPredefinition(pData.name);
 
-                // Create base data.
-                const lData: ConstructorParameters<typeof PgslStructDeclarationSyntaxTree>[0] = {
-                    attributes: pData.attributes,
-                    name: pData.name,
-                    properties: new Array<PgslStructPropertyDeclarationSyntaxTree>()
-                };
-
                 // Read and insert property data.
+                const lPropertyList: Array<PgslStructPropertyDeclarationSyntaxTree> = new Array<PgslStructPropertyDeclarationSyntaxTree>();
                 if (pData.properties) {
                     // Add property to property list.
-                    lData.properties.push(pData.properties.first, ...pData.properties.additional.map((pItem) => { return pItem.property; }));
+                    lPropertyList.push(pData.properties.first, ...pData.properties.additional.map((pItem) => { return pItem.property; }));
                 }
 
                 // Create struct syntax tree.
-                return new PgslStructDeclarationSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslStructDeclarationSyntaxTree(pData.name, lPropertyList, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -1053,7 +1032,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
                 // Create base data.
                 const lData: ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0] = {
-                    attributes: pData.attributes,
                     name: pData.name,
                     parameter: new Array<ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0]['parameter'][number]>(),
                     returnType: pData.returnType,
@@ -1067,7 +1045,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     lData.parameter.push(pData.parameter.first, ...pData.parameter.additional);
                 }
 
-                return new PgslFunctionDeclarationSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslFunctionDeclarationSyntaxTree(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
     }

@@ -1,16 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 
 /**
  * PGSL syntax tree for a struct property declaration.
  */
-export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructPropertyDeclarationSyntaxTreeStructureData> {
+export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDeclarationSyntaxTree;
+    private readonly mTypeDefinition: BasePgslTypeDefinitionSyntaxTree;
 
     /**
      * Property name.
@@ -23,29 +22,26 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
      * Property type.
      */
     public get type(): BasePgslTypeDefinitionSyntaxTree {
-        return this.mTypeDefinition.type;
+        return this.mTypeDefinition;
     }
 
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pName - Property name.
+     * @param pType - Property type.
+     * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStructPropertyDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pMeta, pBuildIn);
+    public constructor(pName: string, pType: BasePgslTypeDefinitionSyntaxTree, pAttributes: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pAttributes, pMeta);
 
         // Set data.
-        this.mName = pData.name;
-        this.mTypeDefinition = pData.type;
-    }
+        this.mName = pName;
+        this.mTypeDefinition = pType;
 
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected determinateIsConstant(): boolean {
-        return true;
+        // Add type defintion as child tree.
+        this.appendChild(pType);
     }
 
     /**
@@ -53,14 +49,8 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
      */
     protected override onValidateIntegrity(): void {
         // Supports only plain types.
-        if (!this.mTypeDefinition.type.isPlainType) {
+        if (!this.mTypeDefinition.isPlainType) {
             throw new Exception('Structure properties can only store plain types.', this);
         }
     }
 }
-
-export type PgslStructPropertyDeclarationSyntaxTreeStructureData = {
-    attributes: PgslAttributeListSyntaxTree;
-    name: string;
-    type: PgslTypeDeclarationSyntaxTree;
-};

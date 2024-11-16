@@ -113,8 +113,8 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      * 
      * @returns generated type definition. 
      */
-    public generate(pMeta: BasePgslSyntaxTreeMeta, pTypeName: string, pIsPointer: boolean, pTemplateList?: PgslTypeTemplateList): BasePgslTypeDefinitionSyntaxTree {
-        const lTemplateList: PgslTypeTemplateList = pTemplateList ?? [];
+    public generate(pTypeName: string, pIsPointer: boolean, pTemplateList: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree {
+        const lTemplateList: PgslTypeTemplateList = pTemplateList;
 
         // Type to pointer.
         if (pIsPointer) {
@@ -391,7 +391,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolvePointer(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree {
         // Parse type again but this time without pointer.
-        const lTypeDeclaration: BasePgslTypeDefinitionSyntaxTree = this.generate(pMeta, pRawName, false, pRawTemplate);
+        const lTypeDeclaration: BasePgslTypeDefinitionSyntaxTree = this.generate(pRawName, false, pRawTemplate, pMeta);
 
         // Build pointer type definition.
         return new PgslPointerTypeDefinitionSyntaxTree(lTypeDeclaration, pMeta);

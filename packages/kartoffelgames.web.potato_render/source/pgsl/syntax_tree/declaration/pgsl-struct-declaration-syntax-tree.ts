@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-declaration-syntax-tree';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 
 /**
  * PGSL syntax tree for a struct declaration.
  */
-export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructDeclarationSyntaxTreeStructureData> {
+export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
 
@@ -32,19 +32,15 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStructDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pMeta, pBuildIn);
+    public constructor(pName: string, pProperties: Array<PgslStructPropertyDeclarationSyntaxTree>, pAttributes: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pAttributes, pMeta);
 
         // Set data.
-        this.mName = pData.name;
-        this.mProperties = pData.properties;
-    }
+        this.mName = pName;
+        this.mProperties = pProperties;
 
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected determinateIsConstant(): boolean {
-        return true;
+        // Add all properties as child.
+        this.appendChild(...pProperties);
     }
 
     /**
@@ -68,9 +64,3 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         }
     }
 }
-
-export type PgslStructDeclarationSyntaxTreeStructureData = {
-    attributes: PgslAttributeListSyntaxTree;
-    name: string;
-    properties: Array<PgslStructPropertyDeclarationSyntaxTree>;
-};

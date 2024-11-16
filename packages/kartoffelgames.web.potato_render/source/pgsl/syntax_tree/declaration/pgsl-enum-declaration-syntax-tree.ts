@@ -1,18 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslTypeName } from '../type/enum/pgsl-type-name.enum';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
  */
-export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslEnumDeclarationSyntaxTreeStructureData> {
+export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslEnumDeclarationSyntaxTreeSetupData> {
     private readonly mName: string;
-    private readonly mValues: Dictionary<string, PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree>;
+    private readonly mValues: PgslEnumDeclarationSyntaxTreeValues;
 
     /**
      * Variable name.
@@ -28,7 +29,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
         this.ensureSetup();
 
         // The best way of getting the first value.
-        const lExpression: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree = this.mValues.values().next().value;
+        const lExpression: BasePgslExpressionSyntaxTree = this.mValues.values().next().value;
 
         // Get type of value.
         return lExpression.resolveType;
@@ -37,26 +38,16 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pName - Enum name.
+     * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslEnumDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pMeta, pBuildIn);
+    public constructor(pName: string, pValue: PgslEnumDeclarationSyntaxTreeValues, pAttributes: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pAttributes, pMeta);
 
         // Set data.
-        this.mName = pData.name;
-
-        // Add each item to enum.
-        this.mValues = new Dictionary<string, PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree>();
-        for (const lItem of pData.items) {
-            // Validate dublicates.
-            if (this.mValues.has(lItem.name)) {
-                throw new Exception(`Value "${lItem.name}" was already added to enum "${this.mName}"`, this);
-            }
-
-            this.mValues.set(lItem.name, lItem.value);
-        }
+        this.mName = pName;
+        this.mValues = pValue;
     }
 
     /**
@@ -67,27 +58,55 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * @returns Value of property or null when the property is not defined.
      */
     public property(pName: string): PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree | null {
-        return this.mValues.get(pName) ?? null;
+        this.ensureSetup();
+
+        if (this.setupData.values.has(pName)) {
+            return this.setupData.values.get(pName)! as PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree;
+        }
+
+        return null;
     }
 
     /**
-     * Determinate if declaration is a constant.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data. 
      */
-    protected determinateIsConstant(): boolean {
-        return true;
+    protected override onSetup(): PgslEnumDeclarationSyntaxTreeSetupData {
+        // Add each item to enum.
+        const lValueList = new Dictionary<string, BasePgslExpressionSyntaxTree>();
+        for (const lItem of this.mValues) {
+            // Validate dublicates.
+            if (lValueList.has(lItem.name)) {
+                throw new Exception(`Value "${lItem.name}" was already added to enum "${this.mName}"`, this);
+            }
+
+            lValueList.set(lItem.name, lItem.value);
+        }
+
+        return {
+            values: lValueList
+        };
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Empty enums not allows.
-        if (this.mValues.size) {
+        this.ensureSetup();
+
+        // Empty enums are not allowed.
+        if (this.setupData.values.size) {
             throw new Exception(`Enum ${this.mName} has no values`, this);
         }
 
         let lFirstPropertyType: typeof PgslLiteralValueExpressionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree | null = null;
-        for (const lProperty of this.mValues.values()) {
+        for (const lProperty of this.setupData.values.values()) {
+            // Only literals are allowed.
+            if (!(lProperty instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty instanceof PgslStringValueExpressionSyntaxTree)) {
+                throw new Exception(`Value on enum "${this.mName}" invalid. Only literal values are allowed.`, this);
+            }
+
             // All values need to be string or integer.
             if (lProperty instanceof PgslLiteralValueExpressionSyntaxTree) {
                 if (lProperty.type !== PgslTypeName.UnsignedInteger) {
@@ -111,11 +130,8 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
     }
 }
 
-export type PgslEnumDeclarationSyntaxTreeStructureData = {
-    attributes: PgslAttributeListSyntaxTree;
-    name: string;
-    items: Array<{
-        name: string;
-        value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree;
-    }>;
+export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: BasePgslExpressionSyntaxTree; }>;
+
+type PgslEnumDeclarationSyntaxTreeSetupData = {
+    values: Dictionary<string, BasePgslExpressionSyntaxTree>;
 };

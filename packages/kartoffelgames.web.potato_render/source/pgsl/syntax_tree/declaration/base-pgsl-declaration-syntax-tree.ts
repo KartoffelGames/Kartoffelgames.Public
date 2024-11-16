@@ -1,10 +1,10 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 
 /**
  * PGSL base declaration. Every declaration has a optional attribute list.
  */
-export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
+export abstract class BasePgslDeclarationSyntaxTree<TSetupData = unknown> extends BasePgslSyntaxTree<TSetupData> {
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
 
     /**
@@ -22,10 +22,13 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pAttributeList: PgslAttributeListSyntaxTree, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pAttributeList: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
         this.mAttributeList = pAttributeList;
+
+        // Add attributes as declaration child.
+        this.appendChild(pAttributeList);
     }
 }

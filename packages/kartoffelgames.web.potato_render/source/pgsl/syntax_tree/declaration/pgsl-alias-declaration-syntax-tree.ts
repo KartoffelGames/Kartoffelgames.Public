@@ -1,15 +1,14 @@
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData> {
+export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDeclarationSyntaxTree;
+    private readonly mTypeDefinition: BasePgslTypeDefinitionSyntaxTree;
 
     /**
      * Alias name.
@@ -22,42 +21,25 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
      * Alias type definition.
      */
     public get type(): BasePgslTypeDefinitionSyntaxTree {
-        return this.mTypeDefinition.type;
+        return this.mTypeDefinition;
     }
 
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pName - Alias name.
+     * @param pType - Aliased type.
+     * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAliasDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pData.attributes, pMeta, pBuildIn);
+    public constructor(pName: string, pType: BasePgslTypeDefinitionSyntaxTree, pAttributeList: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pAttributeList, pMeta);
 
         // Set data.
-        this.mName = pData.name;
-        this.mTypeDefinition = pData.type;
-    }
+        this.mName = pName;
+        this.mTypeDefinition = pType;
 
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected determinateIsConstant(): boolean {
-        return true;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Not really something to validate.
+        // Add child trees.
+        this.appendChild(pType);
     }
 }
-
-export type PgslAliasDeclarationSyntaxTreeStructureData = {
-    attributes: PgslAttributeListSyntaxTree;
-    name: string;
-    type: PgslTypeDeclarationSyntaxTree;
-};

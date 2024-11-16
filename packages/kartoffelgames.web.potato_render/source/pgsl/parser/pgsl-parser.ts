@@ -1,6 +1,6 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
-import { SyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-function-declaration-syntax-tree';
@@ -112,20 +112,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      * 
      * @returns parameter of start and end token as a four number tuple.
      */
-    private createTokenBoundParameter(pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): SyntaxTreeMeta {
+    private createTokenBoundParameter(pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslSyntaxTreeMeta {
         // No token.
         if (!pStartToken && !pEndToken) {
             return {
-                position: {
-                    start: {
-                        column: 0,
-                        line: 0
-                    },
-                    end: {
-                        column: 0,
-                        line: 0
-                    }
-                }
+                buildIn: false,
+                range: [0, 0, 0, 0]
             };
         }
 
@@ -137,31 +129,25 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // Only starting token.
         if (!pEndToken) {
             return {
-                position: {
-                    start: {
-                        column: pStartToken.columnNumber,
-                        line: pStartToken.lineNumber
-                    },
-                    end: {
-                        column: pStartToken.columnNumber,
-                        line: pStartToken.lineNumber
-                    }
-                }
+                buildIn: false,
+                range: [
+                    pStartToken.lineNumber,
+                    pStartToken.columnNumber,
+                    pStartToken.lineNumber,
+                    pStartToken.columnNumber
+                ]
             };
         }
 
         // Solid start and end token.
         return {
-            position: {
-                start: {
-                    column: pStartToken.columnNumber,
-                    line: pStartToken.lineNumber
-                },
-                end: {
-                    column: pEndToken.columnNumber,
-                    line: pEndToken.lineNumber
-                }
-            }
+            buildIn: false,
+            range: [
+                pStartToken.lineNumber,
+                pStartToken.columnNumber,
+                pEndToken.lineNumber,
+                pEndToken.columnNumber
+            ]
         };
     }
 

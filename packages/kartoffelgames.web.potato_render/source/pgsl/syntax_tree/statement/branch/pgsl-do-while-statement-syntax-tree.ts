@@ -39,6 +39,9 @@ export class PgslDoWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree 
         // Set data.
         this.mExpression = pExpression;
         this.mBlock = pBlock;
+
+        // Add data as child tree.
+        this.appendChild(this.mExpression, this.mBlock);
     }
 
     /**

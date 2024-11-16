@@ -86,6 +86,12 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         this.mName = pParameter.name;
         this.mTypeDeclaration = pParameter.type;
         this.mExpression = pParameter.expression ?? null;
+
+        // Add child trees.
+        this.appendChild(this.mTypeDeclaration);
+        if (this.mExpression) {
+            this.appendChild(this.mExpression);
+        }
     }
 
     /**

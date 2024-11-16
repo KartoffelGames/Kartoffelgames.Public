@@ -45,9 +45,12 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
         super(pMeta);
 
         // Set data.
-        this.mAssignmentName = EnumUtil.cast(PgslAssignment, pParameter.assignment)!;
+        this.mAssignmentName = pParameter.assignment;
         this.mVariable = pParameter.variable;
         this.mExpression = pParameter.expression;
+
+        // Set data as child trees.
+        this.appendChild(this.mVariable, this.mExpression);
     }
 
     /**

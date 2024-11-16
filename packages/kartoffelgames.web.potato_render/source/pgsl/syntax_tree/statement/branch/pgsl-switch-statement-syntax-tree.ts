@@ -50,6 +50,17 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree {
         this.mCases = pParameter.cases;
         this.mExpression = pParameter.expression;
         this.mDefault = pParameter.default;
+
+        // Add data as child tree.
+        this.appendChild(this.mExpression);
+        if (this.mDefault) {
+            this.appendChild(this.mDefault);
+        }
+
+        // Add each case as 
+        for (const lCase of this.mCases) {
+            this.appendChild(lCase.block, ...lCase.cases);
+        }
     }
 
     /**

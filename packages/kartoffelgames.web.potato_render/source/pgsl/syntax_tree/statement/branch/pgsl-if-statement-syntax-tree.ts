@@ -47,6 +47,12 @@ export class PgslIfStatementSyntaxTree extends BasePgslStatementSyntaxTree {
         this.mExpression = pParameter.expression;
         this.mBlock = pParameter.block;
         this.mElse = pParameter.else;
+
+        // Set data as child trees.
+        this.appendChild(this.mExpression, this.mBlock);
+        if (this.mElse) {
+            this.appendChild(this.mElse);
+        }
     }
 
     /**

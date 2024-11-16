@@ -41,6 +41,11 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
         // Set base data.
         this.mOperatorName = pOperator;
         this.mExpression = pExpression;
+
+        // Add child trees.
+        if (this.mExpression) {
+            this.appendChild(this.mExpression);
+        }
     }
 
     /**

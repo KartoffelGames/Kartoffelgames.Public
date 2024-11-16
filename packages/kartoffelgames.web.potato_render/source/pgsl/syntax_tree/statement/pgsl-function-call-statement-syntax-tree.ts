@@ -28,13 +28,8 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
 
         // Create and validate expression instead.
         this.mFunctionExpression = new PgslFunctionCallExpressionSyntaxTree(pName, pParameterList, pMeta);
-        this.appendChild(this.mFunctionExpression);
-    }
 
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        this.mFunctionExpression.validateIntegrity();
+        // Add function expression as child.
+        this.appendChild(this.mFunctionExpression);
     }
 }

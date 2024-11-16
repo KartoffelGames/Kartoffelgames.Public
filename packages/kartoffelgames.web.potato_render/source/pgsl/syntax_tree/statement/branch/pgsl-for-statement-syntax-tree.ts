@@ -61,6 +61,18 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree {
         this.mUpdate = pParameter.update;
         this.mExpression = pParameter.expression;
         this.mInit = pParameter.init;
+
+        // Set child as tree data.
+        this.appendChild(this.mBlock);
+        if (this.mUpdate) {
+            this.appendChild(this.mUpdate);
+        }
+        if (this.mExpression) {
+            this.appendChild(this.mExpression);
+        }
+        if (this.mInit) {
+            this.appendChild(this.mInit);
+        }
     }
 
     /**

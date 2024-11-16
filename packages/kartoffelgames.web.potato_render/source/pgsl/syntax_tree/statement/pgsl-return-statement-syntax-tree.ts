@@ -24,7 +24,13 @@ export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     public constructor(pExpression: BasePgslExpressionSyntaxTree | null, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
+        // Set data.
         this.mExpression = pExpression;
+
+        // Add child trees.
+        if (this.mExpression) {
+            this.appendChild(this.mExpression);
+        }
     }
 
     /**

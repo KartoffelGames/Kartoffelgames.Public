@@ -186,7 +186,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
                 // Create attribute list.
-                const lAttributeList: ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0]['attributes'] = new Array<{ name: string; parameter: Array<BasePgslExpressionSyntaxTree>; }>();
+                const lAttributeList: ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0] = new Array<{ name: string; parameter: Array<BasePgslExpressionSyntaxTree>; }>();
 
                 // Add each attribute to list.
                 for (const lAttribute of pData.list) {
@@ -205,9 +205,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 }
 
                 // Create attribute list syntax tree.
-                return new PgslAttributeListSyntaxTree({
-                    attributes: lAttributeList
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslAttributeListSyntaxTree(lAttributeList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -231,30 +229,30 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
                 // Define root structure of type definition syntax tree structure data and apply type name.
-                const lParameterList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = new Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>();
+                const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = new Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>();
 
                 // Append optional template list.
                 if (pData.templateList) {
                     // Build Parameter list
-                    lParameterList.push(pData.templateList.first);
-                    lParameterList.push(...pData.templateList.additional.map((pParameter) => { return pParameter.value; }));
+                    lTemplateList.push(pData.templateList.first);
+                    lTemplateList.push(...pData.templateList.additional.map((pParameter) => { return pParameter.value; }));
 
                     // Sometimes a variable name expression is a type definition :(
                     // So we need to filter it.
-                    for (let lIndex: number = 0; lIndex < lParameterList.length; lIndex++) {
-                        const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
+                    for (let lIndex: number = 0; lIndex < lTemplateList.length; lIndex++) {
+                        const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lTemplateList[lIndex];
                         if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                             // Replace variable name expression with type expression.
                             if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
-                                lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
+                                lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
                             }
                         }
                     }
                 }
 
                 // Create type definition syntax tree.
-                return this.mTypeFactory.generate(pData.name, !!pData.pointer, pData.templateList, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return this.mTypeFactory.generate(pData.name, !!pData.pointer, lTemplateList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 

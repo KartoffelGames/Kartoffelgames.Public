@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
@@ -7,7 +7,7 @@ import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/
 /**
  * Generic attributre list.
  */
-export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttributeListSyntaxTreeStructureData> {
+export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttributeListSyntaxTreeSetupData> {
     /**
      * All valid attributes.
      */
@@ -55,7 +55,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         return lAttributes;
     })();
 
-    private readonly mAttributes: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
+    private readonly mAttributeDefinitionList: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>;
 
     /**
      * Constructor.
@@ -64,27 +64,15 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAttributeListSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mAttributes = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
+        this.mAttributeDefinitionList = pAttributes;
 
-        // Convert and add each attribute to list.
-        for (const lAttribute of pData.attributes) {
-            // Validate existence.
-            if (this.mAttributes.has(lAttribute.name)) {
-                throw new Exception(`Attribute "${lAttribute}" already exists for this entity.`, this);
-            }
-
-            // Allow own attribute names but ignore it.
-            if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
-                this.mAttributes.set(lAttribute.name, lAttribute.parameter);
-                continue;
-            }
-
-            // Set attribute.
-            this.mAttributes.set(lAttribute.name, lAttribute.parameter);
+        // Set data as child trees.
+        for (const lAttribute of this.mAttributeDefinitionList) {
+            this.appendChild(...lAttribute.parameter);
         }
     }
 
@@ -96,8 +84,10 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * @returns all attribute parameters 
      */
     public getAttribute(pName: string): Array<BasePgslExpressionSyntaxTree> {
+        this.ensureSetup();
+
         // Try to read attribute parameters.
-        const lAttributeParameter: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> | undefined = this.mAttributes.get(pName);
+        const lAttributeParameter: Array<BasePgslExpressionSyntaxTree> | undefined = this.setupData.attributes.get(pName);
         if (!lAttributeParameter) {
             throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
         }
@@ -106,11 +96,44 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
     }
 
     /**
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
+     */
+    protected override onSetup(): PgslAttributeListSyntaxTreeSetupData {
+        const lAttributeList: Dictionary<string, Array<BasePgslExpressionSyntaxTree>> = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
+
+        // Convert and add each attribute to list.
+        for (const lAttribute of this.mAttributeDefinitionList) {
+            // Validate existence.
+            if (lAttributeList.has(lAttribute.name)) {
+                throw new Exception(`Attribute "${lAttribute}" already exists for this entity.`, this);
+            }
+
+            // Allow own attribute names but ignore it.
+            if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
+                lAttributeList.set(lAttribute.name, lAttribute.parameter);
+                continue;
+            }
+
+            // Set attribute.
+            lAttributeList.set(lAttribute.name, lAttribute.parameter);
+        }
+
+        return {
+            attributes: lAttributeList
+        };
+    }
+
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        this.ensureSetup();
+
         // Only const expressions allowed.
-        for (const [lAttributeName, lAttributeParameter] of this.mAttributes) {
+        for (const [lAttributeName, lAttributeParameter] of this.setupData.attributes) {
             for (const lParameter of lAttributeParameter) {
                 if (!lParameter.isConstant) {
                     throw new Exception(`Attribute "${lAttributeName}" contains a none constant parameter.`, this);
@@ -125,7 +148,6 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
             }
         }
     }
-
     /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
@@ -196,11 +218,13 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
     }
 }
 
-type PgslAttributeListSyntaxTreeStructureData = {
-    attributes: Array<{
-        name: string,
-        parameter: Array<BasePgslExpressionSyntaxTree>;
-    }>;
+type PgslAttributeListSyntaxTreeSetupData = {
+    attributes: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
+};
+
+export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
+    name: string,
+    parameter: Array<BasePgslExpressionSyntaxTree>;
 };
 
 type AttributeParameterType = 'Expression' | 'String' | Array<string>;

@@ -1,14 +1,14 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslAssignment } from '../../enum/pgsl-assignment.enum';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a assignment statement.
  */
-export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslAssignmentStatementSyntaxTreeStructureData> {
-    private readonly mAssignment: PgslAssignment;
+export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslAssignmentStatementSyntaxTreeSetupData> {
+    private readonly mAssignmentName: string;
     private readonly mExpression: BasePgslExpressionSyntaxTree;
     private readonly mVariable: BasePgslExpressionSyntaxTree;
 
@@ -16,7 +16,9 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
      * Expression operator.
      */
     public get assignment(): PgslAssignment {
-        return this.mAssignment;
+        this.ensureSetup();
+
+        return this.setupData.assignment;
     }
 
     /**
@@ -36,21 +38,32 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pParameter - Parameter.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAssignmentStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pParameter: PgslAssignmentStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
-        // Validate assignment.
-        if (!EnumUtil.exists<PgslAssignment>(PgslAssignment, pData.assignment)) {
-            throw new Exception(`Operation "${pData.assignment}" can not used for assignment statements.`, this);
+        // Set data.
+        this.mAssignmentName = EnumUtil.cast(PgslAssignment, pParameter.assignment)!;
+        this.mVariable = pParameter.variable;
+        this.mExpression = pParameter.expression;
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * @returns setuped data.
+     */
+    public override onSetup(): PgslAssignmentStatementSyntaxTreeSetupData {
+        // Try to parse assignment.
+        const lAssignment: PgslAssignment | undefined = EnumUtil.cast(PgslAssignment, this.mAssignmentName);
+        if (!lAssignment) {
+            throw new Exception(`Operation "${this.mAssignmentName}" can not used for assignment statements.`, this);
         }
 
-        this.mAssignment = EnumUtil.cast(PgslAssignment, pData.assignment)!;
-        this.mVariable = pData.variable;
-        this.mExpression = pData.expression;
+        return {
+            assignment: lAssignment
+        };
     }
 
     /**
@@ -74,7 +87,11 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
     }
 }
 
-export type PgslAssignmentStatementSyntaxTreeStructureData = {
+type PgslAssignmentStatementSyntaxTreeSetupData = {
+    assignment: PgslAssignment;
+};
+
+export type PgslAssignmentStatementSyntaxTreeConstructorParameter = {
     assignment: string;
     variable: BasePgslExpressionSyntaxTree;
     expression: BasePgslExpressionSyntaxTree;

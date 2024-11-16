@@ -1,4 +1,4 @@
-import { PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../expression/single_value/pgsl-function-call-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
@@ -6,7 +6,7 @@ import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 /**
  * PGSL syntax tree of a function call statement with optional template list.
  */
-export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslFunctionCallStatementSyntaxTreeStructureData> {
+export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     private readonly mFunctionExpression: PgslFunctionCallExpressionSyntaxTree;
 
     /**
@@ -19,18 +19,16 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pName - Function name.
+     * @param pParameterList - Function parameters.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslFunctionCallStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pName: string, pParameterList: Array<BasePgslExpressionSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Create and validate expression instead.
-        this.mFunctionExpression = new PgslFunctionCallExpressionSyntaxTree({
-            name: pData.name,
-            parameterList: pData.parameterList
-        }, this.meta).setParent(this);
+        this.mFunctionExpression = new PgslFunctionCallExpressionSyntaxTree(pName, pParameterList, pMeta);
+        this.appendChild(this.mFunctionExpression);
     }
 
     /**
@@ -40,8 +38,3 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
         this.mFunctionExpression.validateIntegrity();
     }
 }
-
-type PgslFunctionCallStatementSyntaxTreeStructureData = {
-    name: string;
-    parameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
-};

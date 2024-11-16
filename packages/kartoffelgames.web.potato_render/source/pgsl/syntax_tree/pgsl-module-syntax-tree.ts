@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, SyntaxTreeMeta } from './base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from './declaration/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree';
@@ -7,7 +7,7 @@ import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-decla
 import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from './interface/i-pgsl-variable-declaration-syntax-tree.interface';
 
-export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {
+export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeConstructorParameter> {
     // Values
     private readonly mAlias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
     private readonly mEnums: Dictionary<string, PgslEnumDeclarationSyntaxTree>;
@@ -48,8 +48,8 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslModuleSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pData: PgslModuleSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
         this.mEnums = new Dictionary<string, PgslEnumDeclarationSyntaxTree>();
@@ -166,7 +166,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     }
 }
 
-type PgslModuleSyntaxTreeStructureData = {
+type PgslModuleSyntaxTreeConstructorParameter = {
     aliases: Array<PgslAliasDeclarationSyntaxTree>;
     enums: Array<PgslEnumDeclarationSyntaxTree>;
     functions: Array<PgslFunctionDeclarationSyntaxTree>;

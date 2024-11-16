@@ -16,15 +16,15 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown>
     }
 
     /**
-     * Base type of definition.
+     * Real type of definition. Converts all aliased types into its unaliased definition..
      */
     public get aliasedType(): BasePgslTypeDefinitionSyntaxTree {
         // Must be setup.
         this.ensureSetup();
 
-        // Return alised type when it is aliased.
+        // Deep return alised type when it is aliased.
         if (this.setupData.aliased) {
-            return this.setupData.aliased;
+            return this.setupData.aliased.aliasedType;
         }
 
         return this;

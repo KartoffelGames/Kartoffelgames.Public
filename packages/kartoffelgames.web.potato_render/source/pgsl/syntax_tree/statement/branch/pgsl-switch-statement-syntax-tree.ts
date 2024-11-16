@@ -1,14 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslSwitchStatementSyntaxTreeStructureData> {
+export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatementSyntaxTree | null;
     private readonly mExpression: BasePgslExpressionSyntaxTree;
@@ -37,26 +39,31 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pParameter - Construction parameter.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslSwitchStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+    public constructor(pParameter: PgslSwitchStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pMeta, pBuildIn);
+        super(pMeta);
 
         // Set data.
-        this.mCases = pData.cases;
-        this.mExpression = pData.expression;
-        this.mDefault = pData.default ?? null;
+        this.mCases = pParameter.cases;
+        this.mExpression = pParameter.expression;
+        this.mDefault = pParameter.default;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Switch statement must be of a unsigned integer type.
-        if (this.mExpression.resolveType.baseType !== PgslTypeName.UnsignedInteger) {
+        // Switch statement must be of a numberic type.
+        if (this.mExpression.resolveType.aliasedType.baseType !== PgslBaseType.Numberic) {
+            throw new Exception('Switch expression must be of a unsigned integer type.', this);
+        }
+
+        // Switch must be a unsigned integer type.
+        const lNumericType: PgslNumericTypeDefinitionSyntaxTree = this.mExpression.resolveType.aliasedType as PgslNumericTypeDefinitionSyntaxTree;
+        if (lNumericType.numericType !== PgslNumericTypeName.UnsignedInteger) {
             throw new Exception('Switch expression must be of a unsigned integer type.', this);
         }
 
@@ -64,11 +71,18 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
         for (const lCase of this.mCases) {
             // Validate any case value.
             for (const lCaseValue of lCase.cases) {
-                // Must be unsigned integer.
-                if (this.mExpression.resolveType.baseType !== PgslTypeName.UnsignedInteger) {
+                // Must be number type.
+                if (lCaseValue.resolveType.baseType !== PgslBaseType.Numberic) {
                     throw new Exception('Case expression must be of a unsigned integer type.', this);
                 }
 
+                // Case must be a unsigned integer type.
+                const lCaseNumericType: PgslNumericTypeDefinitionSyntaxTree = lCaseValue.resolveType.aliasedType as PgslNumericTypeDefinitionSyntaxTree;
+                if (lCaseNumericType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+                    throw new Exception('Switch expression must be of a unsigned integer type.', this);
+                }
+
+                // Cases must be constant.
                 if (!lCaseValue.isConstant) {
                     throw new Exception('Case expression must be a constant.', this);
                 }
@@ -77,13 +91,13 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
     }
 }
 
-type PgslSwitchStatementSwitchCase = {
+export type PgslSwitchStatementSwitchCase = {
     readonly cases: Array<BasePgslExpressionSyntaxTree>,
     readonly block: PgslBlockStatementSyntaxTree;
 };
 
-type PgslSwitchStatementSyntaxTreeStructureData = {
+export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
     expression: BasePgslExpressionSyntaxTree,
     cases: Array<PgslSwitchStatementSwitchCase>;
-    default?: PgslBlockStatementSyntaxTree;
+    default: PgslBlockStatementSyntaxTree | null;
 };

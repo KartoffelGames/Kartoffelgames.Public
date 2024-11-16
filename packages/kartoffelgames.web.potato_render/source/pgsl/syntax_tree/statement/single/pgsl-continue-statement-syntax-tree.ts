@@ -1,10 +1,10 @@
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a continue statement.
  */
-export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslContinueStatementSyntaxTreeStructureData> {
+export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     /**
      * Constructor.
      * 
@@ -12,9 +12,8 @@ export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslContinueStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pMeta, pBuildIn);
+    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
     }
 
     /**
@@ -24,5 +23,3 @@ export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree
         // TODO: Only in Loops
     }
 }
-
-export type PgslContinueStatementSyntaxTreeStructureData = {};

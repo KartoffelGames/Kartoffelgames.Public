@@ -1,15 +1,15 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a increment or decrement statement.
  */
-export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeStructureData> {
+export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeSetupData> {
     private readonly mExpression: BasePgslExpressionSyntaxTree;
-    private readonly mOperator: PgslOperator;
+    private readonly mOperatorName: string;
 
     /**
      * Expression reference.
@@ -22,7 +22,9 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      * Expression operator.
      */
     public get operator(): PgslOperator {
-        return this.mOperator;
+        this.ensureSetup();
+
+        return this.setupData.operator;
     }
 
     /**
@@ -32,9 +34,37 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslIncrementDecrementStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+    public constructor(pOperator: string, pExpression: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pData, pMeta, pBuildIn);
+        super(pMeta);
+
+        // Set base data.
+        this.mOperatorName = pOperator;
+        this.mExpression = pExpression;
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
+     */
+    protected override onSetup(): PgslIncrementDecrementStatementSyntaxTreeSetupData {
+        // Try to parse operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
+        if (!lOperator) {
+            throw new Exception(`Operator "${this.mOperatorName}" not a valid operator.`, this);
+        }
+
+        return {
+            operator: lOperator
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+        this.ensureSetup();
 
         // Create list of all bit operations.
         const lIncrementDecrementOperatorList: Array<PgslOperator> = [
@@ -43,18 +73,10 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
         ];
 
         // Validate operator.
-        if (!lIncrementDecrementOperatorList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for increment or decrement statements.`, this);
+        if (!lIncrementDecrementOperatorList.includes(this.setupData.operator as PgslOperator)) {
+            throw new Exception(`Operator "${this.setupData.operator}" can not used for increment or decrement statements.`, this);
         }
 
-        this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
-        this.mExpression = pData.expression;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
         // Must be a storage.
         if (!this.mExpression.isStorage) {
             throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
@@ -67,7 +89,6 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
     }
 }
 
-export type PgslIncrementDecrementStatementSyntaxTreeStructureData = {
-    operator: string;
-    expression: BasePgslExpressionSyntaxTree;
+type PgslIncrementDecrementStatementSyntaxTreeSetupData = {
+    operator: PgslOperator;
 };

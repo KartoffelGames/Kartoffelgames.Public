@@ -1,11 +1,11 @@
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a return statement with an optional expression.
  */
-export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslReturnStatementSyntaxTreeStructureData> {
+export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
 
     /**
@@ -18,14 +18,13 @@ export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pExpression - Return expression.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslReturnStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pExpression: BasePgslExpressionSyntaxTree | null, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
-        this.mExpression = pData.expression ?? null;
+        this.mExpression = pExpression;
     }
 
     /**
@@ -35,7 +34,3 @@ export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
         // TODO: parent function return type should match expression type.
     }
 }
-
-export type PgslReturnStatementSyntaxTreeStructureData = {
-    expression?: BasePgslExpressionSyntaxTree;
-};

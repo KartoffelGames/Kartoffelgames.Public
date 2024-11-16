@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
 /**
  * PGSL structure for a while statement.
  */
-export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslWhileStatementSyntaxTreeStructureData> {
+export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mExpression: BasePgslExpressionSyntaxTree;
 
@@ -18,7 +18,6 @@ export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
     public get block(): PgslBlockStatementSyntaxTree {
         return this.mBlock;
     }
-
 
     /**
      * If boolean expression reference.
@@ -30,16 +29,16 @@ export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pExpression - While expression.
+     * @param pBlock - Branched
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslWhileStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pExpression: BasePgslExpressionSyntaxTree, pBlock: PgslBlockStatementSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mExpression = pData.expression;
-        this.mBlock = pData.block;
+        this.mExpression = pExpression;
+        this.mBlock = pBlock;
     }
 
     /**
@@ -47,13 +46,8 @@ export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
      */
     protected override onValidateIntegrity(): void {
         // Expression must be a boolean.
-        if (this.mExpression.resolveType.baseType !== PgslTypeName.Boolean) {
+        if (this.mExpression.resolveType.baseType !== PgslBaseType.Boolean) {
             throw new Exception('Expression of do-while loops must resolve into a boolean.', this);
         }
     }
 }
-
-type PgslWhileStatementSyntaxTreeStructureData = {
-    expression: BasePgslExpressionSyntaxTree,
-    block: PgslBlockStatementSyntaxTree;
-};

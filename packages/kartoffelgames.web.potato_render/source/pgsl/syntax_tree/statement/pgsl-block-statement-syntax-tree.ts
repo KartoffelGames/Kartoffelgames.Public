@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-declaration-statement-syntax-tree';
@@ -7,7 +7,7 @@ import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-decl
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
  */
-export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslBlockStatementSyntaxTreeStructureData> {
+export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     private readonly mDeclaredVariables: Set<PgslVariableDeclarationStatementSyntaxTree>;
     private readonly mStatementList: Array<BasePgslStatementSyntaxTree>;
 
@@ -36,19 +36,18 @@ export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pStatements - Block statements.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslBlockStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pStatements: Array<BasePgslStatementSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mStatementList = pData.statements;
+        this.mStatementList = pStatements;
 
         // Save declared variables.
         this.mDeclaredVariables = new Set<PgslVariableDeclarationStatementSyntaxTree>();
-        for (const lStatement of pData.statements) {
+        for (const lStatement of pStatements) {
             // Only save variable declarations.
             if (!(lStatement instanceof PgslVariableDeclarationStatementSyntaxTree)) {
                 continue;
@@ -58,15 +57,4 @@ export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
             this.mDeclaredVariables.add(lStatement);
         }
     }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing to validate eighter.
-    }
 }
-
-type PgslBlockStatementSyntaxTreeStructureData = {
-    statements: Array<BasePgslStatementSyntaxTree>;
-};

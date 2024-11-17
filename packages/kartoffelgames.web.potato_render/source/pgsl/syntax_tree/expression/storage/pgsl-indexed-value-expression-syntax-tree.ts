@@ -1,16 +1,18 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslArrayTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-array-type-definition-syntax-tree';
 import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-matrix-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable with index expression.
  */
-export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslIndexedValueExpressionSyntaxTreeStructureData> {
+export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mIndex: BasePgslExpressionSyntaxTree;
     private readonly mValue: BasePgslExpressionSyntaxTree;
 
@@ -35,57 +37,48 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslIndexedValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pValue: BasePgslExpressionSyntaxTree, pIndex: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mIndex = pData.index;
-        this.mValue = pData.value;
+        this.mIndex = pIndex;
+        this.mValue = pValue;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected determinateIsConstant(): boolean {
-        // Set constant state when both value and index are constants.
-        return this.mIndex.isConstant && this.mValue.isConstant;
-    }
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+            switch (true) {
+                case this.mValue.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
+                    return this.mValue.resolveType.innerType;
+                }
 
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Expression is constant when variable and index is a constant.
-        return this.mIndex.isCreationFixed && this.mValue.isCreationFixed;
-    }
+                case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                    return this.mValue.resolveType.innerType;
+                }
 
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return true;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        switch (true) {
-            case this.mValue.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
-                return this.mValue.resolveType.innerType;
+                case this.mValue.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
+                    return this.mValue.resolveType.vectorType;
+                }
             }
 
-            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
-                return this.mValue.resolveType.innerType;
-            }
+            // This should never be called.
+            throw new Exception('Type does not support a index signature', this);
+        })();
 
-            case this.mValue.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
-                return this.mValue.resolveType.vectorType;
-            }
-        }
-
-        // This should never be called.
-        throw new Exception('Type does not support a index signature', this);
+        return {
+            expression: {
+                isFixed: this.mIndex.isCreationFixed && this.mValue.isCreationFixed,
+                isStorage: true,
+                resolveType: lResolveType,
+                isConstant: this.mIndex.isConstant && this.mValue.isConstant
+            },
+            data: null
+        };
     }
 
     /**
@@ -98,13 +91,10 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         }
 
         // Value needs to be a unsigned numeric value.
-        if (this.mIndex.resolveType.baseType !== PgslTypeName.Integer) {
-            throw new Exception(`Index needs to be a unsigned numeric value.`, this);
+        if (this.mIndex.resolveType.baseType !== PgslBaseType.Numberic) {
+            if ((<PgslNumericTypeDefinitionSyntaxTree>this.mIndex.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
+                throw new Exception(`Index needs to be a unsigned numeric value.`, this);
+            }
         }
     }
 }
-
-type PgslIndexedValueExpressionSyntaxTreeStructureData = {
-    value: BasePgslExpressionSyntaxTree;
-    index: BasePgslExpressionSyntaxTree;
-};

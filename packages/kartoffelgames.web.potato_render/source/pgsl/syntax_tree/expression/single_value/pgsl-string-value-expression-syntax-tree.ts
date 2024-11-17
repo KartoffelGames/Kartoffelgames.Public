@@ -1,21 +1,12 @@
-import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslStringTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-string-type-definition-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
-export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslStringValueExpressionSyntaxTreeStructureData> {
+export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mValue: string;
-
-    /**
-     * Never resolve to any type.
-     */
-    public override get resolveType(): never {
-        throw new Exception(`String type cant have a resolve type.`, this);
-    }
 
     /**
      * Value of literal.
@@ -27,64 +18,45 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pTextValue - Text value.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStringValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pTextValue: string, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mValue = pData.textValue.substring(1, pData.textValue.length - 1);
+        this.mValue = pTextValue.substring(1, pTextValue.length - 1);
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected determinateIsConstant(): boolean {
-        // A string is allways a constant.
-        return true;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // A string is allways a creation fixed value.
-        return true;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
         // Create type declaration.
-        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({}, this.meta);
+        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({
+            buildIn: false,
+            range: [
+                this.meta.position.start.line,
+                this.meta.position.start.column,
+                this.meta.position.end.line,
+                this.meta.position.end.column,
+            ]
+        });
 
-        // Set parent to this tree.
-        lTypeDeclaration.setParent(this);
-
-        // Validate type.
-        lTypeDeclaration.validateIntegrity();
-
-        return lTypeDeclaration;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing to validate.
+        return {
+            expression: {
+                isFixed: true,
+                isStorage: false,
+                resolveType: lTypeDeclaration,
+                isConstant: true
+            },
+            data: null
+        };
     }
 }
 
 export type PgslStringValueExpressionSyntaxTreeStructureData = {
-    textValue: string;
+
 };

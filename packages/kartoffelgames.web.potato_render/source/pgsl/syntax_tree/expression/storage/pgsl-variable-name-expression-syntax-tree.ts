@@ -1,13 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from '../../interface/i-pgsl-variable-declaration-syntax-tree.interface';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
  */
-export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslVariableNameExpressionSyntaxTreeStructureData> {
+export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslVariableNameExpressionSyntaxTreeSetupData> {
     private readonly mName: string;
 
     /**
@@ -18,64 +17,52 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
+     * Get variable definition.
+     */
+    public get variable(): IPgslVariableDeclarationSyntaxTree {
+        this.ensureSetup();
+
+        return this.setupData.data.variable;
+    }
+
+    /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pName - Variable name.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslVariableNameExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pName: string, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mName = pData.name;
+        this.mName = pName;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected determinateIsConstant(): boolean {
-        // Expression is constant when variable is a constant.
-        return this.scopedVariables.get(this.mName)!.isConstant;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Expression is constant when variable is a constant.
-        return this.scopedVariables.get(this.mName)!.isCreationFixed;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return true;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Input type is output type.
-        return this.scopedVariables.get(this.mName)!.type;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Read declaration of variable.
-        const lDeclaration: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
-
-        // Catch undefined variables.
-        if (!lDeclaration) {
-            throw new Exception(`Variable "${this.name}" not defined.`, this);
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslVariableNameExpressionSyntaxTreeSetupData> {
+        const lVariableDefinition: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
+        if (!lVariableDefinition) {
+            throw new Exception(`Variable "${this.mName}" not defined.`, this);
         }
+
+        return {
+            expression: {
+                isFixed: lVariableDefinition.isCreationFixed,
+                isStorage: true,
+                resolveType: lVariableDefinition.type,
+                isConstant: lVariableDefinition.isConstant
+            },
+            data: {
+                variable: lVariableDefinition
+            }
+        };
     }
 }
 
-export type PgslVariableNameExpressionSyntaxTreeStructureData = {
-    name: string;
+type PgslVariableNameExpressionSyntaxTreeSetupData = {
+    variable: IPgslVariableDeclarationSyntaxTree;
 };

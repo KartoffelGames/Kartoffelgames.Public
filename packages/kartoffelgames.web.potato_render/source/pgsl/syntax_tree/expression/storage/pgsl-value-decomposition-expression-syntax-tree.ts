@@ -1,15 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-struct-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
  */
-export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslValueDecompositionExpressionSyntaxTreeStructureData> {
+export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mProperty: string;
     private readonly mValue: BasePgslExpressionSyntaxTree;
 
@@ -30,79 +30,84 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pValue - Value part of decompostion.
+     * @param pProperty - Property of decompostion.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslValueDecompositionExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pValue: BasePgslExpressionSyntaxTree, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mProperty = pData.property;
-        this.mValue = pData.value;
+        this.mProperty = pProperty;
+        this.mValue = pValue;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected determinateIsConstant(): boolean {
-        // Set constant state when the value is a constants.
-        return this.mValue.isConstant;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Expression is constant when variable is a constant.
-        return this.mValue.isCreationFixed;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return true;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        switch (true) {
-            case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
-                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
-                    throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
-                }
-                break;
-            }
-
-            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
-                const lInnerType: BasePgslTypeDefinitionSyntaxTree = this.mValue.resolveType.innerType;
-
-                // When swizzle is only one long return the inner type.
-                if (this.mProperty.length === 1) {
-                    return lInnerType;
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
+        // Resolve property type.
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+            switch (true) {
+                case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
+                    if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
+                        throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
+                    }
+                    break;
                 }
 
-                // List of vector types.
-                const lVectorTypeList: Array<PgslVectorTypeName> = [PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector3, PgslVectorTypeName.Vector4];
+                case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                    const lInnerType: BasePgslTypeDefinitionSyntaxTree = this.mValue.resolveType.innerType;
 
-                // Build vectorN type from matrix type.
-                return new PgslVectorTypeDefinitionSyntaxTree({
-                    typeName: lVectorTypeList[this.mProperty.length],
-                    innerType: lInnerType
-                }, this.meta).setParent(this).validateIntegrity();
+                    // When swizzle is only one long return the inner type.
+                    if (this.mProperty.length === 1) {
+                        return lInnerType;
+                    }
+
+                    // List of vector types.
+                    const lVectorTypeList: Array<PgslVectorTypeName> = [PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector3, PgslVectorTypeName.Vector4];
+
+                    // Build vectorN type from vector type.
+                    const lSwizzleResult: PgslVectorTypeDefinitionSyntaxTree = new PgslVectorTypeDefinitionSyntaxTree(lVectorTypeList[this.mProperty.length], lInnerType, {
+                        buildIn: false,
+                        range: [
+                            this.meta.position.start.line,
+                            this.meta.position.start.column,
+                            this.meta.position.end.line,
+                            this.meta.position.end.column,
+                        ]
+                    });
+                    this.appendChild(lSwizzleResult);
+
+                    return lSwizzleResult;
+                }
             }
-        }
 
-        throw new Exception(`Value is not a composite type properties.`, this);
+            throw new Exception(`Value is not a composite type properties.`, this);
+        })();
+
+        return {
+            expression: {
+                isFixed: this.mValue.isCreationFixed,
+                isStorage: false,
+                resolveType: lResolveType,
+                isConstant: this.mValue.isConstant
+            },
+            data: null
+        };
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Must be compositeable.
+        if (!this.mValue.resolveType.isComposite) {
+            throw new Exception(`Type must be a compositeable type.`, this);
+        }
+
         // Only struct likes can have accessable properties.
         switch (true) {
             case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
@@ -127,8 +132,3 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         }
     }
 }
-
-type PgslValueDecompositionExpressionSyntaxTreeStructureData = {
-    value: BasePgslExpressionSyntaxTree;
-    property: string;
-};

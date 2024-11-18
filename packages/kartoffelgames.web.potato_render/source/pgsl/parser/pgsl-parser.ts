@@ -96,6 +96,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         const lDocument: PgslModuleSyntaxTree = super.parse(pCodeText);
 
         // Validate document.
+        lDocument.setup();
         lDocument.validateIntegrity();
 
         // Clear old parsing buffers.

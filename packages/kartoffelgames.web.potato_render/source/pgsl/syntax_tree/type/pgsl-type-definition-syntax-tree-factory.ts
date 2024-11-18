@@ -218,7 +218,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // No templares allowed.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Alias can't have templates values.`, this);
         }
 
@@ -284,7 +284,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Boolean should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Boolean can't have templates values.`, this);
         }
 
@@ -323,7 +323,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Enums should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Enum can't have templates values.`, this);
         }
 
@@ -374,7 +374,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Numerics should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Numeric can't have templates values.`, this);
         }
 
@@ -412,7 +412,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Sampler should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Numeric can't have templates values.`, this);
         }
 
@@ -434,7 +434,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // String should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`String can't have templates values.`, this);
         }
 
@@ -455,7 +455,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Structs should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Structs can't have templates values.`, this);
         }
 
@@ -524,7 +524,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Void should not have any templates.
-        if (pRawTemplate) {
+        if (pRawTemplate.length > 0) {
             throw new Exception(`Void can't have templates values.`, this);
         }
 

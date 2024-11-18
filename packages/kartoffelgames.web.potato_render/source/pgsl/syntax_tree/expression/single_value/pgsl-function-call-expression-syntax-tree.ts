@@ -1,13 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
+export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeSetupData> {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree>;
 
@@ -38,67 +37,66 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
         // Set data.
         this.mName = pName;
         this.mParameterList = pParameterList;
+
+        // Add data as child tree.
+        this.appendChild(...this.mParameterList);
     }
 
-    /**
-     * On constant state request.
-     */
-    protected determinateIsConstant(): boolean {
-        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName)!;
-
-        // Set call expression as constant when all parameter are constants and the function itself is a constant.
-        // When the function is not a constant, the parameters doesn't matter.
-        if (!lFunctionDeclaration.isConstant) {
-            return false;
-        } else {
-            // When one parameter is not a constant then nothing is a constant.
-            for (const lParameter of this.mParameterList) {
-                if (!lParameter.isConstant) {
-                    return false;
-                }
-            }
-
-            // Function is constant, parameters need to be to.
-            return true;
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslFunctionCallExpressionSyntaxTreeSetupData> {
+        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree | null = this.document.resolveFunction(this.mName);
+        if (!lFunctionDeclaration) {
+            throw new Exception(`Function "${this.mName}" is not defined.`, this);
         }
-    }
 
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName)!;
-
-        // Set call expression as constant when all parameter are constants and the function itself is a constant.
-        // When the function is not a constant, the parameters doesn't matter.
-        if (!lFunctionDeclaration.isConstant) {
-            return false;
-        } else {
-            // When one parameter is not a constant then nothing is a constant.
-            for (const lParameter of this.mParameterList) {
-                if (!lParameter.isCreationFixed) {
-                    return false;
+        // Determinate fixed state of function.
+        const lIsFixed = (() => {
+            // Set call expression as constant when all parameter are constants and the function itself is a constant.
+            // When the function is not a constant, the parameters doesn't matter.
+            if (!lFunctionDeclaration.isConstant) {
+                return false;
+            } else {
+                // When one parameter is not a constant then nothing is a constant.
+                for (const lParameter of this.mParameterList) {
+                    if (!lParameter.isCreationFixed) {
+                        return false;
+                    }
                 }
+
+                // Function is constant, parameters need to be to.
+                return true;
             }
+        })();
 
-            // Function is constant, parameters need to be to.
-            return true;
-        }
-    }
+        // Determinate constant state of function.
+        const lIsConstant = (() => {
+            // Set call expression as constant when all parameter are constants and the function itself is a constant.
+            // When the function is not a constant, the parameters doesn't matter.
+            if (!lFunctionDeclaration.isConstant) {
+                return false;
+            } else {
+                // When one parameter is not a constant then nothing is a constant.
+                for (const lParameter of this.mParameterList) {
+                    if (!lParameter.isConstant) {
+                        return false;
+                    }
+                }
 
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
+                // Function is constant, parameters need to be to.
+                return true;
+            }
+        })();
 
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Set resolve type to return type.
-        return this.document.resolveFunction(this.mName)!.returnType;
+        return {
+            expression: {
+                isFixed: lIsFixed,
+                isStorage: false,
+                resolveType: lFunctionDeclaration.returnType,
+                isConstant: lIsConstant
+            },
+            data: {
+                function: lFunctionDeclaration
+            }
+        };
     }
 
     /**
@@ -114,7 +112,6 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 }
 
-type PgslFunctionCallExpressionSyntaxTreeStructureData = {
-    name: string;
-    parameterList: Array<BasePgslExpressionSyntaxTree>;
+type PgslFunctionCallExpressionSyntaxTreeSetupData = {
+    function: PgslFunctionDeclarationSyntaxTree;
 };

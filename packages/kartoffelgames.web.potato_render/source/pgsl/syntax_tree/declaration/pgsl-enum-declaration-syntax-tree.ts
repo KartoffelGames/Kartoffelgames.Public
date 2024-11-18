@@ -1,12 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslTypeName } from '../type/enum/pgsl-type-name.enum';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslBaseType } from '../type/enum/pgsl-base-type.enum';
+import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -109,8 +111,10 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 
             // All values need to be string or integer.
             if (lProperty instanceof PgslLiteralValueExpressionSyntaxTree) {
-                if (lProperty.type !== PgslTypeName.UnsignedInteger) {
-                    throw new Exception(`Enum can only hold string or unsigned integer values.`, this);
+                if (lProperty.resolveType.baseType !== PgslBaseType.Numberic) {
+                    if ((<PgslNumericTypeDefinitionSyntaxTree>lProperty.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
+                        throw new Exception(`Enum can only hold string or unsigned integer values.`, this);
+                    }
                 }
             }
 

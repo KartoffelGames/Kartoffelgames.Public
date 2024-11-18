@@ -1,14 +1,13 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
-export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeStructureData> {
+export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeSetupData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
-    private readonly mOperator: PgslOperator;
+    private readonly mOperatorName: string;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
 
     /**
@@ -22,7 +21,9 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Expression operator.
      */
     public get operator(): PgslOperator {
-        return this.mOperator;
+        this.ensureSetup();
+
+        return this.setupData.data.operator;
     }
 
     /**
@@ -35,12 +36,53 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pLeft - Left expression.
+     * @param pOperator - Operator.
+     * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslArithmeticExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pLeft: BasePgslExpressionSyntaxTree, pOperator: string, pRight: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
+
+        // Set data.
+        this.mLeftExpression = pLeft;
+        this.mOperatorName = pOperator;
+        this.mRightExpression = pRight;
+
+        // Add data as child tree.
+        this.appendChild(this.mLeftExpression, this.mRightExpression);
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
+     */
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslArithmeticExpressionSyntaxTreeSetupData> {
+        // Try to convert operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
+        if (!lOperator) {
+            throw new Exception(`"${this.mOperatorName}" can't be used as a operator.`, this);
+        }
+
+        return {
+            expression: {
+                isFixed: this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed,
+                isStorage: false,
+                resolveType: this.mLeftExpression.resolveType,
+                isConstant: this.mLeftExpression.isConstant && this.mRightExpression.isConstant
+            },
+            data: {
+                operator: lOperator
+            }
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+        this.ensureSetup();
 
         // Create list of all arithmetic operations.
         const lComparisonList: Array<PgslOperator> = [
@@ -52,50 +94,10 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         ];
 
         // Validate.
-        if (!lComparisonList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for bit operations.`, this);
+        if (!lComparisonList.includes(this.setupData.data.operator)) {
+            throw new Exception(`Operator "${this.setupData.data.operator}" can not used for bit operations.`, this);
         }
 
-        this.mLeftExpression = pData.left;
-        this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
-        this.mRightExpression = pData.right;
-    }
-
-    /**
-     * On constant state request.
-     */
-    protected determinateIsConstant(): boolean {
-        // Set constant state when both expressions are constants.
-        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Set creation fixed state when both expressions are creation fixed.
-        return this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Types are the same.
-        return this.mLeftExpression.resolveType;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
         // TODO: Also matrix calculations :(
         // TODO: And Mixed vector calculation...
 
@@ -119,8 +121,6 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     }
 }
 
-export type PgslArithmeticExpressionSyntaxTreeStructureData = {
-    left: BasePgslExpressionSyntaxTree;
-    operator: string;
-    right: BasePgslExpressionSyntaxTree;
+export type PgslArithmeticExpressionSyntaxTreeSetupData = {
+    operator: PgslOperator;
 };

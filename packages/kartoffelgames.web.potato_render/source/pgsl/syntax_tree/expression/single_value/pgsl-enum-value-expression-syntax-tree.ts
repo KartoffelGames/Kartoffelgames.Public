@@ -1,15 +1,25 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
+import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree';
+import { PgslStringValueExpressionSyntaxTree } from './pgsl-string-value-expression-syntax-tree';
 
 /**
  * PGSL structure holding single enum value.
  */
-export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslEnumValueExpressionSyntaxTreeStructureData> {
+export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslEnumValueExpressionSyntaxTreeSetupData> {
     private readonly mName: string;
     private readonly mProperty: string;
+
+    /**
+     * Enum of expression.
+     */
+    public get enum(): PgslEnumDeclarationSyntaxTree {
+        this.ensureSetup();
+
+        return this.setupData.data.enum;
+    }
 
     /**
      * Enum name.
@@ -29,8 +39,9 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * Value of enum expression.
      */
     public get value(): BasePgslExpressionSyntaxTree {
-        this.ensureValidity();
-        return this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
+        this.ensureSetup();
+
+        return this.setupData.data.property;
     }
 
     /**
@@ -40,43 +51,44 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslEnumValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pName: string, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mName = pData.name;
-        this.mProperty = pData.property;
+        this.mName = pName;
+        this.mProperty = pProperty;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected override determinateIsConstant(): boolean {
-        // Enums are allways constant.
-        return true;
-    }
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslEnumValueExpressionSyntaxTreeSetupData> {
+        // Catch undefined enum names.
+        const lReferencedEnum: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(this.mName);
+        if (!lReferencedEnum) {
+            throw new Exception(`Enum "${this.mName}" not defined.`, this);
+        }
 
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Enums are allways creation fixed.
-        return true;
-    }
+        // Catch undefined enum properties.
+        const lProperty: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree | null = lReferencedEnum.property(this.mProperty);
+        if (lProperty === null) {
+            throw new Exception(`Enum property"${this.mName}.${this.mProperty}" not defined.`, this);
+        }
 
-    /**
-     * On is storage set.
-     */
-    protected override determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected override determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Set resolve type.
-        return this.document.resolveEnum(this.mName)!.property(this.mProperty)!.resolveType;
+        return {
+            expression: {
+                isFixed: true,
+                isStorage: false,
+                resolveType: lProperty.resolveType,
+                isConstant: true
+            },
+            data: {
+                enum: lReferencedEnum,
+                property: lProperty
+            }
+        };
     }
 
     /**
@@ -97,7 +109,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
     }
 }
 
-type PgslEnumValueExpressionSyntaxTreeStructureData = {
-    name: string;
-    property: string;
+type PgslEnumValueExpressionSyntaxTreeSetupData = {
+    enum: PgslEnumDeclarationSyntaxTree,
+    property: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree;
 };

@@ -43,6 +43,9 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         // Set data.
         this.mIndex = pIndex;
         this.mValue = pValue;
+
+        // Add data as child tree.
+        this.appendChild(this.mValue, this.mIndex);
     }
 
     /**

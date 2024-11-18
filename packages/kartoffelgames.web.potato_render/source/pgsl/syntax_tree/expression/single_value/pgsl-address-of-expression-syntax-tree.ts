@@ -1,16 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../storage/pgsl-value-decomposition-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../storage/pgsl-indexed-value-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslValueDecompositionExpressionSyntaxTree } from '../storage/pgsl-value-decomposition-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used to get the address.
  */
-export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData> {
+export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mVariable: BasePgslExpressionSyntaxTree;
 
     /**
@@ -27,44 +27,38 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAddressOfExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pVariable: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        this.mVariable = pData.variable;
+        this.mVariable = pVariable;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
      */
-    protected determinateIsConstant(): boolean {
-        // A address is allways a constant.
-        return true;
-    }
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<unknown> {
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = new PgslPointerTypeDefinitionSyntaxTree(this.mVariable.resolveType, {
+            buildIn: false,
+            range: [
+                this.meta.position.start.line,
+                this.meta.position.start.column,
+                this.meta.position.end.line,
+                this.meta.position.end.column,
+            ]
+        });
 
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // A address is allways a creation fixed value.
-        return true;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Create type declaration.
-        return new PgslPointerTypeDefinitionSyntaxTree({
-            referencedType: this.mVariable.resolveType
-        }, this.meta).setParent(this).validateIntegrity();
+        return {
+            expression: {
+                isFixed: true,
+                isStorage: false,
+                resolveType: lResolveType,
+                isConstant: true
+            },
+            data: null
+        };
     }
 
     /**
@@ -96,7 +90,3 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
         }
     }
 }
-
-type PgslAddressOfExpressionSyntaxTreeStructureData = {
-    variable: BasePgslExpressionSyntaxTree;
-};

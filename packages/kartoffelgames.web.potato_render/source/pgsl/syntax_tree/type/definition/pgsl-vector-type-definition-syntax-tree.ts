@@ -19,6 +19,13 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
+     * Vector dimension.
+     */
+    public get vectorDimension(): PgslVectorTypeName {
+        return this.mVectorType;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pVectorType - Concreate vector dimension.

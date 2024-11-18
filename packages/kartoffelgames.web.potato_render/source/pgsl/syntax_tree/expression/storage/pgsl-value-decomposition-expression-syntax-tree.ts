@@ -40,6 +40,9 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         // Set data.
         this.mProperty = pProperty;
         this.mValue = pValue;
+
+        // Add data as child tree.
+        this.appendChild(this.mValue);
     }
 
     /**

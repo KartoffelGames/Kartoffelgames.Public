@@ -25,6 +25,9 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslExpressionSyn
 
         // Set data.
         this.mExpression = pExpression;
+
+        // Add data as child tree.
+        this.appendChild(this.mExpression);
     }
 
     /**

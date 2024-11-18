@@ -231,7 +231,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                             // Replace variable name expression with type expression.
                             if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
-                                lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
+                                lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
+                                    buildIn: false,
+                                    range: [
+                                        lParameter.meta.position.start.line,
+                                        lParameter.meta.position.start.column,
+                                        lParameter.meta.position.end.line,
+                                        lParameter.meta.position.end.column,
+                                    ]
+                                });
                             }
                         }
                     }
@@ -272,7 +280,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         // Replace variable name expression with type expression.
                         if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
-                            lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], lParameter.meta);
+                            lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
+                                buildIn: false,
+                                range: [
+                                    lParameter.meta.position.start.line,
+                                    lParameter.meta.position.start.column,
+                                    lParameter.meta.position.end.line,
+                                    lParameter.meta.position.end.column,
+                                ]
+                            });
                         }
                     }
                 }
@@ -296,11 +312,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLogicalExpressionSyntaxTree => {
-                return new PgslLogicalExpressionSyntaxTree({
-                    left: pData.leftExpression,
-                    operator: pData.operation,
-                    right: pData.rightExpression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslLogicalExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -315,11 +327,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslArithmeticExpressionSyntaxTree => {
-                return new PgslArithmeticExpressionSyntaxTree({
-                    left: pData.leftExpression,
-                    operator: pData.operation,
-                    right: pData.rightExpression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslArithmeticExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -335,11 +343,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslComparisonExpressionSyntaxTree => {
-                return new PgslComparisonExpressionSyntaxTree({
-                    left: pData.leftExpression,
-                    operator: pData.comparison,
-                    right: pData.rightExpression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslComparisonExpressionSyntaxTree(pData.leftExpression, pData.comparison, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -354,11 +358,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBinaryExpressionSyntaxTree => {
-                return new PgslBinaryExpressionSyntaxTree({
-                    left: pData.leftExpression,
-                    operator: pData.operation,
-                    right: pData.rightExpression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslBinaryExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -370,19 +370,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslUnaryExpressionSyntaxTree => {
-                return new PgslUnaryExpressionSyntaxTree({
-                    expression: pData.expression,
-                    operator: pData.prefix
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslUnaryExpressionSyntaxTree(pData.expression, pData.prefix, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
         this.defineGraphPart('Expression-VariableName', this.graph()
             .single('name', PgslToken.Identifier),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
-                return new PgslVariableNameExpressionSyntaxTree({
-                    name: pData.name
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslVariableNameExpressionSyntaxTree(pData.name, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -392,10 +387,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('indexExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ListEnd),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
-                return new PgslIndexedValueExpressionSyntaxTree({
-                    value: pData.value,
-                    index: pData.indexExpression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslIndexedValueExpressionSyntaxTree(pData.value, pData.indexExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -410,18 +402,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     const lVariableName: string = pData.leftExpression.name;
                     if (this.mTypeFactory.enumNames.has(lVariableName)) {
                         // Return enum value structure data instead.
-                        return new PgslEnumValueExpressionSyntaxTree({
-                            name: lVariableName,
-                            property: pData.propertyName
-                        }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                        return new PgslEnumValueExpressionSyntaxTree(lVariableName, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
                     }
                 }
 
                 // When not a enum than it can only be a decomposition.
-                return new PgslValueDecompositionExpressionSyntaxTree({
-                    value: pData.leftExpression,
-                    property: pData.propertyName
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslValueDecompositionExpressionSyntaxTree(pData.leftExpression, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -458,9 +444,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
-                return new PgslParenthesizedExpressionSyntaxTree({
-                    expression: pData.expression
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslParenthesizedExpressionSyntaxTree(pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -471,18 +455,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.LiteralBoolean
             ]),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
-                return new PgslLiteralValueExpressionSyntaxTree({
-                    textValue: pData.value
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslLiteralValueExpressionSyntaxTree(pData.value, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
         this.defineGraphPart('Expression-StringValue', this.graph()
             .single('string', PgslToken.LiteralString),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
-                return new PgslStringValueExpressionSyntaxTree({
-                    textValue: pData.string
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslStringValueExpressionSyntaxTree(pData.string, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -490,9 +470,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.OperatorBinaryAnd)
             .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
-                return new PgslAddressOfExpressionSyntaxTree({
-                    variable: pData.variable
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslAddressOfExpressionSyntaxTree(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -500,9 +478,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.OperatorMultiply)
             .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
-                return new PgslPointerExpressionSyntaxTree({
-                    variable: pData.variable
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslPointerExpressionSyntaxTree(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -530,14 +506,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     );
                 }
 
-                // Build function structure.
-                const lData: ConstructorParameters<typeof PgslNewCallExpressionSyntaxTree>[0] = {
-                    type: pData.type,
-                    parameterList: lParameterList
-                };
-
                 // Create function call expression syntax tree.
-                return new PgslNewCallExpressionSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslNewCallExpressionSyntaxTree(pData.type, lParameterList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 

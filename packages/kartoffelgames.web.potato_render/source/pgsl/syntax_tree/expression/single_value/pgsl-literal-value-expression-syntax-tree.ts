@@ -1,32 +1,26 @@
 import { Exception } from '@kartoffelgames/core';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData> {
-    private readonly mScalarType: PgslTypeName;
-    private readonly mValue: number;
-
-    /**
-     * Type name of literal value.
-     */
-    public get type(): PgslTypeName {
-        return this.mScalarType;
-    }
+export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeSetupData> {
+    private readonly mTextValue: string;
 
     /**
      * Value of literal.
      * Booleans habe a one for true and 0 for false.
      */
     public get value(): number {
-        return this.mValue;
+        this.ensureSetup();
+
+        return this.setupData.data.value;
     }
 
     /**
@@ -36,56 +30,62 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslLiteralValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pTextValue: string, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
 
         // Set data.
-        [this.mScalarType, this.mValue] = this.convertData(pData.textValue);
+        this.mTextValue = pTextValue;
     }
 
     /**
-     * On constant state request.
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data. 
      */
-    protected determinateIsConstant(): boolean {
-        // Literals are allways constants.
-        return true;
-    }
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslLiteralValueExpressionSyntaxTreeSetupData> {
+        // Convert value.
+        const [lBaseType, lScalarType, lValue] = this.convertData(this.mTextValue);
 
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Literals are allways creation fixed.
-        return true;
-    }
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+            // Literal is a boolean value.
+            if (lBaseType === PgslBaseType.Boolean) {
+                return new PgslBooleanTypeDefinitionSyntaxTree({
+                    buildIn: false,
+                    range: [
+                        this.meta.position.start.line,
+                        this.meta.position.start.column,
+                        this.meta.position.end.line,
+                        this.meta.position.end.column,
+                    ]
+                });
+            }
 
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
+            // Create numeric type declaration.
+            return new PgslNumericTypeDefinitionSyntaxTree(lScalarType, {
+                buildIn: false,
+                range: [
+                    this.meta.position.start.line,
+                    this.meta.position.start.column,
+                    this.meta.position.end.line,
+                    this.meta.position.end.column,
+                ]
+            });
+        })();
 
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Literal is a boolean value.
-        if (this.mScalarType === PgslTypeName.Boolean) {
-            return new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
-        }
+        // Add resolve type as child tree.
+        this.appendChild(lResolveType);
 
-        // Create numeric type declaration.
-        return new PgslNumericTypeDefinitionSyntaxTree({
-            typeName: this.mScalarType as any as PgslNumericTypeName
-        }, this.meta).setParent(this).validateIntegrity();
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Nothing realy to validate.
+        return {
+            expression: {
+                isFixed: true,
+                isStorage: false,
+                resolveType: lResolveType,
+                isConstant: true
+            },
+            data: {
+                value: lValue
+            }
+        };
     }
 
     /**
@@ -97,13 +97,13 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pTextValue: string): [PgslTypeName, number] {
+    private convertData(pTextValue: string): [PgslBaseType, PgslNumericTypeName, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [PgslTypeName.Boolean, 1];
+            return [PgslBaseType.Boolean, PgslNumericTypeName.Integer, 1];
         }
         if (pTextValue === 'false') {
-            return [PgslTypeName.Boolean, 0];
+            return [PgslBaseType.Boolean, PgslNumericTypeName.Integer, 0];
         }
 
         // Might be a integer.
@@ -113,23 +113,23 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
             const lNumber: number = parseInt(lIntegerMatch.groups!['number']);
 
             // Convert suffix to concrete type.
-            let lSuffixType: PgslTypeName;
+            let lSuffixType: PgslNumericTypeName;
             switch (lIntegerMatch.groups!['suffix']) {
                 case 'u': {
-                    lSuffixType = PgslTypeName.UnsignedInteger;
+                    lSuffixType = PgslNumericTypeName.UnsignedInteger;
                     break;
                 }
                 case 'i': {
-                    lSuffixType = PgslTypeName.Integer;
+                    lSuffixType = PgslNumericTypeName.Integer;
                     break;
                 }
                 default: {
-                    lSuffixType = PgslTypeName.AbstractInteger;
+                    lSuffixType = PgslNumericTypeName.AbstractInteger;
                     break;
                 }
             }
 
-            return [lSuffixType, lNumber];
+            return [PgslBaseType.Numberic, lSuffixType, lNumber];
         }
 
         // Might be a float.
@@ -159,29 +159,29 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
             }
 
             // Convert suffix to concrete type.
-            let lSuffixType: PgslTypeName;
+            let lSuffixType: PgslNumericTypeName;
             switch (lFloatMatch.groups!['suffix']) {
                 case 'f': {
-                    lSuffixType = PgslTypeName.Float;
+                    lSuffixType = PgslNumericTypeName.Float;
                     break;
                 }
                 case 'h': {
-                    lSuffixType = PgslTypeName.Float16;
+                    lSuffixType = PgslNumericTypeName.Float16;
                     break;
                 }
                 default: {
-                    lSuffixType = PgslTypeName.AbstractFloat;
+                    lSuffixType = PgslNumericTypeName.AbstractFloat;
                     break;
                 }
             }
 
-            return [lSuffixType, lNumber];
+            return [PgslBaseType.Numberic, lSuffixType, lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);
     }
 }
 
-export type PgslLiteralValueExpressionSyntaxTreeStructureData = {
-    textValue: string,
+type PgslLiteralValueExpressionSyntaxTreeSetupData = {
+    value: number;
 };

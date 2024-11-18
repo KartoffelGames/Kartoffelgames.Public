@@ -28,6 +28,9 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
 
         // Set data.
         this.mVariable = pVariable;
+
+        // Add data as child tree.
+        this.appendChild(this.mVariable);
     }
 
     /**

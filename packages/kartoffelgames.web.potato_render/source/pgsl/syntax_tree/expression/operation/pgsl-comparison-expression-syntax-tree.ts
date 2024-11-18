@@ -1,20 +1,18 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
-import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure for a comparison expression between two values.
  */
-export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslComparisonExpressionSyntaxTreeStructureData> {
+export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslComparisonExpressionSyntaxTreeSetupData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
-    private readonly mOperator: PgslOperator;
+    private readonly mOperatorName: string;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
 
     /**
@@ -28,7 +26,9 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Expression operator.
      */
     public get operator(): PgslOperator {
-        return this.mOperator;
+        this.ensureSetup();
+
+        return this.setupData.data.operator;
     }
 
     /**
@@ -41,12 +41,83 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pLeft - Left expression.
+     * @param pOperator - Operator.
+     * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslComparisonExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pLeft: BasePgslExpressionSyntaxTree, pOperator: string, pRight: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
+
+        // Set data.
+        this.mLeftExpression = pLeft;
+        this.mOperatorName = pOperator;
+        this.mRightExpression = pRight;
+
+        // Add data as child tree.
+        this.appendChild(this.mLeftExpression, this.mRightExpression);
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
+     */
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslComparisonExpressionSyntaxTreeSetupData> {
+        // Try to convert operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
+        if (!lOperator) {
+            throw new Exception(`"${this.mOperatorName}" can't be used as a operator.`, this);
+        }
+
+        // Any value is converted into a boolean type.
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+            const lBooleanDefinition: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({
+                buildIn: false,
+                range: [
+                    this.meta.position.start.line,
+                    this.meta.position.start.column,
+                    this.meta.position.end.line,
+                    this.meta.position.end.column,
+                ]
+            });
+
+            // Wrap boolean into a vector when it is a vector expression.
+            if (this.mLeftExpression.resolveType.baseType === PgslBaseType.Vector) {
+                const lVectorType: PgslVectorTypeDefinitionSyntaxTree = this.mLeftExpression.resolveType as PgslVectorTypeDefinitionSyntaxTree;
+
+                return new PgslVectorTypeDefinitionSyntaxTree(lVectorType.vectorDimension, lBooleanDefinition, {
+                    buildIn: false,
+                    range: [
+                        this.meta.position.start.line,
+                        this.meta.position.start.column,
+                        this.meta.position.end.line,
+                        this.meta.position.end.column,
+                    ]
+                });
+            }
+
+            return lBooleanDefinition;
+        })();
+
+        return {
+            expression: {
+                isFixed: this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed,
+                isStorage: false,
+                resolveType: lResolveType,
+                isConstant: this.mLeftExpression.isConstant && this.mRightExpression.isConstant
+            },
+            data: {
+                operator: lOperator
+            }
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+        this.ensureSetup();
 
         // Create list of all comparison operations.
         const lComparisonList: Array<PgslOperator> = [
@@ -59,59 +130,10 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         ];
 
         // Validate
-        if (!lComparisonList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for comparisons.`, this);
+        if (!lComparisonList.includes(this.setupData.data.operator)) {
+            throw new Exception(`Operator "${this.setupData.data.operator}" can not used for comparisons.`, this);
         }
 
-        this.mLeftExpression = pData.left;
-        this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
-        this.mRightExpression = pData.right;
-    }
-
-    /**
-     * On constant state request.
-     */
-    protected determinateIsConstant(): boolean {
-        // Set constant state when both expressions are constants.
-        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Set creation fixed state when both expressions are creation fixed.
-        return this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        const lBooleanDefinition: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
-
-        // Wrap boolean into a vector when it is a vector expression.
-        if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
-            return new PgslVectorTypeDefinitionSyntaxTree({
-                innerType: lBooleanDefinition,
-                typeName: this.mLeftExpression.resolveType.baseType as unknown as PgslVectorTypeName
-            }, this.meta).setParent(this).validateIntegrity();
-        }
-
-        return lBooleanDefinition;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
         // Comparison needs to be the same type.
         if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {
             throw new Exception(`Comparison can only be between values of the same type.`, this);
@@ -128,21 +150,19 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Both values need to be numeric or boolean.
-        if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lValueType.baseType !== PgslTypeName.Boolean) {
+        if (lValueType.baseType !== PgslBaseType.Numberic && lValueType.baseType !== PgslBaseType.Boolean) {
             throw new Exception(`None numeric or boolean values can't be compared`, this);
         }
 
         // Validate boolean compare.
-        if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(this.mOperator)) {
-            if (lValueType.baseType === PgslTypeName.Boolean) {
+        if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(this.setupData.data.operator)) {
+            if (lValueType.baseType === PgslBaseType.Boolean) {
                 throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
             }
         }
     }
 }
 
-export type PgslComparisonExpressionSyntaxTreeStructureData = {
-    left: BasePgslExpressionSyntaxTree;
-    operator: string;
-    right: BasePgslExpressionSyntaxTree;
+export type PgslComparisonExpressionSyntaxTreeSetupData = {
+    operator: PgslOperator;
 };

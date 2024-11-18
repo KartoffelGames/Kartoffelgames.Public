@@ -1,15 +1,16 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
-export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
+export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeSetupData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
-    private readonly mOperator: PgslOperator;
+    private readonly mOperatorName: string;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
 
     /**
@@ -23,7 +24,9 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
      * Expression operator.
      */
     public get operator(): PgslOperator {
-        return this.mOperator;
+        this.ensureSetup();
+
+        return this.setupData.data.operator;
     }
 
     /**
@@ -36,12 +39,55 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
+     * @param pLeft - Left expression.
+     * @param pOperator - Operator.
+     * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslBinaryExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
-        super(pData, pMeta, pBuildIn);
+    public constructor(pLeft: BasePgslExpressionSyntaxTree, pOperator: string, pRight: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
+        super(pMeta);
+
+        super(pMeta);
+
+        // Set data.
+        this.mLeftExpression = pLeft;
+        this.mOperatorName = pOperator;
+        this.mRightExpression = pRight;
+
+        // Add data as child tree.
+        this.appendChild(this.mLeftExpression, this.mRightExpression);
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns setuped data.
+     */
+    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslBinaryExpressionSyntaxTreeSetupData> {
+        // Try to convert operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
+        if (!lOperator) {
+            throw new Exception(`"${this.mOperatorName}" can't be used as a operator.`, this);
+        }
+
+        return {
+            expression: {
+                isFixed: this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed,
+                isStorage: false,
+                resolveType: this.mLeftExpression.resolveType,
+                isConstant: this.mLeftExpression.isConstant && this.mRightExpression.isConstant
+            },
+            data: {
+                operator: lOperator
+            }
+        };
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(): void {
+        this.ensureSetup();
 
         // Create list of all bit operations.
         const lComparisonList: Array<PgslOperator> = [
@@ -53,50 +99,10 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         ];
 
         // Validate.
-        if (!lComparisonList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for bit operations.`, this);
+        if (!lComparisonList.includes(this.setupData.data.operator as PgslOperator)) {
+            throw new Exception(`Operator "${this.setupData.data.operator}" can not used for bit operations.`, this);
         }
 
-        this.mLeftExpression = pData.left;
-        this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
-        this.mRightExpression = pData.right;
-    }
-
-    /**
-     * On constant state request.
-     */
-    protected determinateIsConstant(): boolean {
-        // Set constant state when both expressions are constants.
-        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
-    }
-
-    /**
-     * On creation fixed state request.
-     */
-    protected override determinateIsCreationFixed(): boolean {
-        // Set creation fixed state when both expressions are creation fixed.
-        return this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed;
-    }
-
-    /**
-     * On is storage set.
-     */
-    protected determinateIsStorage(): boolean {
-        return false;
-    }
-
-    /**
-     * On type resolve of expression
-     */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Set resolved type to left expression type.
-        return this.mLeftExpression.resolveType;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
         // Type buffer for validating the processed types.
         let lLeftValueType: BasePgslTypeDefinitionSyntaxTree;
         let lRightValueType: BasePgslTypeDefinitionSyntaxTree;
@@ -117,10 +123,12 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         }
 
         // Validate that rigth expression of shift operator needs to be a signed integer.
-        if (this.mOperator === PgslOperator.ShiftLeft || this.mOperator === PgslOperator.ShiftRight) {
+        if (this.setupData.data.operator === PgslOperator.ShiftLeft || this.setupData.data.operator === PgslOperator.ShiftRight) {
             // Shift value must be numeric.
-            if(lRightValueType.baseType !== PgslTypeName.UnsignedInteger) {
-                throw new Exception(`Right expression of a shift operation must be a unsigned integer.`, this);
+            if (lRightValueType.baseType !== PgslBaseType.Numberic) {
+                if ((<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
+                    throw new Exception(`Right expression of a shift operation must be a unsigned integer.`, this);
+                }
             }
         }
 
@@ -131,8 +139,6 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     }
 }
 
-export type PgslBinaryExpressionSyntaxTreeStructureData = {
-    left: BasePgslExpressionSyntaxTree;
-    operator: string;
-    right: BasePgslExpressionSyntaxTree;
+type PgslBinaryExpressionSyntaxTreeSetupData = {
+    operator: PgslOperator;
 };

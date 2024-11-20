@@ -4,7 +4,7 @@ import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -83,7 +83,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
             });
 
             // Wrap boolean into a vector when it is a vector expression.
-            if (this.mLeftExpression.resolveType.baseType === PgslBaseType.Vector) {
+            if (this.mLeftExpression.resolveType.baseType === PgslBaseTypeName.Vector) {
                 const lVectorType: PgslVectorTypeDefinitionSyntaxTree = this.mLeftExpression.resolveType as PgslVectorTypeDefinitionSyntaxTree;
 
                 return new PgslVectorTypeDefinitionSyntaxTree(lVectorType.vectorDimension, lBooleanDefinition, {
@@ -150,13 +150,13 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Both values need to be numeric or boolean.
-        if (lValueType.baseType !== PgslBaseType.Numberic && lValueType.baseType !== PgslBaseType.Boolean) {
+        if (lValueType.baseType !== PgslBaseTypeName.Numberic && lValueType.baseType !== PgslBaseTypeName.Boolean) {
             throw new Exception(`None numeric or boolean values can't be compared`, this);
         }
 
         // Validate boolean compare.
         if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(this.setupData.data.operator)) {
-            if (lValueType.baseType === PgslBaseType.Boolean) {
+            if (lValueType.baseType === PgslBaseTypeName.Boolean) {
                 throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
             }
         }

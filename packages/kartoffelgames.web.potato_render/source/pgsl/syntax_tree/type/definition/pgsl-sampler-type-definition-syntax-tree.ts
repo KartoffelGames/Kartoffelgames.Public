@@ -1,5 +1,5 @@
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { PgslSamplerTypeName } from '../enum/pgsl-sampler-build-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
@@ -59,7 +59,7 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Sampler,
+            baseType: PgslBaseTypeName.Sampler,
             data: null,
             typeAttributes: {
                 composite: false,

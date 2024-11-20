@@ -6,7 +6,7 @@ import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../type/definition/pgsl-numeric-type-definition-syntax-tree';
-import { PgslBaseType } from '../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
@@ -111,7 +111,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 
             // All values need to be string or integer.
             if (lProperty instanceof PgslLiteralValueExpressionSyntaxTree) {
-                if (lProperty.resolveType.baseType !== PgslBaseType.Numberic) {
+                if (lProperty.resolveType.baseType !== PgslBaseTypeName.Numberic) {
                     if ((<PgslNumericTypeDefinitionSyntaxTree>lProperty.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
                         throw new Exception(`Enum can only hold string or unsigned integer values.`, this);
                     }

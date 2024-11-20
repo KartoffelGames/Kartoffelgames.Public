@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
@@ -49,7 +49,7 @@ export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      */
     protected override onValidateIntegrity(): void {
         // Expression must be a boolean.
-        if (this.mExpression.resolveType.baseType !== PgslBaseType.Boolean) {
+        if (this.mExpression.resolveType.baseType !== PgslBaseTypeName.Boolean) {
             throw new Exception('Expression of do-while loops must resolve into a boolean.', this);
         }
     }

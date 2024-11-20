@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
@@ -66,7 +66,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
 
         return {
             aliased: lAliasedType,
-            baseType: PgslBaseType.BuildIn,
+            baseType: PgslBaseTypeName.BuildIn,
             data: null,
             typeAttributes: {
                 composite: lAliasedType.isComposite,

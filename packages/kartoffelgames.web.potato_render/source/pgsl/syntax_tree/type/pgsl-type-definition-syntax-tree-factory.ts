@@ -15,7 +15,7 @@ import { PgslStringTypeDefinitionSyntaxTree } from './definition/pgsl-string-typ
 import { PgslStructTypeDefinitionSyntaxTree } from './definition/pgsl-struct-type-definition-syntax-tree';
 import { PgslTextureTypeDefinitionSyntaxTree } from './definition/pgsl-texture-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseType } from './enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from './enum/pgsl-base-type-name.enum';
 import { PgslBuildInTypeName } from './enum/pgsl-build-in-type-name.enum';
 import { PgslMatrixTypeName } from './enum/pgsl-matrix-type-name.enum';
 import { PgslNumericTypeName } from './enum/pgsl-numeric-type-name.enum';
@@ -234,7 +234,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveArray(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve array type.
-        if (pRawName !== PgslBaseType.Array) {
+        if (pRawName !== PgslBaseTypeName.Array) {
             return null;
         }
 
@@ -279,7 +279,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveBoolean(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve boolean type.
-        if (pRawName !== PgslBaseType.Boolean) {
+        if (pRawName !== PgslBaseTypeName.Boolean) {
             return null;
         }
 
@@ -429,7 +429,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveString(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve string type.
-        if (pRawName !== PgslBaseType.String) {
+        if (pRawName !== PgslBaseTypeName.String) {
             return null;
         }
 
@@ -519,7 +519,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveVoid(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve void type.
-        if (pRawName !== PgslBaseType.Void) {
+        if (pRawName !== PgslBaseTypeName.Void) {
             return null;
         }
 

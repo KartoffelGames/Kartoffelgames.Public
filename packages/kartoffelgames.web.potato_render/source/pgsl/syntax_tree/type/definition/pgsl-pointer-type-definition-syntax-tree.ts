@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -60,7 +60,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Pointer,
+            baseType: PgslBaseTypeName.Pointer,
             data: null,
             typeAttributes: {
                 composite: false,

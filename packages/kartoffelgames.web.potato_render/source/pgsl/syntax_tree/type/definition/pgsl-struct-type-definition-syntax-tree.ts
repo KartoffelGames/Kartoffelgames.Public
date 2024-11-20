@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../../declaration/pgsl-struct-declaration-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -106,7 +106,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
 
         return {
             aliased: false,
-            baseType: PgslBaseType.Struct,
+            baseType: PgslBaseTypeName.Struct,
             data: {
                 struct: lStruct
             },

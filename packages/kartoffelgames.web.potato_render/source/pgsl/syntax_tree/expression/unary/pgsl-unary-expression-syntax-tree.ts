@@ -3,7 +3,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -95,7 +95,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
         // Validate type for each.
         switch (this.setupData.data.operator) {
             case PgslOperator.BinaryNegate: {
-                if (lValueType.baseType !== PgslBaseType.Numberic) {
+                if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
                     throw new Exception(`Binary negation only valid for numeric type.`, this);
                 }
 
@@ -103,14 +103,14 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
             }
             case PgslOperator.Minus: {
                 // TODO: Not unsigned int.
-                if (lValueType.baseType !== PgslBaseType.Numberic) {
+                if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
                     throw new Exception(`Negation only valid for numeric or vector type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
-                if (lValueType.baseType !== PgslBaseType.Boolean) {
+                if (lValueType.baseType !== PgslBaseTypeName.Boolean) {
                     throw new Exception(`Boolean negation only valid for boolean type.`, this);
                 }
 

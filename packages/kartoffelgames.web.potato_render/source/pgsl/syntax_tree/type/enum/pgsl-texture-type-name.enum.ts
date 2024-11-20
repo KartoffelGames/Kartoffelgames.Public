@@ -1,26 +1,24 @@
-import { PgslTypeName } from './pgsl-type-name.enum';
-
 export enum PgslTextureTypeName {
     // Textures.
-    Texture1d = PgslTypeName.Texture1d,
-    Texture2d = PgslTypeName.Texture2d,
-    Texture2dArray = PgslTypeName.Texture2dArray,
-    Texture3d = PgslTypeName.Texture3d,
-    TextureCube = PgslTypeName.TextureCube,
-    TextureCubeArray = PgslTypeName.TextureCubeArray,
-    TextureMultisampled2d = PgslTypeName.TextureMultisampled2d,
-    TextureExternal = PgslTypeName.TextureExternal,
+    Texture1d = 'Texture1d',
+    Texture2d = 'Texture2d',
+    Texture2dArray = 'Texture2dArray',
+    Texture3d = 'Texture3d',
+    TextureCube = 'TextureCube',
+    TextureCubeArray = 'TextureCubeArray',
+    TextureMultisampled2d = 'TextureMultisampled2d',
+    TextureExternal = 'TextureExternal',
 
     // Depth texture.
-    TextureDepth2d = PgslTypeName.TextureDepth2d,
-    TextureDepth2dArray = PgslTypeName.TextureDepth2dArray,
-    TextureDepthCube = PgslTypeName.TextureDepthCube,
-    TextureDepthCubeArray = PgslTypeName.TextureDepthCubeArray,
-    TextureDepthMultisampled2d = PgslTypeName.TextureDepthMultisampled2d,
+    TextureDepth2d = 'TextureDepth2d',
+    TextureDepth2dArray = 'TextureDepth2dArray',
+    TextureDepthCube = 'TextureDepthCube',
+    TextureDepthCubeArray = 'TextureDepthCubeArray',
+    TextureDepthMultisampled2d = 'TextureDepthMultisampled2d',
 
     // Storage textures.
-    TextureStorage1d = PgslTypeName.TextureStorage1d,
-    TextureStorage2d = PgslTypeName.TextureStorage2d,
-    TextureStorage2dArray = PgslTypeName.TextureStorage2dArray,
-    TextureStorage3d = PgslTypeName.TextureStorage3d
+    TextureStorage1d = 'TextureStorage1d',
+    TextureStorage2d = 'TextureStorage2d',
+    TextureStorage2dArray = 'TextureStorage2dArray',
+    TextureStorage3d = 'TextureStorage3d'
 }

@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -40,7 +40,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if (this.mVariable.resolveType.baseType !== PgslBaseType.Pointer) {
+        if (this.mVariable.resolveType.baseType !== PgslBaseTypeName.Pointer) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
 
@@ -63,7 +63,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onValidateIntegrity(): void {
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if (this.mVariable.resolveType.baseType !== PgslBaseType.Pointer) {
+        if (this.mVariable.resolveType.baseType !== PgslBaseTypeName.Pointer) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
     }

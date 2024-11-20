@@ -1,5 +1,5 @@
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 
 /**
  * PGSL base type definition.
@@ -33,7 +33,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown>
     /**
      * Base type of definition.
      */
-    public get baseType(): PgslBaseType {
+    public get baseType(): PgslBaseTypeName {
         // Must be setup.
         this.ensureSetup();
 
@@ -259,7 +259,7 @@ export type PgslTypeDefinitionAttributes<TTypeSetupData> = {
     /**
      * Basic type.
      */
-    baseType: PgslBaseType;
+    baseType: PgslBaseTypeName;
 
     /**
      * Type information.

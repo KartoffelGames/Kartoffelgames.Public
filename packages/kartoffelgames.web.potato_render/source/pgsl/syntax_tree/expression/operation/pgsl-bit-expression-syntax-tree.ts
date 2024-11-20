@@ -4,7 +4,7 @@ import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
@@ -125,7 +125,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         // Validate that rigth expression of shift operator needs to be a signed integer.
         if (this.setupData.data.operator === PgslOperator.ShiftLeft || this.setupData.data.operator === PgslOperator.ShiftRight) {
             // Shift value must be numeric.
-            if (lRightValueType.baseType !== PgslBaseType.Numberic) {
+            if (lRightValueType.baseType !== PgslBaseTypeName.Numberic) {
                 if ((<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
                     throw new Exception(`Right expression of a shift operation must be a unsigned integer.`, this);
                 }

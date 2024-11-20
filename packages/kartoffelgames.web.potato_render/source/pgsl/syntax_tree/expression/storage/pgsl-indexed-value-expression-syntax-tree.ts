@@ -5,7 +5,7 @@ import { PgslArrayTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-ar
 import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-matrix-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
@@ -94,7 +94,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         }
 
         // Value needs to be a unsigned numeric value.
-        if (this.mIndex.resolveType.baseType !== PgslBaseType.Numberic) {
+        if (this.mIndex.resolveType.baseType !== PgslBaseTypeName.Numberic) {
             if ((<PgslNumericTypeDefinitionSyntaxTree>this.mIndex.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
                 throw new Exception(`Index needs to be a unsigned numeric value.`, this);
             }

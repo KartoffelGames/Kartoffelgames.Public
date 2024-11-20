@@ -1,5 +1,5 @@
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
@@ -81,7 +81,7 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Numberic,
+            baseType: PgslBaseTypeName.Numberic,
             data: null,
             typeAttributes: {
                 composite: false,

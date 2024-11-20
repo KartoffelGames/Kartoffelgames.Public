@@ -1,6 +1,6 @@
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -77,7 +77,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
 
         return {
             aliased: false,
-            baseType: PgslBaseType.Array,
+            baseType: PgslBaseTypeName.Array,
             data: null,
             typeAttributes: {
                 composite: false,

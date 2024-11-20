@@ -3,7 +3,7 @@ import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
@@ -48,7 +48,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
 
         const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
             // Literal is a boolean value.
-            if (lBaseType === PgslBaseType.Boolean) {
+            if (lBaseType === PgslBaseTypeName.Boolean) {
                 return new PgslBooleanTypeDefinitionSyntaxTree({
                     buildIn: false,
                     range: [
@@ -97,13 +97,13 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pTextValue: string): [PgslBaseType, PgslNumericTypeName, number] {
+    private convertData(pTextValue: string): [PgslBaseTypeName, PgslNumericTypeName, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [PgslBaseType.Boolean, PgslNumericTypeName.Integer, 1];
+            return [PgslBaseTypeName.Boolean, PgslNumericTypeName.Integer, 1];
         }
         if (pTextValue === 'false') {
-            return [PgslBaseType.Boolean, PgslNumericTypeName.Integer, 0];
+            return [PgslBaseTypeName.Boolean, PgslNumericTypeName.Integer, 0];
         }
 
         // Might be a integer.
@@ -129,7 +129,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
                 }
             }
 
-            return [PgslBaseType.Numberic, lSuffixType, lNumber];
+            return [PgslBaseTypeName.Numberic, lSuffixType, lNumber];
         }
 
         // Might be a float.
@@ -175,7 +175,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
                 }
             }
 
-            return [PgslBaseType.Numberic, lSuffixType, lNumber];
+            return [PgslBaseTypeName.Numberic, lSuffixType, lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);

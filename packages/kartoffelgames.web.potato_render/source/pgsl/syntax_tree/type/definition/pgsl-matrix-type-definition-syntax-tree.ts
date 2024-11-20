@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { PgslMatrixTypeName } from '../enum/pgsl-matrix-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
@@ -99,7 +99,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Matrix,
+            baseType: PgslBaseTypeName.Matrix,
             data: null,
             typeAttributes: {
                 composite: true,
@@ -118,7 +118,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override onValidateIntegrity(): void {
         // Must be scalar.
-        if (!(this.mInnerType.baseType !== PgslBaseType.Numberic)) {
+        if (!(this.mInnerType.baseType !== PgslBaseTypeName.Numberic)) {
             throw new Exception('Matrix type must be a numeric value', this);
         }
     }

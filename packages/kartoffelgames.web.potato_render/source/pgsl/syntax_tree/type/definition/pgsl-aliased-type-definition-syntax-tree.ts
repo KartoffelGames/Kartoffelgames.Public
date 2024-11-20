@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../../declaration/pgsl-alias-declaration-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -61,7 +61,7 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
 
         return {
             aliased: lAliasType,
-            baseType: PgslBaseType.Alias,
+            baseType: PgslBaseTypeName.Alias,
             data: null,
             typeAttributes: {
                 composite: lAliasType.isComposite,

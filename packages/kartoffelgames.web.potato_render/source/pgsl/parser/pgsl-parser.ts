@@ -42,10 +42,16 @@ import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pg
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslTypeName } from '../syntax_tree/type/enum/pgsl-type-name.enum';
 import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum';
+import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum';
+import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum';
+import { PgslNumericTypeName } from '../syntax_tree/type/enum/pgsl-numeric-type-name.enum';
+import { PgslSamplerTypeName } from '../syntax_tree/type/enum/pgsl-sampler-build-name.enum';
+import { PgslTextureTypeName } from '../syntax_tree/type/enum/pgsl-texture-type-name.enum';
+import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-name.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
@@ -230,7 +236,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lTemplateList[lIndex];
                         if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                             // Replace variable name expression with type expression.
-                            if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
+                            if (this.nameIsType(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
                                 lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
                                     buildIn: false,
@@ -279,7 +285,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
                     if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                         // Replace variable name expression with type expression.
-                        if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mTypeFactory.structNames.has(lParameter.name)) {
+                        if (this.nameIsType(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
                             lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
                                 buildIn: false,
@@ -1062,5 +1068,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         // Define root part.
         this.setRootGraphPart('Module');
+    }
+
+    /**
+     * Check if name is associated with any type.
+     */
+    private nameIsType(pName: string): boolean {
+        return EnumUtil.exists(PgslBaseTypeName, pName) ||
+            EnumUtil.exists(PgslBuildInTypeName, pName) ||
+            EnumUtil.exists(PgslMatrixTypeName, pName) ||
+            EnumUtil.exists(PgslNumericTypeName, pName) ||
+            EnumUtil.exists(PgslSamplerTypeName, pName) ||
+            EnumUtil.exists(PgslTextureTypeName, pName) ||
+            EnumUtil.exists(PgslVectorTypeName, pName) ||
+            this.mTypeFactory.enumNames.has(pName) ||
+            this.mTypeFactory.structNames.has(pName);
     }
 }

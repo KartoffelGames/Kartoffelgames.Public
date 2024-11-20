@@ -1,4 +1,4 @@
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -33,7 +33,7 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Boolean,
+            baseType: PgslBaseTypeName.Boolean,
             data: null,
             typeAttributes: {
                 composite: false,

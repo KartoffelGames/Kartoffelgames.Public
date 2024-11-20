@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
@@ -71,7 +71,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Vector,
+            baseType: PgslBaseTypeName.Vector,
             data: null,
             typeAttributes: {
                 composite: true,
@@ -90,7 +90,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override onValidateIntegrity(): void {
         // Must be scalar.
-        if (this.mInnerType.baseType !== PgslBaseType.Numberic && this.mInnerType.baseType !== PgslBaseType.Boolean) {
+        if (this.mInnerType.baseType !== PgslBaseTypeName.Numberic && this.mInnerType.baseType !== PgslBaseTypeName.Boolean) {
             throw new Exception('Vector type must be a scalar value', this);
         }
     }

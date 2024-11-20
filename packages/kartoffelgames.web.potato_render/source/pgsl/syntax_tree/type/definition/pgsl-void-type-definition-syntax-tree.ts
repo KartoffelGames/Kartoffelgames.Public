@@ -1,4 +1,4 @@
-import { PgslBaseType } from '../enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
 
 /**
@@ -33,7 +33,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         return {
             aliased: false,
-            baseType: PgslBaseType.Void,
+            baseType: PgslBaseTypeName.Void,
             data: null,
             typeAttributes: {
                 composite: false,

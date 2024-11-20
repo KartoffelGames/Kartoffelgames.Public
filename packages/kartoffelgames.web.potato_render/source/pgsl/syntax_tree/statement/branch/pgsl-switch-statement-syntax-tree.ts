@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
-import { PgslBaseType } from '../../type/enum/pgsl-base-type.enum';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
@@ -68,7 +68,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      */
     protected override onValidateIntegrity(): void {
         // Switch statement must be of a numberic type.
-        if (this.mExpression.resolveType.aliasedType.baseType !== PgslBaseType.Numberic) {
+        if (this.mExpression.resolveType.aliasedType.baseType !== PgslBaseTypeName.Numberic) {
             throw new Exception('Switch expression must be of a unsigned integer type.', this);
         }
 
@@ -83,7 +83,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree {
             // Validate any case value.
             for (const lCaseValue of lCase.cases) {
                 // Must be number type.
-                if (lCaseValue.resolveType.baseType !== PgslBaseType.Numberic) {
+                if (lCaseValue.resolveType.baseType !== PgslBaseTypeName.Numberic) {
                     throw new Exception('Case expression must be of a unsigned integer type.', this);
                 }
 

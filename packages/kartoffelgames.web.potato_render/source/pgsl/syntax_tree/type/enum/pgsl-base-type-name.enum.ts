@@ -10,7 +10,7 @@ export enum PgslBaseTypeName {
     Array = 'Array',
     Pointer = '*Pointer*', // Should never be writen
     BuildIn = '*BuildIn*', // Should never be writen
-    Void = 'Void',
+    Void = 'void',
     Alias = '*Alias*', // Should never be writen
     Enum = '*Enum*' // Should never be writen
 }

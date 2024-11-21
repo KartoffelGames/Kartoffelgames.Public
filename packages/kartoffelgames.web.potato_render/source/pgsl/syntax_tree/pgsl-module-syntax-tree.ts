@@ -51,6 +51,14 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     public constructor(pData: PgslModuleSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
+        // TODO: All in one declaration list to setup in correct order.
+        this.appendChild(...pData.enums);
+        this.appendChild(...pData.aliases);
+        this.appendChild(...pData.structs);
+        this.appendChild(...pData.variables);
+        this.appendChild(...pData.functions);
+        
+        // TODO: Move into setup.
         this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
         this.mEnums = new Dictionary<string, PgslEnumDeclarationSyntaxTree>();
         this.mGlobalVariables = new Dictionary<string, PgslVariableDeclarationSyntaxTree>();

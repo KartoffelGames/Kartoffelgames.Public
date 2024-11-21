@@ -39,6 +39,9 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
 
         // Append inner type to child list.
         this.appendChild(this.mInnerType);
+        if (this.mLengthExpression) {
+            this.appendChild(this.mLengthExpression);
+        }
     }
 
     /**

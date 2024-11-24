@@ -42,9 +42,6 @@ import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pg
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory';
-import { PgslLexer } from './pgsl-lexer';
-import { PgslToken } from './pgsl-token.enum';
 import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum';
 import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum';
 import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum';
@@ -52,6 +49,9 @@ import { PgslNumericTypeName } from '../syntax_tree/type/enum/pgsl-numeric-type-
 import { PgslSamplerTypeName } from '../syntax_tree/type/enum/pgsl-sampler-build-name.enum';
 import { PgslTextureTypeName } from '../syntax_tree/type/enum/pgsl-texture-type-name.enum';
 import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-name.enum';
+import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory';
+import { PgslLexer } from './pgsl-lexer';
+import { PgslToken } from './pgsl-token.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
@@ -1018,7 +1018,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Module', this.graph()
             .loop('list', this.graph()
-                .branch('content', [
+                .branch('tree', [
                     this.partReference<PgslAliasDeclarationSyntaxTree>('Declaration-Alias'),
                     this.partReference<PgslVariableDeclarationSyntaxTree>('Declaration-Variable'),
                     this.partReference<PgslEnumDeclarationSyntaxTree>('Declaration-Enum'),
@@ -1027,42 +1027,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 ])
             ),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
-                const lData: ConstructorParameters<typeof PgslModuleSyntaxTree>[0] = {
-                    aliases: new Array<PgslAliasDeclarationSyntaxTree>(),
-                    enums: new Array<PgslEnumDeclarationSyntaxTree>(),
-                    functions: new Array<PgslFunctionDeclarationSyntaxTree>(),
-                    variables: new Array<PgslVariableDeclarationSyntaxTree>(),
-                    structs: new Array<PgslStructDeclarationSyntaxTree>()
-                };
+                // Read inner trees of content.
+                const lContentList = pData.list.map((pContent) => {
+                    return pContent.tree;
+                });
 
-                // Loop data.
-                for (const lContent of pData.list) {
-                    // Set data to correct buckets.
-                    switch (true) {
-                        case lContent.content instanceof PgslAliasDeclarationSyntaxTree: {
-                            lData.aliases.push(lContent.content);
-                            break;
-                        }
-                        case lContent.content instanceof PgslEnumDeclarationSyntaxTree: {
-                            lData.enums.push(lContent.content);
-                            break;
-                        }
-                        case lContent.content instanceof PgslFunctionDeclarationSyntaxTree: {
-                            lData.functions.push(lContent.content);
-                            break;
-                        }
-                        case lContent.content instanceof PgslVariableDeclarationSyntaxTree: {
-                            lData.variables.push(lContent.content);
-                            break;
-                        }
-                        case lContent.content instanceof PgslStructDeclarationSyntaxTree: {
-                            lData.structs.push(lContent.content);
-                            break;
-                        }
-                    }
-                }
-
-                return new PgslModuleSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslModuleSyntaxTree(lContentList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 

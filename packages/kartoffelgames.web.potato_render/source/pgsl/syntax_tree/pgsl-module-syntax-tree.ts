@@ -7,14 +7,8 @@ import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-decla
 import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from './interface/i-pgsl-variable-declaration-syntax-tree.interface';
 
-export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeConstructorParameter> {
-    // Values
-    private readonly mAlias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
-    private readonly mEnums: Dictionary<string, PgslEnumDeclarationSyntaxTree>;
-    private readonly mFunctions: Dictionary<string, PgslFunctionDeclarationSyntaxTree>;
-
-    private readonly mGlobalVariables: Dictionary<string, PgslVariableDeclarationSyntaxTree>;
-    private readonly mStructs: Dictionary<string, PgslStructDeclarationSyntaxTree>;
+export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeSetupData> {
+    private readonly mContentList: Array<BasePgslSyntaxTree>;
 
     /**
      * This document.
@@ -27,11 +21,13 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * Get all scoped variables of scope.
      */
     protected override get scopedVariables(): Dictionary<string, IPgslVariableDeclarationSyntaxTree> {
+        this.ensureSetup();
+
         // Read parent scoped variables
         const lParentVariables: Dictionary<string, IPgslVariableDeclarationSyntaxTree> = super.scopedVariables;
 
         // Append current scoped variables. Override parent.
-        for (const lVariable of this.mGlobalVariables.values()) {
+        for (const lVariable of this.setupData.globalVariables.values()) {
             lParentVariables.set(lVariable.name, lVariable);
         }
 
@@ -48,78 +44,14 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslModuleSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pContentList: Array<BasePgslSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
-        // TODO: All in one declaration list to setup in correct order.
-        this.appendChild(...pData.enums);
-        this.appendChild(...pData.aliases);
-        this.appendChild(...pData.structs);
-        this.appendChild(...pData.variables);
-        this.appendChild(...pData.functions);
-        
-        // TODO: Move into setup.
-        this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
-        this.mEnums = new Dictionary<string, PgslEnumDeclarationSyntaxTree>();
-        this.mGlobalVariables = new Dictionary<string, PgslVariableDeclarationSyntaxTree>();
-        this.mStructs = new Dictionary<string, PgslStructDeclarationSyntaxTree>();
-        this.mFunctions = new Dictionary<string, PgslFunctionDeclarationSyntaxTree>();
+        // All in one declaration list to setup in correct order.
+        this.appendChild(...pContentList);
 
-        // Apply alias data.
-        for (const lAlias of pData.aliases) {
-            if (this.mAlias.has(lAlias.name)) {
-                throw new Exception(`Alias "${lAlias.name}" is already defined.`, this);
-            }
-
-            // Apply alias.
-            this.mAlias.set(lAlias.name, lAlias);
-        }
-
-        // Apply enum data.
-        for (const lEnum of pData.enums) {
-            // Enum data does not merge.
-            if (this.mEnums.has(lEnum.name)) {
-                throw new Exception(`Enum "${lEnum.name}" is already defined.`, this);
-            }
-
-            // Apply new enum.
-            this.mEnums.set(lEnum.name, lEnum);
-        }
-
-        // Apply enum data.
-        for (const lFunction of pData.functions) {
-            // Enum data does not merge.
-            if (this.mFunctions.has(lFunction.name)) {
-                throw new Exception(`Function "${lFunction.name}" is already defined.`, this);
-            }
-
-            // Apply new function.
-            this.mFunctions.set(lFunction.name, lFunction);
-        }
-
-        // Apply variables data.
-        for (const lVariable of pData.variables) {
-            // Variables data does not merge.
-            if (this.mGlobalVariables.has(lVariable.name)) {
-                throw new Exception(`Variable declaration "${lVariable.name}" is already defined.`, this);
-            }
-
-            // Apply new variable.
-            this.mGlobalVariables.set(lVariable.name, lVariable);
-        }
-
-        // Apply struct data.
-        for (const lStruct of pData.structs) {
-            // Struct data does not merge.
-            if (this.mStructs.has(lStruct.name)) {
-                throw new Exception(`Struct declaration "${lStruct.name}" is already defined.`, this);
-            }
-
-            // Apply new variable.
-            this.mStructs.set(lStruct.name, lStruct);
-        }
-
-        // TODO: Maybe sort things, idk. 
+        // Save content list.
+        this.mContentList = pContentList;
     }
 
     /**
@@ -130,7 +62,9 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @returns alias declaration  
      */
     public resolveAlias(pName: string): PgslAliasDeclarationSyntaxTree | null {
-        return this.mAlias.get(pName) ?? null;
+        this.ensureSetup();
+
+        return this.setupData.alias.get(pName) ?? null;
     }
 
     /**
@@ -141,7 +75,9 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @returns enum declaration  
      */
     public resolveEnum(pName: string): PgslEnumDeclarationSyntaxTree | null {
-        return this.mEnums.get(pName) ?? null;
+        this.ensureSetup();
+
+        return this.setupData.enums.get(pName) ?? null;
     }
 
     /**
@@ -152,7 +88,9 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @returns function declaration.
      */
     public resolveFunction(pName: string): PgslFunctionDeclarationSyntaxTree | null {
-        return this.mFunctions.get(pName) ?? null;
+        this.ensureSetup();
+
+        return this.setupData.functions.get(pName) ?? null;
     }
 
     /**
@@ -163,7 +101,82 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * @returns struct declaration  
      */
     public resolveStruct(pName: string): PgslStructDeclarationSyntaxTree | null {
-        return this.mStructs.get(pName) ?? null;
+        this.ensureSetup();
+
+        return this.setupData.structs.get(pName) ?? null;
+    }
+
+    protected override onSetup(): PgslModuleSyntaxTreeSetupData {
+        const lSavedContent: PgslModuleSyntaxTreeSetupData = {
+            alias: new Dictionary<string, PgslAliasDeclarationSyntaxTree>(),
+            enums: new Dictionary<string, PgslEnumDeclarationSyntaxTree>(),
+            globalVariables: new Dictionary<string, PgslVariableDeclarationSyntaxTree>(),
+            structs: new Dictionary<string, PgslStructDeclarationSyntaxTree>(),
+            functions: new Dictionary<string, PgslFunctionDeclarationSyntaxTree>(),
+        };
+
+        // Loop data.
+        for (const lContent of this.mContentList) {
+            // Set data to correct buckets.
+            switch (true) {
+                case lContent instanceof PgslAliasDeclarationSyntaxTree: {
+                    if (lSavedContent.alias.has(lContent.name)) {
+                        throw new Exception(`Alias "${lContent.name}" is already defined.`, this);
+                    }
+
+                    // Apply alias.
+                    lSavedContent.alias.set(lContent.name, lContent);
+
+                    break;
+                }
+                case lContent instanceof PgslEnumDeclarationSyntaxTree: {
+                    // Enum data does not merge.
+                    if (lSavedContent.enums.has(lContent.name)) {
+                        throw new Exception(`Enum "${lContent.name}" is already defined.`, this);
+                    }
+
+                    // Apply new enum.
+                    lSavedContent.enums.set(lContent.name, lContent);
+
+                    break;
+                }
+                case lContent instanceof PgslFunctionDeclarationSyntaxTree: {
+                    // Function data does not merge.
+                    if (lSavedContent.functions.has(lContent.name)) {
+                        throw new Exception(`Function "${lContent.name}" is already defined.`, this);
+                    }
+
+                    // Apply new function.
+                    lSavedContent.functions.set(lContent.name, lContent);
+
+                    break;
+                }
+                case lContent instanceof PgslVariableDeclarationSyntaxTree: {
+                    // Variables data does not merge.
+                    if (lSavedContent.globalVariables.has(lContent.name)) {
+                        throw new Exception(`Variable declaration "${lContent.name}" is already defined.`, this);
+                    }
+
+                    // Apply new variable.
+                    lSavedContent.globalVariables.set(lContent.name, lContent);
+
+                    break;
+                }
+                case lContent instanceof PgslStructDeclarationSyntaxTree: {
+                    // Struct data does not merge.
+                    if (lSavedContent.structs.has(lContent.name)) {
+                        throw new Exception(`Struct declaration "${lContent.name}" is already defined.`, this);
+                    }
+
+                    // Apply new variable.
+                    lSavedContent.structs.set(lContent.name, lContent);
+
+                    break;
+                }
+            }
+        }
+
+        return lSavedContent;
     }
 
     /**
@@ -174,10 +187,10 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     }
 }
 
-type PgslModuleSyntaxTreeConstructorParameter = {
-    aliases: Array<PgslAliasDeclarationSyntaxTree>;
-    enums: Array<PgslEnumDeclarationSyntaxTree>;
-    functions: Array<PgslFunctionDeclarationSyntaxTree>;
-    variables: Array<PgslVariableDeclarationSyntaxTree>;
-    structs: Array<PgslStructDeclarationSyntaxTree>;
+type PgslModuleSyntaxTreeSetupData = {
+    alias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
+    enums: Dictionary<string, PgslEnumDeclarationSyntaxTree>;
+    globalVariables: Dictionary<string, PgslVariableDeclarationSyntaxTree>;
+    structs: Dictionary<string, PgslStructDeclarationSyntaxTree>;
+    functions: Dictionary<string, PgslFunctionDeclarationSyntaxTree>;
 };

@@ -11,8 +11,9 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
     private readonly mChilds: Array<BasePgslSyntaxTree>;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: BasePgslSyntaxTree | null;
-    private mSetup: boolean;
+    private mSetupCompleted: boolean;
     private mSetupData: TSetupData | null;
+    private mSetupStarted: boolean;
 
     /**
      * Structure is build in and does not be included in the final output.
@@ -77,7 +78,8 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * @param pBuildIn - Buildin value.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        this.mSetup = false;
+        this.mSetupStarted = false;
+        this.mSetupCompleted = false;
 
         // Set initial data and null setup data.
         this.mSetupData = null;
@@ -118,7 +120,7 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
             lChild.setParent(this);
 
             // Direct setup when parent is setup.
-            if (this.mSetup) {
+            if (this.mSetupStarted) {
                 lChild.setup();
             }
         }
@@ -149,12 +151,12 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      */
     public setup(): this {
         // Dont need to setup a second time.
-        if (this.mSetup) {
+        if (this.mSetupStarted) {
             return this;
         }
 
         // Lock another setup.
-        this.mSetup = true;
+        this.mSetupStarted = true;
 
         // Setup all child structures.
         for (const lChild of this.mChilds) {
@@ -165,6 +167,9 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
         try {
             // Call structure setup function.
             this.mSetupData = this.onSetup();
+
+            // Complete setup.
+            this.mSetupCompleted = true;
         } catch (pError) {
             // Get message of exception.
             let lMessage: string = '';
@@ -194,7 +199,7 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * Validate tree structure. 
      */
     public validateIntegrity(): this {
-        if (!this.mSetup) {
+        if (!this.mSetupCompleted) {
             throw new Exception('Syntax tree must be setup to be validated.', this);
         }
 
@@ -228,9 +233,6 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
             );
         }
 
-        // Setup setup flag :)
-        this.mSetup = true;
-
         // Return reference.
         return this;
     }
@@ -239,7 +241,7 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * Throws when the syntax tree was not validated.
      */
     protected ensureSetup(): asserts this is { setupData: TSetupData; } {
-        if (!this.mSetup) {
+        if (!this.mSetupCompleted) {
             throw new Exception('Syntax tree must be setup to access properties.', this);
         }
     }

@@ -44,8 +44,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree {
      * @returns alias declaration  
      */
     public resolveAlias(pName: string): PgslAliasDeclarationSyntaxTree {
-        this.ensureSetup();
-
         // Get declaration from scope.
         const lDeclaration: BasePgslSyntaxTree = this.getScopedValue(pName);
         if(!(lDeclaration instanceof PgslAliasDeclarationSyntaxTree)) {
@@ -63,8 +61,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree {
      * @returns enum declaration  
      */
     public resolveEnum(pName: string): PgslEnumDeclarationSyntaxTree {
-        this.ensureSetup();
-
         // Get declaration from scope.
         const lDeclaration: BasePgslSyntaxTree = this.getScopedValue(pName);
         if(!(lDeclaration instanceof PgslEnumDeclarationSyntaxTree)) {
@@ -82,8 +78,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree {
      * @returns function declaration.
      */
     public resolveFunction(pName: string): PgslFunctionDeclarationSyntaxTree {
-        this.ensureSetup();
-
         // Get declaration from scope.
         const lDeclaration: BasePgslSyntaxTree = this.getScopedValue(pName);
         if(!(lDeclaration instanceof PgslFunctionDeclarationSyntaxTree)) {
@@ -101,8 +95,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree {
      * @returns struct declaration  
      */
     public resolveStruct(pName: string): PgslStructDeclarationSyntaxTree {
-        this.ensureSetup();
-
         // Get declaration from scope.
         const lDeclaration: BasePgslSyntaxTree = this.getScopedValue(pName);
         if(!(lDeclaration instanceof PgslStructDeclarationSyntaxTree)) {

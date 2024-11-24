@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { IPgslVariableDeclarationSyntaxTree } from '../../interface/i-pgsl-variable-declaration-syntax-tree.interface';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -19,7 +20,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * Get variable definition.
      */
-    public get variable(): IPgslVariableDeclarationSyntaxTree {
+    public get variable(): PgslVariableDeclarationSyntaxTree | PgslVariableDeclarationStatementSyntaxTree {
         this.ensureSetup();
 
         return this.setupData.data.variable;
@@ -44,9 +45,14 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
      * @returns setuped data.
      */
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslVariableNameExpressionSyntaxTreeSetupData> {
-        const lVariableDefinition: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
+        const lVariableDefinition: BasePgslSyntaxTree | undefined = this.getScopedValue(this.mName);
         if (!lVariableDefinition) {
             throw new Exception(`Variable "${this.mName}" not defined.`, this);
+        }
+
+        // Must be a variable.
+        if (!(lVariableDefinition instanceof PgslVariableDeclarationSyntaxTree) && !(lVariableDefinition instanceof PgslVariableDeclarationStatementSyntaxTree)) {
+            throw new Exception(`Name "${this.mName}" does not refere to a variable.`, this);
         }
 
         return {
@@ -64,5 +70,5 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
 }
 
 type PgslVariableNameExpressionSyntaxTreeSetupData = {
-    variable: IPgslVariableDeclarationSyntaxTree;
+    variable: PgslVariableDeclarationSyntaxTree | PgslVariableDeclarationStatementSyntaxTree;
 };

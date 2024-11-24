@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree';
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
@@ -51,10 +50,7 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      */
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         // Read aliased type.
-        const lEnumDefinition: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(this.mEnumName);
-        if (!lEnumDefinition) {
-            throw new Exception(`Enum "${this.mEnumName}" not defined.`, this);
-        }
+        const lEnumDefinition: PgslEnumDeclarationSyntaxTree = this.document.resolveEnum(this.mEnumName);
 
         // Save aliased type for easy access.
         const lAliasType: BasePgslTypeDefinitionSyntaxTree = lEnumDefinition.type;

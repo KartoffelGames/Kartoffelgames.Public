@@ -42,7 +42,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslAssignmentStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mAssignmentName = pParameter.assignment;

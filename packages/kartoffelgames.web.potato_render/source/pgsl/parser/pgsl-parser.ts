@@ -123,7 +123,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // No token.
         if (!pStartToken && !pEndToken) {
             return {
-                buildIn: false,
                 range: [0, 0, 0, 0]
             };
         }
@@ -136,7 +135,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // Only starting token.
         if (!pEndToken) {
             return {
-                buildIn: false,
                 range: [
                     pStartToken.lineNumber,
                     pStartToken.columnNumber,
@@ -148,7 +146,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         // Solid start and end token.
         return {
-            buildIn: false,
             range: [
                 pStartToken.lineNumber,
                 pStartToken.columnNumber,
@@ -239,7 +236,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                             if (this.nameIsType(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
                                 lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
-                                    buildIn: false,
                                     range: [
                                         lParameter.meta.position.start.line,
                                         lParameter.meta.position.start.column,
@@ -288,7 +284,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         if (this.nameIsType(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
                             lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
-                                buildIn: false,
                                 range: [
                                     lParameter.meta.position.start.line,
                                     lParameter.meta.position.start.column,

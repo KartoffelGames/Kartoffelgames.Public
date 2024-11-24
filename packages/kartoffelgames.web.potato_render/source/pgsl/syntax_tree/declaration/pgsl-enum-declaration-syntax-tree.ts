@@ -75,6 +75,9 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * @returns setuped data. 
      */
     protected override onSetup(): PgslEnumDeclarationSyntaxTreeSetupData {
+        // Push enum definition to current scope.
+        this.pushScopedValue(this.mName, this);
+
         // Add each item to enum.
         const lValueList = new Dictionary<string, BasePgslExpressionSyntaxTree>();
         for (const lItem of this.mValues) {

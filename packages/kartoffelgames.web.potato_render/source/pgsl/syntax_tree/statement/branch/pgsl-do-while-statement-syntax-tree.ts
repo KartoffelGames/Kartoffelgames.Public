@@ -34,7 +34,7 @@ export class PgslDoWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree 
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pExpression: BasePgslExpressionSyntaxTree, pBlock: PgslBlockStatementSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mExpression = pExpression;

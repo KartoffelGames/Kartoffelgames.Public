@@ -66,10 +66,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      */
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslEnumValueExpressionSyntaxTreeSetupData> {
         // Catch undefined enum names.
-        const lReferencedEnum: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(this.mName);
-        if (!lReferencedEnum) {
-            throw new Exception(`Enum "${this.mName}" not defined.`, this);
-        }
+        const lReferencedEnum: PgslEnumDeclarationSyntaxTree = this.document.resolveEnum(this.mName);
 
         // Catch undefined enum properties.
         const lProperty: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree | null = lReferencedEnum.property(this.mProperty);
@@ -95,12 +92,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        const lReferencedEnum: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(this.mName);
-
-        // Catch undefined enum names.
-        if (!lReferencedEnum) {
-            throw new Exception(`Enum "${this.mName}" not defined.`, this);
-        }
+        const lReferencedEnum: PgslEnumDeclarationSyntaxTree = this.document.resolveEnum(this.mName);
 
         // Catch undefined enum properties.
         if (lReferencedEnum.property(this.mProperty) === null) {

@@ -41,7 +41,6 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      */
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData<unknown> {
         const lResolveType: BasePgslTypeDefinitionSyntaxTree = new PgslPointerTypeDefinitionSyntaxTree(this.mVariable.resolveType, {
-            buildIn: false,
             range: [
                 this.meta.position.start.line,
                 this.meta.position.start.column,

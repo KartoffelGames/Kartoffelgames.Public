@@ -50,7 +50,6 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
             // Literal is a boolean value.
             if (lBaseType === PgslBaseTypeName.Boolean) {
                 return new PgslBooleanTypeDefinitionSyntaxTree({
-                    buildIn: false,
                     range: [
                         this.meta.position.start.line,
                         this.meta.position.start.column,
@@ -62,7 +61,6 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
 
             // Create numeric type declaration.
             return new PgslNumericTypeDefinitionSyntaxTree(lScalarType, {
-                buildIn: false,
                 range: [
                     this.meta.position.start.line,
                     this.meta.position.start.column,

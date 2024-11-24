@@ -44,7 +44,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      */
     public constructor(pParameter: PgslSwitchStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mCases = pParameter.cases;

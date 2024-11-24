@@ -4,7 +4,7 @@ import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-t
 /**
  * PGSL base expression.
  */
-export abstract class BasePgslExpressionSyntaxTree<TSetupData = unknown> extends BasePgslSyntaxTree<PgslExpressionSyntaxTreeSetupData<TSetupData>> { 
+export abstract class BasePgslExpressionSyntaxTree<TSetupData = unknown> extends BasePgslSyntaxTree<PgslExpressionSyntaxTreeSetupData<TSetupData>> {
     /**
      * If expression is a constant expression.
      */
@@ -47,7 +47,7 @@ export abstract class BasePgslExpressionSyntaxTree<TSetupData = unknown> extends
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
     }
 
     /**

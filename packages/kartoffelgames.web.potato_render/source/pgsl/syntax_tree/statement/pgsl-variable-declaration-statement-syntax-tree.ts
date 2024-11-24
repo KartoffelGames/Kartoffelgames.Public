@@ -3,7 +3,6 @@ import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum';
 import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
@@ -11,7 +10,7 @@ import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeSetupData> implements IPgslVariableDeclarationSyntaxTree {
+export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeSetupData> {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mName: string;
@@ -79,7 +78,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslVariableDeclarationStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mDeclarationTypeName = pParameter.declarationType;
@@ -100,6 +99,9 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      * @returns setuped data.
      */
     protected override onSetup(): PgslVariableDeclarationStatementSyntaxTreeSetupData {
+        // Push variable definition to current scope.
+        this.pushScopedValue(this.mName, this);
+
         // Expression value has a fixed byte size.
         let lIsFixed: boolean = false;
         if (this.mExpression) {

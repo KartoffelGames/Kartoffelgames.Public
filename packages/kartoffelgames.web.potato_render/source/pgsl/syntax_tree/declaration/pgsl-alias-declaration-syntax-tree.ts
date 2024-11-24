@@ -42,4 +42,16 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
         // Add child trees.
         this.appendChild(pType);
     }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns nothing. 
+     */
+    protected override onSetup(): null {
+        // Add alias declaration to current scope.
+        this.pushScopedValue(this.mName, this);
+
+        return null;
+    }
 }

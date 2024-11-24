@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../../declaration/pgsl-struct-declaration-syntax-tree';
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
@@ -67,10 +66,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override onSetup(): PgslTypeDefinitionAttributes<PgslStructTypeDefinitionSyntaxTreeSetupData> {
         // Read aliased type.
-        const lStruct = this.document.resolveStruct(this.mStructName);
-        if (!lStruct) {
-            throw new Exception(`Struct "${this.mStructName}" is not defined.`, this);
-        }
+        const lStruct: PgslStructDeclarationSyntaxTree  = this.document.resolveStruct(this.mStructName);
 
         // Only when all members are constructable
         const lConstructable: boolean = (() => {

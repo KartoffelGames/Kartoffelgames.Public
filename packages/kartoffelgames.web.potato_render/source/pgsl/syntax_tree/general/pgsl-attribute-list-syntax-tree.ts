@@ -65,7 +65,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * @param pBuildIn - Buildin value.
      */
     public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mAttributeDefinitionList = pAttributes;

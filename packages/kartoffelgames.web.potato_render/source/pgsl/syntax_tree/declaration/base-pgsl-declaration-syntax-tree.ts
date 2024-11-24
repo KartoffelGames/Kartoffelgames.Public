@@ -23,7 +23,7 @@ export abstract class BasePgslDeclarationSyntaxTree<TSetupData = unknown> extend
      * @param pBuildIn - Buildin value.
      */
     public constructor(pAttributeList: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mAttributeList = pAttributeList;

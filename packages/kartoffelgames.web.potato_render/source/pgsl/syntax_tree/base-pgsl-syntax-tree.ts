@@ -1,6 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ParserException } from '@kartoffelgames/core.parser';
-import { IPgslVariableDeclarationSyntaxTree } from './interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 
 /**
@@ -9,12 +8,14 @@ import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
     private readonly mBuildIn: boolean;
     private readonly mChilds: Array<BasePgslSyntaxTree>;
+    private readonly mIsScopeBarrier: boolean;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: BasePgslSyntaxTree | null;
+    private readonly mScopedValues: Dictionary<string, BasePgslSyntaxTree>;
     private mSetupCompleted: boolean;
     private mSetupData: TSetupData | null;
     private mSetupStarted: boolean;
-
+    
     /**
      * Structure is build in and does not be included in the final output.
      * Can still be used for validation.
@@ -52,18 +53,6 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
     }
 
     /**
-     * Get all scoped variables of scope.
-     */
-    protected get scopedVariables(): Dictionary<string, IPgslVariableDeclarationSyntaxTree> {
-        // Empty scoped variables.
-        if (!this.mParent) {
-            return new Dictionary<string, IPgslVariableDeclarationSyntaxTree>();
-        }
-
-        return this.mParent.scopedVariables;
-    }
-
-    /**
      * Setup data.
      */
     protected get setupData(): TSetupData | null {
@@ -77,12 +66,16 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pMeta: BasePgslSyntaxTreeMeta, pDefinesValueScope: boolean) {
         this.mSetupStarted = false;
         this.mSetupCompleted = false;
 
         // Set initial data and null setup data.
         this.mSetupData = null;
+
+        // Setup scoped value list.
+        this.mIsScopeBarrier = pDefinesValueScope;
+        this.mScopedValues = new Dictionary<string, BasePgslSyntaxTree>();
 
         // Save meta information.
         this.mMeta = {
@@ -97,7 +90,7 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
                 }
             }
         };
-        this.mBuildIn = pMeta.buildIn;
+        this.mBuildIn = pMeta.buildIn ?? false;
 
         // Hirachy information.
         this.mParent = null;
@@ -136,14 +129,47 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * @throws {@link Exception}
      * When the variable does not exits. 
      */
-    public getVariableDeclarationOf(pVariableName: string): IPgslVariableDeclarationSyntaxTree {
+    public getScopedValue(pValueName: string): BasePgslSyntaxTree {
         // Try to read declaration
-        const lDeclaration: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(pVariableName);
+        let lDeclaration: BasePgslSyntaxTree | undefined = this.mScopedValues.get(pValueName);
+
+        // When not declaration is found, search in parent scoped.
+        if (!lDeclaration && this.mParent) {
+            lDeclaration = this.mParent.getScopedValue(pValueName);
+        }
+
         if (!lDeclaration) {
-            throw new Exception(`Variable "${pVariableName}" not defined in current scope.`, this);
+            throw new Exception(`Value with the name "${pValueName}" not defined in current scope.`, this);
         }
 
         return lDeclaration;
+    }
+
+    /**
+     * Push a value to next available scope.
+     * 
+     * @param pValueName - Value name.
+     * @param pValue - Value of scoped name. 
+     */
+    public pushScopedValue(pValueName: string, pValue: BasePgslSyntaxTree): void {
+        // Save value when current tree defines a scope barrier.
+        if (this.mIsScopeBarrier) {
+            if (this.mScopedValues.has(pValueName)) {
+                throw new Exception(`Scoped value "${pValueName}" Already defined for current scope.`, this);
+            }
+
+            // Set value to this scope.
+            this.mScopedValues.set(pValueName, pValue);
+            return;
+        }
+
+        // Can only add value to next scope when current tree has a parent.
+        if (!this.mParent) {
+            throw new Exception(`Can't push value "${pValueName}" to current scope. No scope defined.`, this);
+        }
+
+        // Push value to parent. Hopefully it is the next available scope barrier. 
+        this.mParent.pushScopedValue(pValueName, pValue);
     }
 
     /**
@@ -284,7 +310,7 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
 
 export type BasePgslSyntaxTreeMeta = {
     range: [number, number, number, number],
-    buildIn: boolean;
+    buildIn?: boolean;
 };
 
 export type SyntaxTreeMeta = {

@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
@@ -43,10 +42,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslFunctionCallExpressionSyntaxTreeSetupData> {
-        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree | null = this.document.resolveFunction(this.mName);
-        if (!lFunctionDeclaration) {
-            throw new Exception(`Function "${this.mName}" is not defined.`, this);
-        }
+        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName);
 
         // Determinate fixed state of function.
         const lIsFixed = (() => {
@@ -103,10 +99,8 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree | null = this.document.resolveFunction(this.mName);
-        if (!lFunctionDeclaration) {
-            throw new Exception(`Function "${this.mName}" is not defined.`, this);
-        }
+        //const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName);
+        
 
         // TODO: Validate function parameter.
     }

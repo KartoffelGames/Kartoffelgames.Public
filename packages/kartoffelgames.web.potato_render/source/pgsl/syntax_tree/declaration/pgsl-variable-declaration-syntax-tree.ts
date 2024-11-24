@@ -4,14 +4,13 @@ import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum'
 import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeSetupData> implements IPgslVariableDeclarationSyntaxTree {
+export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeSetupData> {
     private static readonly mDeclarationAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = (() => {
         // Create mapping of declaration type to address space.
         const lAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = new Dictionary<PgslDeclarationType, PgslValueAddressSpace>();
@@ -114,6 +113,9 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @returns setuped data.
      */
     protected override onSetup(): PgslVariableDeclarationSyntaxTreeSetupData {
+        // Push variable definition to current scope.
+        this.pushScopedValue(this.mName, this);
+
         // Try to parse declaration type.
         const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
         if (!lDeclarationType) {

@@ -7,7 +7,7 @@ import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-
 /**
  * PGSL syntax tree for a struct declaration.
  */
-export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
+export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<null> {
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
 
@@ -41,6 +41,18 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
 
         // Add all properties as child.
         this.appendChild(...pProperties);
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns nothing. 
+     */
+    protected override onSetup(): null {
+        // Add struct declaration to current scope.
+        this.pushScopedValue(this.mName, this);
+
+        return null;
     }
 
     /**

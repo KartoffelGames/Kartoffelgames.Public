@@ -41,7 +41,7 @@ export class PgslIfStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslIfStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mExpression = pParameter.expression;

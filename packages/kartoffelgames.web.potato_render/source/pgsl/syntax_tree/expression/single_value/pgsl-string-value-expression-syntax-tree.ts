@@ -36,7 +36,6 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
     protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
         // Create type declaration.
         const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({
-            buildIn: false,
             range: [
                 this.meta.position.start.line,
                 this.meta.position.start.column,

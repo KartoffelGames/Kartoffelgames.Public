@@ -73,7 +73,6 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         // Any value is converted into a boolean type.
         const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
             const lBooleanDefinition: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({
-                buildIn: false,
                 range: [
                     this.meta.position.start.line,
                     this.meta.position.start.column,
@@ -87,7 +86,6 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
                 const lVectorType: PgslVectorTypeDefinitionSyntaxTree = this.mLeftExpression.resolveType as PgslVectorTypeDefinitionSyntaxTree;
 
                 return new PgslVectorTypeDefinitionSyntaxTree(lVectorType.vectorDimension, lBooleanDefinition, {
-                    buildIn: false,
                     range: [
                         this.meta.position.start.line,
                         this.meta.position.start.column,

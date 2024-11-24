@@ -21,7 +21,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
                 // Evaluation.
                 expect(lResultDeclaration.name).to.equal(lVariableName);
@@ -38,7 +38,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
                 // Evaluation.
                 expect(lResultDeclaration.declarationType).to.equal(PgslDeclarationType.Const);
@@ -72,7 +72,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
                 // Evaluation.
                 expect(lResultDeclaration.isConstant).to.be.true;
@@ -89,7 +89,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
                 // Evaluation.
                 expect(lResultDeclaration.isConstant).to.be.true;
@@ -107,7 +107,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
                 // Evaluation.
                 expect(lResultDeclaration.isConstant).to.be.true;
@@ -126,7 +126,7 @@ describe('PsglParser', () => {
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
                 const lAttribute = lResultDeclaration.attributes.getAttribute(lAttributeName);
 
                 // Evaluation.

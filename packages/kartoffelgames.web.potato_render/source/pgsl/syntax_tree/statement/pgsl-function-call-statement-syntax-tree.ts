@@ -24,7 +24,7 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pName: string, pParameterList: Array<BasePgslExpressionSyntaxTree>, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Create and validate expression instead.
         this.mFunctionExpression = new PgslFunctionCallExpressionSyntaxTree(pName, pParameterList, pMeta);

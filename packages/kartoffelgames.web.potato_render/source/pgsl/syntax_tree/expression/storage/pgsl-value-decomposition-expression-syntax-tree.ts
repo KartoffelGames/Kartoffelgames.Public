@@ -74,7 +74,6 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
 
                     // Build vectorN type from vector type.
                     const lSwizzleResult: PgslVectorTypeDefinitionSyntaxTree = new PgslVectorTypeDefinitionSyntaxTree(lVectorTypeList[this.mProperty.length], lInnerType, {
-                        buildIn: false,
                         range: [
                             this.meta.position.start.line,
                             this.meta.position.start.column,

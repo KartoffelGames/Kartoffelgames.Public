@@ -36,7 +36,7 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      */
     public constructor(pOperator: string, pExpression: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pMeta);
+        super(pMeta, false);
 
         // Set base data.
         this.mOperatorName = pOperator;

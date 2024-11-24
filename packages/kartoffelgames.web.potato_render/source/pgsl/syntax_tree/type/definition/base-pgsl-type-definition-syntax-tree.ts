@@ -123,13 +123,10 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown>
     /**
      * Constructor.
      * 
-     * @param pBaseType - Base type name of definition.
-     * @param pMemoryDefinition - Memory definition of type.
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        // Call super and prevent reasigning empty data to cached structures.
-        super(pMeta);
+        super(pMeta, false);
     }
 
     /**

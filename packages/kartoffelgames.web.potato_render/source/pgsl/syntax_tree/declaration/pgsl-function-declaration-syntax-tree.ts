@@ -7,7 +7,7 @@ import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tr
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
+export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<null> {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mConstant: boolean;
     private readonly mName: string;
@@ -66,6 +66,8 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.mParameter = pParameter.parameter;
         this.mReturnType = pParameter.returnType;
 
+        // TODO: Push parameter values to block scope.
+
         // Add function child trees.
         this.appendChild(pParameter.block);
         this.appendChild(pParameter.returnType);
@@ -74,6 +76,18 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         for (const lParameter of pParameter.parameter) {
             this.appendChild(lParameter.type);
         }
+    }
+
+    /**
+     * Retrieve data of current structure.
+     * 
+     * @returns nothing. 
+     */
+    protected override onSetup(): null {
+        // Add function declaration to current scope.
+        this.pushScopedValue(this.mName, this);
+
+        return null;
     }
 }
 

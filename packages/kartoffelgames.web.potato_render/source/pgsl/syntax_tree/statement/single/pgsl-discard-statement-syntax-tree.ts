@@ -11,6 +11,6 @@ export class PgslDiscardStatementSyntaxTree extends BasePgslStatementSyntaxTree 
      * @param pMeta - Syntax tree meta data.
      */
     public constructor( pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
     }
 }

@@ -113,7 +113,6 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      */
     private determinateAliasedType(): BasePgslTypeDefinitionSyntaxTree {
         const lMetaInformation: BasePgslSyntaxTreeMeta = {
-            buildIn: this.buildIn,
             range: [
                 this.meta.position.start.line,
                 this.meta.position.start.column,

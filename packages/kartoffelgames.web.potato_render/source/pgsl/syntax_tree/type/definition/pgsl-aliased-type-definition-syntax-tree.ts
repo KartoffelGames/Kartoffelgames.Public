@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../../declaration/pgsl-alias-declaration-syntax-tree';
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
@@ -51,10 +50,7 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      */
     protected override onSetup(): PgslTypeDefinitionAttributes<null> {
         // Read aliased type.
-        const lAliasedDefinition: PgslAliasDeclarationSyntaxTree | null = this.document.resolveAlias(this.mAliasName);
-        if (!lAliasedDefinition) {
-            throw new Exception(`Alias "${this.mAliasName}" not defined.`, this);
-        }
+        const lAliasedDefinition: PgslAliasDeclarationSyntaxTree = this.document.resolveAlias(this.mAliasName);
 
         // Save aliased type for easy access.
         const lAliasType: BasePgslTypeDefinitionSyntaxTree = lAliasedDefinition.type;

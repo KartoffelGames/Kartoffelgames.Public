@@ -13,7 +13,7 @@ export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree
      * @param pBuildIn - Buildin value.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+        super(pMeta, false);
     }
 
     /**

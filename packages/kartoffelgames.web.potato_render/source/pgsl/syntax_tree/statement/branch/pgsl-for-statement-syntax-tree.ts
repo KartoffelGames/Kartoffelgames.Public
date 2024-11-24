@@ -54,13 +54,15 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslForStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta,) {
-        super(pMeta);
+        super(pMeta, false);
 
         // Set data.
         this.mBlock = pParameter.block;
         this.mUpdate = pParameter.update;
         this.mExpression = pParameter.expression;
         this.mInit = pParameter.init;
+
+        // TODO: Push init value to block scope.
 
         // Set child as tree data.
         this.appendChild(this.mBlock);

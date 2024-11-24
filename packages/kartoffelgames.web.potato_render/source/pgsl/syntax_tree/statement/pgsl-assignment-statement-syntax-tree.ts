@@ -84,7 +84,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
         }
 
         // Validate that it has the same value.
-        if (!this.mVariable.resolveType.equals(this.mExpression.resolveType)) {
+        if (!this.mVariable.resolveType.explicitCastable(this.mExpression.resolveType)) {
             throw new Exception(`Can't assigne a different type to a variable`, this);
         }
     }

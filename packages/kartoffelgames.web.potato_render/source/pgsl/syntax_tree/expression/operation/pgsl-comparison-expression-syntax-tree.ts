@@ -133,7 +133,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Comparison needs to be the same type.
-        if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {
+        if (!this.mLeftExpression.resolveType.explicitCastable(this.mRightExpression.resolveType)) {
             throw new Exception(`Comparison can only be between values of the same type.`, this);
         }
 

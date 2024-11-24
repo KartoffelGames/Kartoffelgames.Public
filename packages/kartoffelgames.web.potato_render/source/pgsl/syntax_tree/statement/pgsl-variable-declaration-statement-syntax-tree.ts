@@ -152,8 +152,8 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         }
 
         // Validate same type.
-        if (this.mExpression && !this.mTypeDeclaration.equals(this.mExpression.resolveType)) {
-            throw new Exception(`Expression value doesn't match variable declaration type.`, this);
+        if (this.mExpression && !this.mTypeDeclaration.explicitCastable(this.mExpression.resolveType)) {
+            throw new Exception(`Expression values type can't be converted to variables type.`, this);
         }
 
         // Validate const value need to have a initialization.

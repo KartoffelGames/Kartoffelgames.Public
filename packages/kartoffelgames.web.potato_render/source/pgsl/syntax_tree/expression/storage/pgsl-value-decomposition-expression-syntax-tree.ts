@@ -5,6 +5,7 @@ import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-s
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
+import { PgslStructPropertyDeclarationSyntaxTree } from '../../declaration/pgsl-struct-property-declaration-syntax-tree';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
@@ -55,10 +56,12 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
             switch (true) {
                 case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
-                    if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
+                    const lProperty: PgslStructPropertyDeclarationSyntaxTree | undefined = this.mValue.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; });
+                    if (!lProperty) {
                         throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
                     }
-                    break;
+
+                    return lProperty.type;
                 }
 
                 case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
@@ -113,7 +116,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         // Only struct likes can have accessable properties.
         switch (true) {
             case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
-                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
+                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; })) {
                     throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
                 }
                 break;
@@ -129,7 +132,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
             }
 
             default: {
-                throw new Exception(`Value is not a composite type properties.`, this);
+                throw new Exception(`Value is not a composite type property.`, this);
             }
         }
     }

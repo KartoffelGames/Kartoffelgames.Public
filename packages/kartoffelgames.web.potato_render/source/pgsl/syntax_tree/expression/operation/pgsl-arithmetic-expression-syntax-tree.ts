@@ -102,7 +102,7 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type.
-        if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {
+        if (!this.mLeftExpression.resolveType.explicitCastable(this.mRightExpression.resolveType)) {
             throw new Exception('Left and right side of arithmetic expression must be the same type.', this);
         }
 

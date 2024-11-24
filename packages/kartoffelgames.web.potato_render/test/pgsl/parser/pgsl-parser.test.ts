@@ -517,7 +517,7 @@ describe('PsglParser', () => {
         it('-- Nested', () => {
             // Setup.
             const lSourceCode: string = `
-                const valName: Array<Vector2<Integer>>;
+                const valName: Array<Vector2<Integer>, 2>;
             `;
 
             // Process.

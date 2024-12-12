@@ -42,7 +42,7 @@
                 "target": "node",
                 "scope": "main"
             },
-            "page": false,
+            "page": true,
             "tests": [
                 "unit"
             ]

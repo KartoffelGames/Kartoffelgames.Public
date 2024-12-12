@@ -10,6 +10,13 @@
     ],
     "main": "library/source/index.js",
     "types": "library/source/index.d.ts",
+    "devDependencies": {
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1"
+    },
+    "dependencies": {
+        "@kartoffelgames/core": "^0.1.0"
+    },
     "scripts": {
         "build": "kg build Kartoffelgames.Web.Database && kg page Kartoffelgames.Web.Database --build-only",
         "test": "kg test Kartoffelgames.Web.Database",

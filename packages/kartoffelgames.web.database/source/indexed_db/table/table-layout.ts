@@ -6,7 +6,7 @@ import { Dictionary, Exception, IVoidParameterConstructor } from '@kartoffelgame
 export class TableLayout {
     private static mInstance: TableLayout;
 
-    private readonly mTableConfigs!: Dictionary<IVoidParameterConstructor<object>, TableLayoutConfig>;
+    private readonly mTableConfigs!: Dictionary<TableType, TableLayoutConfig>;
 
     /**
      * Constructor.
@@ -19,7 +19,7 @@ export class TableLayout {
         TableLayout.mInstance = this;
 
         // Init lists.
-        this.mTableConfigs = new Dictionary<IVoidParameterConstructor<object>, TableLayoutConfig>();
+        this.mTableConfigs = new Dictionary<TableType, TableLayoutConfig>();
     }
 
     /**
@@ -29,7 +29,7 @@ export class TableLayout {
      * 
      * @returns table type config. 
      */
-    public configOf(pType: IVoidParameterConstructor<object>): TableLayoutConfig {
+    public configOf(pType: TableType): TableLayoutConfig {
         // Table type is not initialized.
         if (!this.mTableConfigs.has(pType)) {
             throw new Exception('Table type not defined.', this);
@@ -47,7 +47,7 @@ export class TableLayout {
      * 
      * @throws {@link Exception} - When a identitfier for this type is already set.
      */
-    public setTableIdentity(pType: IVoidParameterConstructor<object>, pKey: string, pAutoIncrement: boolean): void {
+    public setTableIdentity(pType: TableType, pKey: string, pAutoIncrement: boolean): void {
         // Initialize table type.
         this.initializeTableType(pType);
 
@@ -71,7 +71,7 @@ export class TableLayout {
      * @param pKey - Key of identity.
      * @param pAutoIncrement - Autoincrement identity.
      */
-    public setTableIndex(pType: IVoidParameterConstructor<object>, pName: string, pKey: string, pIsArray: boolean, pIsUnique: boolean): void {
+    public setTableIndex(pType: TableType, pName: string, pKey: string, pIsArray: boolean, pIsUnique: boolean): void {
         // Initialize table type.
         this.initializeTableType(pType);
 
@@ -115,7 +115,7 @@ export class TableLayout {
      * 
      * @param pType - Table type.
      */
-    private initializeTableType(pType: IVoidParameterConstructor<object>): void {
+    private initializeTableType(pType: TableType): void {
         // Table type is allready initialized.
         if (this.mTableConfigs.has(pType)) {
             return;
@@ -144,3 +144,5 @@ export type TableLayoutConfig = {
     },
     indices: Dictionary<string, TableLayoutConfigIndex>;
 };
+
+export type TableType = IVoidParameterConstructor<object>;

@@ -15,7 +15,8 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core": "^0.1.0"
+        "@kartoffelgames/core": "^0.1.0",
+        "@kartoffelgames/core.dependency-injection": "^0.1.0"
     },
     "scripts": {
         "build": "kg build Kartoffelgames.Web.Database && kg page Kartoffelgames.Web.Database --build-only",

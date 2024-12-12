@@ -4,9 +4,10 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 
 /**
  * AtScript.
- * Add identity to table type.
+ * Add index to table type.
+ * Indices with the same names are grouped.
  */
-export function WebDbIdentity(pAutoIncrement: boolean) {
+export function WebDbIndex(pName: string, pUnique: boolean) {
     return function (pTarget: object, pPropertyKey: string): void {
         // Usually Class Prototype. Globaly.
         const lPrototype: object = pTarget;
@@ -14,23 +15,21 @@ export function WebDbIdentity(pAutoIncrement: boolean) {
 
         // Decorator can not be used on static propertys.
         if (typeof pTarget === 'function') {
-            throw new Exception('Identity property can not be a static property.', WebDbIdentity);
+            throw new Exception('Identity property can not be a static property.', WebDbIndex);
         }
 
         const lTableLayout: TableLayout = new TableLayout();
 
         // Type must be string or number.
         const lPropertyType: InjectionConstructor | null = Metadata.get(lTableType).getProperty(pPropertyKey).type;
-        if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
-            throw new Exception('Identity property must be a number or string type', WebDbIdentity);
+        if (lPropertyType === null) {
+            throw new Exception('Index property must have a type', WebDbIndex);
         }
 
-        // Auto incrementing identity must be a number.
-        if (pAutoIncrement && lPropertyType !== Number) {
-            throw new Exception('Identity property with auto increment must be a number type', WebDbIdentity);
-        }
+        // Index is a array.
+        const lIsArray: boolean = lPropertyType === Array;
 
-        // Add table type identity to layout.
-        lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);
+        // Add table type index to layout.
+        lTableLayout.setTableIndex(lTableType, pPropertyKey, pName, lIsArray, pUnique);
     };
 }

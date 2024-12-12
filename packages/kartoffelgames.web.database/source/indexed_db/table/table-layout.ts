@@ -69,9 +69,11 @@ export class TableLayout {
      * 
      * @param pType - Table type.
      * @param pKey - Key of identity.
-     * @param pAutoIncrement - Autoincrement identity.
+     * @param pName - Index name.
+     * @param pIsArray - Property is key.
+     * @param pIsUnique - Index should be unique.
      */
-    public setTableIndex(pType: TableType, pName: string, pKey: string, pIsArray: boolean, pIsUnique: boolean): void {
+    public setTableIndex(pType: TableType, pKey: string, pName: string, pIsArray: boolean, pIsUnique: boolean): void {
         // Initialize table type.
         this.initializeTableType(pType);
 

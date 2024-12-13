@@ -189,6 +189,26 @@ describe('PropertyMetadata', () => {
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
         });
+
+        it('-- Get inside decorator', () => {
+            // Setup. Create decorator that reads metadata inside decorator.
+            let lInnerPropertyMetadata: PropertyMetadata | null = null;
+            const lInnerDecorator = (pTarget: object, pPropertyKey: string): any => {
+                lInnerPropertyMetadata = Metadata.get((<any>pTarget).constructor).getProperty(pPropertyKey);
+            };
+
+            // Process.
+            class Test {
+                @lInnerDecorator
+                public id!: number;
+            }
+
+            // Process. Read outer metadata.
+            const lOuterPropertyMetadata: PropertyMetadata = Metadata.get(Test).getProperty('id');
+
+            // Evaluation.
+            expect(lInnerPropertyMetadata).to.equal(lOuterPropertyMetadata);
+        });
     });
 
     describe('Method: getInheritedMetadata', () => {

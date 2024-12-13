@@ -42,7 +42,7 @@ describe('Metadata', () => {
         it('-- Get With Decoration History', () => {
             // Setup.
             @gPlaceholderDecorator
-            class Test {}
+            class Test { }
 
             // Setup. Get base class.
             const lTestParent = DecorationReplacementHistory.getOriginalOf(Test);

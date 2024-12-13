@@ -1,6 +1,7 @@
 import { Injectable } from './decorator/injectable.decorator';
 import { InjectableSingleton } from './decorator/injectable-singleton.decorator';
 import { AddMetadata } from './decorator/add-metadata.decorator';
+import { ReflectInitializer } from './reflect/reflect-initializer';
 
 export class Injector {
     /**
@@ -30,4 +31,12 @@ export class Injector {
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     public static readonly Metadata = AddMetadata;
+
+    /**
+     * Initialize reflection.
+     */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    public static readonly Initialize = (): void => {
+        ReflectInitializer.initialize();
+    };
 }

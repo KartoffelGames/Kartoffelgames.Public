@@ -65,6 +65,11 @@ export class WebDb {
      * Resolve once the connection is set.
      */
     public async open(): Promise<void> {
+        // Dont open another connection when one is open.
+        if (this.mDatabaseConnection) {
+            return;
+        }
+
         // Open db with current version. Read all object stores and all indices and compare.
         const lDatabaseUpdate: DatabaseUpdate = await new Promise((pResolve, pReject) => {
             const lDatabaseUpdate: DatabaseUpdate = {

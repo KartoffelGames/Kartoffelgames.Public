@@ -1,6 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
+import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { TableLayout, TableType } from './table-layout';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
+
+// Needed for type metadata.
+Injector.Initialize();
 
 /**
  * AtScript.
@@ -18,17 +21,6 @@ export function WebDbIdentity(pAutoIncrement: boolean) {
         }
 
         const lTableLayout: TableLayout = new TableLayout();
-
-        // Type must be string or number.
-        const lPropertyType: InjectionConstructor | null = Metadata.get(lTableType).getProperty(pPropertyKey).type;
-        if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
-            throw new Exception('Identity property must be a number or string type', WebDbIdentity);
-        }
-
-        // Auto incrementing identity must be a number.
-        if (pAutoIncrement && lPropertyType !== Number) {
-            throw new Exception('Identity property with auto increment must be a number type', WebDbIdentity);
-        }
 
         // Add table type identity to layout.
         lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);

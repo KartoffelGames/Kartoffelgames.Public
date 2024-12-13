@@ -1,9 +1,10 @@
-import { TableType } from "./table/table-layout";
-import { WebDb } from "./web-db";
 
-export class WebDbTable {
-    private readonly mDatabase: WebDb;
-    private readonly mTableType: TableType;
+import { TableType } from './table/table-layout';
+import { WebDbTransaction } from './web-db-transaction';
+
+export class WebDbTable<TTableType extends TableType> {
+    private readonly mTableType: TTableType;
+    private readonly mTransaction: WebDbTransaction<TableType>;
 
     /**
      * Constructor.
@@ -11,8 +12,8 @@ export class WebDbTable {
      * @param pType - Table type.
      * @param pDatabase - Database.
      */
-    public constructor(pType: TableType, pDatabase: WebDb) {
+    public constructor(pType: TTableType, pTransaction: WebDbTransaction<TableType>) {
         this.mTableType = pType;
-        this.mDatabase = pDatabase;
+        this.mTransaction = pTransaction;
     }
 }

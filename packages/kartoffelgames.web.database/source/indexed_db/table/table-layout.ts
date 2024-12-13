@@ -1,4 +1,5 @@
 import { Dictionary, Exception, IVoidParameterConstructor } from '@kartoffelgames/core';
+import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 
 /**
  * Singleton. Table layout and settings.
@@ -35,7 +36,39 @@ export class TableLayout {
             throw new Exception('Table type not defined.', this);
         }
 
-        return this.mTableConfigs.get(pType)!;
+        const lTableConfiguration: TableLayoutConfig = this.mTableConfigs.get(pType)!;
+
+        // Validate idenitiy. Must happend after decoration so all metadata of the table has been loaded.
+        if (lTableConfiguration.identity) {
+            // Type must be string or number.
+            const lPropertyType: InjectionConstructor | null = Metadata.get(pType).getProperty(lTableConfiguration.identity.key).type;
+            if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
+                throw new Exception('Identity property must be a number or string type', this);
+            }
+
+            // Auto incrementing identity must be a number.
+            if (lTableConfiguration.identity.key && lPropertyType !== Number) {
+                throw new Exception('Identity property with auto increment must be a number type', this);
+            }
+        }
+
+        // Validate all indices.
+        for (const lIndex of lTableConfiguration.indices.values()) {
+            for (const lIndexKey of lIndex.keys) {
+                // Type must be string or number.
+                const lPropertyType: InjectionConstructor | null = Metadata.get(pType).getProperty(lIndexKey).type;
+                if (lPropertyType === null) {
+                    throw new Exception('Index property must have a type', this);
+                }
+
+                // Disable multientry when any key is not a array.
+                if (lPropertyType !== Array) {
+                    lIndex.options.multiEntity = false;
+                }
+            }
+        }
+
+        return lTableConfiguration;
     }
 
     /**
@@ -73,7 +106,7 @@ export class TableLayout {
      * @param pIsArray - Property is key.
      * @param pIsUnique - Index should be unique.
      */
-    public setTableIndex(pType: TableType, pKey: string, pName: string, pIsArray: boolean, pIsUnique: boolean): void {
+    public setTableIndex(pType: TableType, pKey: string, pName: string, pIsUnique: boolean): void {
         // Initialize table type.
         this.initializeTableType(pType);
 
@@ -101,7 +134,7 @@ export class TableLayout {
         lIndexConfig.keys.push(pKey);
 
         // Disable multientiy when key is not a array or more than one key is set for the same index.
-        if (lIndexConfig.keys.length > 1 || !pIsArray) {
+        if (lIndexConfig.keys.length > 1) {
             lIndexConfig.options.multiEntity = false;
         }
 
@@ -130,7 +163,7 @@ export class TableLayout {
     }
 }
 
-type TableLayoutConfigIndex = {
+export type TableLayoutConfigIndex = {
     name: string;
     keys: Array<string>;
     options: {

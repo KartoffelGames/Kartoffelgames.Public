@@ -1,13 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { TableLayout, TableType } from './table-layout';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 
 /**
  * AtScript.
  * Add index to table type.
  * Indices with the same names are grouped.
  */
-export function WebDbIndex(pName: string, pUnique: boolean) {
+export function WebDbIndex(pUnique: boolean = false, pName?: string) {
     return function (pTarget: object, pPropertyKey: string): void {
         // Usually Class Prototype. Globaly.
         const lPrototype: object = pTarget;
@@ -20,16 +19,10 @@ export function WebDbIndex(pName: string, pUnique: boolean) {
 
         const lTableLayout: TableLayout = new TableLayout();
 
-        // Type must be string or number.
-        const lPropertyType: InjectionConstructor | null = Metadata.get(lTableType).getProperty(pPropertyKey).type;
-        if (lPropertyType === null) {
-            throw new Exception('Index property must have a type', WebDbIndex);
-        }
-
-        // Index is a array.
-        const lIsArray: boolean = lPropertyType === Array;
+        // Default the index name to the property key.
+        const lIndexName: string = pName ?? pPropertyKey;
 
         // Add table type index to layout.
-        lTableLayout.setTableIndex(lTableType, pPropertyKey, pName, lIsArray, pUnique);
+        lTableLayout.setTableIndex(lTableType, pPropertyKey, lIndexName, pUnique);
     };
 }

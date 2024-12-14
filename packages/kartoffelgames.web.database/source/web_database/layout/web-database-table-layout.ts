@@ -4,8 +4,8 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 /**
  * Singleton. Table layout and settings.
  */
-export class TableLayout {
-    private static mInstance: TableLayout;
+export class WebDatabaseTableLayout {
+    private static mInstance: WebDatabaseTableLayout;
 
     private readonly mTableConfigs!: Dictionary<TableType, TableLayoutConfig>;
 
@@ -13,11 +13,11 @@ export class TableLayout {
      * Constructor.
      */
     public constructor() {
-        if (TableLayout.mInstance) {
-            return TableLayout.mInstance;
+        if (WebDatabaseTableLayout.mInstance) {
+            return WebDatabaseTableLayout.mInstance;
         }
 
-        TableLayout.mInstance = this;
+        WebDatabaseTableLayout.mInstance = this;
 
         // Init lists.
         this.mTableConfigs = new Dictionary<TableType, TableLayoutConfig>();

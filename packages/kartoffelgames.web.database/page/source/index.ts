@@ -1,20 +1,19 @@
-import { WebDbIdentity } from '../../source/indexed_db/table/web-db-identity.decorator';
-import { WebDbIndex } from '../../source/indexed_db/table/web-db-index.decorator';
-import { WebDb } from '../../source/indexed_db/web-db';
-import { WebDbTable } from '../../source/indexed_db/web-db-table';
-
+import { WebDatabaseIdentity } from '../../source/web_database/layout/web-database-identity.decorator';
+import { WebDatabaseIndex } from '../../source/web_database/layout/web-database-index.decorator';
+import { WebDatabase } from '../../source/web_database/web-database';
+import { WebDatabaseTable } from '../../source/web_database/web-database-table';
 
 class TestTable {
-    @WebDbIdentity(true)
+    @WebDatabaseIdentity(true)
     public id?: number;
 
-    @WebDbIndex(true)
+    @WebDatabaseIndex(true)
     public name?: string;
 
-    @WebDbIndex()
+    @WebDatabaseIndex()
     public price?: number;
 
-    @WebDbIndex()
+    @WebDatabaseIndex()
     public types?: Array<number>;
 
     public notIndexed?: string;
@@ -25,10 +24,10 @@ class TestTable {
 }
 
 (() => {
-    const lDatabase: WebDb = new WebDb('MainDB', [TestTable]);
+    const lDatabase: WebDatabase = new WebDatabase('MainDB', [TestTable]);
 
     lDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
-        const lTestTable: WebDbTable<typeof TestTable> = pTransaction.table(TestTable);
+        const lTestTable: WebDatabaseTable<typeof TestTable> = pTransaction.table(TestTable);
 
         // Create random data.
         const lData: TestTable = new TestTable();

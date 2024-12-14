@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TableLayout, TableLayoutConfig, TableLayoutConfigIndex, TableType } from './table/table-layout';
-import { WebDbTransaction, WebDbTransactionMode } from './web-db-transaction';
+import { WebDatabaseTableLayout, TableLayoutConfig, TableLayoutConfigIndex, TableType } from './layout/web-database-table-layout';
+import { WebDatabaseTransaction, WebDbTransactionMode } from './web-database-transaction';
 
-export class WebDb {
+export class WebDatabase {
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableLayouts: TableLayout;
+    private readonly mTableLayouts: WebDatabaseTableLayout;
     private readonly mTableTypes: Dictionary<string, TableType>;
 
     /**
@@ -17,7 +17,7 @@ export class WebDb {
     public constructor(pName: string, pTables: Array<TableType>) {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
-        this.mTableLayouts = new TableLayout();
+        this.mTableLayouts = new WebDatabaseTableLayout();
 
         this.mTableTypes = new Dictionary<string, TableType>();
         for (const lTableType of pTables) {
@@ -333,7 +333,7 @@ export class WebDb {
      * @param pTables - Tabes for this transaction.
      * @param pAction - Action withing this transaction.
      */
-    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDbTransaction<TTables>) => void): Promise<void> {
+    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => void): Promise<void> {
         // Tables should exists.
         for (const lTableType of pTables) {
             if (!this.mTableTypes.has(lTableType.name)) {
@@ -342,7 +342,7 @@ export class WebDb {
         }
 
         // Create and open transaction.
-        const lTransaction: WebDbTransaction<TTables> = new WebDbTransaction(this, pTables, pMode);
+        const lTransaction: WebDatabaseTransaction<TTables> = new WebDatabaseTransaction(this, pTables, pMode);
         await lTransaction.open();
 
         // Call action within the transaction.

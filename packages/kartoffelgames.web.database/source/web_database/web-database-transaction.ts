@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { TableType } from './table/table-layout';
-import { WebDb } from './web-db';
-import { WebDbTable } from './web-db-table';
+import { TableType } from './layout/web-database-table-layout';
+import { WebDatabase } from './web-database';
+import { WebDatabaseTable } from './web-database-table';
 
-export class WebDbTransaction<TTables extends TableType> {
-    private readonly mDatabase: WebDb;
+export class WebDatabaseTransaction<TTables extends TableType> {
+    private readonly mDatabase: WebDatabase;
     private readonly mMode: WebDbTransactionMode;
     private mState: IDBTransaction | null;
     private readonly mTableTypes: Set<TTables>;
@@ -27,7 +27,7 @@ export class WebDbTransaction<TTables extends TableType> {
      * @param pTables - Tables of transaction.
      * @param pMode - Transaction mode.
      */
-    public constructor(pDatabase: WebDb, pTables: Array<TTables>, pMode: WebDbTransactionMode) {
+    public constructor(pDatabase: WebDatabase, pTables: Array<TTables>, pMode: WebDbTransactionMode) {
         this.mDatabase = pDatabase;
         this.mTableTypes = new Set<TTables>(pTables);
         this.mMode = pMode;
@@ -74,14 +74,14 @@ export class WebDbTransaction<TTables extends TableType> {
      * 
      * @returns Table connection. 
      */
-    public table<T extends TTables>(pType: T): WebDbTable<T> {
+    public table<T extends TTables>(pType: T): WebDatabaseTable<T> {
         // Table type must exists in table.
         if (!this.mTableTypes.has(pType)) {
             throw new Exception('Table type not set for database.', this);
         }
 
         // Create table object with attached opened db.
-        return new WebDbTable<T>(pType, this);
+        return new WebDatabaseTable<T>(pType, this);
     }
 
 }

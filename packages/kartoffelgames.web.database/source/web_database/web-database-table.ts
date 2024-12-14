@@ -1,12 +1,12 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { TableLayout, TableLayoutConfig, TableType } from './table/table-layout';
-import { WebDbTransaction } from './web-db-transaction';
+import { WebDatabaseTableLayout, TableLayoutConfig, TableType } from './layout/web-database-table-layout';
+import { WebDatabaseTransaction } from './web-database-transaction';
 
-export class WebDbTable<TTableType extends TableType> {
-    private readonly mTableLayout: TableLayout;
+export class WebDatabaseTable<TTableType extends TableType> {
+    private readonly mTableLayout: WebDatabaseTableLayout;
     private readonly mTableType: TTableType;
-    private readonly mTransaction: WebDbTransaction<TableType>;
+    private readonly mTransaction: WebDatabaseTransaction<TableType>;
 
     /**
      * Constructor.
@@ -14,10 +14,10 @@ export class WebDbTable<TTableType extends TableType> {
      * @param pType - Table type.
      * @param pDatabase - Database.
      */
-    public constructor(pType: TTableType, pTransaction: WebDbTransaction<TableType>) {
+    public constructor(pType: TTableType, pTransaction: WebDatabaseTransaction<TableType>) {
         this.mTableType = pType;
         this.mTransaction = pTransaction;
-        this.mTableLayout = new TableLayout();
+        this.mTableLayout = new WebDatabaseTableLayout();
     }
 
     /**

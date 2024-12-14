@@ -198,6 +198,8 @@ ansiHTML.reset()
 "use strict";
 
 
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 var __decorate = this && this.__decorate || function (decorators, target, key, desc) {
   var c = arguments.length,
     r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
@@ -214,14 +216,38 @@ Object.defineProperty(exports, "__esModule", ({
 const web_db_identity_decorator_1 = __webpack_require__(/*! ../../source/indexed_db/table/web-db-identity.decorator */ "./source/indexed_db/table/web-db-identity.decorator.ts");
 const web_db_index_decorator_1 = __webpack_require__(/*! ../../source/indexed_db/table/web-db-index.decorator */ "./source/indexed_db/table/web-db-index.decorator.ts");
 const web_db_1 = __webpack_require__(/*! ../../source/indexed_db/web-db */ "./source/indexed_db/web-db.ts");
-class TestTable {}
+class TestTable {
+  whatMyId() {
+    return this.id;
+  }
+}
 __decorate([(0, web_db_identity_decorator_1.WebDbIdentity)(true), __metadata("design:type", Number)], TestTable.prototype, "id", void 0);
 __decorate([(0, web_db_index_decorator_1.WebDbIndex)(true), __metadata("design:type", String)], TestTable.prototype, "name", void 0);
 __decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type", Number)], TestTable.prototype, "price", void 0);
 __decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type", Array)], TestTable.prototype, "types", void 0);
 (() => {
   const lDatabase = new web_db_1.WebDb('MainDB', [TestTable]);
-  lDatabase.transaction([TestTable], () => {});
+  lDatabase.transaction([TestTable], 'readwrite', /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator(function* (pTransaction) {
+      const lTestTable = pTransaction.table(TestTable);
+      // Create random data.
+      const lData = new TestTable();
+      lData.name = Math.random().toString(16);
+      lData.price = Math.random();
+      lData.types = [1, 2, 3];
+      lData.notIndexed = Math.random().toString(16);
+      yield lTestTable.put(lData);
+      console.log(yield lTestTable.getAll());
+      console.log(yield lTestTable.count());
+      yield lTestTable.delete(lData);
+      console.log(yield lTestTable.count());
+      yield lTestTable.clear();
+      console.log(yield lTestTable.count());
+    });
+    return function (_x) {
+      return _ref.apply(this, arguments);
+    };
+  }());
 })();
 
 /***/ }),
@@ -465,15 +491,19 @@ exports.WebDbIndex = WebDbIndex;
 /*!*******************************************!*\
   !*** ./source/indexed_db/web-db-table.ts ***!
   \*******************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.WebDbTable = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const table_layout_1 = __webpack_require__(/*! ./table/table-layout */ "./source/indexed_db/table/table-layout.ts");
 class WebDbTable {
   /**
    * Constructor.
@@ -484,6 +514,170 @@ class WebDbTable {
   constructor(pType, pTransaction) {
     this.mTableType = pType;
     this.mTransaction = pTransaction;
+    this.mTableLayout = new table_layout_1.TableLayout();
+  }
+  /**
+   * Clear table data.
+   */
+  clear() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Get table connection.
+      const lTable = _this.mTransaction.transaction.objectStore(_this.mTableType.name);
+      // Clear data data.
+      const lRequest = lTable.clear();
+      // Wait for completion.
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error clearing table data.` + lTarget.error, _this));
+        });
+        lRequest.addEventListener('success', () => {
+          pResolve();
+        });
+      });
+    })();
+  }
+  /**
+   * Get row count of table.
+   */
+  count() {
+    var _this2 = this;
+    return _asyncToGenerator(function* () {
+      // Get table connection.
+      const lTable = _this2.mTransaction.transaction.objectStore(_this2.mTableType.name);
+      // Clear data data.
+      const lRequest = lTable.count();
+      // Wait for completion.
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error counting table rows.` + lTarget.error, _this2));
+        });
+        // Resolve on success.
+        lRequest.addEventListener('success', pEvent => {
+          // Read event target like a shithead.
+          const lTarget = pEvent.target;
+          pResolve(lTarget.result);
+        });
+      });
+    })();
+  }
+  /**
+   * Delete data.
+   *
+   * @param pData - Data. Must be an instance of the table type.
+   */
+  delete(pData) {
+    var _this3 = this;
+    return _asyncToGenerator(function* () {
+      // Validate data type.
+      if (!(pData instanceof _this3.mTableType)) {
+        throw new core_1.Exception(`Invalid data type.`, _this3);
+      }
+      // Get identity property.
+      const lTableLayout = _this3.mTableLayout.configOf(_this3.mTableType);
+      if (!lTableLayout.identity) {
+        throw new core_1.Exception(`Can't delete data for tables without an identity.`, _this3);
+      }
+      // Read identity value from data.
+      const lIdentityProperty = lTableLayout.identity.key;
+      const lIdentityValue = pData[lIdentityProperty];
+      // Get table connection.
+      const lTable = _this3.mTransaction.transaction.objectStore(_this3.mTableType.name);
+      // Delete data.
+      const lRequest = lTable.delete(lIdentityValue);
+      // Wait for completion.
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error deleting data.` + lTarget.error, _this3));
+        });
+        // Resolve on success.
+        lRequest.addEventListener('success', () => {
+          pResolve();
+        });
+      });
+    })();
+  }
+  /**
+   * Get all table data. Can be limited by count.
+   */
+  getAll(pCount) {
+    var _this4 = this;
+    return _asyncToGenerator(function* () {
+      // Get table connection.
+      const lTable = _this4.mTransaction.transaction.objectStore(_this4.mTableType.name);
+      // Clear data data.
+      const lRequest = lTable.getAll(null, pCount);
+      // Wait for completion.
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error fetching table.` + lTarget.error, _this4));
+        });
+        // Resolve on success.
+        lRequest.addEventListener('success', pEvent => {
+          // Read event target like a shithead.
+          const lTarget = pEvent.target;
+          // Convert each item into type.
+          const lResult = lTarget.result.map(pSourceObject => {
+            const lTargetObject = new _this4.mTableType();
+            for (const lKey of Object.keys(pSourceObject)) {
+              lTargetObject[lKey] = pSourceObject[lKey];
+            }
+            return lTargetObject;
+          });
+          // Resolve converted data.
+          pResolve(lResult);
+        });
+      });
+    })();
+  }
+  /**
+   * Put data.
+   *
+   * @param pData - Data. Must be an instance of the table type.
+   */
+  put(pData) {
+    var _this5 = this;
+    return _asyncToGenerator(function* () {
+      // Validate data type.
+      if (!(pData instanceof _this5.mTableType)) {
+        throw new core_1.Exception(`Invalid data type.`, _this5);
+      }
+      // Get table connection.
+      const lTable = _this5.mTransaction.transaction.objectStore(_this5.mTableType.name);
+      // Put data.
+      const lRequest = lTable.put(pData);
+      // Wait for completion.
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error put data.` + lTarget.error, _this5));
+        });
+        // Resolve on success.
+        lRequest.addEventListener('success', pEvent => {
+          // Get table layout.
+          const lTableLayout = _this5.mTableLayout.configOf(_this5.mTableType);
+          if (!lTableLayout.identity) {
+            pResolve();
+            return;
+          }
+          // Read event target like a shithead.
+          const lTarget = pEvent.target;
+          // Update object with the new identity when any identity is specified.
+          const lIdentityProperty = lTableLayout.identity.key;
+          pData[lIdentityProperty] = lTarget.result;
+          pResolve();
+        });
+      });
+    })();
   }
 }
 exports.WebDbTable = WebDbTable;
@@ -508,11 +702,57 @@ exports.WebDbTransaction = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const web_db_table_1 = __webpack_require__(/*! ./web-db-table */ "./source/indexed_db/web-db-table.ts");
 class WebDbTransaction {
-  constructor(pDatabase, pTables, pMode = 'readwrite') {
+  /**
+   * Underlying transaction.
+   */
+  get transaction() {
+    if (!this.mState) {
+      throw new core_1.Exception(`Transaction is closed. Transactions can't be used with asynchronous calls.`, this);
+    }
+    return this.mState;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDatabase - Database-
+   * @param pTables - Tables of transaction.
+   * @param pMode - Transaction mode.
+   */
+  constructor(pDatabase, pTables, pMode) {
     this.mDatabase = pDatabase;
     this.mTableTypes = new Set(pTables);
     this.mMode = pMode;
-    this.mState = 'open';
+    this.mState = null;
+  }
+  /**
+   * Force commit transaction.
+   */
+  commit() {
+    if (!this.mState) {
+      return;
+    }
+    this.mState.commit();
+  }
+  /**
+   * Open the transaction.
+   */
+  open() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      if (_this.mState) {
+        return;
+      }
+      const lDatabaseConnection = yield _this.mDatabase.open();
+      // Convert types into names.
+      const lTableNames = Array.from(_this.mTableTypes).map(pTableType => {
+        return pTableType.name;
+      });
+      _this.mState = lDatabaseConnection.transaction(lTableNames, _this.mMode);
+      _this.mState.addEventListener('complete', () => {
+        // Clear state on complete.
+        _this.mState = null;
+      });
+    })();
   }
   /**
    * Get table of database.
@@ -529,10 +769,6 @@ class WebDbTransaction {
     // Create table object with attached opened db.
     return new web_db_table_1.WebDbTable(pType, this);
   }
-  open() {
-    return _asyncToGenerator(function* () {})();
-  }
-  commit() {}
 }
 exports.WebDbTransaction = WebDbTransaction;
 
@@ -611,6 +847,10 @@ class WebDb {
   open() {
     var _this2 = this;
     return _asyncToGenerator(function* () {
+      // Dont open another connection when one is open.
+      if (_this2.mDatabaseConnection) {
+        return _this2.mDatabaseConnection;
+      }
       // Open db with current version. Read all object stores and all indices and compare.
       const lDatabaseUpdate = yield new Promise((pResolve, pReject) => {
         const lDatabaseUpdate = {
@@ -822,7 +1062,7 @@ class WebDb {
         lOpenRequest.addEventListener('success', pEvent => {
           // Save and resolve
           _this2.mDatabaseConnection = pEvent.target.result;
-          pResolve();
+          pResolve(_this2.mDatabaseConnection);
         });
       });
     })();
@@ -833,7 +1073,7 @@ class WebDb {
    * @param pTables - Tabes for this transaction.
    * @param pAction - Action withing this transaction.
    */
-  transaction(pTables, pAction) {
+  transaction(pTables, pMode, pAction) {
     var _this3 = this;
     return _asyncToGenerator(function* () {
       // Tables should exists.
@@ -843,9 +1083,11 @@ class WebDb {
         }
       }
       // Create and open transaction.
-      const lTransaction = new web_db_transaction_1.WebDbTransaction(_this3, pTables);
+      const lTransaction = new web_db_transaction_1.WebDbTransaction(_this3, pTables, pMode);
       yield lTransaction.open();
-      pAction(lTransaction);
+      // Call action within the transaction.
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      yield pAction(lTransaction);
       // Commit transaction.
       lTransaction.commit();
     })();
@@ -5720,7 +5962,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("87562c5b4b89be26b0f0")
+/******/ 		__webpack_require__.h = () => ("2e9d19b67c380ab36fff")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

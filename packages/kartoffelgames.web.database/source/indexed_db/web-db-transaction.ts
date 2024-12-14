@@ -5,15 +5,66 @@ import { WebDbTable } from './web-db-table';
 
 export class WebDbTransaction<TTables extends TableType> {
     private readonly mDatabase: WebDb;
-    private mMode: TransactionMode;
-    private mState: TransactionState;
+    private readonly mMode: WebDbTransactionMode;
+    private mState: IDBTransaction | null;
     private readonly mTableTypes: Set<TTables>;
 
-    public constructor(pDatabase: WebDb, pTables: Array<TTables>, pMode: TransactionMode = 'readwrite') {
+    /**
+     * Underlying transaction.
+     */
+    public get transaction(): IDBTransaction {
+        if (!this.mState) {
+            throw new Exception(`Transaction is closed. Transactions can't be used with asynchronous calls.`, this);
+        }
+
+        return this.mState;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pDatabase - Database-
+     * @param pTables - Tables of transaction.
+     * @param pMode - Transaction mode.
+     */
+    public constructor(pDatabase: WebDb, pTables: Array<TTables>, pMode: WebDbTransactionMode) {
         this.mDatabase = pDatabase;
         this.mTableTypes = new Set<TTables>(pTables);
         this.mMode = pMode;
-        this.mState = 'open';
+        this.mState = null;
+    }
+
+    /**
+     * Force commit transaction.
+     */
+    public commit(): void {
+        if (!this.mState) {
+            return;
+        }
+
+        this.mState.commit();
+    }
+
+    /**
+     * Open the transaction.
+     */
+    public async open(): Promise<void> {
+        if (this.mState) {
+            return;
+        }
+
+        const lDatabaseConnection: IDBDatabase = await this.mDatabase.open();
+
+        // Convert types into names.
+        const lTableNames: Array<string> = Array.from(this.mTableTypes).map((pTableType: TTables) => {
+            return pTableType.name;
+        });
+
+        this.mState = lDatabaseConnection.transaction(lTableNames, this.mMode);
+        this.mState.addEventListener('complete', () => {
+            // Clear state on complete.
+            this.mState = null;
+        });
     }
 
     /**
@@ -33,14 +84,6 @@ export class WebDbTransaction<TTables extends TableType> {
         return new WebDbTable<T>(pType, this);
     }
 
-    public async open(): Promise<void> {
-
-    }
-
-    public commit(): void {
-
-    }
 }
 
-type TransactionState = 'open' | 'closed' | 'commited';
-type TransactionMode = 'read' | 'write' | 'readwrite';
+export type WebDbTransactionMode = 'readwrite' | 'readonly';

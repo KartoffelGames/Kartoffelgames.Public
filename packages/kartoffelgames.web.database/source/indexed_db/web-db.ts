@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TableLayout, TableLayoutConfig, TableLayoutConfigIndex, TableType } from './table/table-layout';
-import { WebDbTransaction } from './web-db-transaction';
+import { WebDbTransaction, WebDbTransactionMode } from './web-db-transaction';
 
 export class WebDb {
     private mDatabaseConnection: IDBDatabase | null;
@@ -47,7 +47,7 @@ export class WebDb {
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
             lDeleteRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = (<IDBOpenDBRequest>pEvent.target);
+                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
 
                 pReject(new Exception('Error deleting database. ' + lTarget.error, this));
             });
@@ -64,10 +64,10 @@ export class WebDb {
      * Open database connection.
      * Resolve once the connection is set.
      */
-    public async open(): Promise<void> {
+    public async open(): Promise<IDBDatabase> {
         // Dont open another connection when one is open.
         if (this.mDatabaseConnection) {
-            return;
+            return this.mDatabaseConnection;
         }
 
         // Open db with current version. Read all object stores and all indices and compare.
@@ -91,7 +91,7 @@ export class WebDb {
                 pReject(new Exception(`Database locked from another tab. Unable to update from "${pEvent.oldVersion}" to "${pEvent.newVersion}"`, this));
             });
             lOpenRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = (<IDBOpenDBRequest>pEvent.target);
+                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
                 pReject(new Exception('Error opening database. ' + lTarget.error, this));
             });
 
@@ -243,10 +243,10 @@ export class WebDb {
 
         // Open database request.
         const lOpenRequest: IDBOpenDBRequest = window.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
-        return new Promise<void>((pResolve, pReject) => {
+        return new Promise<IDBDatabase>((pResolve, pReject) => {
             // Init tables on upgradeneeded.
             lOpenRequest.addEventListener('upgradeneeded', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = (<IDBOpenDBRequest>pEvent.target);
+                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
                 const lDatabaseConnection: IDBDatabase = lTarget.result;
                 const lDatabaseTransaction: IDBTransaction = lTarget.transaction!;
 
@@ -312,7 +312,7 @@ export class WebDb {
 
             // Reject on error.
             lOpenRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = (<IDBOpenDBRequest>pEvent.target);
+                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
 
                 pReject(new Exception('Error opening database. ' + lTarget.error, this));
             });
@@ -321,7 +321,7 @@ export class WebDb {
             lOpenRequest.addEventListener('success', (pEvent) => {
                 // Save and resolve
                 this.mDatabaseConnection = (<IDBOpenDBRequest>pEvent.target).result;
-                pResolve();
+                pResolve(this.mDatabaseConnection);
             });
         });
 
@@ -333,7 +333,7 @@ export class WebDb {
      * @param pTables - Tabes for this transaction.
      * @param pAction - Action withing this transaction.
      */
-    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pAction: (pTransaction: WebDbTransaction<TTables>) => void): Promise<void> {
+    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDbTransaction<TTables>) => void): Promise<void> {
         // Tables should exists.
         for (const lTableType of pTables) {
             if (!this.mTableTypes.has(lTableType.name)) {
@@ -342,10 +342,12 @@ export class WebDb {
         }
 
         // Create and open transaction.
-        const lTransaction: WebDbTransaction<TTables> = new WebDbTransaction(this, pTables);
+        const lTransaction: WebDbTransaction<TTables> = new WebDbTransaction(this, pTables, pMode);
         await lTransaction.open();
 
-        pAction(lTransaction);
+        // Call action within the transaction.
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await pAction(lTransaction);
 
         // Commit transaction.
         lTransaction.commit();

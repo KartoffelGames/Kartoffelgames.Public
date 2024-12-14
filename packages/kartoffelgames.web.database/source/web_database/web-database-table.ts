@@ -1,6 +1,8 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { WebDatabaseTableLayout, TableLayoutConfig, TableType } from './layout/web-database-table-layout';
+import { TableLayoutConfig, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout';
+import { WebDatabaseQuery } from './query/web-database-query';
+import { WebDatabaseQueryAction } from './query/web-database-query-action';
 import { WebDatabaseTransaction } from './web-database-transaction';
 
 export class WebDatabaseTable<TTableType extends TableType> {
@@ -199,5 +201,16 @@ export class WebDatabaseTable<TTableType extends TableType> {
                 pResolve();
             });
         });
+    }
+
+    /**
+     * Create a new table query.
+     * 
+     * @param pIndexOrPropertyName - A index or a property name.
+     * 
+     * @returns a new chainable table query.
+     */
+    public where(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
+        return new WebDatabaseQuery<TTableType>(this).and(pIndexOrPropertyName);
     }
 }

@@ -11,6 +11,20 @@ export class WebDatabaseTable<TTableType extends TableType> {
     private readonly mTransaction: WebDatabaseTransaction<TableType>;
 
     /**
+     * Get table type.
+     */
+    public get tableType(): TTableType {
+        return this.mTableType;
+    }
+
+    /**
+     * Get transaction.
+     */
+    public get transaction(): WebDatabaseTransaction<TableType> {
+        return this.mTransaction;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pType - Table type.

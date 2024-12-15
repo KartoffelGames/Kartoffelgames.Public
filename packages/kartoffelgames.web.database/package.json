@@ -1,0 +1,51 @@
+{
+    "name": "@kartoffelgames/web.database",
+    "version": "0.0.0",
+    "description": "Kartoffelgames.Web.Database",
+    "author": {
+        "name": "KartoffelGames"
+    },
+    "files": [
+        "library/source/**/*"
+    ],
+    "main": "library/source/index.js",
+    "types": "library/source/index.d.ts",
+    "devDependencies": {
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1"
+    },
+    "dependencies": {
+        "@kartoffelgames/core": "^0.1.0",
+        "@kartoffelgames/core.dependency-injection": "^0.1.0"
+    },
+    "scripts": {
+        "build": "kg build Kartoffelgames.Web.Database && kg page Kartoffelgames.Web.Database --build-only",
+        "test": "kg test Kartoffelgames.Web.Database",
+        "page": "kg page Kartoffelgames.Web.Database --build-only"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/KartoffelGames/Kartoffelgames.Public.git",
+        "directory": "packages/kartoffelgames.web"
+    },
+    "bugs": {
+        "url": "https://github.com/KartoffelGames/Kartoffelgames.Public/issues"
+    },
+    "homepage": "https://github.com/KartoffelGames/Kartoffelgames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Web.Database",
+        "root": false,
+        "config": {
+            "package-blueprint": "kg-main",
+            "build-configuration": {
+                "pack": false,
+                "target": "node",
+                "scope": "main"
+            },
+            "page": true,
+            "tests": [
+                "unit"
+            ]
+        }
+    }
+}

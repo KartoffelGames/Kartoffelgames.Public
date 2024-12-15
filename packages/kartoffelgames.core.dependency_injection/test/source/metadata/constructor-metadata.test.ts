@@ -84,6 +84,24 @@ describe('ConstructorMetadata', () => {
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
         });
+
+        it('-- Get inside decorator', () => {
+            // Setup. Create decorator that reads metadata inside decorator.
+            let lInnerConstructorMetadata: ConstructorMetadata | null = null;
+            const lInnerDecorator = (pConstructor: InjectionConstructor): any => {
+                lInnerConstructorMetadata = Metadata.get(<any>pConstructor.prototype.constructor);
+            };
+
+            // Process.
+            @lInnerDecorator
+            class Test { }
+
+            // Process. Read outer metadata.
+            const lOuterConstructorMetadata: ConstructorMetadata = Metadata.get(Test);
+
+            // Evaluation.
+            expect(lInnerConstructorMetadata).to.equal(lOuterConstructorMetadata);
+        });
     });
 
     describe('Method: getInheritedMetadata', () => {

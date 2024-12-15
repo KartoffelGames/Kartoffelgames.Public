@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/web.database",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Kartoffelgames.Web.Database",
     "author": {
         "name": "KartoffelGames"
@@ -15,8 +15,8 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core": "^0.2.0",
-        "@kartoffelgames/core.dependency-injection": "^0.2.0"
+        "@kartoffelgames/core": "^0.2.1",
+        "@kartoffelgames/core.dependency-injection": "^0.2.1"
     },
     "scripts": {
         "build": "kg build Kartoffelgames.Web.Database && kg page Kartoffelgames.Web.Database --build-only",

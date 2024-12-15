@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/web.interaction-zone",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "KartoffelGames.Web.Interaction_Zone",
     "author": {
         "name": "KartoffelGames"
@@ -15,7 +15,7 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core": "^0.2.0"
+        "@kartoffelgames/core": "^0.2.1"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/web.interaction-zone && kg page @kartoffelgames/web.interaction-zone --build-only",

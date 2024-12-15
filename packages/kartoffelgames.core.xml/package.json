@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/core.xml",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "KartoffelGames.Core.Xml",
     "author": {
         "name": "KartoffelGames"
@@ -15,8 +15,8 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core": "^0.2.0",
-        "@kartoffelgames/core.parser": "^0.2.0"
+        "@kartoffelgames/core": "^0.2.1",
+        "@kartoffelgames/core.parser": "^0.2.1"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/core.xml && kg page @kartoffelgames/core.xml --build-only",

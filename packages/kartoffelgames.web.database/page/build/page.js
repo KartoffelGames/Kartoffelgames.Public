@@ -86,7 +86,7 @@ __decorate([(0, web_database_index_decorator_1.WebDatabaseIndex)(true), __metada
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDatabaseIdentity = void 0;
+exports.WebDatabaseIdentity = WebDatabaseIdentity;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const core_dependency_injection_1 = __webpack_require__(/*! @kartoffelgames/core.dependency-injection */ "../kartoffelgames.core.dependency_injection/library/source/index.js");
 const web_database_table_layout_1 = __webpack_require__(/*! ./web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
@@ -110,7 +110,6 @@ function WebDatabaseIdentity(pAutoIncrement) {
     lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);
   };
 }
-exports.WebDatabaseIdentity = WebDatabaseIdentity;
 
 /***/ }),
 
@@ -125,7 +124,7 @@ exports.WebDatabaseIdentity = WebDatabaseIdentity;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDatabaseIndex = void 0;
+exports.WebDatabaseIndex = WebDatabaseIndex;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const web_database_table_layout_1 = __webpack_require__(/*! ./web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
 /**
@@ -149,7 +148,6 @@ function WebDatabaseIndex(pUnique = false, pName) {
     lTableLayout.setTableIndex(lTableType, pPropertyKey, lIndexName, pUnique);
   };
 }
-exports.WebDatabaseIndex = WebDatabaseIndex;
 
 /***/ }),
 
@@ -1371,7 +1369,7 @@ exports.DecorationReplacementHistory = DecorationReplacementHistory;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AddMetadata = void 0;
+exports.AddMetadata = AddMetadata;
 const reflect_initializer_1 = __webpack_require__(/*! ../reflect/reflect-initializer */ "../kartoffelgames.core.dependency_injection/library/source/reflect/reflect-initializer.js");
 reflect_initializer_1.ReflectInitializer.initialize();
 /**
@@ -1386,7 +1384,6 @@ function AddMetadata(pMetadataKey, pMetadataValue) {
         Reflect.metadata(pMetadataKey, pMetadataValue)(pTarget, pProperty);
     };
 }
-exports.AddMetadata = AddMetadata;
 //# sourceMappingURL=add-metadata.decorator.js.map
 
 /***/ }),
@@ -1399,7 +1396,7 @@ exports.AddMetadata = AddMetadata;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.InjectableSingleton = void 0;
+exports.InjectableSingleton = InjectableSingleton;
 const inject_mode_1 = __webpack_require__(/*! ../enum/inject-mode */ "../kartoffelgames.core.dependency_injection/library/source/enum/inject-mode.js");
 const injection_1 = __webpack_require__(/*! ../injection/injection */ "../kartoffelgames.core.dependency_injection/library/source/injection/injection.js");
 const reflect_initializer_1 = __webpack_require__(/*! ../reflect/reflect-initializer */ "../kartoffelgames.core.dependency_injection/library/source/reflect/reflect-initializer.js");
@@ -1413,7 +1410,6 @@ reflect_initializer_1.ReflectInitializer.initialize();
 function InjectableSingleton(pConstructor) {
     injection_1.Injection.registerInjectable(pConstructor, inject_mode_1.InjectMode.Singleton);
 }
-exports.InjectableSingleton = InjectableSingleton;
 //# sourceMappingURL=injectable-singleton.decorator.js.map
 
 /***/ }),
@@ -1426,7 +1422,7 @@ exports.InjectableSingleton = InjectableSingleton;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Injectable = void 0;
+exports.Injectable = Injectable;
 const inject_mode_1 = __webpack_require__(/*! ../enum/inject-mode */ "../kartoffelgames.core.dependency_injection/library/source/enum/inject-mode.js");
 const reflect_initializer_1 = __webpack_require__(/*! ../reflect/reflect-initializer */ "../kartoffelgames.core.dependency_injection/library/source/reflect/reflect-initializer.js");
 const injection_1 = __webpack_require__(/*! ../injection/injection */ "../kartoffelgames.core.dependency_injection/library/source/injection/injection.js");
@@ -1440,7 +1436,6 @@ reflect_initializer_1.ReflectInitializer.initialize();
 function Injectable(pConstructor) {
     injection_1.Injection.registerInjectable(pConstructor, inject_mode_1.InjectMode.Instanced);
 }
-exports.Injectable = Injectable;
 //# sourceMappingURL=injectable.decorator.js.map
 
 /***/ }),

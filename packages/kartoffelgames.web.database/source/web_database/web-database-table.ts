@@ -99,13 +99,8 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Invalid data type.`, this);
         }
 
-        // Get identity property.
+        // Get identity value from data.
         const lTableLayout: TableLayoutConfig = this.mTableLayout.configOf(this.mTableType);
-        if (!lTableLayout.identity) {
-            throw new Exception(`Can't delete data for tables without an identity.`, this);
-        }
-
-        // Read identity value from data.
         const lIdentityProperty: string = lTableLayout.identity.key;
         const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
@@ -200,10 +195,6 @@ export class WebDatabaseTable<TTableType extends TableType> {
             lRequest.addEventListener('success', (pEvent) => {
                 // Get table layout.
                 const lTableLayout: TableLayoutConfig = this.mTableLayout.configOf(this.mTableType);
-                if (!lTableLayout.identity) {
-                    pResolve();
-                    return;
-                }
 
                 // Read event target like a shithead.
                 const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;

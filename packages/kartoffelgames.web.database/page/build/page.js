@@ -213,36 +213,46 @@ var __metadata = this && this.__metadata || function (k, v) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const web_db_identity_decorator_1 = __webpack_require__(/*! ../../source/indexed_db/table/web-db-identity.decorator */ "./source/indexed_db/table/web-db-identity.decorator.ts");
-const web_db_index_decorator_1 = __webpack_require__(/*! ../../source/indexed_db/table/web-db-index.decorator */ "./source/indexed_db/table/web-db-index.decorator.ts");
-const web_db_1 = __webpack_require__(/*! ../../source/indexed_db/web-db */ "./source/indexed_db/web-db.ts");
-class TestTable {
+/* eslint-disable no-console */
+const web_database_identity_decorator_1 = __webpack_require__(/*! ../../source/web_database/layout/web-database-identity.decorator */ "./source/web_database/layout/web-database-identity.decorator.ts");
+const web_database_index_decorator_1 = __webpack_require__(/*! ../../source/web_database/layout/web-database-index.decorator */ "./source/web_database/layout/web-database-index.decorator.ts");
+const web_database_1 = __webpack_require__(/*! ../../source/web_database/web-database */ "./source/web_database/web-database.ts");
+class TestTableOne {
   whatMyId() {
     return this.id;
   }
 }
-__decorate([(0, web_db_identity_decorator_1.WebDbIdentity)(true), __metadata("design:type", Number)], TestTable.prototype, "id", void 0);
-__decorate([(0, web_db_index_decorator_1.WebDbIndex)(true), __metadata("design:type", String)], TestTable.prototype, "name", void 0);
-__decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type", Number)], TestTable.prototype, "price", void 0);
-__decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type", Array)], TestTable.prototype, "types", void 0);
+__decorate([(0, web_database_identity_decorator_1.WebDatabaseIdentity)(true), __metadata("design:type", Number)], TestTableOne.prototype, "id", void 0);
+__decorate([(0, web_database_index_decorator_1.WebDatabaseIndex)(true), __metadata("design:type", String)], TestTableOne.prototype, "name", void 0);
+__decorate([(0, web_database_index_decorator_1.WebDatabaseIndex)(), __metadata("design:type", Number)], TestTableOne.prototype, "price", void 0);
+__decorate([(0, web_database_index_decorator_1.WebDatabaseIndex)(), __metadata("design:type", Array)], TestTableOne.prototype, "types", void 0);
+class TestTableTwo {}
+__decorate([(0, web_database_index_decorator_1.WebDatabaseIndex)(true), __metadata("design:type", String)], TestTableTwo.prototype, "nameThing", void 0);
 (() => {
-  const lDatabase = new web_db_1.WebDb('MainDB', [TestTable]);
-  lDatabase.transaction([TestTable], 'readwrite', /*#__PURE__*/function () {
+  const lDatabase = new web_database_1.WebDatabase('MainDB', [TestTableOne, TestTableTwo]);
+  lDatabase.transaction([TestTableOne, TestTableTwo], 'readwrite', /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(function* (pTransaction) {
-      const lTestTable = pTransaction.table(TestTable);
+      const lTestTableOne = pTransaction.table(TestTableOne);
+      const lTestTableTwo = pTransaction.table(TestTableTwo);
+      yield lTestTableOne.clear();
+      yield lTestTableTwo.clear();
       // Create random data.
-      const lData = new TestTable();
-      lData.name = Math.random().toString(16);
-      lData.price = Math.random();
-      lData.types = [1, 2, 3];
-      lData.notIndexed = Math.random().toString(16);
-      yield lTestTable.put(lData);
-      console.log(yield lTestTable.getAll());
-      console.log(yield lTestTable.count());
-      yield lTestTable.delete(lData);
-      console.log(yield lTestTable.count());
-      yield lTestTable.clear();
-      console.log(yield lTestTable.count());
+      for (let lCounter = 0; lCounter < 100; lCounter++) {
+        const lData = new TestTableOne();
+        lData.name = Math.random().toString(16);
+        lData.price = Math.random();
+        lData.types = [1, 2, 3].slice(Math.floor(Math.random() * 4), Math.floor(Math.random() * 4));
+        lData.notIndexed = Math.random().toString(16);
+        yield lTestTableOne.put(lData);
+      }
+      console.log(yield lTestTableOne.count(), yield lTestTableOne.getAll());
+      console.log(yield lTestTableOne.where('types').is(2).and('price').between(0, 0.5).execute());
+      // Create random data.
+      for (let lCounter = 0; lCounter < 100; lCounter++) {
+        const lData = new TestTableTwo();
+        lData.nameThing = Math.random().toString(16);
+        yield lTestTableTwo.put(lData);
+      }
     });
     return function (_x) {
       return _ref.apply(this, arguments);
@@ -252,10 +262,10 @@ __decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type"
 
 /***/ }),
 
-/***/ "./source/indexed_db/table/table-layout.ts":
-/*!*************************************************!*\
-  !*** ./source/indexed_db/table/table-layout.ts ***!
-  \*************************************************/
+/***/ "./source/web_database/layout/web-database-identity.decorator.ts":
+/*!***********************************************************************!*\
+  !*** ./source/web_database/layout/web-database-identity.decorator.ts ***!
+  \***********************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -264,21 +274,101 @@ __decorate([(0, web_db_index_decorator_1.WebDbIndex)(), __metadata("design:type"
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.TableLayout = void 0;
+exports.WebDatabaseIdentity = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const core_dependency_injection_1 = __webpack_require__(/*! @kartoffelgames/core.dependency-injection */ "../kartoffelgames.core.dependency_injection/library/source/index.js");
+const web_database_table_layout_1 = __webpack_require__(/*! ./web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
+// Needed for type metadata.
+core_dependency_injection_1.Injector.Initialize();
+/**
+ * AtScript.
+ * Add identity to table type.
+ */
+function WebDatabaseIdentity(pAutoIncrement) {
+  return function (pTarget, pPropertyKey) {
+    // Usually Class Prototype. Globaly.
+    const lPrototype = pTarget;
+    const lTableType = lPrototype.constructor;
+    // Decorator can not be used on static propertys.
+    if (typeof pTarget === 'function') {
+      throw new core_1.Exception('Identity property can not be a static property.', WebDatabaseIdentity);
+    }
+    const lTableLayout = new web_database_table_layout_1.WebDatabaseTableLayout();
+    // Add table type identity to layout.
+    lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);
+  };
+}
+exports.WebDatabaseIdentity = WebDatabaseIdentity;
+
+/***/ }),
+
+/***/ "./source/web_database/layout/web-database-index.decorator.ts":
+/*!********************************************************************!*\
+  !*** ./source/web_database/layout/web-database-index.decorator.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WebDatabaseIndex = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const web_database_table_layout_1 = __webpack_require__(/*! ./web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
+/**
+ * AtScript.
+ * Add index to table type.
+ * Indices with the same names are grouped.
+ */
+function WebDatabaseIndex(pUnique = false, pName) {
+  return function (pTarget, pPropertyKey) {
+    // Usually Class Prototype. Globaly.
+    const lPrototype = pTarget;
+    const lTableType = lPrototype.constructor;
+    // Decorator can not be used on static propertys.
+    if (typeof pTarget === 'function') {
+      throw new core_1.Exception('Identity property can not be a static property.', WebDatabaseIndex);
+    }
+    const lTableLayout = new web_database_table_layout_1.WebDatabaseTableLayout();
+    // Default the index name to the property key.
+    const lIndexName = pName ?? pPropertyKey;
+    // Add table type index to layout.
+    lTableLayout.setTableIndex(lTableType, pPropertyKey, lIndexName, pUnique);
+  };
+}
+exports.WebDatabaseIndex = WebDatabaseIndex;
+
+/***/ }),
+
+/***/ "./source/web_database/layout/web-database-table-layout.ts":
+/*!*****************************************************************!*\
+  !*** ./source/web_database/layout/web-database-table-layout.ts ***!
+  \*****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WebDatabaseTableLayout = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const core_dependency_injection_1 = __webpack_require__(/*! @kartoffelgames/core.dependency-injection */ "../kartoffelgames.core.dependency_injection/library/source/index.js");
 /**
  * Singleton. Table layout and settings.
  */
-class TableLayout {
+class WebDatabaseTableLayout {
   /**
    * Constructor.
    */
   constructor() {
-    if (TableLayout.mInstance) {
-      return TableLayout.mInstance;
+    if (WebDatabaseTableLayout.mInstance) {
+      return WebDatabaseTableLayout.mInstance;
     }
-    TableLayout.mInstance = this;
+    WebDatabaseTableLayout.mInstance = this;
     // Init lists.
     this.mTableConfigs = new core_1.Dictionary();
   }
@@ -296,7 +386,8 @@ class TableLayout {
     }
     const lTableConfiguration = this.mTableConfigs.get(pType);
     // Validate idenitiy. Must happend after decoration so all metadata of the table has been loaded.
-    if (lTableConfiguration.identity) {
+    // Validate only when identity was user configurated.
+    if (lTableConfiguration.identity.configurated) {
       // Type must be string or number.
       const lPropertyType = core_dependency_injection_1.Metadata.get(pType).getProperty(lTableConfiguration.identity.key).type;
       if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
@@ -337,13 +428,14 @@ class TableLayout {
     this.initializeTableType(pType);
     // Read table config and restrict to one identity.
     const lTableConfig = this.mTableConfigs.get(pType);
-    if (lTableConfig.identity) {
+    if (lTableConfig.identity.configurated) {
       throw new core_1.Exception(`A table type can only have one identifier.`, this);
     }
     // Set table type identity.
     lTableConfig.identity = {
       key: pKey,
-      autoIncrement: pAutoIncrement
+      autoIncrement: pAutoIncrement,
+      configurated: true
     };
   }
   /**
@@ -399,19 +491,25 @@ class TableLayout {
     }
     // Add type reference.
     this.mTableConfigs.set(pType, {
+      // Set default identity key.
+      identity: {
+        key: '__ID__',
+        autoIncrement: true,
+        configurated: false
+      },
       indices: new core_1.Dictionary()
     });
   }
 }
-exports.TableLayout = TableLayout;
+exports.WebDatabaseTableLayout = WebDatabaseTableLayout;
 
 /***/ }),
 
-/***/ "./source/indexed_db/table/web-db-identity.decorator.ts":
-/*!**************************************************************!*\
-  !*** ./source/indexed_db/table/web-db-identity.decorator.ts ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ "./source/web_database/query/web-database-query-action.ts":
+/*!****************************************************************!*\
+  !*** ./source/web_database/query/web-database-query-action.ts ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
@@ -419,78 +517,88 @@ exports.TableLayout = TableLayout;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDbIdentity = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const core_dependency_injection_1 = __webpack_require__(/*! @kartoffelgames/core.dependency-injection */ "../kartoffelgames.core.dependency_injection/library/source/index.js");
-const table_layout_1 = __webpack_require__(/*! ./table-layout */ "./source/indexed_db/table/table-layout.ts");
-// Needed for type metadata.
-core_dependency_injection_1.Injector.Initialize();
-/**
- * AtScript.
- * Add identity to table type.
- */
-function WebDbIdentity(pAutoIncrement) {
-  return function (pTarget, pPropertyKey) {
-    // Usually Class Prototype. Globaly.
-    const lPrototype = pTarget;
-    const lTableType = lPrototype.constructor;
-    // Decorator can not be used on static propertys.
-    if (typeof pTarget === 'function') {
-      throw new core_1.Exception('Identity property can not be a static property.', WebDbIdentity);
-    }
-    const lTableLayout = new table_layout_1.TableLayout();
-    // Add table type identity to layout.
-    lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);
-  };
+exports.WebDatabaseQueryAction = void 0;
+class WebDatabaseQueryAction {
+  /**
+   * Constructor.
+   *
+   * @param pActionCallback - Callback to send back action of query.
+   * @param pQuery - Parent query.
+   */
+  constructor(pQuery, pActionCallback) {
+    this.mActionCallback = pActionCallback;
+    this.mDatabaseQuery = pQuery;
+  }
+  /**
+   * Request rows with the value between lower and upper value.
+   *
+   * @param pLowerValue - Lower value.
+   * @param pUpperValue - Upper value.
+   *
+   * @returns query.
+   */
+  between(pLowerValue, pUpperValue) {
+    // Create database range action.
+    const lAction = IDBKeyRange.bound(pLowerValue, pUpperValue, false, false);
+    // Send action to parent query.
+    this.mActionCallback(lAction);
+    // Return parent query to chain another.
+    return this.mDatabaseQuery;
+  }
+  /**
+   * Request rows with the value greather than {@link pValue}.
+   *
+   * @param pValue - Value.
+   *
+   * @returns query.
+   */
+  greaterThan(pValue) {
+    // Create database range action.
+    const lAction = IDBKeyRange.lowerBound(pValue, false);
+    // Send action to parent query.
+    this.mActionCallback(lAction);
+    // Return parent query to chain another.
+    return this.mDatabaseQuery;
+  }
+  /**
+   * Request rows with the exact value.
+   *
+   * @param pValue - Value.
+   *
+   * @returns query.
+   */
+  is(pValue) {
+    // Create database range action.
+    const lAction = IDBKeyRange.only(pValue);
+    // Send action to parent query.
+    this.mActionCallback(lAction);
+    // Return parent query to chain another.
+    return this.mDatabaseQuery;
+  }
+  /**
+   * Request rows with the value lower than {@link pValue}.
+   *
+   * @param pValue - Value.
+   *
+   * @returns query.
+   */
+  lowerThan(pValue) {
+    // Create database range action.
+    const lAction = IDBKeyRange.upperBound(pValue, false);
+    // Send action to parent query.
+    this.mActionCallback(lAction);
+    // Return parent query to chain another.
+    return this.mDatabaseQuery;
+  }
 }
-exports.WebDbIdentity = WebDbIdentity;
+exports.WebDatabaseQueryAction = WebDatabaseQueryAction;
 
 /***/ }),
 
-/***/ "./source/indexed_db/table/web-db-index.decorator.ts":
-/*!***********************************************************!*\
-  !*** ./source/indexed_db/table/web-db-index.decorator.ts ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WebDbIndex = void 0;
-const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const table_layout_1 = __webpack_require__(/*! ./table-layout */ "./source/indexed_db/table/table-layout.ts");
-/**
- * AtScript.
- * Add index to table type.
- * Indices with the same names are grouped.
- */
-function WebDbIndex(pUnique = false, pName) {
-  return function (pTarget, pPropertyKey) {
-    // Usually Class Prototype. Globaly.
-    const lPrototype = pTarget;
-    const lTableType = lPrototype.constructor;
-    // Decorator can not be used on static propertys.
-    if (typeof pTarget === 'function') {
-      throw new core_1.Exception('Identity property can not be a static property.', WebDbIndex);
-    }
-    const lTableLayout = new table_layout_1.TableLayout();
-    // Default the index name to the property key.
-    const lIndexName = pName ?? pPropertyKey;
-    // Add table type index to layout.
-    lTableLayout.setTableIndex(lTableType, pPropertyKey, lIndexName, pUnique);
-  };
-}
-exports.WebDbIndex = WebDbIndex;
-
-/***/ }),
-
-/***/ "./source/indexed_db/web-db-table.ts":
-/*!*******************************************!*\
-  !*** ./source/indexed_db/web-db-table.ts ***!
-  \*******************************************/
+/***/ "./source/web_database/query/web-database-query.ts":
+/*!*********************************************************!*\
+  !*** ./source/web_database/query/web-database-query.ts ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -501,10 +609,312 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDbTable = void 0;
+exports.WebDatabaseQuery = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const table_layout_1 = __webpack_require__(/*! ./table/table-layout */ "./source/indexed_db/table/table-layout.ts");
-class WebDbTable {
+const web_database_query_action_1 = __webpack_require__(/*! ./web-database-query-action */ "./source/web_database/query/web-database-query-action.ts");
+class WebDatabaseQuery {
+  /**
+   * Constructor.
+   *
+   * @param pTable - Table of query.
+   */
+  constructor(pTable) {
+    this.mTable = pTable;
+    this.mQueryList = new Array();
+  }
+  /**
+   * Chain database query with "AND".
+   *
+   * @param pIndexOrPropertyName - A index or a property name.
+   *
+   * @returns query action.
+   */
+  and(pIndexOrPropertyName) {
+    // Create query part.
+    const lPart = {
+      indexKey: pIndexOrPropertyName,
+      action: null,
+      link: 'AND'
+    };
+    // Add part to query list.
+    this.mQueryList.push(lPart);
+    // Create query action that sets the action on a chained call.
+    return new web_database_query_action_1.WebDatabaseQueryAction(this, pAction => {
+      lPart.action = pAction;
+    });
+  }
+  /**
+   * Execute query and get all values.
+   *
+   * @returns filtered query result.
+   */
+  execute() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Must have queries.
+      if (_this.mQueryList.length === 0) {
+        throw new core_1.Exception('No queries specified.', _this);
+      }
+      // Devide queries into "AND" blocks.
+      const lQueryBlockList = new Array();
+      // Add first block.
+      lQueryBlockList.push(new Array());
+      // Assign every query into a block.
+      for (const lQuery of _this.mQueryList) {
+        // Create new block on any or chain.
+        if (lQuery.link === 'OR') {
+          lQueryBlockList.push(new Array());
+        }
+        // Add query to latest block.
+        lQueryBlockList.at(-1).push(lQuery);
+      }
+      // Special solution for single query single block queries.
+      // Not neet to filter or merge.
+      if (lQueryBlockList.length === 1 && lQueryBlockList[0].length === 1) {
+        // Read and convert single block.
+        return _this.convertDataToTableType(yield _this.readQuery(lQueryBlockList[0][0]));
+      }
+      // Special solution for single block queries.
+      // No need to merge.
+      if (lQueryBlockList.length === 1) {
+        const lQueryResult = yield _this.readQueryBlock(lQueryBlockList[0]);
+        // Read and convert single block.
+        return _this.convertDataToTableType(lQueryResult.values());
+      }
+      // Read all query blocks.
+      const lQueryBlockResultList = new Set();
+      for (const lQueryBlock of lQueryBlockList) {
+        lQueryBlockResultList.add(yield _this.readQueryBlock(lQueryBlock));
+      }
+      // Find the greatest result set and use it as starting point.
+      // Greater performance when you only need to merge 1 entry in a set of 100 instead.
+      let lGreatestResultSet = null; // Will be set after the loop.
+      for (const lQueryBlockResult of lQueryBlockResultList) {
+        if (!lGreatestResultSet) {
+          lGreatestResultSet = lQueryBlockResult;
+          continue;
+        }
+        if (lGreatestResultSet.size < lQueryBlockResult.size) {
+          lGreatestResultSet = lQueryBlockResult;
+        }
+      }
+      // Remove the found set from iterator list.
+      lQueryBlockResultList.delete(lGreatestResultSet);
+      // Merge remaining block result into.
+      for (const lQueryBlockResult of lQueryBlockResultList) {
+        for (const lQueryResultItem of lQueryBlockResult) {
+          lGreatestResultSet.set(...lQueryResultItem);
+        }
+      }
+      // Convert merged block.
+      return _this.convertDataToTableType(lGreatestResultSet.values());
+    })();
+  }
+  /**
+   * Chain database query with "OR".
+   *
+   * @param pIndexOrPropertyName - A index or a property name.
+   *
+   * @returns query action.
+   */
+  or(pIndexOrPropertyName) {
+    // Create query part.
+    const lPart = {
+      indexKey: pIndexOrPropertyName,
+      action: null,
+      link: 'OR'
+    };
+    // Add part to query list.
+    this.mQueryList.push(lPart);
+    // Create query action that sets the action on a chained call.
+    return new web_database_query_action_1.WebDatabaseQueryAction(this, pAction => {
+      lPart.action = pAction;
+    });
+  }
+  /**
+   * Convert all data items into table type objects.
+   *
+   * @param pData - Data objects.
+   *
+   * @returns converted data list.
+   */
+  convertDataToTableType(pData) {
+    const lResultList = new Array();
+    // Convert each item into type.
+    for (const lSourceObject of pData) {
+      const lTargetObject = new this.mTable.tableType();
+      for (const lKey of Object.keys(lSourceObject)) {
+        lTargetObject[lKey] = lSourceObject[lKey];
+      }
+      lResultList.push(lTargetObject);
+    }
+    return lResultList;
+  }
+  /**
+   * Read data from table filtered by query.
+   * When query index does not exists, it uses a expensive cursor filter.
+   *
+   * @param pQuery - Query.
+   *
+   * @returns Filtered item list.
+   */
+  readQuery(pQuery) {
+    var _this2 = this;
+    return _asyncToGenerator(function* () {
+      // Query must have a action.
+      if (!pQuery.action) {
+        throw new core_1.Exception('Query has no assigned action.', _this2);
+      }
+      // Get table connection.
+      const lTableConnection = _this2.mTable.transaction.transaction.objectStore(_this2.mTable.tableType.name);
+      // Try to find index key.
+      const lIndexName = (() => {
+        const lIndexNameList = lTableConnection.indexNames;
+        for (let lIndexNameListIndex = 0; lIndexNameListIndex < lIndexNameList.length; lIndexNameListIndex++) {
+          const lIndexName = lIndexNameList[lIndexNameListIndex];
+          if (lIndexName === pQuery.indexKey) {
+            return lIndexName;
+          }
+        }
+        return null;
+      })();
+      // When index was found, use index.
+      if (lIndexName) {
+        const lIndex = lTableConnection.index(lIndexName);
+        // Execute read request with the set query action.
+        const lRequest = lIndex.getAll(pQuery.action);
+        return new Promise((pResolve, pReject) => {
+          // Reject on error.
+          lRequest.addEventListener('error', pEvent => {
+            const lTarget = pEvent.target;
+            pReject(new core_1.Exception(`Error fetching table.` + lTarget.error, _this2));
+          });
+          // Resolve on success.
+          lRequest.addEventListener('success', pEvent => {
+            // Read event target like a shithead.
+            const lTarget = pEvent.target;
+            pResolve(lTarget.result);
+          });
+        });
+      }
+      // When no index was found you fucked up.
+      // Read anything and filter.
+      const lCursorRequest = lTableConnection.openCursor();
+      const lFiteredList = new Array();
+      return new Promise((pResolve, pReject) => {
+        // Reject on error.
+        lCursorRequest.addEventListener('error', pEvent => {
+          const lTarget = pEvent.target;
+          pReject(new core_1.Exception(`Error fetching table.` + lTarget.error, _this2));
+        });
+        // Resolve on success.
+        lCursorRequest.addEventListener('success', pEvent => {
+          // Read event target like a shithead and resolve when cursor is eof.
+          const lTarget = pEvent.target;
+          const lCursorResult = lTarget.result;
+          if (!lCursorResult) {
+            pResolve(lFiteredList);
+            return;
+          }
+          // Get value of filtered propery.
+          const lFiltedValue = lCursorResult.value[pQuery.indexKey];
+          // Append row when value is included in assigned action.
+          if (pQuery.action.includes(lFiltedValue)) {
+            lFiteredList.push(lCursorResult.value);
+          }
+          // Continue next value.
+          lCursorResult.continue();
+        });
+      });
+    })();
+  }
+  /**
+   * Read the result of a query block.
+   *
+   * @param pBlock - Query block. Queries that are linked with an "AND"-Connection.
+   *
+   * return filtered query result.
+   */
+  readQueryBlock(pBlock) {
+    var _this3 = this;
+    return _asyncToGenerator(function* () {
+      const lTableConnection = _this3.mTable.transaction.transaction.objectStore(_this3.mTable.tableType.name);
+      // Read all queries in parallel.
+      const lQueryResultRequestList = new Array();
+      for (const lQuery of pBlock) {
+        lQueryResultRequestList.push(_this3.readQuery(lQuery));
+      }
+      // Wait for all queries to finish.
+      const lQueryResultList = yield Promise.all(lQueryResultRequestList);
+      // Get key of identity, identity is allways set and a single key.
+      const lIdentityKey = lTableConnection.keyPath;
+      // Conver all result list into an identity map.
+      const lIdentityMapList = new Array();
+      for (const lQueryResult of lQueryResultList) {
+        // Map each item with its identity.
+        const lItemMap = new core_1.Dictionary();
+        for (const lItem of lQueryResult) {
+          lItemMap.set(lItem[lIdentityKey], lItem);
+        }
+        lIdentityMapList.push(lItemMap);
+      }
+      // Find the smallest identity set.
+      let lSmallestItemSet = lIdentityMapList[0];
+      for (const lIdentityMap of lIdentityMapList) {
+        if (lIdentityMap.size < lSmallestItemSet.size) {
+          lSmallestItemSet = lIdentityMap;
+        }
+      }
+      // Remove smallest identity set from map list.
+      lIdentityMapList.splice(lIdentityMapList.indexOf(lSmallestItemSet), 1);
+      // Filter the smallest set for each remaining query.
+      for (const lFilteringQuery of lIdentityMapList) {
+        // Remove item from result list, when it does not exists in any other query result.
+        for (const lResultItemKey of lSmallestItemSet.keys()) {
+          if (!lFilteringQuery.has(lResultItemKey)) {
+            lSmallestItemSet.delete(lResultItemKey);
+          }
+        }
+      }
+      return lSmallestItemSet;
+    })();
+  }
+}
+exports.WebDatabaseQuery = WebDatabaseQuery;
+
+/***/ }),
+
+/***/ "./source/web_database/web-database-table.ts":
+/*!***************************************************!*\
+  !*** ./source/web_database/web-database-table.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WebDatabaseTable = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const web_database_table_layout_1 = __webpack_require__(/*! ./layout/web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
+const web_database_query_1 = __webpack_require__(/*! ./query/web-database-query */ "./source/web_database/query/web-database-query.ts");
+class WebDatabaseTable {
+  /**
+   * Get table type.
+   */
+  get tableType() {
+    return this.mTableType;
+  }
+  /**
+   * Get transaction.
+   */
+  get transaction() {
+    return this.mTransaction;
+  }
   /**
    * Constructor.
    *
@@ -514,7 +924,7 @@ class WebDbTable {
   constructor(pType, pTransaction) {
     this.mTableType = pType;
     this.mTransaction = pTransaction;
-    this.mTableLayout = new table_layout_1.TableLayout();
+    this.mTableLayout = new web_database_table_layout_1.WebDatabaseTableLayout();
   }
   /**
    * Clear table data.
@@ -577,12 +987,8 @@ class WebDbTable {
       if (!(pData instanceof _this3.mTableType)) {
         throw new core_1.Exception(`Invalid data type.`, _this3);
       }
-      // Get identity property.
+      // Get identity value from data.
       const lTableLayout = _this3.mTableLayout.configOf(_this3.mTableType);
-      if (!lTableLayout.identity) {
-        throw new core_1.Exception(`Can't delete data for tables without an identity.`, _this3);
-      }
-      // Read identity value from data.
       const lIdentityProperty = lTableLayout.identity.key;
       const lIdentityValue = pData[lIdentityProperty];
       // Get table connection.
@@ -665,10 +1071,6 @@ class WebDbTable {
         lRequest.addEventListener('success', pEvent => {
           // Get table layout.
           const lTableLayout = _this5.mTableLayout.configOf(_this5.mTableType);
-          if (!lTableLayout.identity) {
-            pResolve();
-            return;
-          }
           // Read event target like a shithead.
           const lTarget = pEvent.target;
           // Update object with the new identity when any identity is specified.
@@ -679,15 +1081,25 @@ class WebDbTable {
       });
     })();
   }
+  /**
+   * Create a new table query.
+   *
+   * @param pIndexOrPropertyName - A index or a property name.
+   *
+   * @returns a new chainable table query.
+   */
+  where(pIndexOrPropertyName) {
+    return new web_database_query_1.WebDatabaseQuery(this).and(pIndexOrPropertyName);
+  }
 }
-exports.WebDbTable = WebDbTable;
+exports.WebDatabaseTable = WebDatabaseTable;
 
 /***/ }),
 
-/***/ "./source/indexed_db/web-db-transaction.ts":
-/*!*************************************************!*\
-  !*** ./source/indexed_db/web-db-transaction.ts ***!
-  \*************************************************/
+/***/ "./source/web_database/web-database-transaction.ts":
+/*!*********************************************************!*\
+  !*** ./source/web_database/web-database-transaction.ts ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -698,10 +1110,10 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDbTransaction = void 0;
+exports.WebDatabaseTransaction = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const web_db_table_1 = __webpack_require__(/*! ./web-db-table */ "./source/indexed_db/web-db-table.ts");
-class WebDbTransaction {
+const web_database_table_1 = __webpack_require__(/*! ./web-database-table */ "./source/web_database/web-database-table.ts");
+class WebDatabaseTransaction {
   /**
    * Underlying transaction.
    */
@@ -767,17 +1179,17 @@ class WebDbTransaction {
       throw new core_1.Exception('Table type not set for database.', this);
     }
     // Create table object with attached opened db.
-    return new web_db_table_1.WebDbTable(pType, this);
+    return new web_database_table_1.WebDatabaseTable(pType, this);
   }
 }
-exports.WebDbTransaction = WebDbTransaction;
+exports.WebDatabaseTransaction = WebDatabaseTransaction;
 
 /***/ }),
 
-/***/ "./source/indexed_db/web-db.ts":
-/*!*************************************!*\
-  !*** ./source/indexed_db/web-db.ts ***!
-  \*************************************/
+/***/ "./source/web_database/web-database.ts":
+/*!*********************************************!*\
+  !*** ./source/web_database/web-database.ts ***!
+  \*********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -788,11 +1200,14 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.WebDb = void 0;
+exports.WebDatabase = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const table_layout_1 = __webpack_require__(/*! ./table/table-layout */ "./source/indexed_db/table/table-layout.ts");
-const web_db_transaction_1 = __webpack_require__(/*! ./web-db-transaction */ "./source/indexed_db/web-db-transaction.ts");
-class WebDb {
+const web_database_table_layout_1 = __webpack_require__(/*! ./layout/web-database-table-layout */ "./source/web_database/layout/web-database-table-layout.ts");
+const web_database_transaction_1 = __webpack_require__(/*! ./web-database-transaction */ "./source/web_database/web-database-transaction.ts");
+class WebDatabase {
+  static {
+    this.ANONYMOUS_IDENTITIY_KEY = '__id__';
+  }
   /**
    * Constructor.
    *
@@ -802,7 +1217,7 @@ class WebDb {
   constructor(pName, pTables) {
     this.mDatabaseName = pName;
     this.mDatabaseConnection = null;
-    this.mTableLayouts = new table_layout_1.TableLayout();
+    this.mTableLayouts = new web_database_table_layout_1.WebDatabaseTableLayout();
     this.mTableTypes = new core_1.Dictionary();
     for (const lTableType of pTables) {
       this.mTableTypes.set(lTableType.name, lTableType);
@@ -900,8 +1315,8 @@ class WebDb {
               // Open database table.
               const lTable = lReadTransaction.objectStore(lTableName);
               // Validate correct identity, update table when it differs.
-              const lConfiguratedKeyPath = lTableConfiguration.identity?.key ?? null;
-              const lConfiguratedAutoIncrement = lTableConfiguration.identity?.autoIncrement ?? false;
+              const lConfiguratedKeyPath = lTableConfiguration.identity.key;
+              const lConfiguratedAutoIncrement = lTableConfiguration.identity.autoIncrement;
               if (lTable.keyPath !== lConfiguratedKeyPath || lTable.autoIncrement !== lConfiguratedAutoIncrement) {
                 lDatabaseUpdate.tableUpdates.push({
                   name: lTableName,
@@ -1083,7 +1498,7 @@ class WebDb {
         }
       }
       // Create and open transaction.
-      const lTransaction = new web_db_transaction_1.WebDbTransaction(_this3, pTables, pMode);
+      const lTransaction = new web_database_transaction_1.WebDatabaseTransaction(_this3, pTables, pMode);
       yield lTransaction.open();
       // Call action within the transaction.
       // eslint-disable-next-line @typescript-eslint/await-thenable
@@ -1093,7 +1508,7 @@ class WebDb {
     })();
   }
 }
-exports.WebDb = WebDb;
+exports.WebDatabase = WebDatabase;
 
 /***/ }),
 
@@ -5962,7 +6377,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("2e9d19b67c380ab36fff")
+/******/ 		__webpack_require__.h = () => ("c77b0f2009577377b6c5")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

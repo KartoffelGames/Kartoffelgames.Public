@@ -39,7 +39,8 @@ export class WebDatabaseTableLayout {
         const lTableConfiguration: TableLayoutConfig = this.mTableConfigs.get(pType)!;
 
         // Validate idenitiy. Must happend after decoration so all metadata of the table has been loaded.
-        if (lTableConfiguration.identity) {
+        // Validate only when identity was user configurated.
+        if (lTableConfiguration.identity.configurated) {
             // Type must be string or number.
             const lPropertyType: InjectionConstructor | null = Metadata.get(pType).getProperty(lTableConfiguration.identity.key).type;
             if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
@@ -86,14 +87,15 @@ export class WebDatabaseTableLayout {
 
         // Read table config and restrict to one identity.
         const lTableConfig: TableLayoutConfig = this.mTableConfigs.get(pType)!;
-        if (lTableConfig.identity) {
+        if (lTableConfig.identity.configurated) {
             throw new Exception(`A table type can only have one identifier.`, this);
         }
 
         // Set table type identity.
         lTableConfig.identity = {
             key: pKey,
-            autoIncrement: pAutoIncrement
+            autoIncrement: pAutoIncrement,
+            configurated: true
         };
     }
 
@@ -158,6 +160,12 @@ export class WebDatabaseTableLayout {
 
         // Add type reference.
         this.mTableConfigs.set(pType, {
+            // Set default identity key.
+            identity: {
+                key: '__ID__',
+                autoIncrement: true,
+                configurated: false
+            },
             indices: new Dictionary<string, TableLayoutConfigIndex>()
         });
     }
@@ -173,9 +181,10 @@ export type TableLayoutConfigIndex = {
 };
 
 export type TableLayoutConfig = {
-    identity?: {
+    identity: {
         key: string;
         autoIncrement: boolean;
+        configurated: boolean;
     },
     indices: Dictionary<string, TableLayoutConfigIndex>;
 };

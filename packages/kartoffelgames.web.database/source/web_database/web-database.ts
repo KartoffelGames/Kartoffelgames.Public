@@ -1,8 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { WebDatabaseTableLayout, TableLayoutConfig, TableLayoutConfigIndex, TableType } from './layout/web-database-table-layout';
+import { TableLayoutConfig, TableLayoutConfigIndex, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout';
 import { WebDatabaseTransaction, WebDbTransactionMode } from './web-database-transaction';
 
 export class WebDatabase {
+    private static readonly ANONYMOUS_IDENTITIY_KEY: string = '__id__';
+
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
     private readonly mTableLayouts: WebDatabaseTableLayout;
@@ -130,8 +132,8 @@ export class WebDatabase {
                         const lTable: IDBObjectStore = lReadTransaction.objectStore(lTableName);
 
                         // Validate correct identity, update table when it differs.
-                        const lConfiguratedKeyPath: string | null = lTableConfiguration.identity?.key ?? null;
-                        const lConfiguratedAutoIncrement: boolean = lTableConfiguration.identity?.autoIncrement ?? false;
+                        const lConfiguratedKeyPath: string = lTableConfiguration.identity.key;
+                        const lConfiguratedAutoIncrement: boolean = lTableConfiguration.identity.autoIncrement;
                         if (lTable.keyPath !== lConfiguratedKeyPath || lTable.autoIncrement !== lConfiguratedAutoIncrement) {
                             lDatabaseUpdate.tableUpdates.push({
                                 name: lTableName,

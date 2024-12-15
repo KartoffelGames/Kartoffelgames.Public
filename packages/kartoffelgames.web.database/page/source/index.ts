@@ -1,9 +1,10 @@
+/* eslint-disable no-console */
 import { WebDatabaseIdentity } from '../../source/web_database/layout/web-database-identity.decorator';
 import { WebDatabaseIndex } from '../../source/web_database/layout/web-database-index.decorator';
 import { WebDatabase } from '../../source/web_database/web-database';
 import { WebDatabaseTable } from '../../source/web_database/web-database-table';
 
-class TestTable {
+class TestTableOne {
     @WebDatabaseIdentity(true)
     public id?: number;
 
@@ -23,31 +24,41 @@ class TestTable {
     }
 }
 
-(() => {
-    const lDatabase: WebDatabase = new WebDatabase('MainDB', [TestTable]);
+class TestTableTwo {
+    @WebDatabaseIndex(true)
+    public nameThing?: string;
+}
 
-    lDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
-        const lTestTable: WebDatabaseTable<typeof TestTable> = pTransaction.table(TestTable);
+(() => {
+    const lDatabase: WebDatabase = new WebDatabase('MainDB', [TestTableOne, TestTableTwo]);
+    lDatabase.transaction([TestTableOne, TestTableTwo], 'readwrite', async (pTransaction) => {
+        const lTestTableOne: WebDatabaseTable<typeof TestTableOne> = pTransaction.table(TestTableOne);
+        const lTestTableTwo: WebDatabaseTable<typeof TestTableTwo> = pTransaction.table(TestTableTwo);
+
+        await lTestTableOne.clear();
+        await lTestTableTwo.clear();
 
         // Create random data.
-        const lData: TestTable = new TestTable();
-        lData.name = Math.random().toString(16);
-        lData.price = Math.random();
-        lData.types = [1, 2, 3];
-        lData.notIndexed = Math.random().toString(16);
+        for (let lCounter = 0; lCounter < 100; lCounter++) {
+            const lData: TestTableOne = new TestTableOne();
+            lData.name = Math.random().toString(16);
+            lData.price = Math.random();
+            lData.types = [1, 2, 3].slice(Math.floor(Math.random() * 4), Math.floor(Math.random() * 4));
+            lData.notIndexed = Math.random().toString(16);
 
-        await lTestTable.put(lData);
+            await lTestTableOne.put(lData);
+        }
 
-        console.log(await lTestTable.getAll());
-        console.log(await lTestTable.count());
+        console.log(await lTestTableOne.count(), await lTestTableOne.getAll());
+        console.log(await lTestTableOne.where('types').is(2).and('price').between(0, 0.5).execute());
 
-        await lTestTable.delete(lData);
+        // Create random data.
+        for (let lCounter = 0; lCounter < 100; lCounter++) {
+            const lData: TestTableTwo = new TestTableTwo();
+            lData.nameThing = Math.random().toString(16);
 
-        console.log(await lTestTable.count());
-
-        await lTestTable.clear();
-
-        console.log(await lTestTable.count());
+            await lTestTableTwo.put(lData);
+        }
     });
 })();
 

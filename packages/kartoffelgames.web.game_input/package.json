@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/web.game-input",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Kartoffelgames.Web.Game_Input",
     "author": {
         "name": "KartoffelGames"
@@ -11,7 +11,7 @@
     "main": "library/source/index.js",
     "types": "library/source/index.d.ts",
     "dependencies": {
-        "@kartoffelgames/core": "^0.1.0"
+        "@kartoffelgames/core": "^0.2.0"
     },
     "devDependencies": {
         "@types/chai": "^4.3.5",

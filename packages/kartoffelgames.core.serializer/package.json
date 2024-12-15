@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/core.serializer",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "KartoffelGames.Core.Serializer",
     "author": {
         "name": "KartoffelGames"
@@ -15,7 +15,7 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core": "^0.1.0"
+        "@kartoffelgames/core": "^0.2.0"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/core.serializer && kg page @kartoffelgames/core.serializer --build-only",

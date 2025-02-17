@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { List } from '../../../source/data_container/list';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/expect';
+import { List } from '../../source/data_container/list.ts';
 
 describe('List', () => {
     it('Static Method: newListWith', () => {
@@ -25,8 +26,8 @@ describe('List', () => {
             const lList1IsList3: boolean = lList1.equals(lList3);
 
             // Evaluation.
-            expect(lList1IsList2).to.be.true;
-            expect(lList1IsList3).to.be.false;
+            expect(lList1IsList2).toBeTruthy();
+            expect(lList1IsList3).toBeFalsy();
         });
 
         it('-- Compare same List', () => {
@@ -37,7 +38,7 @@ describe('List', () => {
             const lListIsSame: boolean = lList.equals(lList);
 
             // Evaluation.
-            expect(lListIsSame).to.be.true;
+            expect(lListIsSame).toBeTruthy();
         });
 
         it('-- Compare with null', () => {
@@ -48,7 +49,7 @@ describe('List', () => {
             const lListIsSame: boolean = lList.equals(<any>null);
 
             // Evaluation.
-            expect(lListIsSame).to.be.false;
+            expect(lListIsSame).toBeFalsy();
         });
 
         it('-- Compare with undefined', () => {
@@ -59,7 +60,7 @@ describe('List', () => {
             const lListIsSame: boolean = lList.equals(<any>undefined);
 
             // Evaluation.
-            expect(lListIsSame).to.be.false;
+            expect(lListIsSame).toBeFalsy();
         });
 
         it('-- Compare List with different length', () => {
@@ -71,7 +72,7 @@ describe('List', () => {
             const lList1IsList2: boolean = lList1.equals(lList2);
 
             // Evaluation.
-            expect(lList1IsList2).to.be.false;
+            expect(lList1IsList2).toBeFalsy();
         });
     });
 
@@ -83,7 +84,7 @@ describe('List', () => {
         lList.clear();
 
         // Evaluation.
-        expect(lList).to.have.a.lengthOf(0);
+        expect(lList).toHaveLength(0);
     });
 
     it('Method: clone', () => {
@@ -118,7 +119,7 @@ describe('List', () => {
             const lRemovedValue: string | undefined = lList.remove('Value1');
 
             // Evaluation.
-            expect(lRemovedValue).to.be.equal('Value1');
+            expect(lRemovedValue).toBe('Value1');
             expect(lList).to.be.deep.equal(['Value2', 'Value1']);
         });
 
@@ -130,7 +131,7 @@ describe('List', () => {
             const lRemovedValue: string | undefined = lList.remove('Value2');
 
             // Evaluation.
-            expect(lRemovedValue).to.be.an('undefined');
+            expect(lRemovedValue).toBeUndefined();
             expect(lList).to.be.deep.equal(['Value1']);
         });
     });
@@ -144,7 +145,7 @@ describe('List', () => {
             const lRemovedValue: string | undefined = lList.replace('Value1', 'Value3');
 
             // Evaluation.
-            expect(lRemovedValue).to.be.equal('Value1');
+            expect(lRemovedValue).toBe('Value1');
             expect(lList).to.be.deep.equal(['Value3', 'Value2', 'Value1']);
         });
 
@@ -156,7 +157,7 @@ describe('List', () => {
             const lRemovedValue: string | undefined = lList.replace('Value2', 'Value3');
 
             // Evaluation.
-            expect(lRemovedValue).to.be.an('undefined');
+            expect(lRemovedValue).toBeUndefined();
             expect(lList).to.be.deep.equal(['Value1']);
         });
     });
@@ -169,6 +170,6 @@ describe('List', () => {
         const lString: string = lList.toString();
 
         // Evaluation.
-        expect(lString).to.be.equal('[Value1, Value2]');
+        expect(lString).toBe('[Value1, Value2]');
     });
 });

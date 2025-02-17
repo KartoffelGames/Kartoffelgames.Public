@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { TypeUtil } from '../../../source/util/type-util';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/expect';
+import { TypeUtil } from '../../source/util/type-util.ts';
 
 describe('TypeUtil', () => {
     it('Static Method: nameOf', () => {
@@ -12,6 +13,6 @@ describe('TypeUtil', () => {
         const lMethodName: string = TypeUtil.nameOf<TestClass>('testMethod');
 
         // Evaluation.
-        expect(lMethodName).to.be.equal('testMethod');
+        expect(lMethodName).toBe('testMethod');
     });
 });

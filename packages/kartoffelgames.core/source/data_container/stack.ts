@@ -1,4 +1,4 @@
-import { ICloneable } from '../interface/i-cloneable';
+import { ICloneable } from '../interface/i-cloneable.ts';
 
 /**
  * Simple and fast stack implementation based on references.

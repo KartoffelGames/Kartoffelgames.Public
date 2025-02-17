@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { ChangeState, HistoryItem, MyersDiff } from '../../../source/algorithm/myers-diff';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/expect';
+import { ChangeState, HistoryItem, MyersDiff } from '../../source/algorithm/myers-diff.ts';
 
 describe('MyersDiff', () => {
     describe('Method: differencesOf', () => {
@@ -17,7 +18,7 @@ describe('MyersDiff', () => {
             const lChanges: Array<HistoryItem<string, string>> = lDifferentReference.differencesOf(lValueOne.split(''), lValueTwo.split(''));
 
             // Evaluation.
-            expect(lChanges).to.deep.equal([
+            expect(lChanges).toMatchObject([
                 { changeState: ChangeState.Keep, item: 'a' },
                 { changeState: ChangeState.Remove, item: 'b' },
                 { changeState: ChangeState.Insert, item: 'x' },
@@ -39,7 +40,7 @@ describe('MyersDiff', () => {
             const lChanges: Array<HistoryItem<string, string>> = lDifferentReference.differencesOf([], []);
 
             // Evaluation.
-            expect(lChanges).to.deep.equal([]);
+            expect(lChanges).toMatchObject([]);
         });
     });
 });

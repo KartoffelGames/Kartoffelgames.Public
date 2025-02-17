@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { EnumUtil } from '../../../source/util/enum-util';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/expect';
+import { EnumUtil } from '../../source/util/enum-util.ts';
 
 describe('EnumUtil', () => {
     describe('Static Method: cast', () => {
@@ -16,7 +17,7 @@ describe('EnumUtil', () => {
             const lCastedValue: TestEnum | undefined = EnumUtil.cast(TestEnum, 3);
 
             // Evaluation.
-            expect(lCastedValue).to.equal(TestEnum.Three);
+            expect(lCastedValue).toBe(TestEnum.Three);
         });
 
         it('-- String Enum', () => {
@@ -32,7 +33,7 @@ describe('EnumUtil', () => {
             const lCastedValue: TestEnum | undefined = EnumUtil.cast(TestEnum, 'three3');
 
             // Evaluation.
-            expect(lCastedValue).to.equal(TestEnum.Three);
+            expect(lCastedValue).toBe(TestEnum.Three);
         });
 
         it('-- Mixed Enum', () => {
@@ -48,7 +49,7 @@ describe('EnumUtil', () => {
             const lCastedValue: TestEnum | undefined = EnumUtil.cast(TestEnum, 'three3');
 
             // Evaluation.
-            expect(lCastedValue).to.equal(TestEnum.Three);
+            expect(lCastedValue).toBe(TestEnum.Three);
         });
 
         it('-- Mixed Enum missing value', () => {
@@ -64,7 +65,7 @@ describe('EnumUtil', () => {
             const lCastedValue: TestEnum | undefined = EnumUtil.cast(TestEnum, 'NOT_THERE');
 
             // Evaluation.
-            expect(lCastedValue).to.be.undefined;
+            expect(lCastedValue).toBeUndefined();
         });
     });
 
@@ -82,7 +83,7 @@ describe('EnumUtil', () => {
             const lValueExists: boolean = EnumUtil.exists(TestEnum, 3);
 
             // Evaluation.
-            expect(lValueExists).to.be.true;
+            expect(lValueExists).toBeTruthy();
         });
 
         it('-- String Enum', () => {
@@ -98,7 +99,7 @@ describe('EnumUtil', () => {
             const lValueExists: boolean = EnumUtil.exists(TestEnum, 'three3');
 
             // Evaluation.
-            expect(lValueExists).to.be.true;
+            expect(lValueExists).toBeTruthy();
         });
 
         it('-- Mixed Enum', () => {
@@ -114,7 +115,7 @@ describe('EnumUtil', () => {
             const lValueExists: boolean = EnumUtil.exists(TestEnum, 'three3');
 
             // Evaluation.
-            expect(lValueExists).to.be.true;
+            expect(lValueExists).toBeTruthy();
         });
 
         it('-- Mixed Enum missing value', () => {
@@ -130,7 +131,7 @@ describe('EnumUtil', () => {
             const lValueExists: boolean = EnumUtil.exists(TestEnum, 'NOT_THERE');
 
             // Evaluation.
-            expect(lValueExists).to.be.false;
+            expect(lValueExists).toBeFalsy();
         });
     });
 

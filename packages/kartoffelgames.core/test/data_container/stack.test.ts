@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { Stack } from '../../../source/data_container/stack';
+import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
+import { Stack } from '../../source/data_container/stack.ts';
 
 describe('Stack', () => {
     describe('Property: size', () => {
@@ -12,7 +13,7 @@ describe('Stack', () => {
             const lSize: number = lStack.size;
 
             // Evaluation.
-            expect(lSize).to.equals(1);
+            expect(lSize).toBe(1);
         });
 
         it('-- Multi value stack', () => {
@@ -25,7 +26,7 @@ describe('Stack', () => {
             const lSize: number = lStack.size;
 
             // Evaluation.
-            expect(lSize).to.equals(2);
+            expect(lSize).toBe(2);
         });
 
         it('-- Cloned stack', () => {
@@ -41,7 +42,7 @@ describe('Stack', () => {
             const lSize: number = lStackCopy.size;
 
             // Evaluation.
-            expect(lSize).to.equals(2);
+            expect(lSize).toBe(2);
         });
 
         it('-- Poped stack item', () => {
@@ -55,7 +56,7 @@ describe('Stack', () => {
             const lSize: number = lStack.size;
 
             // Evaluation.
-            expect(lSize).to.equals(1);
+            expect(lSize).toBe(1);
         });
     });
 
@@ -70,7 +71,7 @@ describe('Stack', () => {
             const lTopValue: string | undefined = lStack.top;
 
             // Evaluation.
-            expect(lTopValue).to.equals(lValue);
+            expect(lTopValue).toBe(lValue);
         });
 
         it('-- Multi value stack', () => {
@@ -84,7 +85,7 @@ describe('Stack', () => {
             const lTopValue: string | undefined = lStack.top;
 
             // Evaluation.
-            expect(lTopValue).to.equals(lValue);
+            expect(lTopValue).toBe(lValue);
         });
 
         it('-- Empty stack', () => {
@@ -95,7 +96,7 @@ describe('Stack', () => {
             const lTopValue: string | undefined = lStack.top;
 
             // Evaluation.
-            expect(lTopValue).to.be.undefined;
+            expect(lTopValue).toBeUndefined();
         });
     });
 
@@ -139,7 +140,7 @@ describe('Stack', () => {
             const lFlushedValues = lStack.flush();
 
             // Evaluation.
-            expect(lFlushedValues).to.has.lengthOf(0);
+            expect(lFlushedValues).toHaveLength(0);
         });
 
         it('-- Undefined values', () => {
@@ -168,7 +169,7 @@ describe('Stack', () => {
         lStack.push(lValue);
 
         // Evaluation.
-        expect(lStack.top).to.equals(lValue);
+        expect(lStack.top).toBe(lValue);
     });
 
     it('Method: toArray', () => {
@@ -212,8 +213,8 @@ describe('Stack', () => {
             const lPoppedValue: number | undefined = lStack.pop();
 
             // Evaluation.
-            expect(lPoppedValue).to.equal(lValue);
-            expect(lStack.top).to.be.undefined;
+            expect(lPoppedValue).toBe(lValue);
+            expect(lStack.top).toBeUndefined();
         });
 
         it('-- Multi value', () => {
@@ -228,8 +229,8 @@ describe('Stack', () => {
             const lPoppedValue: number | undefined = lStack.pop();
 
             // Evaluation.
-            expect(lPoppedValue).to.equal(lValueTwo);
-            expect(lStack.top).to.equal(lValueOne);
+            expect(lPoppedValue).toBe(lValueTwo);
+            expect(lStack.top).toBe(lValueOne);
         });
 
         it('-- Without values', () => {
@@ -240,8 +241,8 @@ describe('Stack', () => {
             const lPoppedValue: number | undefined = lStack.pop();
 
             // Evaluation.
-            expect(lPoppedValue).to.be.undefined;
-            expect(lStack.top).to.be.undefined;
+            expect(lPoppedValue).toBeUndefined();
+            expect(lStack.top).toBeUndefined();
         });
     });
 });

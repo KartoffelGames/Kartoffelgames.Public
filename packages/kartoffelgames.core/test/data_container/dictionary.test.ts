@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { Dictionary } from '../../../source/data_container/dictionary';
-import { Exception } from '../../../source/exception/exception';
+import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
+import { Dictionary } from '../../source/data_container/dictionary.ts';
+import { Exception } from '../../source/exception/exception.ts';
 
 describe('Dictionary', () => {
     describe('Method: add', () => {
@@ -16,7 +17,7 @@ describe('Dictionary', () => {
             lDictionary.add(lKey, lValue);
 
             // Evaluation.
-            expect(lDictionary.get(lKey)).to.equal(lValue);
+            expect(lDictionary.get(lKey)).toBe(lValue);
         });
 
         it('-- Throw double add error', () => {
@@ -33,7 +34,7 @@ describe('Dictionary', () => {
             };
 
             // Evaluation.
-            expect(lIlligalInstruction).to.throw(Exception);
+            expect(lIlligalInstruction).toThrow(Exception);
         });
     });
 
@@ -50,7 +51,7 @@ describe('Dictionary', () => {
         lDictionary.set(lKey, lNewValue);
 
         // Evaluation.
-        expect(lDictionary.get(lKey)).to.equal(lNewValue);
+        expect(lDictionary.get(lKey)).toBe(lNewValue);
     });
 
     describe('Method: delete', () => {
@@ -66,8 +67,8 @@ describe('Dictionary', () => {
             const lRemovedResult: boolean = lDictionary.delete(lKey);
 
             // Evaluation
-            expect(lDictionary.get(lKey)).to.be.undefined;
-            expect(lRemovedResult).to.be.true;
+            expect(lDictionary.get(lKey)).toBeUndefined();
+            expect(lRemovedResult).toBeTruthy();
         });
 
         it('-- Delete none existant item', () => {
@@ -81,8 +82,8 @@ describe('Dictionary', () => {
             const lRemovedResult: boolean = lDictionary.delete(lKey);
 
             // Evaluation
-            expect(lDictionary.get(lKey)).to.be.undefined;
-            expect(lRemovedResult).to.be.false;
+            expect(lDictionary.get(lKey)).toBeUndefined();
+            expect(lRemovedResult).toBeFalsy();
         });
     });
 
@@ -117,8 +118,8 @@ describe('Dictionary', () => {
         const lFoundValue: string = lDictionary.getOrDefault('SetKey', 'DefaultValue');
 
         // Evaluation.
-        expect(lDefaultValue).to.equal('DefaultValue');
-        expect(lFoundValue).to.equal('SetValue');
+        expect(lDefaultValue).toBe('DefaultValue');
+        expect(lFoundValue).toBe('SetValue');
     });
 
     it('Method: map', () => {
@@ -145,12 +146,12 @@ describe('Dictionary', () => {
         const lHasValue: boolean = lDictionary.has('Key');
 
         // Evaluation.
-        expect(lHasValue).to.be.true;
+        expect(lHasValue).toBeTruthy();
     });
 
     it('Functionality: Copy', () => {
         // Setup.
-        const lValue1: string ='Value1' ;
+        const lValue1: string = 'Value1';
         const lValue2: string = 'Value2';
 
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
@@ -161,8 +162,8 @@ describe('Dictionary', () => {
         const lCopiedDictionary: Dictionary<string, string> = new Dictionary<string, string>(lDictionary);
 
         // Evaluation.
-        expect(lCopiedDictionary.get('Key1')).to.be.equal(lDictionary.get('Key1'));
-        expect(lCopiedDictionary.get('Key2')).to.be.equal(lDictionary.get('Key2'));
+        expect(lCopiedDictionary.get('Key1')).toBe(lDictionary.get('Key1'));
+        expect(lCopiedDictionary.get('Key2')).toBe(lDictionary.get('Key2'));
     });
 
     it('Functionality: Clone', () => {
@@ -175,7 +176,7 @@ describe('Dictionary', () => {
         const lClonedDictionary: Dictionary<string, string> = lDictionary.clone();
 
         // Evaluation.
-        expect(lClonedDictionary.get('Key1')).to.be.equal(lDictionary.get('Key1'));
-        expect(lClonedDictionary.get('Key2')).to.be.equal(lDictionary.get('Key2'));
+        expect(lClonedDictionary.get('Key1')).toBe(lDictionary.get('Key1'));
+        expect(lClonedDictionary.get('Key2')).toBe(lDictionary.get('Key2'));
     });
 });

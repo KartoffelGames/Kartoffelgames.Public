@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { Exception } from '../../../source/exception/exception';
+import { describe, it } from '@std/testing/bdd';
+import { expect } from '@std/expect';
+import { Exception } from '../../source/exception/exception.ts';
 
 describe('Exception', () => {
     it('Property: target', () => {
@@ -11,6 +12,6 @@ describe('Exception', () => {
         const lExceptionTarget: string = lException.target;
 
         // Evaluation.
-        expect(lException.target).to.be.equal(lExceptionTarget);
+        expect(lException.target).toBe(lExceptionTarget);
     });
 });

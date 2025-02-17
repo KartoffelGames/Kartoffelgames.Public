@@ -1,3 +1,6 @@
+/**
+ * Optimized implementation of the myers diff algorithm.
+ */
 export class MyersDiff<TA, TB> {
     private readonly mCompareFunction: (itemA: TA, itemB: TB) => boolean;
 

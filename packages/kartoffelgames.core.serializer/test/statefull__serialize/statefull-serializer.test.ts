@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
-import { StatefullSerializeableClasses } from '../../../source/statefull_serialize/statefull-serializeable-classes';
-import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
-import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified.type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { StatefullSerializeable } from '../../source/statefull_serialize/decorator/statefull-serializeable.decorator.ts';
+import { StatefullSerializeableClasses } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
+import { StatefullSerializer } from '../../source/statefull_serialize/statefull-serializer.ts';
+import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../source/statefull_serialize/types/Objectified.type.ts';
 
 describe('StatefullSerializer', () => {
     describe('Method: objectify', () => {
@@ -16,7 +17,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- String', () => {
@@ -28,7 +29,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Boolean', () => {
@@ -40,7 +41,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Undefined', () => {
@@ -52,7 +53,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Null', () => {
@@ -64,7 +65,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Function', () => {
@@ -76,7 +77,7 @@ describe('StatefullSerializer', () => {
                 const lResult = lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.be.undefined;
+                expect(lResult).toBeUndefined();
             });
         });
 
@@ -90,7 +91,7 @@ describe('StatefullSerializer', () => {
             const lResult: ObjectifiedSymbol = <ObjectifiedSymbol>lSerializer.objectify(lValue);
 
             // Evaluation.
-            expect(lResult).to.deep.equal({
+            expect(lResult).toBeDeepEqual({
                 '&type': 'symbol',
                 '&objectId': lResult['&objectId'], // Auto generated.
                 '&values': {
@@ -108,7 +109,7 @@ describe('StatefullSerializer', () => {
             const lResult: ObjectifiedBigInt = <ObjectifiedBigInt>lSerializer.objectify(lValue);
 
             // Evaluation.
-            expect(lResult).to.deep.equal({
+            expect(lResult).toBeDeepEqual({
                 '&type': 'bigint',
                 '&number': lValue.toString()
             });
@@ -124,7 +125,7 @@ describe('StatefullSerializer', () => {
             const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValueList);
 
             // Evaluation. Property "a" has a reference on parent object. 
-            expect(lResult['&values']['a']).to.deep.equal({
+            expect(lResult['&values']['a']).toBeDeepEqual({
                 '&type': 'reference',
                 '&objectId': lResult['&objectId'],
             });
@@ -140,7 +141,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -164,7 +165,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -189,7 +190,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -211,7 +212,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -246,7 +247,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -293,7 +294,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lResult['&constructor'],
                     '&objectId': lResult['&objectId'],
@@ -332,7 +333,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
@@ -375,7 +376,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
@@ -427,7 +428,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
@@ -461,7 +462,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
@@ -497,7 +498,7 @@ describe('StatefullSerializer', () => {
                 const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
 
                 // Evaluation.
-                expect(lResult).to.deep.equal({
+                expect(lResult).toBeDeepEqual({
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
@@ -521,7 +522,7 @@ describe('StatefullSerializer', () => {
             const lResult: string = lSerializer.serialize(lValue);
 
             // Evaluation.
-            expect(lResult).to.equal('241');
+            expect(lResult).toBe('241');
         });
     });
 });

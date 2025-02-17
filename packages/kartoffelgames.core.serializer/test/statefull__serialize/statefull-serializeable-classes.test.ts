@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
-import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from '../../../source/statefull_serialize/statefull-serializeable-classes';
-import { SerializeableConstructor, SerializeableGuid } from '../../../source/type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { StatefullSerializeable } from '../../source/statefull_serialize/decorator/statefull-serializeable.decorator.ts';
+import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
+import { SerializeableConstructor, SerializeableGuid } from '../../source/type.ts';
 
 describe('StatefullSerializer', () => {
     describe('Method: getClass', () => {
@@ -17,7 +18,7 @@ describe('StatefullSerializer', () => {
             const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.getClass(lClassId);
 
             // Evaluation.
-            expect(lConstructor).to.equal(TestObject);
+            expect(lConstructor).toBe(TestObject);
         });
 
         it('-- Missing class', () => {
@@ -30,7 +31,7 @@ describe('StatefullSerializer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('ClassId is not registered.');
+            expect(lErrorFunction).toThrow('ClassId is not registered.');
         });
     });
 
@@ -47,7 +48,7 @@ describe('StatefullSerializer', () => {
             const lResultClassId: SerializeableGuid = StatefullSerializeableClasses.getClassId(TestObject);
 
             // Evaluation.
-            expect(lResultClassId).to.equal(lClassId);
+            expect(lResultClassId).toBe(lClassId);
         });
 
         it('-- Missing class', () => {
@@ -60,7 +61,7 @@ describe('StatefullSerializer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Constructor "${TestObject.name}" is not registered.`);
+            expect(lErrorFunction).toThrow(`Constructor "${TestObject.name}" is not registered.`);
         });
     });
 
@@ -75,9 +76,9 @@ describe('StatefullSerializer', () => {
         });
 
         // Evaluation.
-        expect(StatefullSerializeableClasses.getClass(lClassId)).to.equal(TestObject);
-        expect(StatefullSerializeableClasses.getClassId(TestObject)).to.equal(lClassId);
-        expect(StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject())).to.deep.equal({});
+        expect(StatefullSerializeableClasses.getClass(lClassId)).toBe(TestObject);
+        expect(StatefullSerializeableClasses.getClassId(TestObject)).toBe(lClassId);
+        expect(StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject())).toBeDeepEqual({});
     });
 
     it('-- Method: getObjectConstructionParameter', () => {
@@ -96,6 +97,6 @@ describe('StatefullSerializer', () => {
         const lResult = StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject());
 
         // Evaluation.
-        expect(lResult).to.equal(lParameter);
+        expect(lResult).toBe(lParameter);
     });
 });

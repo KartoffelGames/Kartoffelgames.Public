@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-export { StatefullSerializeable } from './statefull_serialize/decorator/statefull-serializeable.decorator';
-export { StatefullDeserializer } from './statefull_serialize/statefull-deserializer';
-export { StatefullSerializeableClasses } from './statefull_serialize/statefull-serializeable-classes';
-export { StatefullSerializer } from './statefull_serialize/statefull-serializer';
+export { StatefullSerializeable } from './statefull_serialize/decorator/statefull-serializeable.decorator.ts';
+export { StatefullDeserializer } from './statefull_serialize/statefull-deserializer.ts';
+export { StatefullSerializeableClasses } from './statefull_serialize/statefull-serializeable-classes.ts';
+export { StatefullSerializer } from './statefull_serialize/statefull-serializer.ts';

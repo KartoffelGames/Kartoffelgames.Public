@@ -1,5 +1,5 @@
-import { SerializeableConstructor, SerializeableGuid } from '../../type';
-import { StatefullSerializeableClasses } from '../statefull-serializeable-classes';
+import { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
+import { StatefullSerializeableClasses } from '../statefull-serializeable-classes.ts';
 
 /**
  * AtScript.

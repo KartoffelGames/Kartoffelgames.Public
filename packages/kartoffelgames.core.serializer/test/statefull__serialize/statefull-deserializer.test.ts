@@ -1,9 +1,10 @@
-import { expect } from 'chai';
-import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
-import { StatefullDeserializer } from '../../../source/statefull_serialize/statefull-deserializer';
-import { StatefullSerializeableClasses } from '../../../source/statefull_serialize/statefull-serializeable-classes';
-import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
-import { ObjectifiedReference, ObjectifiedValue } from '../../../source/statefull_serialize/types/Objectified.type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { StatefullSerializeable } from '../../source/statefull_serialize/decorator/statefull-serializeable.decorator.ts';
+import { StatefullDeserializer } from '../../source/statefull_serialize/statefull-deserializer.ts';
+import { StatefullSerializeableClasses } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
+import { StatefullSerializer } from '../../source/statefull_serialize/statefull-serializer.ts';
+import { ObjectifiedReference, ObjectifiedValue } from '../../source/statefull_serialize/types/Objectified.type.ts';
 
 describe('StatefullDeserializer', () => {
     describe('Method: deobjectify', () => {
@@ -20,7 +21,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- String', () => {
@@ -35,7 +36,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Boolean', () => {
@@ -50,7 +51,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Undefined', () => {
@@ -65,7 +66,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Null', () => {
@@ -80,7 +81,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.equal(lValue);
+                expect(lResult).toBe(lValue);
             });
 
             it('-- Function', () => {
@@ -95,7 +96,7 @@ describe('StatefullDeserializer', () => {
                 const lResult = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.undefined;
+                expect(lResult).toBeUndefined();
             });
         });
 
@@ -112,7 +113,7 @@ describe('StatefullDeserializer', () => {
             const lResult: symbol = lDeserializer.deobjectify(lObjectifiedValue);
 
             // Evaluation.
-            expect(lResult.description).to.be.equal(lValue.description);
+            expect(lResult.description).toBe(lValue.description);
         });
 
         it('-- BigInt', () => {
@@ -127,7 +128,7 @@ describe('StatefullDeserializer', () => {
             const lResult: bigint = lDeserializer.deobjectify(lObjectifiedValue);
 
             // Evaluation.
-            expect(lResult).to.be.equal(lValue);
+            expect(lResult).toBe(lValue);
         });
 
         describe('-- Reference', () => {
@@ -144,7 +145,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: { a: object; } = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.equal(lResult.a);
+                expect(lResult).toBe(lResult.a);
             });
 
             it('-- Invalid reference', () => {
@@ -161,7 +162,7 @@ describe('StatefullDeserializer', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throw(`Referenced object not found.`);
+                expect(lErrorFunction).toThrow(`Referenced object not found.`);
             });
         });
 
@@ -178,7 +179,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: { a: object; } = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.deep.equal(lValue);
+                expect(lResult).toBeDeepEqual(lValue);
             });
 
             it('-- Array', () => {
@@ -193,7 +194,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: Array<string> = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.deep.equal(lValue);
+                expect(lResult).toBeDeepEqual(lValue);
             });
 
             it('-- Date', () => {
@@ -208,7 +209,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: Date = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult.getTime()).to.be.equal(lValue.getTime());
+                expect(lResult.getTime()).toBe(lValue.getTime());
             });
 
             it('-- Set', () => {
@@ -224,7 +225,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: Set<string> = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect([...lResult]).to.be.deep.equal(lSetValueList);
+                expect([...lResult]).toBeDeepEqual(lSetValueList);
             });
 
             it('-- Map', () => {
@@ -240,7 +241,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: Map<string, string> = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect([...lResult.entries()]).to.be.deep.equal([...lValue.entries()]);
+                expect([...lResult.entries()]).toBeDeepEqual([...lValue.entries()]);
             });
 
             it('-- TypedArray', () => {
@@ -256,8 +257,8 @@ describe('StatefullDeserializer', () => {
                 const lResult: Uint8Array = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect([...lResult]).to.be.deep.equal([...lValue]);
-                expect(lResult).to.be.instanceOf(Uint8Array);
+                expect([...lResult]).toBeDeepEqual([...lValue]);
+                expect(lResult).toBeInstanceOf(Uint8Array);
             });
         });
 
@@ -287,8 +288,8 @@ describe('StatefullDeserializer', () => {
                 const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.deep.equal(lTestObject);
-                expect(lResult).to.be.instanceOf(TestClass);
+                expect(lResult).toBeDeepEqual(lTestObject);
+                expect(lResult).toBeInstanceOf(TestClass);
             });
 
             it('-- Class with inner object', () => {
@@ -325,9 +326,9 @@ describe('StatefullDeserializer', () => {
                 const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult).to.be.deep.equal(lTestObject);
-                expect(lResult).to.be.instanceOf(TestClass);
-                expect(lResult.object).to.be.instanceOf(TestClassChild);
+                expect(lResult).toBeDeepEqual(lTestObject);
+                expect(lResult).toBeInstanceOf(TestClass);
+                expect(lResult.object).toBeInstanceOf(TestClassChild);
             });
 
             it('-- Required values', () => {
@@ -358,7 +359,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect((<any>lResult).requiredValue).to.be.equal(lRequiredValue);
+                expect((<any>lResult).requiredValue).toBe(lRequiredValue);
             });
 
             it('-- Required function value', () => {
@@ -394,7 +395,7 @@ describe('StatefullDeserializer', () => {
                 const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult[lInnerPropertyName]).to.be.equal(lRequiredValue);
+                expect(lResult[lInnerPropertyName]).toBe(lRequiredValue);
             });
 
             it('-- Required function value array', () => {
@@ -432,8 +433,8 @@ describe('StatefullDeserializer', () => {
                 const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
 
                 // Evaluation.
-                expect(lResult[lInnerPropertyNameOne]).to.be.equal(lRequiredValueList[0]);
-                expect(lResult[lInnerPropertyNameTwo]).to.be.equal(lRequiredValueList[1]);
+                expect(lResult[lInnerPropertyNameOne]).toBe(lRequiredValueList[0]);
+                expect(lResult[lInnerPropertyNameTwo]).toBe(lRequiredValueList[1]);
             });
         });
     });
@@ -449,7 +450,7 @@ describe('StatefullDeserializer', () => {
             const lResult: number = lDeserializer.deserialize(lSerializedValue);
 
             // Evaluation.
-            expect(lResult).to.equal(lValue);
+            expect(lResult).toBe(lValue);
         });
     });
 });

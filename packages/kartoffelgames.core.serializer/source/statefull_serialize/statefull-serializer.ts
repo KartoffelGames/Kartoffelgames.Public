@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type';
-import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes';
-import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type';
+import { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes.ts';
+import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type.ts';
 
 // istanbul ignore next
 // Cross platform cryto solution. Please dont, i know. I haven't found any better solution.

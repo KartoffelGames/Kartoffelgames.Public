@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type';
-import { StatefullSerializeableClasses } from './statefull-serializeable-classes';
-import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type';
+import { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import { StatefullSerializeableClasses } from './statefull-serializeable-classes.ts';
+import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type.ts';
 
 export class StatefullDeserializer {
     /**

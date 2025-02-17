@@ -38,7 +38,8 @@
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
         "useUnknownInCatchVariables": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     },
     "fmt": {
         "useTabs": false,

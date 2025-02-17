@@ -9,7 +9,8 @@
         "./packages/kartoffelgames.web.database",
         "./packages/kartoffelgames.web.game_input",
         "./packages/kartoffelgames.web.interaction_zone",
-        "./packages/kartoffelgames.web.potato_web_builder"
+        "./packages/kartoffelgames.web.potato_web_builder",
+        "././packages/kartoffelgames.core.test"
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",

@@ -29,6 +29,10 @@
             "path": "packages\\kartoffelgames.core.parser"
         },
         {
+            "name": "Kartoffelgames.Core.Test",
+            "path": "./packages\\kartoffelgames.core.test"
+        },
+        {
             "name": "Kartoffelgames.Web.Database",
             "path": "packages\\kartoffelgames.web.database"
         },
@@ -42,6 +46,6 @@
         }
     ],
     "settings": {
-        "javascript.format.semicolons": "insert",
+        "javascript.format.semicolons": "insert"
     }
 }

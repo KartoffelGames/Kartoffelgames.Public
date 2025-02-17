@@ -1,16 +1,16 @@
 import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
-import { GraphParseError, GraphException } from './exception/graph-exception';
-import { ParserException } from './exception/parser-exception';
-import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
-import { BaseGrammarNode } from './graph/node/base-grammar-node';
-import { GrammarBranchNode } from './graph/node/grammer-branch-node';
-import { GrammarLoopNode } from './graph/node/grammer-loop-node';
-import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
-import { GrammarSingleNode } from './graph/node/grammer-single-node';
-import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
-import { GraphPartReference } from './graph/part/graph-part-reference';
-import { Lexer } from './lexer/lexer';
-import { LexerToken } from './lexer/lexer-token';
+import { GraphParseError, GraphException } from './exception/graph-exception.ts';
+import { ParserException } from './exception/parser-exception.ts';
+import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node.ts';
+import { BaseGrammarNode } from './graph/node/base-grammar-node.ts';
+import { GrammarBranchNode } from './graph/node/grammer-branch-node.ts';
+import { GrammarLoopNode } from './graph/node/grammer-loop-node.ts';
+import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum.ts';
+import { GrammarSingleNode } from './graph/node/grammer-single-node.ts';
+import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part.ts';
+import { GraphPartReference } from './graph/part/graph-part-reference.ts';
+import { Lexer } from './lexer/lexer.ts';
+import { LexerToken } from './lexer/lexer-token.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.

@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ParserException } from '../exception/parser-exception';
-import { LexerToken } from './lexer-token';
+import { ParserException } from '../exception/parser-exception.ts';
+import { LexerToken } from './lexer-token.ts';
 
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.

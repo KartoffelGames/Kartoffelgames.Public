@@ -1,5 +1,5 @@
-import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum';
+import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Loop value node.

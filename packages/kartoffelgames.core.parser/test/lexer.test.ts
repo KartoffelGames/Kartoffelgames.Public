@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { Lexer } from '../../source/lexer/lexer';
-import { LexerToken } from '../../source/lexer/lexer-token';
-import { ParserException } from '../../source/exception/parser-exception';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { ParserException } from '../source/exception/parser-exception.ts';
+import { LexerToken } from '../source/lexer/lexer-token.ts';
+import { Lexer } from '../source/lexer/lexer.ts';
 
 describe('Lexer', () => {
     enum TestTokenType {
@@ -61,7 +62,7 @@ describe('Lexer', () => {
         lLexer.errorType = TestTokenType.Error;
 
         // Evaluation.
-        expect(lLexer.errorType).equals(TestTokenType.Error);
+        expect(lLexer.errorType).toBe(TestTokenType.Error);
     });
 
     describe('Property: trimWhitespace', () => {
@@ -74,7 +75,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(13);
+            expect(lTokenList).toHaveLength(13);
         });
 
         it('-- False', () => {
@@ -89,7 +90,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(ParserException);
+            expect(lErrorFunction).toThrow(ParserException);
         });
 
         it('-- Get default', () => {
@@ -97,7 +98,7 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
 
             // Evaluation.
-            expect(lLexer.trimWhitespace).to.be.true;
+            expect(lLexer.trimWhitespace).toBeTruthy();
         });
 
         it('-- Get altered', () => {
@@ -108,7 +109,7 @@ describe('Lexer', () => {
             lLexer.trimWhitespace = false;
 
             // Evaluation.
-            expect(lLexer.trimWhitespace).to.be.false;
+            expect(lLexer.trimWhitespace).toBeFalsy();
         });
     });
 
@@ -123,7 +124,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(12);
+            expect(lTokenList).toHaveLength(12);
         });
 
         it('-- Get', () => {
@@ -135,7 +136,7 @@ describe('Lexer', () => {
             lLexer.validWhitespaces = lValidWhitespaces;
 
             // Evaluation.
-            expect(lLexer.validWhitespaces).to.equal(lValidWhitespaces);
+            expect(lLexer.validWhitespaces).toBe(lValidWhitespaces);
         });
     });
 
@@ -150,7 +151,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(44); // 44 characters without whitespace.
+            expect(lTokenList).toHaveLength(44); // 44 characters without whitespace.
         });
     });
 
@@ -166,7 +167,7 @@ describe('Lexer', () => {
             // Evaluation.
             expect(() => {
                 lLexer.useTokenTemplate(lTemplateName, 0);
-            }).to.not.throw();
+            }).not.toThrow();
         });
 
         it('-- Add dublicate', () => {
@@ -181,7 +182,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Can't add dublicate token template "${lTemplateName}"`);
+            expect(lErrorFunction).toThrow(`Can't add dublicate token template "${lTemplateName}"`);
         });
 
         it('-- Split token without inner token', () => {
@@ -201,7 +202,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Split token with a start and end token, need inner token definitions.`);
+            expect(lErrorFunction).toThrow(`Split token with a start and end token, need inner token definitions.`);
         });
 
         it('-- Single token with inner token', () => {
@@ -216,7 +217,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Pattern does not allow inner token pattern.`);
+            expect(lErrorFunction).toThrow(`Pattern does not allow inner token pattern.`);
         });
     });
 
@@ -231,56 +232,56 @@ describe('Lexer', () => {
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
 
             // A
-            expect(lTokenList[0]).property('lineNumber').to.equal(1);
-            expect(lTokenList[0]).property('columnNumber').to.equal(1);
+            expect(lTokenList[0]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[0]).toHaveProperty('columnNumber', 1);
 
             // sentence
-            expect(lTokenList[1]).property('lineNumber').to.equal(1);
-            expect(lTokenList[1]).property('columnNumber').to.equal(3);
+            expect(lTokenList[1]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[1]).toHaveProperty('columnNumber', 3);
 
             // with
-            expect(lTokenList[2]).property('lineNumber').to.equal(1);
-            expect(lTokenList[2]).property('columnNumber').to.equal(12);
+            expect(lTokenList[2]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[2]).toHaveProperty('columnNumber', 12);
 
             // 1
-            expect(lTokenList[3]).property('lineNumber').to.equal(1);
-            expect(lTokenList[3]).property('columnNumber').to.equal(17);
+            expect(lTokenList[3]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[3]).toHaveProperty('columnNumber', 17);
 
             // or
-            expect(lTokenList[4]).property('lineNumber').to.equal(1);
-            expect(lTokenList[4]).property('columnNumber').to.equal(19);
+            expect(lTokenList[4]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[4]).toHaveProperty('columnNumber', 19);
 
             // 10
-            expect(lTokenList[5]).property('lineNumber').to.equal(1);
-            expect(lTokenList[5]).property('columnNumber').to.equal(22);
+            expect(lTokenList[5]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[5]).toHaveProperty('columnNumber', 22);
 
             // words
-            expect(lTokenList[6]).property('lineNumber').to.equal(1);
-            expect(lTokenList[6]).property('columnNumber').to.equal(25);
+            expect(lTokenList[6]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[6]).toHaveProperty('columnNumber', 25);
 
             // (
-            expect(lTokenList[7]).property('lineNumber').to.equal(1);
-            expect(lTokenList[7]).property('columnNumber').to.equal(31);
+            expect(lTokenList[7]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[7]).toHaveProperty('columnNumber', 31);
 
             // Braket
-            expect(lTokenList[8]).property('lineNumber').to.equal(1);
-            expect(lTokenList[8]).property('columnNumber').to.equal(32);
+            expect(lTokenList[8]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[8]).toHaveProperty('columnNumber', 32);
 
             // and
-            expect(lTokenList[9]).property('lineNumber').to.equal(1);
-            expect(lTokenList[9]).property('columnNumber').to.equal(39);
+            expect(lTokenList[9]).toHaveProperty('lineNumber', 1);
+            expect(lTokenList[9]).toHaveProperty('columnNumber', 39);
 
             // newline
-            expect(lTokenList[10]).property('lineNumber').to.equal(2);
-            expect(lTokenList[10]).property('columnNumber').to.equal(1);
+            expect(lTokenList[10]).toHaveProperty('lineNumber', 2);
+            expect(lTokenList[10]).toHaveProperty('columnNumber', 1);
 
             // )
-            expect(lTokenList[11]).property('lineNumber').to.equal(2);
-            expect(lTokenList[11]).property('columnNumber').to.equal(8);
+            expect(lTokenList[11]).toHaveProperty('lineNumber', 2);
+            expect(lTokenList[11]).toHaveProperty('columnNumber', 8);
 
             // end
-            expect(lTokenList[12]).property('lineNumber').to.equal(2);
-            expect(lTokenList[12]).property('columnNumber').to.equal(10);
+            expect(lTokenList[12]).toHaveProperty('lineNumber', 2);
+            expect(lTokenList[12]).toHaveProperty('columnNumber', 10);
         });
 
         it('-- Valid token types', () => {
@@ -291,19 +292,19 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Number);
-            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Number);
-            expect(lTokenList[6]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[8]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[9]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[10]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[11]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[12]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[3]).toHaveProperty('type', TestTokenType.Number);
+            expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Number);
+            expect(lTokenList[6]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[7]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[8]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[9]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[10]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[11]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[12]).toHaveProperty('type', TestTokenType.Word);
         });
 
         it('-- Valid token values', () => {
@@ -314,19 +315,19 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[0]).property('value').to.equal('A');
-            expect(lTokenList[1]).property('value').to.equal('sentence');
-            expect(lTokenList[2]).property('value').to.equal('with');
-            expect(lTokenList[3]).property('value').to.equal('1');
-            expect(lTokenList[4]).property('value').to.equal('or');
-            expect(lTokenList[5]).property('value').to.equal('10');
-            expect(lTokenList[6]).property('value').to.equal('words');
-            expect(lTokenList[7]).property('value').to.equal('(');
-            expect(lTokenList[8]).property('value').to.equal('Braket');
-            expect(lTokenList[9]).property('value').to.equal('and');
-            expect(lTokenList[10]).property('value').to.equal('newline');
-            expect(lTokenList[11]).property('value').to.equal(')');
-            expect(lTokenList[12]).property('value').to.equal('end');
+            expect(lTokenList[0]).toHaveProperty('value', 'A');
+            expect(lTokenList[1]).toHaveProperty('value', 'sentence');
+            expect(lTokenList[2]).toHaveProperty('value', 'with');
+            expect(lTokenList[3]).toHaveProperty('value', '1');
+            expect(lTokenList[4]).toHaveProperty('value', 'or');
+            expect(lTokenList[5]).toHaveProperty('value', '10');
+            expect(lTokenList[6]).toHaveProperty('value', 'words');
+            expect(lTokenList[7]).toHaveProperty('value', '(');
+            expect(lTokenList[8]).toHaveProperty('value', 'Braket');
+            expect(lTokenList[9]).toHaveProperty('value', 'and');
+            expect(lTokenList[10]).toHaveProperty('value', 'newline');
+            expect(lTokenList[11]).toHaveProperty('value', ')');
+            expect(lTokenList[12]).toHaveProperty('value', 'end');
         });
 
         it('-- Valid token metas', () => {
@@ -337,18 +338,41 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[0]).property('metas').to.deep.equal([TestTokenMetas.Word]);
-            expect(lTokenList[1]).property('metas').to.deep.equal([TestTokenMetas.Word]);
-            expect(lTokenList[2]).property('metas').to.deep.equal([TestTokenMetas.Word]);
-            expect(lTokenList[3]).property('metas').to.deep.equal([TestTokenMetas.Number]);
-            expect(lTokenList[4]).property('metas').to.deep.equal([TestTokenMetas.Word]);
-            expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Number]);
-            expect(lTokenList[6]).property('metas').to.deep.equal([TestTokenMetas.Word]);
-            expect(lTokenList[7]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
-            expect(lTokenList[8]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
-            expect(lTokenList[9]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
-            expect(lTokenList[10]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
-            expect(lTokenList[11]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+            expect(lTokenList[0]).toHaveProperty('metas');
+            expect((<any>lTokenList[0])['metas']).toBeDeepEqual([TestTokenMetas.Word]);
+
+            expect(lTokenList[1]).toHaveProperty('metas');
+            expect((<any>lTokenList[1])['metas']).toBeDeepEqual([TestTokenMetas.Word]);
+
+            expect(lTokenList[2]).toHaveProperty('metas');
+            expect((<any>lTokenList[2])['metas']).toBeDeepEqual([TestTokenMetas.Word]);
+
+            expect(lTokenList[3]).toHaveProperty('metas');
+            expect((<any>lTokenList[3])['metas']).toBeDeepEqual([TestTokenMetas.Number]);
+
+            expect(lTokenList[4]).toHaveProperty('metas');
+            expect((<any>lTokenList[4])['metas']).toBeDeepEqual([TestTokenMetas.Word]);
+
+            expect(lTokenList[5]).toHaveProperty('metas');
+            expect((<any>lTokenList[5])['metas']).toBeDeepEqual([TestTokenMetas.Number]);
+
+            expect(lTokenList[6]).toHaveProperty('metas');
+            expect((<any>lTokenList[6])['metas']).toBeDeepEqual([TestTokenMetas.Word]);
+
+            expect(lTokenList[7]).toHaveProperty('metas');
+            expect((<any>lTokenList[7])['metas']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
+
+            expect(lTokenList[8]).toHaveProperty('metas');
+            expect((<any>lTokenList[8])['metas']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+
+            expect(lTokenList[9]).toHaveProperty('metas');
+            expect((<any>lTokenList[9])['metas']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+
+            expect(lTokenList[10]).toHaveProperty('metas');
+            expect((<any>lTokenList[10])['metas']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+
+            expect(lTokenList[11]).toHaveProperty('metas');
+            expect((<any>lTokenList[11])['metas']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
         });
 
         it('-- Invalid token', () => {
@@ -362,7 +386,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lErrorFunction).to.throw(ParserException, `Unable to parse next token. No valid pattern found for "// is here"`);
+            expect(lErrorFunction).toThrow(`Unable to parse next token. No valid pattern found for "// is here"`);
         });
 
         it('-- Tokenize newline', () => {
@@ -374,8 +398,8 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[7]).property('value').to.equal('(Braket and \nnewline)');
-            expect(lTokenList[7]).property('lineNumber').to.equal(1);
+            expect(lTokenList[7]).toHaveProperty('value', '(Braket and \nnewline)');
+            expect(lTokenList[7]).toHaveProperty('lineNumber', 1);
         });
 
         it('-- Priorize specification', () => {
@@ -387,7 +411,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Custom);
         });
 
         it('-- Split token with narrow self reference', () => {
@@ -409,12 +433,12 @@ describe('Lexer', () => {
 
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
 
-            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[3]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Braket);
         });
 
         it('-- Split token with narrow self reference second tokenize', () => {
@@ -438,12 +462,12 @@ describe('Lexer', () => {
             [...lLexer.tokenize('(a(a))')];
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
 
-            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[3]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Braket);
         });
 
         it('-- Split token with wide self reference', () => {
@@ -474,14 +498,14 @@ describe('Lexer', () => {
 
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a[a()])')];
 
-            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
-            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Word);
-            expect(lTokenList[6]).property('type').to.equal(TestTokenType.Braket);
-            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[3]).toHaveProperty('type', TestTokenType.Custom);
+            expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Word);
+            expect(lTokenList[6]).toHaveProperty('type', TestTokenType.Braket);
+            expect(lTokenList[7]).toHaveProperty('type', TestTokenType.Word);
         });
 
         describe('-- Error token', () => {
@@ -497,14 +521,15 @@ describe('Lexer', () => {
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
 
                 // Evaluation
-                expect(lTokenList).has.lengthOf(5);
+                expect(lTokenList).toHaveLength(5);
 
                 // Error token ////
-                expect(lTokenList[1]).property('value').to.equal('//// ');
-                expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
-                expect(lTokenList[1]).property('lineNumber').to.equal(1);
-                expect(lTokenList[1]).property('columnNumber').to.equal(6);
-                expect(lTokenList[1]).property('metas').to.deep.equal([]);
+                expect(lTokenList[1]).toHaveProperty('value', '//// ');
+                expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Error);
+                expect(lTokenList[1]).toHaveProperty('lineNumber', 1);
+                expect(lTokenList[1]).toHaveProperty('columnNumber', 6);
+                expect(lTokenList[1]).toHaveProperty('meta');
+                expect((<any>lTokenList[1])['meta']).toBeDeepEqual([]);
             });
 
             it('-- Nested', () => {
@@ -519,14 +544,15 @@ describe('Lexer', () => {
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
 
                 // Evaluation
-                expect(lTokenList).has.lengthOf(7);
+                expect(lTokenList).toHaveLength(7);
 
                 // Error token ////
-                expect(lTokenList[2]).property('value').to.equal('$%$%');
-                expect(lTokenList[2]).property('type').to.equal(TestTokenType.Error);
-                expect(lTokenList[2]).property('lineNumber').to.equal(1);
-                expect(lTokenList[2]).property('columnNumber').to.equal(7);
-                expect(lTokenList[2]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+                expect(lTokenList[2]).toHaveProperty('value', '$%$%');
+                expect(lTokenList[2]).toHaveProperty('type', TestTokenType.Error);
+                expect(lTokenList[2]).toHaveProperty('lineNumber', 1);
+                expect(lTokenList[2]).toHaveProperty('columnNumber', 7);
+                expect(lTokenList[2]).toHaveProperty('metas');
+                expect((<any>lTokenList[2])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
             });
 
             it('-- Different lines', () => {
@@ -541,21 +567,23 @@ describe('Lexer', () => {
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
 
                 // Evaluation
-                expect(lTokenList).has.lengthOf(10);
+                expect(lTokenList).toHaveLength(10);
 
                 // Error token ////
-                expect(lTokenList[1]).property('value').to.equal('//// ');
-                expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
-                expect(lTokenList[1]).property('lineNumber').to.equal(1);
-                expect(lTokenList[1]).property('columnNumber').to.equal(6);
-                expect(lTokenList[1]).property('metas').to.deep.equal([]);
+                expect(lTokenList[1]).toHaveProperty('value', '//// ');
+                expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Error);
+                expect(lTokenList[1]).toHaveProperty('lineNumber', 1);
+                expect(lTokenList[1]).toHaveProperty('columnNumber', 6);
+                expect(lTokenList[1]).toHaveProperty('meta');
+                expect((<any>lTokenList[1])['meta']).toBeDeepEqual([]);
 
                 // Error token ////
-                expect(lTokenList[5]).property('value').to.equal('$%$%');
-                expect(lTokenList[5]).property('type').to.equal(TestTokenType.Error);
-                expect(lTokenList[5]).property('lineNumber').to.equal(2);
-                expect(lTokenList[5]).property('columnNumber').to.equal(7);
-                expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+                expect(lTokenList[5]).toHaveProperty('value', '$%$%');
+                expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Error);
+                expect(lTokenList[5]).toHaveProperty('lineNumber', 2);
+                expect(lTokenList[5]).toHaveProperty('columnNumber', 7);
+                expect(lTokenList[5]).toHaveProperty('meta');
+                expect((<any>lTokenList[5])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
             });
 
             it('-- At end', () => {
@@ -570,14 +598,15 @@ describe('Lexer', () => {
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
 
                 // Evaluation
-                expect(lTokenList).has.lengthOf(5);
+                expect(lTokenList).toHaveLength(5);
 
                 // Error token ////
-                expect(lTokenList[4]).property('value').to.equal('////');
-                expect(lTokenList[4]).property('type').to.equal(TestTokenType.Error);
-                expect(lTokenList[4]).property('lineNumber').to.equal(1);
-                expect(lTokenList[4]).property('columnNumber').to.equal(17);
-                expect(lTokenList[4]).property('metas').to.deep.equal([]);
+                expect(lTokenList[4]).toHaveProperty('value', '////');
+                expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Error);
+                expect(lTokenList[4]).toHaveProperty('lineNumber', 1);
+                expect(lTokenList[4]).toHaveProperty('columnNumber', 17);
+                expect(lTokenList[4]).toHaveProperty('meta');
+                expect((<any>lTokenList[4])['meta']).toBeDeepEqual([]);
             });
         });
 
@@ -599,8 +628,8 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<'aaa' | 'bbb'>> = [...lLexer.tokenize('bbbaaa')];
 
             // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal('bbb');
-            expect(lTokenList[1]).property('type').to.equal('aaa');
+            expect(lTokenList[0]).toHaveProperty('type', 'bbb');
+            expect(lTokenList[1]).toHaveProperty('type', 'aaa');
         });
 
         it('-- Validate full matches', () => {
@@ -622,7 +651,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('A group of a token pattern must match the whole token.');
+            expect(lErrorFunction).toThrow('A group of a token pattern must match the whole token.');
         });
 
         it('-- Invalid type group names.', () => {
@@ -644,7 +673,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Regex: "(?<token>(?<aaa>aaa)|(?<ccc>ccc))"');
+            expect(lErrorFunction).toThrow('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Regex: "(?<token>(?<aaa>aaa)|(?<ccc>ccc))"');
         });
 
         it('-- Has meta check', () => {
@@ -656,7 +685,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('1')];
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
-            expect(lTokenList[0].hasMeta(TestTokenMetas.Number)).to.be.true;
+            expect(lTokenList[0].hasMeta(TestTokenMetas.Number)).toBeTruthy();
         });
 
         it('-- Nested token cant find closing token', () => {
@@ -668,8 +697,9 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
 
             // Evaluation.
-            expect(lTokenList).to.has.lengthOf(4);
-            expect(lTokenList[3]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+            expect(lTokenList).toHaveLength(4);
+            expect(lTokenList[3]).toHaveProperty('metas');
+            expect((<any>lTokenList[1])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
         });
     });
 
@@ -687,7 +717,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lSuccessFunction).to.not.throw();
+            expect(lSuccessFunction).not.toThrow();
         });
 
         it('-- Non existing pattern.', () => {
@@ -701,7 +731,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Lexer template "${lTemplateName}" does not exist.`);
+            expect(lErrorFunction).toThrow(`Lexer template "${lTemplateName}" does not exist.`);
         });
 
         it('-- Override specificity', () => {
@@ -718,7 +748,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('aaa')];
 
             // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Custom);
         });
     });
 });

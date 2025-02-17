@@ -1,5 +1,5 @@
-import { CodeParser } from '../../code-parser';
-import { GraphPart } from './graph-part';
+import { CodeParser } from '../../code-parser.ts';
+import { GraphPart } from './graph-part.ts';
 
 /**
  * Reference to a graph part.

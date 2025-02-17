@@ -1,7 +1,8 @@
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
 import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { GraphException, GraphParseError } from '../../source/exception/graph-exception';
-import { LexerToken } from '../../source/lexer/lexer-token';
+import { GraphException, GraphParseError } from '../source/exception/graph-exception.ts';
+import { LexerToken } from '../source/lexer/lexer-token.ts';
 
 describe('GrapthException', () => {
     it('Property: errorCount', () => {
@@ -14,7 +15,7 @@ describe('GrapthException', () => {
         const lErrorCount: number = lError.errorCount;
 
         // Evaluation.
-        expect(lErrorCount).to.equal(2);
+        expect(lErrorCount).toBe(2);
     });
 
     it('Method: appendError', () => {
@@ -26,7 +27,7 @@ describe('GrapthException', () => {
         lError.appendError('Message2', new LexerToken('Type', 'Value', 1, 2));
 
         // Evaluation.
-        expect(lError.errorCount).to.equal(2);
+        expect(lError.errorCount).toBe(2);
     });
 
     it('Method: merge', () => {
@@ -43,7 +44,7 @@ describe('GrapthException', () => {
         lError.merge(lErrorTwo);
 
         // Evaluation.
-        expect(lError.errorCount).to.equal(4);
+        expect(lError.errorCount).toBe(4);
     });
 
     describe('Method: mostRelevant', () => {
@@ -57,7 +58,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- Two errors positive priority order.', () => {
@@ -71,7 +72,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- Two errors negative priority order.', () => {
@@ -85,7 +86,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- Priorize lines over columns', () => {
@@ -99,7 +100,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- Only undefined token, take last.', () => {
@@ -113,7 +114,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- Undefined token, take none undefined.', () => {
@@ -127,7 +128,7 @@ describe('GrapthException', () => {
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
 
             // Evaluation.
-            expect(lGraphError.message).to.equal(lErrorMessage);
+            expect(lGraphError.message).toBe(lErrorMessage);
         });
 
         it('-- No attached errors', () => {
@@ -140,7 +141,7 @@ describe('GrapthException', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'No error attached to graph exception.');
+            expect(lErrorFunction).toThrow('No error attached to graph exception.');
         });
     });
 
@@ -159,7 +160,7 @@ describe('GrapthException', () => {
             });
 
             // Evaluation.
-            expect(lError.errorCount).to.equal(2);
+            expect(lError.errorCount).toBe(2);
         });
 
         it('-- Throw none GraphException', () => {
@@ -175,7 +176,7 @@ describe('GrapthException', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, lMessage);
+            expect(lErrorFunction).toThrow(lMessage);
         });
     });
 

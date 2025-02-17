@@ -1,14 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { CodeParser } from '../../source/code-parser';
-import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
-import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
-import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
-import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
-import { GraphPart } from '../../source/graph/part/graph-part';
-import { GraphPartReference } from '../../source/graph/part/graph-part-reference';
-import { Lexer } from '../../source/lexer/lexer';
-import { ParserException } from '../../source/exception/parser-exception';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { CodeParser } from '../source/code-parser.ts';
+import { ParserException } from '../source/exception/parser-exception.ts';
+import { AnonymoutGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
+import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
+import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
+import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
+import { GraphPartReference } from '../source/graph/part/graph-part-reference.ts';
+import { GraphPart } from '../source/graph/part/graph-part.ts';
+import { Lexer } from '../source/lexer/lexer.ts';
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -47,7 +48,7 @@ describe('CodeParser', () => {
         const lParser = new CodeParser<string, any>(lLexer);
 
         // Evaluation
-        expect(lParser.lexer).to.equal(lLexer);
+        expect(lParser.lexer).toBe(lLexer);
     });
 
     it('Property: maxRecursion', () => {
@@ -59,7 +60,7 @@ describe('CodeParser', () => {
         lParser.maxRecursion = lRecursionValue;
 
         // Evaluation
-        expect(lParser.maxRecursion).to.equal(lRecursionValue);
+        expect(lParser.maxRecursion).toBe(lRecursionValue);
     });
 
     describe('Method: defineGraphPart', () => {
@@ -73,8 +74,9 @@ describe('CodeParser', () => {
             );
 
             // Evaluation.
-            expect(lParser.getGraphPart('branch')).has.property('graph').and.be.instanceOf(GrammarSingleNode);
-            expect(lParser.getGraphPart('branch')).has.property('dataCollector').and.be.null;
+            expect(lParser.getGraphPart('branch')).toHaveProperty('graph');
+            expect(lParser.getGraphPart('branch').graph).toBeInstanceOf(GrammarSingleNode);
+            expect(lParser.getGraphPart('branch')).toHaveProperty('dataCollector', null);
         });
 
         it('-- Define default with collector', () => {
@@ -89,8 +91,9 @@ describe('CodeParser', () => {
             );
 
             // Evaluation.
-            expect(lParser.getGraphPart('branch')).has.property('graph').and.be.instanceOf(GrammarSingleNode);
-            expect(lParser.getGraphPart('branch')).has.property('dataCollector').and.equal(lDataCollector);
+            expect(lParser.getGraphPart('branch')).toHaveProperty('graph');
+            expect(lParser.getGraphPart('branch').graph).toBeInstanceOf(GrammarSingleNode);
+            expect(lParser.getGraphPart('branch')).toHaveProperty('dataCollector', lDataCollector);
         });
 
         it('-- Duplicate graph part', () => {
@@ -104,7 +107,7 @@ describe('CodeParser', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throws(Exception, /already defined/);
+            expect(lErrorFunction).toThrow(/already defined/);
         });
     });
 
@@ -120,8 +123,9 @@ describe('CodeParser', () => {
             const lGraphPart: GraphPart<TokenType> = lParser.getGraphPart('branch');
 
             // Evaluation.
-            expect(lGraphPart).has.property('graph').and.be.instanceOf(GrammarSingleNode);
-            expect(lGraphPart).has.property('dataCollector').and.be.null;
+            expect(lGraphPart).toHaveProperty('graph');
+            expect(lGraphPart.graph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraphPart).toHaveProperty('dataCollector', null);
         });
 
         it('-- Missing part', () => {
@@ -134,7 +138,7 @@ describe('CodeParser', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(Exception);
+            expect(lErrorFunction).toThrow(Exception);
         });
     });
 
@@ -147,7 +151,7 @@ describe('CodeParser', () => {
             const lGraph: BaseGrammarNode<TokenType> = lParser.graph();
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(AnonymoutGrammarNode);
+            expect(lGraph).toBeInstanceOf(AnonymoutGrammarNode);
         });
 
         it('-- Create with single node chain', () => {
@@ -158,7 +162,7 @@ describe('CodeParser', () => {
             const lGraph: BaseGrammarNode<TokenType> = lParser.graph().single(TokenType.Assignment);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
         });
 
 
@@ -170,8 +174,8 @@ describe('CodeParser', () => {
             const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop(null, TokenType.Assignment).single(TokenType.Assignment);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).be.instanceOf(GrammarLoopNode);
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBeInstanceOf(GrammarLoopNode);
         });
     });
 
@@ -195,9 +199,9 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('modifier').and.equals('const');
-                expect(lParsedData).has.property('variableName').and.equals('name');
-                expect(lParsedData).has.property('typeName').and.equals('number');
+                expect(lParsedData).toHaveProperty('modifier', 'const');
+                expect(lParsedData).toHaveProperty('variableName', 'name');
+                expect(lParsedData).toHaveProperty('typeName', 'number');
             });
 
             it('-- Linear Parsing with optionals', () => {
@@ -218,9 +222,9 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('modifier').and.equals('const');
-                expect(lParsedData).has.property('variableName').and.equals('name');
-                expect(lParsedData).has.property('typeName').and.equals('number');
+                expect(lParsedData).toHaveProperty('modifier', 'const');
+                expect(lParsedData).toHaveProperty('variableName', 'name');
+                expect(lParsedData).toHaveProperty('typeName', 'number');
             });
 
             it('-- Linear Parsing with two ending optionals without value', () => {
@@ -241,9 +245,9 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('modifier').and.equals('const');
-                expect(lParsedData).has.property('variableName').and.equals('name');
-                expect(lParsedData).has.property('typeName').and.equals('number');
+                expect(lParsedData).toHaveProperty('modifier', 'const');
+                expect(lParsedData).toHaveProperty('variableName', 'name');
+                expect(lParsedData).toHaveProperty('typeName', 'number');
             });
         });
 
@@ -271,8 +275,8 @@ describe('CodeParser', () => {
                 const lParsedModifierData: any = lParser.parse(lCodeTextModifier);
 
                 // Evaluation.
-                expect(lParsedIdentifierData).has.property('data').and.equals('notconst');
-                expect(lParsedModifierData).has.property('data').and.equals('const');
+                expect(lParsedIdentifierData).toHaveProperty('data', 'notconst');
+                expect(lParsedModifierData).toHaveProperty('data', 'const');
             });
 
             it('-- Branch Parsing with existing optionals', () => {
@@ -298,8 +302,10 @@ describe('CodeParser', () => {
                 const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
 
                 // Evaluation.
-                expect(lParsedNumberData).has.property('data').and.deep.equals({ optional: '123' });
-                expect(lParsedIdentifierData).has.property('data').and.deep.equals({ required: 'myname' });
+                expect(lParsedNumberData).toHaveProperty('data');
+                expect(lParsedNumberData.data).toBeDeepEqual({ optional: '123' });
+                expect(lParsedIdentifierData).toHaveProperty('data');
+                expect(lParsedIdentifierData.data).toBeDeepEqual({ required: 'myname' });
             });
 
             it('-- Branch Parsing with missing optionals', () => {
@@ -322,7 +328,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('data').and.deep.equals({});
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual({});
             });
 
             it('-- Optional branch parsing with existing token', () => {
@@ -345,7 +352,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('data').and.deep.equals({ optional: 'const' });
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual({ optional: 'const' });
             });
 
             it('-- Optional branch parsing without existing token', () => {
@@ -368,7 +376,7 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).to.deep.equals({});
+                expect(lParsedData).toBeDeepEqual({});
             });
         });
 
@@ -391,7 +399,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual(['one', 'two', 'three', 'four', 'five']);
             });
 
             it('-- Loop Parsing with different front and back data.', () => {
@@ -412,7 +421,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual(['one', 'two', 'three', 'four', 'five']);
             });
 
             it('-- Loop wrapped greedy parsing.', () => {
@@ -423,7 +433,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -433,9 +443,10 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('first').and.deep.equals('one');
-                expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four']);
-                expect(lParsedData).has.property('second').and.deep.equals('five');
+                expect(lParsedData).toHaveProperty('first', 'one');
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual(['two', 'three', 'four']);
+                expect(lParsedData).toHaveProperty('second', 'five');
             });
 
             it('-- Loop start greedy parsing', () => {
@@ -456,9 +467,10 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('first').and.deep.equals('one');
-                expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four', 'five']);
-                expect(lParsedData).has.property('second').and.deep.equals('const');
+                expect(lParsedData).toHaveProperty('first', 'one');
+                expect(lParsedData).toHaveProperty('data');
+                expect(lParsedData.data).toBeDeepEqual(['two', 'three', 'four', 'five']);
+                expect(lParsedData).toHaveProperty('second', 'const');
             });
 
             it('-- Loop Parsing with missing items', () => {
@@ -479,7 +491,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('loop').and.deep.equals([]);
+                expect(lParsedData).toHaveProperty('loop');
+                expect(lParsedData.loop).toBeDeepEqual([]);
             });
 
             it('-- Optional recursion loops', () => {
@@ -502,7 +515,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier] -> Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier]`);
+                expect(lErrorFunction).toThrow(`Circular dependency detected between: Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier] -> Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier]`);
             });
 
             it('-- Empty data for loops', () => {
@@ -522,7 +535,8 @@ describe('CodeParser', () => {
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
 
-                expect(lParsedData).has.property('loop').and.lengthOf(0);
+                expect(lParsedData).toHaveProperty('loop');
+                expect(lParsedData.loop).toHaveLength(0);
             });
 
             it('-- Empty data for nested loops into single', () => {
@@ -548,7 +562,8 @@ describe('CodeParser', () => {
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
 
-                expect(lParsedData).has.property('value').has.property('loop').and.lengthOf(0);
+                expect(lParsedData).toHaveProperty('value');
+                expect(lParsedData.value).toHaveLength(0);
             });
 
             it('-- Loop with optional inner node.', () => {
@@ -569,8 +584,8 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('first').and.deep.equals('one');
-                expect(lParsedData).has.property('second').and.deep.equals('five');
+                expect(lParsedData).toHaveProperty('first', 'one');
+                expect(lParsedData).toHaveProperty('second', 'five');
             });
         });
 
@@ -601,7 +616,7 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.have.property('part').to.equal(lCodeText);
+                expect(lResult).toHaveProperty('part', lCodeText);
             });
 
             it('-- Reference without collector', () => {
@@ -627,7 +642,8 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.have.property('part').and.property('data').to.equal(lCodeText);
+                expect(lResult).toHaveProperty('part');
+                expect(lResult.part).toHaveProperty('data', lCodeText);
             });
 
             it('-- Reference as optional value with value', () => {
@@ -656,7 +672,8 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.have.property('part').and.property('data');
+                expect(lResult).toHaveProperty('part');
+                expect(lResult.part).toHaveProperty('data');
             });
 
             it('-- Reference as optional value without value', () => {
@@ -685,8 +702,8 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.have.property('modifier');
-                expect(lResult).to.not.have.property('part');
+                expect(lResult).toHaveProperty('modifier');
+                expect(lResult).not.toHaveProperty('part');
             });
 
             it('-- Self reference with same data for inner and outer reference.', () => {
@@ -707,7 +724,7 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.deep.equals({
+                expect(lResult).toBeDeepEqual({
                     start: 'const',
                     inner: {
                         start: 'const',
@@ -735,7 +752,7 @@ describe('CodeParser', () => {
                 const lResult = lParser.parse(lCodeText);
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).to.deep.equals({
+                expect(lResult).toBeDeepEqual({
                     start: 'const',
                     inner: {
                         start: 'const',
@@ -757,7 +774,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, 'Parser has not root part set.');
+                expect(lErrorFunction).toThrow('Parser has not root part set.');
             });
 
             it('-- Single parse error, wrong token type.', () => {
@@ -780,7 +797,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Unexpected token. "${TokenType.Number}" expected`);
+                expect(lErrorFunction).toThrow(`Unexpected token. "${TokenType.Number}" expected`);
             });
 
             it('-- Single parse error, missing token.', () => {
@@ -803,7 +820,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(ParserException, `Unexpected end of statement. TokenIndex: "1" missing.`);
+                expect(lErrorFunction).toThrow(`Unexpected end of statement. TokenIndex: "1" missing.`);
             });
 
             it('-- Single parse error, no token.', () => {
@@ -826,7 +843,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(ParserException, `Unexpected end of statement. TokenIndex: "0" missing.`);
+                expect(lErrorFunction).toThrow(`Unexpected end of statement. TokenIndex: "0" missing.`);
             });
 
             it('-- Graph end meet without reaching last token.', () => {
@@ -849,7 +866,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token. Current: "identifier" (${TokenType.Identifier})`);
+                expect(lErrorFunction).toThrow(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "identifier" (${TokenType.Identifier})`);
             });
 
             it('-- Dublicate branching paths', () => {
@@ -875,7 +892,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
+                expect(lErrorFunction).toThrow(`Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
             });
 
             it('-- Detect endless circular dependency over multiple references.', () => {
@@ -901,7 +918,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+                expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
             });
 
             it('-- Detect endless circular dependency with loop.', () => {
@@ -921,7 +938,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+                expect(lErrorFunction).toThrow(`Circular dependency detected between: Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
             });
 
             it('-- Detect endless circular dependency with branch.', () => {
@@ -944,7 +961,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
+                expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
         });
 
@@ -967,7 +984,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Graph path has a dublicate value identifier "Something"`);
+                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "Something"`);
             });
 
             it('-- Graph has dublicate list value identifier. With existing single identifier.', () => {
@@ -988,7 +1005,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Graph path has a dublicate value identifier "Something" that is not a list value but should be.`);
+                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "Something" that is not a list value but should be.`);
             });
 
             it('-- Not completing to end and failing on the first token.', () => {
@@ -1009,7 +1026,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token. Current: "Notconst" (${TokenType.Identifier})`);
+                expect(lErrorFunction).toThrow(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "Notconst" (${TokenType.Identifier})`);
             });
         });
 
@@ -1032,7 +1049,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
+                expect(lErrorFunction).toThrow(lErrorMessage);
             });
 
             it('-- Keep error messages of string', () => {
@@ -1053,7 +1070,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
+                expect(lErrorFunction).toThrow(lErrorMessage);
             });
 
             it('-- Error positions single token.', () => {
@@ -1074,11 +1091,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 6);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 1);
+                expect(lException).toHaveProperty('columnEnd', 6);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 1);
             });
 
             it('-- Error positions chained token without newline.', () => {
@@ -1099,11 +1117,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 12);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 1);
+                expect(lException).toHaveProperty('columnEnd', 12);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 1);
             });
 
             it('-- Error rethrow on parser erro.', () => {
@@ -1124,8 +1143,9 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.equal(lError);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toBe(lError);
             });
 
             it('-- Error positions chained token with newline.', () => {
@@ -1146,11 +1166,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 6);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 1);
+                expect(lException).toHaveProperty('columnEnd', 6);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 2);
             });
 
             it('-- Error positions with only optional token.', () => {
@@ -1171,11 +1192,13 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
-                lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 1);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('message', lErrorMessage);
+                expect(lException).toHaveProperty('columnStart', 1);
+                expect(lException).toHaveProperty('columnEnd', 1);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 1);
             });
 
             it('-- Error positions with no parse data.', () => {
@@ -1195,11 +1218,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 1);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 1);
+                expect(lException).toHaveProperty('columnEnd', 1);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 1);
             });
 
             it('-- Multi error after line break.', () => {
@@ -1220,11 +1244,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 12);
-                lException.with.property('columnEnd', 17);
-                lException.with.property('lineStart', 2);
-                lException.with.property('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 12);
+                expect(lException).toHaveProperty('columnEnd', 17);
+                expect(lException).toHaveProperty('lineStart', 2);
+                expect(lException).toHaveProperty('lineEnd', 2);
             });
 
             it('-- Error with an multiline token.', () => {
@@ -1247,11 +1272,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
-                lException.with.property('columnStart', 18);
-                lException.with.property('columnEnd', 5);
-                lException.with.property('lineStart', 1);
-                lException.with.property('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
+                expect(lException).toBeInstanceOf(ParserException);
+                expect(lException).toHaveProperty('columnStart', 18);
+                expect(lException).toHaveProperty('columnEnd', 5);
+                expect(lException).toHaveProperty('lineStart', 1);
+                expect(lException).toHaveProperty('lineEnd', 2);
             });
         });
     });
@@ -1268,7 +1294,7 @@ describe('CodeParser', () => {
         const lOriginalPart = lParser.getGraphPart('Part');
 
         // Evaluation.
-        expect(lReference.resolveReference()).to.equal(lOriginalPart);
+        expect(lReference.resolveReference()).toBe(lOriginalPart);
     });
 
     describe('Method: setRootGraphPart', () => {
@@ -1295,7 +1321,7 @@ describe('CodeParser', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throws(`Path part "${lPartName}" not defined.`);
+            expect(lErrorFunction).toThrow(`Path part "${lPartName}" not defined.`);
         });
 
         it('-- Set root part with missing data collector', () => {
@@ -1310,7 +1336,7 @@ describe('CodeParser', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throws(`A root graph part needs a defined data collector.`);
+            expect(lErrorFunction).toThrow(`A root graph part needs a defined data collector.`);
         });
     });
 });

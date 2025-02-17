@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { LexerToken } from '../lexer/lexer-token';
+import { LexerToken } from '../lexer/lexer-token.ts';
 
 /**
  * Exception exclusive to graph errors.

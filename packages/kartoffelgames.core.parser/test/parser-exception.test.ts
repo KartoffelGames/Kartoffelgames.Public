@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { ParserException } from '../../source/exception/parser-exception';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { ParserException } from '../source/exception/parser-exception.ts';
 
 describe('ParserException', () => {
     it('Method: columnEnd', () => {
@@ -11,7 +12,7 @@ describe('ParserException', () => {
         const lColumnEnd: number = lError.columnEnd;
 
         // Evaluation.
-        expect(lColumnEnd).to.equal(lValue);
+        expect(lColumnEnd).toBe(lValue);
     });
 
     it('Method: columnStart', () => {
@@ -23,7 +24,7 @@ describe('ParserException', () => {
         const lColumnStart: number = lError.columnStart;
 
         // Evaluation.
-        expect(lColumnStart).to.equal(lValue);
+        expect(lColumnStart).toBe(lValue);
     });
 
     it('Method: lineEnd', () => {
@@ -35,7 +36,7 @@ describe('ParserException', () => {
         const lLineEnd: number = lError.lineEnd;
 
         // Evaluation.
-        expect(lLineEnd).to.equal(lValue);
+        expect(lLineEnd).toBe(lValue);
     });
 
     it('Method: lineStart', () => {
@@ -47,6 +48,6 @@ describe('ParserException', () => {
         const lLineStart: number = lError.lineStart;
 
         // Evaluation.
-        expect(lLineStart).to.equal(lValue);
+        expect(lLineStart).toBe(lValue);
     });
 });

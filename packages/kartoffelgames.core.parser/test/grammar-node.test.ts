@@ -1,11 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
-import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
-import { GrammarBranchNode } from '../../source/graph/node/grammer-branch-node';
-import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
-import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
-import { GrammarNodeValueType } from '../../source/graph/node/grammer-node-value-type.enum';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { AnonymoutGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
+import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
+import { GrammarBranchNode } from '../source/graph/node/grammer-branch-node.ts';
+import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
+import { GrammarNodeValueType } from '../source/graph/node/grammer-node-value-type.enum.ts';
+import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
 
 describe('GrammarNode', () => {
     it('Property: branchRoot', () => {
@@ -16,7 +17,7 @@ describe('GrammarNode', () => {
         const lGraph: BaseGrammarNode<string> = lSingleNode.single('Value');
 
         // Evaluation.
-        expect(lGraph.branchRoot).to.equal(lSingleNode);
+        expect(lGraph.branchRoot).toBe(lSingleNode);
     });
 
     it('Property: identifier', () => {
@@ -24,7 +25,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, 'Name');
 
         // Evaluation.
-        expect(lSingleNode.identifier).to.equal('Name');
+        expect(lSingleNode.identifier).toBe('Name');
     });
 
     it('Property: required', () => {
@@ -32,7 +33,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, null);
 
         // Evaluation.
-        expect(lSingleNode.required).to.be.true;
+        expect(lSingleNode.required).toBeTruthy()
     });
 
     it('Property: valueType', () => {
@@ -40,7 +41,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, null);
 
         // Evaluation.
-        expect(lSingleNode.valueType).to.equal(GrammarNodeValueType.Single);
+        expect(lSingleNode.valueType).toBe(GrammarNodeValueType.Single);
     });
 
     describe('Functionality: Chainging', () => {
@@ -52,9 +53,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.single('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.true;
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeTruthy();
         });
 
         it('-- Create with chaining optional unnamed', () => {
@@ -65,9 +66,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.optional('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining branch unnamed', () => {
@@ -78,9 +79,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.branch(['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.true;
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeTruthy();
         });
 
         it('-- Create with chaining optional branch unnamed', () => {
@@ -91,9 +92,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.optionalBranch(['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining loop unnamed', () => {
@@ -104,9 +105,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.loop('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarLoopNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarLoopNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining single named', () => {
@@ -117,10 +118,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.single('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.true;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeTruthy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining optional named', () => {
@@ -131,10 +132,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.optional('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining branch named', () => {
@@ -145,10 +146,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.branch('Name', ['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.true;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeTruthy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining optional branch named', () => {
@@ -159,10 +160,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.optionalBranch('Name', ['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining loop named', () => {
@@ -173,10 +174,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lSingleNode.loop('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarLoopNode);
-            expect(lGraph.branchRoot).to.equal(lSingleNode);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarLoopNode);
+            expect(lGraph.branchRoot).toBe(lSingleNode);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Error on Node double chaining', () => {
@@ -190,7 +191,7 @@ describe('GrammarNode', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(Exception);
+            expect(lErrorFunction).toThrow(Exception);
         });
     });
 
@@ -203,9 +204,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.single('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.true;
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeTruthy();
         });
 
         it('-- Create with chaining optional unnamed', () => {
@@ -216,9 +217,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optional('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining branch unnamed', () => {
@@ -229,9 +230,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.branch(['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.true;
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeTruthy();
         });
 
         it('-- Create with chaining optional branch unnamed', () => {
@@ -242,9 +243,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optionalBranch(['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining loop unnamed', () => {
@@ -255,9 +256,9 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.loop('Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarLoopNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
+            expect(lGraph).toBeInstanceOf(GrammarLoopNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
         });
 
         it('-- Create with chaining single named', () => {
@@ -268,10 +269,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.single('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.true;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeTruthy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining optional named', () => {
@@ -282,10 +283,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optional('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarSingleNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarSingleNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining branch named', () => {
@@ -296,10 +297,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.branch('Name', ['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.true;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeTruthy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining optional branch named', () => {
@@ -310,10 +311,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optionalBranch('Name', ['Value']);
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarBranchNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         it('-- Create with chaining loop named', () => {
@@ -324,10 +325,10 @@ describe('GrammarNode', () => {
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.loop('Name', 'Value');
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarLoopNode);
-            expect(lGraph.branchRoot).to.equal(lGraph);
-            expect(lGraph.required).to.be.false;
-            expect(lGraph.identifier).to.equal('Name');
+            expect(lGraph).toBeInstanceOf(GrammarLoopNode);
+            expect(lGraph.branchRoot).toBe(lGraph);
+            expect(lGraph.required).toBeFalsy();
+            expect(lGraph.identifier).toBe('Name');
         });
 
         describe('-- Errors', () => {
@@ -341,7 +342,7 @@ describe('GrammarNode', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throw(Exception);
+                expect(lErrorFunction).toThrow(Exception);
             });
 
             it('-- Anonymous node values', () => {
@@ -354,7 +355,7 @@ describe('GrammarNode', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throw(Exception);
+                expect(lErrorFunction).toThrow(Exception);
             });
         });
     });

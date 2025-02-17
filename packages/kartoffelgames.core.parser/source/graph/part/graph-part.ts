@@ -1,4 +1,4 @@
-import { BaseGrammarNode } from '../node/base-grammar-node';
+import { BaseGrammarNode } from '../node/base-grammar-node.ts';
 
 /**
  * Graph part.

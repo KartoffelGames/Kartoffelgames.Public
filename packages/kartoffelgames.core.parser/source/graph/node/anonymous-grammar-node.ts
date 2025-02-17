@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum';
+import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Anonymous node.
@@ -171,7 +171,7 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
 }
 
 // Load child branches after parent to prevent circular dependency problems.
-import { GrammarBranchNode } from './grammer-branch-node';
-import { GrammarLoopNode } from './grammer-loop-node';
-import { GrammarSingleNode } from './grammer-single-node';
+import { GrammarBranchNode } from './grammer-branch-node.ts';
+import { GrammarLoopNode } from './grammer-loop-node.ts';
+import { GrammarSingleNode } from './grammer-single-node.ts';
 

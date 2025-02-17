@@ -1,4 +1,4 @@
-import { expect } from '@std/expect';
+import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Stack } from '../../source/data_container/stack.ts';
 
@@ -112,7 +112,7 @@ describe('Stack', () => {
         const lAsArray: Array<number> = [...lStack.entries()];
 
         // Evaluation.
-        expect(lValues.reverse()).to.deep.equals(lAsArray);
+        expect(lValues.reverse()).toDeepEqual(lAsArray);
     });
 
     describe('Property: flush', () => {
@@ -129,7 +129,7 @@ describe('Stack', () => {
             const lFlushedValues = lStack.flush();
 
             // Evaluation.
-            expect(lFlushedValues).to.deep.equals(lValueList.reverse());
+            expect(lFlushedValues).toDeepEqual(lValueList.reverse());
         });
 
         it('-- No values', () => {
@@ -156,7 +156,7 @@ describe('Stack', () => {
             const lFlushedValues = lStack.flush();
 
             // Evaluation.
-            expect(lFlushedValues).to.deep.equals(lValueList.reverse());
+            expect(lFlushedValues).toDeepEqual(lValueList.reverse());
         });
     });
 
@@ -184,7 +184,7 @@ describe('Stack', () => {
         const lAsArray: Array<number> = lStack.toArray();
 
         // Evaluation.
-        expect(lValues.reverse()).to.deep.equals(lAsArray);
+        expect(lValues.reverse()).toDeepEqual(lAsArray);
     });
 
     it('Method: clone', () => {
@@ -199,7 +199,7 @@ describe('Stack', () => {
         const lClone: Stack<number> = lStack.clone();
 
         // Evaluation.
-        expect(lStack.toArray()).to.deep.equals(lClone.toArray());
+        expect(lStack.toArray()).toDeepEqual(lClone.toArray());
     });
 
     describe('Method: pop', () => {

@@ -1,5 +1,5 @@
 import { describe, it } from '@std/testing/bdd';
-import { expect } from '@std/expect';
+import { expect } from '@kartoffelgames/core-test';
 import { List } from '../../source/data_container/list.ts';
 
 describe('List', () => {
@@ -11,7 +11,7 @@ describe('List', () => {
         const lList: List<string> = List.newListWith(...lArray);
 
         // Evaluation.
-        expect(lList).to.be.deep.equal(lArray);
+        expect(lList).toDeepEqual(lArray);
     });
 
     describe('Method: equals', () => {
@@ -95,8 +95,8 @@ describe('List', () => {
         const lListClone: List<string> = lList.clone();
 
         // Evaluation.
-        expect(lListClone).to.be.deep.equal(lList);
-        expect(lListClone).to.be.not.equal(lList);
+        expect(lListClone).toDeepEqual(lList);
+        expect(lListClone).not.toBe(lList);
     });
 
     it('Method: distinct', () => {
@@ -107,7 +107,7 @@ describe('List', () => {
         const lDistinctList: List<string> = lList.distinct();
 
         // Evaluation.
-        expect(lDistinctList).to.be.deep.equal(['Value1', 'Value2']);
+        expect(lDistinctList).toDeepEqual(['Value1', 'Value2']);
     });
 
     describe('Method: remove', () => {
@@ -120,7 +120,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBe('Value1');
-            expect(lList).to.be.deep.equal(['Value2', 'Value1']);
+            expect(lList).toDeepEqual(['Value2', 'Value1']);
         });
 
         it('-- Remove none existing item', () => {
@@ -132,7 +132,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBeUndefined();
-            expect(lList).to.be.deep.equal(['Value1']);
+            expect(lList).toDeepEqual(['Value1']);
         });
     });
 
@@ -146,7 +146,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBe('Value1');
-            expect(lList).to.be.deep.equal(['Value3', 'Value2', 'Value1']);
+            expect(lList).toDeepEqual(['Value3', 'Value2', 'Value1']);
         });
 
         it('-- Replace none existant item', () => {
@@ -158,7 +158,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBeUndefined();
-            expect(lList).to.be.deep.equal(['Value1']);
+            expect(lList).toDeepEqual(['Value1']);
         });
     });
 

@@ -1,4 +1,4 @@
-import { expect } from '@std/expect';
+import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Dictionary } from '../../source/data_container/dictionary.ts';
 import { Exception } from '../../source/exception/exception.ts';
@@ -105,7 +105,7 @@ describe('Dictionary', () => {
         const lKeyOfValue1List: Array<string> = lDictionary.getAllKeysOfValue(lValue1);
 
         // Evaluation.
-        expect(lKeyOfValue1List).to.be.deep.equal([lKey1, lKey3]);
+        expect(lKeyOfValue1List).toDeepEqual([lKey1, lKey3]);
     });
 
     it('Method: getOrDefault', () => {
@@ -134,7 +134,7 @@ describe('Dictionary', () => {
         });
 
         // Evaluation.
-        expect(lMappedList).to.be.deep.equal(['Key1Value1', 'Key2Value2']);
+        expect(lMappedList).toDeepEqual(['Key1Value1', 'Key2Value2']);
     });
 
     it('Method: has', () => {

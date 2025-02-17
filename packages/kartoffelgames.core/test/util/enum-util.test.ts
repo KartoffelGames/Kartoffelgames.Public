@@ -1,5 +1,5 @@
+import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { expect } from '@std/expect';
 import { EnumUtil } from '../../source/util/enum-util.ts';
 
 describe('EnumUtil', () => {
@@ -149,7 +149,7 @@ describe('EnumUtil', () => {
             const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
-            expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
+            expect(lNameArray).toDeepEqual(['One', 'Two', 'Three', 'Five']);
         });
 
         it('-- String Enum', () => {
@@ -165,7 +165,7 @@ describe('EnumUtil', () => {
             const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
-            expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
+            expect(lNameArray).toDeepEqual(['One', 'Two', 'Three', 'Five']);
         });
 
         it('-- Mixed Enum', () => {
@@ -181,7 +181,7 @@ describe('EnumUtil', () => {
             const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
-            expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
+            expect(lNameArray).toDeepEqual(['One', 'Two', 'Three', 'Five']);
         });
     });
 
@@ -199,7 +199,7 @@ describe('EnumUtil', () => {
             const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
-            expect(lValueArray).to.be.deep.equal([1, 2, 3, 5]);
+            expect(lValueArray).toDeepEqual([1, 2, 3, 5]);
         });
 
         it('-- String Enum', () => {
@@ -215,7 +215,7 @@ describe('EnumUtil', () => {
             const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
-            expect(lValueArray).to.be.deep.equal(['one1', 'two2', 'three3', 'five5']);
+            expect(lValueArray).toDeepEqual(['one1', 'two2', 'three3', 'five5']);
         });
 
         it('-- Mixed Enum', () => {
@@ -231,7 +231,7 @@ describe('EnumUtil', () => {
             const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
-            expect(lValueArray).to.be.deep.equal([1, 2, 'three3', 'five5']);
+            expect(lValueArray).toDeepEqual([1, 2, 'three3', 'five5']);
         });
     });
 });

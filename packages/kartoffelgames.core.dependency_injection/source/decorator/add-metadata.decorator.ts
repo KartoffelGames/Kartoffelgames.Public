@@ -1,5 +1,5 @@
-import { ReflectInitializer } from '../reflect/reflect-initializer';
-import { InjectionConstructor } from '../type';
+import { ReflectInitializer } from '../reflect/reflect-initializer.ts';
+import { InjectionConstructor } from '../type.ts';
 
 ReflectInitializer.initialize();
 

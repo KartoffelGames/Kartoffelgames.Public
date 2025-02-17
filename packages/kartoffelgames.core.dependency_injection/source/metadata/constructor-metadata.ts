@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectionConstructor } from '../type';
-import { PropertyMetadata } from './property-metadata';
-import { BaseMetadata } from './base-metadata';
+import { InjectionConstructor } from '../type.ts';
+import { PropertyMetadata } from './property-metadata.ts';
+import { BaseMetadata } from './base-metadata.ts';
 
 /**
  * Constructor metadata.

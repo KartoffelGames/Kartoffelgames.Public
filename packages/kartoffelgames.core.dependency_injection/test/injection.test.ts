@@ -1,10 +1,11 @@
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
 import { Dictionary } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { InjectMode } from '../../source/enum/inject-mode';
-import { Injectable } from '../../source/decorator/injectable.decorator';
-import { InjectableSingleton } from '../../source/decorator/injectable-singleton.decorator';
-import { Injection } from '../../source/injection/injection';
-import { InjectionConstructor } from '../../source/type';
+import { InjectMode } from '../source/enum/inject-mode.ts';
+import { Injectable } from '../source/decorator/injectable.decorator.ts';
+import { InjectableSingleton } from '../source/decorator/injectable-singleton.decorator.ts';
+import { Injection } from '../source/injection/injection.ts';
+import { InjectionConstructor } from '../source/type.ts';
 
 /**
  * Decorator.
@@ -28,7 +29,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrows).to.throw(`Constructor "${TestA.name}" is not registered for injection and can not be build`);
+            expect(lThrows).toThrow(`Constructor "${TestA.name}" is not registered for injection and can not be build`);
         });
 
         it('-- Default without parameter', () => {
@@ -40,7 +41,7 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
         });
 
         it('-- Default with parameter', () => {
@@ -56,9 +57,9 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(TestParameterA);
-            expect(lCreatedObject.mParameterB).to.be.instanceOf(TestParameterB);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(TestParameterA);
+            expect(lCreatedObject.mParameterB).toBeInstanceOf(TestParameterB);
         });
 
         it('-- Default with parameter, parameter is singleton.', () => {
@@ -75,9 +76,9 @@ describe('Injection', () => {
             const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObjectOne.mDefault).to.be.instanceOf(TestParameterA);
-            expect(lCreatedObjectOne.mSingleton).to.be.instanceOf(TestParameterB);
-            expect(lCreatedObjectOne.mSingleton).to.equal(lCreatedObjectTwo.mSingleton);
+            expect(lCreatedObjectOne.mDefault).toBeInstanceOf(TestParameterA);
+            expect(lCreatedObjectOne.mSingleton).toBeInstanceOf(TestParameterB);
+            expect(lCreatedObjectOne.mSingleton).toBe(lCreatedObjectTwo.mSingleton);
         });
 
         it('-- Default with parameter, parameter not registered.', () => {
@@ -92,7 +93,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrows).to.throw(`Parameter "${TestParameter.name}" of ${TestA.name} is not registered to be injectable.`);
+            expect(lThrows).toThrow(`Parameter "${TestParameter.name}" of ${TestA.name} is not registered to be injectable.`);
         });
 
         it('-- Singleton without parameter', () => {
@@ -105,8 +106,8 @@ describe('Injection', () => {
             const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObjectOne).to.be.instanceOf(TestA);
-            expect(lCreatedObjectOne).to.equal(lCreatedObjectTwo);
+            expect(lCreatedObjectOne).toBeInstanceOf(TestA);
+            expect(lCreatedObjectOne).toBe(lCreatedObjectTwo);
         });
 
         it('-- Singleton with parameter', () => {
@@ -122,9 +123,9 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(TestParameterA);
-            expect(lCreatedObject.mParameterB).to.be.instanceOf(TestParameterB);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(TestParameterA);
+            expect(lCreatedObject.mParameterB).toBeInstanceOf(TestParameterB);
         });
 
         it('-- Singleton force create', () => {
@@ -137,8 +138,8 @@ describe('Injection', () => {
             const lCreatedObjectTwo: TestA = Injection.createObject(TestA, true);
 
             // Evaluation.
-            expect(lCreatedObjectTwo).to.be.instanceOf(TestA);
-            expect(lCreatedObjectOne).to.not.equal(lCreatedObjectTwo);
+            expect(lCreatedObjectTwo).toBeInstanceOf(TestA);
+            expect(lCreatedObjectOne).not.toBe(lCreatedObjectTwo);
         });
 
         it('-- Default with layered history', () => {
@@ -155,8 +156,8 @@ describe('Injection', () => {
             const lCreatedObjectB: TestB = Injection.createObject(TestB);
 
             // Evaluation.
-            expect(lCreatedObjectA).to.be.instanceOf(TestA);
-            expect(lCreatedObjectB).to.be.instanceOf(TestB);
+            expect(lCreatedObjectA).toBeInstanceOf(TestA);
+            expect(lCreatedObjectB).toBeInstanceOf(TestB);
         });
 
         it('-- Default with layered history with parameter', () => {
@@ -173,9 +174,9 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(TestParameterA);
-            expect(lCreatedObject.mParameterB).to.be.instanceOf(TestParameterB);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(TestParameterA);
+            expect(lCreatedObject.mParameterB).toBeInstanceOf(TestParameterB);
         });
 
         it('-- Default with parameter with layered history', () => {
@@ -190,8 +191,8 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(TestParameterA);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(TestParameterA);
         });
 
         it('-- Default with parameter with injection replacement', () => {
@@ -210,8 +211,8 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(ReplacementTestParameterA);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(ReplacementTestParameterA);
         });
 
         it('-- Default injection replacement with layered history', () => {
@@ -236,8 +237,8 @@ describe('Injection', () => {
 
             // Evaluation.
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameterA).to.be.instanceOf(ReplacementTestParameterA);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameterA).toBeInstanceOf(ReplacementTestParameterA);
         });
 
         it('-- Default with second layer local injection', () => {
@@ -259,9 +260,9 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA, lLocalInjectionMap);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameter).to.be.instanceOf(TestParameterLayerOne);
-            expect(lCreatedObject.mParameter.mParameter).to.equal(lLocalInjectionParameter);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameter).toBeInstanceOf(TestParameterLayerOne);
+            expect(lCreatedObject.mParameter.mParameter).toBe(lLocalInjectionParameter);
         });
 
         it('-- Singleton ignore local injections', () => {
@@ -283,11 +284,11 @@ describe('Injection', () => {
             const lCreatedObjectWithout: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObjectWith).to.equal(lCreatedObjectWithout);
-            expect(lCreatedObjectWith).to.be.instanceOf(TestA);
-            expect(lCreatedObjectWithout).to.be.instanceOf(TestA);
-            expect(lCreatedObjectWith.mParameter).to.be.instanceOf(TestParameter);
-            expect(lCreatedObjectWithout.mParameter).to.be.instanceOf(TestParameter);
+            expect(lCreatedObjectWith).toBe(lCreatedObjectWithout);
+            expect(lCreatedObjectWith).toBeInstanceOf(TestA);
+            expect(lCreatedObjectWithout).toBeInstanceOf(TestA);
+            expect(lCreatedObjectWith.mParameter).toBeInstanceOf(TestParameter);
+            expect(lCreatedObjectWithout.mParameter).toBeInstanceOf(TestParameter);
         });
 
         it('-- Singleton create with local injections on force create', () => {
@@ -307,8 +308,8 @@ describe('Injection', () => {
             const lCreatedObject: TestA = Injection.createObject(TestA, true, lLocalInjectionMap);
 
             // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameter).to.equal(lLocalInjectionParameter);
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameter).toBe(lLocalInjectionParameter);
         });
 
         it('-- Default with with faulty parameter.', () => {
@@ -332,7 +333,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Parameter "${TestParameterA.name}" of ${TestA.name} is not injectable.\n${lErrorMessage}`);
+            expect(lErrorFunction).toThrow(`Parameter "${TestParameterA.name}" of ${TestA.name} is not injectable.\n${lErrorMessage}`);
         });
     });
 
@@ -345,7 +346,7 @@ describe('Injection', () => {
         const lCreatedObject = Injection.createObject<Type>(Type);
 
         // Evaluation.
-        expect(lCreatedObject).to.be.an.instanceOf(Type);
+        expect(lCreatedObject).toBeInstanceOf(Type);
     });
 
     describe('Static Method: replaceInjectable', () => {
@@ -372,7 +373,7 @@ describe('Injection', () => {
             const lCreatedObject = Injection.createObject<TestClass>(TestClass);
 
             // Evaluation.
-            expect(lCreatedObject.a).to.be.an.instanceOf(ReplacementType);
+            expect(lCreatedObject.a).toBeInstanceOf(ReplacementType);
         });
 
         it('-- Original not registerd', () => {
@@ -389,7 +390,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrowErrorFunction).to.throw('Original constructor is not registered.');
+            expect(lThrowErrorFunction).toThrow('Original constructor is not registered.');
         });
 
         it('-- Replacement not registerd', () => {
@@ -406,7 +407,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrowErrorFunction).to.throw('Replacement constructor is not registered.');
+            expect(lThrowErrorFunction).toThrow('Replacement constructor is not registered.');
         });
     });
 });

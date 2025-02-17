@@ -1,7 +1,7 @@
-import { InjectMode } from '../enum/inject-mode';
-import { ReflectInitializer } from '../reflect/reflect-initializer';
-import { InjectionConstructor } from '../type';
-import { Injection } from '../injection/injection';
+import { InjectMode } from '../enum/inject-mode.ts';
+import { ReflectInitializer } from '../reflect/reflect-initializer.ts';
+import { InjectionConstructor } from '../type.ts';
+import { Injection } from '../injection/injection.ts';
 
 ReflectInitializer.initialize();
 

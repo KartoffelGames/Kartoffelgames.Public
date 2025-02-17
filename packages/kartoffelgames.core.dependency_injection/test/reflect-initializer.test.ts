@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { Metadata } from '../../source/metadata/metadata';
-import { ReflectInitializer } from '../../source/reflect/reflect-initializer';
-import { InjectionConstructor } from '../../source/type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { Metadata } from '../source/metadata/metadata.ts';
+import { ReflectInitializer } from '../source/reflect/reflect-initializer.ts';
+import { InjectionConstructor } from '../source/type.ts';
 
 /**
  * Decorator.
@@ -21,8 +22,8 @@ describe('ReflectInitializer', () => {
         const lDecorate = Reflect.get(Reflect, 'decorate');
 
         // Evaluation.
-        expect(typeof lMetadata).to.equal('function');
-        expect(typeof lDecorate).to.equal('function');
+        expect(typeof lMetadata).toBe('function');
+        expect(typeof lDecorate).toBe('function');
     });
 
     describe('Functionality: Metadata', () => {
@@ -37,7 +38,7 @@ describe('ReflectInitializer', () => {
             const lMemberType: InjectionConstructor | null = Metadata.get(TestA).getProperty('property').type;
 
             // Process.
-            expect(lMemberType).to.equal(String);
+            expect(lMemberType).toBe(String);
         });
 
         it('-- Function Parameter Type Metadata', () => {
@@ -51,7 +52,7 @@ describe('ReflectInitializer', () => {
             const lParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(TestA).getProperty('function').parameterTypes;
 
             // Process.
-            expect(lParameterTypeList).to.have.ordered.members([Number, String]);
+            expect(lParameterTypeList).toHaveOrderedItems([Number, String]);
         });
 
         it('-- Function Result Type Metadata', () => {
@@ -65,7 +66,7 @@ describe('ReflectInitializer', () => {
             const lResultType: InjectionConstructor | null = Metadata.get(TestA).getProperty('function').returnType;
 
             // Process.
-            expect(lResultType).to.equal(String);
+            expect(lResultType).toBe(String);
         });
 
         it('-- Constructor Parameter Type Metadata', () => {
@@ -79,7 +80,7 @@ describe('ReflectInitializer', () => {
             const lConstructorParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(TestA).parameterTypes;
 
             // Process.
-            expect(lConstructorParameterTypeList).to.have.ordered.members([String, Number]);
+            expect(lConstructorParameterTypeList).toHaveOrderedItems([String, Number]);
         });
 
         it('-- Accessor Type Metadata', () => {
@@ -94,7 +95,7 @@ describe('ReflectInitializer', () => {
             const lAccessorReturnType: InjectionConstructor | null = Metadata.get(TestA).getProperty('value').type;
 
             // Process.
-            expect(lAccessorReturnType).to.equal(Number);
+            expect(lAccessorReturnType).toBe(Number);
         });
 
         it('-- Accessor Parameter Type Metadata', () => {
@@ -109,7 +110,7 @@ describe('ReflectInitializer', () => {
             const lAccessorParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(TestA).getProperty('value').parameterTypes;
 
             // Process.
-            expect(lAccessorParameterTypeList).to.have.ordered.members([Number]);
+            expect(lAccessorParameterTypeList).toHaveOrderedItems([Number]);
         });
 
         it('-- Ignore constructor parameter decorator metadata', () => {
@@ -149,7 +150,7 @@ describe('ReflectInitializer', () => {
             class TestA { }
 
             // Evaluation.
-            expect(TestA.prototype).to.have.property(lPrototypeKey, lPrototypeValue);
+            expect(TestA.prototype).toHaveProperty(lPrototypeKey, lPrototypeValue);
         });
 
         it('-- Decorate Constructor Replace Original', () => {
@@ -164,10 +165,12 @@ describe('ReflectInitializer', () => {
 
             // Setup.
             @lDecorator
-            class TestA { }
+            class TestA {
+                static [index: string | number | symbol]: any;
+            }
 
             // Evaluation.
-            expect(TestA).to.have.property(lPrototypeKey, lPrototypeValue);
+            expect(TestA[lPrototypeKey]).toBe(lPrototypeValue);
         });
 
         it('-- Decorate Constructor Return Wrong Value', () => {
@@ -185,7 +188,7 @@ describe('ReflectInitializer', () => {
             };
 
             // Evaluation.
-            expect(lThrowsErrorFunction).to.throw('Constructor decorator does not return supported value.');
+            expect(lThrowsErrorFunction).toThrow('Constructor decorator does not return supported value.');
         });
 
         it('-- Decorate Property', () => {
@@ -206,7 +209,7 @@ describe('ReflectInitializer', () => {
             }
 
             // Evaluation.
-            expect(lResultParameterName).to.equal(lPrototypeKey);
+            expect(lResultParameterName).toBe(lPrototypeKey);
         });
 
         it('-- Decorate Function Keep Original', () => {
@@ -223,7 +226,7 @@ describe('ReflectInitializer', () => {
             }
 
             // Evaluation.
-            expect(TestA.prototype.function).to.equal(lNewValue);
+            expect(TestA.prototype.function).toBe(lNewValue);
         });
 
         it('-- Decorate Function Replace Original', () => {
@@ -246,7 +249,7 @@ describe('ReflectInitializer', () => {
             const lCreatedClass = new TestA();
 
             // Evaluation.
-            expect(lCreatedClass.function()).to.equal(lNewValue);
+            expect(lCreatedClass.function()).toBe(lNewValue);
         });
 
         it('-- Decorate Function Return Wrong Value', () => {
@@ -265,7 +268,7 @@ describe('ReflectInitializer', () => {
             };
 
             // Evaluation.
-            expect(lThrowsErrorFunction).to.throw('Member decorator does not return supported value.');
+            expect(lThrowsErrorFunction).toThrow('Member decorator does not return supported value.');
         });
 
         it('-- Decorate Accessor Keep Original', () => {
@@ -286,7 +289,7 @@ describe('ReflectInitializer', () => {
             const lCreatedClass = new TestA();
 
             // Evaluation.
-            expect(lCreatedClass.value).to.equal(lNewValue);
+            expect(lCreatedClass.value).toBe(lNewValue);
         });
 
         it('-- Decorate Accessor Replace Original', () => {
@@ -310,7 +313,7 @@ describe('ReflectInitializer', () => {
             const lCreatedClass = new TestA();
 
             // Evaluation.
-            expect(lCreatedClass.value).to.equal(lNewValue);
+            expect(lCreatedClass.value).toBe(lNewValue);
         });
 
         it('-- Decorate Accessor Return Wrong Value', () => {
@@ -330,7 +333,7 @@ describe('ReflectInitializer', () => {
             };
 
             // Evaluation.
-            expect(lThrowsErrorFunction).to.throw('Member decorator does not return supported value.');
+            expect(lThrowsErrorFunction).toThrow('Member decorator does not return supported value.');
         });
 
         it('-- Decorate Parameter', () => {
@@ -347,7 +350,7 @@ describe('ReflectInitializer', () => {
             }
 
             // Evaluate.
-            expect(lParameterIndex).to.equal(1);
+            expect(lParameterIndex).toBe(1);
         });
 
     });

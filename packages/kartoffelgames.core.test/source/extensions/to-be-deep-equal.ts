@@ -2,7 +2,7 @@ import { expect } from "@std/expect";
 
 // Extend expect with deepEqual.
 expect.extend({
-    toDeepEqual(pContext, pTargetValue: any) {
+    toBeDeepEqual(pContext, pTargetValue: object) {
         const lSourceValue: any = pContext.value;
         const lTargetValue: any = pTargetValue;
 
@@ -18,5 +18,5 @@ expect.extend({
         }
 
         return { message: () => `Expected object to deep equal.`, pass: lCheckPassed };
-    },
+    }
 });

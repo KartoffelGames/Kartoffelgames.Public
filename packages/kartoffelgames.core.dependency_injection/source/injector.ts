@@ -1,7 +1,7 @@
-import { Injectable } from './decorator/injectable.decorator';
-import { InjectableSingleton } from './decorator/injectable-singleton.decorator';
-import { AddMetadata } from './decorator/add-metadata.decorator';
-import { ReflectInitializer } from './reflect/reflect-initializer';
+import { Injectable } from './decorator/injectable.decorator.ts';
+import { InjectableSingleton } from './decorator/injectable-singleton.decorator.ts';
+import { AddMetadata } from './decorator/add-metadata.decorator.ts';
+import { ReflectInitializer } from './reflect/reflect-initializer.ts';
 
 export class Injector {
     /**

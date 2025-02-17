@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { ConstructorMetadata } from '../../../source/metadata/constructor-metadata';
-import { PropertyMetadata } from '../../../source/metadata/property-metadata';
-import { InjectionConstructor } from '../../../source/type';
-import { Metadata } from '../../../source';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
+import { PropertyMetadata } from '../../source/metadata/property-metadata.ts';
+import { InjectionConstructor } from '../../source/type.ts';
+import { Metadata } from "../../source/metadata/metadata.ts";
 
 describe('ConstructorMetadata', () => {
     describe('Property: parameterTypes', () => {
@@ -16,7 +17,7 @@ describe('ConstructorMetadata', () => {
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
-            expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);
+            expect(lResultParameterList).toHaveOrderedItems(lParameterTypeList);
         });
 
         it('-- Read: No Data', () => {
@@ -27,7 +28,7 @@ describe('ConstructorMetadata', () => {
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
-            expect(lResultParameterList).to.be.null;
+            expect(lResultParameterList).toBeNull();
         });
 
         it('-- Write', () => {
@@ -40,7 +41,7 @@ describe('ConstructorMetadata', () => {
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
-            expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);
+            expect(lResultParameterList).toHaveOrderedItems(lParameterTypeList);
         });
     });
 
@@ -56,7 +57,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.equal(lMetadataValue);
+            expect(lResultMetadatavalue).toBe(lMetadataValue);
         });
 
         it('-- Missing Metadata', () => {
@@ -67,7 +68,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.be.null;
+            expect(lResultMetadatavalue).toBeNull();
         });
 
         it('-- Overwrite value', () => {
@@ -82,7 +83,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.equal(lMetadataValue);
+            expect(lResultMetadatavalue).toBe(lMetadataValue);
         });
 
         it('-- Get inside decorator', () => {
@@ -100,7 +101,7 @@ describe('ConstructorMetadata', () => {
             const lOuterConstructorMetadata: ConstructorMetadata = Metadata.get(Test);
 
             // Evaluation.
-            expect(lInnerConstructorMetadata).to.equal(lOuterConstructorMetadata);
+            expect(lInnerConstructorMetadata).toBe(lOuterConstructorMetadata);
         });
     });
 
@@ -123,7 +124,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: Array<string> = lMetadata.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.deep.equal([lMetadataValue]);
+            expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValue]);
         });
 
         it('-- With inherited data', () => {
@@ -153,7 +154,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB, lMetadataValueC]);
+            expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB, lMetadataValueC]);
         });
 
         it('-- With only inherited data', () => {
@@ -181,7 +182,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB]);
+            expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);
         });
 
         it('-- Read inherited data from parent', () => {
@@ -211,7 +212,7 @@ describe('ConstructorMetadata', () => {
             const lResultMetadatavalue: Array<string> = lMetadataB.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB]);
+            expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);
         });
     });
 
@@ -224,7 +225,7 @@ describe('ConstructorMetadata', () => {
             const lConstructorMetadata = lMetadata.getProperty('SomeProperty');
 
             // Evaluation.
-            expect(lConstructorMetadata).to.be.instanceOf(PropertyMetadata);
+            expect(lConstructorMetadata).toBeInstanceOf(PropertyMetadata);
         });
 
         it('-- Get Existing Metadata ', () => {
@@ -237,7 +238,7 @@ describe('ConstructorMetadata', () => {
             const lNewConstructorMetadata = lMetadata.getProperty(lPropertyName);
 
             // Evaluation.
-            expect(lOldConstructorMetadata).to.equal(lNewConstructorMetadata);
+            expect(lOldConstructorMetadata).toBe(lNewConstructorMetadata);
         });
     });
 });

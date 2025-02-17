@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { ConstructorMetadata } from '../../../source/metadata/constructor-metadata';
-import { Metadata } from '../../../source/metadata/metadata';
-import { DecorationReplacementHistory } from '../../../source/decoration-history/decoration-history';
-import { InjectionConstructor } from '../../../source/type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
+import { Metadata } from '../../source/metadata/metadata.ts';
+import { DecorationReplacementHistory } from '../../source/decoration-history/decoration-history.ts';
+import { InjectionConstructor } from '../../source/type.ts';
 
 /**
  * Decorator.
@@ -24,7 +25,7 @@ describe('Metadata', () => {
             const lConstructorMetadata = Metadata.get(TestA);
 
             // Evaluation.
-            expect(lConstructorMetadata).to.be.instanceOf(ConstructorMetadata);
+            expect(lConstructorMetadata).toBeInstanceOf(ConstructorMetadata);
         });
 
         it('-- Get Existing Metadata ', () => {
@@ -36,7 +37,7 @@ describe('Metadata', () => {
             const lNewConstructorMetadata = Metadata.get(TestA);
 
             // Evaluation.
-            expect(lOldConstructorMetadata).to.equal(lNewConstructorMetadata);
+            expect(lOldConstructorMetadata).toBe(lNewConstructorMetadata);
         });
 
         it('-- Get With Decoration History', () => {
@@ -52,7 +53,7 @@ describe('Metadata', () => {
             const lParentConstructorMetadata = Metadata.get(lTestParent);
 
             // Evaluation.
-            expect(lChildConstructorMetadata).to.equal(lParentConstructorMetadata);
+            expect(lChildConstructorMetadata).toBe(lParentConstructorMetadata);
         });
     });
 });

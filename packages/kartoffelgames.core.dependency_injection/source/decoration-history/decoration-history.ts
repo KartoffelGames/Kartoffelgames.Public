@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectionConstructor } from '../type';
+import { InjectionConstructor } from '../type.ts';
 
 /**
  * Decoration history keeps track of any class that was replaces through a decorator.

@@ -11,7 +11,7 @@ describe('List', () => {
         const lList: List<string> = List.newListWith(...lArray);
 
         // Evaluation.
-        expect(lList).toDeepEqual(lArray);
+        expect(lList).toBeDeepEqual(lArray);
     });
 
     describe('Method: equals', () => {
@@ -95,7 +95,7 @@ describe('List', () => {
         const lListClone: List<string> = lList.clone();
 
         // Evaluation.
-        expect(lListClone).toDeepEqual(lList);
+        expect(lListClone).toBeDeepEqual(lList);
         expect(lListClone).not.toBe(lList);
     });
 
@@ -107,7 +107,7 @@ describe('List', () => {
         const lDistinctList: List<string> = lList.distinct();
 
         // Evaluation.
-        expect(lDistinctList).toDeepEqual(['Value1', 'Value2']);
+        expect(lDistinctList).toBeDeepEqual(['Value1', 'Value2']);
     });
 
     describe('Method: remove', () => {
@@ -120,7 +120,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBe('Value1');
-            expect(lList).toDeepEqual(['Value2', 'Value1']);
+            expect(lList).toBeDeepEqual(['Value2', 'Value1']);
         });
 
         it('-- Remove none existing item', () => {
@@ -132,7 +132,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBeUndefined();
-            expect(lList).toDeepEqual(['Value1']);
+            expect(lList).toBeDeepEqual(['Value1']);
         });
     });
 
@@ -146,7 +146,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBe('Value1');
-            expect(lList).toDeepEqual(['Value3', 'Value2', 'Value1']);
+            expect(lList).toBeDeepEqual(['Value3', 'Value2', 'Value1']);
         });
 
         it('-- Replace none existant item', () => {
@@ -158,7 +158,7 @@ describe('List', () => {
 
             // Evaluation.
             expect(lRemovedValue).toBeUndefined();
-            expect(lList).toDeepEqual(['Value1']);
+            expect(lList).toBeDeepEqual(['Value1']);
         });
     });
 

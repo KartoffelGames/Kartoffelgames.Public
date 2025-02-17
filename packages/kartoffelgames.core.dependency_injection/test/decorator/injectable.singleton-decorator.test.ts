@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { InjectableSingleton } from '../../../source/decorator/injectable-singleton.decorator';
-import { Injection } from '../../../source/injection/injection';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { InjectableSingleton } from '../../source/decorator/injectable-singleton.decorator.ts';
+import { Injection } from '../../source/injection/injection.ts';
 
 
 describe('InjectableSingleton', () => {
@@ -14,7 +15,7 @@ describe('InjectableSingleton', () => {
         const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
 
         // Evaluation.
-        expect(lCreatedObjectOne).to.be.instanceOf(TestA);
-        expect(lCreatedObjectOne).to.equal(lCreatedObjectTwo);
+        expect(lCreatedObjectOne).toBeInstanceOf(TestA);
+        expect(lCreatedObjectOne).toBe(lCreatedObjectTwo);
     });
 });

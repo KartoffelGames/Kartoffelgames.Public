@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
-import { InjectionConstructor } from '../type';
-import { ConstructorMetadata } from './constructor-metadata';
+import { DecorationReplacementHistory } from '../decoration-history/decoration-history.ts';
+import { InjectionConstructor } from '../type.ts';
+import { ConstructorMetadata } from './constructor-metadata.ts';
 
 /**
  * Static.

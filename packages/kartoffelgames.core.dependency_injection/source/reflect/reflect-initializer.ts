@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
-import { Metadata } from '../metadata/metadata';
-import { InjectionConstructor } from '../type';
+import { DecorationReplacementHistory } from '../decoration-history/decoration-history.ts';
+import { Metadata } from '../metadata/metadata.ts';
+import { InjectionConstructor } from '../type.ts';
 
 /**
  * Initializes global metadata reflection functionality of typescript.
@@ -143,7 +143,7 @@ export class ReflectInitializer {
     private static export<T>(pKey: string, pValue: T) {
         // Find root for accessing Reflect.
         /* istanbul ignore next */
-        const lRoot: any = typeof window === 'object' ? window : global;
+        const lRoot: any = typeof window === 'object' ? window : globalThis;
 
         // Set target as Reflect of root. (window or global).
         const lTarget: typeof Reflect = lRoot.Reflect;

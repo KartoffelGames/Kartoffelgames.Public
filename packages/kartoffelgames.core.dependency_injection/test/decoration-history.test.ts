@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { DecorationReplacementHistory } from '../../source/decoration-history/decoration-history';
-import { InjectionConstructor } from '../../source/type';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DecorationReplacementHistory } from '../source/decoration-history/decoration-history.ts';
+import { InjectionConstructor } from '../source/type.ts';
 
 describe('DecorationHistory', () => {
     it('Static Method: addHistory', () => {
@@ -15,7 +16,7 @@ describe('DecorationHistory', () => {
         const lRootConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(TestLayer3);
 
         // Evaluation.
-        expect(lRootConstructor).to.equal(TestLayer1);
+        expect(lRootConstructor).toBe(TestLayer1);
     });
 
     it('Static Method: getRootOf', () => {
@@ -30,6 +31,6 @@ describe('DecorationHistory', () => {
         const lRootConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(TestLayer3);
 
         // Evaluation.
-        expect(lRootConstructor).to.equal(TestLayer1);
+        expect(lRootConstructor).toBe(TestLayer1);
     });
 });

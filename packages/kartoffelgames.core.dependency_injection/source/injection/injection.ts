@@ -1,8 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { InjectMode } from '../enum/inject-mode';
-import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
-import { InjectionConstructor } from '../type';
-import { Metadata } from '../metadata/metadata';
+import { InjectMode } from '../enum/inject-mode.ts';
+import { DecorationReplacementHistory } from '../decoration-history/decoration-history.ts';
+import { InjectionConstructor } from '../type.ts';
+import { Metadata } from '../metadata/metadata.ts';
 
 /**
  * Injection configuration and creator.

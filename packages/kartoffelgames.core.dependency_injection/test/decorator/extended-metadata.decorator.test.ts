@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { AddMetadata } from '../../../source/decorator/add-metadata.decorator';
-import { Metadata } from '../../../source/metadata/metadata';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { AddMetadata } from '../../source/decorator/add-metadata.decorator.ts';
+import { Metadata } from '../../source/metadata/metadata.ts';
 
 describe('ExtendedMetadata', () => {
     describe('Decorator: Metadata', () => {
@@ -17,7 +18,7 @@ describe('ExtendedMetadata', () => {
             const lResultMetadataValue: object | null = Metadata.get(TestA).getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadataValue).to.equal(lMetadataValue);
+            expect(lResultMetadataValue).toBe(lMetadataValue);
         });
 
         it('-- Property Metadata', () => {
@@ -36,7 +37,7 @@ describe('ExtendedMetadata', () => {
             const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadataValue).to.equal(lMetadataValue);
+            expect(lResultMetadataValue).toBe(lMetadataValue);
         });
 
         it('-- Property Metadata', () => {
@@ -54,7 +55,7 @@ describe('ExtendedMetadata', () => {
             const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadataValue).to.equal(lMetadataValue);
+            expect(lResultMetadataValue).toBe(lMetadataValue);
         });
 
         it('-- Accessor Metadata', () => {
@@ -73,7 +74,7 @@ describe('ExtendedMetadata', () => {
             const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
-            expect(lResultMetadataValue).to.equal(lMetadataValue);
+            expect(lResultMetadataValue).toBe(lMetadataValue);
         });
     });
 });

@@ -1,5 +1,5 @@
-import { InjectionConstructor } from '../type';
-import { BaseMetadata } from './base-metadata';
+import { InjectionConstructor } from '../type.ts';
+import { BaseMetadata } from './base-metadata.ts';
 
 /**
  * Property metadata.

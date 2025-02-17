@@ -112,7 +112,7 @@ describe('Stack', () => {
         const lAsArray: Array<number> = [...lStack.entries()];
 
         // Evaluation.
-        expect(lValues.reverse()).toDeepEqual(lAsArray);
+        expect(lValues.reverse()).toBeDeepEqual(lAsArray);
     });
 
     describe('Property: flush', () => {
@@ -129,7 +129,7 @@ describe('Stack', () => {
             const lFlushedValues = lStack.flush();
 
             // Evaluation.
-            expect(lFlushedValues).toDeepEqual(lValueList.reverse());
+            expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
         });
 
         it('-- No values', () => {
@@ -156,7 +156,7 @@ describe('Stack', () => {
             const lFlushedValues = lStack.flush();
 
             // Evaluation.
-            expect(lFlushedValues).toDeepEqual(lValueList.reverse());
+            expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
         });
     });
 
@@ -184,7 +184,7 @@ describe('Stack', () => {
         const lAsArray: Array<number> = lStack.toArray();
 
         // Evaluation.
-        expect(lValues.reverse()).toDeepEqual(lAsArray);
+        expect(lValues.reverse()).toBeDeepEqual(lAsArray);
     });
 
     it('Method: clone', () => {
@@ -199,7 +199,7 @@ describe('Stack', () => {
         const lClone: Stack<number> = lStack.clone();
 
         // Evaluation.
-        expect(lStack.toArray()).toDeepEqual(lClone.toArray());
+        expect(lStack.toArray()).toBeDeepEqual(lClone.toArray());
     });
 
     describe('Method: pop', () => {

@@ -105,7 +105,7 @@ describe('Dictionary', () => {
         const lKeyOfValue1List: Array<string> = lDictionary.getAllKeysOfValue(lValue1);
 
         // Evaluation.
-        expect(lKeyOfValue1List).toDeepEqual([lKey1, lKey3]);
+        expect(lKeyOfValue1List).toBeDeepEqual([lKey1, lKey3]);
     });
 
     it('Method: getOrDefault', () => {
@@ -134,7 +134,7 @@ describe('Dictionary', () => {
         });
 
         // Evaluation.
-        expect(lMappedList).toDeepEqual(['Key1Value1', 'Key2Value2']);
+        expect(lMappedList).toBeDeepEqual(['Key1Value1', 'Key2Value2']);
     });
 
     it('Method: has', () => {

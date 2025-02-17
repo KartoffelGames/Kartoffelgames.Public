@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { WebDatabaseTableLayout, TableType } from './web-database-table-layout';
+import { Injector } from '@kartoffelgames/core-dependency-injection';
+import { WebDatabaseTableLayout, TableType } from './web-database-table-layout.ts';
 
 // Needed for type metadata.
 Injector.Initialize();

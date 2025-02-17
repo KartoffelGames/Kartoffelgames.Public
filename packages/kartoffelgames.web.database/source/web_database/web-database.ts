@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TableLayoutConfig, TableLayoutConfigIndex, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout';
-import { WebDatabaseTransaction, WebDbTransactionMode } from './web-database-transaction';
+import { TableLayoutConfig, TableLayoutConfigIndex, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
+import { WebDatabaseTransaction, WebDbTransactionMode } from './web-database-transaction.ts';
 
 export class WebDatabase {
     private static readonly ANONYMOUS_IDENTITIY_KEY: string = '__id__';

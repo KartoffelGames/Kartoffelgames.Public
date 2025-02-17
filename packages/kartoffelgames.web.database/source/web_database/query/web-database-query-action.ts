@@ -1,5 +1,5 @@
-import { TableType } from '../layout/web-database-table-layout';
-import { WebDatabaseQuery } from './web-database-query';
+import { TableType } from '../layout/web-database-table-layout.ts';
+import { WebDatabaseQuery } from './web-database-query.ts';
 
 export class WebDatabaseQueryAction<TTableType extends TableType> {
     private readonly mActionCallback: WebDatabaseQueryActionCallback;

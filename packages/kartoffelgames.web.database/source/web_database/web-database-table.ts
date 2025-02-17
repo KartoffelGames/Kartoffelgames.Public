@@ -1,9 +1,9 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { TableLayoutConfig, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout';
-import { WebDatabaseQuery } from './query/web-database-query';
-import { WebDatabaseQueryAction } from './query/web-database-query-action';
-import { WebDatabaseTransaction } from './web-database-transaction';
+import { TableLayoutConfig, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
+import { WebDatabaseQuery } from './query/web-database-query.ts';
+import { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
+import { WebDatabaseTransaction } from './web-database-transaction.ts';
 
 export class WebDatabaseTable<TTableType extends TableType> {
     private readonly mTableLayout: WebDatabaseTableLayout;

@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TableType } from '../layout/web-database-table-layout';
-import { WebDatabaseTable } from '../web-database-table';
-import { WebDatabaseQueryAction } from './web-database-query-action';
+import { TableType } from '../layout/web-database-table-layout.ts';
+import { WebDatabaseTable } from '../web-database-table.ts';
+import { WebDatabaseQueryAction } from './web-database-query-action.ts';
 
 export class WebDatabaseQuery<TTableType extends TableType> {
     private readonly mQueryList: Array<WebDatabaseQueryPart>;

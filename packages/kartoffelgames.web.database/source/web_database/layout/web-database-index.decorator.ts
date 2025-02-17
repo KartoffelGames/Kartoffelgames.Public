@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { WebDatabaseTableLayout, TableType } from './web-database-table-layout';
+import { WebDatabaseTableLayout, TableType } from './web-database-table-layout.ts';
 
 /**
  * AtScript.

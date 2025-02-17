@@ -13,7 +13,7 @@
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",
-        "kg": "deno run -A jsr:@kartoffelgames/environment.cli@3.0.8"
+        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@3.0.8"
     },
     "license": "LGPL-3.0-only",
     "imports": {},

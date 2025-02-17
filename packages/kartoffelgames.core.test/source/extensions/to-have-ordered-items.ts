@@ -5,12 +5,14 @@ expect.extend({
     toHaveOrderedItems(pContext, pTargetValue: Array<any>) {
         // Target value is not an array.
         if (!Array.isArray(pContext.value)) {
-            return { message: () => `Expected value to be an array.`, pass: false };
+            // Must fail even when test is negated.
+            return { message: () => `Expected value to be an array.`, pass: false !== pContext.isNot };
         }
 
         // Target value is not an array.
         if (!Array.isArray(pTargetValue)) {
-            return { message: () => `Expected target value to be an array.`, pass: false };
+            // Must fail even when test is negated.
+            return { message: () => `Expected target value to be an array.`, pass: false !== pContext.isNot };
         }
 
         const lSourceValue: Array<any> = pContext.value;

@@ -1,0 +1,26 @@
+{
+    "name": "@kartoffelgames/web-potato-web-builder",
+    "version": "0.2.1",
+    "license": "LGPL-3.0-only",
+    "tasks": {},
+    "imports": {
+        "@std/testing": "jsr:@std/testing@^1.0.9",
+        "@std/expect": "jsr:@std/expect@^1.0.13"
+    },
+    "exports": "./source/index.ts",
+    "publish": {
+        "include": [
+            "source/",
+            "deno.json",
+            "LICENSE"
+        ]
+    },
+    "kg": {
+        "name": "Kartoffelgames.Core",
+        "root": false,
+        "config": {
+            "package_blueprint": "kg-main"
+        },
+        "source": "./source"
+    }
+}

@@ -1,8 +1,8 @@
 import { IVoidParameterConstructor } from '@kartoffelgames/core';
-import { CommentNode } from '../node/comment-node';
-import { TextNode } from '../node/text-node';
-import { XmlElement } from '../node/xml-element';
-import { BaseXmlParser } from './base-xml-parser';
+import { CommentNode } from '../node/comment-node.ts';
+import { TextNode } from '../node/text-node.ts';
+import { XmlElement } from '../node/xml-element.ts';
+import { BaseXmlParser } from './base-xml-parser.ts';
 
 export class XmlParser extends BaseXmlParser {
     /**

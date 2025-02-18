@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { XmlDocument } from '../../source/document/xml-document';
-import { BaseXmlNode } from '../../source/node/base-xml-node';
-import { TextNode } from '../../source/node/text-node';
-import { CommentNode } from '../../source/node/comment-node';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { XmlDocument } from '../source/document/xml-document.ts';
+import { BaseXmlNode } from '../source/node/base-xml-node.ts';
+import { TextNode } from '../source/node/text-node.ts';
+import { CommentNode } from '../source/node/comment-node.ts';
 
 describe('XmlDocument', () => {
     it('Property: defaultNamespace', () => {
@@ -14,7 +15,7 @@ describe('XmlDocument', () => {
         const lNamespaceResult: string = lXmlDocument.defaultNamespace;
 
         // Evaluation.
-        expect(lNamespaceResult).to.equal(lNamespace);
+        expect(lNamespaceResult).toBe(lNamespace);
     });
 
     it('Property: body', () => {
@@ -31,7 +32,7 @@ describe('XmlDocument', () => {
         const lBody: Array<BaseXmlNode> = lXmlDocument.body;
 
         // Evaluation.
-        expect(lBody).to.deep.equal([lElement1, lElement2]);
+        expect(lBody).toBeDeepEqual([lElement1, lElement2]);
     });
 
     it('Property: document', () => {
@@ -42,7 +43,7 @@ describe('XmlDocument', () => {
         const lDocument: XmlDocument = lXmlDocument.document;
 
         // Evaluation.
-        expect(lDocument).to.equal(lXmlDocument);
+        expect(lDocument).toBe(lXmlDocument);
     });
 
     it('Method: clone', () => {
@@ -54,8 +55,8 @@ describe('XmlDocument', () => {
         const lClonedDocument: XmlDocument = lXmlDocument.clone();
 
         // Evaluation.
-        expect(lClonedDocument).to.not.equal(lXmlDocument);
-        expect(lClonedDocument).to.deep.equal(lXmlDocument);
+        expect(lClonedDocument).not.toBe(lXmlDocument);
+        expect(lClonedDocument).toBeDeepEqual(lXmlDocument);
     });
 
     describe('Method: equals', () => {
@@ -74,7 +75,7 @@ describe('XmlDocument', () => {
             const lIsEqual: boolean = lXmlDocument.equals(lClonedXmlDocument);
 
             // Evaluation.
-            expect(lIsEqual).to.be.true;
+            expect(lIsEqual).toBeTruthy();
         });
 
         it('-- Different type', () => {
@@ -88,7 +89,7 @@ describe('XmlDocument', () => {
             const lIsEqual: boolean = lXmlDocument.equals(lTextNode);
 
             // Evaluation.
-            expect(lIsEqual).to.be.false;
+            expect(lIsEqual).toBeFalsy();
         });
 
         it('-- Different default namespace', () => {
@@ -102,7 +103,7 @@ describe('XmlDocument', () => {
             const lIsEqual: boolean = lXmlDocument.equals(lXmlDocument2);
 
             // Evaluation.
-            expect(lIsEqual).to.be.false;
+            expect(lIsEqual).toBeFalsy();
         });
 
         it('-- Different body element length', () => {
@@ -119,7 +120,7 @@ describe('XmlDocument', () => {
             const lIsEqual: boolean = lXmlDocument.equals(lXmlDocument2);
 
             // Evaluation.
-            expect(lIsEqual).to.be.false;
+            expect(lIsEqual).toBeFalsy();
         });
 
         it('-- Different body element', () => {
@@ -135,7 +136,7 @@ describe('XmlDocument', () => {
             const lIsEqual: boolean = lXmlDocument.equals(lXmlDocument2);
 
             // Evaluation.
-            expect(lIsEqual).to.be.false;
+            expect(lIsEqual).toBeFalsy();
         });
     });
 });

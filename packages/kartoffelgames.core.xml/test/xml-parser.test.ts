@@ -1,12 +1,13 @@
-import { expect } from 'chai';
-import { XmlParser } from '../../source/parser/xml-parser';
-import { XmlElement } from '../../source/node/xml-element';
-import { CommentNode } from '../../source/node/comment-node';
-import { XmlAttribute } from '../../source/attribute/xml-attribute';
-import { TextNode } from '../../source/node/text-node';
-import { XmlDocument } from '../../source/document/xml-document';
 import { Exception } from '@kartoffelgames/core';
-import { ParserException } from '@kartoffelgames/core.parser';
+import { expect } from '@kartoffelgames/core-test';
+import { ParserException } from '@kartoffelgames/core-parser';
+import { describe, it } from '@std/testing/bdd';
+import { XmlAttribute } from '../source/attribute/xml-attribute.ts';
+import { XmlDocument } from '../source/document/xml-document.ts';
+import { CommentNode } from '../source/node/comment-node.ts';
+import { TextNode } from '../source/node/text-node.ts';
+import { XmlElement } from '../source/node/xml-element.ts';
+import { XmlParser } from '../source/parser/xml-parser.ts';
 
 describe('XmlParser', () => {
     it('Property: removeComments', () => {
@@ -17,7 +18,7 @@ describe('XmlParser', () => {
         lParser.removeComments = true;
 
         // Evaluation.
-        expect(lParser.removeComments).to.be.true;
+        expect(lParser.removeComments).toBeTruthy();
     });
 
     it('Property: allowedAttributeCharacters', () => {
@@ -29,7 +30,7 @@ describe('XmlParser', () => {
         lParser.allowedAttributeCharacters = lValue;
 
         // Evaluation.
-        expect(lParser.allowedAttributeCharacters).to.equal([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
+        expect(lParser.allowedAttributeCharacters).toBe([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
     });
 
     it('Property: allowedTagNameCharacters', () => {
@@ -41,7 +42,7 @@ describe('XmlParser', () => {
         lParser.allowedTagNameCharacters = lValue;
 
         // Evaluation.
-        expect(lParser.allowedTagNameCharacters).to.equal([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
+        expect(lParser.allowedTagNameCharacters).toBe([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
     });
 
     describe('Method: parse', () => {
@@ -59,9 +60,9 @@ describe('XmlParser', () => {
                 const lXmlRoot: XmlElement = <XmlElement>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlResult.body).to.has.lengthOf(1);
-                expect(lXmlRoot.tagName).to.equal(lTagName);
-                expect(lXmlRoot.childList).to.be.empty;
+                expect(lXmlResult.body).toHaveLength(1);
+                expect(lXmlRoot.tagName).toBe(lTagName);
+                expect(lXmlRoot.childList).toHaveLength(0);
             });
 
             it('-- Void XmlElement', () => {
@@ -77,9 +78,9 @@ describe('XmlParser', () => {
                 const lXmlRoot: XmlElement = <XmlElement>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlResult.body).to.has.lengthOf(1);
-                expect(lXmlRoot.tagName).to.equal(lTagName);
-                expect(lXmlRoot.childList).to.be.empty;
+                expect(lXmlResult.body).toHaveLength(1);
+                expect(lXmlRoot.tagName).toBe(lTagName);
+                expect(lXmlRoot.childList).toHaveLength(0);
             });
 
             it('-- CommentNode', () => {
@@ -95,8 +96,8 @@ describe('XmlParser', () => {
                 const lXmlRoot: CommentNode = <CommentNode>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlResult.body).to.has.lengthOf(1);
-                expect(lXmlRoot.text).to.equal(lCommentText);
+                expect(lXmlResult.body).toHaveLength(1);
+                expect(lXmlRoot.text).toBe(lCommentText);
             });
 
             it('-- TextNode blank', () => {
@@ -112,8 +113,8 @@ describe('XmlParser', () => {
                 const lXmlRoot: TextNode = <TextNode>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlResult.body).to.has.lengthOf(1);
-                expect(lXmlRoot.text).to.equal(lText);
+                expect(lXmlResult.body).toHaveLength(1);
+                expect(lXmlRoot.text).toBe(lText);
             });
 
             it('-- TextNode quotation marks', () => {
@@ -130,8 +131,8 @@ describe('XmlParser', () => {
                 const lXmlRoot: TextNode = <TextNode>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlResult.body).to.has.lengthOf(1);
-                expect(lXmlRoot.text).to.equal(lText);
+                expect(lXmlResult.body).toHaveLength(1);
+                expect(lXmlRoot.text).toBe(lText);
             });
         });
 
@@ -150,9 +151,9 @@ describe('XmlParser', () => {
                 const lAttribute: XmlAttribute = lAttributeList[0];
 
                 // Evaluation.
-                expect(lAttributeList).to.be.lengthOf(1);
-                expect(lAttribute.name).to.equal(lAttributeName);
-                expect(lAttribute.value).to.equal('');
+                expect(lAttributeList).toHaveLength(1);
+                expect(lAttribute.name).toBe(lAttributeName);
+                expect(lAttribute.value).toBe('');
             });
 
             it('-- Attribute with value', () => {
@@ -170,9 +171,9 @@ describe('XmlParser', () => {
                 const lAttribute: XmlAttribute = lAttributeList[0];
 
                 // Evaluation.
-                expect(lAttributeList).to.be.lengthOf(1);
-                expect(lAttribute.name).to.equal(lAttributeName);
-                expect(lAttribute.value).to.equal(lAttributeValue);
+                expect(lAttributeList).toHaveLength(1);
+                expect(lAttribute.name).toBe(lAttributeName);
+                expect(lAttribute.value).toBe(lAttributeValue);
             });
         });
 
@@ -190,7 +191,7 @@ describe('XmlParser', () => {
                 const lXmlRoot: XmlElement = <XmlElement>lXmlResult.body[0];
 
                 // Evaluation.
-                expect(lXmlRoot.namespacePrefix).to.equal(lNamespacePrefix);
+                expect(lXmlRoot.namespacePrefix).toBe(lNamespacePrefix);
             });
 
             it('-- Attribute Prefix', () => {
@@ -207,7 +208,7 @@ describe('XmlParser', () => {
                 const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(`${lNamespacePrefix}:${lNamespacedAttributeName}`);
 
                 // Evaluation.
-                expect(lNamespacedAttribute?.namespacePrefix).to.equal(lNamespacePrefix);
+                expect(lNamespacedAttribute?.namespacePrefix).toBe(lNamespacePrefix);
             });
         });
 
@@ -227,7 +228,7 @@ describe('XmlParser', () => {
                 const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
 
                 // Evaluation.
-                expect(lNamespacedAttribute?.value).to.equal(lAttributeValue);
+                expect(lNamespacedAttribute?.value).toBe(lAttributeValue);
             });
 
             it('-- Multiline text node', () => {
@@ -244,7 +245,7 @@ describe('XmlParser', () => {
                 const lTextNode: TextNode = <TextNode>lXmlElement.childList[0];
 
                 // Evaluation.
-                expect(lTextNode.text).to.equal(lText);
+                expect(lTextNode.text).toBe(lText);
             });
         });
 
@@ -262,12 +263,12 @@ describe('XmlParser', () => {
             const lChild: XmlElement = <XmlElement>lParent.childList[0];
 
             // Evaluation. Check parent.
-            expect(lParent.tagName).to.equal(lTagName);
-            expect(lParent.childList).to.has.lengthOf(1);
+            expect(lParent.tagName).toBe(lTagName);
+            expect(lParent.childList).toHaveLength(1);
 
             // Evaluation. Check child.
-            expect(lChild.tagName).to.equal(lTagName);
-            expect(lChild.childList).to.be.empty;
+            expect(lChild.tagName).toBe(lTagName);
+            expect(lChild.childList).toHaveLength(0);
         });
 
         it('-- Void child with same tagname', () => {
@@ -284,12 +285,12 @@ describe('XmlParser', () => {
             const lChild: XmlElement = <XmlElement>lParent.childList[0];
 
             // Evaluation. Check parent.
-            expect(lParent.tagName).to.equal(lTagName);
-            expect(lParent.childList).to.has.lengthOf(1);
+            expect(lParent.tagName).toBe(lTagName);
+            expect(lParent.childList).toHaveLength(1);
 
             // Evaluation. Check child.
-            expect(lChild.tagName).to.equal(lTagName);
-            expect(lChild.childList).to.be.empty;
+            expect(lChild.tagName).toBe(lTagName);
+            expect(lChild.childList).toHaveLength(0);
         });
 
         it('-- Mixed content', () => {
@@ -316,11 +317,11 @@ describe('XmlParser', () => {
             const lBlankXmlNodeTextNode: TextNode = <TextNode>lBlankXmlNode.childList[0];
 
             // Evaluation.
-            expect(lXmlResult.body).to.has.lengthOf(4);
-            expect(lBlankTextNode.text).to.equal(lBlankText);
-            expect(lQuotationTextNode.text).to.equal(lQuotationText.replaceAll('"', ''));
-            expect(lQuotationXmlNodeTextNode.text).to.equal(lQuotationNodeText.replaceAll('"', ''));
-            expect(lBlankXmlNodeTextNode.text).to.equal(lBlankNodeText);
+            expect(lXmlResult.body).toHaveLength(4);
+            expect(lBlankTextNode.text).toBe(lBlankText);
+            expect(lQuotationTextNode.text).toBe(lQuotationText.replaceAll('"', ''));
+            expect(lQuotationXmlNodeTextNode.text).toBe(lQuotationNodeText.replaceAll('"', ''));
+            expect(lBlankXmlNodeTextNode.text).toBe(lBlankNodeText);
         });
 
         it('Adjust parser with new settings', () => {
@@ -339,8 +340,8 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lRightFunction).to.not.throw();
-            expect(lFailingFunction).to.throw(Exception);
+            expect(lRightFunction).not.toThrow();
+            expect(lFailingFunction).toThrow(Exception);
         });
 
         it('Same content twice', () => {
@@ -353,8 +354,8 @@ describe('XmlParser', () => {
             const lDocumentSecondRun: XmlDocument = lParser.parse(lXmlString);
 
             // Evaluation.
-            expect(lDocumentFirstRun.body).lengthOf(2);
-            expect(lDocumentSecondRun.body).lengthOf(2);
+            expect(lDocumentFirstRun.body).toHaveLength(2);
+            expect(lDocumentSecondRun.body).toHaveLength(2);
         });
 
         it('-- Without any content', () => {
@@ -366,7 +367,7 @@ describe('XmlParser', () => {
             const lDocument: XmlDocument = lParser.parse(lXmlString);
 
             // Evaluation.
-            expect(lDocument.body).lengthOf(0);
+            expect(lDocument.body).toHaveLength(0);
         });
     });
 
@@ -383,7 +384,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(ParserException, /noneclosing/);
+            expect(lFailingFunction).toThrow(/noneclosing/);
         });
 
         it('-- Unexpected closing tag', () => {
@@ -398,7 +399,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(ParserException, /unexpectedclosing/);
+            expect(lFailingFunction).toThrow(/unexpectedclosing/);
         });
 
         it('-- Different closing namespace', () => {
@@ -412,7 +413,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(ParserException, /namespace/);
+            expect(lFailingFunction).toThrow(/namespace/);
         });
 
         it(`-- Can't close tag`, () => {
@@ -427,7 +428,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(ParserException, /Tokens could not be parsed./);
+            expect(lFailingFunction).toThrow(/Tokens could not be parsed./);
         });
     });
 
@@ -442,7 +443,7 @@ describe('XmlParser', () => {
             const lParsedDocument: XmlDocument = lParser.parse(lXmlString);
 
             // Evaluation.
-            expect(lParsedDocument.body).to.be.empty;
+            expect(lParsedDocument.body).toHaveLength(0);
         });
 
         it('-- Remove comment in xml tag', () => {
@@ -456,7 +457,7 @@ describe('XmlParser', () => {
             const lParsedXmlNode: XmlElement = <XmlElement>lParsedDocument.body[0];
 
             // Evaluation.
-            expect(lParsedXmlNode.childList).to.be.empty;
+            expect(lParsedXmlNode.childList).toHaveLength(0);
         });
 
         it('-- Restrict attribute characters', () => {
@@ -471,7 +472,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(Exception);
+            expect(lFailingFunction).toThrow(Exception);
         });
 
         it('-- Restrict tagname characters', () => {
@@ -486,7 +487,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(Exception);
+            expect(lFailingFunction).toThrow(Exception);
         });
     });
 });

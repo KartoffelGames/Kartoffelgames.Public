@@ -1,11 +1,11 @@
 import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core';
-import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
-import { XmlDocument } from '../document/xml-document';
-import { CommentNode } from '../node/comment-node';
-import { TextNode } from '../node/text-node';
-import { XmlElement } from '../node/xml-element';
-import { XmlToken } from './xml-token.enum';
-import { BaseXmlNode } from '../node/base-xml-node';
+import { CodeParser, Lexer } from '@kartoffelgames/core-parser';
+import { XmlDocument } from '../document/xml-document.ts';
+import { BaseXmlNode } from '../node/base-xml-node.ts';
+import { CommentNode } from '../node/comment-node.ts';
+import { TextNode } from '../node/text-node.ts';
+import { XmlElement } from '../node/xml-element.ts';
+import { XmlToken } from './xml-token.enum.ts';
 
 /**
  * XML parser. Can handle none XML conform styles with different parser modes.

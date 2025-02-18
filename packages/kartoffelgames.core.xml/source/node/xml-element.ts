@@ -1,7 +1,6 @@
-import { XmlAttribute } from '../attribute/xml-attribute';
-import { BaseXmlNode } from './base-xml-node';
-import { Dictionary } from '@kartoffelgames/core';
-import { List } from '@kartoffelgames/core';
+import { Dictionary, List } from '@kartoffelgames/core';
+import { XmlAttribute } from '../attribute/xml-attribute.ts';
+import { BaseXmlNode } from './base-xml-node.ts';
 
 /**
  * Xml node.

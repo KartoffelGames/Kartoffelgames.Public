@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { XmlAttribute } from '../../source/attribute/xml-attribute';
-import { XmlElement } from '../../source/node/xml-element';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { XmlAttribute } from '../source/attribute/xml-attribute.ts';
+import { XmlElement } from '../source/node/xml-element.ts';
 
 describe('XmlAttribute', () => {
     it('Property: name', () => {
@@ -12,7 +13,7 @@ describe('XmlAttribute', () => {
         const lAttributeNameResult: string = lAttribute.name;
 
         // Evaluation.
-        expect(lAttributeNameResult).to.be.equal(lAttributeName);
+        expect(lAttributeNameResult).toBe(lAttributeName);
     });
 
     describe('Property: namespace', () => {
@@ -30,7 +31,7 @@ describe('XmlAttribute', () => {
             const lAttributeNamespaceResult: string  | null= lAttribute.namespace;
 
             // Evaluation.
-            expect(lAttributeNamespaceResult).to.be.equal(lNamespace);
+            expect(lAttributeNamespaceResult).toBe(lNamespace);
         });
 
         it('-- No Namespace', () => {
@@ -42,7 +43,7 @@ describe('XmlAttribute', () => {
             const lAttributeNamespaceResult: string  | null= lAttribute.namespace;
 
             // Evaluation.
-            expect(lAttributeNamespaceResult).to.be.null;
+            expect(lAttributeNamespaceResult).toBeNull();
         });
     });
 
@@ -55,7 +56,7 @@ describe('XmlAttribute', () => {
         const lAttributeNamespacePrefixResult: string | null = lAttribute.namespacePrefix;
 
         // Evaluation.
-        expect(lAttributeNamespacePrefixResult).to.be.equal(lAttributeNamespacePrefix);
+        expect(lAttributeNamespacePrefixResult).toBe(lAttributeNamespacePrefix);
     });
 
     it('Property: qualifiedName', () => {
@@ -70,7 +71,7 @@ describe('XmlAttribute', () => {
         const lQualifierName: string = lAttribute.qualifiedName;
 
         // Evaluation.
-        expect(lQualifierName).to.be.equal(`${lAttributeNamespacePrefix}:${lAttributeName}`);
+        expect(lQualifierName).toBe(`${lAttributeNamespacePrefix}:${lAttributeName}`);
     });
 
     it('Property: seperator', () => {
@@ -82,7 +83,7 @@ describe('XmlAttribute', () => {
         const lSeperatorResult: string = lAttribute.seperator;
 
         // Evaluation.
-        expect(lSeperatorResult).to.be.equal(lSeperator);
+        expect(lSeperatorResult).toBe(lSeperator);
     });
 
     describe('Property: value', () => {
@@ -96,7 +97,7 @@ describe('XmlAttribute', () => {
             const lValueResult: string = lAttribute.value;
 
             // Evaluation.
-            expect(lValueResult).to.be.equal(lValue);
+            expect(lValueResult).toBe(lValue);
         });
 
         it('-- Without value', () => {
@@ -107,7 +108,7 @@ describe('XmlAttribute', () => {
             const lValueResult: string = lAttribute.value;
 
             // Evaluation.
-            expect(lValueResult).to.be.equal('');
+            expect(lValueResult).toBe('');
         });
     });
 
@@ -124,6 +125,6 @@ describe('XmlAttribute', () => {
         const lValueList: Array<string> = lAttribute.valueList;
 
         // Evaluation.
-        expect(lValueList).to.be.deep.equal(['Value1', 'Value2']);
+        expect(lValueList).toBeDeepEqual(['Value1', 'Value2']);
     });
 });

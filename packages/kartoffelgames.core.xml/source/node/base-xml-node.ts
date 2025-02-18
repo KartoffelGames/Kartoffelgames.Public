@@ -1,4 +1,4 @@
-import { XmlDocument } from '../document/xml-document';
+import { XmlDocument } from '../document/xml-document.ts';
 
 /**
  * Basic node.

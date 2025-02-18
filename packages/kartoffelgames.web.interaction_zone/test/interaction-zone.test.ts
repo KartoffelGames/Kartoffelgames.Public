@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { InteractionEvent } from '../../source/zone/interaction-event.ts';
-import { InteractionZone } from '../../source/zone/interaction-zone.ts';
-import { PromiseRejectionEvent } from '../mock/error-event.ts';
+import { InteractionEvent } from '../source/zone/interaction-event.ts';
+import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import { PromiseRejectionEvent } from './mock/error-event.ts';
 
 describe('InteractionZone', () => {
     describe('Static Property: current', () => {

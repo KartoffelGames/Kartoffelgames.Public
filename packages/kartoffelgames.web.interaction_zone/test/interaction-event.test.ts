@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { InteractionEvent } from '../../source/zone/interaction-event.ts';
-import { InteractionZone } from '../../source/zone/interaction-zone.ts';
-import '../mock/request-animation-frame-mock-session.ts';
+import { InteractionEvent } from '../source/zone/interaction-event.ts';
+import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import './mock/request-animation-frame-mock-session.ts';
 
 describe('InteractionEvent', () => {
     it('Property: data', () => {

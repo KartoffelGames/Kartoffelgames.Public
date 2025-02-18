@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { Patcher } from '../../source/patcher/patcher.ts';
-import { InteractionZone } from '../../source/zone/interaction-zone.ts';
-import '../mock/request-animation-frame-mock-session.ts';
+import { Patcher } from '../source/patcher/patcher.ts';
+import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import './mock/request-animation-frame-mock-session.ts';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {

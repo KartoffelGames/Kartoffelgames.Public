@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { Patcher } from '../../source/patcher/patcher';
-import { InteractionZone } from '../../source/zone/interaction-zone';
-import '../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { Patcher } from '../../source/patcher/patcher.ts';
+import { InteractionZone } from '../../source/zone/interaction-zone.ts';
+import '../mock/request-animation-frame-mock-session.ts';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {
@@ -21,7 +22,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lZoneResult).to.equal(lZone);
+            expect(lZoneResult).toBe(lZone);
         });
 
         it('-- Double patch', async () => {
@@ -41,7 +42,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lZoneResult).to.equal(lZone);
+            expect(lZoneResult).toBe(lZone);
         });
     });
 
@@ -55,8 +56,8 @@ describe('Patcher', () => {
             const lObject = new lPatchedClass();
 
             // Evaluation.
-            expect(lPatchedClass).to.not.equal(lClass);
-            expect(lObject).to.be.instanceOf(lClass);
+            expect(lPatchedClass).not.toBe(lClass);
+            expect(lObject).toBeInstanceOf(lClass);
         });
 
         it('-- Property constructor set value', () => {
@@ -74,7 +75,7 @@ describe('Patcher', () => {
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
-            expect(lObject.a).to.equal(lValue);
+            expect(lObject.a).toBe(lValue);
         });
 
         it('-- Property accessor set value', () => {
@@ -98,7 +99,7 @@ describe('Patcher', () => {
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
-            expect(lObject.a).to.equal(lValue);
+            expect(lObject.a).toBe(lValue);
         });
 
         it('-- Property property set value', () => {
@@ -114,7 +115,7 @@ describe('Patcher', () => {
             lObject.a = lValue;
 
             // Evaluation.
-            expect(lObject.a).to.equal(lValue);
+            expect(lObject.a).toBe(lValue);
         });
 
         it('-- Constructor callback correct callback zone', async () => {
@@ -147,7 +148,7 @@ describe('Patcher', () => {
             const lResultZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Method callback correct callback zone', async () => {
@@ -180,7 +181,7 @@ describe('Patcher', () => {
             const lResultZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Method callback correct result', () => {
@@ -202,16 +203,11 @@ describe('Patcher', () => {
             const lValueResult: number = lObject.callback();
 
             // Evaluation.
-            expect(lValueResult).to.equal(lValue);
+            expect(lValueResult).toBe(lValue);
         });
     });
 
-    describe('Method: patchEventTarget', () => {
-        // Execute patcher before.
-        before(() => {
-            Patcher.patch(globalThis);
-        });
-
+    describe({ name: 'Method: patchEventTarget', beforeAll: () => { Patcher.patch(globalThis); } }, () => {
         it('-- AddEventListener correct listener zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
@@ -230,7 +226,7 @@ describe('Patcher', () => {
             const lResultZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Remove event listener', () => {
@@ -252,7 +248,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Remove event listener wrong type', async () => {
@@ -275,7 +271,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
 
         it('-- AddEventListener with null as callback', () => {
@@ -288,7 +284,7 @@ describe('Patcher', () => {
             };
 
             // Evaluation.
-            expect(lErroFunction).to.not.throw();
+            expect(lErroFunction).not.toThrow();
         });
 
         it('-- RemoveEventListener with null as callback', () => {
@@ -301,7 +297,7 @@ describe('Patcher', () => {
             };
 
             // Evaluation.
-            expect(lErroFunction).to.not.throw();
+            expect(lErroFunction).not.toThrow();
         });
 
         it('-- RemoveEventListener with string as callback', () => {
@@ -314,7 +310,7 @@ describe('Patcher', () => {
             };
 
             // Evaluation.
-            expect(lErroFunction).to.throw();
+            expect(lErroFunction).not.toThrow();
         });
 
         it('-- RemoveEventListener with unregistered callback', () => {
@@ -327,7 +323,7 @@ describe('Patcher', () => {
             };
 
             // Evaluation.
-            expect(lErroFunction).to.not.throw();
+            expect(lErroFunction).not.toThrow();
         });
 
         it('-- AddEventListener correct zone in event handler object', async () => {
@@ -353,7 +349,7 @@ describe('Patcher', () => {
             const lZoneResult = await lZoneResultPromise;
 
             // Evaluation.
-            expect(lZoneResult).to.equal(lZone);
+            expect(lZoneResult).toBe(lZone);
         });
 
         it('-- AddEventListener correct this context on event handler object call', async () => {
@@ -378,7 +374,7 @@ describe('Patcher', () => {
             const lCorrectThisContxt = await lEventWait;
 
             // Evaluation.
-            expect(lCorrectThisContxt).to.be.true;
+            expect(lCorrectThisContxt).toBeTruthy();
         });
 
         it('-- Remove event handler object', () => {
@@ -403,7 +399,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
     });
 
@@ -429,7 +425,7 @@ describe('Patcher', () => {
             const lResultZone: InteractionZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Double patch', async () => {
@@ -454,7 +450,7 @@ describe('Patcher', () => {
             const lResultZone: InteractionZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Override function with self', async () => {
@@ -474,7 +470,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lCallCounter).to.equal(1);
+            expect(lCallCounter).toBe(1);
         });
 
         it('-- Override function with null', () => {
@@ -495,7 +491,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lCallCounter).to.equal(0);
+            expect(lCallCounter).toBe(0);
         });
 
         it('-- Set string value', () => {
@@ -523,7 +519,7 @@ describe('Patcher', () => {
             const lResultValue: string = lEventTarget.oncustom;
 
             // Evaluation.
-            expect(lResultValue).to.equal(lValue);
+            expect(lResultValue).toBe(lValue);
         });
 
         it('-- Get function value', () => {
@@ -539,16 +535,11 @@ describe('Patcher', () => {
             const lResultValue: string = lEventTarget.oncustom;
 
             // Evaluation.
-            expect(lResultValue).to.equal(lValue);
+            expect(lResultValue).toBe(lValue);
         });
     });
 
-    describe('Method: patchPromise', () => {
-        // Execute patcher before.
-        before(() => {
-            Patcher.patch(globalThis);
-        });
-
+    describe({ name: 'Method: patchPromise', beforeAll: () => { Patcher.patch(globalThis); } }, () => {
         it('-- Promise executor correct zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
@@ -561,7 +552,7 @@ describe('Patcher', () => {
 
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Promise then keep zone', async () => {
@@ -576,7 +567,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Promise catch keep zone', async () => {
@@ -591,7 +582,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Promise then keep zone async execution', async () => {
@@ -605,7 +596,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
 
         it('-- Promise catch keep zone  async execution', async () => {
@@ -619,7 +610,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lResultZone).to.equal(lZone);
+            expect(lResultZone).toBe(lZone);
         });
     });
 });

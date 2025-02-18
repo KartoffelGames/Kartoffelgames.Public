@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { InteractionEvent } from '../../source/zone/interaction-event';
-import { InteractionZone } from '../../source/zone/interaction-zone';
-import '../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { InteractionEvent } from '../../source/zone/interaction-event.ts';
+import { InteractionZone } from '../../source/zone/interaction-zone.ts';
+import '../mock/request-animation-frame-mock-session.ts';
 
 describe('InteractionEvent', () => {
     it('Property: data', () => {
@@ -14,7 +15,7 @@ describe('InteractionEvent', () => {
         const lResult = lReason.data;
 
         // Evaluation.
-        expect(lResult).to.equal(lData);
+        expect(lResult).toBe(lData);
     });
 
     it('Property: origin', () => {
@@ -26,7 +27,7 @@ describe('InteractionEvent', () => {
         const lResult = lReason.origin;
 
         // Evaluation.
-        expect(lResult).to.equal(lZone);
+        expect(lResult).toBe(lZone);
     });
 
     it('Property: stacktrace', () => {
@@ -43,7 +44,7 @@ describe('InteractionEvent', () => {
         const lResultStackTrace = lResultEvent.stacktrace.stack;
 
         // Evaluation.
-        expect(lResultStackTrace).to.contain('lMycoolname');
+        expect(lResultStackTrace).toContain('lMycoolname');
     });
 
     it('Property: trigger', () => {
@@ -56,7 +57,7 @@ describe('InteractionEvent', () => {
         const lResult = lReason.trigger;
 
         // Evaluation.
-        expect(lResult).to.equal(lInteractionTrigger);
+        expect(lResult).toBe(lInteractionTrigger);
     });
 
     it('Property: type', () => {
@@ -69,7 +70,7 @@ describe('InteractionEvent', () => {
         const lResult = lReason.type;
 
         // Evaluation.
-        expect(lResult).to.equal(TestTriggerType);
+        expect(lResult).toBe(TestTriggerType);
     });
 
     it('Method: toString', () => {
@@ -84,7 +85,7 @@ describe('InteractionEvent', () => {
         const lResult: string = lReason.toString();
 
         // Evaluation.
-        expect(lResult).to.equal(`${lZone.name} -> ${lInteractionType[lInteractionTrigger]} - ${lData.toString()}`);
+        expect(lResult).toBe(`${lZone.name} -> ${lInteractionType[lInteractionTrigger]} - ${lData.toString()}`);
 
     });
 });

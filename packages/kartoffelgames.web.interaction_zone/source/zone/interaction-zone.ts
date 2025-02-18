@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { ErrorAllocation } from './error-allocation';
-import { InteractionEvent, InteractionEventTriggerType } from './interaction-event';
-import { Patcher } from '../patcher/patcher';
+import { ErrorAllocation } from './error-allocation.ts';
+import { InteractionEvent, InteractionEventTriggerType } from './interaction-event.ts';
+import { Patcher } from '../patcher/patcher.ts';
 
 /**
  * Merges execution zone and proxy tracking.

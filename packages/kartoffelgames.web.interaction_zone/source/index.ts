@@ -1,3 +1,3 @@
 /* istanbul ignore file */
-export { InteractionZone } from './zone/interaction-zone';
-export { InteractionEvent } from './zone/interaction-event';
+export { InteractionZone } from './zone/interaction-zone.ts';
+export { InteractionEvent } from './zone/interaction-event.ts';

@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { InteractionEvent } from '../../source/zone/interaction-event';
-import { InteractionZone } from '../../source/zone/interaction-zone';
-import { PromiseRejectionEvent } from '../mock/error-event';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { InteractionEvent } from '../../source/zone/interaction-event.ts';
+import { InteractionZone } from '../../source/zone/interaction-zone.ts';
+import { PromiseRejectionEvent } from '../mock/error-event.ts';
 
 describe('InteractionZone', () => {
     describe('Static Property: current', () => {
@@ -18,7 +19,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lCurrentInteractionZone).to.equal(lSecondInteractionZone);
+            expect(lCurrentInteractionZone).toBe(lSecondInteractionZone);
         });
 
         it('-- No Zone', () => {
@@ -26,7 +27,7 @@ describe('InteractionZone', () => {
             const lCurrentInteractionZone: InteractionZone = InteractionZone.current;
 
             // Evaluation.
-            expect(lCurrentInteractionZone.name).to.equal('Default');
+            expect(lCurrentInteractionZone.name).toBe('Default');
         });
     });
 
@@ -49,7 +50,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lCalled).to.be.true;
+            expect(lCalled).toBeTruthy();
         });
 
         it('-- Generated event has correct origin', () => {
@@ -70,7 +71,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.origin).to.equal(lInteractionZone);
+            expect(lReasonResult!.origin).toBe(lInteractionZone);
         });
 
         it('-- Generated event has correct trigger', () => {
@@ -91,7 +92,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.trigger).to.equal(lInteractionTrigger);
+            expect(lReasonResult!.trigger).toBe(lInteractionTrigger);
         });
 
         it('-- Generated event has correct type', () => {
@@ -112,7 +113,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.type).to.equal(lInteractionType);
+            expect(lReasonResult!.type).toBe(lInteractionType);
         });
 
         it('-- Generated event has correct type data', () => {
@@ -134,7 +135,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.data).to.equal(lInteractionData);
+            expect(lReasonResult!.data).toBe(lInteractionData);
         });
 
         it('-- Pass through parent', () => {
@@ -156,7 +157,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lCalled).to.be.true;
+            expect(lCalled).toBeTruthy();
         });
 
         it('-- Pass through parent correct origin', () => {
@@ -178,7 +179,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.origin).to.equal(lChildInteractionZone);
+            expect(lReasonResult!.origin).toBe(lChildInteractionZone);
         });
 
         it('-- Ignore none parent zones not in scope', () => {
@@ -200,7 +201,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lCalled).to.be.false;
+            expect(lCalled).toBeFalsy();
         });
     });
 
@@ -213,7 +214,7 @@ describe('InteractionZone', () => {
         const lNameResult: string = lInteractionZone.name;
 
         // Evaluation.
-        expect(lNameResult).to.equal(lName);
+        expect(lNameResult).toBe(lName);
     });
 
 
@@ -226,7 +227,7 @@ describe('InteractionZone', () => {
         const lParentResult: InteractionZone = lChildInteractionZone.parent;
 
         // Evaluation.
-        expect(lParentResult).to.equal(lParentInteractionZone);
+        expect(lParentResult).toBe(lParentInteractionZone);
     });
 
     describe('Method: addErrorListener', () => {
@@ -253,7 +254,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).toBeTruthy();
             });
 
             it('-- Error listener called with correct error', async () => {
@@ -279,7 +280,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerError).to.equal(lError);
+                expect(lErrorListenerError).toBe(lError);
             });
 
             it('-- Parent Error listener called', async () => {
@@ -305,7 +306,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).toBeTruthy();
             });
 
             it('-- Ignore Parent Error listener when default prevented', async () => {
@@ -335,7 +336,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
 
             it('-- Ignore Error listener for errors outside zone', async () => {
@@ -361,7 +362,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
 
             it('-- Ignore Error listener for errors without zone', async () => {
@@ -381,7 +382,7 @@ describe('InteractionZone', () => {
                 }));
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
 
             it('-- Ignore Error listener for errors for errors that are none objects', async () => {
@@ -401,7 +402,7 @@ describe('InteractionZone', () => {
                 }));
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
         });
 
@@ -432,7 +433,7 @@ describe('InteractionZone', () => {
                 const lErrorListenerCalled = await lErrorCalledWaiter;
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).toBeTruthy();
             });
 
             it('-- Error listener called with correct error', async () => {
@@ -462,7 +463,7 @@ describe('InteractionZone', () => {
                 const lErrorListenerError = await lErrorWaiter;
 
                 // Evaluation.
-                expect(lErrorListenerError).to.equal(lError);
+                expect(lErrorListenerError).toBe(lError);
             });
 
             it('-- Parent Error listener called', async () => {
@@ -491,7 +492,7 @@ describe('InteractionZone', () => {
                 // Process. Wait for error.
                 const lErrorListenerCalled = await lErrorCalledWaiter;
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).toBeTruthy();
             });
 
             it('-- Ignore Parent Error listener when default prevented', async () => {
@@ -528,7 +529,7 @@ describe('InteractionZone', () => {
                 const lErrorListenerCalled = await lErrorCalledWaiter;
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
 
             it('-- Ignore Error listener called outside zone', async () => {
@@ -560,7 +561,7 @@ describe('InteractionZone', () => {
                 const lErrorListenerCalled = await lErrorCalledWaiter;
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.false;
+                expect(lErrorListenerCalled).toBeFalsy();
             });
         });
 
@@ -580,7 +581,7 @@ describe('InteractionZone', () => {
             }
 
             // Evaluation.
-            expect(lErrorResult?.message).to.equal(lError);
+            expect(lErrorResult?.message).toBe(lError);
         });
 
         it('-- Double added listener', async () => {
@@ -607,7 +608,7 @@ describe('InteractionZone', () => {
             }
 
             // Evaluation.
-            expect(lErrorListenerCallCount).to.equal(1);
+            expect(lErrorListenerCallCount).toBe(1);
         });
     });
 
@@ -628,7 +629,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
 
         it('-- Double add listener', () => {
@@ -649,7 +650,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCounter).to.equal(1);
+            expect(lListenerCounter).toBe(1);
         });
 
         it('-- Parent listener called', () => {
@@ -669,7 +670,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
 
         it('-- Listener ignored wrong trigger type', () => {
@@ -688,7 +689,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Listener ignored restricted trigger', () => {
@@ -708,7 +709,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Ignore listener outside zone', () => {
@@ -728,7 +729,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Ignore parent listener when child has restriction', () => {
@@ -749,7 +750,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Skip parent chain when a zone has restriction', () => {
@@ -792,10 +793,10 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerLevel1).to.be.false;
-            expect(lListenerLevel2).to.be.false;
-            expect(lListenerLevel3).to.be.true;
-            expect(lListenerLevel4).to.be.true;
+            expect(lListenerLevel1).toBeFalsy();
+            expect(lListenerLevel2).toBeFalsy();
+            expect(lListenerLevel3).toBeTruthy();
+            expect(lListenerLevel4).toBeTruthy();
         });
     });
 
@@ -819,7 +820,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Dont interfere with other type', () => {
@@ -841,7 +842,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
 
         it('-- Override restriction', () => {
@@ -864,7 +865,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
     });
 
@@ -877,7 +878,7 @@ describe('InteractionZone', () => {
         const lResultParentZone: InteractionZone = lChildInteractionZone.parent;
 
         // Evaluation.
-        expect(lResultParentZone).to.equal(lParentInteractionZone);
+        expect(lResultParentZone).toBe(lParentInteractionZone);
     });
 
     describe('Method: execute', () => {
@@ -891,7 +892,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lZoneResult).to.equal(lZone);
+            expect(lZoneResult).toBe(lZone);
         });
 
         it('-- With correct result', () => {
@@ -905,7 +906,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lZoneResult).to.equal(lValue);
+            expect(lZoneResult).toBe(lValue);
         });
 
         it('-- Execute inside zone with parameter', () => {
@@ -919,7 +920,7 @@ describe('InteractionZone', () => {
             }, lExecutionResult);
 
             // Evaluation.
-            expect(lResult).to.equal(lExecutionResult);
+            expect(lResult).toBe(lExecutionResult);
         });
 
         it('-- Execute inside zone with error', () => {
@@ -938,7 +939,7 @@ describe('InteractionZone', () => {
             }
 
             // Evaluation.
-            expect(lErrorResult).to.equal(lError);
+            expect(lErrorResult).toBe(lError);
         });
 
         it('-- Correct zones before and after execution with error', () => {
@@ -961,10 +962,10 @@ describe('InteractionZone', () => {
             const lZoneNameResultAfter = InteractionZone.current;
 
             // Evaluation.
-            expect(lZoneResultBefore).to.equal(lDefaultZone);
-            expect(lZoneResultFunktion).to.equal(lExecutionZone);
-            expect(lZoneResultException).to.equal(lDefaultZone);
-            expect(lZoneNameResultAfter).to.equal(lDefaultZone);
+            expect(lZoneResultBefore).toBe(lDefaultZone);
+            expect(lZoneResultFunktion).toBe(lExecutionZone);
+            expect(lZoneResultException).toBe(lDefaultZone);
+            expect(lZoneNameResultAfter).toBe(lDefaultZone);
         });
     });
 
@@ -992,7 +993,7 @@ describe('InteractionZone', () => {
         }
 
         // Evaluation.
-        expect(lErrorListenerCalled).to.be.false;
+        expect(lErrorListenerCalled).toBeFalsy();
     });
 
     describe('Method: removeInteractionListener', () => {
@@ -1014,7 +1015,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Remove wrong trigger type', () => {
@@ -1035,7 +1036,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).toBeTruthy();
         });
 
         it('-- Remove with empty listener list', () => {
@@ -1055,7 +1056,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
 
         it('-- Remove all listener of type', () => {
@@ -1080,7 +1081,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).toBeFalsy();
         });
     });
 });

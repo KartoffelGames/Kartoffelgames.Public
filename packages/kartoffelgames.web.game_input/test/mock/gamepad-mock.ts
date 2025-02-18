@@ -49,7 +49,7 @@ export function AddGamepad(pGamepadIndex: number, pButtonIndex: number, pType: B
             gamepad: lGamepad
         });
 
-        window.dispatchEvent(lGamepadEvent);
+        globalThis.dispatchEvent(lGamepadEvent);
     }
 }
 
@@ -63,7 +63,7 @@ export function RemoveGamepad(pGamepadIndex: number): void {
             gamepad: lGamepad
         });
 
-        window.dispatchEvent(lGamepadEvent);
+        globalThis.dispatchEvent(lGamepadEvent);
     }
 }
 

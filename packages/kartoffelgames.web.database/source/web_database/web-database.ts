@@ -45,7 +45,7 @@ export class WebDatabase {
      * Delete database and resolve on success.
      */
     public async delete(): Promise<void> {
-        const lDeleteRequest: IDBOpenDBRequest = window.indexedDB.deleteDatabase(this.mDatabaseName);
+        const lDeleteRequest: IDBOpenDBRequest = globalThis.indexedDB.deleteDatabase(this.mDatabaseName);
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
             lDeleteRequest.addEventListener('error', (pEvent) => {
@@ -81,7 +81,7 @@ export class WebDatabase {
             };
 
             // Open database with current version.
-            const lOpenRequest: IDBOpenDBRequest = window.indexedDB.open(this.mDatabaseName);
+            const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName);
 
             // Set defaults when no database exists.
             lOpenRequest.addEventListener('upgradeneeded', () => {
@@ -244,7 +244,7 @@ export class WebDatabase {
         const lDatabaseVersion: number = (lDatabaseUpdate.updateNeeded) ? lDatabaseUpdate.version + 1 : lDatabaseUpdate.version;
 
         // Open database request.
-        const lOpenRequest: IDBOpenDBRequest = window.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
+        const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
         return new Promise<IDBDatabase>((pResolve, pReject) => {
             // Init tables on upgradeneeded.
             lOpenRequest.addEventListener('upgradeneeded', (pEvent) => {

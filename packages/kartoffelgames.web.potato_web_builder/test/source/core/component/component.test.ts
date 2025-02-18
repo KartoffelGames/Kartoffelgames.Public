@@ -540,7 +540,7 @@ describe('HtmlComponent', () => {
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
         let lComponent: HTMLElement | null = null;
         if (lComponentConstructor) {
             lComponent = new lComponentConstructor();

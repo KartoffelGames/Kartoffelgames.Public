@@ -98,7 +98,7 @@ export class ExportExtension extends Processor {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
         // Init mutation observerm observing attribute changes.
-        const lMutationObserver: MutationObserver = new window.MutationObserver((pMutationList) => {
+        const lMutationObserver: MutationObserver = new globalThis.MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
                 const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);

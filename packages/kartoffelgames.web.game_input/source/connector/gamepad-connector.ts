@@ -16,12 +16,12 @@ export class GamepadConnector implements IInputConnector {
      */
     public init(pDevices: InputDevices): void {
         // Init connected gamepads.
-        window.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
+        globalThis.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
             this.connectGamepad(pEvent.gamepad, pDevices);
         });
 
         // Deconstruct disconnected gamepads.
-        window.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
+        globalThis.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
             this.disconnectGamepad(pEvent.gamepad, pDevices);
         });
 

@@ -65,7 +65,7 @@ export class ComponentRegister {
         }
 
         // Get component constructor from custom element registry.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
         if (!lComponentConstructor) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }

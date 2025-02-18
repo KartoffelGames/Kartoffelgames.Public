@@ -248,7 +248,7 @@ describe('InteractionZone', () => {
                         throw new Error();
                     });
                 } catch (pError) {
-                    window.dispatchEvent(new ErrorEvent('error', {
+                    globalThis.dispatchEvent(new ErrorEvent('error', {
                         error: <Error>pError
                     }));
                 }
@@ -274,7 +274,7 @@ describe('InteractionZone', () => {
                         throw lError;
                     });
                 } catch (pError) {
-                    window.dispatchEvent(new ErrorEvent('error', {
+                    globalThis.dispatchEvent(new ErrorEvent('error', {
                         error: <Error>pError
                     }));
                 }
@@ -300,7 +300,7 @@ describe('InteractionZone', () => {
                         throw new Error();
                     });
                 } catch (pError) {
-                    window.dispatchEvent(new ErrorEvent('error', {
+                    globalThis.dispatchEvent(new ErrorEvent('error', {
                         error: <Error>pError
                     }));
                 }
@@ -330,7 +330,7 @@ describe('InteractionZone', () => {
                         throw new Error();
                     });
                 } catch (pError) {
-                    window.dispatchEvent(new ErrorEvent('error', {
+                    globalThis.dispatchEvent(new ErrorEvent('error', {
                         error: <Error>pError
                     }));
                 }
@@ -356,7 +356,7 @@ describe('InteractionZone', () => {
                         throw new Error();
                     });
                 } catch (pError) {
-                    window.dispatchEvent(new ErrorEvent('error', {
+                    globalThis.dispatchEvent(new ErrorEvent('error', {
                         error: <Error>pError
                     }));
                 }
@@ -377,7 +377,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. Throw error outside.
-                window.dispatchEvent(new ErrorEvent('error', {
+                globalThis.dispatchEvent(new ErrorEvent('error', {
                     error: new Error()
                 }));
 
@@ -397,7 +397,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. Throw error outside.
-                window.dispatchEvent(new ErrorEvent('error', {
+                globalThis.dispatchEvent(new ErrorEvent('error', {
                     error: 'None Object'
                 }));
 
@@ -424,7 +424,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. "Throw" promise into global scope.
-                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                     promise: <Promise<void>><any>lPromise,
                     reason: new Error()
                 }));
@@ -454,7 +454,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. "Throw" promise into global scope.
-                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                     promise: <Promise<void>><any>lPromise,
                     reason: new Error()
                 }));
@@ -484,7 +484,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. "Throw" promise into global scope.
-                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                     promise: <Promise<void>><any>lPromise,
                     reason: new Error()
                 }));
@@ -511,7 +511,7 @@ describe('InteractionZone', () => {
                         pResolve(true);
                     });
 
-                    window.setTimeout(() => { pResolve(false); }, 20);
+                    globalThis.setTimeout(() => { pResolve(false); }, 20);
                 });
 
                 // Process. Create promise in zone. 
@@ -520,7 +520,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. "Throw" promise into global scope.
-                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                     promise: <Promise<void>><any>lPromise,
                     reason: new Error()
                 }));
@@ -543,7 +543,7 @@ describe('InteractionZone', () => {
                         pResolve(true);
                     });
 
-                    window.setTimeout(() => { pResolve(false); }, 20);
+                    globalThis.setTimeout(() => { pResolve(false); }, 20);
                 });
 
                 // Process. Create promise in zone. 
@@ -552,7 +552,7 @@ describe('InteractionZone', () => {
                 });
 
                 // Process. "Throw" promise into global scope.
-                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                     promise: <Promise<void>><any>lPromise,
                     reason: new Error()
                 }));
@@ -602,7 +602,7 @@ describe('InteractionZone', () => {
                     throw new Error();
                 });
             } catch (pError) {
-                window.dispatchEvent(new ErrorEvent('error', {
+                globalThis.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -987,7 +987,7 @@ describe('InteractionZone', () => {
                 throw new Error();
             });
         } catch (pError) {
-            window.dispatchEvent(new ErrorEvent('error', {
+            globalThis.dispatchEvent(new ErrorEvent('error', {
                 error: pError
             }));
         }

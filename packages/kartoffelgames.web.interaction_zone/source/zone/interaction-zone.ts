@@ -25,7 +25,7 @@ export class InteractionZone {
         };
 
         // Create and register error and rejection listener.
-        window.addEventListener('error', (pEvent: ErrorEvent) => {
+        globalThis.addEventListener('error', (pEvent: ErrorEvent) => {
             // Skip none object errors.
             if (typeof pEvent.error !== 'object' || pEvent.error === null) {
                 return;
@@ -34,7 +34,7 @@ export class InteractionZone {
             // Get syncron error allocation.
             lErrorHandler(pEvent, pEvent.error, ErrorAllocation.getSyncronErrorZone(pEvent.error));
         });
-        window.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
+        globalThis.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
             // Get zone of the promise where the unhandled rejection occurred
             lErrorHandler(pEvent, pEvent.reason, ErrorAllocation.getAsyncronErrorZone(pEvent.promise));
         });

@@ -164,7 +164,7 @@ describe('PwbApp', () => {
             await TestUtil.waitForUpdate(lApp.component);
         } catch (pError) {
             const lError: Error = <Error>pError;
-            window.dispatchEvent(new ErrorEvent('error', {
+            globalThis.dispatchEvent(new ErrorEvent('error', {
                 error: lError,
                 message: lError.message,
             }));

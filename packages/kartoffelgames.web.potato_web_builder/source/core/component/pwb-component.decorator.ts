@@ -68,7 +68,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         };
 
         // Define current element as new custom html element.
-        window.customElements.define(pParameter.selector, lPwbComponentConstructor);
+        globalThis.customElements.define(pParameter.selector, lPwbComponentConstructor);
     };
 }
 

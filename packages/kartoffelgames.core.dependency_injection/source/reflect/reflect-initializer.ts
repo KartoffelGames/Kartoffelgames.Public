@@ -141,12 +141,8 @@ export class ReflectInitializer {
      * @param pValue - Value of property.
      */
     private static export<T>(pKey: string, pValue: T) {
-        // Find root for accessing Reflect.
-        /* istanbul ignore next */
-        const lRoot: any = typeof window === 'object' ? window : globalThis;
-
-        // Set target as Reflect of root. (window or global).
-        const lTarget: typeof Reflect = lRoot.Reflect;
+        // Set target as Reflect of root.
+        const lTarget: typeof Reflect = globalThis.Reflect;
 
         Object.defineProperty(lTarget, pKey, { configurable: true, writable: true, value: pValue });
     }

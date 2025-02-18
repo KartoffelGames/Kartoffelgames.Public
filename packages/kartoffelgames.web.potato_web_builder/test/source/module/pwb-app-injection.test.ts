@@ -180,7 +180,7 @@ describe('PwbAppInjection', () => {
         }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>globalThis.customElements.get(lSelector);
 
         // Process.
         let lMessage: string | null = null;

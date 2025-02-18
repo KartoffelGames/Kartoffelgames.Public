@@ -123,7 +123,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // On custom element
         if (lTagname.includes('-')) {
             // Get custom element.
-            const lCustomElement: any = window.customElements.get(lTagname);
+            const lCustomElement: any = globalThis.customElements.get(lTagname);
 
             // Create custom element.
             if (typeof lCustomElement !== 'undefined') {

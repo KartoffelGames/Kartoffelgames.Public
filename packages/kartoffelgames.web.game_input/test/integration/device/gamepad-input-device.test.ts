@@ -153,6 +153,9 @@ describe({ name: 'GamepadInputDevice', afterAll: gAfter }, () => {
                 pResolve(pEvent.state);
             });
             AddGamepad(lGamepadIndex, lPressedButtonIndex, ButtonValueType.Axis, lButtonValue);
+
+            // TODO: Test inifitiy pennding.
+            pResolve(-999);
         });
 
         // Evaluation.

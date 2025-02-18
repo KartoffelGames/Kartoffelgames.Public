@@ -1,10 +1,10 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { DeviceConfiguration } from '../configuration/device-configuration';
-import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping';
-import { InputConfiguration } from '../configuration/input-configuration';
-import { GamepadButton } from '../enum/gamepad-button.enum';
-import { InputDevice } from '../enum/input-device.enum';
-import { BaseInputDevice } from './base-input-device';
+import { DeviceConfiguration } from '../configuration/device-configuration.ts';
+import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping.ts';
+import { InputConfiguration } from '../configuration/input-configuration.ts';
+import { GamepadButton } from '../enum/gamepad-button.enum.ts';
+import { InputDevice } from '../enum/input-device.enum.ts';
+import { BaseInputDevice } from './base-input-device.ts';
 
 export class GamepadInputDevice extends BaseInputDevice {
     private readonly mGamepadInformation: GamepadGameInputInformation;

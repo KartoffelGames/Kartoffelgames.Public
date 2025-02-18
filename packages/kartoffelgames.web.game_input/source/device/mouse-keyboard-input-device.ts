@@ -1,9 +1,9 @@
-import { DeviceConfiguration } from '../configuration/device-configuration';
-import { InputConfiguration } from '../configuration/input-configuration';
-import { InputDevice } from '../enum/input-device.enum';
-import { KeyboardButton } from '../enum/keyboard-button.enum';
-import { MouseButton } from '../enum/mouse-button.enum';
-import { BaseInputDevice } from './base-input-device';
+import { DeviceConfiguration } from '../configuration/device-configuration.ts';
+import { InputConfiguration } from '../configuration/input-configuration.ts';
+import { InputDevice } from '../enum/input-device.enum.ts';
+import { KeyboardButton } from '../enum/keyboard-button.enum.ts';
+import { MouseButton } from '../enum/mouse-button.enum.ts';
+import { BaseInputDevice } from './base-input-device.ts';
 
 export class MouseKeyboardInputDevice extends BaseInputDevice {
     private mLoopRunning: boolean;

@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BaseInputDevice } from './device/base-input-device';
-import { InputConfiguration } from './configuration/input-configuration';
-import { IInputConnector } from './interface/i-input-connector.interface';
+import { BaseInputDevice } from './device/base-input-device.ts';
+import { InputConfiguration } from './configuration/input-configuration.ts';
+import { IInputConnector } from './interface/i-input-connector.interface.ts';
 
 export class InputDevices {
     private readonly mConfiguration: InputConfiguration;

@@ -1,4 +1,4 @@
-import { InputButton } from '../types';
+import { InputButton } from '../types.ts';
 
 export class InputActionEvent extends Event {
     private readonly mAction: string;

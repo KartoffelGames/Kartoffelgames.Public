@@ -1,15 +1,16 @@
-import { expect } from 'chai';
-import { GamepadButton } from '../../../source/enum/gamepad-button.enum';
-import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
-import { InputConfiguration } from '../../../source/configuration/input-configuration';
-import { GamepadConnector } from '../../../source/connector/gamepad-connector';
-import { BaseInputDevice } from '../../../source/device/base-input-device';
-import { GamepadInputDevice } from '../../../source/device/gamepad-input-device';
-import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
-import { InputDevices } from '../../../source/input-devices';
-import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock';
-import { InputButtonEvent } from '../../../source/event/input-button-event';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
+import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
+import { GamepadConnector } from '../../../source/connector/gamepad-connector.ts';
+import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import { GamepadInputDevice } from '../../../source/device/gamepad-input-device.ts';
+import { ButtonValueType } from '../../../source/enum/button-value-type.enum.ts';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
+import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import { InputDevices } from '../../../source/input-devices.ts';
+import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock.ts';
 
 let gIndex: number = 0;
 const gNextIndex = () => {
@@ -18,20 +19,20 @@ const gNextIndex = () => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-describe('GamepadConnector', () => {
-    after(() => {
-        for (const lInputDevices of gInputDeviceList) {
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
+const gAfter = () => {
+    for (const lInputDevices of gInputDeviceList) {
+        // Cleanup.
+        for (const lDevice of lInputDevices.devices) {
+            lInputDevices.unregisterDevice(lDevice);
         }
+    }
 
-        for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
-            RemoveGamepad(lIndex);
-        }
-    });
+    for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
+        RemoveGamepad(lIndex);
+    }
+};
 
+describe({ name: 'GamepadConnector', afterAll: gAfter }, () => {
     it('-- Connect gamepad', async () => {
         // Setup variables.
         const lGamepadIndex: number = gNextIndex();
@@ -51,8 +52,8 @@ describe('GamepadConnector', () => {
         });
 
         // Evaluation.
-        expect(lDevice).to.be.instanceOf(GamepadInputDevice);
-        expect(lDevice.connected).to.be.true;
+        expect(lDevice).toBeInstanceOf(GamepadInputDevice);
+        expect(lDevice.connected).toBeTruthy();
     });
 
     it('-- Disconnect gamepad', async () => {
@@ -77,8 +78,8 @@ describe('GamepadConnector', () => {
         });
 
         // Evaluation.
-        expect(lDevice).to.be.instanceOf(GamepadInputDevice);
-        expect(lDevice.connected).to.be.false;
+        expect(lDevice).toBeInstanceOf(GamepadInputDevice);
+        expect(lDevice.connected).toBeFalsy();
     });
 
     it('-- Connect already connected', () => {
@@ -96,7 +97,7 @@ describe('GamepadConnector', () => {
         const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
         // Evaluation.
-        expect(lDeviceList).to.length.greaterThan(0);
+        expect(lDeviceList.length).toBeGreaterThan(0);
     });
 
     it('-- Reconnect gamepad', async () => {
@@ -134,8 +135,8 @@ describe('GamepadConnector', () => {
         });
 
         // Evaluation.
-        expect(lDevice).to.be.instanceOf(GamepadInputDevice);
-        expect(lDevice.connected).to.be.true;
+        expect(lDevice).toBeInstanceOf(GamepadInputDevice);
+        expect(lDevice.connected).toBeTruthy();
     });
 
     it('-- Apply correct mapping', async () => {
@@ -174,6 +175,6 @@ describe('GamepadConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonState).to.be.equal(lButtonValue);
+        expect(lButtonState).toBe(lButtonValue);
     });
 });

@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
-import { InputConfiguration } from '../../../source/configuration/input-configuration';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
+import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
 
 describe('InputConfiguration', () => {
     it('Method: addGamepadMapping', () => {
@@ -17,7 +18,7 @@ describe('InputConfiguration', () => {
         const lResult = lInputConfig.getGampadMapping(lGamepadId, '');
 
         // Evaluation.
-        expect(lResult).to.equal(lMapping);
+        expect(lResult).toBe(lMapping);
     });
 
     describe('Method: deviceConfiguration', () => {
@@ -30,7 +31,7 @@ describe('InputConfiguration', () => {
             const lResult = lInputConfig.deviceConfiguration('DeviceID');
 
             // Evaluation.
-            expect(lResult).to.deep.equal(lDeviceConfig);
+            expect(lResult).toBeDeepEqual(lDeviceConfig);
         });
 
         it('-- Old device', () => {
@@ -43,7 +44,7 @@ describe('InputConfiguration', () => {
             const lResult = lInputConfig.deviceConfiguration('DeviceID');
 
             // Evaluation.
-            expect(lResult).to.equal(lDeviceConfig);
+            expect(lResult).toBe(lDeviceConfig);
         });
     });
 
@@ -57,7 +58,7 @@ describe('InputConfiguration', () => {
             const lResultOther = lInputConfig.getGampadMapping('SOME_OTHER_ID', '');
 
             // Evaluation.
-            expect(lResultOne).to.equal(lResultOther);
+            expect(lResultOne).toBe(lResultOther);
         });
 
         it('-- Standard mapping mapping', () => {
@@ -69,7 +70,7 @@ describe('InputConfiguration', () => {
             const lResult = lInputConfig.getGampadMapping('', 'standard');
 
             // Evaluation.
-            expect(lResult).to.equal(lStandardMapping);
+            expect(lResult).toBe(lStandardMapping);
         });
 
         it('-- Set mapping', () => {
@@ -85,7 +86,7 @@ describe('InputConfiguration', () => {
             const lResult = lInputConfig.getGampadMapping(lGamepadId, 'standard');
 
             // Evaluation.
-            expect(lResult).to.equal(lMapping);
+            expect(lResult).toBe(lMapping);
         });
     });
 });

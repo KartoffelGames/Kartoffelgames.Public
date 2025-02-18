@@ -1,6 +1,6 @@
-import { IInputConnector } from '../interface/i-input-connector.interface';
-import { InputDevices } from '../input-devices';
-import { MouseKeyboardInputDevice } from '../device/mouse-keyboard-input-device';
+import { IInputConnector } from '../interface/i-input-connector.interface.ts';
+import { InputDevices } from '../input-devices.ts';
+import { MouseKeyboardInputDevice } from '../device/mouse-keyboard-input-device.ts';
 
 export class MouseKeyboardConnector implements IInputConnector {
     /**

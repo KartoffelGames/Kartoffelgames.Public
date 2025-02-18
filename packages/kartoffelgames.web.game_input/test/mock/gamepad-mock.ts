@@ -1,4 +1,4 @@
-import { ButtonValueType } from '../../source/enum/button-value-type.enum';
+import { ButtonValueType } from '../../source/enum/button-value-type.enum.ts';
 
 class GamepadEvent extends Event {
     public gamepad: Gamepad;

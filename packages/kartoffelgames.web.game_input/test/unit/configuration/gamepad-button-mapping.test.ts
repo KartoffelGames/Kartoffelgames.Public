@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { GamepadButton } from '../../../source/enum/gamepad-button.enum';
-import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
-import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
+import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
+import { ButtonValueType } from '../../../source/enum/button-value-type.enum.ts';
 
 const gGetGamepad = (pButtonIndex: number, pType: ButtonValueType, pValue: number) => {
     const lGamepad: any = {
@@ -36,7 +37,7 @@ describe('GamepadButtonMapping', () => {
             const lMappingResult = lMapping.executeMapping(lButton, lGamepad);
 
             // Evaluation.
-            expect(lMappingResult).to.equal(lButtonValue);
+            expect(lMappingResult).toBe(lButtonValue);
         });
 
         it('-- Without mapping', () => {
@@ -48,7 +49,7 @@ describe('GamepadButtonMapping', () => {
             const lMappingResult = lMapping.executeMapping(GamepadButton.ButtonLeft, lGamepad);
 
             // Evaluation.
-            expect(lMappingResult).to.equal(0);
+            expect(lMappingResult).toBe(0);
         });
     });
 
@@ -66,7 +67,7 @@ describe('GamepadButtonMapping', () => {
         const lMappingResult = lMapping.executeMapping(lButton, lGamepad);
 
         // Evaluation.
-        expect(lMappingResult).to.equal(lButtonValue);
+        expect(lMappingResult).toBe(lButtonValue);
     });
 
     describe('Method: executeMapping', () => {
@@ -79,7 +80,7 @@ describe('GamepadButtonMapping', () => {
             const lMappingResult = lMapping.executeMapping(GamepadButton.ButtonLeft, lGamepad);
 
             // Evaluation.
-            expect(lMappingResult).to.equal(0);
+            expect(lMappingResult).toBe(0);
         });
 
         it('-- Button mapping', () => {
@@ -97,7 +98,7 @@ describe('GamepadButtonMapping', () => {
             const lMappingResult = lMapping.executeMapping(lButton, lGamepad);
 
             // Evaluation.
-            expect(lMappingResult).to.equal(lButtonValue);
+            expect(lMappingResult).toBe(lButtonValue);
         });
 
         it('-- Axis mapping', () => {
@@ -115,7 +116,7 @@ describe('GamepadButtonMapping', () => {
             const lMappingResult = lMapping.executeMapping(lButton, lGamepad);
 
             // Evaluation.
-            expect(lMappingResult).to.equal(lButtonValue);
+            expect(lMappingResult).toBe(lButtonValue);
         });
     });
 });

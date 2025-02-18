@@ -1,11 +1,12 @@
-import { expect } from 'chai';
-import { DeviceConfiguration } from '../../source/configuration/device-configuration';
-import { InputConfiguration } from '../../source/configuration/input-configuration';
-import { MouseKeyboardConnector } from '../../source/connector/mouse-keyboard-connector';
-import { BaseInputDevice } from '../../source/device/base-input-device';
-import { MouseKeyboardInputDevice } from '../../source/device/mouse-keyboard-input-device';
-import { InputDevices } from '../../source/input-devices';
-import '../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DeviceConfiguration } from '../../source/configuration/device-configuration.ts';
+import { InputConfiguration } from '../../source/configuration/input-configuration.ts';
+import { MouseKeyboardConnector } from '../../source/connector/mouse-keyboard-connector.ts';
+import { BaseInputDevice } from '../../source/device/base-input-device.ts';
+import { MouseKeyboardInputDevice } from '../../source/device/mouse-keyboard-input-device.ts';
+import { InputDevices } from '../../source/input-devices.ts';
+import '../mock/request-animation-frame-mock-session.ts';
 
 const gCreateConfig = (): InputConfiguration => {
     const lDeviceConfiguration = new DeviceConfiguration();
@@ -14,16 +15,16 @@ const gCreateConfig = (): InputConfiguration => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-describe('InputDevices', () => {
-    after(() => {
-        for (const lInputDevices of gInputDeviceList) {
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
+const gAfter = () => {
+    for (const lInputDevices of gInputDeviceList) {
+        // Cleanup.
+        for (const lDevice of lInputDevices.devices) {
+            lInputDevices.unregisterDevice(lDevice);
         }
-    });
+    }
+};
 
+describe({ name: 'InputDevices', afterAll: gAfter }, () => {
     it('Property: configuration', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
@@ -33,7 +34,7 @@ describe('InputDevices', () => {
         const lResultConfiguration: InputConfiguration = lInputDevices.configuration;
 
         // Evaluation.
-        expect(lResultConfiguration).to.equal(lConfig);
+        expect(lResultConfiguration).toBe(lConfig);
     });
 
     it('Property: devices', () => {
@@ -47,7 +48,7 @@ describe('InputDevices', () => {
         const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
         // Evaluation.
-        expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
+        expect(lDeviceList[0]).toBeInstanceOf(MouseKeyboardInputDevice);
     });
 
     it('Method: onConnectionChange', () => {
@@ -64,7 +65,7 @@ describe('InputDevices', () => {
         lInputDevices.registerConnector(new MouseKeyboardConnector());
 
         // Evaluation.
-        expect(lDevice).to.be.instanceOf(MouseKeyboardInputDevice);
+        expect(lDevice).toBeInstanceOf(MouseKeyboardInputDevice);
     });
 
     it('Method: registerConnector', () => {
@@ -78,7 +79,7 @@ describe('InputDevices', () => {
         const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
         // Evaluation.
-        expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
+        expect(lDeviceList[0]).toBeInstanceOf(MouseKeyboardInputDevice);
     });
 
     describe('Method: registerDevice', () => {
@@ -96,7 +97,7 @@ describe('InputDevices', () => {
             const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
             // Evaluation.
-            expect(lDeviceList[0]).to.equal(lDevice);
+            expect(lDeviceList[0]).toBe(lDevice);
         });
 
         it('-- Register two times', () => {
@@ -114,7 +115,7 @@ describe('InputDevices', () => {
             const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
             // Evaluation.
-            expect(lDeviceList[0]).to.equal(lDevice);
+            expect(lDeviceList[0]).toBe(lDevice);
         });
     });
 
@@ -133,7 +134,7 @@ describe('InputDevices', () => {
         const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
         // Evaluation.
-        expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
-        expect(lDevice.connected).to.be.false;
+        expect(lDeviceList[0]).toBeInstanceOf(MouseKeyboardInputDevice);
+        expect(lDevice.connected).toBeFalsy();
     });
 });

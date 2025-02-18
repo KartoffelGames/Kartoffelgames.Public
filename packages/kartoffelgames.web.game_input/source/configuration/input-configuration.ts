@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { ButtonValueType } from '../enum/button-value-type.enum';
-import { DeviceConfiguration } from './device-configuration';
-import { GamepadButtonMapping } from './gamepad-button-mapping';
+import { ButtonValueType } from '../enum/button-value-type.enum.ts';
+import { DeviceConfiguration } from './device-configuration.ts';
+import { GamepadButtonMapping } from './gamepad-button-mapping.ts';
 
 export class InputConfiguration {
     private readonly mDefaultDevice: DeviceConfiguration;

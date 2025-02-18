@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
-import { InputButtonEvent } from '../../../source/event/input-button-event';
-import { InputButton } from '../../../source/types';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
+import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import { InputButton } from '../../../source/types.ts';
 
 describe('InputButtonEvent', () => {
     it('Property: button', () => {
@@ -13,7 +14,7 @@ describe('InputButtonEvent', () => {
         const lResult: InputButton = lEvent.button;
 
         // Evaluation.
-        expect(lResult).to.be.equal(lButton);
+        expect(lResult).toBe(lButton);
     });
 
     it('Property: isPressed', () => {
@@ -25,7 +26,7 @@ describe('InputButtonEvent', () => {
         const lResult: boolean = lEvent.isPressed;
 
         // Evaluation.
-        expect(lResult).to.be.true;
+        expect(lResult).toBeTruthy();
     });
 
     it('Property: state', () => {
@@ -37,6 +38,6 @@ describe('InputButtonEvent', () => {
         const lResult: number = lEvent.state;
 
         // Evaluation.
-        expect(lResult).to.be.equal(lState);
+        expect(lResult).toBe(lState);
     });
 });

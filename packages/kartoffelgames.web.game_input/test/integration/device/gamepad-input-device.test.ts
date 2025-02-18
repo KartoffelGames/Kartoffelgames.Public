@@ -1,17 +1,18 @@
-import { expect } from 'chai';
-import { GamepadButton } from '../../../source/enum/gamepad-button.enum';
-import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
-import { InputConfiguration } from '../../../source/configuration/input-configuration';
-import { GamepadConnector } from '../../../source/connector/gamepad-connector';
-import { BaseInputDevice } from '../../../source/device/base-input-device';
-import { GamepadInputDevice } from '../../../source/device/gamepad-input-device';
-import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
-import { InputDevice } from '../../../source/enum/input-device.enum';
-import { InputButtonEvent } from '../../../source/event/input-button-event';
-import { InputDevices } from '../../../source/input-devices';
-import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock';
-import '../../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
+import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
+import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
+import { GamepadConnector } from '../../../source/connector/gamepad-connector.ts';
+import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import { GamepadInputDevice } from '../../../source/device/gamepad-input-device.ts';
+import { ButtonValueType } from '../../../source/enum/button-value-type.enum.ts';
+import { InputDevice } from '../../../source/enum/input-device.enum.ts';
+import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import { InputDevices } from '../../../source/input-devices.ts';
+import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock.ts';
+import '../../mock/request-animation-frame-mock-session.ts';
 
 let gIndex: number = 0;
 const gNextIndex = () => {
@@ -20,20 +21,20 @@ const gNextIndex = () => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-describe('GamepadInputDevice', () => {
-    after(() => {
-        for (const lInputDevices of gInputDeviceList) {
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
+const gAfter = () => {
+    for (const lInputDevices of gInputDeviceList) {
+        // Cleanup.
+        for (const lDevice of lInputDevices.devices) {
+            lInputDevices.unregisterDevice(lDevice);
         }
+    }
 
-        for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
-            RemoveGamepad(lIndex);
-        }
-    });
+    for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
+        RemoveGamepad(lIndex);
+    }
+};
 
+describe({ name: 'GamepadInputDevice', afterAll: gAfter }, () => {
     it('-- Button down', async () => {
         // Setup variables.
         const lGamepadIndex: number = gNextIndex();
@@ -70,7 +71,7 @@ describe('GamepadInputDevice', () => {
         });
 
         // Evaluation.
-        expect(lButtonState).to.be.equal(lButtonValue);
+        expect(lButtonState).toBe(lButtonValue);
     });
 
     it('-- Button up', async () => {
@@ -116,7 +117,7 @@ describe('GamepadInputDevice', () => {
         });
 
         // Evaluation.
-        expect(lButtonState).to.be.equal(0);
+        expect(lButtonState).toBe(0);
     });
 
     it('-- Axis move', async () => {
@@ -155,7 +156,7 @@ describe('GamepadInputDevice', () => {
         });
 
         // Evaluation.
-        expect(lButtonState).to.be.equal(lButtonValue);
+        expect(lButtonState).toBe(lButtonValue);
     });
 
     it('-- Device type', async () => {
@@ -177,6 +178,6 @@ describe('GamepadInputDevice', () => {
         });
 
         // Evaluation.
-        expect(lDevice.deviceType).to.equal(InputDevice.Gamepad);
+        expect(lDevice.deviceType).toBe(InputDevice.Gamepad);
     });
 });

@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { ButtonAction, DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { ButtonAction, DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
 
 describe('DeviceConfiguration', () => {
     it('Property: keyActions', () => {
@@ -16,7 +17,7 @@ describe('DeviceConfiguration', () => {
         const lResult: Array<ButtonAction> = lConfiguation.keyActions;
 
         // Evaluation.
-        expect(lResult).to.be.deep.equal([{ name: lActionName, buttons: lButtons }]);
+        expect(lResult).toBeDeepEqual([{ name: lActionName, buttons: lButtons }]);
     });
 
     it('Property: triggerTolerance', () => {
@@ -31,7 +32,7 @@ describe('DeviceConfiguration', () => {
         const lResult: number = lConfiguation.triggerTolerance;
 
         // Evaluation.
-        expect(lResult).to.be.equal(lTriggerTolerance);
+        expect(lResult).toBe(lTriggerTolerance);
     });
 
     it('Method: addAction', () => {
@@ -47,7 +48,7 @@ describe('DeviceConfiguration', () => {
         const lResult: Array<ButtonAction> = lConfiguation.keyActions;
 
         // Evaluation.
-        expect(lResult).to.be.deep.equal([{ name: lActionName, buttons: lButtons }]);
+        expect(lResult).toBeDeepEqual([{ name: lActionName, buttons: lButtons }]);
     });
 
     it('Method: clone', () => {
@@ -60,7 +61,7 @@ describe('DeviceConfiguration', () => {
         const lResult: DeviceConfiguration = lConfiguation.clone();
 
         // Evaluation.
-        expect(lResult).to.be.deep.equal(lConfiguation);
+        expect(lResult).toBeDeepEqual(lConfiguation);
     });
 
     describe('Method: getActionButtons', () => {
@@ -77,7 +78,7 @@ describe('DeviceConfiguration', () => {
             const lResult = lConfiguation.getActionButtons(lActionName);
 
             // Evaluation.
-            expect(lResult).to.be.deep.equal(lButtons);
+            expect(lResult).toBeDeepEqual(lButtons);
         });
 
         it('-- No action', () => {
@@ -88,7 +89,7 @@ describe('DeviceConfiguration', () => {
             const lResult = lConfiguation.getActionButtons('NOT_THERE');
 
             // Evaluation.
-            expect(lResult).to.has.lengthOf(0);
+            expect(lResult).toHaveLength(0);
         });
     });
 
@@ -106,7 +107,7 @@ describe('DeviceConfiguration', () => {
             const lResult = lConfiguation.getActionOfButton(lButton);
 
             // Evaluation.
-            expect(lResult).to.be.deep.equal([lActionName]);
+            expect(lResult).toBeDeepEqual([lActionName]);
         });
 
         it('-- No action', () => {
@@ -117,7 +118,7 @@ describe('DeviceConfiguration', () => {
             const lResult = lConfiguation.getActionOfButton(KeyboardButton.KeyK);
 
             // Evaluation.
-            expect(lResult).to.has.lengthOf(0);
+            expect(lResult).toHaveLength(0);
         });
     });
 

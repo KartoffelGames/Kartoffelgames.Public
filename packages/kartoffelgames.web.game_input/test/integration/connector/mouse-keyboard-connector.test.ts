@@ -1,24 +1,25 @@
-import { expect } from 'chai';
-import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { InputConfiguration } from '../../../source/configuration/input-configuration';
-import { MouseKeyboardConnector } from '../../../source/connector/mouse-keyboard-connector';
-import { BaseInputDevice } from '../../../source/device/base-input-device';
-import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device';
-import { InputDevices } from '../../../source/input-devices';
-import '../../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
+import { MouseKeyboardConnector } from '../../../source/connector/mouse-keyboard-connector.ts';
+import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device.ts';
+import { InputDevices } from '../../../source/input-devices.ts';
+import '../../mock/request-animation-frame-mock-session.ts';
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-describe('MouseKeyboardConnector', () => {
-    after(() => {
-        for (const lInputDevices of gInputDeviceList) {
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
+const gAfter = () => {
+    for (const lInputDevices of gInputDeviceList) {
+        // Cleanup.
+        for (const lDevice of lInputDevices.devices) {
+            lInputDevices.unregisterDevice(lDevice);
         }
-    });
+    }
+};
 
+describe({ name: 'MouseKeyboardConnector', afterAll: gAfter }, () => {
     it('-- Connect mouse keyboard', () => {
         // Setup.
         const lConfig: InputConfiguration = new InputConfiguration(new DeviceConfiguration());
@@ -30,6 +31,6 @@ describe('MouseKeyboardConnector', () => {
         const lDeviceList: Array<BaseInputDevice> = lInputDevices.devices;
 
         // Evaluation.
-        expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
+        expect(lDeviceList[0]).toBeInstanceOf(MouseKeyboardInputDevice);
     });
 });

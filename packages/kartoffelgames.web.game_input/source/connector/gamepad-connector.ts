@@ -1,8 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping';
-import { IInputConnector } from '../interface/i-input-connector.interface';
-import { InputDevices } from '../input-devices';
-import { GamepadInputDevice, GamepadGameInputInformation } from '../device/gamepad-input-device';
+import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping.ts';
+import { IInputConnector } from '../interface/i-input-connector.interface.ts';
+import { InputDevices } from '../input-devices.ts';
+import { GamepadInputDevice, GamepadGameInputInformation } from '../device/gamepad-input-device.ts';
 
 /**
  * Handles connect and disconnection of gamepads.

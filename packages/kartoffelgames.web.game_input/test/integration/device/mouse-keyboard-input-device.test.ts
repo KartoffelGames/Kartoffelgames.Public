@@ -1,25 +1,26 @@
-import { expect } from 'chai';
-import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
-import { InputConfiguration } from '../../../source/configuration/input-configuration';
-import { BaseInputDevice } from '../../../source/device/base-input-device';
-import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device';
-import { InputDevice } from '../../../source/enum/input-device.enum';
-import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
-import { MouseButton } from '../../../source/enum/mouse-button.enum';
-import { InputActionEvent } from '../../../source/event/input-action-event';
-import { InputButtonEvent } from '../../../source/event/input-button-event';
-import '../../mock/request-animation-frame-mock-session';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it } from '@std/testing/bdd';
+import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
+import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device.ts';
+import { InputDevice } from '../../../source/enum/input-device.enum.ts';
+import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
+import { MouseButton } from '../../../source/enum/mouse-button.enum.ts';
+import { InputActionEvent } from '../../../source/event/input-action-event.ts';
+import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import '../../mock/request-animation-frame-mock-session.ts';
 
 const gInputDeviceList: Array<BaseInputDevice> = [];
 
-describe('MouseKeyboardConnector', () => {
-    after(() => {
-        // Cleanup.
-        for (const lDevice of gInputDeviceList) {
-            lDevice.connected = false;
-        }
-    });
+// Cleanup.
+const gAfter = () => {
+    for (const lDevice of gInputDeviceList) {
+        lDevice.connected = false;
+    }
+};
 
+describe({ name: 'MouseKeyboardConnector', afterAll: gAfter }, () => {
     it('-- Mouse click down: left', async () => {
         // Setup.
         const lButton: MouseButton = MouseButton.MainLeft;
@@ -43,7 +44,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Mouse click up: left', async () => {
@@ -69,7 +70,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Mouse click down: middle', async () => {
@@ -95,7 +96,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Mouse click up: middle', async () => {
@@ -121,7 +122,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Mouse click down: right', async () => {
@@ -147,7 +148,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Mouse click up: right', async () => {
@@ -173,7 +174,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Mouse click down: back', async () => {
@@ -199,7 +200,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Mouse click up: back', async () => {
@@ -225,7 +226,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Mouse click down: forward', async () => {
@@ -251,7 +252,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Mouse click up: forward', async () => {
@@ -277,7 +278,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Keyboard press down', async () => {
@@ -302,7 +303,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Keyboard press up', async () => {
@@ -327,7 +328,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Mouse move X', async () => {
@@ -356,7 +357,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(lMouseMovement / 10);
+        expect(lButtonValue).toBe(lMouseMovement / 10);
     });
 
     it('-- Mouse move Y', async () => {
@@ -385,7 +386,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(lMouseMovement / 10);
+        expect(lButtonValue).toBe(lMouseMovement / 10);
     });
 
     it('-- Device type', async () => {
@@ -396,7 +397,7 @@ describe('MouseKeyboardConnector', () => {
         gInputDeviceList.push(lDevice); // For cleanup.
 
         // Evaluation.
-        expect(lDevice.deviceType).to.equal(InputDevice.MouseKeyboard);
+        expect(lDevice.deviceType).toBe(InputDevice.MouseKeyboard);
     });
 
     it('-- Keyboard is pressed.', async () => {
@@ -425,7 +426,7 @@ describe('MouseKeyboardConnector', () => {
         document.dispatchEvent(new KeyboardEvent('keyup', { code: lButton }));
 
         // Evaluation.
-        expect(lButtonValueCurrent).to.be.true;
+        expect(lButtonValueCurrent).toBeTruthy();
     });
 
     it('-- Keyboard current button state.', async () => {
@@ -454,7 +455,7 @@ describe('MouseKeyboardConnector', () => {
         document.dispatchEvent(new KeyboardEvent('keyup', { code: lButton }));
 
         // Evaluation.
-        expect(lButtonValueCurrent).to.equal(lButtonValue);
+        expect(lButtonValueCurrent).toBe(lButtonValue);
     });
 
     it('-- Keyboard current button state with no value.', async () => {
@@ -472,7 +473,7 @@ describe('MouseKeyboardConnector', () => {
 
 
         // Evaluation.
-        expect(lButtonValueCurrent).to.equal(0);
+        expect(lButtonValueCurrent).toBe(0);
     });
 
     it('-- Keyboard press down', async () => {
@@ -510,7 +511,7 @@ describe('MouseKeyboardConnector', () => {
         document.dispatchEvent(new KeyboardEvent('keyup', { code: lButton })); // Keyup cleanup.
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Button action: down', async () => {
@@ -542,7 +543,7 @@ describe('MouseKeyboardConnector', () => {
         document.dispatchEvent(new KeyboardEvent('keyup', { code: lButtonTwo }));
 
         // Evaluation.
-        expect(lButtonValue).to.equal(1);
+        expect(lButtonValue).toBe(1);
     });
 
     it('-- Button action: up', async () => {
@@ -574,7 +575,7 @@ describe('MouseKeyboardConnector', () => {
         });
 
         // Evaluation.
-        expect(lButtonValue).to.equal(0);
+        expect(lButtonValue).toBe(0);
     });
 
     it('-- Button action: no button', async () => {
@@ -609,6 +610,6 @@ describe('MouseKeyboardConnector', () => {
         document.dispatchEvent(new KeyboardEvent('keyup', { code: lButtonTwo }));
 
         // Evaluation.
-        expect(lValue).to.equal(1);
+        expect(lValue).toBe(1);
     });
 });

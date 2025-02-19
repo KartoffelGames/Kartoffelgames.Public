@@ -1,12 +1,12 @@
 import { Stack } from '@kartoffelgames/core';
-import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy';
-import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator';
-import { CoreEntityUpdateCycle, UpdateCycle, UpdateCycleRunner } from './core-entiy-update-cycle';
-import { UpdateLoopError } from './update-loop-error';
-import { UpdateResheduleError } from './update-reshedule-error';
+import { InteractionEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration.ts';
+import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
+import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator.ts';
+import { CoreEntityUpdateCycle, UpdateCycle, UpdateCycleRunner } from './core-entiy-update-cycle.ts';
+import { UpdateLoopError } from './update-loop-error.ts';
+import { UpdateResheduleError } from './update-reshedule-error.ts';
 
 /**
  * Base Updater of any core entity. Handles automatic and manual update detection.

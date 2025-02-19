@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from '../base-pwb-template-node';
+import { BasePwbTemplateNode } from '../base-pwb-template-node.ts';
 
 /**
  * Basic pwb template value used to save node values.

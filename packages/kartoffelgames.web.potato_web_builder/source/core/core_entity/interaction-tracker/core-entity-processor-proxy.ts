@@ -1,5 +1,5 @@
-import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { InteractionEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.

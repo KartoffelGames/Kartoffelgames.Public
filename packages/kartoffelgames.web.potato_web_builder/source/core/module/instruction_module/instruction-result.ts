@@ -1,6 +1,6 @@
 import { Exception, List } from '@kartoffelgames/core';
-import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { DataLevel } from '../../data/data-level';
+import { PwbTemplate } from '../../component/template/nodes/pwb-template.ts';
+import { DataLevel } from '../../data/data-level.ts';
 
 /**
  * Results for instruction module.

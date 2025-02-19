@@ -1,12 +1,12 @@
 import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
-import { InstructionModule } from '../../module/instruction_module/instruction-module';
-import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
-import { DataLevel } from '../../data/data-level';
-import { ComponentModules } from '../component-modules';
-import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { BaseBuilder } from './base-builder';
-import { InstructionBuilderData } from './data/instruction-builder-data';
-import { StaticBuilder } from './static-builder';
+import { InstructionModule } from '../../module/instruction_module/instruction-module.ts';
+import { InstructionResultElement } from '../../module/instruction_module/instruction-result.ts';
+import { DataLevel } from '../../data/data-level.ts';
+import { ComponentModules } from '../component-modules.ts';
+import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
+import { BaseBuilder } from './base-builder.ts';
+import { InstructionBuilderData } from './data/instruction-builder-data.ts';
+import { StaticBuilder } from './static-builder.ts';
 
 /**
  * Instruction builder. Only builds and handles instruction templates.

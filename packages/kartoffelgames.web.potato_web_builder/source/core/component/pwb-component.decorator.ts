@@ -1,10 +1,10 @@
-import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
-import { UpdateMode } from '../enum/update-mode.enum';
-import { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module';
-import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
-import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module';
-import { Component, ComponentProcessorConstructor } from './component';
-import { ComponentRegister } from './component-register';
+import { InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
+import { UpdateMode } from '../enum/update-mode.enum.ts';
+import { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
+import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
+import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
+import { Component, ComponentProcessorConstructor } from './component.ts';
+import { ComponentRegister } from './component-register.ts';
 
 /**
  * AtScript. PWB Component.

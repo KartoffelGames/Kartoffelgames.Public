@@ -1,8 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node';
-import { PwbTemplateAttribute } from './values/pwb-template-attribute';
-import { PwbTemplateTextNode } from './pwb-template-text-node';
-import { PwbTemplateExpression } from './values/pwb-template-expression';
+import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { PwbTemplateAttribute } from './values/pwb-template-attribute.ts';
+import { PwbTemplateTextNode } from './pwb-template-text-node.ts';
+import { PwbTemplateExpression } from './values/pwb-template-expression.ts';
 
 /**
  * Pwb template xml node.

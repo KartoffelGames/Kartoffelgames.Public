@@ -1,11 +1,11 @@
-import { Processor } from '../../core/core_entity/processor';
-import { ComponentDataLevel } from '../../core/data/component-data-level';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.

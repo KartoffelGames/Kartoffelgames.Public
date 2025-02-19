@@ -1,10 +1,10 @@
-import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { Component } from '../../core/component/component';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { PwbApp } from '../../pwb-app/pwb-app';
-import { Processor } from '../../core/core_entity/processor';
+import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { Component } from '../../core/component/component.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { PwbApp } from '../../pwb-app/pwb-app.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Write,

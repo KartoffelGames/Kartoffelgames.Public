@@ -1,16 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
-import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
-import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
-import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
-import { DataLevel } from '../../core/data/data-level';
-import { Processor } from '../../core/core_entity/processor';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
+import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import { ModuleTemplate } from '../../core/module/injection_reference/module-template.ts';
+import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
+import { InstructionResult } from '../../core/module/instruction_module/instruction-result.ts';
+import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator.ts';
+import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { DataLevel } from '../../core/data/data-level.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 /**
  * For of.

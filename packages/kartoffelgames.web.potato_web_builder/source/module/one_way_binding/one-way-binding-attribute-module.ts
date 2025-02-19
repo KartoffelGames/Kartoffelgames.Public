@@ -1,12 +1,12 @@
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { Processor } from '../../core/core_entity/processor';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 /**
  * Bind value to view object.

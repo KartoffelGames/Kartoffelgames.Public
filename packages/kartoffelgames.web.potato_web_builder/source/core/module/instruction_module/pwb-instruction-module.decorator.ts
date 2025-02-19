@@ -1,7 +1,7 @@
-import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { CoreEntityRegister } from '../../core_entity/core-entity-register';
-import { IPwbInstructionModuleProcessorConstructor, InstructionModule } from './instruction-module';
+import { Injector } from '@kartoffelgames/core-dependency-injection';
+import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register.ts';
+import { IPwbInstructionModuleProcessorConstructor, InstructionModule } from './instruction-module.ts';
 
 /**
  * AtScript. PWB instruction attribute module.

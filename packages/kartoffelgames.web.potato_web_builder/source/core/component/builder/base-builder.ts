@@ -1,8 +1,8 @@
 
-import { DataLevel } from '../../data/data-level';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { BaseBuilderData, Boundary } from './data/base-builder-data';
+import { DataLevel } from '../../data/data-level.ts';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
+import { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
 
 /**
  * Builder that builds and updates content of component.

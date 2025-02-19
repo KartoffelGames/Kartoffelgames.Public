@@ -1,4 +1,4 @@
-import { ComponentEvent } from './component-event';
+import { ComponentEvent } from './component-event.ts';
 
 /**
  * Event emitter.

@@ -1,6 +1,6 @@
 import { Writeable } from '@kartoffelgames/core';
-import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy';
-import { CoreEntityUpdater } from './core-entity-updater';
+import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy.ts';
+import { CoreEntityUpdater } from './core-entity-updater.ts';
 
 export class CoreEntityUpdateCycle {
     private static mCurrentUpdateCycle: UpdateCycle | null = null;

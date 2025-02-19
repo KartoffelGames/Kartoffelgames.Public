@@ -1,10 +1,10 @@
-import { ModuleDataLevel } from '../../core/data/module-data-level';
-import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
-import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { Processor } from '../../core/core_entity/processor';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module.ts';
+import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 /**
  * Wannabe Mustache expression executor.

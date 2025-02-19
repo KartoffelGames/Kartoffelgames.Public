@@ -1,18 +1,18 @@
-import { AttributeModule } from '../../module/attribute_module/attribute-module';
-import { ExpressionModule } from '../../module/expression_module/expression-module';
-import { DataLevel } from '../../data/data-level';
-import { ComponentModules } from '../component-modules';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplate } from '../template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
-import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
-import { BaseBuilder } from './base-builder';
-import { BuilderContent } from './data/base-builder-data';
-import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
-import { InstructionBuilder } from './instruction-builder';
+import { AttributeModule } from '../../module/attribute_module/attribute-module.ts';
+import { ExpressionModule } from '../../module/expression_module/expression-module.ts';
+import { DataLevel } from '../../data/data-level.ts';
+import { ComponentModules } from '../component-modules.ts';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import { PwbTemplate } from '../template/nodes/pwb-template.ts';
+import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
+import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node.ts';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
+import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute.ts';
+import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression.ts';
+import { BaseBuilder } from './base-builder.ts';
+import { BuilderContent } from './data/base-builder-data.ts';
+import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data.ts';
+import { InstructionBuilder } from './instruction-builder.ts';
 
 /**
  * Static builder. Handles any type of pwb template but creates new {@link InstructionBuilder} for every instruction node.

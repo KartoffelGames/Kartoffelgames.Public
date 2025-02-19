@@ -1,5 +1,5 @@
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { CoreEntityProcessorProxy } from './core-entity-processor-proxy';
+import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
 
 
 /**

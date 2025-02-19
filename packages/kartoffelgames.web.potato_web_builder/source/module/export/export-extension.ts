@@ -1,10 +1,10 @@
 import { List } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../core/component/component';
-import { Processor } from '../../core/core_entity/processor';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Component } from '../../core/component/component.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 
 @PwbExtensionModule({
     access: AccessMode.ReadWrite,

@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component, ComponentProcessorConstructor } from '../../core/component/component';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ComponentEventEmitter } from './component-event-emitter';
-import { Processor } from '../../core/core_entity/processor';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Component, ComponentProcessorConstructor } from '../../core/component/component.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ComponentEventEmitter } from './component-event-emitter.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,

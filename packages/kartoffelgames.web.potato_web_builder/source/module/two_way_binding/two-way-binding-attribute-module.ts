@@ -1,12 +1,12 @@
-import { Processor } from '../../core/core_entity/processor';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,

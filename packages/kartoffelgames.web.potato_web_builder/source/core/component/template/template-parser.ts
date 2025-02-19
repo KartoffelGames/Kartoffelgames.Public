@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
-import { PwbTemplate } from './nodes/pwb-template';
-import { BasePwbTemplateNode } from './nodes/base-pwb-template-node';
-import { PwbTemplateTextNode } from './nodes/pwb-template-text-node';
-import { PwbTemplateXmlNode } from './nodes/pwb-template-xml-node';
-import { PwbTemplateInstructionNode } from './nodes/pwb-template-instruction-node';
-import { PwbTemplateExpression } from './nodes/values/pwb-template-expression';
+import { CodeParser, Lexer } from '@kartoffelgames/core-parser';
+import { PwbTemplate } from './nodes/pwb-template.ts';
+import { BasePwbTemplateNode } from './nodes/base-pwb-template-node.ts';
+import { PwbTemplateTextNode } from './nodes/pwb-template-text-node.ts';
+import { PwbTemplateXmlNode } from './nodes/pwb-template-xml-node.ts';
+import { PwbTemplateInstructionNode } from './nodes/pwb-template-instruction-node.ts';
+import { PwbTemplateExpression } from './nodes/values/pwb-template-expression.ts';
 
 /**
  * Parser for parsing pwb xml template strings.

@@ -1,6 +1,6 @@
-import { PwbTemplateTextNode } from '../pwb-template-text-node';
-import { BasePwbTemplateValue } from './base-pwb-template-value';
-import { PwbTemplateExpression } from './pwb-template-expression';
+import { PwbTemplateTextNode } from '../pwb-template-text-node.ts';
+import { BasePwbTemplateValue } from './base-pwb-template-value.ts';
+import { PwbTemplateExpression } from './pwb-template-expression.ts';
 
 /**
  * Pwb xml template attribute.

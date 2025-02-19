@@ -1,10 +1,10 @@
 import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
-import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntityUpdater } from './updater/core-entity-updater';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
-import { Processor } from './processor';
-import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
+import { Injection, InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { CoreEntityUpdater } from './updater/core-entity-updater.ts';
+import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
+import { Processor } from './processor.ts';
+import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy.ts';
 
 export abstract class CoreEntity<TProcessor extends Processor = Processor> implements IDeconstructable {
     private readonly mHooks: CoreEntityHooks<TProcessor>;

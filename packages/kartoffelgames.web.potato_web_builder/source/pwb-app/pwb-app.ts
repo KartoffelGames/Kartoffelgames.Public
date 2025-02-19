@@ -1,9 +1,9 @@
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { ComponentProcessorConstructor } from '../core/component/component';
-import { ComponentRegister } from '../core/component/component-register';
-import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
-import { PwbAppComponent } from './component/pwb-app-component';
+import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { ComponentProcessorConstructor } from '../core/component/component.ts';
+import { ComponentRegister } from '../core/component/component-register.ts';
+import { PwbTemplate } from '../core/component/template/nodes/pwb-template.ts';
+import { PwbAppComponent } from './component/pwb-app-component.ts';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.

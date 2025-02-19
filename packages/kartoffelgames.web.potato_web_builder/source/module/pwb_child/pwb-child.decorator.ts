@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { Component, ComponentProcessor } from '../../core/component/component';
-import { ComponentRegister } from '../../core/component/component-register';
-import { ComponentDataLevel } from '../../core/data/component-data-level';
+import { Component, ComponentProcessor } from '../../core/component/component.ts';
+import { ComponentRegister } from '../../core/component/component-register.ts';
+import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
 
 /**
  * AtScript. Id child 

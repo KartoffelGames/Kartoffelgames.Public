@@ -1,13 +1,13 @@
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component';
-import { ComponentRegister } from '../../core/component/component-register';
-import { PwbComponent } from '../../core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
-import { PwbExport } from '../../module/export/pwb-export.decorator';
+import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
+import { ComponentRegister } from '../../core/component/component-register.ts';
+import { PwbComponent } from '../../core/component/pwb-component.decorator.ts';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
+import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node.ts';
+import { PwbExport } from '../../module/export/pwb-export.decorator.ts';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
-import { Processor } from '../../core/core_entity/processor';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbComponent({
     selector: 'pwb-app',

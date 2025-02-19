@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension';
-import { Processor } from '../../core/core_entity/processor';
+import { InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,

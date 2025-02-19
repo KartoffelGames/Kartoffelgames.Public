@@ -1,8 +1,8 @@
-import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
-import { CoreEntityRegister } from '../core_entity/core-entity-register';
-import { AccessMode } from '../enum/access-mode.enum';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { ExtensionModule, ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor } from './extension-module';
+import { InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
+import { CoreEntityRegister } from '../core_entity/core-entity-register.ts';
+import { AccessMode } from '../enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { ExtensionModule, ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor } from './extension-module.ts';
 
 /**
  * AtScript. PWB component extension module.

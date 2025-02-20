@@ -1,11 +1,11 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+import { expect } from '@kartoffelgames/core-test';
+import { describe, it, before } from '@std/testing/bdd';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
+import '../../utility/request-animation-frame-mock-session.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 describe('TwoWayBinding', () => {
     before(() => {

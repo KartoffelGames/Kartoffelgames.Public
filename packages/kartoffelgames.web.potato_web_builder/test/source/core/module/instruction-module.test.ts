@@ -1,17 +1,17 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { ComponentDataLevel } from '../../../../source/core/data/component-data-level';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
-import { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module';
-import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result';
-import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import '../../../utility/chai-helper';
-import '../../../utility/request-animation-frame-mock-session';
-import { TestUtil } from '../../../utility/test-util';
+import { expect } from '@kartoffelgames/core-test';
+import { before, describe, it } from '@std/testing/bdd';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
+import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
+import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
+import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
+import '../../../utility/request-animation-frame-mock-session.ts';
+import { TestUtil } from '../../../utility/test-util.ts';
 
 describe('Custom Module', () => {
     before(() => {

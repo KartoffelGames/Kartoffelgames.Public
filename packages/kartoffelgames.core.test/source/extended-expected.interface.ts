@@ -1,4 +1,5 @@
 import { type Async, type Expected, expect } from "@std/expect";
+import { ComponentStructure } from "./extensions/to-be-component-structure.ts";
 
 // Extends the `Expected` interface with your new matchers signatures
 export interface ExtendedExpected<IsAsync = false> extends Expected<IsAsync> {
@@ -16,6 +17,14 @@ export interface ExtendedExpected<IsAsync = false> extends Expected<IsAsync> {
      * @param pTarget - Target values. 
      */
     toHaveOrderedItems: (pTarget: Array<any>) => unknown;
+
+    /**
+     * Check component structure.
+     * 
+     * @param pStructure - Expected structure.
+     * @param pUseShadowRoot - Use shadow root or threat it as a closed element.
+     */
+    toBeComponentStructure: (pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
 
     // NOTE: You also need to overrides the following typings to allow modifiers to correctly infer typing
     not: IsAsync extends true ? Async<ExtendedExpected<true>> : ExtendedExpected<false>;

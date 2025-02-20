@@ -1,10 +1,11 @@
-import { expect } from 'chai';
-import { PwbExport } from '../../../../source';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { TestUtil } from '../../../utility/test-util';
+import { expect } from '@kartoffelgames/core-test';
+import { before, describe, it } from '@std/testing/bdd';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
+import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { PwbExport } from "../../../../source/module/export/pwb-export.decorator.ts";
+import { TestUtil } from '../../../utility/test-util.ts';
 
 describe('ExtensionModule', () => {
     before(() => {

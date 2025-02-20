@@ -1,13 +1,13 @@
-import { expect } from 'chai';
-import { Component } from '../../../../source';
-import { ComponentRegister } from '../../../../source/core/component/component-register';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { DataLevel } from '../../../../source/core/data/data-level';
-import '../../../utility/chai-helper';
-import '../../../utility/request-animation-frame-mock-session';
-import { TestUtil } from '../../../utility/test-util';
+import { expect } from '@kartoffelgames/core-test';
+import { before, describe, it } from '@std/testing/bdd';
+import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
+import { Component } from "../../../../source/core/component/component.ts";
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { DataLevel } from '../../../../source/core/data/data-level.ts';
+import '../../../utility/request-animation-frame-mock-session.ts';
+import { TestUtil } from '../../../utility/test-util.ts';
 
 
 describe('DataLevel', () => {

@@ -1,6 +1,6 @@
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import '../../../utility/chai-helper';
-import '../../../utility/request-animation-frame-mock-session';
+import { before, describe } from '@std/testing/bdd';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
+import '../../../utility/request-animation-frame-mock-session.ts';
 
 describe('Custom Module', () => {
     before(() => {

@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
+import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../source/configuration/device-configuration.ts';
 import { InputConfiguration } from '../../source/configuration/input-configuration.ts';
 import { MouseKeyboardConnector } from '../../source/connector/mouse-keyboard-connector.ts';
@@ -15,16 +15,16 @@ const gCreateConfig = (): InputConfiguration => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-const gAfter = () => {
-    for (const lInputDevices of gInputDeviceList) {
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
+describe('InputDevices', () => {
+    after(() => {
+        for (const lInputDevices of gInputDeviceList) {
+            // Cleanup.
+            for (const lDevice of lInputDevices.devices) {
+                lInputDevices.unregisterDevice(lDevice);
+            }
         }
-    }
-};
+    });
 
-describe({ name: 'InputDevices', afterAll: gAfter }, () => {
     it('Property: configuration', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();

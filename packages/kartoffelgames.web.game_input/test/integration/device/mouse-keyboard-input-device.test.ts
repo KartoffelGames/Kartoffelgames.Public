@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
+import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
 import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
 import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
@@ -13,14 +13,14 @@ import '../../mock/request-animation-frame-mock-session.ts';
 
 const gInputDeviceList: Array<BaseInputDevice> = [];
 
-// Cleanup.
-const gAfter = () => {
-    for (const lDevice of gInputDeviceList) {
-        lDevice.connected = false;
-    }
-};
 
-describe({ name: 'MouseKeyboardConnector', afterAll: gAfter }, () => {
+describe('MouseKeyboardConnector', () => {
+    after(() => {
+        for (const lDevice of gInputDeviceList) {
+            lDevice.connected = false;
+        }
+    });
+
     it('-- Mouse click down: left', async () => {
         // Setup.
         const lButton: MouseButton = MouseButton.MainLeft;

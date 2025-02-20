@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
+import { before, describe, it } from '@std/testing/bdd';
 import { Patcher } from '../source/patcher/patcher.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
@@ -207,7 +207,11 @@ describe('Patcher', () => {
         });
     });
 
-    describe({ name: 'Method: patchEventTarget', beforeAll: () => { Patcher.patch(globalThis); } }, () => {
+    describe('Method: patchEventTarget', () => {
+        before(() => {
+            Patcher.patch(globalThis);
+        });
+
         it('-- AddEventListener correct listener zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
@@ -539,7 +543,11 @@ describe('Patcher', () => {
         });
     });
 
-    describe({ name: 'Method: patchPromise', beforeAll: () => { Patcher.patch(globalThis); } }, () => {
+    describe('Method: patchPromise', () => {
+        before(() => {
+            Patcher.patch(globalThis);
+        });
+
         it('-- Promise executor correct zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');

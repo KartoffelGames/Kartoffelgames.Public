@@ -1,6 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
-import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
+import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
 import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
 import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
@@ -8,6 +7,7 @@ import { GamepadConnector } from '../../../source/connector/gamepad-connector.ts
 import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
 import { GamepadInputDevice } from '../../../source/device/gamepad-input-device.ts';
 import { ButtonValueType } from '../../../source/enum/button-value-type.enum.ts';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
 import { InputDevice } from '../../../source/enum/input-device.enum.ts';
 import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
 import { InputDevices } from '../../../source/input-devices.ts';
@@ -21,20 +21,20 @@ const gNextIndex = () => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-const gAfter = () => {
-    for (const lInputDevices of gInputDeviceList) {
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
+describe('GamepadInputDevice', () => {
+    after(() => {
+        for (const lInputDevices of gInputDeviceList) {
+            // Cleanup.
+            for (const lDevice of lInputDevices.devices) {
+                lInputDevices.unregisterDevice(lDevice);
+            }
         }
-    }
 
-    for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
-        RemoveGamepad(lIndex);
-    }
-};
+        for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
+            RemoveGamepad(lIndex);
+        }
+    });
 
-describe({ name: 'GamepadInputDevice', afterAll: gAfter }, () => {
     it('-- Button down', async () => {
         // Setup variables.
         const lGamepadIndex: number = gNextIndex();

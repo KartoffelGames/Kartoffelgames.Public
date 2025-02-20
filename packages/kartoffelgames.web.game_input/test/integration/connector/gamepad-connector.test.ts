@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
+import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
 import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
 import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
@@ -19,20 +19,20 @@ const gNextIndex = () => {
 
 const gInputDeviceList: Array<InputDevices> = [];
 
-const gAfter = () => {
-    for (const lInputDevices of gInputDeviceList) {
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
+describe('GamepadConnector', () => {
+    after(() => {
+        for (const lInputDevices of gInputDeviceList) {
+            // Cleanup.
+            for (const lDevice of lInputDevices.devices) {
+                lInputDevices.unregisterDevice(lDevice);
+            }
         }
-    }
 
-    for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
-        RemoveGamepad(lIndex);
-    }
-};
+        for (let lIndex = 0; lIndex <= gIndex; lIndex++) {
+            RemoveGamepad(lIndex);
+        }
+    });
 
-describe({ name: 'GamepadConnector', afterAll: gAfter }, () => {
     it('-- Connect gamepad', async () => {
         // Setup variables.
         const lGamepadIndex: number = gNextIndex();

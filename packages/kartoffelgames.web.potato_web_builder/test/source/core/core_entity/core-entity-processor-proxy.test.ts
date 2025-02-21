@@ -15,7 +15,7 @@ describe('CoreEntityProcessorProxy', () => {
         const lProxy: object = lDetectionProxy.proxy;
 
         // Evaluation.
-        expect(lProxy).to.not.equal(lOriginalObject);
+        expect(lProxy).not.toBe(lOriginalObject);
     });
 
     describe('Functionality: InteractionZone', () => {
@@ -186,8 +186,8 @@ describe('CoreEntityProcessorProxy', () => {
                 const lResultValue: object = lDetectionProxy.proxy.a;
 
                 // Evaluation.
-                expect(lResultValue).to.not.equal(lValue);
-                expect(lResultValue).to.deep.equal(lValue);
+                expect(lResultValue).not.toBe(lValue);
+                expect(lResultValue).not.toBeDeepEqual(lValue);
             });
 
             it('-- Function', () => {
@@ -200,7 +200,7 @@ describe('CoreEntityProcessorProxy', () => {
                 const lResultValue: () => void = lDetectionProxy.proxy.a;
 
                 // Evaluation.
-                expect(lResultValue).to.not.equal(lValue);
+                expect(lResultValue).not.toBe(lValue);
                 expect(lResultValue.name).toBe(lValue.name);
             });
         });
@@ -215,7 +215,7 @@ describe('CoreEntityProcessorProxy', () => {
                 delete lDetectionProxy.proxy.a;
 
                 // Evaluation.
-                expect(lOriginalObject.a).to.be.undefined;
+                expect(lOriginalObject.a).toBeUndefined();
             });
 
             it('-- Detect deletion of correct property', () => {
@@ -315,7 +315,7 @@ describe('CoreEntityProcessorProxy', () => {
 
                 // Evaluation.
                 expect(lProxy.zone).toBe(lInteractionZone);
-                expect(lProxy.childObject).to.not.equal(lChildObject);
+                expect(lProxy.childObject).not.toBe(lChildObject);
             });
 
             it('-- Detect interaction on native function.', () => {
@@ -577,7 +577,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Evaluation.
             expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
-            expect(lPropertyValueOnEvent).to.be.undefined;
+            expect(lPropertyValueOnEvent).toBeUndefined();
         });
 
         it('-- ComponentInteractionType.PropertyDelete on property delete error', () => {
@@ -874,7 +874,7 @@ describe('CoreEntityProcessorProxy', () => {
             lDetectionProxy.a = lProxValue;
 
             // Evaluation.
-            expect(lProxValue).to.not.equal(lOriginalInnerObject);
+            expect(lProxValue).not.toBe(lOriginalInnerObject);
             expect(lOriginalObject.a).toBe(lOriginalInnerObject);
         });
 

@@ -1,6 +1,6 @@
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../source/core/component/component';
-import { ComponentRegister } from '../../source/core/component/component-register';
+import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { Component } from '../../source/core/component/component.ts';
+import { ComponentRegister } from '../../source/core/component/component-register.ts';
 
 export class TestUtil {
     /**

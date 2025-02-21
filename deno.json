@@ -27,6 +27,9 @@
             "DOM",
             "deno.ns"
         ],
+        "types": [
+            "./global_declaration/module-declaration.d.ts"
+        ],
         "noImplicitAny": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,

@@ -106,7 +106,7 @@ describe('ComponentEventListener', () => {
         lComponent.callEvent();
 
         // Evaluation.
-        expect(lEventValueResult).to.equal(lEventValue);
+        expect(lEventValueResult).toBe(lEventValue);
     });
 
     it('-- Error on static properties', async () => {
@@ -146,7 +146,7 @@ describe('ComponentEventListener', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Event listener property must be of type Function');
+        expect(lErrorMessage).toBe('Event listener property must be of type Function');
     });
 
     it('-- Two parallel listener', async () => {
@@ -299,7 +299,7 @@ describe('ComponentEventListener', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Event listener property must be of type Function');
+        expect(lErrorMessage).toBe('Event listener property must be of type Function');
     });
 
     it('-- Dont call event listener for instruction modules', async () => {

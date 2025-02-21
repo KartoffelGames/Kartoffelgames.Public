@@ -35,7 +35,7 @@ describe('SlotInstruction', () => {
             Comment, // Static Anchor
             HTMLSlotElement
         ], true);
-        expect(lSlotName).to.be.null;
+        expect(lSlotName).toBeNull();
     });
 
     it('-- Named slot', async () => {

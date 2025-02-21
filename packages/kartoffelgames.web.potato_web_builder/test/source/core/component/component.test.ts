@@ -164,7 +164,7 @@ describe('HtmlComponent', () => {
             HTMLStyleElement,
             Comment
         ], true);
-        expect(lStyleElement.textContent).to.equal(lStyleContent);
+        expect(lStyleElement.textContent).toBe(lStyleContent);
     });
 
     it('-- Manual update. Initial update', async () => {
@@ -398,7 +398,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent).to.equal(lComponentReference);
+        expect(lComponent).toBe(lComponentReference);
     });
 
     it('-- User callbacks', async () => {

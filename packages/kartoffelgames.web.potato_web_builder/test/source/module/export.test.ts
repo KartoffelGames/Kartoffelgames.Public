@@ -32,7 +32,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Default export set', async () => {
@@ -54,7 +54,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Two parallel exports get', async () => {
@@ -79,8 +79,8 @@ describe('Export', () => {
         const lResultValueTwo: string = lComponent.valueTwo;
 
         // Evaluation.
-        expect(lResultValueOne).to.equal(lTestValueOne);
-        expect(lResultValueTwo).to.equal(lTestValueTwo);
+        expect(lResultValueOne).toBe(lTestValueOne);
+        expect(lResultValueTwo).toBe(lTestValueTwo);
     });
 
     it('-- Forbidden static usage', () => {
@@ -122,7 +122,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Get unexported value with getAttribute', async () => {
@@ -139,7 +139,7 @@ describe('Export', () => {
         const lResultValue: string | null = lComponent.getAttribute('value');
 
         // Evaluation.
-        expect(lResultValue).to.be.null;
+        expect(lResultValue).toBeNull();
     });
 
     it('-- Preserve original getAttribute and setAttribute', async () => {
@@ -161,7 +161,7 @@ describe('Export', () => {
         const lResultValue: string | null = lComponent.getAttribute('htmlvalue');
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Override native properties', async () => {
@@ -182,7 +182,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.children;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Export parent class exported properties', async () => {
@@ -206,7 +206,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.children;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Exported value with getAttribute', async () => {
@@ -227,7 +227,7 @@ describe('Export', () => {
         const lResultValue: string = lComponent.getAttribute('value')!;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).toBe(lTestValue);
     });
 
     it('-- Set attribute values on export init', async () => {
@@ -259,6 +259,6 @@ describe('Export', () => {
         const lExportedValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lExportedValue).to.equal(lValue);
+        expect(lExportedValue).toBe(lValue);
     });
 });

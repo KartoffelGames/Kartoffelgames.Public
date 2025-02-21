@@ -113,6 +113,6 @@ describe('DynamicContent', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Dynamic content method has a wrong result type.');
+        expect(lErrorMessage).toBe('Dynamic content method has a wrong result type.');
     });
 });

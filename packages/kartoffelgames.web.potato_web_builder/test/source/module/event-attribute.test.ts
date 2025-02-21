@@ -40,7 +40,7 @@ describe('EventAttribute', () => {
         lEventChild.click();
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventValueResult).to.equal('click');
+        expect(lEventValueResult).toBe('click');
     });
 
     it('-- Clear listener events on deconstruct', async () => {

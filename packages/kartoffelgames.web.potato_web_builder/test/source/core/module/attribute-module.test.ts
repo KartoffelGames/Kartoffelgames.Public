@@ -53,6 +53,6 @@ describe('Custom Module', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal(`Temporary value "${lTemporaryValueName}" does not exist for this procedure.`);
+        expect(lErrorMessage).toBe(`Temporary value "${lTemporaryValueName}" does not exist for this procedure.`);
     });
 });

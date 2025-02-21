@@ -34,7 +34,7 @@ describe('TwoWayBinding', () => {
         const lInputValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lInputValue).to.equal(lInitialValue);
+        expect(lInputValue).toBe(lInitialValue);
     });
 
     it('-- Change view value', async () => {
@@ -61,7 +61,7 @@ describe('TwoWayBinding', () => {
         const lComponentValue: string = lComponent.userValue;
 
         // Evaluation.
-        expect(lComponentValue).to.equal(lNewValue);
+        expect(lComponentValue).toBe(lNewValue);
     });
 
     it('-- Change component value', async () => {
@@ -87,6 +87,6 @@ describe('TwoWayBinding', () => {
         const lViewValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lViewValue).to.equal(lNewValue);
+        expect(lViewValue).toBe(lNewValue);
     });
 });

@@ -23,7 +23,7 @@ describe('PwbApp', () => {
         const lContent: Element = lApp.component;
 
         // Evaluation.
-        expect(lContent.tagName.toLowerCase()).to.equal('pwb-app');
+        expect(lContent.tagName.toLowerCase()).toBe('pwb-app');
         expect(lContent.shadowRoot).to.be.not.null;
     });
 
@@ -49,7 +49,7 @@ describe('PwbApp', () => {
             const lContent: Element = <Element>lApp.component.shadowRoot!.querySelector(lSelector);
 
             // Evaluation.
-            expect(lContent.tagName.toLowerCase()).to.equal(lSelector);
+            expect(lContent.tagName.toLowerCase()).toBe(lSelector);
         });
 
         it('-- Initialize component before appendTo', async () => {
@@ -103,7 +103,7 @@ describe('PwbApp', () => {
             lApp.appendTo(lDummyElement);
 
             // Evaluation.
-            expect(lDummyElement.childNodes[0]).to.equal(lApp.component);
+            expect(lDummyElement.childNodes[0]).toBe(lApp.component);
         });
 
         it('-- Reappend to document.', async () => {
@@ -171,7 +171,7 @@ describe('PwbApp', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessageResult).to.equal(lErrorMessage);
+        expect(lErrorMessageResult).toBe(lErrorMessage);
     });
 
     describe('Method: addStyle', () => {
@@ -191,7 +191,7 @@ describe('PwbApp', () => {
 
             // Evaluation.
             expect(lContent instanceof HTMLStyleElement).to.be.true;
-            expect(lContent.textContent).to.equal(lStyleContent);
+            expect(lContent.textContent).toBe(lStyleContent);
         });
 
         it('-- Add style after append', async () => {
@@ -212,7 +212,7 @@ describe('PwbApp', () => {
 
             // Evaluation.
             expect(lContent instanceof HTMLStyleElement).to.be.true;
-            expect(lContent.textContent).to.equal(lStyleContent);
+            expect(lContent.textContent).toBe(lStyleContent);
         });
     });
 
@@ -227,7 +227,7 @@ describe('PwbApp', () => {
         const lContent: Element | null = lApp.component.shadowRoot!.querySelector('.splashscreen');
 
         // Evaluation.
-        expect(lContent).to.be.null;
+        expect(lContent).toBeNull();
     });
 
     describe('Method: setSplashScreen', () => {
@@ -257,7 +257,7 @@ describe('PwbApp', () => {
             // Process. Read splash screen data.
             const lContentElement: HTMLElement = lApp.component.shadowRoot!.querySelector('span')!;
 
-            expect(lContentElement.getAttribute('style')).to.equal('color: #fff;');
+            expect(lContentElement.getAttribute('style')).toBe('color: #fff;');
         });
 
         it('-- Background', async () => {
@@ -284,7 +284,7 @@ describe('PwbApp', () => {
             // Process. Read splash screen data.
             const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');
 
-            expect(lSplashScreen.style.getPropertyValue('--background')).to.equal(lBackground);
+            expect(lSplashScreen.style.getPropertyValue('--background')).toBe(lBackground);
         });
 
         it('-- Manual splash screen', async () => {

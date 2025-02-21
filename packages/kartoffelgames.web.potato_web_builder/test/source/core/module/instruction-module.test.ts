@@ -69,7 +69,7 @@ describe('Custom Module', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal(`Can't add same template or values for multiple Elements.`);
+        expect(lErrorMessage).toBe(`Can't add same template or values for multiple Elements.`);
     });
 
     it('-- Manupulator without update method', async () => {

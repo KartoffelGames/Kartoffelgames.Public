@@ -48,7 +48,7 @@ describe('DataLevel', () => {
             const lResultValue: string = lDataLevel.store[lScopeKey];
 
             // Evaluation.
-            expect(lResultValue).to.equal(lScopeValue);
+            expect(lResultValue).toBe(lScopeValue);
         });
 
         it('-- From parent scope', async () => {
@@ -67,7 +67,7 @@ describe('DataLevel', () => {
             const lResultValue: string = lChildScope.store[lScopeKey];
 
             // Evaluation.
-            expect(lResultValue).to.equal(lScopeValue);
+            expect(lResultValue).toBe(lScopeValue);
         });
     });
 
@@ -87,6 +87,6 @@ describe('DataLevel', () => {
         const lResultValue: string = lChildScope.store[lScopeKey];
 
         // Evaluation.
-        expect(lResultValue).to.equal(lScopeValue);
+        expect(lResultValue).toBe(lScopeValue);
     });
 });

@@ -63,7 +63,7 @@ describe('ExtensionModule', () => {
         await TestUtil.waitForUpdate(lComponentTwo);
 
         // Evaluation.
-        expect(MyGlobalResource.getNumber()).to.equal(lTestValue);
+        expect(MyGlobalResource.getNumber()).toBe(lTestValue);
         expect(lComponentOne, 'Component One').toBeComponentStructure([
             Comment, // Component Anchor
             {

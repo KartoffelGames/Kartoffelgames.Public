@@ -34,7 +34,7 @@ describe('OneWayBinding', () => {
         const lInputValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lInputValue).to.equal(lInitialValue);
+        expect(lInputValue).toBe(lInitialValue);
     });
 
     it('-- Change component value', async () => {
@@ -60,7 +60,7 @@ describe('OneWayBinding', () => {
         const lViewValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lViewValue).to.equal(lNewValue);
+        expect(lViewValue).toBe(lNewValue);
     });
 
     it('Exchange value to child component', async () => {
@@ -94,7 +94,7 @@ describe('OneWayBinding', () => {
         const lExportOne: string = lChildComponent.valueOne;
 
         // Evaluation.
-        expect(lExportOne).to.equal(lValueOne);
+        expect(lExportOne).toBe(lValueOne);
     });
 
     it('Exchange two values to to same component ', async () => {
@@ -134,7 +134,7 @@ describe('OneWayBinding', () => {
         const lExportTwo: string = lChildComponent.valueTwo;
 
         // Evaluation.
-        expect(lExportOne).to.equal(lValueOne);
-        expect(lExportTwo).to.equal(lValueTwo);
+        expect(lExportOne).toBe(lValueOne);
+        expect(lExportTwo).toBe(lValueTwo);
     });
 });

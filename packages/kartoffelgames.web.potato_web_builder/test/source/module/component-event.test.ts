@@ -50,7 +50,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventResult.value).to.equal(lEventValue);
+        expect(lEventResult.value).toBe(lEventValue);
     });
 
     it('-- Forbidden static usage', () => {
@@ -108,7 +108,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventResult.value).to.equal(lEventValue);
+        expect(lEventResult.value).toBe(lEventValue);
     });
 
     it('-- Inherited event-emitter event', async () => {
@@ -272,8 +272,8 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lCustomOneValue).to.equal(lEventValueOne);
-        expect(lCustomTwoValue).to.equal(lEventValueTwo);
+        expect(lCustomOneValue).toBe(lEventValueOne);
+        expect(lCustomTwoValue).toBe(lEventValueTwo);
     });
 
     it('-- Wrong emmiter type', async () => {
@@ -297,6 +297,6 @@ describe('ComponentEvent', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Event emitter property must be of type ComponentEventEmitter');
+        expect(lErrorMessage).toBe('Event emitter property must be of type ComponentEventEmitter');
     });
 });

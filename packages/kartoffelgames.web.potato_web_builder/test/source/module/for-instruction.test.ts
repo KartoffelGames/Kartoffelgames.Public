@@ -546,7 +546,7 @@ describe('ForInstruction', () => {
             }
 
             // Evaluation.
-            expect(lErrorMessage).to.equal('For-Parameter value has wrong format: item WRONG this.list');
+            expect(lErrorMessage).toBe('For-Parameter value has wrong format: item WRONG this.list');
         });
 
         it('-- Expression created values', async () => {

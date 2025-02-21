@@ -37,7 +37,7 @@ describe('PwbChild', () => {
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponentIdChild).to.equal(lRealIdChild);
+        expect(lComponentIdChild).toBe(lRealIdChild);
     });
 
     it('-- Forbidden static property use', () => {
@@ -123,6 +123,6 @@ describe('PwbChild', () => {
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponentIdChild).to.equal(lRealIdChild);
+        expect(lComponentIdChild).toBe(lRealIdChild);
     });
 });

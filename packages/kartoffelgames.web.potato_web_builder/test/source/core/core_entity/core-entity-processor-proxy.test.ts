@@ -32,8 +32,8 @@ describe('CoreEntityProcessorProxy', () => {
             const lSecondProxy: object = lSecondInteractionZone.proxy;
 
             // Evaluation.
-            expect(lFirstProxy).to.equal(lSecondProxy);
-            expect(lFirstInteractionZone).to.equal(lSecondInteractionZone);
+            expect(lFirstProxy).toBe(lSecondProxy);
+            expect(lFirstInteractionZone).toBe(lSecondInteractionZone);
         });
 
         describe('-- SET', () => {
@@ -47,7 +47,7 @@ describe('CoreEntityProcessorProxy', () => {
                 lDetectionProxy.proxy.a = lNewValue;
 
                 // Evaluation.
-                expect(lOriginalObject.a).to.equal(lNewValue);
+                expect(lOriginalObject.a).toBe(lNewValue);
             });
 
             it('-- Correct value in layered property set', () => {
@@ -60,7 +60,7 @@ describe('CoreEntityProcessorProxy', () => {
                 lDetectionProxy.proxy.a.b = lNewValue;
 
                 // Evaluation.
-                expect(lOriginalObject.a.b).to.equal(lNewValue);
+                expect(lOriginalObject.a.b).toBe(lNewValue);
             });
 
             it('-- Correct interacted property name in reason ', () => {
@@ -127,7 +127,7 @@ describe('CoreEntityProcessorProxy', () => {
                 lDetectionProxy.proxy.fun().a = lNewValue;
 
                 // Evaluation.
-                expect(lOriginalObject.a).to.equal(lNewValue);
+                expect(lOriginalObject.a).toBe(lNewValue);
             });
 
             it('-- Detect interaction in nested callbacks with arrow functions', () => {
@@ -158,7 +158,7 @@ describe('CoreEntityProcessorProxy', () => {
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
-                expect(lOriginalObject.a).to.equal(lNewValue);
+                expect(lOriginalObject.a).toBe(lNewValue);
             });
         });
 
@@ -173,7 +173,7 @@ describe('CoreEntityProcessorProxy', () => {
                 const lResultValue: number = lDetectionProxy.proxy.a;
 
                 // Evaluation.
-                expect(lResultValue).to.equal(lValue);
+                expect(lResultValue).toBe(lValue);
             });
 
             it('-- Object', () => {
@@ -201,7 +201,7 @@ describe('CoreEntityProcessorProxy', () => {
 
                 // Evaluation.
                 expect(lResultValue).to.not.equal(lValue);
-                expect(lResultValue.name).to.equal(lValue.name);
+                expect(lResultValue.name).toBe(lValue.name);
             });
         });
 
@@ -253,7 +253,7 @@ describe('CoreEntityProcessorProxy', () => {
                 const lResultValue: number = lProxy(lValue);
 
                 // Evaluation.
-                expect(lResultValue).to.equal(lValue);
+                expect(lResultValue).toBe(lValue);
             });
 
             it('-- Forward syncron errors on call', () => {
@@ -271,7 +271,7 @@ describe('CoreEntityProcessorProxy', () => {
                 }
 
                 // Evaluation.
-                expect(lResultValue).to.equal(lValue);
+                expect(lResultValue).toBe(lValue);
             });
 
             it('-- Correct return type on asyncron functions', async () => {
@@ -284,7 +284,7 @@ describe('CoreEntityProcessorProxy', () => {
                 const lResultValue: number = await lProxy(lValue);
 
                 // Evaluation.
-                expect(lResultValue).to.equal(lValue);
+                expect(lResultValue).toBe(lValue);
             });
 
             it('-- Forward asyncron errors on call', async () => {
@@ -298,7 +298,7 @@ describe('CoreEntityProcessorProxy', () => {
                 await lProxy().catch((pError) => { lResultValue = pError; });
 
                 // Evaluation.
-                expect(lResultValue).to.equal(lValue);
+                expect(lResultValue).toBe(lValue);
             });
 
             it('-- Not proxy interaction zones', () => {
@@ -314,7 +314,7 @@ describe('CoreEntityProcessorProxy', () => {
                 const lProxy = new CoreEntityProcessorProxy(lObject).proxy;
 
                 // Evaluation.
-                expect(lProxy.zone).to.equal(lInteractionZone);
+                expect(lProxy.zone).toBe(lInteractionZone);
                 expect(lProxy.childObject).to.not.equal(lChildObject);
             });
 
@@ -351,7 +351,7 @@ describe('CoreEntityProcessorProxy', () => {
             const lResultValue: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lDetectionProxy.proxy, 'a');
 
             // Evaluation.
-            expect(lResultValue?.value).to.equal(lValue);
+            expect(lResultValue?.value).toBe(lValue);
         });
 
         it('-- Not dispatch interaction to proxy zone when current zone is silent.', async () => {
@@ -380,7 +380,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
+            expect(lInteractionCounter).toBe(0);
         });
     });
 
@@ -469,7 +469,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(2);
+            expect(lInteractionCounter).toBe(2);
         });
 
         it('-- Not dispatch interaction to attached zone when changes where made in silent zone.', async () => {
@@ -496,7 +496,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
+            expect(lInteractionCounter).toBe(0);
         });
     });
 
@@ -524,8 +524,8 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
-            expect(lPropertyValueOnEvent).to.equal(lEndValue);
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
+            expect(lPropertyValueOnEvent).toBe(lEndValue);
         });
 
         it('-- ComponentInteractionType.PropertySet on property set error', () => {
@@ -551,7 +551,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
 
         it('-- ComponentInteractionType.PropertyDeleteEnd after property delete ', () => {
@@ -576,7 +576,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.PropertyDelete);
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
             expect(lPropertyValueOnEvent).to.be.undefined;
         });
 
@@ -603,7 +603,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.PropertyDelete);
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
         });
     });
 
@@ -627,7 +627,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.UntrackableFunctionCall);
+            expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
         });
 
         describe('-- Array', () => {
@@ -650,7 +650,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
+                expect(lResponseType).toBe(UpdateTrigger.PropertySet);
             });
 
             it('-- Push set', () => {
@@ -672,7 +672,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(UpdateTrigger.UntrackableFunctionCall);
+                expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
             });
         });
 
@@ -695,7 +695,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.UntrackableFunctionCall);
+            expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
         });
 
         it('-- TypedArray', () => {
@@ -717,7 +717,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
 
         describe('-- EventTarget', () => {
@@ -816,7 +816,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lChangedSource).to.equal(lProxy);
+            expect(lChangedSource).toBe(lProxy);
         });
 
         it('-- Set property ', () => {
@@ -837,7 +837,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lChangedSource).to.equal(lDetectionProxy.proxy);
+            expect(lChangedSource).toBe(lDetectionProxy.proxy);
         });
 
         it('-- Delete property', () => {
@@ -858,7 +858,7 @@ describe('CoreEntityProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lChangedSource).to.equal(lDetectionProxy.proxy);
+            expect(lChangedSource).toBe(lDetectionProxy.proxy);
         });
     });
 
@@ -875,7 +875,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Evaluation.
             expect(lProxValue).to.not.equal(lOriginalInnerObject);
-            expect(lOriginalObject.a).to.equal(lOriginalInnerObject);
+            expect(lOriginalObject.a).toBe(lOriginalInnerObject);
         });
 
         it('-- Ignore IgnoreInteractionDetection decorator', () => {
@@ -890,7 +890,7 @@ describe('CoreEntityProcessorProxy', () => {
             const lDetectionProxy: IgnoreClass = new CoreEntityProcessorProxy(lOriginalObject).proxy;
 
             // Evaluation.
-            expect(lDetectionProxy).to.equal(lOriginalObject);
+            expect(lDetectionProxy).toBe(lOriginalObject);
         });
     });
 });

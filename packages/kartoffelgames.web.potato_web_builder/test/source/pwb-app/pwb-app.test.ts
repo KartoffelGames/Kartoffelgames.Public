@@ -72,7 +72,7 @@ describe('PwbApp', () => {
             const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
 
             // Evaluation.
-            expect(lContent).componentStructure([
+            expect(lContent).toBeComponentStructure([
                 Comment,
                 HTMLDivElement
             ], true);
@@ -88,7 +88,7 @@ describe('PwbApp', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Constructor "${String.name}" is not a registered custom element`);
+            expect(lErrorFunction).toThrow(`Constructor "${String.name}" is not a registered custom element`);
         });
     });
 

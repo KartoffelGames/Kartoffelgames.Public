@@ -123,7 +123,7 @@ describe('ComponentEventListener', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event listener is only valid on instanced property');
+        expect(lErrorFunction).toThrow('Event listener is only valid on instanced property');
     });
 
     it('-- Error on none function properties', async () => {

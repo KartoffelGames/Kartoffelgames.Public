@@ -54,7 +54,7 @@ describe('PwbChild', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event target is not for a static property.');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
 
     it('-- Read with wrong id child name', async () => {
@@ -79,7 +79,7 @@ describe('PwbChild', () => {
         };
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lErrorFunction).to.throw(Exception, `Can't find child "${lWrongName}".`);
+        expect(lErrorFunction).toThrow(`Can't find child "${lWrongName}".`);
     });
 
     it('-- Child decorator on none Component object', () => {
@@ -96,7 +96,7 @@ describe('PwbChild', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'PwbChild target class it not a component.');
+        expect(lErrorFunction).toThrow('PwbChild target class it not a component.');
     });
 
     it('-- Read inherited id child', async () => {

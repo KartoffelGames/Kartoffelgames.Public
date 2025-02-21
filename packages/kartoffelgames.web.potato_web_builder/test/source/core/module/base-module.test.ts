@@ -19,7 +19,7 @@ describe('Custom Module', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
+        expect(lErrorFunction).toThrow('Reference should not be instanced.');
     });
 
     it('-- Try to construct ModuleTempate', async () => {
@@ -29,6 +29,6 @@ describe('Custom Module', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
+        expect(lErrorFunction).toThrow('Reference should not be instanced.');
     });
 });

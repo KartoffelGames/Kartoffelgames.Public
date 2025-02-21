@@ -67,7 +67,7 @@ describe('ComponentEvent', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event target is not for an instanced property.');
+        expect(lErrorFunction).toThrow('Event target is not for an instanced property.');
     });
 
     it('-- Inherited and overriden event-emitter event', async () => {

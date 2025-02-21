@@ -98,7 +98,7 @@ describe('Export', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event target is not for a static property.');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
 
     it('-- Linked setAttribute', async () => {

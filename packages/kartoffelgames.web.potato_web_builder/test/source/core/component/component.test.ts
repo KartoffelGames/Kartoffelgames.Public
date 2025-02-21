@@ -525,7 +525,7 @@ describe('HtmlComponent', () => {
         }
 
         // Evaluation.
-        expect(lError).to.be.instanceOf(UpdateLoopError);
+        expect(lError).toBeInstanceOf(UpdateLoopError);
     });
 
     it('-- Creation without customElements register', async () => {
@@ -547,7 +547,7 @@ describe('HtmlComponent', () => {
         }
 
         // Evaluation.
-        expect(lComponent).to.be.instanceOf(HTMLElement);
+        expect(lComponent).toBeInstanceOf(HTMLElement);
     });
 
     it('-- Prevent construction of processor when not needed.', async () => {

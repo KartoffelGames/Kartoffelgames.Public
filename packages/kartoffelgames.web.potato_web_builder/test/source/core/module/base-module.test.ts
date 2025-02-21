@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';

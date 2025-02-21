@@ -46,7 +46,7 @@ describe('PwbAppInjection', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lApp).to.be.instanceOf(PwbApp);
+        expect(lApp).toBeInstanceOf(PwbApp);
     });
 
     it('-- PwbApp injection on manual element', async () => {
@@ -95,7 +95,7 @@ describe('PwbAppInjection', () => {
         await TestUtil.waitForUpdate(lChildContent);
 
         // Evaluation.
-        expect(lApp).to.be.instanceOf(PwbApp);
+        expect(lApp).toBeInstanceOf(PwbApp);
     });
 
     it('-- Deep nested manual component', async () => {
@@ -159,7 +159,7 @@ describe('PwbAppInjection', () => {
         await TestUtil.waitForUpdate(lChildChildChildContent);
 
         // Evaluation.
-        expect(lApp).to.be.instanceOf(PwbApp);
+        expect(lApp).toBeInstanceOf(PwbApp);
     });
 
     it('-- Creation without PwbApp', async () => {
@@ -229,6 +229,6 @@ describe('PwbAppInjection', () => {
         await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Evaluation.
-        expect(lApp).to.be.instanceOf(PwbApp);
+        expect(lApp).toBeInstanceOf(PwbApp);
     });
 });

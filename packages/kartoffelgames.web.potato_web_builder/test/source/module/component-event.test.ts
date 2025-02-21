@@ -147,7 +147,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).to.be.instanceOf(ComponentEvent);
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
     });
 
     it('-- Override native events', async () => {
@@ -179,7 +179,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).to.be.instanceOf(ComponentEvent);
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
     });
 
     it('-- Nativ and custom event parallel', async () => {

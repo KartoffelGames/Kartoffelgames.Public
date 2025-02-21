@@ -24,7 +24,7 @@ describe('PwbApp', () => {
 
         // Evaluation.
         expect(lContent.tagName.toLowerCase()).toBe('pwb-app');
-        expect(lContent.shadowRoot).to.be.not.null;
+        expect(lContent.shadowRoot).not.toBeNull();
     });
 
     describe('Method: addContent', () => {
@@ -190,7 +190,7 @@ describe('PwbApp', () => {
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
-            expect(lContent instanceof HTMLStyleElement).to.be.true;
+            expect(lContent instanceof HTMLStyleElement).toBeTruthy();
             expect(lContent.textContent).toBe(lStyleContent);
         });
 
@@ -211,7 +211,7 @@ describe('PwbApp', () => {
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
-            expect(lContent instanceof HTMLStyleElement).to.be.true;
+            expect(lContent instanceof HTMLStyleElement).toBeTruthy();
             expect(lContent.textContent).toBe(lStyleContent);
         });
     });
@@ -309,8 +309,8 @@ describe('PwbApp', () => {
             const lAfterRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Evaluation.
-            expect(lBeforeRemoveState).to.be.true;
-            expect(lAfterRemoveState).to.be.false;
+            expect(lBeforeRemoveState).toBeTruthy();
+            expect(lAfterRemoveState).toBeFalsy();
         });
     });
 });

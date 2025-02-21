@@ -41,7 +41,7 @@ describe('ExtensionModule', () => {
         await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lExtensionCalled).to.be.true;
+        expect(lExtensionCalled).toBeTruthy();
     });
 
     it('-- Ignore extension without valid target restriction', async () => {
@@ -71,6 +71,6 @@ describe('ExtensionModule', () => {
         await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lExtensionCalled).to.be.false;
+        expect(lExtensionCalled).toBeFalsy();
     });
 });

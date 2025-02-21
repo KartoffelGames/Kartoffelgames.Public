@@ -72,7 +72,7 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
+        expect(lEventCalled).toBeTruthy();
     });
 
     it('-- Custom event listener', async () => {
@@ -175,8 +175,8 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventOneCalled).to.be.true;
-        expect(lEventTwoCalled).to.be.true;
+        expect(lEventOneCalled).toBeTruthy();
+        expect(lEventTwoCalled).toBeTruthy();
     });
 
     it('-- Remove listener on deconstruct', async () => {
@@ -200,7 +200,7 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.false;
+        expect(lEventCalled).toBeFalsy();
     });
 
     it('-- Native listener on static module', async () => {
@@ -233,7 +233,7 @@ describe('ComponentEventListener', () => {
         lDivElement.dispatchEvent(new Event('click', { bubbles: false }));
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
+        expect(lEventCalled).toBeTruthy();
     });
 
     it('-- Remove module listener on deconstruct on static modules', async () => {
@@ -266,7 +266,7 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.false;
+        expect(lEventCalled).toBeFalsy();
     });
 
     it('-- Error on none function properties on static module', async () => {
@@ -348,7 +348,7 @@ describe('ComponentEventListener', () => {
         lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
 
         // Evaluation after component click.
-        expect(lEventCalled).to.be.false;
+        expect(lEventCalled).toBeFalsy();
     });
 
     it('-- Native listener inherited from parent', async () => {
@@ -374,6 +374,6 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
+        expect(lEventCalled).toBeTruthy();
     });
 });

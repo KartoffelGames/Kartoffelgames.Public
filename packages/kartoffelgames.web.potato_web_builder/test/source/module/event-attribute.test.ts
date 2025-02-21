@@ -65,6 +65,6 @@ describe('EventAttribute', () => {
         lClickableChild.click();
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lClicked).to.be.false;
+        expect(lClicked).toBeFalsy();
     });
 });

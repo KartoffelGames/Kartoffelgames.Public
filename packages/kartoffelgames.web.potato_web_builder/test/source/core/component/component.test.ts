@@ -300,8 +300,8 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lCapsuledContent);
 
         // Evaluation.
-        expect(lDefaultUpdated, 'TestComponent').to.be.false;
-        expect(lIsolatedUpdated, 'CapsuledTestComponent').to.be.true;
+        expect(lDefaultUpdated, 'TestComponent').toBeFalsy();
+        expect(lIsolatedUpdated, 'CapsuledTestComponent').toBeTruthy();
     });
 
     it('-- Custom expression module', async () => {
@@ -486,7 +486,7 @@ describe('HtmlComponent', () => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lWasDeconstructed).to.be.true;
+        expect(lWasDeconstructed).toBeTruthy();
     });
 
     it('-- Loop detection', async () => {
@@ -571,6 +571,6 @@ describe('HtmlComponent', () => {
         await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lConstructionCalled).to.be.false;
+        expect(lConstructionCalled).toBeFalsy();
     });
 });

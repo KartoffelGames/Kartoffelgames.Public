@@ -219,8 +219,8 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lCustomCalled).to.be.true;
-        expect(lNativeCalled).to.be.true;
+        expect(lCustomCalled).toBeTruthy();
+        expect(lNativeCalled).toBeTruthy();
     });
 
 

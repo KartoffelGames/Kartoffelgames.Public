@@ -83,7 +83,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lPropertyChanged).to.be.true;
+                expect(lPropertyChanged).toBeTruthy();
             });
 
             it('-- Detect interaction in forwarded this context', () => {
@@ -110,7 +110,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lPropertyChanged).to.be.true;
+                expect(lPropertyChanged).toBeTruthy();
             });
 
             it('-- Correct value in forwarded this context.', () => {
@@ -157,7 +157,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lPropertyChanged).to.be.true;
+                expect(lPropertyChanged).toBeTruthy();
                 expect(lOriginalObject.a).toBe(lNewValue);
             });
         });
@@ -238,7 +238,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lPropertyChanged).to.be.true;
+                expect(lPropertyChanged).toBeTruthy();
             });
         });
 
@@ -337,7 +337,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lPropertyChanged).to.be.false;
+                expect(lPropertyChanged).toBeFalsy();
             });
         });
 

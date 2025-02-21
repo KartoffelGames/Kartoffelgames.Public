@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it, before } from '@std/testing/bdd';
-import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import { before, describe, it } from '@std/testing/bdd';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
+import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
@@ -34,7 +34,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement], true);
     });
 
@@ -51,7 +51,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(3);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(3);
         expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement, HTMLSpanElement], true);
     });
 
@@ -68,7 +68,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([
             Comment,
             {
@@ -92,7 +92,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([
             Comment,
             {
@@ -124,9 +124,9 @@ describe('HtmlComponent', () => {
         const lSecondChild: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[2];
 
         // Evaluation
-        expect(lFirstChild).instanceOf(HTMLElement);
-        expect(lSecondChild).instanceOf(HTMLElement);
-        expect(lFirstChild).to.not.be.equal(lSecondChild);
+        expect(lFirstChild).toBeInstanceOf(HTMLElement);
+        expect(lSecondChild).toBeInstanceOf(HTMLElement);
+        expect(lFirstChild).not.toBe(lSecondChild);
     });
 
     it('-- No template', async () => {
@@ -352,7 +352,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([Comment, HTMLUnknownElement], true);
     });
 
@@ -369,7 +369,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([Comment, HTMLElement], true); // HTMLUnknownElement not creates in JSDOM.
     });
 
@@ -457,7 +457,7 @@ describe('HtmlComponent', () => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lExpectedCallOrder).to.deep.equal(
+        expect(lExpectedCallOrder).toBeDeepEqual(
             [
                 lCallPosition.onPwbInitialize,
                 lCallPosition.onPwbUpdate,

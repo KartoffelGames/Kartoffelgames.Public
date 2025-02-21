@@ -49,7 +49,7 @@ describe('ComponentEventListener', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).to.instanceOf(MouseEvent);
+        expect(lEventResult).toBeInstanceOf(MouseEvent);
     });
 
     it('-- Native listener', async () => {

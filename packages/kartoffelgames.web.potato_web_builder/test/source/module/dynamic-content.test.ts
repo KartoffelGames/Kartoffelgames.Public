@@ -39,7 +39,7 @@ describe('DynamicContent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator 1. Child Anchor
@@ -80,7 +80,7 @@ describe('DynamicContent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator 1. Child Anchor

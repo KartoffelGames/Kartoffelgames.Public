@@ -32,7 +32,7 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
@@ -57,7 +57,7 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor
@@ -87,7 +87,7 @@ describe('IfInstruction', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
@@ -115,7 +115,7 @@ describe('IfInstruction', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor
@@ -142,7 +142,7 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
@@ -167,7 +167,7 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor

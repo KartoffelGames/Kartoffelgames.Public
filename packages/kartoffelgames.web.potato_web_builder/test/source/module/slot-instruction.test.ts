@@ -29,7 +29,7 @@ describe('SlotInstruction', () => {
         const lSlotName: string | null = TestUtil.getComponentNode<HTMLSlotElement>(lComponent, 'slot').getAttribute('name');
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor
@@ -53,7 +53,7 @@ describe('SlotInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor
@@ -80,7 +80,7 @@ describe('SlotInstruction', () => {
         TestUtil.manualUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor

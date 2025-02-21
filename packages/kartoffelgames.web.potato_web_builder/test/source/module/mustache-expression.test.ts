@@ -30,7 +30,7 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -59,7 +59,7 @@ describe('MustacheExpression', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -85,7 +85,7 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -116,7 +116,7 @@ describe('MustacheExpression', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -142,7 +142,7 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,

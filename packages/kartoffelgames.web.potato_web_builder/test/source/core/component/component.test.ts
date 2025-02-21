@@ -35,7 +35,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLDivElement], true);
+        expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement], true);
     });
 
     it('-- Sibling element', async () => {
@@ -52,7 +52,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(3);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLDivElement, HTMLSpanElement], true);
+        expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement, HTMLSpanElement], true);
     });
 
     it('-- Child element', async () => {
@@ -69,7 +69,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -93,7 +93,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -140,7 +140,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment
         ], true);
     });
@@ -160,7 +160,7 @@ describe('HtmlComponent', () => {
         const lStyleElement: HTMLStyleElement = <HTMLStyleElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[0];
 
         // Evaluation
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             HTMLStyleElement,
             Comment
         ], true);
@@ -186,7 +186,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -225,7 +225,7 @@ describe('HtmlComponent', () => {
         lComponent.value = lNewValue;
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -238,7 +238,7 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -330,7 +330,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -353,7 +353,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLUnknownElement], true);
+        expect(lComponent).toBeComponentStructure([Comment, HTMLUnknownElement], true);
     });
 
     it('-- Create HTMLElement on unknown component', async () => {
@@ -370,7 +370,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLElement], true); // HTMLUnknownElement not creates in JSDOM.
+        expect(lComponent).toBeComponentStructure([Comment, HTMLElement], true); // HTMLUnknownElement not creates in JSDOM.
     });
 
     it('-- Element reference', async () => {

@@ -30,7 +30,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -61,7 +61,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -90,7 +90,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -117,7 +117,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -148,7 +148,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -174,7 +174,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -209,7 +209,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -242,7 +242,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -270,7 +270,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
             ], true);
@@ -294,7 +294,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -325,7 +325,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -354,7 +354,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -381,7 +381,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -414,7 +414,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -441,7 +441,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -476,7 +476,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -512,7 +512,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -563,7 +563,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -603,7 +603,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -638,7 +638,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Anchor
                 Comment, // -- Manipulator 1. Child Anchor
@@ -681,7 +681,7 @@ describe('ForInstruction', () => {
             await TestUtil.waitForUpdate(lComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 Comment, // - Manipulator Parent Anchor
                 Comment, // Static
@@ -727,7 +727,7 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 HTMLDivElement,
                 Comment, // - Instruction Anchor
@@ -756,7 +756,7 @@ describe('ForInstruction', () => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).to.have.componentStructure([
+            expect(lComponent).toBeComponentStructure([
                 Comment, // Component Anchor
                 {
                     node: HTMLDivElement,
@@ -791,7 +791,7 @@ describe('ForInstruction', () => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([], true);
+        expect(lComponent).toBeComponentStructure([], true);
     });
 
 

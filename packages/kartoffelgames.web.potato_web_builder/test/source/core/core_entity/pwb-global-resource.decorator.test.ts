@@ -64,14 +64,14 @@ describe('ExtensionModule', () => {
 
         // Evaluation.
         expect(MyGlobalResource.getNumber()).to.equal(lTestValue);
-        expect(lComponentOne, 'Component One').to.have.componentStructure([
+        expect(lComponentOne, 'Component One').toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);
-        expect(lComponentTwo, 'Component Two').to.have.componentStructure([
+        expect(lComponentTwo, 'Component Two').toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,

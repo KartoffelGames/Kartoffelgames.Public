@@ -28,7 +28,7 @@
             "deno.ns"
         ],
         "types": [
-            "./global_declaration/module-declaration.d.ts"
+            "./bundle-environment/bundle-module-declaration.d.ts"
         ],
         "noImplicitAny": true,
         "noImplicitOverride": true,

@@ -1,12 +1,10 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectionConstructor } from '../type.ts';
-
 
 /**
  * Base metadata information for classes and properties.
  */
 export class BaseMetadata {
-    private readonly mCustomMetadata: Dictionary<string, any>;
+    private readonly mCustomMetadata: Dictionary<MetadataKey, any>;
 
     /**
      * Constructor.
@@ -16,7 +14,7 @@ export class BaseMetadata {
      * @param pPropertyKey - Key of property where all metadata should be attached.
      */
     public constructor() {
-        this.mCustomMetadata = new Dictionary<string, any>();
+        this.mCustomMetadata = new Dictionary<MetadataKey, any>();
     }
 
     /**
@@ -28,7 +26,7 @@ export class BaseMetadata {
      * 
      * @returns set metadata or null when no metadata was attached.
      */
-    public getMetadata<T>(pMetadataKey: string): T | null {
+    public getMetadata<T>(pMetadataKey: MetadataKey): T | null {
         return this.mCustomMetadata.get(pMetadataKey) ?? null;
     }
 
@@ -40,7 +38,9 @@ export class BaseMetadata {
      * 
      * @typeParam T - Type of metadata value. 
      */
-    public setMetadata<T>(pMetadataKey: string, pMetadataValue: T): void {
+    public setMetadata<T>(pMetadataKey: MetadataKey, pMetadataValue: T): void {
         this.mCustomMetadata.set(pMetadataKey, pMetadataValue);
     }
 }
+
+export type MetadataKey = string | symbol | number;

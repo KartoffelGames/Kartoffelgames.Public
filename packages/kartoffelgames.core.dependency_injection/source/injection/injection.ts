@@ -1,6 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InjectionConstructor } from '../type.ts';
 import { Metadata } from '../metadata/metadata.ts';
+import { ConstructorMetadata } from "../metadata/constructor-metadata.ts";
 
 /**
  * Injection configuration and creator.
@@ -11,10 +12,10 @@ import { Metadata } from '../metadata/metadata.ts';
 export class Injection {
     private static readonly mInjectionConstructorIdentificationMetadataKey: symbol = Symbol('InjectionConstructorIdentification');
 
-    private static readonly mInjectMode: Dictionary<InjectionIdentification, InjectMode> = new Dictionary<InjectionConstructor, InjectMode>();
-    private static readonly mInjectableConstructor: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
-    private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
-    private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionConstructor, object>();
+    private static readonly mInjectMode: Dictionary<InjectionIdentification, InjectMode> = new Dictionary<InjectionIdentification, InjectMode>();
+    private static readonly mInjectableConstructor: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
+    private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
+    private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionIdentification, object>();
 
     /**
      * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
@@ -176,9 +177,9 @@ export class Injection {
     private static readInjectionIdentification(pConstructor: InjectionConstructor): InjectionIdentification {
         // Read metadata from constructor.
         const lMetadata: ConstructorMetadata = Metadata.get(pConstructor);
-        let lIdentification: InjectionIdentification | undefined = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
+        let lIdentification: InjectionIdentification | null = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
 
-        // Create new metadata object and assign it to decorator metadata.
+        // Create new metadata object and assign it to decorator metadata. // TODO: No that should not be defaulted. I think. This should be set by the register of the constructor.
         if (!lIdentification) {
             lIdentification = Symbol(pConstructor.name);
             lMetadata.setMetadata(Injection.mInjectionConstructorIdentificationMetadataKey, lIdentification);
@@ -187,5 +188,7 @@ export class Injection {
         return lIdentification;
     }
 }
+
+type InjectionIdentification = symbol;
 
 export type InjectMode = 'singleton' | 'instanced';

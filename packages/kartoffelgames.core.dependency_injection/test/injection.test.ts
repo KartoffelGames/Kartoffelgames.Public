@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectMode } from '../source/enum/inject-mode.ts';
 import { Injectable } from '../source/decorator/injectable.decorator.ts';
 import { InjectableSingleton } from '../source/decorator/injectable-singleton.decorator.ts';
 import { Injection } from '../source/injection/injection.ts';
@@ -342,7 +341,7 @@ describe('Injection', () => {
         class Type { }
 
         // Process.
-        Injection.registerInjectable(Type, InjectMode.Instanced);
+        Injection.registerInjectable(Type, 'instanced');
         const lCreatedObject = Injection.createObject<Type>(Type);
 
         // Evaluation.
@@ -365,8 +364,8 @@ describe('Injection', () => {
             }
 
             // Setup. Register injectable.
-            Injection.registerInjectable(OriginalType, InjectMode.Instanced);
-            Injection.registerInjectable(ReplacementType, InjectMode.Instanced);
+            Injection.registerInjectable(OriginalType, 'instanced');
+            Injection.registerInjectable(ReplacementType, 'instanced');
 
             // Process.
             Injection.replaceInjectable(OriginalType, ReplacementType);
@@ -382,7 +381,7 @@ describe('Injection', () => {
             class ReplacementType { }
 
             // Setup. Register injectable.
-            Injection.registerInjectable(ReplacementType, InjectMode.Instanced);
+            Injection.registerInjectable(ReplacementType, 'instanced');
 
             // Process.
             const lThrowErrorFunction = () => {
@@ -399,7 +398,7 @@ describe('Injection', () => {
             class ReplacementType { }
 
             // Setup. Register injectable.
-            Injection.registerInjectable(OriginalType, InjectMode.Instanced);
+            Injection.registerInjectable(OriginalType, 'instanced');
 
             // Process.
             const lThrowErrorFunction = () => {

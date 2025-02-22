@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { InjectionConstructor } from '../type.ts';
 import { PropertyMetadata } from './property-metadata.ts';
-import { BaseMetadata } from './base-metadata.ts';
+import { BaseMetadata, MetadataKey } from './base-metadata.ts';
 
 /**
  * Constructor metadata.
@@ -51,7 +51,7 @@ export class ConstructorMetadata extends BaseMetadata {
     }
 
     private readonly mConstructor: InjectionConstructor;
-    private readonly mPropertyMetadata: Dictionary<string | symbol, PropertyMetadata>;
+    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
 
     /**
      * Constructor.
@@ -63,7 +63,7 @@ export class ConstructorMetadata extends BaseMetadata {
         super();
 
         this.mConstructor = pConstructor;
-        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
+        this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
     }
 
     /**
@@ -76,7 +76,7 @@ export class ConstructorMetadata extends BaseMetadata {
      * 
      * @returns set metadata or null when no metadata was attached.
      */
-    public getInheritedMetadata<T>(pMetadataKey: string): T | null {
+    public getInheritedMetadata<T>(pMetadataKey: MetadataKey): T | null {
         // Read starting decorator metadata. At this point it should have a metadata object.
         let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mConstructor[Symbol.metadata];
         do {
@@ -111,7 +111,7 @@ export class ConstructorMetadata extends BaseMetadata {
      * 
      * @param pPropertyKey - Key of property.
      */
-    public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
+    public getProperty(pPropertyKey: PropertyKey): PropertyMetadata {
         // Create new property mapping when no mapping is found.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
             this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata());
@@ -120,5 +120,3 @@ export class ConstructorMetadata extends BaseMetadata {
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);
     }
 }
-
-type InjectionIdentification = symbol;

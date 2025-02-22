@@ -1,5 +1,3 @@
-import { Dictionary } from '@kartoffelgames/core';
-import { DecorationReplacementHistory } from '../decoration-history/decoration-history.ts';
 import { InjectionConstructor } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
@@ -10,8 +8,6 @@ import { ConstructorMetadata } from './constructor-metadata.ts';
  * @public
  */
 export class Metadata {
-    private static readonly mConstructorMetadata: Dictionary<InjectionConstructor, ConstructorMetadata> = new Dictionary<InjectionConstructor, ConstructorMetadata>();
-
     /**
      * Get metadata of constructor.
      * 
@@ -32,18 +28,6 @@ export class Metadata {
      * ```
      */
     public static get(pConstructor: InjectionConstructor): ConstructorMetadata {
-        // Use root constructor to register metadata information.
-        const lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
-
-        // Create new or read existing metadata.
-        let lMetadata: ConstructorMetadata;
-        if (this.mConstructorMetadata.has(lRegisteredConstructor)) {
-            lMetadata = <ConstructorMetadata>Metadata.mConstructorMetadata.get(lRegisteredConstructor);
-        } else {
-            lMetadata = new ConstructorMetadata(lRegisteredConstructor);
-            Metadata.mConstructorMetadata.add(lRegisteredConstructor, lMetadata);
-        }
-
-        return lMetadata;
+        return ConstructorMetadata.fromConstructor(pConstructor);
     }
 }

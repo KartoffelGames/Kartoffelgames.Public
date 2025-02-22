@@ -1,6 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { InjectMode } from '../enum/inject-mode.ts';
-import { DecorationReplacementHistory } from '../decoration-history/decoration-history.ts';
 import { InjectionConstructor } from '../type.ts';
 import { Metadata } from '../metadata/metadata.ts';
 
@@ -11,10 +9,12 @@ import { Metadata } from '../metadata/metadata.ts';
  * @public 
  */
 export class Injection {
-    private static readonly mInjectMode: Dictionary<InjectionConstructor, InjectMode> = new Dictionary<InjectionConstructor, InjectMode>();
-    private static readonly mInjectableConstructor: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
-    private static readonly mInjectableReplacement: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
-    private static readonly mSingletonMapping: Dictionary<InjectionConstructor, object> = new Dictionary<InjectionConstructor, object>();
+    private static readonly mInjectionConstructorIdentificationMetadataKey: symbol = Symbol('InjectionConstructorIdentification');
+
+    private static readonly mInjectMode: Dictionary<InjectionIdentification, InjectMode> = new Dictionary<InjectionConstructor, InjectMode>();
+    private static readonly mInjectableConstructor: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
+    private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
+    private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionConstructor, object>();
 
     /**
      * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
@@ -60,7 +60,7 @@ export class Injection {
         })();
         
         // Find constructor in decoration replacement history that was used for registering. Only root can be registered.
-        const lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
+        const lRegisteredConstructor: InjectionConstructor = DecorationRootHistory.getOriginalOf(pConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredConstructor)) {
             throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
         }
@@ -89,7 +89,7 @@ export class Injection {
                 lParameterObject = lLocalInjections.get(lParameterType);
             } else {
                 // Read original parameter type used as replacement key.
-                const lOriginalParameterType: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(lParameterType);
+                const lOriginalParameterType: InjectionConstructor = DecorationRootHistory.getOriginalOf(lParameterType);
                 if (!Injection.mInjectableConstructor.has(lOriginalParameterType)) {
                     throw new Exception(`Parameter "${lParameterType.name}" of ${pConstructor.name} is not registered to be injectable.`, Injection);
                 }
@@ -139,7 +139,7 @@ export class Injection {
      */
     public static registerInjectable(pConstructor: InjectionConstructor, pMode: InjectMode): void {
         // Find root constructor of decorated constructor to habe registered constructor allways available top down.
-        const lBaseConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
+        const lBaseConstructor: InjectionConstructor = DecorationRootHistory.getOriginalOf(pConstructor);
 
         // Map constructor.
         Injection.mInjectableConstructor.add(lBaseConstructor, pConstructor);
@@ -158,13 +158,13 @@ export class Injection {
      */
     public static replaceInjectable(pOriginalConstructor: InjectionConstructor, pReplacementConstructor: InjectionConstructor): void {
         // Find original registered original. Only root can be registerd.
-        const lRegisteredOriginal: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pOriginalConstructor);
+        const lRegisteredOriginal: InjectionConstructor = DecorationRootHistory.getOriginalOf(pOriginalConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredOriginal)) {
             throw new Exception('Original constructor is not registered.', Injection);
         }
 
         // Find replacement registered original. Only root can be registered.
-        const lRegisteredReplacement: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pReplacementConstructor);
+        const lRegisteredReplacement: InjectionConstructor = DecorationRootHistory.getOriginalOf(pReplacementConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredReplacement)) {
             throw new Exception('Replacement constructor is not registered.', Injection);
         }
@@ -172,4 +172,20 @@ export class Injection {
         // Register replacement.
         Injection.mInjectableReplacement.set(lRegisteredOriginal, pReplacementConstructor);
     }
+
+    private static readInjectionIdentification(pConstructor: InjectionConstructor): InjectionIdentification {
+        // Read metadata from constructor.
+        const lMetadata: ConstructorMetadata = Metadata.get(pConstructor);
+        let lIdentification: InjectionIdentification | undefined = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
+
+        // Create new metadata object and assign it to decorator metadata.
+        if (!lIdentification) {
+            lIdentification = Symbol(pConstructor.name);
+            lMetadata.setMetadata(Injection.mInjectionConstructorIdentificationMetadataKey, lIdentification);
+        }
+
+        return lIdentification;
+    }
 }
+
+export type InjectMode = 'singleton' | 'instanced';

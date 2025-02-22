@@ -1,50 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
+import { Metadata } from "../../source/metadata/metadata.ts";
 import { PropertyMetadata } from '../../source/metadata/property-metadata.ts';
 import { InjectionConstructor } from '../../source/type.ts';
-import { Metadata } from "../../source/metadata/metadata.ts";
 
 describe('ConstructorMetadata', () => {
-    describe('Property: parameterTypes', () => {
-        it('-- Read', () => {
-            // Setup. Specify values.
-            const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
-            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
-
-            // Process.
-            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
-
-            // Evaluation.
-            expect(lResultParameterList).toHaveOrderedItems(lParameterTypeList);
-        });
-
-        it('-- Read: No Data', () => {
-            // Setup. Specify values.
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
-
-            // Process.
-            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
-
-            // Evaluation.
-            expect(lResultParameterList).toBeNull();
-        });
-
-        it('-- Write', () => {
-            // Setup. Specify values.
-            const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
-
-            // Process.
-            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
-            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
-
-            // Evaluation.
-            expect(lResultParameterList).toHaveOrderedItems(lParameterTypeList);
-        });
-    });
-
     describe('Method: getMetadata', () => {
         it('-- Available Metadata', () => {
             // Setup. Specify values.
@@ -121,7 +82,7 @@ describe('ConstructorMetadata', () => {
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: Array<string> = lMetadata.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> | null = lMetadata.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValue]);
@@ -151,7 +112,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> | null = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB, lMetadataValueC]);
@@ -179,7 +140,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> | null = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);
@@ -209,7 +170,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> = lMetadataB.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> | null = lMetadataB.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);

@@ -40,9 +40,7 @@
         "strictFunctionTypes": true,
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
-        "useUnknownInCatchVariables": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "useUnknownInCatchVariables": true
     },
     "fmt": {
         "useTabs": false,

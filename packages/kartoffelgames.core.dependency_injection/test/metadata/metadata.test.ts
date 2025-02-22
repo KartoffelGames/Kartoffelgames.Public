@@ -2,7 +2,6 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
 import { Metadata } from '../../source/metadata/metadata.ts';
-import { DecorationReplacementHistory } from '../../source/decoration-history/decoration-history.ts';
 import { InjectionConstructor } from '../../source/type.ts';
 
 /**
@@ -46,7 +45,7 @@ describe('Metadata', () => {
             class Test { }
 
             // Setup. Get base class.
-            const lTestParent = DecorationReplacementHistory.getOriginalOf(Test);
+            const lTestParent = DecorationRootHistory.getOriginalOf(Test);
 
             // Process.
             const lChildConstructorMetadata = Metadata.get(Test);

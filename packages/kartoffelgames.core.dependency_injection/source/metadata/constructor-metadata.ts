@@ -28,41 +28,35 @@ export class ConstructorMetadata extends BaseMetadata {
      * const propertyMeta = ConstructorMetadata.fromConstructor(Foo).getProperty('prop').getMetadata('key');
      * ```
      */
-    public static fromConstructor(pConstructor: InjectionConstructor): ConstructorMetadata {
-        // Read metadata from constructor.
-        const lDecoratorMetadataObject: DecoratorMetadataObject | null = pConstructor[Symbol.metadata];
-        if (!lDecoratorMetadataObject) {
-            throw new Error('Metadata not supported for this runtime.');
-        }
-
+    public static fromMeta(pDecoratorMetadataObject: DecoratorMetadataObject): ConstructorMetadata {
         let lConstructorMetadata: ConstructorMetadata | undefined;
 
         // Check if metadata is set on this constructor and not inherited from parent.
-        if (!Object.hasOwn(lDecoratorMetadataObject, ConstructorMetadata.mPrivateMetadataKey)) {
+        if (!Object.hasOwn(pDecoratorMetadataObject, ConstructorMetadata.mPrivateMetadataKey)) {
             // Create new metadata object and assign it to decorator metadata.
-            lConstructorMetadata = new ConstructorMetadata(pConstructor);
-            lDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = lConstructorMetadata;
+            lConstructorMetadata = new ConstructorMetadata(pDecoratorMetadataObject);
+            pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = lConstructorMetadata;
         }
 
         // Get metadata from constructor.
-        lConstructorMetadata = lDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] as ConstructorMetadata;
+        lConstructorMetadata = pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] as ConstructorMetadata;
 
         return lConstructorMetadata;
     }
 
-    private readonly mConstructor: InjectionConstructor;
+    private readonly mDecoratorMetadataObject: DecoratorMetadataObject;
     private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
 
     /**
      * Constructor.
      * Initialize lists.
      * 
-     * @param pConstructor - Constructor where all metadata should be attached.
+     * @param pDecoratorMetadataObject - Constructor where all metadata should be attached.
      */
-    public constructor(pConstructor: InjectionConstructor) {
+    public constructor(pDecoratorMetadataObject: DecoratorMetadataObject) {
         super();
 
-        this.mConstructor = pConstructor;
+        this.mDecoratorMetadataObject = pDecoratorMetadataObject;
         this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
     }
 
@@ -78,7 +72,7 @@ export class ConstructorMetadata extends BaseMetadata {
      */
     public getInheritedMetadata<T>(pMetadataKey: MetadataKey): T | null {
         // Read starting decorator metadata. At this point it should have a metadata object.
-        let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mConstructor[Symbol.metadata];
+        let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mDecoratorMetadataObject;
         do {
             // Unessary check. But just to be sure.
             if(lDecoratorMetadataObject === null) { 

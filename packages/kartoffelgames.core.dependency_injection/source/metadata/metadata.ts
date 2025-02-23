@@ -11,7 +11,7 @@ export class Metadata {
     /**
      * Get metadata of constructor.
      * 
-     * @param pConstructor - Constructor.
+     * @param pTarget - Constructor or decorator metadata object.
      * 
      * @returns constructor metadata object of constructor.
      * 
@@ -27,7 +27,20 @@ export class Metadata {
      * const propertyMeta = Metadata.get(Foo).getProperty('prop').getMetadata('key');
      * ```
      */
-    public static get(pConstructor: InjectionConstructor): ConstructorMetadata {
-        return ConstructorMetadata.fromConstructor(pConstructor);
+    public static get(pTarget: InjectionConstructor | DecoratorMetadataObject): ConstructorMetadata {
+        // Get metadata object.
+        let lDecoratorMetadataObject: DecoratorMetadataObject | null;
+        if (typeof pTarget === 'function') {
+            // Read metadata from constructor.
+            lDecoratorMetadataObject = pTarget[Symbol.metadata];
+            if (!lDecoratorMetadataObject) {
+                throw new Error('Metadata not supported for this runtime.');
+            }
+        } else {
+            // Is allready a decorator metadata object.
+            lDecoratorMetadataObject = pTarget;
+        }
+
+        return ConstructorMetadata.fromMeta(lDecoratorMetadataObject);
     }
 }

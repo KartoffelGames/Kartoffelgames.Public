@@ -1,1 +1,1 @@
-export type InjectionConstructor = new (...pParameter: Array<any>) => {};
+export type InjectionConstructor<T extends object = object> = new (...pParameter: Array<any>) => T;

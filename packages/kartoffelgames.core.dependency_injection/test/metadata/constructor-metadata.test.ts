@@ -76,7 +76,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'NewMetadataValue';
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata(C[Symbol.metadata]!);
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(C[Symbol.metadata]!); // TODO: Can be (and is) null
 
             // Setup set metadata.
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);

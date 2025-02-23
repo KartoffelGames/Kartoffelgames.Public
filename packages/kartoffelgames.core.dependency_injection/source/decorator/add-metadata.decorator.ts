@@ -1,7 +1,7 @@
 import { Metadata } from "../index.ts";
 import { ConstructorMetadata } from "../metadata/constructor-metadata.ts";
 import { PropertyMetadata } from "../metadata/property-metadata.ts";
-import { InjectionConstructor } from "../type.ts";
+import { InjectionConstructor, InjectionInstance } from "../type.ts";
 
 /**
  * AtScript.
@@ -10,8 +10,8 @@ import { InjectionConstructor } from "../type.ts";
  * @param pMetadataKey - Key of metadata.
  * @param pMetadataValue - Value of metadata.
  */
-export function AddMetadata<TThis extends InjectionConstructor = InjectionConstructor, TValue = any>(pMetadataKey: string, pMetadataValue: TValue) {
-    return (pOriginalTarget: any, pContext: AllClassDecoratorContext<TThis>): void => {
+export function AddMetadata<TThis extends object, TValue = any>(pMetadataKey: string, pMetadataValue: TValue) {
+    return (pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>): void => {
         // Set for any kind.
         switch (pContext.kind) {
             case 'class':
@@ -45,8 +45,8 @@ export function AddMetadata<TThis extends InjectionConstructor = InjectionConstr
 
 type AllClassDecoratorContext<TThis extends InjectionConstructor = InjectionConstructor> =
     | ClassDecoratorContext<TThis>
-    | ClassMethodDecoratorContext<TThis>
-    | ClassGetterDecoratorContext<TThis>
-    | ClassSetterDecoratorContext<TThis>
-    | ClassFieldDecoratorContext<TThis>
-    | ClassAccessorDecoratorContext<TThis>;
+    | ClassMethodDecoratorContext<InjectionInstance<TThis>>
+    | ClassGetterDecoratorContext<InjectionInstance<TThis>>
+    | ClassSetterDecoratorContext<InjectionInstance<TThis>>
+    | ClassFieldDecoratorContext<InjectionInstance<TThis>>
+    | ClassAccessorDecoratorContext<InjectionInstance<TThis>>;

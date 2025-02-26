@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "request": "launch",
+            "name": "Launch open test file",
+            "type": "node",
+            "cwd": "${workspaceFolder}",
+            "outputCapture": "std",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": [
+                "test",
+                "${file}",
+                "--inspect-wait=0.0.0.0:9229"
+            ],
+            "attachSimplePort": 9229
+        }
+    ]
+}

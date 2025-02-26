@@ -1,3 +1,4 @@
+import { Dictionary } from "../../../kartoffelgames.core/source/index.ts";
 import { InjectionConstructor } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
@@ -8,6 +9,18 @@ import { ConstructorMetadata } from './constructor-metadata.ts';
  * @public
  */
 export class Metadata {
+    private static mMetadataMapping: Dictionary<InjectionConstructor, DecoratorMetadataObject> = new Dictionary<InjectionConstructor, DecoratorMetadataObject>();
+
+    /**
+     * Initialize metadata.
+     * 
+     * @param pTarget - Constructor or decorator metadata object.
+     * @param pMetadata - Metadata object.
+     */
+    public static init(pTarget: InjectionConstructor, pMetadata: DecoratorMetadataObject): void {
+        Metadata.mMetadataMapping.set(pTarget, pMetadata);
+    }
+
     /**
      * Get metadata of constructor.
      * 
@@ -27,20 +40,15 @@ export class Metadata {
      * const propertyMeta = Metadata.get(Foo).getProperty('prop').getMetadata('key');
      * ```
      */
-    public static get(pTarget: InjectionConstructor | DecoratorMetadataObject): ConstructorMetadata {
-        // Get metadata object.
-        let lDecoratorMetadataObject: DecoratorMetadataObject | null;
-        if (typeof pTarget === 'function') {
-            // Read metadata from constructor.
-            lDecoratorMetadataObject = pTarget[Symbol.metadata];
-            if (!lDecoratorMetadataObject) {
-                throw new Error(`No metadata found on constructor.`);
-            }
-        } else {
-            // Is allready a decorator metadata object.
-            lDecoratorMetadataObject = pTarget;
+    public static get(pTarget: InjectionConstructor): ConstructorMetadata {
+        if(!Metadata.mMetadataMapping.has(pTarget)) {
+            throw new Error(`Metadata not initialized for ${pTarget.name}.`);
         }
 
-        return ConstructorMetadata.fromMeta(lDecoratorMetadataObject);
+        // Read metadata object for constructor.
+        const lDecoratorMetadataObject: DecoratorMetadataObject  = Metadata.mMetadataMapping.get(pTarget)!;
+
+        // Create new metadata constructor instance.
+        return new ConstructorMetadata(lDecoratorMetadataObject);
     }
 }

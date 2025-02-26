@@ -9,43 +9,8 @@ import { BaseMetadata, MetadataKey } from './base-metadata.ts';
 export class ConstructorMetadata extends BaseMetadata {
     private static readonly mPrivateMetadataKey: symbol = Symbol('Metadata');
 
-    /**
-     * Get metadata of constructor.
-     * 
-     * @param pConstructor - Constructor.
-     * 
-     * @returns constructor metadata object of constructor.
-     * 
-     * @example Adding a new and existing key.
-     * ```TypeScript
-     * @Injector.Metadata('key', 'value')
-     * class Foo {
-     *     @Injector.Metadata('key', 'value')
-     *     public prop: number;
-     * }
-     * 
-     * const constructorMeta = ConstructorMetadata.fromConstructor(Foo).getMetadata('key');
-     * const propertyMeta = ConstructorMetadata.fromConstructor(Foo).getProperty('prop').getMetadata('key');
-     * ```
-     */
-    public static fromMeta(pDecoratorMetadataObject: DecoratorMetadataObject): ConstructorMetadata {
-        let lConstructorMetadata: ConstructorMetadata | undefined;
-
-        // Check if metadata is set on this constructor and not inherited from parent.
-        if (!Object.hasOwn(pDecoratorMetadataObject, ConstructorMetadata.mPrivateMetadataKey)) {
-            // Create new metadata object and assign it to decorator metadata.
-            lConstructorMetadata = new ConstructorMetadata(pDecoratorMetadataObject);
-            pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = lConstructorMetadata;
-        }
-
-        // Get metadata from constructor.
-        lConstructorMetadata = pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] as ConstructorMetadata;
-
-        return lConstructorMetadata;
-    }
-
     private readonly mDecoratorMetadataObject: DecoratorMetadataObject;
-    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
+    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>; // TODO: This is different for each ConstructorMetadata instance.
 
     /**
      * Constructor.

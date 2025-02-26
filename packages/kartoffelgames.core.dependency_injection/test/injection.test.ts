@@ -338,10 +338,10 @@ describe('Injection', () => {
 
     it('Static Method: registerInjectable', () => {
         // Setup.
+        @Injectable
         class Type { }
 
         // Process.
-        Injection.registerInjectable(Type, 'instanced');
         const lCreatedObject = Injection.createObject<Type>(Type);
 
         // Evaluation.
@@ -351,7 +351,9 @@ describe('Injection', () => {
     describe('Static Method: replaceInjectable', () => {
         it('-- Default', () => {
             // Setup. Types.
+            @Injectable
             class OriginalType { }
+            @Injectable
             class ReplacementType { }
 
             // Setup. Type with injected parameter.
@@ -362,10 +364,6 @@ describe('Injection', () => {
                     this.a = pType;
                 }
             }
-
-            // Setup. Register injectable.
-            Injection.registerInjectable(OriginalType, 'instanced');
-            Injection.registerInjectable(ReplacementType, 'instanced');
 
             // Process.
             Injection.replaceInjectable(OriginalType, ReplacementType);
@@ -378,10 +376,8 @@ describe('Injection', () => {
         it('-- Original not registerd', () => {
             // Setup. Types.
             class OriginalType { }
+            @Injectable
             class ReplacementType { }
-
-            // Setup. Register injectable.
-            Injection.registerInjectable(ReplacementType, 'instanced');
 
             // Process.
             const lThrowErrorFunction = () => {
@@ -394,11 +390,9 @@ describe('Injection', () => {
 
         it('-- Replacement not registerd', () => {
             // Setup. Types
+            @Injectable
             class OriginalType { }
             class ReplacementType { }
-
-            // Setup. Register injectable.
-            Injection.registerInjectable(OriginalType, 'instanced');
 
             // Process.
             const lThrowErrorFunction = () => {

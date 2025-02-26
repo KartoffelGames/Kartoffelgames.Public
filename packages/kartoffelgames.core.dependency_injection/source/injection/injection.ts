@@ -119,9 +119,9 @@ export class Injection {
      * @param pConstructor - Constructor that can be injected.
      * @param pMode - Mode of injection.
      */
-    public static registerInjectable(pConstructor: InjectionConstructor, pMode: InjectMode): void {
+    public static registerInjectable(pConstructor: InjectionConstructor, pMetaDataObject: DecoratorMetadataObject, pMode: InjectMode): void {
         // Get unique identification for constructor.
-        const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor);
+        const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor, pMetaDataObject);
 
         // Map constructor.
         Injection.mInjectableConstructor.add(lConstructorIdentification, pConstructor);
@@ -210,9 +210,14 @@ export class Injection {
      * 
      * @returns unique identification for constructor. 
      */
-    private static getInjectionIdentification(pConstructor: InjectionConstructor): InjectionIdentification {
+    private static getInjectionIdentification(pConstructor: InjectionConstructor, pMetadata?: DecoratorMetadataObject): InjectionIdentification {
+        let lDecoratorMetadataObject: DecoratorMetadataObject | null = pMetadata ?? pConstructor[Symbol.metadata];
+        if (!lDecoratorMetadataObject) {
+            throw new Exception(`Constructor must have attached decorators to be used for injection.`, Injection);
+        }
+
         // Read metadata from constructor.
-        const lMetadata: ConstructorMetadata = Metadata.get(pConstructor);
+        const lMetadata: ConstructorMetadata = Metadata.get(lDecoratorMetadataObject);
         let lIdentification: InjectionIdentification | null = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
 
         // Create new metadata object and assign it to decorator metadata.

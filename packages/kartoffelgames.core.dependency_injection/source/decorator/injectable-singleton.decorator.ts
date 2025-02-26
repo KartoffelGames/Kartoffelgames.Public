@@ -14,7 +14,5 @@ export function InjectableSingleton(pOriginalClass: InjectionConstructor, pConte
         throw new Error(`@InjectableSingleton can only be used on classes.`);
     }
 
-    Injection.registerInjectable(pOriginalClass, 'singleton');
+    Injection.registerInjectable(pOriginalClass, pContext.metadata, 'singleton');
 }
-
-// pConstructor: 

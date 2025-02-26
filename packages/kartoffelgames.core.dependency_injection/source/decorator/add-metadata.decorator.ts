@@ -11,11 +11,13 @@ import { InjectionConstructor, InjectionInstance } from "../type.ts";
  * @param pMetadataValue - Value of metadata.
  */
 export function AddMetadata<TThis extends object, TValue = any>(pMetadataKey: string, pMetadataValue: TValue) {
-    return (pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>): void => {
+    return (_pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>): void => {
+        const lConstructorMetadata: ConstructorMetadata = Metadata.get(pContext.metadata);
+
         // Set for any kind.
         switch (pContext.kind) {
             case 'class':
-                Metadata.get(pOriginalTarget).setMetadata(pMetadataKey, pMetadataValue);
+                lConstructorMetadata.setMetadata(pMetadataKey, pMetadataValue);
                 return;
             case 'accessor':
             case 'method':
@@ -27,13 +29,7 @@ export function AddMetadata<TThis extends object, TValue = any>(pMetadataKey: st
                     throw new Error(`@AddMetadata not supported for statics.`);
                 }
 
-                // Set metadata on init.
-                pContext.addInitializer(function (this: TThis) {
-                    const lConstructorMetadata: ConstructorMetadata = Metadata.get(this.constructor as InjectionConstructor);
-                    const lPropertyMetadata: PropertyMetadata = lConstructorMetadata.getProperty(pContext.name);
-
-                    lPropertyMetadata.setMetadata(pMetadataKey, pMetadataValue);
-                });
+                lConstructorMetadata.getProperty(pContext.name).setMetadata(pMetadataKey, pMetadataValue);
                 return;
             default:
                 // Fallback. Maybe more things will show up.

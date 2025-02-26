@@ -34,7 +34,7 @@ export class Metadata {
             // Read metadata from constructor.
             lDecoratorMetadataObject = pTarget[Symbol.metadata];
             if (!lDecoratorMetadataObject) {
-                lDecoratorMetadataObject = Metadata.initOwnMetadata(pTarget);
+                throw new Error(`No metadata found on constructor.`);
             }
         } else {
             // Is allready a decorator metadata object.
@@ -42,30 +42,5 @@ export class Metadata {
         }
 
         return ConstructorMetadata.fromMeta(lDecoratorMetadataObject);
-    }
-
-    /**
-     * Init a new metadata object for a constructor that does not have a metadata object.
-     * 
-     * @param pTarget - Constructor target without a metadata object.
-     * 
-     * @returns the newly created metadata object. 
-     */
-    private static initOwnMetadata(pTarget: InjectionConstructor): DecoratorMetadataObject {
-        // Create new metadata object.
-        const lDecoratorMetadataObject: DecoratorMetadataObject = {};
-
-        // Read parent constructor.
-        const pParentConstructor: InjectionConstructor | null = Object.getPrototypeOf(pTarget);
-        if (pParentConstructor !== null && pParentConstructor !== Object) {
-            // Set metadata of parent as prototype of current metadata object.
-            const lParentMetadata = Metadata.initOwnMetadata(pParentConstructor);
-            Object.setPrototypeOf(lDecoratorMetadataObject, lParentMetadata);
-        }
-
-        // Assign metadata object to constructor.
-        pTarget[Symbol.metadata] = lDecoratorMetadataObject;
-
-        return lDecoratorMetadataObject;
     }
 }

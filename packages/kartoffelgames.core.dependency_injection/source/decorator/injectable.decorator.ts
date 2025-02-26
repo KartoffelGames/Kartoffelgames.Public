@@ -14,5 +14,5 @@ export function Injectable(pOriginalClass: InjectionConstructor, pContext: Class
         throw new Error(`@Injectable can only be used on classes.`);
     }
 
-    Injection.registerInjectable(pOriginalClass, 'instanced');
+    Injection.registerInjectable(pOriginalClass, pContext.metadata, 'instanced');
 }

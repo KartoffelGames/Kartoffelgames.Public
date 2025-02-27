@@ -152,17 +152,18 @@ export class Metadata {
         // Move inheritance chain backwards and chain metadata objects with prototypes.
         for (let lIndex = lInheritanceChain.length - 1; lIndex >= 0; lIndex--) {
             const lConstructor = lInheritanceChain[lIndex];
-            
+
             // When not metadata object is set, create one.
-            if(!lConstructor[Symbol.metadata]) {
-                lConstructor[Symbol.metadata] = {};
-
-                // When constructor has a parent, prototype metadata objects.
-                if(lIndex < lInheritanceChain.length - 2) {
+            if (!lConstructor[Symbol.metadata]) {
+                // When constructor has a parent set it as prototype.
+                let lPrototype: object | null = null;
+                if (lIndex < lInheritanceChain.length - 2) {
                     const lParentConstructor: InjectionConstructor = lInheritanceChain[lIndex + 1];
-
-                    Object.setPrototypeOf(lConstructor[Symbol.metadata], lParentConstructor[Symbol.metadata]);
+                    lPrototype = lParentConstructor[Symbol.metadata];
                 }
+
+                // Create new metadata object with the potential parent metadata as prototype.
+                lConstructor[Symbol.metadata] = Object.create(lPrototype, {});
             }
         }
     }

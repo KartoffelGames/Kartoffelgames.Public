@@ -31,7 +31,7 @@ describe('Metadata', () => {
             expect(lOldConstructorMetadata).toBe(lNewConstructorMetadata);
         });
 
-        it('-- Native metadata are not same ', () => {
+        it('-- Native constructor metadata are not same ', () => {
             // Setup. Inheritance chain.
             @Metadata.init()
             class A { }
@@ -46,15 +46,32 @@ describe('Metadata', () => {
             expect(lMetadataA).not.toBe(lMetadataB);
         });
 
-        it('-- Generated metadata are not same ', () => {
+        it('-- Polyfilled constructor metadata are not same ', () => {
             // Setup. Inheritance chain.
             class A { }
             class B extends A { }
 
-            // Process. Order matters.
-            const lMetadataB: ConstructorMetadata = Metadata.get(B);
+            // Process.
             const lMetadataA: ConstructorMetadata = Metadata.get(A);
+            const lMetadataB: ConstructorMetadata = Metadata.get(B);
+            
+            // Evaluation.
+            expect(lMetadataA).not.toBe(lMetadataB);
+        });
 
+        it('-- Polyfilled decorator metadata are not same ', () => {
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+
+            // Setup. Force polyfill metadata creation.
+            Metadata.get(A);
+            Metadata.get(B);
+            
+            // Process.
+            const lMetadataA: DecoratorMetadata = A[Symbol.metadata]!;
+            const lMetadataB: DecoratorMetadata = B[Symbol.metadata]!;
+            
             // Evaluation.
             expect(lMetadataA).not.toBe(lMetadataB);
         });

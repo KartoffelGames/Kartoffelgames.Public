@@ -30,5 +30,33 @@ describe('Metadata', () => {
             // Evaluation.
             expect(lOldConstructorMetadata).toBe(lNewConstructorMetadata);
         });
+
+        it('-- Native metadata are not same ', () => {
+            // Setup. Inheritance chain.
+            @Metadata.init()
+            class A { }
+            @Metadata.init()
+            class B extends A { }
+
+            // Process.
+            const lMetadataB: ConstructorMetadata = Metadata.get(B);
+            const lMetadataA: ConstructorMetadata = Metadata.get(A);
+
+            // Evaluation.
+            expect(lMetadataA).not.toBe(lMetadataB);
+        });
+
+        it('-- Generated metadata are not same ', () => {
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+
+            // Process. Order matters.
+            const lMetadataB: ConstructorMetadata = Metadata.get(B);
+            const lMetadataA: ConstructorMetadata = Metadata.get(A);
+
+            // Evaluation.
+            expect(lMetadataA).not.toBe(lMetadataB);
+        });
     });
 });

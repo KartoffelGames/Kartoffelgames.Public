@@ -82,7 +82,7 @@ describe('ConstructorMetadata', () => {
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: Array<string> | null = lMetadata.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> = lMetadata.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValue]);
@@ -112,7 +112,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> | null = lMetadataC.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB, lMetadataValueC]);
@@ -140,7 +140,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> | null = lMetadataC.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);
@@ -170,7 +170,7 @@ describe('ConstructorMetadata', () => {
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
-            const lResultMetadatavalue: Array<string> | null = lMetadataB.getInheritedMetadata(lMetadataKey);
+            const lResultMetadatavalue: Array<string> = lMetadataB.getInheritedMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).toBeDeepEqual([lMetadataValueA, lMetadataValueB]);

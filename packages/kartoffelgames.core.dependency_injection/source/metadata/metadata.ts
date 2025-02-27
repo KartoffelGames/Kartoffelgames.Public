@@ -124,6 +124,13 @@ export class Metadata {
         return lConstructorMetadata;
     }
 
+    /**
+     * Ensures that all constructors in the inheritance chain have a metadata object.
+     * If a constructor does not have a metadata object, it creates one and sets its prototype
+     * to the metadata object of its parent constructor.
+     *
+     * @param pConstructor - The constructor to start the inheritance chain from.
+     */
     private static polyfillMissingMetadata(pConstructor: InjectionConstructor): void {
         const lInheritanceChain: Array<InjectionConstructor> = new Array<InjectionConstructor>();
 
@@ -151,7 +158,7 @@ export class Metadata {
                 lConstructor[Symbol.metadata] = {};
 
                 // When constructor has a parent, prototype metadata objects.
-                if(lIndex < lInheritanceChain.length - 1) {
+                if(lIndex < lInheritanceChain.length - 2) {
                     const lParentConstructor: InjectionConstructor = lInheritanceChain[lIndex + 1];
 
                     Object.setPrototypeOf(lConstructor[Symbol.metadata], lParentConstructor[Symbol.metadata]);

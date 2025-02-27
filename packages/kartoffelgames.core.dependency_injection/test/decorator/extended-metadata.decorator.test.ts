@@ -1,6 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { AddMetadata } from '../../source/decorator/add-metadata.decorator.ts';
 import { Metadata } from '../../source/metadata/metadata.ts';
 
 describe('ExtendedMetadata', () => {
@@ -11,7 +10,7 @@ describe('ExtendedMetadata', () => {
             const lMetadataValue: object = {};
 
             // Process.
-            @AddMetadata(lMetadataKey, lMetadataValue)
+            @Metadata.add(lMetadataKey, lMetadataValue)
             class TestA { }
 
             // Process. Read metadata.
@@ -19,7 +18,7 @@ describe('ExtendedMetadata', () => {
 
             // Evaluation.
             expect(lResultMetadataValue).toBe(lMetadataValue);
-        });
+        })
 
         it('-- Property Metadata', () => {
             // Setup.
@@ -29,7 +28,7 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @AddMetadata(lMetadataKey, lMetadataValue)
+                @Metadata.add(lMetadataKey, lMetadataValue)
                 public [lPropertyName]?: string;
             }
 
@@ -47,7 +46,7 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @AddMetadata(lMetadataKey, lMetadataValue)
+                @Metadata.add(lMetadataKey, lMetadataValue)
                 public function(): string { return ''; }
             }
 
@@ -66,7 +65,7 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @AddMetadata(lMetadataKey, lMetadataValue)
+                @Metadata.add(lMetadataKey, lMetadataValue)
                 public get [lPropertyName](): string { return ''; }
             }
 

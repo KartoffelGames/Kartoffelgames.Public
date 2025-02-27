@@ -1,6 +1,5 @@
 import { Injectable } from './decorator/injectable.decorator.ts';
 import { InjectableSingleton } from './decorator/injectable-singleton.decorator.ts';
-import { AddMetadata } from './decorator/add-metadata.decorator.ts';
 
 export class Injector {
     /**
@@ -20,14 +19,4 @@ export class Injector {
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     public static readonly InjectableSingleton = InjectableSingleton;
-
-    /**
-     * AtScript.
-     * Add metadata to class, method, accessor or property
-     * 
-     * @param pMetadataKey - Key of metadata.
-     * @param pMetadataValue - Value of metadata.
-     */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public static readonly Metadata = AddMetadata;
 }

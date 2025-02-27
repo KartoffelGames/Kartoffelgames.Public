@@ -1,7 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectionConstructor } from '../type.ts';
-import { PropertyMetadata } from './property-metadata.ts';
 import { BaseMetadata, MetadataKey } from './base-metadata.ts';
+import { PropertyMetadata } from './property-metadata.ts';
 
 /**
  * Constructor metadata.
@@ -10,7 +9,7 @@ export class ConstructorMetadata extends BaseMetadata {
     private static readonly mPrivateMetadataKey: symbol = Symbol('Metadata');
 
     private readonly mDecoratorMetadataObject: DecoratorMetadataObject;
-    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>; // TODO: This is different for each ConstructorMetadata instance.
+    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
 
     /**
      * Constructor.
@@ -23,6 +22,9 @@ export class ConstructorMetadata extends BaseMetadata {
 
         this.mDecoratorMetadataObject = pDecoratorMetadataObject;
         this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
+
+        // Attach constructor metadata to decorator metadata object.
+        pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = this; 
     }
 
     /**

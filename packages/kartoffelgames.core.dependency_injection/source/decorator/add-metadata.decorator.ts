@@ -12,7 +12,8 @@ import { InjectionConstructor, InjectionInstance } from "../type.ts";
  */
 export function AddMetadata<TThis extends object, TValue = any>(pMetadataKey: string, pMetadataValue: TValue) {
     return (_pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>): void => {
-        const lConstructorMetadata: ConstructorMetadata = Metadata.get(pContext.metadata);
+        // Get metadata object for constructor.
+        const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
         // Set for any kind.
         switch (pContext.kind) {

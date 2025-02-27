@@ -9,16 +9,15 @@ import { ConstructorMetadata } from './constructor-metadata.ts';
  * @public
  */
 export class Metadata {
-    private static mMetadataMapping: Dictionary<InjectionConstructor, DecoratorMetadataObject> = new Dictionary<InjectionConstructor, DecoratorMetadataObject>();
+    private static mMetadataMapping: Dictionary<DecoratorMetadataObject, ConstructorMetadata> = new Dictionary<DecoratorMetadataObject, ConstructorMetadata>();
 
     /**
      * Initialize metadata.
      * 
-     * @param pTarget - Constructor or decorator metadata object.
-     * @param pMetadata - Metadata object.
+     * @param pMetadataObject - Metadata object.
      */
-    public static init(pTarget: InjectionConstructor, pMetadata: DecoratorMetadataObject): void {
-        Metadata.mMetadataMapping.set(pTarget, pMetadata);
+    public static forInternalDecorator(pMetadataObject: DecoratorMetadataObject): ConstructorMetadata {
+        return Metadata.mapMetadata(pMetadataObject);
     }
 
     /**
@@ -41,14 +40,38 @@ export class Metadata {
      * ```
      */
     public static get(pTarget: InjectionConstructor): ConstructorMetadata {
-        if(!Metadata.mMetadataMapping.has(pTarget)) {
-            throw new Error(`Metadata not initialized for ${pTarget.name}.`);
+        // Check if constructor has a decorator metadata.
+        if(!pTarget[Symbol.metadata]) { 
+            throw new Error(`Constructor does not have a metadata object. Only classes with decorators initializes a metadata object.`);
         }
 
         // Read metadata object for constructor.
-        const lDecoratorMetadataObject: DecoratorMetadataObject  = Metadata.mMetadataMapping.get(pTarget)!;
+        const lDecoratorMetadataObject: DecoratorMetadataObject = pTarget[Symbol.metadata]!;
 
-        // Create new metadata constructor instance.
-        return new ConstructorMetadata(lDecoratorMetadataObject);
+        // Get or create constructor metadata instance.
+        return Metadata.mapMetadata(lDecoratorMetadataObject);
+    }
+
+    /**
+     * Maps a given decorator metadata object to a constructor metadata object.
+     * If the metadata object is already mapped, the existing constructor metadata is returned.
+     * Otherwise, a new constructor metadata object is created, mapped, and returned.
+     *
+     * @param pMetadataObject - The decorator metadata object to be mapped.
+     * @returns The corresponding constructor metadata object.
+     */
+    private static mapMetadata(pMetadataObject: DecoratorMetadataObject): ConstructorMetadata {
+        // Check if metadata object is already mapped.
+        if(Metadata.mMetadataMapping.has(pMetadataObject)) {
+            return Metadata.mMetadataMapping.get(pMetadataObject)!;
+        }
+
+        // Create new constructor metadata object from decorator metadata.
+        const lConstructorMetadata: ConstructorMetadata = new ConstructorMetadata(pMetadataObject);
+
+        // Map metadata object to constructor metadata.
+        Metadata.mMetadataMapping.set(pMetadataObject, lConstructorMetadata);
+
+        return lConstructorMetadata;
     }
 }

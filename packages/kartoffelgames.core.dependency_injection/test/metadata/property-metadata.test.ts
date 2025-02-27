@@ -65,7 +65,7 @@ describe('PropertyMetadata', () => {
             // Setup. Create decorator that reads metadata inside decorator.
             let lInnerPropertyMetadata: PropertyMetadata | null = null;
             const lInnerDecorator = (_pOriginalTarget: any, pContext: ClassFieldDecoratorContext) => {
-                lInnerPropertyMetadata = Metadata.get(pContext.metadata).getProperty(pContext.name);
+                lInnerPropertyMetadata = Metadata.forInternalDecorator(pContext.metadata).getProperty(pContext.name);
             };
 
             // Process.

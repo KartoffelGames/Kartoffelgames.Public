@@ -217,7 +217,7 @@ export class Injection {
         }
 
         // Read metadata from constructor.
-        const lMetadata: ConstructorMetadata = Metadata.get(lDecoratorMetadataObject);
+        const lMetadata: ConstructorMetadata = Metadata.forInternalDecorator(lDecoratorMetadataObject);
         let lIdentification: InjectionIdentification | null = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
 
         // Create new metadata object and assign it to decorator metadata.

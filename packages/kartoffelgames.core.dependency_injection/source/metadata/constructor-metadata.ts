@@ -37,7 +37,9 @@ export class ConstructorMetadata extends BaseMetadata {
      * 
      * @returns set metadata or null when no metadata was attached.
      */
-    public getInheritedMetadata<T>(pMetadataKey: MetadataKey): T | null {
+    public getInheritedMetadata<T>(pMetadataKey: MetadataKey): Array<T> {
+        const lInheritedMetadata: Array<T> = new Array<T>();
+
         // Read starting decorator metadata. At this point it should have a metadata object.
         let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mDecoratorMetadataObject;
         do {
@@ -54,7 +56,7 @@ export class ConstructorMetadata extends BaseMetadata {
                 // Check if metadata is set.
                 const lMetadataValue: T | null = lConstructorMetadata.getMetadata(pMetadataKey);
                 if (lMetadataValue !== null) {
-                    return lMetadataValue;
+                    lInheritedMetadata.push(lMetadataValue);
                 }
             }
 
@@ -63,7 +65,7 @@ export class ConstructorMetadata extends BaseMetadata {
         } while (lDecoratorMetadataObject !== null);
 
         // No inherited metadata found.
-        return null;
+        return lInheritedMetadata;
     }
 
     /**

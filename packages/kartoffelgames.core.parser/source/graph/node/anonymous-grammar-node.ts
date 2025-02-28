@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Anonymous node.
@@ -24,7 +23,7 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * Constructor.
      */
     public constructor() {
-        super(null, false, GrammarNodeValueType.Single, null);
+        super(null, false, 'single', null);
     }
 
     /**

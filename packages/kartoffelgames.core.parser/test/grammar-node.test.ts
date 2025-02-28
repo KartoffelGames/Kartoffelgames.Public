@@ -5,7 +5,6 @@ import { AnonymoutGrammarNode } from '../source/graph/node/anonymous-grammar-nod
 import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
 import { GrammarBranchNode } from '../source/graph/node/grammer-branch-node.ts';
 import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
-import { GrammarNodeValueType } from '../source/graph/node/grammer-node-value-type.enum.ts';
 import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
 
 describe('GrammarNode', () => {
@@ -41,7 +40,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, null);
 
         // Evaluation.
-        expect(lSingleNode.valueType).toBe(GrammarNodeValueType.Single);
+        expect(lSingleNode.valueType).toBe('single');
     });
 
     describe('Functionality: Chainging', () => {

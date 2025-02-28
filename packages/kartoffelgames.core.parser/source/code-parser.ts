@@ -5,7 +5,6 @@ import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node.ts';
 import { BaseGrammarNode } from './graph/node/base-grammar-node.ts';
 import { GrammarBranchNode } from './graph/node/grammer-branch-node.ts';
 import { GrammarLoopNode } from './graph/node/grammer-loop-node.ts';
-import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum.ts';
 import { GrammarSingleNode } from './graph/node/grammer-single-node.ts';
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part.ts';
 import { GraphPartReference } from './graph/part/graph-part-reference.ts';
@@ -219,7 +218,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Set as single value or list.
-        if (pNode.valueType === GrammarNodeValueType.Single) {
+        if (pNode.valueType === 'single') {
             // Validate dublicate value identifier.
             if (pNode.identifier in lChainData) {
                 throw new Exception(`Graph path has a dublicate value identifier "${pNode.identifier}"`, this);

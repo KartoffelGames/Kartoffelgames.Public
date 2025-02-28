@@ -28,21 +28,18 @@ export class Metadata {
                 case 'class':
                     lConstructorMetadata.setMetadata(pMetadataKey, pMetadataValue);
                     return;
-                case 'accessor':
                 case 'method':
                 case 'field':
                 case 'getter':
                 case "setter":
+                case 'accessor':
                     // Metadata is not allowed for statics.
                     if (pContext.static) {
-                        throw new Error(`@AddMetadata not supported for statics.`);
+                        throw new Error(`@Metadata.add not supported for statics.`);
                     }
 
                     lConstructorMetadata.getProperty(pContext.name).setMetadata(pMetadataKey, pMetadataValue);
                     return;
-                default:
-                    // Fallback. Maybe more things will show up.
-                    throw new Error(`@AddMetadata not supported for ${(<DecoratorContext>pContext).kind}.`);
             }
         };
     }

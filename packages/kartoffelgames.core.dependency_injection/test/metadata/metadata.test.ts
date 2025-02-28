@@ -76,6 +76,19 @@ describe('Metadata', () => {
             // Evaluation.
             expect(lResultMetadataValue).toBe(lMetadataValue);
         });
+
+        it('-- Unsupported for static Properties.', ()=>{
+            // Setup. Failing function.
+            const lFailFunction = ()=>{
+                class TestA {
+                    @Metadata.add('', '')
+                    public static get prop(): string { return ''; }
+                }
+            }
+
+            // Evaluation.
+            expect(lFailFunction).toThrow(`@Metadata.add not supported for statics.`)
+        })
     });
 
     describe('-- Static Method: get', () => {

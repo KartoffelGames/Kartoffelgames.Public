@@ -24,7 +24,7 @@ export class ConstructorMetadata extends BaseMetadata {
         this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
 
         // Attach constructor metadata to decorator metadata object.
-        pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = this; 
+        pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = this;
     }
 
     /**

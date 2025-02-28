@@ -122,13 +122,8 @@ export class Injection {
      */
     public static injectable(pMode: InjectMode = 'instanced') {
         return (pOriginalClass: InjectionConstructor, pContext: ClassDecoratorContext): void => {
-            // Additional validation for class context.
-            if (pContext.kind !== 'class') {
-                throw new Error(`@Injectable can only be used on classes.`);
-            }
-        
             Injection.registerInjectable(pOriginalClass, pContext.metadata, pMode);
-        }
+        };
     };
 
     /**

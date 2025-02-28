@@ -1,4 +1,3 @@
-import { InjectionConstructor } from '../type.ts';
 import { BaseMetadata } from './base-metadata.ts';
 
 /**

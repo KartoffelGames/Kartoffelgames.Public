@@ -296,7 +296,7 @@ describe('Injection', () => {
 
             // Setup.
             @Injection.injectable()
-            class TestParameter { 
+            class TestParameter {
                 public mInner: TestA;
 
                 public constructor() {
@@ -395,11 +395,11 @@ describe('Injection', () => {
             // Process.
             @Injection.injectable()
             class TestA { }
-    
+
             // Process. Create object.
             const lCreatedObjectOne: TestA = Injection.createObject(TestA);
             const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
-    
+
             // Evaluation.
             expect(lCreatedObjectOne).toBeInstanceOf(TestA);
             expect(lCreatedObjectOne).not.toBe(lCreatedObjectTwo);
@@ -409,11 +409,11 @@ describe('Injection', () => {
             // Process.
             @Injection.injectable('singleton')
             class TestA { }
-    
+
             // Process. Create object.
             const lCreatedObjectOne: TestA = Injection.createObject(TestA);
             const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
-    
+
             // Evaluation.
             expect(lCreatedObjectOne).toBeInstanceOf(TestA);
             expect(lCreatedObjectOne).toBe(lCreatedObjectTwo);
@@ -485,6 +485,23 @@ describe('Injection', () => {
 
             // Evaluation.
             expect(lThrowErrorFunction).toThrow('Replacement constructor is not registered.');
+        });
+    });
+
+    describe('Static Method: use', () => {
+        it('-- Creation outside of an injection context', () => {
+            // Setup. Types.
+            class TestA {
+                public constructor(_pParam = Injection.use(String)) { }
+            }
+
+            // Process.
+            const lThrowErrorFunction = () => {
+                new TestA();
+            };
+
+            // Evaluation.
+            expect(lThrowErrorFunction).toThrow(`Can't create object outside of an injection context.`);
         });
     });
 });

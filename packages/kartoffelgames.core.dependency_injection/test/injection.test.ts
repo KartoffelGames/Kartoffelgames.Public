@@ -240,6 +240,29 @@ describe('Injection', () => {
             expect(lCreatedObject.mParameterA).toBeInstanceOf(ReplacementTestParameterA);
         });
 
+        it('-- Default with local injection', () => {
+            // Setup.
+            @Injectable
+            class TestParameter { }
+            @Injectable
+            class TestParameterReplacement { }
+            @Injectable
+            class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
+
+            // Setup. Create local injection.
+            const lLocalInjectionParameter: TestParameterReplacement = new TestParameterReplacement();
+            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>([
+                [TestParameter, lLocalInjectionParameter]
+            ]);
+
+            // Process.
+            const lCreatedObject: TestA = Injection.createObject(TestA, lLocalInjectionMap);
+
+            // Evaluation.
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameter).toBeInstanceOf(TestParameterReplacement);
+        });
+
         it('-- Default with second layer local injection', () => {
             // Setup.
             @Injectable
@@ -252,8 +275,9 @@ describe('Injection', () => {
 
             // Setup. Create local injection.
             const lLocalInjectionParameter: TestParameterLayerTwoLocalInjection = new TestParameterLayerTwoLocalInjection();
-            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
-            lLocalInjectionMap.add(TestParameterLayerTwo, lLocalInjectionParameter);
+            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>([
+                [TestParameterLayerTwo, lLocalInjectionParameter]
+            ]);
 
             // Process.
             const lCreatedObject: TestA = Injection.createObject(TestA, lLocalInjectionMap);
@@ -268,15 +292,14 @@ describe('Injection', () => {
             // Setup.
             @Injectable
             class TestParameter { }
-            class TestParameterReplacement { }
-
 
             @InjectableSingleton
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
-            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
-            lLocalInjectionMap.add(TestParameter, new TestParameterReplacement());
+            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>([
+                [TestParameter, new Object()]
+            ]);
 
             // Process.
             const lCreatedObjectWith: TestA = Injection.createObject(TestA, lLocalInjectionMap);

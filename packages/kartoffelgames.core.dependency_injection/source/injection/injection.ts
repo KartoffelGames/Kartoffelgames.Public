@@ -65,7 +65,7 @@ export class Injection {
         // Convert local injections from constructor to identification.
         const lLocalInjections: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>(
             // Convert [constructor, object] pair to an [identification, object] pair.
-            lLocalInjectionConstructors.map((pValue, pKey) => [Injection.getInjectionIdentification(pKey), pValue])
+            lLocalInjectionConstructors.map((pKey, pValue) => [Injection.getInjectionIdentification(pKey), pValue])
         );
 
         // Save old injection context.

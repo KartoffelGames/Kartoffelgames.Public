@@ -288,6 +288,39 @@ describe('Injection', () => {
             expect(lCreatedObject.mParameter.mParameter).toBe(lLocalInjectionParameter);
         });
 
+        it('-- Default with local injection in constructor', () => {
+            // Setup. Define replacement parameter.
+            @Injectable
+            class TestReplacement { }
+
+            // Setup. Create local injection.
+            const lLocalInjectionParameter: TestReplacement = new TestReplacement();
+
+            // Setup.
+            @Injectable
+            class TestParameter { 
+                public mInner: TestA;
+
+                public constructor() {
+                    const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>([
+                        [TestParameter, lLocalInjectionParameter]
+                    ]);
+
+                    this.mInner = Injection.createObject(TestA, lLocalInjectionMap);
+                }
+            }
+            @Injectable
+            class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
+
+            // Process.
+            const lCreatedObject: TestA = Injection.createObject(TestA);
+
+            // Evaluation.
+            expect(lCreatedObject).toBeInstanceOf(TestA);
+            expect(lCreatedObject.mParameter).toBeInstanceOf(TestParameter);
+            expect(lCreatedObject.mParameter.mInner.mParameter).toBeInstanceOf(TestReplacement);
+        });
+
         it('-- Singleton ignore local injections', () => {
             // Setup.
             @Injectable

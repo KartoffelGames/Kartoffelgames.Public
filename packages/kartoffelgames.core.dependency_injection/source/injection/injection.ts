@@ -17,7 +17,7 @@ export class Injection {
     private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
     private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionIdentification, object>();
 
-    private static mCurrentInjectionContext: Dictionary<InjectionIdentification, any> | null = null;
+    private static mCurrentInjectionContext: InjectionContext | null = null;
 
     /**
      * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
@@ -62,6 +62,15 @@ export class Injection {
             return [!!pForceCreateOrLocalInjections, pLocalInjections ?? new Dictionary<InjectionConstructor, any>()];
         })();
 
+        // Find identifier for constructor and check if it is registered.
+        const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor);
+        if (!Injection.mInjectableConstructor.has(lConstructorIdentification)) {
+            throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
+        }
+
+        // Get injection mode. Allways defaultsa to instanced, when force created.
+        const lInjectionMode: InjectMode = !lForceCreate ? Injection.mInjectMode.get(lConstructorIdentification)! : 'instanced';
+
         // Convert local injections from constructor to identification.
         const lLocalInjections: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>(
             // Convert [constructor, object] pair to an [identification, object] pair.
@@ -69,26 +78,21 @@ export class Injection {
         );
 
         // Save old injection context.
-        const lOldInjectionContext: Dictionary<InjectionIdentification, any> | null = Injection.mCurrentInjectionContext;
+        const lOldInjectionContext: InjectionContext | null = Injection.mCurrentInjectionContext;
 
         // Merge new local injection context with old one.
-        const lNewInjectionContext: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>([
-            ...(lOldInjectionContext?.entries() ?? []),
+        const lNewLocalInjection: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>([
+            ...(lOldInjectionContext?.localInjections.entries() ?? []),
             ...lLocalInjections.entries()
         ]);
 
         // Set new injection context.
-        Injection.mCurrentInjectionContext = lNewInjectionContext;
+        Injection.mCurrentInjectionContext = {
+            injectionMode: lInjectionMode,
+            localInjections: lNewLocalInjection
+        };
+
         try {
-            // Find identifier for constructor and check if it is registered.
-            const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor);
-            if (!Injection.mInjectableConstructor.has(lConstructorIdentification)) {
-                throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
-            }
-
-            // Get injection mode. Allways defaultsa to instanced, when force created.
-            const lInjectionMode: InjectMode = !lForceCreate ? Injection.mInjectMode.get(lConstructorIdentification)! : 'instanced';
-
             // Return cached singleton object if not forced to create a new one.
             if (!lForceCreate && lInjectionMode === 'singleton' && Injection.mSingletonMapping.has(lConstructorIdentification)) {
                 return <T>Injection.mSingletonMapping.get(lConstructorIdentification);
@@ -182,8 +186,8 @@ export class Injection {
         const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor);
 
         // If a replacement in the current injection context is found, use it.
-        if (Injection.mCurrentInjectionContext.has(lConstructorIdentification)) {
-            return Injection.mCurrentInjectionContext.get(lConstructorIdentification);
+        if (Injection.mCurrentInjectionContext.injectionMode !== 'singleton' && Injection.mCurrentInjectionContext.localInjections.has(lConstructorIdentification)) {
+            return Injection.mCurrentInjectionContext.localInjections.get(lConstructorIdentification);
         }
 
         // Read injection from replacement context.
@@ -213,7 +217,7 @@ export class Injection {
      */
     private static getInjectionIdentification(pConstructor: InjectionConstructor, pMetadata?: DecoratorMetadataObject): InjectionIdentification {
         // Read the constructor metadata.
-        let lConstructorMetadata: ConstructorMetadata = !!pMetadata ? Metadata.forInternalDecorator(pMetadata) : Metadata.get(pConstructor)
+        let lConstructorMetadata: ConstructorMetadata = !!pMetadata ? Metadata.forInternalDecorator(pMetadata) : Metadata.get(pConstructor);
 
         // Read metadata from constructor.
         let lIdentification: InjectionIdentification | null = lConstructorMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
@@ -229,5 +233,10 @@ export class Injection {
 }
 
 type InjectionIdentification = symbol;
+
+type InjectionContext = {
+    injectionMode: InjectMode,
+    localInjections: Dictionary<InjectionIdentification, any>,
+};
 
 export type InjectMode = 'singleton' | 'instanced';

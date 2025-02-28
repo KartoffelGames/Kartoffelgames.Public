@@ -64,8 +64,8 @@ export class ConstructorMetadata extends BaseMetadata {
             lDecoratorMetadataObject = Object.getPrototypeOf(lDecoratorMetadataObject);
         } while (lDecoratorMetadataObject !== null);
 
-        // No inherited metadata found.
-        return lInheritedMetadata;
+        // Reverse array to send data order from Parent to Child.
+        return lInheritedMetadata.reverse();
     }
 
     /**

@@ -3,7 +3,6 @@ import { describe, it } from '@std/testing/bdd';
 import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
 import { Metadata } from "../../source/metadata/metadata.ts";
 import { PropertyMetadata } from '../../source/metadata/property-metadata.ts';
-import { InjectionConstructor } from '../../source/type.ts';
 
 describe('ConstructorMetadata', () => {
     describe('Method: getMetadata', () => {
@@ -50,8 +49,8 @@ describe('ConstructorMetadata', () => {
         it('-- Get inside decorator', () => {
             // Setup. Create decorator that reads metadata inside decorator.
             let lInnerConstructorMetadata: ConstructorMetadata | null = null;
-            const lInnerDecorator = (pConstructor: InjectionConstructor): any => {
-                lInnerConstructorMetadata = Metadata.get(<any>pConstructor.prototype.constructor);
+            const lInnerDecorator = (_pTarget: any, pContext: ClassDecoratorContext): any => {
+                lInnerConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
             };
 
             // Process.

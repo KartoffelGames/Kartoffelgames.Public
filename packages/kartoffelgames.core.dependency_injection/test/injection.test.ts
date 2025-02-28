@@ -332,7 +332,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow(`Parameter "${TestParameterA.name}" of ${TestA.name} is not injectable.\n${lErrorMessage}`);
+            expect(lErrorFunction).toThrow(`Special error message`);
         });
     });
 

@@ -701,6 +701,184 @@ describe('Lexer', () => {
             expect(lTokenList[3]).toHaveProperty('metas');
             expect((<any>lTokenList[1])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
         });
+
+        it('-- Token regex with positive lookbehinds', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaabbb';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<=aaa)bbb/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).toHaveLength(2);
+        });
+
+        it('-- Token regex with negative lookbehinds', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaabbb';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<!aaa)bbb/,
+                    type: TestTokenType.Number
+                },
+                specificity: 1
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /bbb/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).toHaveLength(2);
+            expect(lTokenList[1].type).toBe(TestTokenType.Custom);
+        });
+
+        it('-- Token regex with validator function', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaabaaac';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /b/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /c/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+
+            // Process. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Number,
+                    validator: (pToken: LexerToken<TestTokenType>, pText: string, pIndex: number): boolean => {
+                        const lNextCharIndex: number = pIndex + pToken.value.length;
+                        const lNextChar: string = pText.substring(lNextCharIndex, lNextCharIndex + 1);
+
+                        return lNextChar === 'c';
+                    }
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).toHaveLength(4);
+            expect(lTokenList[0].type).toBe(TestTokenType.Custom);
+            expect(lTokenList[2].type).toBe(TestTokenType.Number);
+        });
+
+        it('-- Prefer longer token, added order from short to long', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaaaaa';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Number
+                },
+                specificity: 1
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaaaaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).toHaveLength(1);
+            expect(lTokenList[0].type).toBe(TestTokenType.Custom);
+        });
+
+        it('-- Prefer longer token, added order from long to short', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaaaaa';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaaaaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Number
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).toHaveLength(1);
+            expect(lTokenList[0].type).toBe(TestTokenType.Custom);
+        });
     });
 
     describe('Method: useTokenTemplate', () => {

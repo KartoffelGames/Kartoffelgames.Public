@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GraphPartReference } from '../part/graph-part-reference.ts';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -7,7 +8,7 @@ import { GraphPartReference } from '../part/graph-part-reference.ts';
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
-export abstract class BaseGrammarNode<TTokenType extends string> {
+export abstract class BaseGrammarNode<TTokenType extends string, TResult extends object = object> {
     private mChainedNode: BaseGrammarNode<TTokenType> | null;
     private readonly mIdentifier: string | null;
     private readonly mPreviousNode: BaseGrammarNode<TTokenType> | null;
@@ -96,9 +97,9 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new branch node. 
      */
-    public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
-    public branch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
-    public branch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+    public branch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranch<TTokenType, TKey, TValue, TResult>>;
+    public branch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType, TResult>;
+    public branch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType, TResult> {
         // Read mixed parameter with correct value. 
         const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
         const lBranches: Array<GrammarGraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
@@ -125,9 +126,11 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new loop node. 
      */
-    public loop(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>
-    public loop(pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>
-    public loop(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+    public loop<TKey extends string, TValue>(pIdentifier: TKey, pValue: GraphPartReference<TTokenType, TValue>): GrammarLoopNode<TTokenType, NodeValueExtend<TKey, Array<TValue>, TResult>>;
+    public loop<TKey extends string>(pIdentifier: TKey, pValue: TTokenType): GrammarLoopNode<TTokenType, NodeValueExtend<TKey, Array<string>, TResult>>;
+    public loop<TKey extends string, TValue extends object>(pIdentifier: TKey, pValue: BaseGrammarNode<TTokenType, TValue>): GrammarLoopNode<TTokenType, NodeValueExtend<TKey, Array<TValue>, TResult>>;
+    public loop(pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType, TResult>;
+    public loop(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType, TResult> {
         // Read mixed parameter with correct value. 
         const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
         const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
@@ -155,9 +158,11 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new optional single value node. 
      */
-    public optional(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
-    public optional(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
-    public optional(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
+    public optional<TKey extends string, TValue>(pIdentifier: TKey, pValue: GraphPartReference<TTokenType, TValue>): GrammarSingleNode<TTokenType, NodeValueExtendOptional<TKey, TValue, TResult>>;
+    public optional<TKey extends string>(pIdentifier: TKey, pValue: TTokenType): GrammarSingleNode<TTokenType, NodeValueExtendOptional<TKey, string, TResult>>;
+    public optional<TKey extends string, TValue extends object>(pIdentifier: TKey, pValue: BaseGrammarNode<TTokenType, TValue>): GrammarSingleNode<TTokenType, NodeValueExtendOptional<TKey, TValue, TResult>>;
+    public optional(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType, TResult>;
+    public optional(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType, TResult> {
         // Read mixed parameter with correct value. 
         const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
         const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
@@ -185,7 +190,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new optional branch node. 
      */
-    public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public optionalBranch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranchOptional<TTokenType, TKey, TValue, TResult>>;
     public optionalBranch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
     public optionalBranch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Read mixed parameter with correct value. 
@@ -214,8 +219,10 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new single value node. 
      */
-    public single(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
-    public single(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
+    public single<TKey extends string, TValue>(pIdentifier: TKey, pValue: GraphPartReference<TTokenType, TValue>): GrammarSingleNode<TTokenType, NodeValueExtend<TKey, TValue, TResult>>;
+    public single<TKey extends string>(pIdentifier: TKey, pValue: TTokenType): GrammarSingleNode<TTokenType, NodeValueExtend<TKey, string, TResult>>;
+    public single<TKey extends string, TValue extends object>(pIdentifier: TKey, pValue: BaseGrammarNode<TTokenType, TValue>): GrammarSingleNode<TTokenType, NodeValueExtend<TKey, TValue, TResult>>;
+    public single(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType, TResult>;
     public single(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
         // Read mixed parameter with correct value. 
         const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
@@ -257,9 +264,30 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public abstract next(): Array<BaseGrammarNode<TTokenType> | null>;
 }
 
-export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType | BaseGrammarNode<TTokenType>;
+type NodeValueExtend<TKey extends string, TValue, TTarget extends object> = TTarget & { [x in TKey]: TValue };
+type NodeValueExtendOptional<TKey extends string, TValue, TTarget extends object> = TTarget & { [x in TKey]?: TValue };
 
-export type GrammarNodeValueType = 'list' | 'single';
+type UnwrapArrayTypes<T> = T extends Array<infer U> ? U : T;
+type NodeValueExtendBranch<TTokenType extends string, TKey extends string, TValue extends Array<GrammarGraphValue<TTokenType>>, TTarget extends object> = TTarget & { [x in TKey]: (
+    UnwrapArrayTypes<{
+        [K in keyof TValue]:
+        TValue[K] extends GraphPartReference<any, infer T> ? T :
+        TValue[K] extends BaseGrammarNode<any, infer T> ? T :
+        TValue[K] extends string ? TValue[K] :
+        never
+    }>
+) };
+type NodeValueExtendBranchOptional<TTokenType extends string, TKey extends string, TValue extends Array<GrammarGraphValue<TTokenType>>, TTarget extends object> = TTarget & { [x in TKey]?: (
+    UnwrapArrayTypes<{
+        [K in keyof TValue]:
+        TValue[K] extends GraphPartReference<any, infer T> ? T :
+        TValue[K] extends BaseGrammarNode<any, infer T> ? T :
+        TValue[K] extends string ? TValue[K] :
+        never
+    }>
+) };
+
+export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType, unknown> | TTokenType | BaseGrammarNode<TTokenType>;
 
 // Load child branches after parent to prevent circular dependency problems.
 import { GrammarBranchNode } from './grammer-branch-node.ts';

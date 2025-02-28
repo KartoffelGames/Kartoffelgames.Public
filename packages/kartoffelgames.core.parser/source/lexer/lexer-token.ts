@@ -62,7 +62,7 @@ export class LexerToken<TTokenType extends string> {
     }
 
     /**
-     * Validate existance of meta value.
+     * Validate existence of meta value.
      * 
      * @param pMeta - meta value.
      * @returns if this token has the specified meta value.

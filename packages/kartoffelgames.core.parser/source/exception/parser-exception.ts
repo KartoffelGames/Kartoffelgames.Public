@@ -24,10 +24,21 @@ export class ParserException<T> extends Exception<T> {
      * 
      * @returns A new ParserException object.
      */
-    public static fromToken<T, TTokenType extends string>(pMessage: string, pTarget: T, pStartToken?: LexerToken<TTokenType>, pEndToken?: LexerToken<TTokenType>): ParserException<T> {
+    public static fromToken<T, TTokenType extends string>(pCause: any, pTarget: T, pStartToken: LexerToken<TTokenType> | undefined, pEndToken: LexerToken<TTokenType> | undefined): ParserException<T> {
+        // Save actual error as error option.
+        let lMessage: string;
+        let lErrorOptions: ErrorOptions | undefined;
+        if (pCause instanceof Error) {
+            lMessage = pCause.message;
+            lErrorOptions = { cause: pCause };
+        } else {
+            lMessage = pCause.toString();
+            lErrorOptions = undefined;
+        }
+
         // No start token means there is also no endtoken.
         if (!pStartToken || !pEndToken) {
-            return new ParserException(pMessage, pTarget, 1, 1, 1, 1);
+            return new ParserException(lMessage, pTarget, 1, 1, 1, 1, lErrorOptions);
         }
 
         const lEndTokenLines = pEndToken.value.split('\n');
@@ -39,9 +50,8 @@ export class ParserException<T> extends Exception<T> {
         let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : pEndToken.columnNumber;
         lColumnEnd += lEndTokenLines.at(-1)!.length;
 
-        return new ParserException(pMessage, pTarget, pStartToken.columnNumber, pStartToken.lineNumber, lColumnEnd, lLineEnd);
+        return new ParserException(lMessage, pTarget, pStartToken.columnNumber, pStartToken.lineNumber, lColumnEnd, lLineEnd, lErrorOptions);
     }
-
 
     private readonly mColumnEnd: number;
     private readonly mColumnStart: number;
@@ -84,13 +94,12 @@ export class ParserException<T> extends Exception<T> {
      * @param pColumn - Column number of target parser text.
      * @param pLine - Line number of target parser text.
      */
-    public constructor(pMessage: string, pTarget: T, pColumnStart: number, pLineStart: number, pColumnEnd: number, pLineEnd: number) {
-        super(pMessage, pTarget);
+    public constructor(pMessage: string, pTarget: T, pColumnStart: number, pLineStart: number, pColumnEnd: number, pLineEnd: number, pErrorOptions?: ErrorOptions) {
+        super(pMessage, pTarget, pErrorOptions);
 
         this.mColumnStart = pColumnStart;
         this.mLineStart = pLineStart;
         this.mColumnEnd = pColumnEnd;
         this.mLineEnd = pLineEnd;
     }
-
 }

@@ -3,7 +3,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { CodeParser } from '../source/code-parser.ts';
 import { ParserException } from '../source/exception/parser-exception.ts';
-import { AnonymoutGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
+import { AnonymousGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
 import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
 import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
 import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
@@ -151,7 +151,7 @@ describe('CodeParser', () => {
             const lGraph: BaseGrammarNode<TokenType> = lParser.graph();
 
             // Evaluation.
-            expect(lGraph).toBeInstanceOf(AnonymoutGrammarNode);
+            expect(lGraph).toBeInstanceOf(AnonymousGrammarNode);
         });
 
         it('-- Create with single node chain', () => {
@@ -189,7 +189,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).single(TokenType.Semicolon),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -212,7 +212,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -235,7 +235,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon).optional(TokenType.Semicolon),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -264,7 +264,7 @@ describe('CodeParser', () => {
                         TokenType.Identifier,
                         TokenType.Modifier
                     ]),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -291,7 +291,7 @@ describe('CodeParser', () => {
                         lParser.graph().single('required', TokenType.Identifier),
                         lParser.graph().optional('optional', TokenType.Number)
                     ]),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -318,7 +318,7 @@ describe('CodeParser', () => {
                     lParser.graph().single(TokenType.Modifier).branch('data', [
                         lParser.graph().optional('optional', TokenType.Identifier)
                     ]).single(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .branch() is not optional and needs a token to proceed.
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -342,7 +342,7 @@ describe('CodeParser', () => {
                     lParser.graph().optionalBranch('data', [
                         lParser.graph().single('optional', TokenType.Modifier)
                     ]),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -366,7 +366,7 @@ describe('CodeParser', () => {
                     lParser.graph().single(TokenType.Modifier).optionalBranch('data', [
                         lParser.graph().single('optional', TokenType.Identifier)
                     ]),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -389,7 +389,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().loop('data', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -411,7 +411,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier).single(TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -457,7 +457,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -481,7 +481,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().single(TokenType.Modifier).loop('loop', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -503,19 +503,44 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().optional('optional', TokenType.Modifier).optional(lParser.partReference('LoopCode')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
                 lParser.setRootGraphPart('LoopCode');
 
                 // Process. Convert code.
-                const lErrorFunction = () => {
-                    lParser.parse(lCodeText);
-                };
+                const lParsedData: any = lParser.parse(lCodeText);
 
-                // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular dependency detected between: Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier] -> Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier]`);
+                // Evaluation.
+                expect(lParsedData).toBeDeepEqual({
+                    optional: lCodeText
+                });
+            });
+
+            it('-- Optional recursion loops with required node in optional graph', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().optional('optional', lParser.graph().single('mod', TokenType.Modifier)).optional(lParser.partReference('LoopCode')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).toBeDeepEqual({
+                    optional: {
+                        mod: lCodeText
+                    }
+                });
             });
 
             it('-- Empty data for loops', () => {
@@ -526,7 +551,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().loop('loop', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -547,13 +572,13 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().loop('loop', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('value', lParser.partReference('LoopCode')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -574,7 +599,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
                     lParser.graph().single('first', TokenType.Identifier).loop(lParser.graph().optional(TokenType.Modifier)).single('second', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -598,7 +623,7 @@ describe('CodeParser', () => {
                 // Setup. Define additive part.
                 lParser.defineGraphPart('NewPart',
                     lParser.graph().single('data', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData.data;
                     }
                 );
@@ -606,7 +631,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().optional('part', lParser.partReference('NewPart')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -632,7 +657,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().optional('part', lParser.partReference('NewPart')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -654,7 +679,7 @@ describe('CodeParser', () => {
                 // Setup. Define additive part.
                 lParser.defineGraphPart('NewPart',
                     lParser.graph().single('data', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -662,7 +687,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().optional('part', lParser.partReference('NewPart')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -684,7 +709,7 @@ describe('CodeParser', () => {
                 // Setup. Define additive part.
                 lParser.defineGraphPart('NewPart',
                     lParser.graph().single('data', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -692,7 +717,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().single('modifier', TokenType.Modifier).optional('part', lParser.partReference('NewPart')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -714,7 +739,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().single('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).single('end', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -742,7 +767,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('StartPart',
                     lParser.graph().single('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).single('end', TokenType.Identifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -785,7 +810,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('Something', TokenType.Number),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -808,7 +833,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single(TokenType.Modifier).single('Something', TokenType.Number),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -831,7 +856,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('Something', TokenType.Number),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -854,7 +879,7 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LinearCode',
                     lParser.graph().single('Something', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -880,7 +905,7 @@ describe('CodeParser', () => {
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier),
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier)
                     ]).single(TokenType.Semicolon),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -900,13 +925,13 @@ describe('CodeParser', () => {
 
                 lParser.defineGraphPart('Level1',
                     lParser.graph().optional(TokenType.Modifier).single(lParser.partReference('Level2')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
                 lParser.defineGraphPart('Level2',
                     lParser.graph().optional(TokenType.Modifier).single(lParser.partReference('Level1')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -926,7 +951,7 @@ describe('CodeParser', () => {
 
                 lParser.defineGraphPart('Level1',
                     lParser.graph().optional(TokenType.Modifier).loop(TokenType.Identifier).single(lParser.partReference('Level1')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -949,7 +974,7 @@ describe('CodeParser', () => {
                         lParser.graph().optional(TokenType.Identifier),
                         lParser.graph().optional(TokenType.Number)
                     ]).single(lParser.partReference('Level1')),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -963,6 +988,244 @@ describe('CodeParser', () => {
                 // Evaluation. Loop chain twice as long as actual loop.
                 expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
+
+            it('-- Prevent duplicate paths on optional partReference with a loop', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /@/, type: '@' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /a/, type: 'a' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /;/, type: ';' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /1/, type: '1' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('List', lParser.graph()
+                    .loop('list', lParser.graph().single('@')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Graph', lParser.graph()
+                    .optional('list', lParser.partReference('List'))
+                    .single('type', 'a')
+                    .branch([
+                        ';',
+                        lParser.graph().single('1').single(';')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Graph');
+
+                // Process
+                const lResult: any = lParser.parse('a1;');
+
+                // Evaluation.
+                expect(lResult).toBeDeepEqual({ type: 'a' });
+            });
+
+            it('-- Prevent circular detection on infinit depths with exit token first', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'ident'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('operator')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Variable'),
+                        lParser.partReference('Addition')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + b - c');
+
+                // Evaluation.
+                expect(lResult).toBeDeepEqual({
+                    expression: {
+                        left: {
+                            expression: {
+                                variable: 'a'
+                            }
+                        },
+                        right: {
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'b'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'c'
+                                    }
+                                },
+                            }
+                        },
+                    }
+                });
+            });
+
+            it('-- Prevent circular detection on infinit depths with exit token last', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'ident'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('operator')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Addition'),
+                        lParser.partReference('Variable')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + b - c');
+
+                // Evaluation.
+                expect(lResult).toBeDeepEqual({
+                    expression: {
+                        left: {
+                            expression: {
+                                variable: 'a'
+                            }
+                        },
+                        right: {
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'b'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'c'
+                                    }
+                                },
+                            }
+                        },
+                    }
+                });
+            });
+
+            it('-- Prevent circular detection on infinit depths with none hitting optional branching', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'ident'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Optional', lParser.graph()
+                    .optional('optional')
+                    .single('expression', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData.expression;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('operator')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Optional'),
+                        lParser.partReference('Addition'),
+                        lParser.partReference('Variable')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + b - c');
+
+                // Evaluation.
+                expect(lResult).toBeDeepEqual({
+                    expression: {
+                        left: {
+                            expression: {
+                                variable: 'a'
+                            }
+                        },
+                        right: {
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'b'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'c'
+                                    }
+                                },
+                            }
+                        },
+                    }
+                });
+            });
         });
 
         describe('-- Identifier errors.', () => {
@@ -972,7 +1235,7 @@ describe('CodeParser', () => {
                 const lPartName: string = 'DublicateValueIdentifierPart';
                 lParser.defineGraphPart(lPartName,
                     lParser.graph().single('Something', TokenType.Modifier).single('Something', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -993,7 +1256,7 @@ describe('CodeParser', () => {
                 const lPartName: string = 'DublicateValueIdentifierPart';
                 lParser.defineGraphPart(lPartName,
                     lParser.graph().loop('Something', TokenType.Modifier).single('Something', TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -1014,7 +1277,7 @@ describe('CodeParser', () => {
                 const lPartName: string = 'FailingToEnd';
                 lParser.defineGraphPart(lPartName,
                     lParser.graph().optional(TokenType.Modifier),
-                    (pData: any) => {
+                    (pData) => {
                         return pData;
                     }
                 );
@@ -1050,6 +1313,36 @@ describe('CodeParser', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).toThrow(lErrorMessage);
+            });
+
+            it('-- Keep error messages stacktrace', () => {
+                // Setup. Function name.
+                const lFunctionName: string = 'lMyErrorFunctionName';
+
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier),
+                    function lMyErrorFunctionName() {
+                        throw new Error();
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                let lError: Error | null = null;
+                try {
+                    lParser.parse('const');
+                } catch (pError) {
+                    lError = <Error>pError;
+                }
+
+                // Evaluation.
+                expect(lError).not.toBeNull;
+                expect(lError).toHaveProperty('cause');
+                expect(lError!.cause).toBeInstanceOf(Error);
+                expect(lError!.cause).toHaveProperty('stack');
+                expect((<any>lError!.cause).stack).toContain(lFunctionName);
             });
 
             it('-- Keep error messages of string', () => {
@@ -1287,7 +1580,7 @@ describe('CodeParser', () => {
         const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
         // Process.
-        const lReference: GraphPartReference<TokenType> = lParser.partReference('Part');
+        const lReference: GraphPartReference<TokenType, unknown> = lParser.partReference('Part');
 
         // Define and read part after reference creation.
         lParser.defineGraphPart('Part', lParser.graph());

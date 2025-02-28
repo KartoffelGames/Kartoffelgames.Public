@@ -1,4 +1,5 @@
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Branch value node.
@@ -7,7 +8,7 @@ import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
-export class GrammarBranchNode<TTokenType extends string> extends BaseGrammarNode<TTokenType> {
+export class GrammarBranchNode<TTokenType extends string, TResult extends object = object> extends BaseGrammarNode<TTokenType, TResult> {
     private readonly mNodeBranches: Array<GrammarGraphValue<TTokenType>>;
 
     /**
@@ -26,7 +27,7 @@ export class GrammarBranchNode<TTokenType extends string> extends BaseGrammarNod
      * @param pIdentifier - Name of the property, the node token value will be stored.
      */
     public constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pNodeBranches: Array<GrammarGraphValue<TTokenType>>, pRequired: boolean, pIdentifier: string | null) {
-        super(pPreviousNode, pRequired, 'single', pIdentifier);
+        super(pPreviousNode, pRequired, GrammarNodeValueType.Single, pIdentifier);
 
         this.mNodeBranches = pNodeBranches;
     }

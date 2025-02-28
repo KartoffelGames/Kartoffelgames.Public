@@ -23,9 +23,10 @@ export class Exception<T> extends Error {
      * Constructor. 
      * @param pMessage - Messsage of exception.
      * @param pTarget - Target of exception.
+     * @param pErrorOptions - Optional error options.
      */
-    public constructor(pMessage: string, pTarget: T) {
-        super(pMessage);
+    public constructor(pMessage: string, pTarget: T, pErrorOptions?: ErrorOptions) {
+        super(pMessage, pErrorOptions);
         this.mTarget = pTarget;
     }
 }

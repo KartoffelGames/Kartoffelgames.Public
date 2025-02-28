@@ -211,11 +211,14 @@ export class Injection {
      * @returns unique identification for constructor. 
      */
     private static getInjectionIdentification(pConstructor: InjectionConstructor, pMetadata?: DecoratorMetadataObject): InjectionIdentification {
-        let lDecoratorMetadataObject: DecoratorMetadataObject | null = pMetadata ?? pConstructor[Symbol.metadata];
-        if (!lDecoratorMetadataObject) {
+        // Injection target must have an own metadata object.
+        if (!pMetadata && !Object.hasOwn(pConstructor, Symbol.metadata)) {
             throw new Exception(`Constructor must have attached decorators to be used for injection.`, Injection);
         }
-
+        
+        // Get the prefered metadata object.
+        let lDecoratorMetadataObject: DecoratorMetadataObject = pMetadata ?? pConstructor[Symbol.metadata]!;
+        
         // Read metadata from constructor.
         const lMetadata: ConstructorMetadata = Metadata.forInternalDecorator(lDecoratorMetadataObject);
         let lIdentification: InjectionIdentification | null = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);

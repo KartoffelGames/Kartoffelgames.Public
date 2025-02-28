@@ -90,7 +90,7 @@ export class Metadata {
      */
     public static get(pTarget: InjectionConstructor): ConstructorMetadata {
         // Check if constructor has a decorator metadata.
-        if (!pTarget[Symbol.metadata]) {
+        if (!Object.hasOwn(pTarget, Symbol.metadata)) {
             Metadata.polyfillMissingMetadata(pTarget);
         }
 
@@ -154,11 +154,13 @@ export class Metadata {
             const lConstructor = lInheritanceChain[lIndex];
 
             // When not metadata object is set, create one.
-            if (!lConstructor[Symbol.metadata]) {
+            if (!Object.hasOwn(lConstructor, Symbol.metadata)) {
                 // When constructor has a parent set it as prototype.
                 let lPrototype: object | null = null;
                 if (lIndex < lInheritanceChain.length - 2) {
                     const lParentConstructor: InjectionConstructor = lInheritanceChain[lIndex + 1];
+
+                    // It must have an own metadata.
                     lPrototype = lParentConstructor[Symbol.metadata];
                 }
 

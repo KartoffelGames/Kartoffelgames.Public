@@ -1,5 +1,4 @@
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Loop value node.
@@ -27,7 +26,7 @@ export class GrammarLoopNode<TTokenType extends string, TResult extends object =
      * @param pIdentifier - Name of the property, the node token value will be stored.
      */
     public constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pNodeValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null) {
-        super(pPreviousNode, false, GrammarNodeValueType.List, pIdentifier);
+        super(pPreviousNode, false, 'list', pIdentifier);
 
         this.mNodeValue = pNodeValue;
     }

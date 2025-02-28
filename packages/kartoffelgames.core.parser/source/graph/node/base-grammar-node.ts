@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
 import { GraphPartReference } from '../part/graph-part-reference.ts';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum.ts';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -288,6 +287,8 @@ type NodeValueExtendBranchOptional<TTokenType extends string, TKey extends strin
 ) };
 
 export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType, unknown> | TTokenType | BaseGrammarNode<TTokenType>;
+
+export type GrammarNodeValueType = 'single' | 'list';
 
 // Load child branches after parent to prevent circular dependency problems.
 import { GrammarBranchNode } from './grammer-branch-node.ts';

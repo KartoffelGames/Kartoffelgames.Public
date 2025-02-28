@@ -1,13 +1,12 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GraphException, GraphParseError } from './exception/graph-exception';
-import { ParserException } from './exception/parser-exception';
-import { AnonymousGrammarNode } from './graph/node/anonymous-grammar-node';
-import { BaseGrammarNode } from './graph/node/base-grammar-node';
-import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
-import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
-import { GraphPartReference } from './graph/part/graph-part-reference';
-import { Lexer } from './lexer/lexer';
-import { LexerToken } from './lexer/lexer-token';
+import { GraphException, GraphParseError } from './exception/graph-exception.ts';
+import { ParserException } from './exception/parser-exception.ts';
+import { AnonymousGrammarNode } from './graph/node/anonymous-grammar-node.ts';
+import { BaseGrammarNode } from './graph/node/base-grammar-node.ts';
+import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part.ts';
+import { GraphPartReference } from './graph/part/graph-part-reference.ts';
+import { Lexer } from './lexer/lexer.ts';
+import { LexerToken } from './lexer/lexer-token.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -216,7 +215,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Set as single value or list.
-        if (pNode.valueType === GrammarNodeValueType.Single) {
+        if (pNode.valueType === 'single') {
             // Validate dublicate value identifier.
             if (pNode.identifier in lChainData) {
                 throw new Exception(`Graph path has a dublicate value identifier "${pNode.identifier}"`, this);

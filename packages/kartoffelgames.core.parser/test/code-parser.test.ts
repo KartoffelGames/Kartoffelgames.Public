@@ -165,13 +165,12 @@ describe('CodeParser', () => {
             expect(lGraph).toBeInstanceOf(GrammarSingleNode);
         });
 
-
         it('-- Create with long chaining', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
             // Process.
-            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop(null, TokenType.Assignment).single(TokenType.Assignment);
+            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop('SomeValue', TokenType.Assignment).single(TokenType.Assignment);
 
             // Evaluation.
             expect(lGraph).toBeInstanceOf(GrammarSingleNode);

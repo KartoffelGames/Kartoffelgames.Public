@@ -5,8 +5,8 @@ import { SerializeableConstructor, SerializeableGuid } from '../type.ts';
  * Map for all registered serializable classes.
  * Singleton pattern.
  */
-export class StatefullSerializeableClassesSingleton {
-    private static mInstance: StatefullSerializeableClassesSingleton;
+export class StatefullSerializeableClasses {
+    private static mInstance: StatefullSerializeableClasses;
 
     private readonly mConstructionParameterRetriever!: Dictionary<SerializeableGuid, ParameterRetrieveCallback>;
     private readonly mConstructorToGuidMap!: Dictionary<SerializeableConstructor, SerializeableGuid>;
@@ -17,11 +17,11 @@ export class StatefullSerializeableClassesSingleton {
      * Initialize lists.
      */
     public constructor() {
-        if (StatefullSerializeableClassesSingleton.mInstance) {
-            return StatefullSerializeableClassesSingleton.mInstance;
+        if (StatefullSerializeableClasses.mInstance) {
+            return StatefullSerializeableClasses.mInstance;
         }
 
-        StatefullSerializeableClassesSingleton.mInstance = this;
+        StatefullSerializeableClasses.mInstance = this;
 
         this.mGuidToConstructorMap = new Dictionary<SerializeableGuid, SerializeableConstructor>();
         this.mConstructorToGuidMap = new Dictionary<SerializeableConstructor, SerializeableGuid>();
@@ -133,6 +133,3 @@ export type StatefullSerializerInitializationParameter = {
     requiredValues?: Array<StatefullSerializerRequiredValue>;
 };
 export type ParameterRetrieveCallback = (pObject: any) => StatefullSerializerInitializationParameter;
-
-
-export const StatefullSerializeableClasses: StatefullSerializeableClassesSingleton = new StatefullSerializeableClassesSingleton();

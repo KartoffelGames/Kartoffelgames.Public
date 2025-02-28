@@ -22,7 +22,7 @@ export function StatefullSerializeable(pGuid: SerializeableGuid) {
         };
 
         // Map serializable class.
-        StatefullSerializeableClasses.registerClass(lParameterProxyConstructor, pGuid, (pObject: object) => {
+        new StatefullSerializeableClasses().registerClass(lParameterProxyConstructor, pGuid, (pObject: object) => {
             return {
                 parameter: <Array<any>>lObjectToConstructorParameter.get(pObject),
                 requiredValues: []

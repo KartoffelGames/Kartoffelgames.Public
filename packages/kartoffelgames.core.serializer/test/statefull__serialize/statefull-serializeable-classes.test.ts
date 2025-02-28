@@ -15,7 +15,7 @@ describe('StatefullSerializer', () => {
             class TestObject { }
 
             // Process.
-            const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.getClass(lClassId);
+            const lConstructor: SerializeableConstructor = new StatefullSerializeableClasses().getClass(lClassId);
 
             // Evaluation.
             expect(lConstructor).toBe(TestObject);
@@ -27,7 +27,7 @@ describe('StatefullSerializer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                StatefullSerializeableClasses.getClass(lClassId);
+                new StatefullSerializeableClasses().getClass(lClassId);
             };
 
             // Evaluation.
@@ -45,7 +45,7 @@ describe('StatefullSerializer', () => {
             class TestObject { }
 
             // Process.
-            const lResultClassId: SerializeableGuid = StatefullSerializeableClasses.getClassId(TestObject);
+            const lResultClassId: SerializeableGuid = new StatefullSerializeableClasses().getClassId(TestObject);
 
             // Evaluation.
             expect(lResultClassId).toBe(lClassId);
@@ -57,7 +57,7 @@ describe('StatefullSerializer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                StatefullSerializeableClasses.getClassId(TestObject);
+                new StatefullSerializeableClasses().getClassId(TestObject);
             };
 
             // Evaluation.
@@ -67,18 +67,19 @@ describe('StatefullSerializer', () => {
 
     it('-- Method: registerClass', () => {
         // Setup.
+        const lStatefullSerializeableClasses: StatefullSerializeableClasses = new StatefullSerializeableClasses();
         const lClassId: SerializeableGuid = 'fada8701-adfe-4058-839b-dbd41941b1b5';
         class TestObject { }
 
         // Process.
-        StatefullSerializeableClasses.registerClass(TestObject, lClassId, () => {
+        lStatefullSerializeableClasses.registerClass(TestObject, lClassId, () => {
             return {};
         });
 
         // Evaluation.
-        expect(StatefullSerializeableClasses.getClass(lClassId)).toBe(TestObject);
-        expect(StatefullSerializeableClasses.getClassId(TestObject)).toBe(lClassId);
-        expect(StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject())).toBeDeepEqual({});
+        expect(lStatefullSerializeableClasses.getClass(lClassId)).toBe(TestObject);
+        expect(lStatefullSerializeableClasses.getClassId(TestObject)).toBe(lClassId);
+        expect(lStatefullSerializeableClasses.getObjectConstructionParameter(new TestObject())).toBeDeepEqual({});
     });
 
     it('-- Method: getObjectConstructionParameter', () => {
@@ -88,13 +89,14 @@ describe('StatefullSerializer', () => {
         };
 
         // Setup.
+        const lStatefullSerializeableClasses: StatefullSerializeableClasses = new StatefullSerializeableClasses();
         class TestObject { }
-        StatefullSerializeableClasses.registerClass(TestObject, '99835662-21fb-409d-a629-3d0c7db0a6e6', () => {
+        lStatefullSerializeableClasses.registerClass(TestObject, '99835662-21fb-409d-a629-3d0c7db0a6e6', () => {
             return lParameter;
         });
 
         // Process.
-        const lResult = StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject());
+        const lResult = lStatefullSerializeableClasses.getObjectConstructionParameter(new TestObject());
 
         // Evaluation.
         expect(lResult).toBe(lParameter);

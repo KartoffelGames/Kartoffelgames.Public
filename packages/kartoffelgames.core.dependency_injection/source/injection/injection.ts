@@ -115,6 +115,23 @@ export class Injection {
     }
 
     /**
+     * AtScript.
+     * Mark class to be injectable
+     * 
+     * @param pMode - Injection mode.
+     */
+    public static injectable(pMode: InjectMode = 'instanced') {
+        return (pOriginalClass: InjectionConstructor, pContext: ClassDecoratorContext): void => {
+            // Additional validation for class context.
+            if (pContext.kind !== 'class') {
+                throw new Error(`@Injectable can only be used on classes.`);
+            }
+        
+            Injection.registerInjectable(pOriginalClass, pContext.metadata, pMode);
+        }
+    };
+
+    /**
      * Register an constructor for injection.
      * Must be used inside an decorator, otherway an metadata missmatch could occur. 
      * 

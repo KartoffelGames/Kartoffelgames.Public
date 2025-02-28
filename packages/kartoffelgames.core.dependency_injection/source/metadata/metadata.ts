@@ -137,11 +137,6 @@ export class Metadata {
         // Read all constructors in inheritance chain.
         let lCurrentConstructor: InjectionConstructor = pConstructor;
         do {
-            // Unessary check. But just to be sure.
-            if (lCurrentConstructor === null) {
-                continue;
-            }
-
             // Save constructor in inheritance chain.
             lInheritanceChain.push(lCurrentConstructor);
 

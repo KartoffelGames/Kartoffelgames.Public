@@ -43,11 +43,6 @@ export class ConstructorMetadata extends BaseMetadata {
         // Read starting decorator metadata. At this point it should have a metadata object.
         let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mDecoratorMetadataObject;
         do {
-            // Unessary check. But just to be sure.
-            if(lDecoratorMetadataObject === null) { 
-                continue;
-            }
-
             // Check if metadata is set on this constructor.
             if (Object.hasOwn(lDecoratorMetadataObject, ConstructorMetadata.mPrivateMetadataKey)) {
                 // Get metadata from constructor.

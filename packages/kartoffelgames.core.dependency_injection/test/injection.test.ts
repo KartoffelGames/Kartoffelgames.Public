@@ -1,8 +1,6 @@
+import { Dictionary } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { Dictionary } from '@kartoffelgames/core';
-import { Injectable } from '../source/decorator/injectable.decorator.ts';
-import { InjectableSingleton } from '../source/decorator/injectable-singleton.decorator.ts';
 import { Injection } from '../source/injection/injection.ts';
 import { InjectionConstructor } from '../source/type.ts';
 
@@ -33,7 +31,7 @@ describe('Injection', () => {
 
         it('-- Default without parameter', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestA { }
 
             // Process.
@@ -45,11 +43,11 @@ describe('Injection', () => {
 
         it('-- Default with parameter', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class TestParameterB { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
             // Process.
@@ -63,11 +61,11 @@ describe('Injection', () => {
 
         it('-- Default with parameter, parameter is singleton.', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA { }
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestParameterB { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mDefault = Injection.use(TestParameterA), public mSingleton = Injection.use(TestParameterB)) { } }
 
             // Process.
@@ -83,7 +81,7 @@ describe('Injection', () => {
         it('-- Default with parameter, parameter not registered.', () => {
             // Setup.
             class TestParameter { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Process.
@@ -97,7 +95,7 @@ describe('Injection', () => {
 
         it('-- Singleton without parameter', () => {
             // Setup.
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestA { }
 
             // Process.
@@ -111,11 +109,11 @@ describe('Injection', () => {
 
         it('-- Singleton with parameter', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class TestParameterB { }
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
             // Process.
@@ -129,7 +127,7 @@ describe('Injection', () => {
 
         it('-- Singleton force create', () => {
             // Setup.
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestA { }
 
             // Process.
@@ -143,11 +141,11 @@ describe('Injection', () => {
 
         it('-- Default with layered history', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             @gPlaceholderDecorator
             class TestA { }
             @gPlaceholderDecorator
-            @Injectable
+            @Injection.injectable()
             class TestB { }
 
             // Process.
@@ -161,11 +159,11 @@ describe('Injection', () => {
 
         it('-- Default with layered history with parameter', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class TestParameterB { }
-            @Injectable
+            @Injection.injectable()
             @gPlaceholderDecorator
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
@@ -180,10 +178,10 @@ describe('Injection', () => {
 
         it('-- Default with parameter with layered history', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             @gPlaceholderDecorator
             class TestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Process.
@@ -196,11 +194,11 @@ describe('Injection', () => {
 
         it('-- Default with parameter with injection replacement', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class ReplacementTestParameterA { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Setup. Set replacement.
@@ -216,16 +214,16 @@ describe('Injection', () => {
 
         it('-- Default injection replacement with layered history', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             @gPlaceholderDecorator
             class TestParameterA { }
 
-            @Injectable
+            @Injection.injectable()
             @gPlaceholderDecorator
             class ReplacementTestParameterA { }
 
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Setup. Set replacement.
@@ -242,11 +240,11 @@ describe('Injection', () => {
 
         it('-- Default with local injection', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameter { }
-            @Injectable
+            @Injection.injectable()
             class TestParameterReplacement { }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
@@ -265,12 +263,12 @@ describe('Injection', () => {
 
         it('-- Default with second layer local injection', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterLayerTwo { }
             class TestParameterLayerTwoLocalInjection { }
-            @Injectable
+            @Injection.injectable()
             class TestParameterLayerOne { constructor(public mParameter = Injection.use(TestParameterLayerTwo)) { } }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameter = Injection.use(TestParameterLayerOne)) { } }
 
             // Setup. Create local injection.
@@ -290,14 +288,14 @@ describe('Injection', () => {
 
         it('-- Default with local injection in constructor', () => {
             // Setup. Define replacement parameter.
-            @Injectable
+            @Injection.injectable()
             class TestReplacement { }
 
             // Setup. Create local injection.
             const lLocalInjectionParameter: TestReplacement = new TestReplacement();
 
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameter { 
                 public mInner: TestA;
 
@@ -309,7 +307,7 @@ describe('Injection', () => {
                     this.mInner = Injection.createObject(TestA, lLocalInjectionMap);
                 }
             }
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Process.
@@ -323,10 +321,10 @@ describe('Injection', () => {
 
         it('-- Singleton ignore local injections', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameter { }
 
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
@@ -348,10 +346,10 @@ describe('Injection', () => {
 
         it('-- Singleton create with local injections on force create', () => {
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameter { }
             class TestParameterLocalInjection { }
-            @InjectableSingleton
+            @Injection.injectable('singleton')
             class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
@@ -372,14 +370,14 @@ describe('Injection', () => {
             const lErrorMessage: string = 'Special error message';
 
             // Setup.
-            @Injectable
+            @Injection.injectable()
             class TestParameterA {
                 constructor() {
                     throw new Error(lErrorMessage);
                 }
             }
 
-            @Injectable
+            @Injection.injectable()
             class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Process.
@@ -392,9 +390,39 @@ describe('Injection', () => {
         });
     });
 
+    describe('Static Method: injectable', () => {
+        it('-- Instanced', () => {
+            // Process.
+            @Injection.injectable()
+            class TestA { }
+    
+            // Process. Create object.
+            const lCreatedObjectOne: TestA = Injection.createObject(TestA);
+            const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
+    
+            // Evaluation.
+            expect(lCreatedObjectOne).toBeInstanceOf(TestA);
+            expect(lCreatedObjectOne).not.toBe(lCreatedObjectTwo);
+        });
+
+        it('-- Singleton', () => {
+            // Process.
+            @Injection.injectable('singleton')
+            class TestA { }
+    
+            // Process. Create object.
+            const lCreatedObjectOne: TestA = Injection.createObject(TestA);
+            const lCreatedObjectTwo: TestA = Injection.createObject(TestA);
+    
+            // Evaluation.
+            expect(lCreatedObjectOne).toBeInstanceOf(TestA);
+            expect(lCreatedObjectOne).toBe(lCreatedObjectTwo);
+        });
+    });
+
     it('Static Method: registerInjectable', () => {
         // Setup.
-        @Injectable
+        @Injection.injectable()
         class Type { }
 
         // Process.
@@ -407,13 +435,13 @@ describe('Injection', () => {
     describe('Static Method: replaceInjectable', () => {
         it('-- Default', () => {
             // Setup. Types.
-            @Injectable
+            @Injection.injectable()
             class OriginalType { }
-            @Injectable
+            @Injection.injectable()
             class ReplacementType { }
 
             // Setup. Type with injected parameter.
-            @Injectable
+            @Injection.injectable()
             class TestClass {
                 public a: any;
                 constructor(pType = Injection.use(OriginalType)) {
@@ -432,7 +460,7 @@ describe('Injection', () => {
         it('-- Original not registerd', () => {
             // Setup. Types.
             class OriginalType { }
-            @Injectable
+            @Injection.injectable()
             class ReplacementType { }
 
             // Process.
@@ -446,7 +474,7 @@ describe('Injection', () => {
 
         it('-- Replacement not registerd', () => {
             // Setup. Types
-            @Injectable
+            @Injection.injectable()
             class OriginalType { }
             class ReplacementType { }
 

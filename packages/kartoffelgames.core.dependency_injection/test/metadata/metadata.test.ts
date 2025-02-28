@@ -2,9 +2,82 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
 import { Metadata } from '../../source/metadata/metadata.ts';
-import { InjectionConstructor } from '../../source/type.ts';
 
 describe('Metadata', () => {
+    describe('-- Static Method: add', () => {
+        it('-- Constructor Metadata', () => {
+            // Setup.
+            const lMetadataKey: string = 'MetadataKey';
+            const lMetadataValue: object = {};
+
+            // Process.
+            @Metadata.add(lMetadataKey, lMetadataValue)
+            class TestA { }
+
+            // Process. Read metadata.
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadataValue).toBe(lMetadataValue);
+        });
+
+        it('-- Property Metadata', () => {
+            // Setup.
+            const lMetadataKey: string = 'MetadataKey';
+            const lMetadataValue: object = {};
+            const lPropertyName: unique symbol = Symbol('propertyname');
+
+            // Process.         
+            class TestA {
+                @Metadata.add(lMetadataKey, lMetadataValue)
+                public [lPropertyName]?: string;
+            }
+
+            // Process. Read metadata.
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadataValue).toBe(lMetadataValue);
+        });
+
+        it('-- Property Metadata', () => {
+            // Setup.
+            const lMetadataKey: string = 'MetadataKey';
+            const lMetadataValue: object = {};
+
+            // Process.         
+            class TestA {
+                @Metadata.add(lMetadataKey, lMetadataValue)
+                public function(): string { return ''; }
+            }
+
+            // Process. Read metadata.
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadataValue).toBe(lMetadataValue);
+        });
+
+        it('-- Accessor Metadata', () => {
+            // Setup.
+            const lMetadataKey: string = 'MetadataKey';
+            const lMetadataValue: object = {};
+            const lPropertyName: unique symbol = Symbol('propertyname');
+
+            // Process.         
+            class TestA {
+                @Metadata.add(lMetadataKey, lMetadataValue)
+                public get [lPropertyName](): string { return ''; }
+            }
+
+            // Process. Read metadata.
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadataValue).toBe(lMetadataValue);
+        });
+    });
+
     describe('-- Static Method: get', () => {
         it('-- Create New Metadata', () => {
             // Setup.
@@ -54,7 +127,7 @@ describe('Metadata', () => {
             // Process.
             const lMetadataA: ConstructorMetadata = Metadata.get(A);
             const lMetadataB: ConstructorMetadata = Metadata.get(B);
-            
+
             // Evaluation.
             expect(lMetadataA).not.toBe(lMetadataB);
         });
@@ -67,11 +140,11 @@ describe('Metadata', () => {
             // Setup. Force polyfill metadata creation.
             Metadata.get(A);
             Metadata.get(B);
-            
+
             // Process.
             const lMetadataA: DecoratorMetadata = A[Symbol.metadata]!;
             const lMetadataB: DecoratorMetadata = B[Symbol.metadata]!;
-            
+
             // Evaluation.
             expect(lMetadataA).not.toBe(lMetadataB);
         });

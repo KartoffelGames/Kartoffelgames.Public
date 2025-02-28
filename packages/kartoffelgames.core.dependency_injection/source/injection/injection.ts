@@ -112,6 +112,7 @@ export class Injection {
 
     /**
      * Register an constructor for injection.
+     * Must be used inside an decorator, otherway an metadata missmatch could occur. 
      * 
      * @remarks
      * Any constructor can be registred but only constructors that have a attached decorator of any kind are able to be injected.
@@ -211,22 +212,16 @@ export class Injection {
      * @returns unique identification for constructor. 
      */
     private static getInjectionIdentification(pConstructor: InjectionConstructor, pMetadata?: DecoratorMetadataObject): InjectionIdentification {
-        // Injection target must have an own metadata object.
-        if (!pMetadata && !Object.hasOwn(pConstructor, Symbol.metadata)) {
-            throw new Exception(`Constructor must have attached decorators to be used for injection.`, Injection);
-        }
-        
-        // Get the prefered metadata object.
-        let lDecoratorMetadataObject: DecoratorMetadataObject = pMetadata ?? pConstructor[Symbol.metadata]!;
-        
+        // Read the constructor metadata.
+        let lConstructorMetadata: ConstructorMetadata = !!pMetadata ? Metadata.forInternalDecorator(pMetadata) : Metadata.get(pConstructor)
+
         // Read metadata from constructor.
-        const lMetadata: ConstructorMetadata = Metadata.forInternalDecorator(lDecoratorMetadataObject);
-        let lIdentification: InjectionIdentification | null = lMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
+        let lIdentification: InjectionIdentification | null = lConstructorMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);
 
         // Create new metadata object and assign it to decorator metadata.
         if (!lIdentification) {
             lIdentification = Symbol(pConstructor.name);
-            lMetadata.setMetadata(Injection.mInjectionConstructorIdentificationMetadataKey, lIdentification);
+            lConstructorMetadata.setMetadata(Injection.mInjectionConstructorIdentificationMetadataKey, lIdentification);
         }
 
         return lIdentification;

@@ -50,7 +50,7 @@ describe('Injection', () => {
             @Injectable
             class TestParameterB { }
             @Injectable
-            class TestA { constructor(public mParameterA: TestParameterA, public mParameterB: TestParameterB) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
             // Process.
             const lCreatedObject: TestA = Injection.createObject(TestA);
@@ -68,7 +68,7 @@ describe('Injection', () => {
             @InjectableSingleton
             class TestParameterB { }
             @Injectable
-            class TestA { constructor(public mDefault: TestParameterA, public mSingleton: TestParameterB) { } }
+            class TestA { constructor(public mDefault = Injection.use(TestParameterA), public mSingleton = Injection.use(TestParameterB)) { } }
 
             // Process.
             const lCreatedObjectOne: TestA = Injection.createObject(TestA);
@@ -84,7 +84,7 @@ describe('Injection', () => {
             // Setup.
             class TestParameter { }
             @Injectable
-            class TestA { constructor(public mParameter: TestParameter) { } }
+            class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Process.
             const lThrows = () => {
@@ -92,7 +92,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrows).toThrow(`Parameter "${TestParameter.name}" of ${TestA.name} is not registered to be injectable.`);
+            expect(lThrows).toThrow(`Constructor "${TestParameter.name}" is not registered for injection and can not be build`);
         });
 
         it('-- Singleton without parameter', () => {
@@ -116,7 +116,7 @@ describe('Injection', () => {
             @Injectable
             class TestParameterB { }
             @InjectableSingleton
-            class TestA { constructor(public mParameterA: TestParameterA, public mParameterB: TestParameterB) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
             // Process.
             const lCreatedObject: TestA = Injection.createObject(TestA);
@@ -167,7 +167,7 @@ describe('Injection', () => {
             class TestParameterB { }
             @Injectable
             @gPlaceholderDecorator
-            class TestA { constructor(public mParameterA: TestParameterA, public mParameterB: TestParameterB) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA), public mParameterB = Injection.use(TestParameterB)) { } }
 
             // Process.
             const lCreatedObject: TestA = Injection.createObject(TestA);
@@ -184,7 +184,7 @@ describe('Injection', () => {
             @gPlaceholderDecorator
             class TestParameterA { }
             @Injectable
-            class TestA { constructor(public mParameterA: TestParameterA) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Process.
             const lCreatedObject: TestA = Injection.createObject(TestA);
@@ -201,7 +201,7 @@ describe('Injection', () => {
             @Injectable
             class ReplacementTestParameterA { }
             @Injectable
-            class TestA { constructor(public mParameterA: TestParameterA) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Setup. Set replacement.
             Injection.replaceInjectable(TestParameterA, ReplacementTestParameterA);
@@ -226,7 +226,7 @@ describe('Injection', () => {
 
             // Setup.
             @Injectable
-            class TestA { constructor(public mParameterA: TestParameterA) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Setup. Set replacement.
             Injection.replaceInjectable(TestParameterA, ReplacementTestParameterA);
@@ -246,9 +246,9 @@ describe('Injection', () => {
             class TestParameterLayerTwo { }
             class TestParameterLayerTwoLocalInjection { }
             @Injectable
-            class TestParameterLayerOne { constructor(public mParameter: TestParameterLayerTwo) { } }
+            class TestParameterLayerOne { constructor(public mParameter = Injection.use(TestParameterLayerTwo)) { } }
             @Injectable
-            class TestA { constructor(public mParameter: TestParameterLayerOne) { } }
+            class TestA { constructor(public mParameter = Injection.use(TestParameterLayerOne)) { } }
 
             // Setup. Create local injection.
             const lLocalInjectionParameter: TestParameterLayerTwoLocalInjection = new TestParameterLayerTwoLocalInjection();
@@ -272,7 +272,7 @@ describe('Injection', () => {
 
 
             @InjectableSingleton
-            class TestA { constructor(public mParameter: TestParameter) { } }
+            class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
             const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
@@ -296,7 +296,7 @@ describe('Injection', () => {
             class TestParameter { }
             class TestParameterLocalInjection { }
             @InjectableSingleton
-            class TestA { constructor(public mParameter: TestParameter) { } }
+            class TestA { constructor(public mParameter = Injection.use(TestParameter)) { } }
 
             // Setup. Create local injection.
             const lLocalInjectionParameter: TestParameterLocalInjection = new TestParameterLocalInjection();
@@ -324,7 +324,7 @@ describe('Injection', () => {
             }
 
             @Injectable
-            class TestA { constructor(public mParameterA: TestParameterA) { } }
+            class TestA { constructor(public mParameterA = Injection.use(TestParameterA)) { } }
 
             // Process.
             const lErrorFunction = () => {
@@ -360,7 +360,7 @@ describe('Injection', () => {
             @Injectable
             class TestClass {
                 public a: any;
-                constructor(pType: OriginalType) {
+                constructor(pType = Injection.use(OriginalType)) {
                     this.a = pType;
                 }
             }

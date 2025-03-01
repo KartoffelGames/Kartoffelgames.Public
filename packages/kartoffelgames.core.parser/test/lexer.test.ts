@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
-import { LexerTokenPatternReference } from "../source/lexer/lexer-token-pattern-reference.ts";
-import { LexerToken } from '../source/lexer/lexer-token.ts';
+import { LexerTokenPatternReference } from '../source/lexer/lexer-token-pattern-reference.ts';
+import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 
 describe('Lexer', () => {
@@ -88,7 +88,7 @@ describe('Lexer', () => {
             lLexer.trimWhitespace = false;
 
             const lErrorFunction = () => {
-                [...lLexer.tokenize(lInitTestText())];
+                return [...lLexer.tokenize(lInitTestText())];
             };
 
             // Evaluation.
@@ -367,7 +367,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                [...lLexer.tokenize(lTestTextWithInvalidToken)];
+                return [...lLexer.tokenize(lTestTextWithInvalidToken)];
             };
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
@@ -454,7 +454,7 @@ describe('Lexer', () => {
             lLexer.useTokenPattern(lBraketPattern, 1);
 
             // Process.
-            [...lLexer.tokenize('(a(a))')];
+            const _ = [...lLexer.tokenize('(a(a))')];
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
 
             expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Braket);
@@ -640,7 +640,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                [...lLexer.tokenize('aaabbb')];
+                return [...lLexer.tokenize('aaabbb')];
             };
 
             // Evaluation.
@@ -661,7 +661,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                [...lLexer.tokenize('aaa')];
+                return [...lLexer.tokenize('aaa')];
             };
 
             // Evaluation.

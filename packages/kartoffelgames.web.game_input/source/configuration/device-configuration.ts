@@ -1,5 +1,5 @@
-import { Dictionary, ICloneable } from '@kartoffelgames/core';
-import { InputButton } from '../types.ts';
+import { Dictionary, type ICloneable } from '@kartoffelgames/core';
+import type { InputButton } from '../types.ts';
 
 export class DeviceConfiguration implements ICloneable<DeviceConfiguration>{
     private readonly mActionsButtons: Dictionary<InputButton, Set<string>>;

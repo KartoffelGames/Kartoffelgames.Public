@@ -1,8 +1,8 @@
-import { expect } from "@std/expect";
-import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { deepEqual } from "./to-be-deep-equal.ts";
+import { expect } from '@std/expect';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { DeepEqual } from './to-be-deep-equal.ts';
 
-const lRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pExpectedStructure: T, pActualNode: Node): T => {
+const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pExpectedStructure: T, pActualNode: Node): T => {
     // Check if structure or constructor.
     if (typeof pExpectedStructure === 'function') {
         return <T><InjectionConstructor>pActualNode.constructor;
@@ -19,9 +19,9 @@ const lRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStr
         if ('childs' in lExpectedStructure) {
             if (pActualNode instanceof Element) {
                 if (lExpectedStructure.useShadowRoot) {
-                    lNewStructure.childs = lRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, <ShadowRoot>pActualNode.shadowRoot);
+                    lNewStructure.childs = gRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, <ShadowRoot>pActualNode.shadowRoot);
                 } else {
-                    lNewStructure.childs = lRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, pActualNode);
+                    lNewStructure.childs = gRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, pActualNode);
                 }
             } else {
                 lNewStructure.childs = null;
@@ -67,7 +67,7 @@ const lRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStr
     }
 };
 
-const lRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure, pActualElement: Element | ShadowRoot): ComponentStructure => {
+const gRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure, pActualElement: Element | ShadowRoot): ComponentStructure => {
     const lRecreatedStructureList: ComponentStructure = new Array<InjectionConstructor | ChildNodeStructure>();
 
     // Get max length of expected or actual childs.
@@ -83,7 +83,7 @@ const lRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure
             lRecreatedStructureList.push(null);
         } else {
             // Try to recreate component structure.
-            lRecreatedStructureList.push(lRecreateElementStructure(lExpectedChild, lActualChild));
+            lRecreatedStructureList.push(gRecreateElementStructure(lExpectedChild, lActualChild));
         }
     }
 
@@ -102,12 +102,12 @@ expect.extend({
 
         let lActualStructure: ComponentStructure;
         if (pUseShadowRoot) {
-            lActualStructure = lRecreateComponentChildStructure(pStructure, pContext.value.shadowRoot!);
+            lActualStructure = gRecreateComponentChildStructure(pStructure, pContext.value.shadowRoot!);
         } else {
-            lActualStructure = lRecreateComponentChildStructure(pStructure, pContext.value);
+            lActualStructure = gRecreateComponentChildStructure(pStructure, pContext.value);
         }
 
-        const [lCheckPassed, lMessage] = deepEqual('[ROOT]', pStructure, lActualStructure);
+        const [lCheckPassed, lMessage] = DeepEqual('[ROOT]', pStructure, lActualStructure);
 
         return { message: () => lMessage, pass: lCheckPassed };
     }

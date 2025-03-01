@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { DataLevel } from './data-level.ts';
+import type { DataLevel } from './data-level.ts';
 
 /**
  * Procedure/Expression that is executed on a data 

@@ -1,6 +1,6 @@
 import { describe, it } from '@std/testing/bdd';
 import { expect } from '@std/expect';
-import { ChangeState, HistoryItem, MyersDiff } from '../../source/algorithm/myers-diff.ts';
+import { ChangeState, type HistoryItem, MyersDiff } from '../../source/algorithm/myers-diff.ts';
 
 describe('MyersDiff', () => {
     describe('Method: differencesOf', () => {

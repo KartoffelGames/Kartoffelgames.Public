@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { SerializeableGuid } from '../../type.ts';
+import type { SerializeableGuid } from '../../type.ts';
 
 export type ObjectifiedValue = ObjectifiedSimple | ObjectifiedObject;
 

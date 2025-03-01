@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Lexer } from '@kartoffelgames/core-parser';
 import { PwbTemplate } from './nodes/pwb-template.ts';
-import { BasePwbTemplateNode } from './nodes/base-pwb-template-node.ts';
+import type { BasePwbTemplateNode } from './nodes/base-pwb-template-node.ts';
 import { PwbTemplateTextNode } from './nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from './nodes/pwb-template-xml-node.ts';
 import { PwbTemplateInstructionNode } from './nodes/pwb-template-instruction-node.ts';
@@ -401,7 +401,7 @@ export class TemplateParser {
         type XmlElementParseData = {
             openingTagName: string;
             attributes: Array<AttributeInformation>,
-            closing: {} | {
+            closing: object | {
                 values: Array<BasePwbTemplateNode>;
                 closingTageName: string;
             };

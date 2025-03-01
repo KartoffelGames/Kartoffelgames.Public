@@ -1,5 +1,5 @@
-import { LexerToken } from '../../lexer/lexer-token.ts';
-import { BaseGrammarNode } from '../node/base-grammar-node.ts';
+import type { LexerToken } from '../../lexer/lexer-token.ts';
+import type { BaseGrammarNode } from '../node/base-grammar-node.ts';
 
 /**
  * Graph part.

@@ -1,12 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
-import { ParserException } from '@kartoffelgames/core-parser';
 import { describe, it } from '@std/testing/bdd';
-import { XmlAttribute } from '../source/attribute/xml-attribute.ts';
-import { XmlDocument } from '../source/document/xml-document.ts';
-import { CommentNode } from '../source/node/comment-node.ts';
-import { TextNode } from '../source/node/text-node.ts';
-import { XmlElement } from '../source/node/xml-element.ts';
+import type { XmlAttribute } from '../source/attribute/xml-attribute.ts';
+import type { XmlDocument } from '../source/document/xml-document.ts';
+import type { CommentNode } from '../source/node/comment-node.ts';
+import type { TextNode } from '../source/node/text-node.ts';
+import type { XmlElement } from '../source/node/xml-element.ts';
 import { XmlParser } from '../source/parser/xml-parser.ts';
 
 describe('XmlParser', () => {

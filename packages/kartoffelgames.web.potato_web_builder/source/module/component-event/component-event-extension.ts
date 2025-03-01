@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentProcessorConstructor } from '../../core/component/component.ts';
+import { Component, type ComponentProcessorConstructor } from '../../core/component/component.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';

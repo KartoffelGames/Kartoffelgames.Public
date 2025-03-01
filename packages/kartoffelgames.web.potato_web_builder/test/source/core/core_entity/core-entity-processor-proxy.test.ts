@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { describe, it } from '@std/testing/bdd';
-import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
+import { type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../../../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 
@@ -366,7 +366,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Setup. Add proxy zone as attached by touching the object.
             lProxyZone.execute(() => {
-                lDetectionProxy.proxy.a;
+                return lDetectionProxy.proxy.a;
             });
 
             // Process.
@@ -402,7 +402,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Setup. Add proxy zone as attached by touching the object.
             lInteractionZone.execute(() => {
-                lDetectionProxy.proxy.a;
+                return lDetectionProxy.proxy.a;
             });
 
             // Process. Trigger changes.
@@ -437,7 +437,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Process. Add proxy zone as attached by touching the object.
             lAttachedInteractionZone.execute(() => {
-                lDetectionProxy.proxy.a;
+                return lDetectionProxy.proxy.a;
             });
 
             // Trigger changes.
@@ -488,7 +488,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             // Process. Add proxy zone as attached by touching the object.
             lAttachedZone.execute(() => {
-                lDetectionProxy.proxy.a;
+                return lDetectionProxy.proxy.a;
             });
 
             lSilentZone.execute(() => {
@@ -547,7 +547,7 @@ describe('CoreEntityProcessorProxy', () => {
             lInteractionZone.execute(() => {
                 try {
                     lDetectionProxy.proxy.a = lEndValue;
-                } catch (_) {/* Any */ }
+                } catch {/* Any */ }
             });
 
             // Evaluation.
@@ -599,7 +599,7 @@ describe('CoreEntityProcessorProxy', () => {
             lInteractionZone.execute(() => {
                 try {
                     delete lDetectionProxy.proxy.a;
-                } catch (_) {/* Any */ }
+                } catch {/* Any */ }
             });
 
             // Evaluation.

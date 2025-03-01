@@ -1,10 +1,10 @@
-import { IDeconstructable } from '@kartoffelgames/core';
-import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { IDeconstructable } from '@kartoffelgames/core';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
-import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
-import { Processor } from '../core_entity/processor.ts';
-import { AccessMode } from '../enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { CoreEntity, type CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
+import type { Processor } from '../core_entity/processor.ts';
+import type { AccessMode } from '../enum/access-mode.enum.ts';
+import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
@@ -28,7 +28,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
             this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
         }).addSetupHook(() => {
             // Forces auto create on setup.
-            this.processor;
+            const _ = this.processor;
         });
     }
 

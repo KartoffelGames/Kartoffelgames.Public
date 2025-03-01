@@ -1,10 +1,10 @@
-import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core';
+import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
 import { CodeParser, Lexer } from '@kartoffelgames/core-parser';
 import { XmlDocument } from '../document/xml-document.ts';
-import { BaseXmlNode } from '../node/base-xml-node.ts';
+import type { BaseXmlNode } from '../node/base-xml-node.ts';
 import { CommentNode } from '../node/comment-node.ts';
-import { TextNode } from '../node/text-node.ts';
-import { XmlElement } from '../node/xml-element.ts';
+import type { TextNode } from '../node/text-node.ts';
+import type { XmlElement } from '../node/xml-element.ts';
 import { XmlToken } from './xml-token.enum.ts';
 
 /**
@@ -234,7 +234,7 @@ export abstract class BaseXmlParser {
             openingTagName: string;
             openingNamespace?: { name: string; };
             attributes: Array<AttributeData>,
-            ending: {} | {
+            ending: object | {
                 values: Array<BaseXmlNode>;
                 closingTageName: string;
                 closingNamespace?: { name: string; };

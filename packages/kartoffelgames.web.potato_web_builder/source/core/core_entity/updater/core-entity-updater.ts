@@ -2,9 +2,9 @@ import { Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration.ts';
 import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
-import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
+import { type CoreEntityInteractionData, type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator.ts';
-import { CoreEntityUpdateCycle, UpdateCycle, UpdateCycleRunner } from './core-entiy-update-cycle.ts';
+import { CoreEntityUpdateCycle, type UpdateCycle, type UpdateCycleRunner } from './core-entiy-update-cycle.ts';
 import { UpdateLoopError } from './update-loop-error.ts';
 import { UpdateResheduleError } from './update-reshedule-error.ts';
 

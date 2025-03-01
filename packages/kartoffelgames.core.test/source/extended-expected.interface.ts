@@ -1,8 +1,8 @@
-import { type Async, type Expected, expect } from "@std/expect";
-import { ComponentStructure } from "./extensions/to-be-component-structure.ts";
+import type { Async, Expected } from '@std/expect';
+import type { ComponentStructure } from './extensions/to-be-component-structure.ts';
 
 // Extends the `Expected` interface with your new matchers signatures
-export interface ExtendedExpected<IsAsync = false> extends Expected<IsAsync> {
+export interface ExtendedExpected<TIsAsync = false> extends Expected<TIsAsync> {
     /**
      * Check object or array to be deep equal.
      * Member orderings are considered.
@@ -27,7 +27,7 @@ export interface ExtendedExpected<IsAsync = false> extends Expected<IsAsync> {
     toBeComponentStructure: (pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
 
     // NOTE: You also need to overrides the following typings to allow modifiers to correctly infer typing
-    not: IsAsync extends true ? Async<ExtendedExpected<true>> : ExtendedExpected<false>;
+    not: TIsAsync extends true ? Async<ExtendedExpected<true>> : ExtendedExpected<false>;
     resolves: Async<ExtendedExpected<true>>;
     rejects: Async<ExtendedExpected<true>>;
 }

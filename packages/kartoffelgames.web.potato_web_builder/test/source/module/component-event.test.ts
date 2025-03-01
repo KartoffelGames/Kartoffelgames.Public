@@ -3,7 +3,7 @@ import { before, describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
-import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
+import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
@@ -280,7 +280,7 @@ describe('ComponentEvent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         class EventComponent extends Processor {
             @PwbComponentEvent('custom-event')
             public mEvent!: string; // Wrong type.

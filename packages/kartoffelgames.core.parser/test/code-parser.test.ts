@@ -4,11 +4,11 @@ import { describe, it } from '@std/testing/bdd';
 import { CodeParser } from '../source/code-parser.ts';
 import { ParserException } from '../source/exception/parser-exception.ts';
 import { AnonymousGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
-import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
+import type { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
 import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
 import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
-import { GraphPartReference } from '../source/graph/part/graph-part-reference.ts';
-import { GraphPart } from '../source/graph/part/graph-part.ts';
+import type { GraphPartReference } from '../source/graph/part/graph-part-reference.ts';
+import type { GraphPart } from '../source/graph/part/graph-part.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 
 describe('CodeParser', () => {
@@ -1337,7 +1337,7 @@ describe('CodeParser', () => {
                 }
 
                 // Evaluation.
-                expect(lError).not.toBeNull;
+                expect(lError).not.toBeNull();
                 expect(lError).toHaveProperty('cause');
                 expect(lError!.cause).toBeInstanceOf(Error);
                 expect(lError!.cause).toHaveProperty('stack');

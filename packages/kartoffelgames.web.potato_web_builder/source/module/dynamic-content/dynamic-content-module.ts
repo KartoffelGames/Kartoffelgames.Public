@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
 import { DataLevel } from '../../core/data/data-level.ts';
-import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
+import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator.ts';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result.ts';
-import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
-import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import type { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 
 /**

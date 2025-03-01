@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation.ts';
-import { InteractionEvent, InteractionEventTriggerType } from './interaction-event.ts';
+import { InteractionEvent, type InteractionEventTriggerType } from './interaction-event.ts';
 import { Patcher } from '../patcher/patcher.ts';
 
 /**

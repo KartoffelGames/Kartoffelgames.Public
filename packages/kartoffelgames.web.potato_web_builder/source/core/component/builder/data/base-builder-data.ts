@@ -1,7 +1,7 @@
 import { Dictionary, Exception, List } from '@kartoffelgames/core';
-import { Component } from "../../component.ts";
-import { ComponentModules } from "../../component-modules.ts";
-import { BaseBuilder } from "../base-builder.ts";
+import type { Component } from '../../component.ts';
+import type { ComponentModules } from '../../component-modules.ts';
+import { BaseBuilder } from '../base-builder.ts';
 
 export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;

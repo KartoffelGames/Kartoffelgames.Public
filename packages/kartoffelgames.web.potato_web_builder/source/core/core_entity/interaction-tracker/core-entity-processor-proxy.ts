@@ -322,7 +322,7 @@ export class CoreEntityProcessorProxy<T extends object> {
 }
 
 type CallableObject = (...args: Array<any>) => any;
-type IgnoreableConstructor = new (...pParameter: Array<any>) => {};
+type IgnoreableConstructor = new (...pParameter: Array<any>) => object;
 
 export type CoreEntityInteractionData = {
     source: object,

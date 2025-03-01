@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { Component, ComponentProcessor } from '../../core/component/component.ts';
+import type { Component, ComponentProcessor } from '../../core/component/component.ts';
 import { ComponentRegister } from '../../core/component/component-register.ts';
 import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
 
@@ -21,7 +21,7 @@ export function PwbChild(pIdChildName: string): any {
                 const lComponent: Component = (() => {
                     try {
                         return ComponentRegister.ofProcessor(this).component;
-                    } catch (_err) {
+                    } catch {
                         throw new Exception('PwbChild target class it not a component.', this);
                     }
                 })();

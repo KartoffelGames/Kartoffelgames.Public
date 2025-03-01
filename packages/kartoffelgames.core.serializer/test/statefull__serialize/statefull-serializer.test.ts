@@ -3,7 +3,7 @@ import { describe, it } from '@std/testing/bdd';
 import { StatefullSerializeable } from '../../source/statefull_serialize/decorator/statefull-serializeable.decorator.ts';
 import { StatefullSerializeableClasses } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
 import { StatefullSerializer } from '../../source/statefull_serialize/statefull-serializer.ts';
-import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../source/statefull_serialize/types/Objectified.type.ts';
+import type { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../source/statefull_serialize/types/Objectified.type.ts';
 
 describe('StatefullSerializer', () => {
     describe('Method: objectify', () => {

@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
@@ -75,7 +74,7 @@ describe('PwbChild', () => {
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lErrorFunction = () => {
-            lComponent.idChild;
+            return lComponent.idChild;
         };
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -92,7 +91,7 @@ describe('PwbChild', () => {
         // Process. Create class and read child.
         const lErrorFunction = () => {
             const lObject: TestClass = new TestClass();
-            lObject.child;
+            return lObject.child;
         };
 
         // Evaluation.

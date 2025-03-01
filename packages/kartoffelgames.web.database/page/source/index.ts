@@ -2,7 +2,7 @@
 import { WebDatabaseIdentity } from '../../source/web_database/layout/web-database-identity.decorator.ts';
 import { WebDatabaseIndex } from '../../source/web_database/layout/web-database-index.decorator.ts';
 import { WebDatabase } from '../../source/web_database/web-database.ts';
-import { WebDatabaseTable } from '../../source/web_database/web-database-table.ts';
+import type { WebDatabaseTable } from '../../source/web_database/web-database-table.ts';
 
 class TestTableOne {
     @WebDatabaseIdentity(true)

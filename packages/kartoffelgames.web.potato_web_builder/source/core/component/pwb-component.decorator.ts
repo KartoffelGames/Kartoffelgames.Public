@@ -1,9 +1,9 @@
-import { InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
+import { type InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
-import { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
-import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
-import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
-import { Component, ComponentProcessorConstructor } from './component.ts';
+import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
+import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
+import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
+import { Component, type ComponentProcessorConstructor } from './component.ts';
 import { ComponentRegister } from './component-register.ts';
 
 /**

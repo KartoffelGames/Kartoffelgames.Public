@@ -1,8 +1,8 @@
 
-import { DataLevel } from '../../data/data-level.ts';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
-import { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
+import type { DataLevel } from '../../data/data-level.ts';
+import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
+import type { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
 
 /**
  * Builder that builds and updates content of component.
@@ -93,6 +93,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         let lUpdated: boolean = false;
         const lBuilderList = this.content.builders;
         if (lBuilderList.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let lIndex: number = 0; lIndex < lBuilderList.length; lIndex++) {
                 const lBuilder = lBuilderList[lIndex];
 

@@ -1,8 +1,8 @@
-import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
-import { ComponentProcessorConstructor } from '../core/component/component.ts';
+import type { ComponentProcessorConstructor } from '../core/component/component.ts';
 import { ComponentRegister } from '../core/component/component-register.ts';
-import { PwbTemplate } from '../core/component/template/nodes/pwb-template.ts';
+import type { PwbTemplate } from '../core/component/template/nodes/pwb-template.ts';
 import { PwbAppComponent } from './component/pwb-app-component.ts';
 
 /**

@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Exception } from '@kartoffelgames/core';
-import { GraphException, GraphParseError } from '../source/exception/graph-exception.ts';
+import { GraphException, type GraphParseError } from '../source/exception/graph-exception.ts';
 import { LexerToken } from '../source/lexer/lexer-token.ts';
 
 describe('GrapthException', () => {

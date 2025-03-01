@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { AnonymousGrammarNode } from '../source/graph/node/anonymous-grammar-node.ts';
-import { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
+import type { BaseGrammarNode } from '../source/graph/node/base-grammar-node.ts';
 import { GrammarBranchNode } from '../source/graph/node/grammer-branch-node.ts';
 import { GrammarLoopNode } from '../source/graph/node/grammer-loop-node.ts';
 import { GrammarSingleNode } from '../source/graph/node/grammer-single-node.ts';
@@ -32,7 +32,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, null);
 
         // Evaluation.
-        expect(lSingleNode.required).toBeTruthy()
+        expect(lSingleNode.required).toBeTruthy();
     });
 
     it('Property: valueType', () => {
@@ -350,7 +350,7 @@ describe('GrammarNode', () => {
 
                 // Process.
                 const lErrorFunction = () => {
-                    lAnonymousNode.nodeValues;
+                    return lAnonymousNode.nodeValues;
                 };
 
                 // Evaluation.

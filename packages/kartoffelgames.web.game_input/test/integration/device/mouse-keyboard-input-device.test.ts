@@ -2,13 +2,13 @@ import { expect } from '@kartoffelgames/core-test';
 import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
 import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
-import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import type { BaseInputDevice } from '../../../source/device/base-input-device.ts';
 import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device.ts';
 import { InputDevice } from '../../../source/enum/input-device.enum.ts';
 import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
 import { MouseButton } from '../../../source/enum/mouse-button.enum.ts';
-import { InputActionEvent } from '../../../source/event/input-action-event.ts';
-import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import type { InputActionEvent } from '../../../source/event/input-action-event.ts';
+import type { InputButtonEvent } from '../../../source/event/input-button-event.ts';
 import '../../mock/request-animation-frame-mock-session.ts';
 
 const gInputDeviceList: Array<BaseInputDevice> = [];

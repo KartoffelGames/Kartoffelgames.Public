@@ -1,5 +1,5 @@
-import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { Component } from '../../source/core/component/component.ts';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 
 export class TestUtil {
@@ -36,8 +36,8 @@ export class TestUtil {
      * 
      * @param pComponent - Pwb component.
      */
-    public static forceProcessorCreation(pComponent: HTMLElement): void {
-        ComponentRegister.ofElement(pComponent).component.processor;
+    public static forceProcessorCreation(pComponent: HTMLElement): ComponentProcessor {
+        return ComponentRegister.ofElement(pComponent).component.processor;
     }
 
     /**

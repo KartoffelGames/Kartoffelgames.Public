@@ -1,5 +1,5 @@
-import { CodeParser } from '../../code-parser.ts';
-import { GraphPart } from './graph-part.ts';
+import type { CodeParser } from '../../code-parser.ts';
+import type { GraphPart } from './graph-part.ts';
 
 /**
  * Reference to a graph part.
@@ -7,7 +7,7 @@ import { GraphPart } from './graph-part.ts';
  * 
  * @typeparam TTokenType - Type of all tokens the referenced graph can handle.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/naming-convention
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export class GraphPartReference<TTokenType extends string, _TResult> {
     private readonly mParser: CodeParser<TTokenType, any>;
     private readonly mPartName: string;

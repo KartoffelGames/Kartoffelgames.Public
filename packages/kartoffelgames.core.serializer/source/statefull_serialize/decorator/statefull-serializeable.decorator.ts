@@ -1,4 +1,4 @@
-import { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
+import type { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
 import { StatefullSerializeableClasses } from '../statefull-serializeable-classes.ts';
 
 /**

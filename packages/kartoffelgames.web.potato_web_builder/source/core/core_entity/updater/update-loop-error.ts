@@ -1,4 +1,4 @@
-import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy.ts';
+import type { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy.ts';
 
 export class UpdateLoopError extends Error {
     private readonly mChain: Array<CoreEntityInteractionEvent>;

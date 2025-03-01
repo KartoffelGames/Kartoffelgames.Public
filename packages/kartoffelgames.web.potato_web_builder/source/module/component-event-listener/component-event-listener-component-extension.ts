@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Component } from '../../core/component/component.ts';
-import { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
+import type { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
@@ -47,7 +47,7 @@ export class ComponentEventListenerComponentExtension extends Processor implemen
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
+             
         } while (lClass = Object.getPrototypeOf(lClass));
 
         // Initialize lists.

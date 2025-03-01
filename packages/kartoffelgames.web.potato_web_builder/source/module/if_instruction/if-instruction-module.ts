@@ -1,14 +1,14 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
-import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
+import type { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
-import { ModuleTemplate } from '../../core/module/injection_reference/module-template.ts';
-import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
+import type { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import type { ModuleTemplate } from '../../core/module/injection_reference/module-template.ts';
+import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator.ts';
-import { LevelProcedure } from '../../core/data/level-procedure.ts';
-import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { DataLevel } from '../../core/data/data-level.ts';
 
 /**

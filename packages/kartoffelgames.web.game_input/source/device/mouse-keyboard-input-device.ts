@@ -1,7 +1,7 @@
-import { DeviceConfiguration } from '../configuration/device-configuration.ts';
-import { InputConfiguration } from '../configuration/input-configuration.ts';
+import type { DeviceConfiguration } from '../configuration/device-configuration.ts';
+import type { InputConfiguration } from '../configuration/input-configuration.ts';
 import { InputDevice } from '../enum/input-device.enum.ts';
-import { KeyboardButton } from '../enum/keyboard-button.enum.ts';
+import type { KeyboardButton } from '../enum/keyboard-button.enum.ts';
 import { MouseButton } from '../enum/mouse-button.enum.ts';
 import { BaseInputDevice } from './base-input-device.ts';
 

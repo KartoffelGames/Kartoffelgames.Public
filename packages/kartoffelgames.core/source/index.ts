@@ -9,7 +9,7 @@
 
 // Container.
 export { Dictionary } from './data_container/dictionary.ts';
-export { List } from "./data_container/list.ts";
+export { List } from './data_container/list.ts';
 export { Stack } from './data_container/stack.ts';
 export { Exception } from './exception/exception.ts';
 

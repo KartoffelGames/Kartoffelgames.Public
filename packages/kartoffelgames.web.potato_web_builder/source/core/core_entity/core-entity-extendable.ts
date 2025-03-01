@@ -1,9 +1,9 @@
-import { IDeconstructable } from '@kartoffelgames/core';
+import type { IDeconstructable } from '@kartoffelgames/core';
 import { AccessMode } from '../enum/access-mode.enum.ts';
-import { ExtensionModule, ExtensionModuleConfiguration } from '../extension/extension-module.ts';
-import { CoreEntity, CoreEntityConstructorParameter, CoreEntityProcessorConstructor } from './core-entity.ts';
-import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register.ts';
-import { Processor } from './processor.ts';
+import { ExtensionModule, type ExtensionModuleConfiguration } from '../extension/extension-module.ts';
+import { CoreEntity, type CoreEntityConstructorParameter, type CoreEntityProcessorConstructor } from './core-entity.ts';
+import { type CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register.ts';
+import type { Processor } from './processor.ts';
 
 export abstract class CoreEntityExtendable<TProcessor extends Processor> extends CoreEntity<TProcessor> implements IDeconstructable {
     private static readonly mExtensionCache: WeakMap<CoreEntityProcessorConstructor, ExtensionCache> = new WeakMap<CoreEntityProcessorConstructor, ExtensionCache>();

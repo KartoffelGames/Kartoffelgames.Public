@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ConstructorMetadata } from "../metadata/constructor-metadata.ts";
+import type { ConstructorMetadata } from '../metadata/constructor-metadata.ts';
 import { Metadata } from '../metadata/metadata.ts';
-import { InjectionConstructor } from '../type.ts';
+import type { InjectionConstructor } from '../type.ts';
 
 /**
  * Injection configuration and creator.
@@ -10,14 +10,12 @@ import { InjectionConstructor } from '../type.ts';
  * @public 
  */
 export class Injection {
-    private static readonly mInjectionConstructorIdentificationMetadataKey: symbol = Symbol('InjectionConstructorIdentification');
-
+    private static mCurrentInjectionContext: InjectionContext | null = null;
     private static readonly mInjectMode: Dictionary<InjectionIdentification, InjectMode> = new Dictionary<InjectionIdentification, InjectMode>();
     private static readonly mInjectableConstructor: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
     private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
+    private static readonly mInjectionConstructorIdentificationMetadataKey: symbol = Symbol('InjectionConstructorIdentification');
     private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionIdentification, object>();
-
-    private static mCurrentInjectionContext: InjectionContext | null = null;
 
     /**
      * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
@@ -229,7 +227,7 @@ export class Injection {
      */
     private static getInjectionIdentification(pConstructor: InjectionConstructor, pMetadata?: DecoratorMetadataObject): InjectionIdentification {
         // Read the constructor metadata.
-        let lConstructorMetadata: ConstructorMetadata = !!pMetadata ? Metadata.forInternalDecorator(pMetadata) : Metadata.get(pConstructor);
+        const lConstructorMetadata: ConstructorMetadata = !!pMetadata ? Metadata.forInternalDecorator(pMetadata) : Metadata.get(pConstructor);
 
         // Read metadata from constructor.
         let lIdentification: InjectionIdentification | null = lConstructorMetadata.getMetadata(Injection.mInjectionConstructorIdentificationMetadataKey);

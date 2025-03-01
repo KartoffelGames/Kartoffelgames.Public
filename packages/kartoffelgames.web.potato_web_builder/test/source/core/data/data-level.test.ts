@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
-import { Component } from "../../../../source/core/component/component.ts";
+import { Component } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';

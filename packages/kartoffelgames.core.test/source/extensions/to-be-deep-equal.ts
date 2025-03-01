@@ -1,6 +1,6 @@
-import { expect } from "@std/expect";
+import { expect } from '@std/expect';
 
-export const deepEqual = (pRootKey: string, pSource: object, pTarget: object): [boolean, string] => {
+export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object): [boolean, string] => {
     // Must have same length.
     if (Reflect.ownKeys(pSource).length !== Reflect.ownKeys(pTarget).length) {
         return [false, `Not all keys are present in object "${pRootKey}"`];
@@ -26,7 +26,7 @@ export const deepEqual = (pRootKey: string, pSource: object, pTarget: object): [
             }
 
             // Deep compare.
-            const [lDeepEqualResult, lDeepEqualMessage] = deepEqual(lCurrentKey, lSourceValue, lTargetValue);
+            const [lDeepEqualResult, lDeepEqualMessage] = DeepEqual(lCurrentKey, lSourceValue, lTargetValue);
             if (!lDeepEqualResult) {
                 return [lDeepEqualResult, lDeepEqualMessage];
             }
@@ -61,7 +61,7 @@ expect.extend({
         const lSourceValue: object = pContext.value;
         const lTargetValue: object = pTargetValue;
 
-        const [lCheckPassed, lMessage] = deepEqual('[OBJECT]', lSourceValue, lTargetValue);
+        const [lCheckPassed, lMessage] = DeepEqual('[OBJECT]', lSourceValue, lTargetValue);
 
         return { message: () => lMessage, pass: lCheckPassed };
     }

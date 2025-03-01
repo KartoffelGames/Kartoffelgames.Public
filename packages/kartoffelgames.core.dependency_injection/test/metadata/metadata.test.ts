@@ -80,15 +80,16 @@ describe('Metadata', () => {
         it('-- Unsupported for static Properties.', ()=>{
             // Setup. Failing function.
             const lFailFunction = ()=>{
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 class TestA {
                     @Metadata.add('', '')
                     public static get prop(): string { return ''; }
                 }
-            }
+            };
 
             // Evaluation.
-            expect(lFailFunction).toThrow(`@Metadata.add not supported for statics.`)
-        })
+            expect(lFailFunction).toThrow(`@Metadata.add not supported for statics.`);
+        });
     });
 
     describe('-- Static Method: get', () => {

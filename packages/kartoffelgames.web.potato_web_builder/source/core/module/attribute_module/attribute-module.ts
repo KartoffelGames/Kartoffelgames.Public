@@ -1,8 +1,8 @@
-import { AccessMode } from '../../enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
-import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute.ts';
+import type { AccessMode } from '../../enum/access-mode.enum.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import type { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute.ts';
 import { ModuleTemplate } from '../injection_reference/module-template.ts';
-import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module.ts';
+import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
 import { ModuleAttribute } from '../injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../injection_reference/module-target-node.ts';
 

@@ -171,7 +171,7 @@ describe('PwbAppInjection', () => {
             selector: lSelector,
             template: '<div/>'
         })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         class TestComponent extends Processor {
 
             public constructor(_pApp: PwbApp) {

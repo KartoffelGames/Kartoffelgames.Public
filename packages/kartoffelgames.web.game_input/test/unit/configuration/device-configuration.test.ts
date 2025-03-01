@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { ButtonAction, DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
+import { type ButtonAction, DeviceConfiguration } from '../../../source/configuration/device-configuration.ts';
 import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
 
 describe('DeviceConfiguration', () => {

@@ -3,7 +3,7 @@ import { before, describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
-import { ModuleDataLevel } from '../../../../source/core/data/module-data-level.ts';
+import type { ModuleDataLevel } from '../../../../source/core/data/module-data-level.ts';
 import { AccessMode } from '../../../../source/core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';

@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Component } from '../../core/component/component.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
@@ -38,7 +38,7 @@ export class ExportExtension extends Processor {
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
+             
         } while (lClass = Object.getPrototypeOf(lClass));
 
         const lDistinctExportedPropertys: Set<string> = new Set<string>(lExportedPropertyList);

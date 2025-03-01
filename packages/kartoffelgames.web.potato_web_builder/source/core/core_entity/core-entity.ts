@@ -1,8 +1,8 @@
-import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
-import { Injection, InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { Dictionary, Exception, type IDeconstructable, Stack } from '@kartoffelgames/core';
+import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
 import { CoreEntityUpdater } from './updater/core-entity-updater.ts';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
+import type { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
 import { Processor } from './processor.ts';
 import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy.ts';
 

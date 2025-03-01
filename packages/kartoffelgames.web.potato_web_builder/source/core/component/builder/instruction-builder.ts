@@ -1,9 +1,9 @@
-import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
-import { InstructionModule } from '../../module/instruction_module/instruction-module.ts';
-import { InstructionResultElement } from '../../module/instruction_module/instruction-result.ts';
-import { DataLevel } from '../../data/data-level.ts';
-import { ComponentModules } from '../component-modules.ts';
-import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
+import { ChangeState, type HistoryItem, MyersDiff } from '@kartoffelgames/core';
+import type { InstructionModule } from '../../module/instruction_module/instruction-module.ts';
+import type { InstructionResultElement } from '../../module/instruction_module/instruction-result.ts';
+import type { DataLevel } from '../../data/data-level.ts';
+import type { ComponentModules } from '../component-modules.ts';
+import type { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
 import { BaseBuilder } from './base-builder.ts';
 import { InstructionBuilderData } from './data/instruction-builder-data.ts';
 import { StaticBuilder } from './static-builder.ts';
@@ -95,6 +95,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         let lCurrentNewItemIndex: number = 0;
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let lIndex: number = 0; lIndex < lDifferenceList.length; lIndex++) {
             const lHistoryItem = lDifferenceList[lIndex];
             // Update, Remove or do nothing with static builder depended on change state.

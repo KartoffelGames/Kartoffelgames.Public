@@ -1,4 +1,4 @@
-import { InteractionZone, } from './interaction-zone.ts';
+import type { InteractionZone, } from './interaction-zone.ts';
 
 /**
  * Interaction event. Information of a pushed interaction.

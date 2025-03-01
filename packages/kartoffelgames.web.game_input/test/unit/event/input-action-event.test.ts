@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { KeyboardButton } from '../../../source/enum/keyboard-button.enum.ts';
 import { InputActionEvent } from '../../../source/event/input-action-event.ts';
-import { InputButton } from '../../../source/types.ts';
+import type { InputButton } from '../../../source/types.ts';
 
 describe('InputActionEvent', () => {
     it('Property: action', () => {

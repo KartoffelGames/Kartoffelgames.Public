@@ -1,4 +1,4 @@
-import { expect } from "@std/expect";
+import { expect } from '@std/expect';
 
 // Extend expect with deepEqual.
 expect.extend({

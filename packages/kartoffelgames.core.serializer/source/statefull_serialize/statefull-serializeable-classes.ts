@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import type { SerializeableConstructor, SerializeableGuid } from '../type.ts';
 
 /**
  * Map for all registered serializable classes.

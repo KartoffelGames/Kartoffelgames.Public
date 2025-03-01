@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node.ts';
+import type { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node.ts';
 
 /**
  * Template reference.

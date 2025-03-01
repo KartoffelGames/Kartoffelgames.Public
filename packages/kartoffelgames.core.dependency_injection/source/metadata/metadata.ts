@@ -1,5 +1,5 @@
-import { Dictionary } from "../../../kartoffelgames.core/source/index.ts";
-import { InjectionConstructor, InjectionInstance } from '../type.ts';
+import { Dictionary } from '../../../kartoffelgames.core/source/index.ts';
+import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
 /**
@@ -9,7 +9,7 @@ import { ConstructorMetadata } from './constructor-metadata.ts';
  * @public
  */
 export class Metadata {
-    private static mMetadataMapping: Dictionary<DecoratorMetadataObject, ConstructorMetadata> = new Dictionary<DecoratorMetadataObject, ConstructorMetadata>();
+    private static readonly mMetadataMapping: Dictionary<DecoratorMetadataObject, ConstructorMetadata> = new Dictionary<DecoratorMetadataObject, ConstructorMetadata>();
 
     /**
      * AtScript.
@@ -31,7 +31,7 @@ export class Metadata {
                 case 'method':
                 case 'field':
                 case 'getter':
-                case "setter":
+                case 'setter':
                 case 'accessor':
                     // Metadata is not allowed for statics.
                     if (pContext.static) {
@@ -51,19 +51,6 @@ export class Metadata {
      */
     public static forInternalDecorator(pMetadataObject: DecoratorMetadataObject): ConstructorMetadata {
         return Metadata.mapMetadata(pMetadataObject);
-    }
-
-    /**
-     * AtScript.
-     * Init metadata to class, method, accessor or property
-     * 
-     * @param _pOriginalTarget - Unused. original decorator target.
-     * @param pContext - Decorator context
-     */
-    public static init() {
-        return (_pOriginalTarget: any, pContext: ClassDecoratorContext): void => {
-            const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-        };
     }
 
     /**
@@ -96,6 +83,19 @@ export class Metadata {
 
         // Get or create constructor metadata instance.
         return Metadata.mapMetadata(lDecoratorMetadataObject);
+    }
+
+    /**
+     * AtScript.
+     * Init metadata to class, method, accessor or property
+     * 
+     * @param _pOriginalTarget - Unused. original decorator target.
+     * @param pContext - Decorator context
+     */
+    public static init() {
+        return (_pOriginalTarget: any, pContext: ClassDecoratorContext): void => {
+            Metadata.forInternalDecorator(pContext.metadata);
+        };
     }
 
     /**

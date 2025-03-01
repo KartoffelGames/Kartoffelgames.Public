@@ -1,4 +1,4 @@
-import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
+import { BaseGrammarNode, type GrammarGraphValue } from './base-grammar-node.ts';
 
 /**
  * Loop value node.

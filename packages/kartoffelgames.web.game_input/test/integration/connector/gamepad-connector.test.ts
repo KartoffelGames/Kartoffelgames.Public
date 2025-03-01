@@ -4,11 +4,11 @@ import { DeviceConfiguration } from '../../../source/configuration/device-config
 import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping.ts';
 import { InputConfiguration } from '../../../source/configuration/input-configuration.ts';
 import { GamepadConnector } from '../../../source/connector/gamepad-connector.ts';
-import { BaseInputDevice } from '../../../source/device/base-input-device.ts';
+import type { BaseInputDevice } from '../../../source/device/base-input-device.ts';
 import { GamepadInputDevice } from '../../../source/device/gamepad-input-device.ts';
 import { ButtonValueType } from '../../../source/enum/button-value-type.enum.ts';
 import { GamepadButton } from '../../../source/enum/gamepad-button.enum.ts';
-import { InputButtonEvent } from '../../../source/event/input-button-event.ts';
+import type { InputButtonEvent } from '../../../source/event/input-button-event.ts';
 import { InputDevices } from '../../../source/input-devices.ts';
 import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock.ts';
 

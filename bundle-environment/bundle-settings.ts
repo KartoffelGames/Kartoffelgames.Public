@@ -24,7 +24,7 @@ type EnvironmentBundleInputContent = {
 };
 
 type EnvironmentBundleOptions = {
-    plugins?: Array<any>;
+    plugins?: Array<never>;
     loader?: EnvironmentBundleExtentionLoader;
     entry?: {
         files?: EnvironmentBundleInputFiles;

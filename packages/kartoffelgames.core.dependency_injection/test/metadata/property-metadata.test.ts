@@ -27,7 +27,7 @@ describe('PropertyMetadata', () => {
             const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
 
             // Evaluation.
-            expect(lResultMetadatavalue).toBeNull;
+            expect(lResultMetadatavalue).toBeNull();
         });
     });
 

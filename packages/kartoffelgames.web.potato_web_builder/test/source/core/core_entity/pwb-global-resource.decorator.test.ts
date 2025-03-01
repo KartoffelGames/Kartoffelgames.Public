@@ -4,7 +4,7 @@ import { PwbComponent } from '../../../../source/core/component/pwb-component.de
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
-import { PwbExport } from "../../../../source/module/export/pwb-export.decorator.ts";
+import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 import { TestUtil } from '../../../utility/test-util.ts';
 
 describe('ExtensionModule', () => {

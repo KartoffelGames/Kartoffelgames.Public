@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
@@ -152,7 +151,7 @@ describe('Export', () => {
         })
         class TestComponent extends Processor { 
             @PwbExport
-            public value: string = ''
+            public value: string = '';
         }
 
         // Process. Create element and click div.

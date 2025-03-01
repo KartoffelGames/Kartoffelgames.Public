@@ -1,11 +1,11 @@
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
-import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import type { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import type { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
-import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
-import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import type { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 
 /**

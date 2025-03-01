@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+ 
 
-import { DataLevel } from './data-level.ts';
+import type { DataLevel } from './data-level.ts';
 import { LevelProcedure } from './level-procedure.ts';
 
 /**

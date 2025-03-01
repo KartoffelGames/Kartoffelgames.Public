@@ -3,7 +3,7 @@ import { after, describe, it } from '@std/testing/bdd';
 import { DeviceConfiguration } from '../../source/configuration/device-configuration.ts';
 import { InputConfiguration } from '../../source/configuration/input-configuration.ts';
 import { MouseKeyboardConnector } from '../../source/connector/mouse-keyboard-connector.ts';
-import { BaseInputDevice } from '../../source/device/base-input-device.ts';
+import type { BaseInputDevice } from '../../source/device/base-input-device.ts';
 import { MouseKeyboardInputDevice } from '../../source/device/mouse-keyboard-input-device.ts';
 import { InputDevices } from '../../source/input-devices.ts';
 import '../mock/request-animation-frame-mock-session.ts';

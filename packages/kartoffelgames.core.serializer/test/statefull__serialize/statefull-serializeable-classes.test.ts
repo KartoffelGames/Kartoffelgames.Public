@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { StatefullSerializeable } from '../../source/statefull_serialize/decorator/statefull-serializeable.decorator.ts';
-import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
-import { SerializeableConstructor, SerializeableGuid } from '../../source/type.ts';
+import { StatefullSerializeableClasses, type StatefullSerializerInitializationParameter } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
+import type { SerializeableConstructor, SerializeableGuid } from '../../source/type.ts';
 
 describe('StatefullSerializer', () => {
     describe('Method: getClass', () => {

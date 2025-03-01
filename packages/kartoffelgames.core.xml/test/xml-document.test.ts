@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { XmlDocument } from '../source/document/xml-document.ts';
-import { BaseXmlNode } from '../source/node/base-xml-node.ts';
+import type { BaseXmlNode } from '../source/node/base-xml-node.ts';
 import { TextNode } from '../source/node/text-node.ts';
 import { CommentNode } from '../source/node/comment-node.ts';
 

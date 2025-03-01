@@ -1,5 +1,5 @@
-import { InstructionModule } from '../../../module/instruction_module/instruction-module.ts';
-import { ComponentModules } from '../../component-modules.ts';
+import type { InstructionModule } from '../../../module/instruction_module/instruction-module.ts';
+import type { ComponentModules } from '../../component-modules.ts';
 import { BaseBuilderData } from './base-builder-data.ts';
 
 export class InstructionBuilderData extends BaseBuilderData {

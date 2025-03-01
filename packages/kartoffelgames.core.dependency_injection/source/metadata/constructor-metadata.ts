@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BaseMetadata, MetadataKey } from './base-metadata.ts';
+import { BaseMetadata, type MetadataKey } from './base-metadata.ts';
 import { PropertyMetadata } from './property-metadata.ts';
 
 /**

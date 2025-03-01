@@ -1,4 +1,4 @@
-import { InputDevices } from '../input-devices.ts';
+import type { InputDevices } from '../input-devices.ts';
 
 export interface IInputConnector {
     /**

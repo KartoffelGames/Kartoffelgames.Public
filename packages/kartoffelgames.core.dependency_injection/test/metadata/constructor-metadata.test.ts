@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ConstructorMetadata } from '../../source/metadata/constructor-metadata.ts';
-import { Metadata } from "../../source/metadata/metadata.ts";
+import { Metadata } from '../../source/metadata/metadata.ts';
 import { PropertyMetadata } from '../../source/metadata/property-metadata.ts';
 
 describe('ConstructorMetadata', () => {

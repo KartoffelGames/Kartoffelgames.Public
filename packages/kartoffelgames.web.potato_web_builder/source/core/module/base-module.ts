@@ -1,10 +1,10 @@
-import { IDeconstructable } from '@kartoffelgames/core';
-import { DataLevel } from '../data/data-level.ts';
-import { CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
-import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable.ts';
+import type { IDeconstructable } from '@kartoffelgames/core';
+import type { DataLevel } from '../data/data-level.ts';
+import type { CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
+import { CoreEntityExtendable, type CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable.ts';
 import { ModuleDataLevel } from '../data/module-data-level.ts';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
-import { Processor } from '../core_entity/processor.ts';
+import type { Processor } from '../core_entity/processor.ts';
 
 export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityExtendable<TModuleProcessor> implements IDeconstructable {
     /**
@@ -26,7 +26,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 
         this.addSetupHook(() => {
             // Forces auto create on setup.
-            this.processor;
+            const _ = this.processor;
         });
     }
 

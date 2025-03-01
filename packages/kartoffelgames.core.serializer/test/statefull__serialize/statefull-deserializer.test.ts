@@ -4,7 +4,7 @@ import { StatefullSerializeable } from '../../source/statefull_serialize/decorat
 import { StatefullDeserializer } from '../../source/statefull_serialize/statefull-deserializer.ts';
 import { StatefullSerializeableClasses } from '../../source/statefull_serialize/statefull-serializeable-classes.ts';
 import { StatefullSerializer } from '../../source/statefull_serialize/statefull-serializer.ts';
-import { ObjectifiedReference, ObjectifiedValue } from '../../source/statefull_serialize/types/Objectified.type.ts';
+import type { ObjectifiedReference, ObjectifiedValue } from '../../source/statefull_serialize/types/Objectified.type.ts';
 
 describe('StatefullDeserializer', () => {
     describe('Method: deobjectify', () => {

@@ -14,7 +14,7 @@ describe('Patcher', () => {
             Patcher.patch(globalThis);
 
             // Process. Get patched and original function.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lZoneResult: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     pResolve(InteractionZone.current);
@@ -34,7 +34,7 @@ describe('Patcher', () => {
             Patcher.patch(globalThis);
 
             // Process. Get patched and original function.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lZoneResult: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     pResolve(InteractionZone.current);
@@ -218,7 +218,7 @@ describe('Patcher', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
@@ -267,7 +267,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lListener);
                 lEventTarget.removeEventListener('customwrong', lListener);
@@ -337,7 +337,7 @@ describe('Patcher', () => {
 
             // Process.
 
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lZoneResultPromise = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     const lHandlerObject = {
@@ -362,7 +362,7 @@ describe('Patcher', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. 
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lEventWait = lZone.execute(() => {
                 return new Promise<boolean>((pResolve) => {
                     const lHandlerObject = {
@@ -395,7 +395,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lHandlerObject);
                 lEventTarget.removeEventListener('custom', lHandlerObject);
@@ -417,7 +417,7 @@ describe('Patcher', () => {
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.oncustom = () => {
@@ -442,7 +442,7 @@ describe('Patcher', () => {
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.oncustom = () => {
@@ -486,7 +486,7 @@ describe('Patcher', () => {
 
             // Process.
             let lCallCounter: number = 0;
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lListener = () => {
                 lCallCounter++;
             };
@@ -553,7 +553,7 @@ describe('Patcher', () => {
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process.
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
+             
             const lResultZone: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => { pResolve(InteractionZone.current); });
             });

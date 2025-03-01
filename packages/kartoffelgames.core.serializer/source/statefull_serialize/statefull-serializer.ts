@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type.ts';
-import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes.ts';
-import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type.ts';
+import type { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import { StatefullSerializeableClasses, type StatefullSerializerInitializationParameter } from './statefull-serializeable-classes.ts';
+import type { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type.ts';
 
 export class StatefullSerializer {
     /**

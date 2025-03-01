@@ -1,9 +1,9 @@
-import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module.ts';
+import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import type { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
-import { LevelProcedure } from '../../core/data/level-procedure.ts';
+import type { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 
 /**

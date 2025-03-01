@@ -1,6 +1,6 @@
-import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node.ts';
-import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
-import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module.ts';
+import type { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
 import { ModuleExpression } from '../injection_reference/module-expression.ts';
 import { ModuleTemplate } from '../injection_reference/module-template.ts';
 import { InstructionResult } from './instruction-result.ts';

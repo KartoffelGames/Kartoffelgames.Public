@@ -1,14 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { MustacheExpressionModule } from '../../module/mustache_expression/mustache-expression-module.ts';
-import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register.ts';
-import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module.ts';
-import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
-import { InstructionModule, InstructionModuleConfiguration } from '../module/instruction_module/instruction-module.ts';
-import { DataLevel } from '../data/data-level.ts';
-import { Component } from './component.ts';
-import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node.ts';
-import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute.ts';
-import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression.ts';
+import { type CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register.ts';
+import { AttributeModule, type AttributeModuleConfiguration } from '../module/attribute_module/attribute-module.ts';
+import { ExpressionModule, type ExpressionModuleConfiguration, type IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
+import { InstructionModule, type InstructionModuleConfiguration } from '../module/instruction_module/instruction-module.ts';
+import type { DataLevel } from '../data/data-level.ts';
+import type { Component } from './component.ts';
+import type { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node.ts';
+import type { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute.ts';
+import type { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression.ts';
 
 /**
  * Handles every kind of component modules. Keeps the current used expression module.

@@ -1,6 +1,6 @@
-﻿import { List } from './list.ts';
+import { List } from './list.ts';
 import { Exception } from '../exception/exception.ts';
-import { ICloneable } from '../interface/i-cloneable.ts';
+import type { ICloneable } from '../interface/i-cloneable.ts';
 
 /**
  * Wrapper for {@link Map}.

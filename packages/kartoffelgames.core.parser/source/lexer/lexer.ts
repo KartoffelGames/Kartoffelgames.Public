@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { ParserException } from '../exception/parser-exception.ts';
-import { LexerTokenPatternReference } from "./lexer-token-pattern-reference.ts";
+import { LexerTokenPatternReference } from './lexer-token-pattern-reference.ts';
 import { LexerToken } from './lexer-token.ts';
 
 /**

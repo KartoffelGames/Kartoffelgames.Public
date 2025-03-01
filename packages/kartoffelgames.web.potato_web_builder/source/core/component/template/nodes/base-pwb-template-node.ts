@@ -1,4 +1,4 @@
-import { PwbTemplate } from './pwb-template.ts';
+import type { PwbTemplate } from './pwb-template.ts';
 
 /**
  * Basic pwb template node.

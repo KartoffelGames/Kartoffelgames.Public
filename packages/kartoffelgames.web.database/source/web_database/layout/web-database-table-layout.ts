@@ -1,5 +1,5 @@
-import { Dictionary, Exception, IVoidParameterConstructor } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Dictionary, Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
+import { type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 
 /**
  * Singleton. Table layout and settings.

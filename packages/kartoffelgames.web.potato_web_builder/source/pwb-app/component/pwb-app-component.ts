@@ -1,5 +1,5 @@
-import { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
 import { ComponentRegister } from '../../core/component/component-register.ts';
 import { PwbComponent } from '../../core/component/pwb-component.decorator.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';

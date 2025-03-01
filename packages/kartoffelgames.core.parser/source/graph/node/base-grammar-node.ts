@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { GraphPartReference } from '../part/graph-part-reference.ts';
+import type { GraphPartReference } from '../part/graph-part-reference.ts';
 
 /**
  * Basic grammar node. Base parent for all native nodes.

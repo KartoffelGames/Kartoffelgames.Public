@@ -5,9 +5,9 @@ import { PwbTemplateXmlNode } from '../../../../source/core/component/template/n
 import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
-import { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
+import type { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
-import { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
+import type { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
 import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
 import '../../../utility/request-animation-frame-mock-session.ts';

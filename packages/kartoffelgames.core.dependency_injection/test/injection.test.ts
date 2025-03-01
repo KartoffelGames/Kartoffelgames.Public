@@ -2,7 +2,7 @@ import { Dictionary } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Injection } from '../source/injection/injection.ts';
-import { InjectionConstructor } from '../source/type.ts';
+import type { InjectionConstructor } from '../source/type.ts';
 
 /**
  * Decorator.

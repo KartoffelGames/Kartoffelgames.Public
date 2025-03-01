@@ -1,17 +1,17 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
-import { Processor } from '../core_entity/processor.ts';
+import type { Processor } from '../core_entity/processor.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';
 import { DataLevel } from '../data/data-level.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
-import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
+import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import { StaticBuilder } from './builder/static-builder.ts';
 import { ComponentElement } from './component-element.ts';
 import { ComponentModules } from './component-modules.ts';
 import { ComponentRegister } from './component-register.ts';
-import { PwbTemplate } from './template/nodes/pwb-template.ts';
+import type { PwbTemplate } from './template/nodes/pwb-template.ts';
 import { TemplateParser } from './template/template-parser.ts';
 
 /**

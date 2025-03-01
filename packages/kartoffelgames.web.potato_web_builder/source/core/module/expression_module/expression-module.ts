@@ -1,8 +1,8 @@
-import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
-import { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import type { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression.ts';
 import { ModuleTargetNode } from '../injection_reference/module-target-node.ts';
 import { ModuleTemplate } from '../injection_reference/module-template.ts';
-import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module.ts';
+import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
 import { ModuleExpression } from '../injection_reference/module-expression.ts';
 
 export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> {

@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core';
-import { XmlElement } from '../node/xml-element.ts';
+import type { XmlElement } from '../node/xml-element.ts';
 
 /**
  * Xml attribute. Can handle values with lists or string.

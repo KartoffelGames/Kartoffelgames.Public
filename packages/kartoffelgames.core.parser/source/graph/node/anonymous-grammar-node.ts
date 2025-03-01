@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
+import { BaseGrammarNode, type GrammarGraphValue } from './base-grammar-node.ts';
 
 /**
  * Anonymous node.
@@ -10,7 +10,7 @@ import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node.ts';
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
-export class AnonymousGrammarNode<TTokenType extends string> extends BaseGrammarNode<TTokenType, {}> {
+export class AnonymousGrammarNode<TTokenType extends string> extends BaseGrammarNode<TTokenType, object> {
     /**
      * Throws an error.
      * This node should not be uses in any graph. Only exist when this node does't get chained.

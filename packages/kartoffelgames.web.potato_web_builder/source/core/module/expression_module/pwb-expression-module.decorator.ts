@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core-dependency-injection';
-import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { CoreEntityRegister } from '../../core_entity/core-entity-register.ts';
-import { ExpressionModule, IPwbExpressionModuleProcessorConstructor } from './expression-module.ts';
+import { ExpressionModule, type IPwbExpressionModuleProcessorConstructor } from './expression-module.ts';
 
 /**
  * AtScript. PWB Expression module.

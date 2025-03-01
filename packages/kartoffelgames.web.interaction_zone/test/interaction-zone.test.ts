@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { InteractionEvent } from '../source/zone/interaction-event.ts';
+import type { InteractionEvent } from '../source/zone/interaction-event.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import { PromiseRejectionEvent } from './mock/error-event.ts';
 
@@ -956,7 +956,7 @@ describe('InteractionZone', () => {
                     lZoneResultFunktion = InteractionZone.current;
                     throw '';
                 });
-            } catch (pError) {
+            } catch {
                 lZoneResultException = InteractionZone.current;
             }
             const lZoneNameResultAfter = InteractionZone.current;

@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ButtonValueType } from '../enum/button-value-type.enum.ts';
-import { GamepadButton } from '../enum/gamepad-button.enum.ts';
+import type { GamepadButton } from '../enum/gamepad-button.enum.ts';
 
 /**
  * Gamepad mapping.

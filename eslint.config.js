@@ -39,7 +39,11 @@ export default typescriptlint.config(
                 "warn",
                 {
                     "vars": "all",
-                    "args": "none",
+                    "varsIgnorePattern": "^_",
+                    "args": "all",
+                    "argsIgnorePattern": "^_",
+                    "destructuredArrayIgnorePattern": "^_",
+                    "caughtErrors": "all",
                     "ignoreRestSiblings": false
                 }
             ],
@@ -88,6 +92,13 @@ export default typescriptlint.config(
                 }
             ],
             "@typescript-eslint/no-import-type-side-effects": "error",
+            "@typescript-eslint/no-empty-object-type": [
+                "error",
+                {
+                    "allowInterfaces": "with-single-extends",
+                    "allowObjectTypes": "never"
+                }
+            ],
             "@typescript-eslint/member-ordering": [
                 "warn",
                 {
@@ -164,22 +175,51 @@ export default typescriptlint.config(
                     "format": ["strictCamelCase"]
                 },
 
-                // Variables and functions
+                // Variables
                 {
-                    "selector": ["variable", "function"],
+                    "selector": "variable",
+                    "format": null,
+                    "filter": {
+                        "regex": "^_$",
+                        "match": true
+                    }
+                },
+                {
+                    "selector": "variable",
                     "prefix": ["l"],
                     "format": ["StrictPascalCase"],
                     "leadingUnderscore": "forbid"
                 },
                 {
-                    "selector": ["variable", "function"],
+                    "selector": "variable",
                     "prefix": ["g"],
                     "format": ["StrictPascalCase"],
                     "leadingUnderscore": "forbid",
                     "modifiers": ["global"]
                 },
                 {
-                    "selector": ["variable", "function"],
+                    "selector": "variable",
+                    "format": ["StrictPascalCase"],
+                    "leadingUnderscore": "forbid",
+                    "modifiers": ["exported"]
+                },
+
+                // Functions
+                {
+                    "selector": "function",
+                    "prefix": ["l"],
+                    "format": ["StrictPascalCase"],
+                    "leadingUnderscore": "forbid"
+                },
+                {
+                    "selector": "function",
+                    "prefix": ["g"],
+                    "format": ["StrictPascalCase"],
+                    "leadingUnderscore": "forbid",
+                    "modifiers": ["global"]
+                },
+                {
+                    "selector": "function",
                     "format": ["StrictPascalCase"],
                     "modifiers": ["exported"]
                 },

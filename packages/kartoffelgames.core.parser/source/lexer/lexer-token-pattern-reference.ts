@@ -1,4 +1,4 @@
-import type { Lexer } from "./lexer.ts";
+import type { Lexer } from './lexer.ts';
 
 /**
  * Represents a pattern that can be used to match a series of token.

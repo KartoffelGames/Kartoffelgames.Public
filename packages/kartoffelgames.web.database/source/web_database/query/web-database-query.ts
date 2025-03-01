@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TableType } from '../layout/web-database-table-layout.ts';
-import { WebDatabaseTable } from '../web-database-table.ts';
+import type { TableType } from '../layout/web-database-table-layout.ts';
+import type { WebDatabaseTable } from '../web-database-table.ts';
 import { WebDatabaseQueryAction } from './web-database-query-action.ts';
 
 export class WebDatabaseQuery<TTableType extends TableType> {
@@ -187,6 +187,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         // Try to find index key.
         const lIndexName: string | null = (() => {
             const lIndexNameList: DOMStringList = lTableConnection.indexNames;
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let lIndexNameListIndex: number = 0; lIndexNameListIndex < lIndexNameList.length; lIndexNameListIndex++) {
                 const lIndexName: string = lIndexNameList[lIndexNameListIndex];
                 if (lIndexName === pQuery.indexKey) {

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { TableType } from './layout/web-database-table-layout.ts';
-import { WebDatabase } from './web-database.ts';
+import type { TableType } from './layout/web-database-table-layout.ts';
+import type { WebDatabase } from './web-database.ts';
 import { WebDatabaseTable } from './web-database-table.ts';
 
 export class WebDatabaseTransaction<TTables extends TableType> {

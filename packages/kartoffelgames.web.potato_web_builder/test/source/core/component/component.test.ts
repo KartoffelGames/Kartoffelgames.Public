@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
-import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import type { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
@@ -9,7 +9,7 @@ import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error.ts';
 import { UpdateMode } from '../../../../source/core/enum/update-mode.enum.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
-import { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
+import type { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 import '../../../utility/request-animation-frame-mock-session.ts';
@@ -258,7 +258,7 @@ describe('HtmlComponent', () => {
             template: '{{this.innerValue}}',
             updateScope: UpdateMode.Isolated
         })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         class CapsuledTestComponent extends Processor implements IComponentOnUpdate {
             @PwbExport
             public innerValue: string = '';

@@ -38,7 +38,7 @@ describe('PwbApp', () => {
                 selector: lSelector,
                 template: '<div/>'
             })
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+             
             class TestComponent extends Processor { }
 
             // Process. Add component and wait for update.
@@ -135,7 +135,7 @@ describe('PwbApp', () => {
             selector: lSelector,
             template: '{{this.value}}'
         })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         class TestComponent extends Processor {
             public value: string = '';
 

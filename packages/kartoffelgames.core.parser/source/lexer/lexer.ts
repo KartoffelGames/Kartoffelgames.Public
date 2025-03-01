@@ -1,7 +1,7 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { ParserException } from '../exception/parser-exception.ts';
-import { LexerToken } from './lexer-token.ts';
 import { LexerTokenPattern } from "./lexer-token-pattern.ts";
+import { LexerToken } from './lexer-token.ts';
 
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
@@ -15,7 +15,6 @@ export class Lexer<TTokenType extends string> {
     private mCurrentPatternScope: Array<LexerPatternScopeDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
     private readonly mTokenPatternTemplates: WeakMap<symbol, LexerPatternDefinition<TTokenType>>;
-    private readonly mTokenPatterns: Array<LexerPatternScopeDefinition<TTokenType>>;
     private readonly mUnresolvedScopes: WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>;
 
     /**
@@ -64,12 +63,11 @@ export class Lexer<TTokenType extends string> {
      * Constructor.
      */
     public constructor() {
-        this.mTokenPatterns = new Array<LexerPatternScopeDefinition<TTokenType>>();
         this.mTokenPatternTemplates = new WeakMap<symbol, LexerPatternDefinition<TTokenType>>();
         this.mUnresolvedScopes = new WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>();
 
         // Set defaults.
-        this.mCurrentPatternScope = this.mTokenPatterns;
+        this.mCurrentPatternScope = new Array<LexerPatternScopeDefinition<TTokenType>>();
         this.mSettings = {
             errorType: null,
             trimSpaces: true,
@@ -168,7 +166,8 @@ export class Lexer<TTokenType extends string> {
             error: null
         };
 
-        yield* this.tokenizeRecursionLayer(lCursor, this.mTokenPatterns, new Array<string>(), null, null);
+        // Start tokenizing step with the current root pattern scope.
+        yield* this.tokenizeRecursionLayer(lCursor, this.mCurrentPatternScope, new Array<string>(), null, null);
     }
 
     /**

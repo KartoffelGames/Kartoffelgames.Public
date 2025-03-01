@@ -528,8 +528,8 @@ describe('Lexer', () => {
                 expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Error);
                 expect(lTokenList[1]).toHaveProperty('lineNumber', 1);
                 expect(lTokenList[1]).toHaveProperty('columnNumber', 6);
-                expect(lTokenList[1]).toHaveProperty('meta');
-                expect((<any>lTokenList[1])['meta']).toBeDeepEqual([]);
+                expect(lTokenList[1]).toHaveProperty('metas');
+                expect(lTokenList[1]!.metas).toBeDeepEqual([]);
             });
 
             it('-- Nested', () => {
@@ -552,7 +552,7 @@ describe('Lexer', () => {
                 expect(lTokenList[2]).toHaveProperty('lineNumber', 1);
                 expect(lTokenList[2]).toHaveProperty('columnNumber', 7);
                 expect(lTokenList[2]).toHaveProperty('metas');
-                expect((<any>lTokenList[2])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
+                expect(lTokenList[2]!.metas).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
             });
 
             it('-- Different lines', () => {
@@ -574,16 +574,16 @@ describe('Lexer', () => {
                 expect(lTokenList[1]).toHaveProperty('type', TestTokenType.Error);
                 expect(lTokenList[1]).toHaveProperty('lineNumber', 1);
                 expect(lTokenList[1]).toHaveProperty('columnNumber', 6);
-                expect(lTokenList[1]).toHaveProperty('meta');
-                expect((<any>lTokenList[1])['meta']).toBeDeepEqual([]);
+                expect(lTokenList[1]).toHaveProperty('metas');
+                expect(lTokenList[1]!.metas).toBeDeepEqual([]);
 
                 // Error token ////
                 expect(lTokenList[5]).toHaveProperty('value', '$%$%');
                 expect(lTokenList[5]).toHaveProperty('type', TestTokenType.Error);
                 expect(lTokenList[5]).toHaveProperty('lineNumber', 2);
                 expect(lTokenList[5]).toHaveProperty('columnNumber', 7);
-                expect(lTokenList[5]).toHaveProperty('meta');
-                expect((<any>lTokenList[5])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
+                expect(lTokenList[5]).toHaveProperty('metas');
+                expect(lTokenList[5]!.metas).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List]);
             });
 
             it('-- At end', () => {
@@ -605,8 +605,8 @@ describe('Lexer', () => {
                 expect(lTokenList[4]).toHaveProperty('type', TestTokenType.Error);
                 expect(lTokenList[4]).toHaveProperty('lineNumber', 1);
                 expect(lTokenList[4]).toHaveProperty('columnNumber', 17);
-                expect(lTokenList[4]).toHaveProperty('meta');
-                expect((<any>lTokenList[4])['meta']).toBeDeepEqual([]);
+                expect(lTokenList[4]).toHaveProperty('metas');
+                expect(lTokenList[4]!.metas).toBeDeepEqual([]);
             });
         });
 
@@ -699,7 +699,7 @@ describe('Lexer', () => {
             // Evaluation.
             expect(lTokenList).toHaveLength(4);
             expect(lTokenList[3]).toHaveProperty('metas');
-            expect((<any>lTokenList[1])['meta']).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+            expect(lTokenList[1]!.metas).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
         });
 
         it('-- Token regex with positive lookbehinds', () => {

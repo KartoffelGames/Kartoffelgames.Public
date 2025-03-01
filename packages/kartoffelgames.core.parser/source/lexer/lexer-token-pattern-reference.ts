@@ -3,7 +3,7 @@ import type { Lexer } from "./lexer.ts";
 /**
  * Represents a pattern that can be used to match a series of token.
  */
-export class LexerTokenPattern<TTokenType extends string> {
+export class LexerTokenPatternReference<TTokenType extends string> {
     private readonly mIdentity: symbol;
     private readonly mLexer: Lexer<TTokenType>;
 

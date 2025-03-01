@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
-import { LexerTokenPattern } from "../source/lexer/lexer-token-pattern.ts";
+import { LexerTokenPatternReference } from "../source/lexer/lexer-token-pattern-reference.ts";
 import { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 
@@ -888,7 +888,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.useTokenPattern(new LexerTokenPattern(lLexer, Symbol('Whatever')), 0);
+                lLexer.useTokenPattern(new LexerTokenPatternReference(lLexer, Symbol('Whatever')), 0);
             };
 
             // Evaluation.

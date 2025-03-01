@@ -7,13 +7,6 @@
  * Should loops be possible? How is it possible to generate a loop without a actual loop but to return a array of values?? 
  */
 
-/*
- * Dont use string names to reference lexer templates. Use the object reference.
- * Loops should not be possible.
- */
-
-// How to stop the formater from doing its job?
-
 enum XmlToken {
     OpenBracket = 'Open braket',
     CloseBracket = 'Close braket',

@@ -1,6 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
+import { LexerTokenPattern } from "../source/lexer/lexer-token-pattern.ts";
 import { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 
@@ -26,21 +27,22 @@ describe('Lexer', () => {
         lLexer.validWhitespaces = ' \n';
 
         // Add templates.
-        lLexer.addTokenTemplate('word', { pattern: { regex: /[a-zA-Z]+/, type: TestTokenType.Word }, meta: TestTokenMetas.Word });
-        lLexer.addTokenTemplate('number', { pattern: { regex: /[0-9]+/, type: TestTokenType.Number }, meta: TestTokenMetas.Number });
-
-        lLexer.useTokenTemplate('word', 1);
-        lLexer.useTokenTemplate('number', 1);
-        lLexer.addTokenPattern({
+        const lWordPattern = lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TestTokenType.Word }, meta: TestTokenMetas.Word });
+        const lNumberPattern = lLexer.createTokenPattern({ pattern: { regex: /[0-9]+/, type: TestTokenType.Number }, meta: TestTokenMetas.Number });
+        const lBraketPattern = lLexer.createTokenPattern({
             pattern: {
                 start: { regex: /\(/, type: TestTokenType.Braket },
                 end: { regex: /\)/, type: TestTokenType.Braket }
             },
-            specificity: 1,
             meta: [TestTokenMetas.Braket, TestTokenMetas.List]
         }, (pLexer: Lexer<TestTokenType>) => {
-            pLexer.useTokenTemplate('word', 1);
+            pLexer.useTokenPattern(lWordPattern, 1);
         });
+
+
+        lLexer.useTokenPattern(lBraketPattern, 1);
+        lLexer.useTokenPattern(lWordPattern, 1);
+        lLexer.useTokenPattern(lNumberPattern, 1);
 
         return lLexer;
     };
@@ -147,7 +149,7 @@ describe('Lexer', () => {
             lLexer.validWhitespaces = ' \n';
 
             // Process.
-            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+            lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } }), 0);
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
@@ -155,34 +157,18 @@ describe('Lexer', () => {
         });
     });
 
-    describe('Method: addTokenTemplate', () => {
+    describe('Method: createTokenPattern', () => {
         it('-- Add valid', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTemplateName: string = 'TokenTemplateName';
 
             // Process.
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
+            const lTokenPattern = lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } });
 
             // Evaluation.
             expect(() => {
-                lLexer.useTokenTemplate(lTemplateName, 0);
+                lLexer.useTokenPattern(lTokenPattern, 0);
             }).not.toThrow();
-        });
-
-        it('-- Add dublicate', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTemplateName: string = 'TokenTemplateName';
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
-
-            // Process.
-            const lErrorFunction = () => {
-                lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).toThrow(`Can't add dublicate token template "${lTemplateName}"`);
         });
 
         it('-- Split token without inner token', () => {
@@ -191,12 +177,11 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.addTokenPattern({
+                lLexer.createTokenPattern({
                     pattern: {
                         start: { regex: /\(/, type: TestTokenType.Braket },
                         end: { regex: /\)/, type: TestTokenType.Braket }
                     },
-                    specificity: 1,
                     meta: [TestTokenMetas.Braket, TestTokenMetas.List]
                 });
             };
@@ -211,7 +196,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.addTokenTemplate('Name', { pattern: { regex: /./, type: TestTokenType.Word } }, () => {
+                lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } }, () => {
                     // Possible something.
                 });
             };
@@ -392,7 +377,12 @@ describe('Lexer', () => {
         it('-- Tokenize newline', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern({ pattern: { regex: /\(Braket and \nnewline\)/, type: TestTokenType.Custom }, specificity: 0 });
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
+                pattern: {
+                    regex: /\(Braket and \nnewline\)/,
+                    type: TestTokenType.Custom
+                }
+            }), 0);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
@@ -405,7 +395,12 @@ describe('Lexer', () => {
         it('-- Priorize specification', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern({ pattern: { regex: /with 1/, type: TestTokenType.Custom }, specificity: 0 });
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
+                pattern: {
+                    regex: /with 1/,
+                    type: TestTokenType.Custom
+                }
+            }), 0);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
@@ -419,17 +414,17 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
 
             // Setup. Add nested templates.
-            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } });
-            lLexer.addTokenTemplate('braket', {
+            const lValuePattern = lLexer.createTokenPattern({ pattern: { regex: /a/, type: TestTokenType.Custom } });
+            const lBraketPattern = lLexer.createTokenPattern({
                 pattern: {
                     start: { regex: /\(/, type: TestTokenType.Braket },
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
             }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenTemplate('braket', 1);
-                pLexer.useTokenTemplate('value', 2);
+                pLexer.useTokenPattern(lBraketPattern, 1);
+                pLexer.useTokenPattern(lValuePattern, 2);
             });
-            lLexer.useTokenTemplate('braket', 1);
+            lLexer.useTokenPattern(lBraketPattern, 1);
 
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
 
@@ -446,17 +441,17 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
 
             // Setup. Add nested templates.
-            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } });
-            lLexer.addTokenTemplate('braket', {
+            const lValuePattern = lLexer.createTokenPattern({ pattern: { regex: /a/, type: TestTokenType.Custom } });
+            const lBraketPattern = lLexer.createTokenPattern({
                 pattern: {
                     start: { regex: /\(/, type: TestTokenType.Braket },
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
             }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenTemplate('braket', 1);
-                pLexer.useTokenTemplate('value', 2);
+                pLexer.useTokenPattern(lBraketPattern, 1);
+                pLexer.useTokenPattern(lValuePattern, 2);
             });
-            lLexer.useTokenTemplate('braket', 1);
+            lLexer.useTokenPattern(lBraketPattern, 1);
 
             // Process.
             [...lLexer.tokenize('(a(a))')];
@@ -475,26 +470,26 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
 
             // Process.
-            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } });
-            lLexer.addTokenTemplate('braketOne', {
+            const lValuePattern = lLexer.createTokenPattern({ pattern: { regex: /a/, type: TestTokenType.Custom } });
+            const lBraketOnePattern = lLexer.createTokenPattern({
                 pattern: {
                     start: { regex: /\(/, type: TestTokenType.Word },
                     end: { regex: /\)/, type: TestTokenType.Word }
                 },
             }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenTemplate('braketTwo', 1);
-                pLexer.useTokenTemplate('value', 2);
+                pLexer.useTokenPattern(lBraketTwoPattern, 1);
+                pLexer.useTokenPattern(lValuePattern, 2);
             });
-            lLexer.addTokenTemplate('braketTwo', {
+            const lBraketTwoPattern = lLexer.createTokenPattern({
                 pattern: {
                     start: { regex: /\[/, type: TestTokenType.Braket },
                     end: { regex: /\]/, type: TestTokenType.Braket }
                 },
             }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenTemplate('braketOne', 1);
-                pLexer.useTokenTemplate('value', 2);
+                pLexer.useTokenPattern(lBraketOnePattern, 1);
+                pLexer.useTokenPattern(lValuePattern, 2);
             });
-            lLexer.useTokenTemplate('braketOne', 1);
+            lLexer.useTokenPattern(lBraketOnePattern, 1);
 
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a[a()])')];
 
@@ -613,16 +608,15 @@ describe('Lexer', () => {
         it('-- Combined types', () => {
             // Setup.
             const lLexer: Lexer<'aaa' | 'bbb'> = new Lexer<'aaa' | 'bbb'>();
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /(?<aaa>aaa)|(?<bbb>bbb)/,
                     type: {
                         aaa: 'aaa',
                         bbb: 'bbb',
                     }
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<'aaa' | 'bbb'>> = [...lLexer.tokenize('bbbaaa')];
@@ -635,15 +629,14 @@ describe('Lexer', () => {
         it('-- Validate full matches', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /(?<aaa>aaa)bbb/,
                     type: {
                         aaa: TestTokenType.Custom
                     }
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lErrorFunction = () => {
@@ -657,15 +650,14 @@ describe('Lexer', () => {
         it('-- Invalid type group names.', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /(?<aaa>aaa)|(?<ccc>ccc)/,
                     type: {
                         bbb: TestTokenType.Custom
                     }
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lErrorFunction = () => {
@@ -679,7 +671,13 @@ describe('Lexer', () => {
         it('-- Has meta check', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern({ pattern: { regex: /1/, type: TestTokenType.Number }, specificity: 0, meta: TestTokenMetas.Number });
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
+                pattern: {
+                    regex: /1/,
+                    type: TestTokenType.Number
+                },
+                meta: TestTokenMetas.Number
+            }), 0);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('1')];
@@ -708,22 +706,20 @@ describe('Lexer', () => {
             const lTestString: string = 'aaabbb';
 
             // Setup. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Custom
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /(?<=aaa)bbb/,
                     type: TestTokenType.Custom
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
@@ -738,29 +734,26 @@ describe('Lexer', () => {
             const lTestString: string = 'aaabbb';
 
             // Setup. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Custom
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /(?<!aaa)bbb/,
                     type: TestTokenType.Number
-                },
-                specificity: 1
-            });
-            lLexer.addTokenPattern({
+                }
+            }), 1);
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /bbb/,
                     type: TestTokenType.Custom
-                },
-                specificity: 2
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
@@ -776,30 +769,27 @@ describe('Lexer', () => {
             const lTestString: string = 'aaabaaac';
 
             // Setup. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Custom
-                },
-                specificity: 2
-            });
-            lLexer.addTokenPattern({
+                }
+            }), 2);
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /b/,
                     type: TestTokenType.Custom
-                },
-                specificity: 2
-            });
-            lLexer.addTokenPattern({
+                }
+            }), 2);
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /c/,
                     type: TestTokenType.Custom
-                },
-                specificity: 2
-            });
+                }
+            }), 2);
 
             // Process. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Number,
@@ -809,9 +799,8 @@ describe('Lexer', () => {
 
                         return lNextChar === 'c';
                     }
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
@@ -828,20 +817,18 @@ describe('Lexer', () => {
             const lTestString: string = 'aaaaaa';
 
             // Setup. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Number
-                },
-                specificity: 1
-            });
-            lLexer.addTokenPattern({
+                }
+            }), 1);
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaaaaa/,
                     type: TestTokenType.Custom
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
@@ -857,20 +844,18 @@ describe('Lexer', () => {
             const lTestString: string = 'aaaaaa';
 
             // Setup. Add starting token template.
-            lLexer.addTokenPattern({
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaaaaa/,
                     type: TestTokenType.Custom
-                },
-                specificity: 1
-            });
-            lLexer.addTokenPattern({
+                }
+            }), 1);
+            lLexer.useTokenPattern(lLexer.createTokenPattern({
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Number
-                },
-                specificity: 1
-            });
+                }
+            }), 1);
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
@@ -881,17 +866,16 @@ describe('Lexer', () => {
         });
     });
 
-    describe('Method: useTokenTemplate', () => {
+    describe('Method: useTokenPattern', () => {
         it('-- Use valid', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTemplateName: string = 'TokenTemplateName';
 
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
+            const lTokenPattern = lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } });
 
             // Process.
             const lSuccessFunction = () => {
-                lLexer.useTokenTemplate(lTemplateName, 0);
+                lLexer.useTokenPattern(lTokenPattern, 0);
             };
 
             // Evaluation.
@@ -901,28 +885,26 @@ describe('Lexer', () => {
         it('-- Non existing pattern.', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTemplateName: string = 'TokenTemplateName';
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.useTokenTemplate(lTemplateName, 0);
+                lLexer.useTokenPattern(new LexerTokenPattern(lLexer, Symbol('Whatever')), 0);
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow(`Lexer template "${lTemplateName}" does not exist.`);
+            expect(lErrorFunction).toThrow(`Lexer pattern does not exist.`);
         });
 
-        it('-- Override specificity', () => {
+        it('-- Set specificity', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 1 });
+            lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } }), 1);
 
             // Setup. Add template
-            const lTemplateName: string = 'TokenTemplateName';
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /aaa/, type: TestTokenType.Custom } });
+            const lTokenPattern = lLexer.createTokenPattern({ pattern: { regex: /aaa/, type: TestTokenType.Custom } });
 
             // Process.
-            lLexer.useTokenTemplate(lTemplateName, 0);
+            lLexer.useTokenPattern(lTokenPattern, 0);
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('aaa')];
 
             // Evaluation.

@@ -1,6 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ParserException } from '../exception/parser-exception.ts';
 import { LexerToken } from './lexer-token.ts';
+import { LexerTokenPattern } from "./lexer-token-pattern.ts";
 
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
@@ -13,7 +14,7 @@ import { LexerToken } from './lexer-token.ts';
 export class Lexer<TTokenType extends string> {
     private mCurrentPatternScope: Array<LexerPatternScopeDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
-    private readonly mTokenPatternTemplates: Dictionary<string, LexerPatternDefinition<TTokenType>>;
+    private readonly mTokenPatternTemplates: WeakMap<symbol, LexerPatternDefinition<TTokenType>>;
     private readonly mTokenPatterns: Array<LexerPatternScopeDefinition<TTokenType>>;
     private readonly mUnresolvedScopes: WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>;
 
@@ -64,7 +65,7 @@ export class Lexer<TTokenType extends string> {
      */
     public constructor() {
         this.mTokenPatterns = new Array<LexerPatternScopeDefinition<TTokenType>>();
-        this.mTokenPatternTemplates = new Dictionary<string, LexerPatternDefinition<TTokenType>>();
+        this.mTokenPatternTemplates = new WeakMap<symbol, LexerPatternDefinition<TTokenType>>();
         this.mUnresolvedScopes = new WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>();
 
         // Set defaults.
@@ -74,66 +75,6 @@ export class Lexer<TTokenType extends string> {
             trimSpaces: true,
             whiteSpaces: new Set<string>()
         };
-    }
-
-    /**
-     * Add token pattern. Patterns with the same specification get grouped.
-     * When a token matches multiple times within the same group the first added pattern or a longer matched token gets priorized.
-     * 
-     * @param pPattern - Token pattern definintion.
-     * @param pInnerFetch - Token added inside this function are scoped to this token.
-     * 
-     * @remarks
-     * Token added inside {@link pInnerFetch} are scoped to this token.
-     * Only token with and `start`, `inner` and `end` group can have a fetch function.
-     * 
-     * @throws {@link Exception}
-     * When the token pattern should be scoped to another token without and `inner` group.
-     * 
-     * @example Set two types of tokens
-     * ``` Typescript
-     * // Token with start and end token.
-     * lexer.addTokenPattern({
-     *     pattern: {
-     *         start: {
-     *             regex: /</,
-     *             type: 'open'
-     *         },
-     *         end: {
-     *             regex: /(?<close>>)|(?<selfClose>\/>)/,
-     *             type: {
-     *                 close: 'closeBracket',
-     *                 selfClose: 'closeClosingBracket'
-     *             }
-     *         }
-     *     },
-     *     specificity: 2,
-     *     meta: 'tag.xml'
-     * }, (pLexer: Lexer<XmlToken>) => {
-     *     // Token that can appeare only inside tags.
-     *     pLexer.useTokenTemplate('quotedString');
-     * }); 
-     * 
-     * // Single token.
-     * lexer.addTokenPattern({
-     *     pattern: {
-     *         regex: /(?<token>[^<>"]+)[^<>]*(<|$)/,
-     *         type: 'textValue'
-     *     },
-     *     specificity: 4,
-     *     meta: 'value.xml'
-     * });
-     * ```
-     */
-    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
-        // Generate random name.
-        const lRandomTokenName: string = (Math.random() * Math.pow(10, 16)).toString(16);
-
-        // Add token as template.
-        this.addTokenTemplate(lRandomTokenName, pPattern, pInnerFetch);
-
-        // Apply token template to current scope.
-        this.useTokenTemplate(lRandomTokenName, pPattern.specificity);
     }
 
     /**
@@ -158,7 +99,7 @@ export class Lexer<TTokenType extends string> {
      * const lexer: Lexer<string> = new Lexer<string>();
      * 
      * // Define quoted string token template.
-     * lexer.addTokenTemplate('quotedString', {
+     * const lQuotedTokenPattern = lexer.createTokenPattern({
      *    pattern: {
      *        regex: /(["']).*?\1/,
      *        type: 'quotedString'
@@ -166,21 +107,17 @@ export class Lexer<TTokenType extends string> {
      *    specificity: 1
      * });
      * 
-     * lexer.addTokenPattern({...}, (pLexer: Lexer<string>) => {
+     * const lSomeElsePattern = lexer.createTokenPattern({...}, (pLexer: Lexer<string>) => {
      *      // Token that can appeare only inside this token.
-     *      pLexer.useTokenTemplate('quotedString');
+     *      pLexer.useTokenTemplate(lQuotedTokenPattern);
      *  });
      * 
      * // Apply token to the root patterns.
+     * lexer.useTokenTemplate('lSomeElsePattern');
      * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
-    public addTokenTemplate(pName: string, pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
-        // Restrict dublicate template names.
-        if (this.mTokenPatternTemplates.has(pName)) {
-            throw new Exception(`Can't add dublicate token template "${pName}"`, this);
-        }
-
+    public createTokenPattern(pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): LexerTokenPattern<TTokenType> {
         // Convert and add named pattern.
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
 
@@ -194,14 +131,20 @@ export class Lexer<TTokenType extends string> {
             throw new Exception('Pattern does not allow inner token pattern.', this);
         }
 
+        // Create token pattern identity.
+        const lIdentity: symbol = Symbol('TokenPattern');
+
         // At this point the template can reference itself.
-        this.mTokenPatternTemplates.set(pName, lConvertedPattern);
+        this.mTokenPatternTemplates.set(lIdentity, lConvertedPattern);
 
         // Execute scoped pattern.
         if (pInnerFetch && lConvertedPattern.patternType === 'split') {
             // Add pattern to unresolved scopes.
             this.mUnresolvedScopes.set(lConvertedPattern, pInnerFetch);
         }
+
+        // Create a reference to this token pattern.
+        return new LexerTokenPattern(this, lIdentity);
     }
 
     /**
@@ -253,14 +196,19 @@ export class Lexer<TTokenType extends string> {
      * lexerParam.useTokenTemplate('myName');
      * ```
      */
-    public useTokenTemplate(pTemplateName: string, pSpecificity: number): void {
+    public useTokenPattern(pTokenPattern: LexerTokenPattern<TTokenType>, pSpecificity: number): void {
+        // Must be assigned to this pattern.
+        if (pTokenPattern.lexer !== this) {
+            throw new Exception('Token pattern must be created by this lexer.', this);
+        }
+
         // Validate pattern.
-        if (!this.mTokenPatternTemplates.has(pTemplateName)) {
-            throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
+        if (!this.mTokenPatternTemplates.has(pTokenPattern.identity)) {
+            throw new Exception(`Lexer pattern does not exist.`, this);
         }
 
         // Read pattern template. Clone template and alter specificity when is differs from parameter.
-        const lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
+        const lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTokenPattern.identity)!;
 
         // Set template pattern to current pattern scope.
         this.mCurrentPatternScope.push({ definition: lTemplate, specificity: pSpecificity });
@@ -273,7 +221,7 @@ export class Lexer<TTokenType extends string> {
      *  
      * @returns easy to read token pattern.
      */
-    private convertTokenPattern(pPattern: LexerPattern<TTokenType> | LexerPatternTemplate<TTokenType>): LexerPatternDefinition<TTokenType> {
+    private convertTokenPattern(pPattern: LexerPatternTemplate<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
             // Create flag set and add sticky. Set removes all dublicate flags.
@@ -750,15 +698,13 @@ type LexerPatternMatcher<TTokenType extends string> = {
     type: LexerPatternType<TTokenType>;
     validator?: LexerPatternValidator<TTokenType>;
 };
-type LexerPattern<TTokenType extends string> = {
+type LexerPatternTemplate<TTokenType extends string> = {
     pattern: LexerPatternMatcher<TTokenType> | {
         start: LexerPatternMatcher<TTokenType>,
         end: LexerPatternMatcher<TTokenType>;
         innerType?: TTokenType;
     };
-    specificity: number;
     meta?: string | Array<string>;
 };
 
-type LexerPatternTemplate<TTokenType extends string> = Omit<LexerPattern<TTokenType>, 'specificity'>;
 type LexerPatternInnerFetch<TTokenType extends string> = (pLexer: Lexer<TTokenType>) => void;

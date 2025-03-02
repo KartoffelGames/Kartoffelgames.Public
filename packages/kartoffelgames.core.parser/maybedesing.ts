@@ -55,40 +55,10 @@ const lXmlAttributeGraph = defineGraphPart(() => {
 });
 
 declare class GraphReference<TGraph> { }
-declare function graph<TGrapth extends Graph>(pGraph: TGrapth): TGrapth;
-declare function defineGraphPart<TParts extends string | number, TGraph extends Graph<Array<Elem>>>(pGraphDefinition: () => TGraph, pResult: (pData: GrapthResult<TGraph>) => any): GraphReference<TGraph>;
 
+declare function defineGraphPart<TGraph>(pGraphDefinition: () => TGraph, pResult: (pData: GrapthResult<TGraph>) => any): TGraph extends Graph<any, any, any> ? GraphReference<TGraph> : never;
 
-type GraphKeySingleNamed = string;
-type GraphKeySingleUnnamed = '';
-type GraphKeyOptionalNamed = `?${string}`;
-type GraphKeyOptionalUnnamed = '?';
-type GraphKeyBranchNamed = `#${string}`;
-type GraphKeyBranchUnnamed = '#';
-
-type GraphKey = GraphKeySingleNamed | GraphKeySingleUnnamed | GraphKeyOptionalNamed | GraphKeyOptionalUnnamed | GraphKeyBranchNamed | GraphKeyBranchUnnamed;
-
-type GraphUnnamed = string;
-type GraphSingleNamed<TName extends GraphKeySingleNamed> = [TName, GraphValue | Graph];
-type GraphSingleUnnamed<TName extends GraphKeySingleUnnamed> = [TName, GraphValue | Graph];
-type GraphOptionalNamed<TName extends GraphKeyOptionalNamed> = [TName, GraphValue | Graph];
-type GraphOptionalUnnamed<TName extends GraphKeyOptionalUnnamed> = [TName, GraphValue | Graph];
-type GraphBranchNamed<TName extends GraphKeyBranchNamed> = [TName, GraphValue | Graph];
-type GraphBranchUnnamed<TName extends GraphKeyBranchUnnamed> = [TName, GraphValue | Graph];
-
-
-type GraphValue<TWhat> = TWhat extends GraphKeySingleNamed ? GraphSingleNamed<TWhat> :
-    TWhat extends GraphKeySingleUnnamed ? GraphSingleUnnamed<TWhat> :
-    TWhat extends GraphKeyOptionalNamed ? GraphOptionalNamed<TWhat> :
-    TWhat extends GraphKeyOptionalUnnamed ? GraphOptionalUnnamed<TWhat> :
-    TWhat extends GraphKeyBranchNamed ? GraphBranchNamed<TWhat> :
-    TWhat extends GraphKeyBranchUnnamed ? GraphBranchUnnamed<TWhat> :
-    GraphReference | GraphUnnamed;
-
-
-type Graph<TKeys extends Array<GraphKey>> = Array<GraphValue<TKeys[number]>>;
-
-
+declare function graph<TParts extends Array<GraphNodeKey>, TValues, TTokenType extends string, TGraph extends Graph<TParts, TValues, TTokenType>>(pGraph: TGraph): TGraph;
 type GrapthResult<T extends Graph> = any;
 
 
@@ -96,22 +66,54 @@ type GrapthResult<T extends Graph> = any;
 
 
 
+type GraphNodeKeyUnnamed = never;
+type GraphNodeKeySingleNamed = string;
+type GraphNodeKeySingleUnnamed = '';
+type GraphNodeKeyOptionalNamed = `?${string}`;
+type GraphNodeKeyOptionalUnnamed = '?';
+type GraphNodeKeyBranchNamed = `#${string}`;
+type GraphNodeKeyBranchUnnamed = '#';
+
+type GraphNodeKey = GraphNodeKeyUnnamed | GraphNodeKeySingleNamed | GraphNodeKeySingleUnnamed | GraphNodeKeyOptionalNamed | GraphNodeKeyOptionalUnnamed | GraphNodeKeyBranchNamed | GraphNodeKeyBranchUnnamed;
+
+type GraphNodeUnnamed<TTokenType extends string> = TTokenType;
+type GraphNodeSingleNamed<TTokenType extends string,TName extends GraphNodeKeySingleNamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+type GraphNodeSingleUnnamed<TTokenType extends string,TName extends GraphNodeKeySingleUnnamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+type GraphNodeOptionalNamed<TTokenType extends string,TName extends GraphNodeKeyOptionalNamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+type GraphNodeOptionalUnnamed<TTokenType extends string,TName extends GraphNodeKeyOptionalUnnamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+type GraphNodeBranchNamed<TTokenType extends string,TName extends GraphNodeKeyBranchNamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+type GraphNodeBranchUnnamed<TTokenType extends string,TName extends GraphNodeKeyBranchUnnamed, TValue> = [TName, GraphNodeValue<TTokenType, TValue>];
+
+type GraphNodeValue<TTokenType extends string, TValue> =
+    TValue extends GraphValue<infer TInnerKey, infer TInnerValue, TTokenType> ? GraphValue<TInnerKey, TInnerValue, TTokenType> :
+    TValue extends GraphReference<infer T> ? (T extends Graph<TTokenType, Array<GraphNodeKey>, any> ? T : never) :
+    GraphNodeUnnamed<TTokenType>;
+
+type GraphValue<TTokenType extends string, TKey, TValue> =
+    TKey extends GraphNodeKeySingleUnnamed ? GraphNodeSingleUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyOptionalUnnamed ? GraphNodeOptionalUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyBranchUnnamed ? GraphNodeBranchUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyOptionalNamed ? GraphNodeOptionalNamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyBranchNamed ? GraphNodeBranchNamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeySingleNamed ? GraphNodeSingleNamed<TTokenType, TKey, TValue> :
+    TTokenType;
+
+type Graph<TTokenType extends string, TValues extends Array<GraphValue<TTokenType, >>> = TValues;
+//Array<GraphValue<TKeys[number], TValue, TTokenType>>;
 
 
 
 
+declare class Parser<TTokenType extends string> {
+    public testa<TKey, TValue>(pRes: GraphValue<TTokenType, TKey, TValue>): GraphValue<TTokenType, TKey, TValue>;
+}
 
-type GraphTuble<TName extends string, TValue extends any> = [TName, TValue];
+const lParser = new Parser<XmlToken>();
 
-type GraphTubleExtractKey<T extends GraphTuble<string, any>> = T[0] extends GraphTuble<infer V, any> ? V : never;
-type GraphTubleExtractValue<T extends GraphTuble<string, any>> = T[1] extends GraphTuble<string, infer V> ? V : never;
-
-
-const a: GraphTuble = ['aaa', XmlToken.CloseClosingBracket] as const;
-
-const b: GraphTubleExtractKey<typeof a> = 'aaa';
-const c: GraphTubleExtractValue<typeof a> = 'aaa';
-
-const x = tuplify(['aaa', XmlToken.CloseClosingBracket]);
-
-declare function tuplify<TKey extends string, TValue>(ary: [TKey, TValue]): GraphTuble<TKey, TValue>;
+const nodeA = lParser.testa([``, XmlToken.OpenBracket])
+const nodeB = lParser.testa([`asas`, XmlToken.OpenBracket]);
+const nodeC = lParser.testa([`?`, XmlToken.OpenBracket]);
+const nodeD = lParser.testa([`?asas`, XmlToken.OpenBracket]);
+const nodeE = lParser.testa([`#`, XmlToken.OpenBracket]);
+const nodeF = lParser.testa([`#asas`, XmlToken.OpenBracket]);
+const nodeG = lParser.testa(XmlToken.OpenBracket);

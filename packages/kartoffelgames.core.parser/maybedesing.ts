@@ -6,64 +6,6 @@
  * 
  * Should loops be possible? How is it possible to generate a loop without a actual loop but to return a array of values?? 
  */
-
-
-
-declare class GraphReference<TTokenType extends string, TGraph extends Graph<TTokenType, Array<any>>> { }
-
-type GraphNodeKeyEmptyUnnamed = `_`;
-type GraphNodeKeySingleNamed = string;
-type GraphNodeKeySingleUnnamed = '';
-type GraphNodeKeyOptionalNamed = `?${string}`;
-type GraphNodeKeyOptionalUnnamed = '?';
-type GraphNodeKeyBranchNamed = `#${string}`;
-type GraphNodeKeyBranchUnnamed = '#';
-
-type GraphNodeKey = GraphNodeKeyEmptyUnnamed | GraphNodeKeySingleNamed | GraphNodeKeySingleUnnamed | GraphNodeKeyOptionalNamed | GraphNodeKeyOptionalUnnamed | GraphNodeKeyBranchNamed | GraphNodeKeyBranchUnnamed;
-
-type GraphNodeEmptyUnnamed<TTokenType extends string, TName extends GraphNodeKeyEmptyUnnamed> = [TName, TTokenType];
-type GraphNodeSingleNamed<TTokenType extends string, TName extends GraphNodeKeySingleNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-type GraphNodeSingleUnnamed<TTokenType extends string, TName extends GraphNodeKeySingleUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-type GraphNodeOptionalNamed<TTokenType extends string, TName extends GraphNodeKeyOptionalNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-type GraphNodeOptionalUnnamed<TTokenType extends string, TName extends GraphNodeKeyOptionalUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-type GraphNodeBranchNamed<TTokenType extends string, TName extends GraphNodeKeyBranchNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-type GraphNodeBranchUnnamed<TTokenType extends string, TName extends GraphNodeKeyBranchUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
-
-type GraphNodeValue<TTokenType extends string, TValue> =
-    TValue extends GraphValue<TTokenType, any, any> ? TValue :
-    TValue extends GraphReference<TTokenType, infer T> ? T :
-    TTokenType;
-
-type GraphValue<TTokenType extends string, TKey extends GraphNodeKey, TValue extends GraphNodeValue<TTokenType, unknown>> =
-    TKey extends GraphNodeKeyEmptyUnnamed ? GraphNodeEmptyUnnamed<TTokenType, TKey> :
-    TKey extends GraphNodeKeySingleUnnamed ? GraphNodeSingleUnnamed<TTokenType, TKey, TValue> :
-    TKey extends GraphNodeKeyOptionalUnnamed ? GraphNodeOptionalUnnamed<TTokenType, TKey, TValue> :
-    TKey extends GraphNodeKeyBranchUnnamed ? GraphNodeBranchUnnamed<TTokenType, TKey, TValue> :
-    TKey extends GraphNodeKeyOptionalNamed ? GraphNodeOptionalNamed<TTokenType, TKey, TValue> :
-    TKey extends GraphNodeKeyBranchNamed ? GraphNodeBranchNamed<TTokenType, TKey, TValue> :
-    TKey extends GraphNodeKeySingleNamed ? GraphNodeSingleNamed<TTokenType, TKey, TValue> :
-    never;
-
-type Graph<TTokenType extends string, TValues extends Array<GraphValue<TTokenType, GraphNodeKey, GraphNodeValue<TTokenType, unknown>>>> = TValues;
-
-type GrapthResult<TTokenType extends string, TGraphValue extends Graph<TTokenType, any> | GraphValue<TTokenType, any, any> | TTokenType, TRoot extends object = {}> =
-    TGraphValue extends Graph<TTokenType, infer TValues> ? (
-        TValues // TODO: 
-    ) :
-    TGraphValue extends GraphValue<TTokenType, infer TGraphNodeKey, infer TGraphNodeValue> ? (
-        TGraphNodeKey extends GraphNodeKeyEmptyUnnamed ? TRoot :
-        TGraphNodeKey extends GraphNodeKeySingleUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
-        TGraphNodeKey extends GraphNodeKeyOptionalUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
-        TGraphNodeKey extends GraphNodeKeyBranchUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
-        TGraphNodeKey extends GraphNodeKeyOptionalNamed ? TRoot & { [x in TGraphNodeKey]?: GrapthResult<TTokenType, TGraphNodeValue> } :
-        TGraphNodeKey extends GraphNodeKeyBranchNamed ? GraphNodeBranchNamed<TTokenType, TKey, TValue> :
-        TGraphNodeKey extends GraphNodeKeySingleNamed ? TRoot & { [x in TGraphNodeKey]: GrapthResult<TTokenType, TGraphNodeValue> } :
-        never
-    ) : never;
-
-type aaa = GrapthResult<XmlToken, ['asdasd', ['asdasd', XmlToken.Assignment]]>
-
-
 enum XmlToken {
     OpenBracket = 'Open braket',
     CloseBracket = 'Close braket',
@@ -75,6 +17,82 @@ enum XmlToken {
     Assignment = 'Assignment',
     NamespaceDelimiter = 'Namespace delimiter'
 }
+
+
+declare class GraphReference<TTokenType extends string, TGraph extends Graph<TTokenType, Array<any>>> { }
+
+
+type GraphNodeKeySingleNamed = string;
+type GraphNodeKeySingleUnnamed = '';
+type GraphNodeKeyOptionalNamed = `?${string}`;
+type GraphNodeKeyOptionalUnnamed = '?';
+type GraphNodeKeyBranchNamed = `#${string}`;
+type GraphNodeKeyBranchUnnamed = '#';
+
+type GraphNodeKey = GraphNodeKeySingleNamed | GraphNodeKeySingleUnnamed | GraphNodeKeyOptionalNamed | GraphNodeKeyOptionalUnnamed | GraphNodeKeyBranchNamed | GraphNodeKeyBranchUnnamed;
+
+type GraphNodeSingleNamed<TTokenType extends string, TName extends GraphNodeKeySingleNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+type GraphNodeSingleUnnamed<TTokenType extends string, TName extends GraphNodeKeySingleUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+type GraphNodeOptionalNamed<TTokenType extends string, TName extends GraphNodeKeyOptionalNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+type GraphNodeOptionalUnnamed<TTokenType extends string, TName extends GraphNodeKeyOptionalUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+type GraphNodeBranchNamed<TTokenType extends string, TName extends GraphNodeKeyBranchNamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+type GraphNodeBranchUnnamed<TTokenType extends string, TName extends GraphNodeKeyBranchUnnamed, TValue extends GraphNodeValue<TTokenType, unknown>> = [TName, TValue];
+
+type GraphNodeValue<TTokenType extends string, TValue> =
+    TValue extends GraphValue<TTokenType, GraphNodeKey, any> ? TValue :
+    TValue extends GraphReference<TTokenType, infer T> ? T :
+    TValue extends Graph<TTokenType, any> ? TValue :
+    TTokenType;
+
+type GraphValue<TTokenType extends string, TKey extends GraphNodeKey, TValue extends GraphNodeValue<TTokenType, unknown>> =
+    TKey extends GraphNodeKeySingleUnnamed ? GraphNodeSingleUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyOptionalUnnamed ? GraphNodeOptionalUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyBranchUnnamed ? GraphNodeBranchUnnamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyOptionalNamed ? GraphNodeOptionalNamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeyBranchNamed ? GraphNodeBranchNamed<TTokenType, TKey, TValue> :
+    TKey extends GraphNodeKeySingleNamed ? GraphNodeSingleNamed<TTokenType, TKey, TValue> :
+    never;
+
+type Graph<TTokenType extends string, TValues extends Array<GraphValue<TTokenType, GraphNodeKey, GraphNodeValue<TTokenType, unknown>>>> = TValues; // TODO:???
+
+type GrapthResult<TTokenType extends string, TGraphValue extends Graph<TTokenType, any> | GraphValue<TTokenType, any, any> | TTokenType, TRoot extends object = {}> =
+    TGraphValue extends Graph<TTokenType, infer TValues> ? (
+        TValues // TODO: 
+    ) :
+    TGraphValue extends GraphValue<TTokenType, infer TGraphNodeKey, infer TGraphNodeValue> ? (
+        TGraphNodeKey extends GraphNodeKeySingleUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
+        TGraphNodeKey extends GraphNodeKeyOptionalUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
+        TGraphNodeKey extends GraphNodeKeyBranchUnnamed ? TRoot & GrapthResult<TTokenType, TGraphNodeValue> :
+        TGraphNodeKey extends GraphNodeKeyOptionalNamed ? TRoot & { [x in TGraphNodeKey]?: GrapthResult<TTokenType, TGraphNodeValue> } :
+        TGraphNodeKey extends GraphNodeKeyBranchNamed ? GraphNodeBranchNamed<TTokenType, TKey, TValue> :
+        TGraphNodeKey extends GraphNodeKeySingleNamed ? TRoot & { [x in TGraphNodeKey]: GrapthResult<TTokenType, TGraphNodeValue> } :
+        never
+    ) : never;
+
+
+declare class GraphBuilder<TTokenType extends string, TCurrentGraph extends Array<GraphValue<TTokenType, GraphNodeKey, any>> = []> {
+    public result: Graph<TTokenType, TCurrentGraph>;
+
+    public single<TKey extends string, TValue extends TTokenType>(pKey: TKey, pValue: TValue): GraphBuilder<TTokenType, [...TCurrentGraph, GraphNodeSingleNamed<TTokenType, TKey, TValue>]>;
+    public single<TValue extends TTokenType>(pValue: TValue): GraphBuilder<TTokenType, [...TCurrentGraph, GraphNodeSingleUnnamed<TTokenType, GraphNodeKeySingleUnnamed, TValue>]>;
+
+    public optional<TKey extends string, TValue extends TTokenType>(pKey: TKey, pValue: TValue): GraphBuilder<TTokenType, [...TCurrentGraph, GraphNodeOptionalNamed<TTokenType, `?${TKey}`, TValue>]>;
+    public optional<TValue extends TTokenType>(pValue: TValue): GraphBuilder<TTokenType, [...TCurrentGraph, GraphNodeOptionalUnnamed<TTokenType, GraphNodeKeyOptionalUnnamed, TValue>]>;
+}
+
+
+const lBuilder = new GraphBuilder<XmlToken>();
+
+const lMyGraph = lBuilder
+    .single(`test`, XmlToken.OpenBracket)
+    .single(XmlToken.OpenBracket)
+    .optional(XmlToken.CloseBracket)
+    .optional('test2', XmlToken.Identifier)
+    .result;
+
+// TODO: I might be ready to start prototyping. Dont forget to use the type shitting from BaseGrammarNode.
+
+
 
 declare class Parser<TTokenType extends string> {
 

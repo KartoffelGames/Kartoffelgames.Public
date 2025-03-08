@@ -14,7 +14,7 @@ export class Graph<TTokenType extends string, TResult = unknown> {
      * 
      * @returns A new instance of the Graph class with the provided graph.
      */
-    public static define<TTokenType extends string, TRawData extends object>(pGraph: GraphCollector<TTokenType, TRawData>): Graph<TTokenType, TRawData>;
+    public static define<TTokenType extends string, TRawData extends object>(pGraph: GraphCollector<TTokenType, TRawData, TRawData>): Graph<TTokenType, TRawData>;
 
 
     /**
@@ -58,7 +58,7 @@ export class Graph<TTokenType extends string, TResult = unknown> {
      */
     public get node(): GraphNode<TTokenType> {
         if (!this.mResolvedGraphNode) {
-            this.mResolvedGraphNode = this.mGraphCollector(GraphNode.new(), {});
+            this.mResolvedGraphNode = this.mGraphCollector(this);
         }
 
         return this.mResolvedGraphNode;
@@ -70,7 +70,7 @@ export class Graph<TTokenType extends string, TResult = unknown> {
      * @param pGraph - Graph collector function.
      * @param pDataCollector - Data collector function.
      */
-    public constructor(pGraph: GraphCollector<TTokenType>, pDataCollector: GraphDataCollector<object, TResult>) {
+    public constructor(pGraph: GraphCollector<TTokenType, Graph<TTokenType, TResult>>, pDataCollector: GraphDataCollector<object, TResult>) {
         this.mGraphCollector = pGraph;
         this.mDataCollector = pDataCollector;
         this.mResolvedGraphNode = null;
@@ -88,30 +88,78 @@ export class Graph<TTokenType extends string, TResult = unknown> {
     }
 }
 
-type GraphCollector<TTokenType extends string, TRawData extends object = object> = (pNode: GraphNode<TTokenType, TRawData>, pRawData: TRawData) => GraphNode<TTokenType, TRawData>;
+type GraphCollector<TTokenType extends string, TRawData extends object = object, TResult = unknown> = (pSelf: Graph<TTokenType, TResult>) => GraphNode<TTokenType, TRawData>;
 type GraphDataCollector<TRawData extends object = object, TResult = unknown> = (pRawData: TRawData) => TResult;
 
 
 
 // TODO: Fix typing of this.
+/*
+    1
+*/
 const lShitHead1 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL').optional('->', lShitHead1);
-}, (pData) => {
+    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lShitHead1);
+}, (_pData) => {
     return 1;
 });
 
-const lShitHead2 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL').optional('->', lShitHead2);
+/*
+    {
+        MYLIST: Array<string>
+    }
+*/
+const lShitHead1111 = Graph.define((pNode) => {
+    return GraphNode.new().required('MYLIST[]', 'mytoken').required('MYLIST<-MYLIST', pNode);
 });
 
+/*
+    {
+        MYLIST: Array<string>
+    }
+*/
+const lShitHead2 = Graph.define(() => {
+    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lShitHead2);
+});
+
+/*
+    {
+        MYVAL: Array<string>,
+    }
+*/
 const lShitHead3 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL').optional('->', 
-        GraphNode.new().required('MYVAL2')
+    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL<-MYVAL2', 
+        GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });
 
+/*
+    {
+        MYVAL: Array<string>,
+        MYVAL2?: {
+            MYVAL2: string
+        }
+    }
+*/
 const lShitHead4 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL').optional('->', 
-        GraphNode.new().required('MYVAL')
+    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL2', 
+        GraphNode.new().required('MYVAL2', 'mytoken2')
+    );
+});
+
+/*
+    {
+        MYVAL: string
+    }
+*/
+const lShitHead5 = Graph.define(() => {
+    return GraphNode.new().required('MYVAL', 'mytoken').optional('->', 
+        GraphNode.new().required('MYVAL', 'mytoken2')
+    );
+});
+
+
+const lShitHead223 = Graph.define(() => {
+    return GraphNode.new().required('MYVAL[]', 'mytoken').required('MYVAL<-MYVAL2', 
+        GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });

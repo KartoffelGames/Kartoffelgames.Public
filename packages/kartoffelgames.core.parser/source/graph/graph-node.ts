@@ -2,13 +2,12 @@ import { Exception } from "@kartoffelgames/core";
 import type { Graph } from "./graph.ts";
 
 export class GraphNode<TTokenType extends string, TCurrentResult extends object = object> {
-
     /**
      * Start a new branch node.
      */
-    public static new<TTokenType extends string>() {
+    public static new<TTokenType extends string>(): GraphNode<TTokenType, {}> {
         // Create an empty node.
-        const lAnonymousNode: GraphNode<TTokenType> = new GraphNode<TTokenType>(null, false, []);
+        const lAnonymousNode: GraphNode<TTokenType, {}> = new GraphNode<TTokenType>('', false, []);
 
         // Shady shit. 
         // Assign null as root node, so the next node that gets chained receives NULL as `pRootNode` in its constructor
@@ -32,22 +31,15 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         return this.mRootNode;
     }
 
-    /**
-     * Node value identifier.
-     * Used to store the node token value into a object.
-     * The objects property name is this identifier.
-     */
-    public get identifier(): string | null {
-        return this.mIdentifier;
-    }
 
-
-    private constructor(pIdentifier: string | null, pRequired: boolean, pValues: Array<GraphValue<TTokenType>>, pRootNode?: GraphNode<TTokenType>) {
+    private constructor(pIdentifier: GraphNodeKey, pRequired: boolean, pValues: Array<GraphValue<TTokenType>>, pRootNode?: GraphNode<TTokenType>) {
         this.mChainedNode = null;
-        this.mIdentifier = pIdentifier;
         this.mRequired = pRequired;
 
-        // When the value is a graph node, spool it back to its root node.
+        // TODO: Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
+        this.mIdentifier = pIdentifier;
+
+        // When the value is a graph node, spool it back to its root node. // TODO: Convert it into a graph.
         this.mValues = pValues.map(pValue => {
             if (pValue instanceof GraphNode) {
                 return pValue.root;
@@ -63,7 +55,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
             this.mRootNode = pRootNode;
         }
     }
-    
+
     /**
      * Get the next graph node values.
      * Includes NULL when graph node has no next value.
@@ -109,7 +101,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns A new branch node. 
      */
-    public branch<TKey extends string, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public branch<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
 
 
     /**
@@ -127,7 +119,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns A new required branch node.
      */
-    public branch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, '', TValue>;
+    public branch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
 
 
     /**
@@ -138,9 +130,9 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained GraphNode.
      */
-    public branch(pIdentifierOrBranches: string | null | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
+    public branch(pIdentifierOrBranches: GraphNodeKey | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
         // Read mixed parameter with correct value. 
-        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lIdentifier: GraphNodeKey = Array.isArray(pIdentifierOrBranches) ? '' : pIdentifierOrBranches;
         const lBranchValueList: Array<GraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
 
         // Create new node and chain it after this node.
@@ -168,7 +160,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public optional<TKey extends string, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public optional<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, TKey, TValue>;
 
     /**
      * Creates and return a new single optional value node.
@@ -185,7 +177,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public optional<TValue extends GraphValue<TTokenType>>(pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, '', TValue>;
+    public optional<TValue extends GraphValue<TTokenType>>(pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
 
     /**
      * Creates a new `GraphNode` with a optional single value and chains it after the current node.
@@ -195,9 +187,9 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained `GraphNode`.
      */
-    public optional(pIdentifierOrValue: string | null | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
+    public optional(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
         // Read mixed parameter with correct value. 
-        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lIdentifier: GraphNodeKey = (typeof pValue === 'undefined') ? '' : <GraphNodeKey>pIdentifierOrValue;
         const lValue: GraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GraphValue<TTokenType>>pIdentifierOrValue : pValue!;
 
         // Create new node and chain it after this node.
@@ -225,7 +217,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns A new branch node. 
      */
-    public optionalBranch<TKey extends string, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public optionalBranch<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
 
 
     /**
@@ -243,7 +235,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns A new required branch node.
      */
-    public optionalBranch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, '', TValue>;
+    public optionalBranch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
 
 
     /**
@@ -254,9 +246,9 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained GraphNode.
      */
-    public optionalBranch(pIdentifierOrBranches: string | null | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
+    public optionalBranch(pIdentifierOrBranches: GraphNodeKey | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
         // Read mixed parameter with correct value. 
-        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lIdentifier: GraphNodeKey = Array.isArray(pIdentifierOrBranches) ? '' : pIdentifierOrBranches;
         const lBranchValueList: Array<GraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
 
         // Create new node and chain it after this node.
@@ -284,7 +276,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public required<TKey extends string, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public required<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, TKey, TValue>;
 
     /**
      * Creates and return a new single required value node.
@@ -301,7 +293,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public required<TValue extends GraphValue<TTokenType>>(pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, '', TValue>;
+    public required<TValue extends GraphValue<TTokenType>>(pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
 
     /**
      * Creates a new `GraphNode` with a required single value and chains it after the current node.
@@ -311,9 +303,9 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained `GraphNode`.
      */
-    public required(pIdentifierOrValue: string | null | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
+    public required(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
         // Read mixed parameter with correct value. 
-        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lIdentifier: GraphNodeKey = (typeof pValue === 'undefined') ? '' : <GraphNodeKey>pIdentifierOrValue;
         const lValue: GraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GraphValue<TTokenType>>pIdentifierOrValue : pValue!;
 
         // Create new node and chain it after this node.
@@ -344,7 +336,29 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     }
 }
 
-type GraphSingleResultExtend<TTokenType extends string, TKey extends string, TValue, TTarget extends object> = GraphNode<TTokenType, TTarget & { [x in TKey]: TValue }>;
+/*
+ * Graph node keys.
+ */
+type GraphNodeListKey = `${string}[]`;
+type GraphNodeEmptyKey = '';
+type GraphNodeMergeKey = `${string}<-${string}`;
+type GraphNodeSingleKey = string;
+type GraphNodeKey = GraphNodeListKey | GraphNodeEmptyKey | GraphNodeMergeKey | GraphNodeSingleKey;
+
+/*
+ * Utility. 
+ */
+
+type Prettify<T> = {
+    [K in keyof T]: T[K];
+} & unknown;
+
+type MergeObjects<T extends object, U extends object> = Prettify<{ [K in keyof T]: K extends keyof U ? U[K] : T[K] } & U>;
+
+/*
+ * Result merge and extend types. 
+ */
+
 type GraphSingleResultExtendOptional<TTokenType extends string, TKey extends string, TValue, TTarget extends object> = GraphNode<TTokenType, TTarget & { [x in TKey]?: TValue }>;
 type GraphSingleResultMerge<TTokenType extends string, TKey extends string, TValue, TTarget extends object> = GraphNode<TTokenType, TTarget & { [x in TKey]: Array<TValue> }>;
 
@@ -372,30 +386,39 @@ type GraphListResultExtendOptional<TTokenType extends string, TKey extends strin
  * Branch node result types.
  */
 
-type OptionalChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends string, TValue extends GraphValue<TTokenType>> =
+type OptionalChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>> =
     TKey extends '' ? GraphNode<TTokenType, TCurrentResult> : // No identifier
     TValue extends TTokenType ? GraphSingleResultExtendOptional<TTokenType, TKey, string, TCurrentResult> :
     TValue extends Graph<TTokenType, infer TGraphResultValue> ? GraphSingleResultExtendOptional<TTokenType, TKey, TGraphResultValue, TCurrentResult> :
     TValue extends GraphNode<TTokenType, infer TNodeResultValue> ? GraphSingleResultExtendOptional<TTokenType, TKey, TNodeResultValue, TCurrentResult> :
     never;
 
-type RequiredChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends string, TValue extends GraphValue<TTokenType>> =
-    TKey extends '' ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends '->' ? (
-        TValue extends TTokenType ? GraphSingleResultMerge<TTokenType, TKey, string, TCurrentResult> :
-        TValue extends Graph<TTokenType, infer TGraphResultValue> ? GraphSingleResultMerge<TTokenType, TKey, TGraphResultValue, TCurrentResult> :
-        TValue extends GraphNode<TTokenType, infer TNodeResultValue> ? GraphSingleResultMerge<TTokenType, TKey, TNodeResultValue, TCurrentResult> :
+type RequiredChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>> =
+    TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
+    TKey extends `${infer TPropertyKey}[]` ? (
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<string> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>> :
+        never
+    ) :
+    TKey extends `${infer TPropertyKey}<-${infer TMergeKey}` ? (
+        TCurrentResult extends { [x in TPropertyKey]: Array<infer TCurrentResultValue> } ? (
+            TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+                TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
+                TNodeResultValue extends { [x in TMergeKey]: Array<TCurrentResultValue> } ? GraphNode<TTokenType, TCurrentResult> :
+                never
+            ) :
+            never
+        ) :
         never
     ) :
     TKey extends string ? (
-        TValue extends TTokenType ? GraphSingleResultExtend<TTokenType, TKey, string, TCurrentResult> :
-        TValue extends Graph<TTokenType, infer TGraphResultValue> ? GraphSingleResultExtend<TTokenType, TKey, TGraphResultValue, TCurrentResult> :
-        TValue extends GraphNode<TTokenType, infer TNodeResultValue> ? GraphSingleResultExtend<TTokenType, TKey, TNodeResultValue, TCurrentResult> :
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: TNodeResultValue }>> :
         never
     ) :
     never;
 
-type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends string, TValue extends Array<GraphValue<TTokenType>>> =
+type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
     TKey extends '' ? GraphNode<TTokenType, TCurrentResult> :
     TKey extends '->' ? (
         1 // TODO:
@@ -407,11 +430,16 @@ type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends
     never;
 
 
-type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends string, TValue extends Array<GraphValue<TTokenType>>> =
+type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
     TKey extends '' ? GraphNode<TTokenType, TCurrentResult> : // No identifier
     TValue extends Array<GraphValue<TTokenType>> ? GraphNode<TTokenType, GraphListResultExtendOptional<TTokenType, TKey, TValue, TCurrentResult>> :
     never;
 
-export type GraphValue<TTokenType extends string> = Graph<TTokenType> | TTokenType | GraphNode<TTokenType>;
+/*
+ * Graph value types 
+ */
+
+type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, TResult>;
+type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;
 
 

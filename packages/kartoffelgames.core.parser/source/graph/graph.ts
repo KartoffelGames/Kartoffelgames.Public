@@ -163,3 +163,10 @@ const lShitHead223 = Graph.define(() => {
         GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });
+
+
+const lShitHead3223 = Graph.define(() => {
+    return GraphNode.new().required('MYVAL<-MYVAL2', 
+        GraphNode.new().required('MYVAL2[]', 'mytoken2')
+    );
+});

@@ -356,41 +356,50 @@ type Prettify<T> = {
 type MergeObjects<T extends object, U extends object> = Prettify<{ [K in keyof T]: K extends keyof U ? U[K] : T[K] } & U>;
 
 /*
- * Result merge and extend types. 
+ * Branch result extend types. 
  */
 
-type GraphSingleResultExtendOptional<TTokenType extends string, TKey extends string, TValue, TTarget extends object> = GraphNode<TTokenType, TTarget & { [x in TKey]?: TValue }>;
-type GraphSingleResultMerge<TTokenType extends string, TKey extends string, TValue, TTarget extends object> = GraphNode<TTokenType, TTarget & { [x in TKey]: Array<TValue> }>;
-
-type UnwrapArrayTypes<T> = T extends Array<infer U> ? U : T;
-type GraphListResultExtend<TTokenType extends string, TKey extends string, TValue extends Array<GraphValue<TTokenType>>, TTarget extends object> = TTarget & { [x in TKey]: (
-    UnwrapArrayTypes<{
-        [K in keyof TValue]:
-        TValue[K] extends Graph<TTokenType, infer T> ? T :
-        TValue[K] extends GraphNode<TTokenType, infer T> ? T :
+type UnwrapBranchResult<TTokenType extends string, TValue extends Array<GraphValue<TTokenType>>> = {
+    [K in keyof TValue]: (
+        TValue[K] extends GraphNodeValue<TTokenType, infer T> ? T :
         TValue[K] extends TTokenType ? TValue[K] :
         never
-    }>
-) };
-type GraphListResultExtendOptional<TTokenType extends string, TKey extends string, TValue extends Array<GraphValue<TTokenType>>, TTarget extends object> = TTarget & { [x in TKey]?: (
-    UnwrapArrayTypes<{
-        [K in keyof TValue]:
-        TValue[K] extends Graph<TTokenType, infer T> ? T :
-        TValue[K] extends GraphNode<TTokenType, infer T> ? T :
-        TValue[K] extends TTokenType ? TValue[K] :
-        never
-    }>
-) };
+    )
+} extends Array<infer U> ? U : never;
 
 /*
  * Branch node result types.
  */
 
 type OptionalChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>> =
-    TKey extends '' ? GraphNode<TTokenType, TCurrentResult> : // No identifier
-    TValue extends TTokenType ? GraphSingleResultExtendOptional<TTokenType, TKey, string, TCurrentResult> :
-    TValue extends Graph<TTokenType, infer TGraphResultValue> ? GraphSingleResultExtendOptional<TTokenType, TKey, TGraphResultValue, TCurrentResult> :
-    TValue extends GraphNode<TTokenType, infer TNodeResultValue> ? GraphSingleResultExtendOptional<TTokenType, TKey, TNodeResultValue, TCurrentResult> :
+    TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
+    TKey extends `${infer TPropertyKey}[]` ? (
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<string> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<TNodeResultValue> }>> :
+        never
+    ) :
+    TKey extends `${infer TPropertyKey}<-${infer TMergeKey}` ? (
+        TCurrentResult extends { [x in TPropertyKey]: Array<infer TCurrentResultValue> } ? (
+            TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+                TNodeResultValue extends { [x in TMergeKey]: Array<TCurrentResultValue> } ? GraphNode<TTokenType, TCurrentResult> :
+                TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
+                never
+            ) :
+            never
+        ) :
+        TCurrentResult extends { [x in TPropertyKey]: any } ? never : // Should not have the key. 
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+            TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<TMergeValue> }>> :
+            TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: TMergeValue }>> :
+            never
+        ) :
+        never
+    ) :
+    TKey extends GraphNodeSingleKey ? (
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: TNodeResultValue }>> :
+        never
+    ) :
     never;
 
 type RequiredChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>> =
@@ -403,15 +412,21 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
     TKey extends `${infer TPropertyKey}<-${infer TMergeKey}` ? (
         TCurrentResult extends { [x in TPropertyKey]: Array<infer TCurrentResultValue> } ? (
             TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
-                TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
                 TNodeResultValue extends { [x in TMergeKey]: Array<TCurrentResultValue> } ? GraphNode<TTokenType, TCurrentResult> :
+                TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
                 never
             ) :
             never
         ) :
+        TCurrentResult extends { [x in TPropertyKey]: any } ? never : // Should not have the key. 
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+            TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TMergeValue> }>> :
+            TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: TMergeValue }>> :
+            never
+        ) :
         never
     ) :
-    TKey extends string ? (
+    TKey extends GraphNodeSingleKey ? (
         TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: TNodeResultValue }>> :
         never
@@ -419,20 +434,17 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
     never;
 
 type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
-    TKey extends '' ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends '->' ? (
-        1 // TODO:
-    ) :
-    TKey extends string ? (
-        TValue extends Array<GraphValue<TTokenType>> ? GraphNode<TTokenType, GraphListResultExtend<TTokenType, TKey, TValue, TCurrentResult>> :
-        never
-    ) :
+    TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
+    TKey extends GraphNodeMergeKey ? never : // Not allowed on branches.
+    TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
+    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: UnwrapBranchResult<TTokenType, TValue> }>> :
     never;
 
-
 type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
-    TKey extends '' ? GraphNode<TTokenType, TCurrentResult> : // No identifier
-    TValue extends Array<GraphValue<TTokenType>> ? GraphNode<TTokenType, GraphListResultExtendOptional<TTokenType, TKey, TValue, TCurrentResult>> :
+    TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
+    TKey extends GraphNodeMergeKey ? never : // Not allowed on branches.
+    TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
+    TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]?: UnwrapBranchResult<TTokenType, TValue> }>> :
     never;
 
 /*

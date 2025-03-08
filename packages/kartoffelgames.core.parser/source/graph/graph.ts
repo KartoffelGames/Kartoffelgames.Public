@@ -4,61 +4,31 @@ import { GraphNode } from "./graph-node.ts";
  * Represents a generic graph structure that can be defined with a graph collector and an optional data collector.
  *
  * @template TTokenType - The type of tokens used in the graph.
- * @template TResult - The type of the result produced by the graph.
+ * @template TResultData - The type of the result produced by the graph.
  */
-export class Graph<TTokenType extends string, TResult = unknown> {
-    /**
-     * Defines a graph with the provided graph collector.
-     *
-     * @param pGraph - The graph collector containing the graph data.
-     * 
-     * @returns A new instance of the Graph class with the provided graph.
-     */
-    public static define<TTokenType extends string, TRawData extends object>(pGraph: GraphCollector<TTokenType, TRawData, TRawData>): Graph<TTokenType, TRawData>;
-
-
-    /**
-     * Defines a graph with the provided graph collector and data collector.
-     * The collector can be used to mutate the raw data into a desired result.
-     *
-     * @param pGraph - The graph collector containing the graph data.
-     * @param pDataCollector - Optional. A function to collect and process raw data. If not provided, a default collector that returns the raw data will be used.
-     * 
-     * @returns A new instance of the Graph class with the provided graph and data collector.
-     */
-    public static define<TTokenType extends string, TRawData extends object, TResult>(pGraph: GraphCollector<TTokenType, TRawData>, pDataCollector: GraphDataCollector<TRawData, TResult>): Graph<TTokenType, TResult>;
-
+export class Graph<TTokenType extends string, TOriginalData extends object, TResultData = TOriginalData> {
     /**
      * Defines a graph with the provided graph collector and optional data collector.
      * The collector can be used to mutate the raw data into a desired result.
      *
-     * @param pGraph - The graph collector containing the graph data.
-     * @param pDataCollector - Optional. A function to collect and process raw data. If not provided, a default collector that returns the raw data will be used.
+     * @param pNodeCollector - The node collector containing the graph data.
      * 
      * @returns A new instance of the Graph class with the provided graph and data collector.
      */
-    public static define(pGraph: GraphCollector<string, object>, pDataCollector?: GraphDataCollector): Graph<string, unknown> {
-        // Create a generic data collector if none is provided.
-        let lDataCollector: GraphDataCollector | undefined = pDataCollector;
-        if (!lDataCollector) {
-            lDataCollector = (pRawData: object) => {
-                return pRawData;
-            };
-        }
-
-        return new Graph(pGraph, lDataCollector);
+    public static define<TTokenType extends string, TResultData extends object>(pNodeCollector: GraphNodeCollector<TTokenType, TResultData>): Graph<TTokenType, TResultData> {
+        return new Graph(pNodeCollector);
     }
 
-    private readonly mGraphCollector: GraphCollector<TTokenType>;
-    private readonly mDataCollector: GraphDataCollector<object, TResult>;
+    private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
+    private readonly mDataConverterList: Array<GraphDataCollector>;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
 
     /**
      * Get the resolved graph.
      */
-    public get node(): GraphNode<TTokenType> {
+    public get node(): GraphNode<TTokenType, TOriginalData> {
         if (!this.mResolvedGraphNode) {
-            this.mResolvedGraphNode = this.mGraphCollector(this);
+            this.mResolvedGraphNode = this.mGraphCollector();
         }
 
         return this.mResolvedGraphNode;
@@ -70,9 +40,9 @@ export class Graph<TTokenType extends string, TResult = unknown> {
      * @param pGraph - Graph collector function.
      * @param pDataCollector - Data collector function.
      */
-    public constructor(pGraph: GraphCollector<TTokenType, Graph<TTokenType, TResult>>, pDataCollector: GraphDataCollector<object, TResult>) {
+    private constructor(pGraph: GraphNodeCollector) {
         this.mGraphCollector = pGraph;
-        this.mDataCollector = pDataCollector;
+        this.mDataConverterList = new Array<GraphDataCollector>();
         this.mResolvedGraphNode = null;
     }
 
@@ -83,13 +53,36 @@ export class Graph<TTokenType extends string, TResult = unknown> {
      * 
      * @returns Resolved data.
      */
-    public resolve(pRawData: object): TResult {
-        return this.mDataCollector(pRawData);
+    public convert(pRawData: TOriginalData): TResultData {
+        // Convert data with each added data converter.
+        let lData: any = pRawData;
+        for(const lDataConverter of this.mDataConverterList) {
+            lData = lDataConverter(lData);
+        }
+
+        return lData as TResultData;
+    }
+
+    /**
+     * Add a data converter to the graph.
+     * Data converters can mutate the current data into another form.
+     * 
+     * @param pConverter - Data converter
+     */
+    public dataConvert<TConvertedData>(pConverter: GraphDataCollector<TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
+        const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector);
+        
+        // Add all previous data converters and the new converter to the new graph.
+        lNewGraph.mDataConverterList.push(...this.mDataConverterList, pConverter);
+
+        return lNewGraph;
     }
 }
 
-type GraphCollector<TTokenType extends string, TRawData extends object = object, TResult = unknown> = (pSelf: Graph<TTokenType, TResult>) => GraphNode<TTokenType, TRawData>;
-type GraphDataCollector<TRawData extends object = object, TResult = unknown> = (pRawData: TRawData) => TResult;
+type GraphNodeCollector<TTokenType extends string = string, TResultData extends object = object> = () => GraphNode<TTokenType, TResultData>;
+type GraphDataCollector<TCurrentData = any, TResult = any> = (pRawData: TCurrentData) => TResult;
+
+export type GraphRef<TResultType> = Graph<any, any, TResultType>;
 
 
 
@@ -98,18 +91,21 @@ type GraphDataCollector<TRawData extends object = object, TResult = unknown> = (
     1
 */
 const lShitHead1 = Graph.define(() => {
-    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lShitHead1);
-}, (_pData) => {
-    return 1;
+    const lSelf: GraphRef<{MYLIST: string[]}> = lShitHead1;
+
+    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lSelf);
+}).dataConvert((pData) => {
+    return pData;
 });
+
 
 /*
     {
         MYLIST: Array<string>
     }
 */
-const lShitHead1111 = Graph.define((pNode) => {
-    return GraphNode.new().required('MYLIST[]', 'mytoken').required('MYLIST<-MYLIST', pNode);
+const lShitHead1111 = Graph.define(() => {
+    return GraphNode.new().required('MYLIST[]', 'mytoken').required('MYLIST2<-MYLIST', lShitHead1);
 });
 
 /*
@@ -118,7 +114,8 @@ const lShitHead1111 = Graph.define((pNode) => {
     }
 */
 const lShitHead2 = Graph.define(() => {
-    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lShitHead2);
+    const lSelf: GraphRef<{MYLIST: string[]}> = lShitHead2;
+    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lSelf);
 });
 
 /*
@@ -127,7 +124,7 @@ const lShitHead2 = Graph.define(() => {
     }
 */
 const lShitHead3 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL<-MYVAL2', 
+    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL<-MYVAL2',
         GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });
@@ -141,7 +138,7 @@ const lShitHead3 = Graph.define(() => {
     }
 */
 const lShitHead4 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL2', 
+    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL2',
         GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });
@@ -152,21 +149,21 @@ const lShitHead4 = Graph.define(() => {
     }
 */
 const lShitHead5 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL', 'mytoken').optional('->', 
+    return GraphNode.new().required('MYVAL', 'mytoken').optional('->',
         GraphNode.new().required('MYVAL', 'mytoken2')
     );
 });
 
 
 const lShitHead223 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').required('MYVAL<-MYVAL2', 
+    return GraphNode.new().required('MYVAL[]', 'mytoken').required('MYVAL<-MYVAL2x',
         GraphNode.new().required('MYVAL2', 'mytoken2')
     );
 });
 
 
 const lShitHead3223 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL<-MYVAL2', 
+    return GraphNode.new().required('MYVAL<-MYVAL2',
         GraphNode.new().required('MYVAL2[]', 'mytoken2')
     );
 });

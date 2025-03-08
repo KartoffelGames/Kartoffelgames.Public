@@ -451,7 +451,7 @@ type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends
  * Graph value types 
  */
 
-type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, TResult>;
+type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, object, TResult>;
 type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;
 
 

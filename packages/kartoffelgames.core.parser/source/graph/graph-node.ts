@@ -1,6 +1,12 @@
 import { Exception } from "@kartoffelgames/core";
 import { Graph } from "./graph.ts";
 
+/**
+ * Represents a node in a graph structure.
+ * 
+ * @template TTokenType - The type of the token associated with the node.
+ * @template TCurrentResult - The type of the current result object.
+ */
 export class GraphNode<TTokenType extends string, TCurrentResult extends object = object> {
     /**
      * Start a new branch node.
@@ -19,7 +25,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     }
 
     private mChainedNode: GraphNode<TTokenType> | null;
-    private readonly mIdentifier: string | null;
+    private readonly mIdentifier: GraphNodeIdentifier;
     private mRootNode: GraphNode<TTokenType>;
     private readonly mRequired: boolean;
     private readonly mValues: Array<GraphValue<TTokenType>>;
@@ -44,8 +50,32 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         this.mChainedNode = null;
         this.mRequired = pRequired;
 
-        // TODO: Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
-        this.mIdentifier = pIdentifier;
+        // Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
+        if (pIdentifier === '') {
+            this.mIdentifier = {
+                key: '', list: false, mergeKey: '',
+                empty: true
+            };
+        } else if (pIdentifier.endsWith('[]')) {
+            this.mIdentifier = {
+                empty: false, list: true, mergeKey: '',
+                key: pIdentifier.substring(0, pIdentifier.length - 2), // Remove [] from key.
+            };
+        } else if (pIdentifier.includes('<-')) {
+            const lSplit: Array<string> = pIdentifier.split('<-');
+            this.mIdentifier = {
+                empty: false,
+                list: true,
+                key: lSplit[0],
+                mergeKey: lSplit[1]
+            };
+        }
+        else {
+            this.mIdentifier = {
+                empty: false, list: false, mergeKey: '',
+                key: pIdentifier
+            };
+        }
 
         // Save values.
         this.mValues = pValues;
@@ -337,6 +367,13 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         this.mChainedNode = pChainedNode;
     }
 }
+
+type GraphNodeIdentifier = {
+    empty: boolean;
+    key: string;
+    list: boolean;
+    mergeKey: string;
+};
 
 /*
  * Graph node keys.

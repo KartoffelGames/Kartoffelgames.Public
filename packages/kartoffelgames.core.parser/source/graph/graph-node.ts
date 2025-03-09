@@ -5,9 +5,9 @@ import { Graph } from "./graph.ts";
  * Represents a node in a graph structure.
  * 
  * @template TTokenType - The type of the token associated with the node.
- * @template TCurrentResult - The type of the current result object.
+ * @template TResultData - The type of the current result object.
  */
-export class GraphNode<TTokenType extends string, TCurrentResult extends object = object> {
+export class GraphNode<TTokenType extends string, TResultData extends object = object> {
     /**
      * Start a new branch node.
      */
@@ -31,12 +31,29 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     private readonly mValues: Array<GraphValue<TTokenType>>;
 
     /**
+     * Overall graph node configuration.
+     * Dont use it for production code.
+     */
+    public get configuration(): GraphNodeConfiguration {
+        return {
+            dataKey: this.mIdentifier.dataKey,
+            isList: this.mIdentifier.isList,
+            isRequired: this.mRequired,
+            isBranch: this.mValues.length > 1
+        };
+    }
+
+    /**
      * Get the root node of this branch.
      */
     public get root(): GraphNode<TTokenType> {
+        // Can happen when Graph.new is called.
+        if (!this.mRootNode) {
+            throw new Exception('Staring nodes must be chained with another node to be used.', this);
+        }
+
         return this.mRootNode;
     }
-
 
     /**
      * Creates an instance of GraphNode.
@@ -53,27 +70,27 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         // Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
         if (pIdentifier === '') {
             this.mIdentifier = {
-                key: '', list: false, mergeKey: '',
-                empty: true
+                dataKey: '', isList: false, mergeKey: '',
+                omitData: true
             };
         } else if (pIdentifier.endsWith('[]')) {
             this.mIdentifier = {
-                empty: false, list: true, mergeKey: '',
-                key: pIdentifier.substring(0, pIdentifier.length - 2), // Remove [] from key.
+                omitData: false, isList: true, mergeKey: '',
+                dataKey: pIdentifier.substring(0, pIdentifier.length - 2), // Remove [] from key.
             };
         } else if (pIdentifier.includes('<-')) {
             const lSplit: Array<string> = pIdentifier.split('<-');
             this.mIdentifier = {
-                empty: false,
-                list: true,
-                key: lSplit[0],
+                omitData: false,
+                isList: true,
+                dataKey: lSplit[0],
                 mergeKey: lSplit[1]
             };
         }
         else {
             this.mIdentifier = {
-                empty: false, list: false, mergeKey: '',
-                key: pIdentifier
+                omitData: false, isList: false, mergeKey: '',
+                dataKey: pIdentifier
             };
         }
 
@@ -86,6 +103,80 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         } else {
             this.mRootNode = pRootNode;
         }
+    }
+
+    /**
+     * 
+     * @param pNodeData - Value that this node has generated.
+     * @param pChainData - Value that the chained node has generated.
+     * @returns 
+     */
+    public mergeData(pNodeData: unknown, pChainData: object): TResultData {
+        // Nothing to do on empty nodes.
+        if (this.mIdentifier.omitData) {
+            return pChainData as TResultData;
+        }
+
+        // Data that should be merged into the chain data.
+        let lNodeData: unknown | null = null;
+
+        // Merge with merge key.
+        if (this.mIdentifier.mergeKey) {
+            // Node data must be an object
+            if (typeof pNodeData !== 'object' || pNodeData === null) {
+                throw new Exception('Node data must be an object when merge key is set.', this);
+            }
+
+            // Chain data must contain the merge key.
+            if (!(this.mIdentifier.mergeKey in pNodeData)) {
+                throw new Exception(`Node data does not contain merge key "${this.mIdentifier.mergeKey}"`, this);
+            }
+
+            // Read value from node data.
+            lNodeData = (<Record<string, unknown>>pNodeData)[this.mIdentifier.mergeKey];
+        } else {
+            // Node data is the value.
+            lNodeData = pNodeData;
+        }
+
+        // Merge as list.
+        if (this.mIdentifier.isList) {
+            const lNodeMergeValueIsArray: boolean = Array.isArray(lNodeData);
+
+            // Read value from chain data.
+            let lChainMergeValue: unknown = (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey];
+            const lChainMergeValueIsArray: boolean = Array.isArray(lChainMergeValue);
+
+            // Throw when chain merge value exists but is not an array.
+            if (typeof lChainMergeValue !== 'undefined' && !lChainMergeValueIsArray) {
+                throw new Exception(`Chain data merge value is not an array but should be.`, this);
+            }
+
+            // Create new array when is does not already exists in the chain data.
+            if (!lChainMergeValueIsArray) {
+                lChainMergeValue = new Array<unknown>();
+                (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lChainMergeValue;
+            }
+
+            // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
+            if (lNodeMergeValueIsArray) {
+                (<Array<unknown>>lChainMergeValue).unshift(...(<Array<unknown>>lNodeData));
+            } else {
+                (<Array<unknown>>lChainMergeValue).unshift(lNodeData);
+            }
+
+            return pChainData as TResultData;
+        }
+
+        // Throw when key already exists in chain data.
+        if (this.mIdentifier.dataKey in pChainData) {
+            throw new Exception(`Graph path has a dublicate value identifier "${this.mIdentifier.dataKey}"`, this);
+        }
+
+        // Merge as single key.
+        (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lNodeData;
+
+        return pChainData as TResultData;
     }
 
     /**
@@ -118,65 +209,6 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     }
 
     /**
-     * Creates and return a new required branch node.
-     * Sets the result value with the identifier.
-     * Chains the node after the current node and sets the correct previous node.
-     * 
-     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
-     * was called before this call, this method will throw an error, preventing multi chainings.
-     * 
-     * @param pIdentifier - Value identifier of node values.
-     * @param pBranches - Node branches.
-     * 
-     * @throws {@link Exception}
-     * When another chain method was called,
-     * 
-     * @returns A new branch node. 
-     */
-    public branch<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
-
-
-    /**
-     * Creates and return a new required branch node.
-     * Discards any result value.
-     * Chains the new node with the current and uses the root node from the current node.
-     * 
-     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
-     * was called before this call, this method will throw an error, preventing multi chainings.
-     * 
-     * @param pBranches - Node branches.
-     * 
-     * @throws {@link Exception}
-     * When the node was already chained before.
-     * 
-     * @returns A new required branch node.
-     */
-    public branch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): RequiredBranchChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
-
-
-    /**
-     * Creates a new branch node and chains it after the current node.
-     * 
-     * @param pIdentifierOrBranches - Either a string identifier for the new node or an array of branch values.
-     * @param pBranches - An optional array of branch values if the first parameter is a string identifier.
-     * 
-     * @returns The newly created and chained GraphNode.
-     */
-    public branch(pIdentifierOrBranches: GraphNodeKey | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
-        // Read mixed parameter with correct value. 
-        const lIdentifier: GraphNodeKey = Array.isArray(pIdentifierOrBranches) ? '' : pIdentifierOrBranches;
-        const lBranchValueList: Array<GraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
-
-        // Create new node and chain it after this node.
-        const lNode: GraphNode<TTokenType> = new GraphNode<TTokenType>(lIdentifier, true, lBranchValueList, this.mRootNode);
-
-        // Set the new node as next node of current node.
-        this.setChainedNode(lNode);
-
-        return lNode;
-    }
-
-    /**
      * Creates and return a new single optional value node.
      * Sets the result value with the identifier.
      * Chains the new node with the current and uses the root node from the current node.
@@ -192,7 +224,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public optional<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public optional<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): OptionalChainResult<TTokenType, TResultData, TKey, TValue>;
 
     /**
      * Creates and return a new single optional value node.
@@ -209,7 +241,42 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public optional<TValue extends GraphValue<TTokenType>>(pValue: TValue): OptionalChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
+    public optional<TValue extends GraphValue<TTokenType>>(pValue: TValue): OptionalChainResult<TTokenType, TResultData, GraphNodeEmptyKey, TValue>;
+
+    /**
+     * Creates and return a new optional branch node.
+     * Sets the result value with the identifier.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pIdentifier - Value identifier of node values.
+     * @param pBranches - Node branches.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns A new branch node. 
+     */
+    public optional<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): OptionalBranchChainResult<TTokenType, TResultData, TKey, TValue>;
+
+    /**
+     * Creates and return a new optional branch node.
+     * Discards any result value.
+     * Chains the new node with the current and uses the root node from the current node.
+     * 
+     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * 
+     * @throws {@link Exception}
+     * When the node was already chained before.
+     * 
+     * @returns A new required branch node.
+     */
+    public optional<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): OptionalBranchChainResult<TTokenType, TResultData, GraphNodeEmptyKey, TValue>;
 
     /**
      * Creates a new `GraphNode` with a optional single value and chains it after the current node.
@@ -219,72 +286,26 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained `GraphNode`.
      */
-    public optional(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
+    public optional(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType> | Array<GraphValue<TTokenType>>, pValue?: GraphValue<TTokenType> | Array<GraphValue<TTokenType>>): GraphNode<TTokenType, any> {
         // Read mixed parameter with correct value. 
         const lIdentifier: GraphNodeKey = (typeof pValue === 'undefined') ? '' : <GraphNodeKey>pIdentifierOrValue;
-        const lValue: GraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GraphValue<TTokenType>>pIdentifierOrValue : pValue!;
 
+        // Read values.
+        const lRawValues: GraphValue<TTokenType> | Array<GraphValue<TTokenType>> | undefined = (typeof pValue === 'undefined') ?
+            pIdentifierOrValue as (GraphValue<TTokenType> | Array<GraphValue<TTokenType>>) :
+            pValue;
+
+        // Save value as array.
+        const lValues: Array<GraphValue<TTokenType>> = new Array<GraphValue<TTokenType>>();
+        if (Array.isArray(lRawValues)) {
+            lValues.push(...lRawValues);
+        }
+        else {
+            lValues.push(lRawValues);
+        }
+        
         // Create new node and chain it after this node.
-        const lNode: GraphNode<TTokenType> = new GraphNode<TTokenType>(lIdentifier, false, [lValue], this.mRootNode);
-
-        // Set the new node as next node of current node.
-        this.setChainedNode(lNode);
-
-        return lNode;
-    }
-
-    /**
-     * Creates and return a new optional branch node.
-     * Sets the result value with the identifier.
-     * Chains the node after the current node and sets the correct previous node.
-     * 
-     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
-     * was called before this call, this method will throw an error, preventing multi chainings.
-     * 
-     * @param pIdentifier - Value identifier of node values.
-     * @param pBranches - Node branches.
-     * 
-     * @throws {@link Exception}
-     * When another chain method was called,
-     * 
-     * @returns A new branch node. 
-     */
-    public optionalBranch<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, TKey, TValue>;
-
-
-    /**
-     * Creates and return a new optional branch node.
-     * Discards any result value.
-     * Chains the new node with the current and uses the root node from the current node.
-     * 
-     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
-     * was called before this call, this method will throw an error, preventing multi chainings.
-     * 
-     * @param pBranches - Node branches.
-     * 
-     * @throws {@link Exception}
-     * When the node was already chained before.
-     * 
-     * @returns A new required branch node.
-     */
-    public optionalBranch<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): OptionalBranchChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
-
-
-    /**
-     * Creates a new branch node and chains it after the current node.
-     * 
-     * @param pIdentifierOrBranches - Either a string identifier for the new node or an array of branch values.
-     * @param pBranches - An optional array of branch values if the first parameter is a string identifier.
-     * 
-     * @returns The newly created and chained GraphNode.
-     */
-    public optionalBranch(pIdentifierOrBranches: GraphNodeKey | Array<GraphValue<TTokenType>>, pBranches?: Array<GraphValue<TTokenType>>): GraphNode<TTokenType, TCurrentResult> {
-        // Read mixed parameter with correct value. 
-        const lIdentifier: GraphNodeKey = Array.isArray(pIdentifierOrBranches) ? '' : pIdentifierOrBranches;
-        const lBranchValueList: Array<GraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
-
-        // Create new node and chain it after this node.
-        const lNode: GraphNode<TTokenType> = new GraphNode<TTokenType>(lIdentifier, false, lBranchValueList, this.mRootNode);
+        const lNode: GraphNode<TTokenType, any> = new GraphNode<TTokenType, any>(lIdentifier, false, lValues, this.mRootNode);
 
         // Set the new node as next node of current node.
         this.setChainedNode(lNode);
@@ -308,7 +329,7 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public required<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, TKey, TValue>;
+    public required<TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>>(pIdentifier: TKey, pValue: TValue): RequiredChainResult<TTokenType, TResultData, TKey, TValue>;
 
     /**
      * Creates and return a new single required value node.
@@ -325,7 +346,42 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The new single value node. 
      */
-    public required<TValue extends GraphValue<TTokenType>>(pValue: TValue): RequiredChainResult<TTokenType, TCurrentResult, GraphNodeEmptyKey, TValue>;
+    public required<TValue extends GraphValue<TTokenType>>(pValue: TValue): RequiredChainResult<TTokenType, TResultData, GraphNodeEmptyKey, TValue>;
+
+    /**
+     * Creates and return a new required branch node.
+     * Sets the result value with the identifier.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pIdentifier - Value identifier of node values.
+     * @param pBranches - Node branches.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns A new branch node. 
+     */
+    public required<TKey extends GraphNodeKey, const TValue extends Array<GraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): RequiredBranchChainResult<TTokenType, TResultData, TKey, TValue>;
+
+    /**
+     * Creates and return a new required branch node.
+     * Discards any result value.
+     * Chains the new node with the current and uses the root node from the current node.
+     * 
+     * When another chain method ({@link GraphNode.optional}, {@link GraphNode.required}, {@link GraphNode.branch} or {@link GraphNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * 
+     * @throws {@link Exception}
+     * When the node was already chained before.
+     * 
+     * @returns A new required branch node.
+     */
+    public required<const TValue extends Array<GraphValue<TTokenType>>>(pBranches: TValue): RequiredBranchChainResult<TTokenType, TResultData, GraphNodeEmptyKey, TValue>;
 
     /**
      * Creates a new `GraphNode` with a required single value and chains it after the current node.
@@ -335,13 +391,26 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
      * 
      * @returns The newly created and chained `GraphNode`.
      */
-    public required(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType>, pValue?: GraphValue<TTokenType>): GraphNode<TTokenType> {
+    public required(pIdentifierOrValue: GraphNodeKey | GraphValue<TTokenType> | Array<GraphValue<TTokenType>>, pValue?: GraphValue<TTokenType> | Array<GraphValue<TTokenType>>): GraphNode<TTokenType, any> {
         // Read mixed parameter with correct value. 
         const lIdentifier: GraphNodeKey = (typeof pValue === 'undefined') ? '' : <GraphNodeKey>pIdentifierOrValue;
-        const lValue: GraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
+        // Read values.
+        const lRawValues: GraphValue<TTokenType> | Array<GraphValue<TTokenType>> | undefined = (typeof pValue === 'undefined') ?
+            pIdentifierOrValue as (GraphValue<TTokenType> | Array<GraphValue<TTokenType>>) :
+            pValue;
+
+        // Save value as array.
+        const lValues: Array<GraphValue<TTokenType>> = new Array<GraphValue<TTokenType>>();
+        if (Array.isArray(lRawValues)) {
+            lValues.push(...lRawValues);
+        }
+        else {
+            lValues.push(lRawValues);
+        }
 
         // Create new node and chain it after this node.
-        const lNode: GraphNode<TTokenType> = new GraphNode<TTokenType>(lIdentifier, true, [lValue], this.mRootNode);
+        const lNode: GraphNode<TTokenType, any> = new GraphNode<TTokenType, any>(lIdentifier, true, lValues, this.mRootNode);
 
         // Set the new node as next node of current node.
         this.setChainedNode(lNode);
@@ -368,10 +437,17 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     }
 }
 
+type GraphNodeConfiguration = {
+    dataKey: string;
+    isList: boolean;
+    isRequired: boolean;
+    isBranch: boolean;
+};
+
 type GraphNodeIdentifier = {
-    empty: boolean;
-    key: string;
-    list: boolean;
+    omitData: boolean;
+    dataKey: string;
+    isList: boolean;
     mergeKey: string;
 };
 

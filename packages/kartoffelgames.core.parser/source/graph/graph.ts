@@ -31,7 +31,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object, TRes
             this.mResolvedGraphNode = this.mGraphCollector();
         }
 
-        return this.mResolvedGraphNode;
+        return this.mResolvedGraphNode as GraphNode<TTokenType, TOriginalData>;
     }
 
     /**

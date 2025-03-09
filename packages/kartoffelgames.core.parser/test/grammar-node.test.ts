@@ -31,8 +31,31 @@ describe('graphNode', () => {
         expect(lGraph.root).toBe(lRequiredNode);
     });
 
-    describe('Functionality: Chainging', () => {
-        it('-- Create with chaining required unnamed', () => {
+    it('Property: configuration', () => {
+        // Setup.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+        // Process.
+        const lGraph: GraphNode<string> = lRequiredNode.required('Name', 'Value');
+
+        // Evaluation.
+        expect(lGraph.root).toBe(lRequiredNode);
+        expect(lGraph.configuration.isRequired).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
+        expect(lGraph.configuration.isBranch).toBeFalsy();
+        expect(lGraph.configuration.dataKey).toBe('Name');
+    });
+
+    describe('Method: mergeData', () => {
+        // TODO: 
+    });
+
+    describe('Method: next', () => {
+        // TODO: 
+    });
+
+    describe('Method: required', () => {
+        it('-- Create linear unnamed', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
@@ -47,52 +70,7 @@ describe('graphNode', () => {
             expect(lGraph.configuration.dataKey).toBe('');
         });
 
-        it('-- Create with chaining optional unnamed', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional('Value');
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeFalsy();
-            expect(lGraph.configuration.dataKey).toBe('');
-        });
-
-        it('-- Create with chaining branch unnamed', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.required(['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeTruthy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('');
-        });
-
-        it('-- Create with chaining optional branch unnamed', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional(['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('');
-        });
-
-        it('-- Create with chaining required named', () => {
+        it('-- Create linear named', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
@@ -107,52 +85,7 @@ describe('graphNode', () => {
             expect(lGraph.configuration.dataKey).toBe('Name');
         });
 
-        it('-- Create with chaining optional named', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional('Name', 'Value');
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeFalsy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining branch named', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.required('Name', ['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeTruthy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining optional branch named', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional('Name', ['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeFalsy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining required named list', () => {
+        it('-- Create linear list', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
@@ -167,52 +100,7 @@ describe('graphNode', () => {
             expect(lGraph.configuration.dataKey).toBe('Name');
         });
 
-        it('-- Create with chaining optional named list', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]', 'Value');
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeTruthy();
-            expect(lGraph.configuration.isBranch).toBeFalsy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining branch named list', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.required('Name[]', ['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeTruthy();
-            expect(lGraph.configuration.isList).toBeTruthy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining optional branch named list', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]', ['Value', 'Value2']);
-
-            // Evaluation.
-            expect(lGraph.root).toBe(lRequiredNode);
-            expect(lGraph.configuration.isRequired).toBeFalsy();
-            expect(lGraph.configuration.isList).toBeTruthy();
-            expect(lGraph.configuration.isBranch).toBeTruthy();
-            expect(lGraph.configuration.dataKey).toBe('Name');
-        });
-
-        it('-- Create with chaining required named merge', () => {
+        it('-- Create linear merge', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
@@ -229,7 +117,113 @@ describe('graphNode', () => {
             expect(lGraph.configuration.dataKey).toBe('Name');
         });
 
-        it('-- Create with chaining optional named merge', () => {
+        it('-- Create branch unnamed', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.required(['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeTruthy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('');
+        });
+
+        it('-- Create branch named', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.required('Name', ['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeTruthy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Create branch list', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.required('Name[]', ['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeTruthy();
+            expect(lGraph.configuration.isList).toBeTruthy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Error double chaining', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            lRequiredNode.required('Value');
+            const lErrorFunction = () => {
+                lRequiredNode.required('Value');
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).toThrow(Exception);
+        });
+    });
+
+    describe('Method: optional', () => {
+        it('-- Create linear unnamed', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.optional('Value');
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeFalsy();
+            expect(lGraph.configuration.dataKey).toBe('');
+        });
+
+        it('-- Create linear named', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.optional('Name', 'Value');
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeFalsy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Create linear list', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]', 'Value');
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeTruthy();
+            expect(lGraph.configuration.isBranch).toBeFalsy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Create linear merge', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
@@ -246,14 +240,59 @@ describe('graphNode', () => {
             expect(lGraph.configuration.dataKey).toBe('Name');
         });
 
-        it('-- Error on Node double chaining', () => {
+        it('-- Create branch unnamed', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
             // Process.
-            lRequiredNode.required('Value');
+            const lGraph: GraphNode<string> = lRequiredNode.optional(['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('');
+        });
+
+        it('-- Create branch named', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.optional('Name', ['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeFalsy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Create branch list', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lGraph: GraphNode<string> = lRequiredNode.optional('Name[]', ['Value', 'Value2']);
+
+            // Evaluation.
+            expect(lGraph.root).toBe(lRequiredNode);
+            expect(lGraph.configuration.isRequired).toBeFalsy();
+            expect(lGraph.configuration.isList).toBeTruthy();
+            expect(lGraph.configuration.isBranch).toBeTruthy();
+            expect(lGraph.configuration.dataKey).toBe('Name');
+        });
+
+        it('-- Error double chaining', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            lRequiredNode.optional('Value');
             const lErrorFunction = () => {
-                lRequiredNode.required('Value');
+                lRequiredNode.optional('Value');
             };
 
             // Evaluation.

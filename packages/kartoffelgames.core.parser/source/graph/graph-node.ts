@@ -1,5 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
-import type { Graph } from "./graph.ts";
+import { Graph } from "./graph.ts";
 
 export class GraphNode<TTokenType extends string, TCurrentResult extends object = object> {
     /**
@@ -32,6 +32,14 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
     }
 
 
+    /**
+     * Creates an instance of GraphNode.
+     * 
+     * @param pIdentifier - The identifier for the graph node.
+     * @param pRequired - A boolean indicating whether the node is required.
+     * @param pValues - An array of values associated with the node.
+     * @param pRootNode - (Optional) The root node of the graph. If not provided, this node will be considered the root node.
+     */
     private constructor(pIdentifier: GraphNodeKey, pRequired: boolean, pValues: Array<GraphValue<TTokenType>>, pRootNode?: GraphNode<TTokenType>) {
         this.mChainedNode = null;
         this.mRequired = pRequired;
@@ -39,14 +47,8 @@ export class GraphNode<TTokenType extends string, TCurrentResult extends object 
         // TODO: Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
         this.mIdentifier = pIdentifier;
 
-        // When the value is a graph node, spool it back to its root node. // TODO: Convert it into a graph.
-        this.mValues = pValues.map(pValue => {
-            if (pValue instanceof GraphNode) {
-                return pValue.root;
-            }
-
-            return pValue;
-        });
+        // Save values.
+        this.mValues = pValues;
 
         // If the root node is not set, then this node is the root node.
         if (!pRootNode) {
@@ -383,17 +385,17 @@ type OptionalChainResult<TTokenType extends string, TCurrentResult extends objec
             TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
                 TNodeResultValue extends { [x in TMergeKey]: Array<TCurrentResultValue> } ? GraphNode<TTokenType, TCurrentResult> :
                 TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
-                never
+                unknown
             ) :
-            never
+            unknown
         ) :
-        TCurrentResult extends { [x in TPropertyKey]: any } ? never : // Should not have the key. 
+        TCurrentResult extends { [x in TPropertyKey]: any } ? unknown : // Should not have the key. 
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
             TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<TMergeValue> }>> :
             TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: TMergeValue }>> :
-            never
+            unknown
         ) :
-        never
+        unknown
     ) :
     TKey extends GraphNodeSingleKey ? (
         TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
@@ -414,17 +416,17 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
             TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
                 TNodeResultValue extends { [x in TMergeKey]: Array<TCurrentResultValue> } ? GraphNode<TTokenType, TCurrentResult> :
                 TNodeResultValue extends { [x in TMergeKey]: TCurrentResultValue } ? GraphNode<TTokenType, TCurrentResult> :
-                never
+                unknown
             ) :
-            never
+            unknown
         ) :
-        TCurrentResult extends { [x in TPropertyKey]: any } ? never : // Should not have the key. 
+        TCurrentResult extends { [x in TPropertyKey]: any } ? unknown : // Should not have the key. 
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
             TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TMergeValue> }>> :
             TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: TMergeValue }>> :
-            never
+            unknown
         ) :
-        never
+        unknown
     ) :
     TKey extends GraphNodeSingleKey ? (
         TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: string }>> :
@@ -435,14 +437,14 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
 
 type RequiredBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends GraphNodeMergeKey ? never : // Not allowed on branches.
+    TKey extends GraphNodeMergeKey ? unknown : // Not allowed on branches.
     TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
     TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]: UnwrapBranchResult<TTokenType, TValue> }>> :
     never;
 
 type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends Array<GraphValue<TTokenType>>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
-    TKey extends GraphNodeMergeKey ? never : // Not allowed on branches.
+    TKey extends GraphNodeMergeKey ? unknown : // Not allowed on branches.
     TKey extends `${infer TPropertyKey}[]` ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<UnwrapBranchResult<TTokenType, TValue>> }>> :
     TKey extends GraphNodeSingleKey ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TKey]?: UnwrapBranchResult<TTokenType, TValue> }>> :
     never;
@@ -451,7 +453,5 @@ type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends
  * Graph value types 
  */
 
-type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, object, TResult>;
+type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, any, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, object, TResult>;
 type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;
-
-

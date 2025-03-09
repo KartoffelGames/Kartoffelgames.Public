@@ -40,7 +40,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object, TRes
      * @param pGraph - Graph collector function.
      * @param pDataCollector - Data collector function.
      */
-    private constructor(pGraph: GraphNodeCollector) {
+    private constructor(pGraph: GraphNodeCollector<TTokenType, TOriginalData>) {
         this.mGraphCollector = pGraph;
         this.mDataConverterList = new Array<GraphDataCollector>();
         this.mResolvedGraphNode = null;
@@ -69,7 +69,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object, TRes
      * 
      * @param pConverter - Data converter
      */
-    public dataConvert<TConvertedData>(pConverter: GraphDataCollector<TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
+    public converter<TConvertedData>(pConverter: GraphDataCollector<TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
         const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector);
         
         // Add all previous data converters and the new converter to the new graph.
@@ -82,88 +82,4 @@ export class Graph<TTokenType extends string, TOriginalData extends object, TRes
 type GraphNodeCollector<TTokenType extends string = string, TResultData extends object = object> = () => GraphNode<TTokenType, TResultData>;
 type GraphDataCollector<TCurrentData = any, TResult = any> = (pRawData: TCurrentData) => TResult;
 
-export type GraphRef<TResultType> = Graph<any, any, TResultType>;
-
-
-
-// TODO: Fix typing of this.
-/*
-    1
-*/
-const lShitHead1 = Graph.define(() => {
-    const lSelf: GraphRef<{MYLIST: string[]}> = lShitHead1;
-
-    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lSelf);
-}).dataConvert((pData) => {
-    return pData;
-});
-
-
-/*
-    {
-        MYLIST: Array<string>
-    }
-*/
-const lShitHead1111 = Graph.define(() => {
-    return GraphNode.new().required('MYLIST[]', 'mytoken').required('MYLIST2<-MYLIST', lShitHead1);
-});
-
-/*
-    {
-        MYLIST: Array<string>
-    }
-*/
-const lShitHead2 = Graph.define(() => {
-    const lSelf: GraphRef<{MYLIST: string[]}> = lShitHead2;
-    return GraphNode.new().required('MYLIST[]', 'mytoken').optional('MYLIST<-MYLIST', lSelf);
-});
-
-/*
-    {
-        MYVAL: Array<string>,
-    }
-*/
-const lShitHead3 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL<-MYVAL2',
-        GraphNode.new().required('MYVAL2', 'mytoken2')
-    );
-});
-
-/*
-    {
-        MYVAL: Array<string>,
-        MYVAL2?: {
-            MYVAL2: string
-        }
-    }
-*/
-const lShitHead4 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').optional('MYVAL2',
-        GraphNode.new().required('MYVAL2', 'mytoken2')
-    );
-});
-
-/*
-    {
-        MYVAL: string
-    }
-*/
-const lShitHead5 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL', 'mytoken').optional('->',
-        GraphNode.new().required('MYVAL', 'mytoken2')
-    );
-});
-
-
-const lShitHead223 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL[]', 'mytoken').required('MYVAL<-MYVAL2x',
-        GraphNode.new().required('MYVAL2', 'mytoken2')
-    );
-});
-
-
-const lShitHead3223 = Graph.define(() => {
-    return GraphNode.new().required('MYVAL<-MYVAL2',
-        GraphNode.new().required('MYVAL2[]', 'mytoken2')
-    );
-});
+export type GraphRef<TResultType> = Graph<string, any, TResultType>;

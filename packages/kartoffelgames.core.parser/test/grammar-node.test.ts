@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { GraphNode } from "../source/graph/graph-node.ts";
+import { GraphNode, GraphValue } from "../source/graph/graph-node.ts";
 
 
 describe('graphNode', () => {
@@ -51,7 +51,213 @@ describe('graphNode', () => {
     });
 
     describe('Method: next', () => {
-        // TODO: 
+        it('-- Required single value, no next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe('Value');
+        });
+
+        it('-- Required single value, existing next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+            lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe('Value');
+        });
+
+        it('-- Optional single value, no next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(2);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBeNull();
+        });
+
+        it('-- Optional single value, existing next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(2);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBe(lNextNode);
+        });
+
+        it('-- Required single value, no next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBeNull();
+        });
+
+        it('-- Required single value, existing next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe(lNextNode);
+        });
+
+        it('-- Optional single value, no next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBeNull();
+        });
+
+        it('-- Optional single value, existing next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe(lNextNode);
+        });
+
+        it('-- Required branch value, no next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(2);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBe('Value2');
+        });
+
+        it('-- Required branch value, existing next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
+            lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(2);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBe('Value2');
+        });
+
+        it('-- Optional branch value, no next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(3);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBe('Value2');
+            expect(lValues[2]).toBeNull();
+        });
+
+        it('-- Optional branch value, existing next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+
+            // Evaluation.
+            expect(lValues).toHaveLength(3);
+            expect(lValues[0]).toBe('Value');
+            expect(lValues[1]).toBe('Value2');
+            expect(lValues[2]).toBe(lNextNode);
+        });
+
+        it('-- Required branch value, no next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBeNull();
+        });
+
+        it('-- Required branch value, existing next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe(lNextNode);
+        });
+
+        it('-- Optional branch value, no next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBeNull();
+        });
+
+        it('-- Optional branch value, existing next, forced next', () => {
+            // Setup.
+            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
+
+            // Process.
+            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
+
+            // Evaluation.
+            expect(lValues).toHaveLength(1);
+            expect(lValues[0]).toBe(lNextNode);
+        });
     });
 
     describe('Method: required', () => {

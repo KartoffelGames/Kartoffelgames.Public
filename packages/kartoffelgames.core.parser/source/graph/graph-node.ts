@@ -94,8 +94,14 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
             };
         }
 
-        // Save values.
-        this.mValues = pValues;
+        // Save values. Spool back all values to the root node.
+        this.mValues = pValues.map(pValue => {
+            if (pValue instanceof GraphNode) {
+                return pValue.root;
+            }
+
+            return pValue;
+        });
 
         // If the root node is not set, then this node is the root node.
         if (!pRootNode) {
@@ -105,7 +111,12 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         }
     }
 
+    public somethingIThinkAbout(): void {
+
+    }
+
     /**
+     * Merge data from chained nodes into current node data.
      * 
      * @param pNodeData - Value that this node has generated.
      * @param pChainData - Value that the chained node has generated.
@@ -567,4 +578,4 @@ type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends
  */
 
 type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, any, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, object, TResult>;
-type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;
+export type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;

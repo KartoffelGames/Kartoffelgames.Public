@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { GraphNode, GraphValue } from "../source/graph/graph-node.ts";
+import { GraphNode, GraphNodeConnections, GraphValue } from "../source/graph/graph-node.ts";
 
 
 describe('graphNode', () => {
@@ -46,34 +46,34 @@ describe('graphNode', () => {
         expect(lGraph.configuration.dataKey).toBe('Name');
     });
 
-    describe('Method: mergeData', () => {
-        // TODO: 
-    });
-
-    describe('Method: next', () => {
+    describe('Property: configuration', () => {
         it('-- Required single value, no next', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe('Value');
+            expect(lConnections.required).toBeTruthy();
+            expect(lConnections.values).toHaveLength(1);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.next).toBeNull();
         });
 
         it('-- Required single value, existing next', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-            lRequiredNode.required('Value');
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe('Value');
+            expect(lConnections.required).toBeTruthy();
+            expect(lConnections.values).toHaveLength(1);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.next).toBe(lNextNode);
         });
 
         it('-- Optional single value, no next', () => {
@@ -81,12 +81,13 @@ describe('graphNode', () => {
             const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(2);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBeNull();
+            expect(lConnections.required).toBeFalsy();
+            expect(lConnections.values).toHaveLength(1);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.next).toBeNull();
         });
 
         it('-- Optional single value, existing next', () => {
@@ -95,62 +96,13 @@ describe('graphNode', () => {
             const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(2);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBe(lNextNode);
-        });
-
-        it('-- Required single value, no next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBeNull();
-        });
-
-        it('-- Required single value, existing next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required('Value');
-            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe(lNextNode);
-        });
-
-        it('-- Optional single value, no next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBeNull();
-        });
-
-        it('-- Optional single value, existing next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().optional('Value');
-            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe(lNextNode);
+            expect(lConnections.required).toBeFalsy();
+            expect(lConnections.values).toHaveLength(1);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.next).toBe(lNextNode);
         });
 
         it('-- Required branch value, no next', () => {
@@ -158,26 +110,29 @@ describe('graphNode', () => {
             const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(2);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBe('Value2');
+            expect(lConnections.required).toBeTruthy();
+            expect(lConnections.values).toHaveLength(2);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.values[1]).toBe('Value2');
+            expect(lConnections.next).toBeNull();
         });
 
         it('-- Required branch value, existing next', () => {
             // Setup.
             const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
-            lRequiredNode.required('Value');
-
+            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(2);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBe('Value2');
+            expect(lConnections.required).toBeTruthy();
+            expect(lConnections.values).toHaveLength(2);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.values[1]).toBe('Value2');
+            expect(lConnections.next).toBe(lNextNode);
         });
 
         it('-- Optional branch value, no next', () => {
@@ -185,13 +140,14 @@ describe('graphNode', () => {
             const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(3);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBe('Value2');
-            expect(lValues[2]).toBeNull();
+            expect(lConnections.required).toBeFalsy();
+            expect(lConnections.values).toHaveLength(2);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.values[1]).toBe('Value2');
+            expect(lConnections.next).toBeNull();
         });
 
         it('-- Optional branch value, existing next', () => {
@@ -200,64 +156,19 @@ describe('graphNode', () => {
             const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
 
             // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next();
+            const lConnections: GraphNodeConnections<string> = lRequiredNode.connections
 
             // Evaluation.
-            expect(lValues).toHaveLength(3);
-            expect(lValues[0]).toBe('Value');
-            expect(lValues[1]).toBe('Value2');
-            expect(lValues[2]).toBe(lNextNode);
+            expect(lConnections.required).toBeFalsy();
+            expect(lConnections.values).toHaveLength(2);
+            expect(lConnections.values[0]).toBe('Value');
+            expect(lConnections.values[1]).toBe('Value2');
+            expect(lConnections.next).toBe(lNextNode);
         });
+    });
 
-        it('-- Required branch value, no next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBeNull();
-        });
-
-        it('-- Required branch value, existing next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().required(['Value', 'Value2']);
-            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe(lNextNode);
-        });
-
-        it('-- Optional branch value, no next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBeNull();
-        });
-
-        it('-- Optional branch value, existing next, forced next', () => {
-            // Setup.
-            const lRequiredNode: GraphNode<string> = GraphNode.new().optional(['Value', 'Value2']);
-            const lNextNode: GraphNode<string> = lRequiredNode.required('Value');
-
-            // Process.
-            const lValues: Array<GraphValue<string> | null> = lRequiredNode.next(true);
-
-            // Evaluation.
-            expect(lValues).toHaveLength(1);
-            expect(lValues[0]).toBe(lNextNode);
-        });
+    describe('Method: mergeData', () => {
+        // TODO: 
     });
 
     describe('Method: required', () => {

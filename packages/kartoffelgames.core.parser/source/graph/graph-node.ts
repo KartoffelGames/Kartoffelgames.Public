@@ -24,11 +24,9 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         return lAnonymousNode;
     }
 
-    private mChainedNode: GraphNode<TTokenType> | null;
     private readonly mIdentifier: GraphNodeIdentifier;
     private mRootNode: GraphNode<TTokenType>;
-    private readonly mRequired: boolean;
-    private readonly mValues: Array<GraphValue<TTokenType>>;
+    private readonly mConnections: GraphNodeConnections<TTokenType>;
 
     /**
      * Overall graph node configuration.
@@ -38,9 +36,13 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         return {
             dataKey: this.mIdentifier.dataKey,
             isList: this.mIdentifier.isList,
-            isRequired: this.mRequired,
-            isBranch: this.mValues.length > 1
+            isRequired: this.mConnections.required,
+            isBranch: this.mConnections.values.length > 1
         };
+    }
+
+    public get connections(): GraphNodeConnections<TTokenType> {
+        return this.mConnections;
     }
 
     /**
@@ -64,9 +66,6 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
      * @param pRootNode - (Optional) The root node of the graph. If not provided, this node will be considered the root node.
      */
     private constructor(pIdentifier: GraphNodeKey, pRequired: boolean, pValues: Array<GraphValue<TTokenType>>, pRootNode?: GraphNode<TTokenType>) {
-        this.mChainedNode = null;
-        this.mRequired = pRequired;
-
         // Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
         if (pIdentifier === '') {
             this.mIdentifier = {
@@ -95,13 +94,18 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         }
 
         // Save values. Spool back all values to the root node.
-        this.mValues = pValues.map(pValue => {
-            if (pValue instanceof GraphNode) {
-                return pValue.root;
-            }
+        this.mConnections = {
+            required: pRequired,
+            next: null,
+            // Convert all graph nodes to their root node.
+            values: pValues.map(pValue => {
+                if (pValue instanceof GraphNode) {
+                    return pValue.root;
+                }
 
-            return pValue;
-        });
+                return pValue;
+            })
+        };
 
         // If the root node is not set, then this node is the root node.
         if (!pRootNode) {
@@ -109,10 +113,6 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         } else {
             this.mRootNode = pRootNode;
         }
-    }
-
-    public somethingIThinkAbout(): void {
-
     }
 
     /**
@@ -188,35 +188,6 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lNodeData;
 
         return pChainData as TResultData;
-    }
-
-    /**
-     * Get the next graph node values.
-     * Includes NULL when graph node has no next value.
-     * This NULL value can only be returned when the node is not required or when the chained node is forced.
-     * 
-     * When the node is not required, the chained node is added to the list as well.
-     * 
-     * @param pJustChained - When true, only the chained node is returned and all inner values are ignored. 
-     * 
-     * @returns The next graph node values.
-     */
-    public next(pJustChained: boolean = false): Array<GraphValue<TTokenType> | null> {
-        // Return only the chained node when the inner values should be ignored.
-        if (pJustChained) {
-            return [this.mChainedNode];
-        }
-
-        // Collect all inner values.
-        const lNextTokenNodes: Array<GraphValue<TTokenType> | null> = [...this.mValues];
-
-        // When the node is not required, add the chained node to the list so the parser can skip any inner node.
-        if (!this.mRequired) {
-            lNextTokenNodes.push(this.mChainedNode);
-        }
-
-        // Return chained node.
-        return lNextTokenNodes;
     }
 
     /**
@@ -314,7 +285,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         else {
             lValues.push(lRawValues);
         }
-        
+
         // Create new node and chain it after this node.
         const lNode: GraphNode<TTokenType, any> = new GraphNode<TTokenType, any>(lIdentifier, false, lValues, this.mRootNode);
 
@@ -440,11 +411,11 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
      */
     private setChainedNode(pChainedNode: GraphNode<TTokenType>): void {
         // Restrict multi chaining.
-        if (this.mChainedNode !== null) {
+        if (this.mConnections.next !== null) {
             throw new Exception(`Node can only be chained to a single node.`, this);
         }
 
-        this.mChainedNode = pChainedNode;
+        this.mConnections.next = pChainedNode;
     }
 }
 
@@ -579,3 +550,10 @@ type OptionalBranchChainResult<TTokenType extends string, TCurrentResult extends
 
 type GraphNodeValue<TTokenType extends string, TResult> = TResult extends object ? Graph<TTokenType, any, TResult> | GraphNode<TTokenType, TResult> : Graph<TTokenType, object, TResult>;
 export type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<TTokenType, any>;
+
+
+export type GraphNodeConnections<TTokenType extends string> = {
+    required: boolean;
+    next:  GraphNode<TTokenType> | null;
+    values: Array<GraphValue<TTokenType>>;
+};

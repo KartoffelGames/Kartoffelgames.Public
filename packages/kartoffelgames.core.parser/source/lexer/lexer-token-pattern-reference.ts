@@ -1,16 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
-import { LexerToken } from './lexer-token.ts';
+import type { LexerToken } from './lexer-token.ts';
 import type { Lexer } from './lexer.ts';
 
 /**
  * Represents a pattern that can be used to match a series of token.
  */
 export class LexerPattern<TTokenType extends string> {
+    private mFetchResolved: boolean;
+    private readonly mInnerFetch: LexerTokenPatternDependencyFetch<TTokenType> | null;
     private readonly mLexer: Lexer<TTokenType>;
     private readonly mPattern: LexerTokenPatternDefinition<TTokenType>;
-    private readonly mInnerFetch: LexerTokenPatternDependencyFetch<TTokenType> | null;
-    private mFetchResolved: boolean;
-
+    
     /**
      * Check if all dependencies are resolved.
      */

@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
-import { LexerPattern } from '../source/lexer/lexer-token-pattern-reference.ts';
 import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 

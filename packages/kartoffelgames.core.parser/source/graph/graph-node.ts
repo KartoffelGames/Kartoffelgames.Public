@@ -1,5 +1,5 @@
-import { Exception } from "@kartoffelgames/core";
-import { Graph } from "./graph.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { Graph } from './graph.ts';
 
 /**
  * Represents a node in a graph structure.
@@ -11,8 +11,10 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
     /**
      * Start a new branch node.
      */
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     public static new<TTokenType extends string>(): GraphNode<TTokenType, {}> {
         // Create an empty node.
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         const lAnonymousNode: GraphNode<TTokenType, {}> = new GraphNode<TTokenType>('', false, []);
 
         // Shady shit. 
@@ -24,10 +26,10 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         return lAnonymousNode;
     }
 
+    private readonly mConnections: GraphNodeConnections<TTokenType>;
     private readonly mIdentifier: GraphNodeIdentifier;
     private mRootNode: GraphNode<TTokenType>;
-    private readonly mConnections: GraphNodeConnections<TTokenType>;
-
+    
     /**
      * Overall graph node configuration.
      * Dont use it for production code.
@@ -450,7 +452,7 @@ type Prettify<T> = {
     [K in keyof T]: T[K];
 } & unknown;
 
-type MergeObjects<T extends object, U extends object> = Prettify<{ [K in keyof T]: K extends keyof U ? U[K] : T[K] } & U>;
+type MergeObjects<TTarget extends object, TSource extends object> = Prettify<{ [K in keyof TTarget]: K extends keyof TSource ? TSource[K] : TTarget[K] } & TSource>;
 
 /*
  * Branch result extend types. 

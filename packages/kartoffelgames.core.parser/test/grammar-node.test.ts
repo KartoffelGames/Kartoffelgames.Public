@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { GraphNode, GraphNodeConnections, GraphValue } from "../source/graph/graph-node.ts";
+import { GraphNode, type GraphNodeConnections } from '../source/graph/graph-node.ts';
 
 
 describe('graphNode', () => {
@@ -12,7 +12,7 @@ describe('graphNode', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lAnonymousNode.root;
+                const _ = lAnonymousNode.root;
             };
 
             // Evaluation.

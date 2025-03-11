@@ -1,4 +1,4 @@
-import { GraphNode } from "./graph-node.ts";
+import type { GraphNode } from './graph-node.ts';
 
 /**
  * Represents a generic graph structure that can be defined with a graph collector and an optional data collector.
@@ -19,8 +19,8 @@ export class Graph<TTokenType extends string, TOriginalData extends object, TRes
         return new Graph(pNodeCollector);
     }
 
-    private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
     private readonly mDataConverterList: Array<GraphDataCollector>;
+    private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
 
     /**

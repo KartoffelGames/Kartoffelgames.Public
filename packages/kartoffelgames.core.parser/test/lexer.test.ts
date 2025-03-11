@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
-import { LexerTokenPatternReference } from '../source/lexer/lexer-token-pattern-reference.ts';
+import { LexerPattern } from '../source/lexer/lexer-token-pattern-reference.ts';
 import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 
@@ -880,19 +880,6 @@ describe('Lexer', () => {
 
             // Evaluation.
             expect(lSuccessFunction).not.toThrow();
-        });
-
-        it('-- Non existing pattern.', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-
-            // Process.
-            const lErrorFunction = () => {
-                lLexer.useTokenPattern(new LexerTokenPatternReference(lLexer, Symbol('Whatever')), 0);
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).toThrow(`Lexer pattern does not exist.`);
         });
 
         it('-- Set specificity', () => {

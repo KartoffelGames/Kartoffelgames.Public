@@ -3,6 +3,8 @@ import { ParserException } from '../exception/parser-exception.ts';
 import { LexerPattern, type LexerTokenPattern, type LexerTokenPatternDefinitionMatcher, type LexerTokenPatternDefinitionScope, type LexerTokenPatternDefinitionType, type LexerTokenPatternDependencyFetch } from './lexer-token-pattern-reference.ts';
 import { LexerToken } from './lexer-token.ts';
 
+// TODO: Remove pattern access with pPattern.patern.pattern bullshit. But make it performant please...
+
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
  * Creates a iterator that iterates over each found token till end of text.

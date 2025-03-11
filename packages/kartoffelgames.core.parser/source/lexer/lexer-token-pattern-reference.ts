@@ -154,6 +154,8 @@ export class LexerPattern<TTokenType extends string> {
     }
 }
 
+// TODO: Cleanup types or so... best garbage.
+
 export type LexerTokenPatternDependencyFetch<TTokenType extends string> = (pLexer: Lexer<TTokenType>) => void;
 
 /* 

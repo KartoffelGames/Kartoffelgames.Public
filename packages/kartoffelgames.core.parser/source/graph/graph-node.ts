@@ -128,6 +128,19 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
             return pChainData as TResultData;
         }
 
+        // Merge as single key. Single keys are never merge keys
+        if (!this.mIdentifier.isList) {
+            // Throw when key already exists in chain data.
+            if (this.mIdentifier.dataKey in pChainData) {
+                throw new Exception(`Graph path has a dublicate value identifier "${this.mIdentifier.dataKey}"`, this);
+            }
+
+            // Merge as single key.
+            (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = pNodeData;
+
+            return pChainData as TResultData;
+        }
+
         // Data that should be merged into the chain data.
         let lNodeData: unknown | null = null;
 
@@ -151,41 +164,28 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         }
 
         // Merge as list.
-        if (this.mIdentifier.isList) {
-            const lNodeMergeValueIsArray: boolean = Array.isArray(lNodeData);
 
-            // Read value from chain data.
-            let lChainMergeValue: unknown = (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey];
-            const lChainMergeValueIsArray: boolean = Array.isArray(lChainMergeValue);
+        // Read value from chain data.
+        let lChainMergeValue: unknown = (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey];
+        const lChainMergeValueIsArray: boolean = Array.isArray(lChainMergeValue);
 
-            // Throw when chain merge value exists but is not an array.
-            if (typeof lChainMergeValue !== 'undefined' && !lChainMergeValueIsArray) {
-                throw new Exception(`Chain data merge value is not an array but should be.`, this);
-            }
-
-            // Create new array when is does not already exists in the chain data.
-            if (!lChainMergeValueIsArray) {
-                lChainMergeValue = new Array<unknown>();
-                (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lChainMergeValue;
-            }
-
-            // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
-            if (lNodeMergeValueIsArray) {
-                (<Array<unknown>>lChainMergeValue).unshift(...(<Array<unknown>>lNodeData));
-            } else {
-                (<Array<unknown>>lChainMergeValue).unshift(lNodeData);
-            }
-
-            return pChainData as TResultData;
+        // Throw when chain merge value exists but is not an array.
+        if (typeof lChainMergeValue !== 'undefined' && !lChainMergeValueIsArray) {
+            throw new Exception(`Chain data merge value is not an array but should be.`, this);
         }
 
-        // Throw when key already exists in chain data.
-        if (this.mIdentifier.dataKey in pChainData) {
-            throw new Exception(`Graph path has a dublicate value identifier "${this.mIdentifier.dataKey}"`, this);
+        // Create new array when is does not already exists in the chain data.
+        if (!lChainMergeValueIsArray) {
+            lChainMergeValue = new Array<unknown>();
+            (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lChainMergeValue;
         }
 
-        // Merge as single key.
-        (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lNodeData;
+        // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
+        if (Array.isArray(lNodeData)) {
+            (<Array<unknown>>lChainMergeValue).unshift(...lNodeData.reverse());
+        } else {
+            (<Array<unknown>>lChainMergeValue).unshift(lNodeData);
+        }
 
         return pChainData as TResultData;
     }
@@ -554,6 +554,6 @@ export type GraphValue<TTokenType extends string> = TTokenType | GraphNodeValue<
 
 export type GraphNodeConnections<TTokenType extends string> = {
     required: boolean;
-    next:  GraphNode<TTokenType> | null;
+    next: GraphNode<TTokenType> | null;
     values: Array<GraphValue<TTokenType>>;
 };

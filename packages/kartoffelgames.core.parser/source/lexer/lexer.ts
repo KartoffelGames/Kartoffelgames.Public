@@ -444,7 +444,7 @@ export class Lexer<TTokenType extends string> {
             }
 
             // Check endtoken first.
-            if (pEndToken && pEndToken.isSplit()) {
+            if (pEndToken && pEndToken.is('split')) {
                 // Get token start regex and set cursor position.
                 const lEndTokenMatcher: LexerPatternTokenMatcher<TTokenType> = pEndToken.pattern.end;
 
@@ -477,10 +477,10 @@ export class Lexer<TTokenType extends string> {
                 // Get token start regex and set cursor position and use single token types or start token types for different pattern types.
                 let lStartTokenMatcher!: LexerPatternTokenMatcher<TTokenType>;
                 let lTokenTypes!: LexerPatternTokenTypes<TTokenType>;
-                if (lTokenPattern.isSplit()) {
+                if (lTokenPattern.is('split')) {
                     lStartTokenMatcher = lTokenPattern.pattern.start;
                     lTokenTypes = lTokenPattern.pattern.start.types;
-                } else if (lTokenPattern.isSingle()) {
+                } else if (lTokenPattern.is('single')) {
                     lStartTokenMatcher = lTokenPattern.pattern;
                     lTokenTypes = lTokenPattern.pattern.types;
                 }
@@ -518,7 +518,7 @@ export class Lexer<TTokenType extends string> {
                 yield lFoundToken;
 
                 // Continue with next token when the current pattern is not a split pattern.
-                if (!lTokenPattern.isSplit()) {
+                if (!lTokenPattern.is('split')) {
                     continue remainingDataLoop;
                 }
 

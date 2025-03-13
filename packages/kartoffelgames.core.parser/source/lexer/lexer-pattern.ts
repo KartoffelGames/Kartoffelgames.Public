@@ -88,17 +88,8 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      *
      * @returns {boolean} True if the lexer pattern type is 'split', otherwise false.
      */
-    public isSplit(): this is LexerPattern<TTokenType, 'split'> {
-        return this.mType === 'split';
-    }
-
-    /**
-     * Determines if the lexer pattern is of type 'single'.
-     *
-     * @returns {this is LexerPattern<TTokenType, 'single'>} True if the lexer pattern is of type 'single', otherwise false.
-     */
-    public isSingle(): this is LexerPattern<TTokenType, 'single'> {
-        return this.mType === 'single';
+    public is<T extends TPatternType>(pPatternType: T): this is LexerPattern<TTokenType, T> {
+        return this.mType === pPatternType;
     }
 
     /**
@@ -124,29 +115,39 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      */
     private convertTokenPattern(pPatternType: TPatternType, pPattern: LexerPatternConstructorParameter<TTokenType, TPatternType>['pattern']): LexerPatternDefinition<TTokenType, TPatternType> {
         // Convert pattern.
-        if (pPatternType === 'single') {
+        if ('single' in pPattern) {
+            // Pattern type must be single pattern.
+            if (pPatternType === 'split') {
+                throw new Exception(`Can't use single pattern with split pattern definition.`, this);
+            }
+
             // Single pattern
             return {
                 regex: pPattern.single.regex,
-                types: pPattern.single.type,
+                types: pPattern.single.types,
                 validator: pPattern.single.validator ?? null
-            } satisfies LexerPatternDefinitionSingle<TTokenType>;
+            } satisfies LexerPatternDefinitionSingle<TTokenType> as any;
         } else {
+            // Pattern type must be single pattern.
+            if (pPatternType === 'single') {
+                throw new Exception(`Can't use split pattern with single pattern definition.`, this);	
+            }
+
             // Split pattern.
             return {
                 start: {
                     regex: pPattern.start.regex,
-                    types: pPattern.start.type,
+                    types: pPattern.start.types,
                     validator: pPattern.start.validator ?? null
                 },
                 end: {
                     regex: pPattern.end.regex,
-                    types: pPattern.end.type,
+                    types: pPattern.end.types,
                     validator: pPattern.end.validator ?? null
                 },
                 // Optional inner type.
                 innerType: pPattern.innerType ?? null
-            } satisfies LexerPatternDefinitionSplit<TTokenType>;
+            } satisfies LexerPatternDefinitionSplit<TTokenType> as any;
         }
     }
 }
@@ -177,15 +178,11 @@ export type LexerPatternConstructorParameter<TTokenType extends string, TPattern
     type: TPatternType;
     metadata: Array<string>;
     dependencyFetch: LexerPatternDependencyFetch<TTokenType> | null;
-    pattern: (
-        TPatternType extends 'split' ? {
-            start: LexerPatternTokenMatcher<TTokenType>;
-            end: LexerPatternTokenMatcher<TTokenType>;
-            innerType: TTokenType | null;
-        } :
-        TPatternType extends 'single' ? { single: LexerPatternTokenMatcher<TTokenType>; } :
-        never
-    );
+    pattern: {
+        start: LexerPatternTokenMatcher<TTokenType>;
+        end: LexerPatternTokenMatcher<TTokenType>;
+        innerType: TTokenType | null;
+    } | { single: LexerPatternTokenMatcher<TTokenType>; };
 };
 
 /**

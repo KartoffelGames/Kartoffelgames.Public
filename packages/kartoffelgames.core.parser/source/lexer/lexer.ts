@@ -1,9 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { ParserException } from '../exception/parser-exception.ts';
-import { LexerPattern, LexerPatternConstructorParameter, type LexerPatternDependencyFetch, LexerPatternTokenMatcher, LexerPatternTokenTypes, LexerPatternTokenValidator, LexerPatternType } from './lexer-pattern.ts';
+import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
-
-// TODO: Remove pattern access with pPattern.patern.pattern bullshit. But make it performant please...
 
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
@@ -14,7 +12,7 @@ import { LexerToken } from './lexer-token.ts';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: Array<LexerPattern<TTokenType, LexerPatternType>>;
+    private mCurrentPatternScope: LexerPatternScope;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     /**
@@ -64,11 +62,18 @@ export class Lexer<TTokenType extends string> {
      */
     public constructor() {
         // Set defaults.
-        this.mCurrentPatternScope = new Array<LexerPattern<TTokenType, LexerPatternType>>();
         this.mSettings = {
             errorType: null,
             trimSpaces: true,
             whiteSpaces: new Set<string>()
+        };
+
+        // Core dependency scope
+        this.mCurrentPatternScope = {
+            dependencies: Array<LexerPattern<TTokenType, LexerPatternType>>(),
+            addDependency: function (pPattern: LexerPattern<TTokenType, LexerPatternType>) {
+                this.dependencies.push(pPattern);
+            }
         };
     }
 
@@ -112,7 +117,7 @@ export class Lexer<TTokenType extends string> {
      * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
-    public createTokenPattern<TPattern extends LexerPatternBuildDefinition<TTokenType>>(pPattern: TPattern, pDependencyFetch?: LexerPatternDependencyFetch<TTokenType>): TPattern extends LexerPatternBuildDefinitionSplit<TTokenType> ? LexerPattern<TTokenType, 'split'> : LexerPattern<TTokenType, 'single'> {
+    public createTokenPattern<TPattern extends LexerPatternBuildDefinition<TTokenType>>(pPattern: TPattern, pDependencyFetch?: LexerPatternDependencyFetch<TTokenType, LexerPatternType>): TPattern extends LexerPatternBuildDefinitionSplit<TTokenType> ? LexerPattern<TTokenType, 'split'> : LexerPattern<TTokenType, 'single'> {
         // Convert nested pattern type into linear pattern type definition.
         const lConvertPatternType = (pType: LexerPatternBuildDefinitionTypes<TTokenType>): LexerPatternTokenTypes<TTokenType> => {
             // Single token type. Defaults to token group name.
@@ -238,7 +243,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Set template pattern to current pattern scope.
-        this.mCurrentPatternScope.push(pTokenPattern);
+        this.mCurrentPatternScope.addDependency(pTokenPattern);
     }
 
     /**
@@ -425,16 +430,16 @@ export class Lexer<TTokenType extends string> {
      * When an error token type is specified it skips all data that is not tokenizable and yield an error token instead.
      * 
      * @param pCursor - Current lexer token.
-     * @param pAvailablePatterns - All available token pattern for this recursion scope. It does not contains merged patter lists from previous recursions.
+     * @param pPatternScope - All available token pattern for this recursion scope. It does not contains merged patter lists from previous recursions.
      * @param pParentMetas  - Metas from current recursion scope.
      * @param pForcedType - Forced token type. Overrides all types specified in all token pattern.
      * @param pEndToken - Token that ends current recursion. When it is null, no token can end this recursion.
      * 
      * @returns Generator, generating all token till it reaches end of data.
      */
-    private * tokenizeRecursionLayer(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPattern<TTokenType, LexerPatternType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPattern<TTokenType, LexerPatternType> | null): Generator<LexerToken<TTokenType>> {
+    private * tokenizeRecursionLayer(pCursor: LexerCursor, pPatternScope: LexerPatternScope, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPattern<TTokenType, LexerPatternType> | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
-        const lPatternScopeDefinitionList: Array<LexerPattern<TTokenType, LexerPatternType>> = pAvailablePatterns;
+        const lPatternScopeDefinitionList: Array<LexerPattern<TTokenType, LexerPatternType>> = pPatternScope.dependencies;
 
         // Tokenize until end.
         remainingDataLoop: while (pCursor.cursorPosition < pCursor.data.length) {
@@ -525,18 +530,18 @@ export class Lexer<TTokenType extends string> {
                 // Execute unresolved inner dependency imports before using it.
                 if (!lTokenPattern.dependenciesResolved) {
                     // Buffer last scope and set created pattern as current scope.
-                    const lLastPatternScope: Array<LexerPattern<TTokenType, LexerPatternType>> | null = this.mCurrentPatternScope;
-                    this.mCurrentPatternScope = lTokenPattern.dependencies;
+                    const lLastPatternScope: LexerPatternScope | null = this.mCurrentPatternScope;
+                    this.mCurrentPatternScope = lTokenPattern;
 
                     // Execute inner pattern fetches.
-                    lTokenPattern.resolveDependencies(this);
+                    lTokenPattern.resolveDependencies();
 
                     // Reset scope to last used scope.
                     this.mCurrentPatternScope = lLastPatternScope;
                 }
 
                 // Yield every inner pattern token.
-                yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern.dependencies, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
+                yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
 
                 // Continue next token.
                 continue remainingDataLoop;
@@ -604,6 +609,11 @@ export type LexerPatternBuildDefinition<TTokenType extends string> = LexerPatter
 /*
  * Internal lexer settings and states. 
  */
+
+type LexerPatternScope = {
+    dependencies: Array<LexerPattern<any, any>>;
+    addDependency: (pPattern: LexerPattern<any, any>) => void;
+};
 
 type LexerCursor = {
     data: string;

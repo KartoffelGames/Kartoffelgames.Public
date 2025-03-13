@@ -3,6 +3,7 @@ import { describe, it } from '@std/testing/bdd';
 import { ParserException } from '../source/exception/parser-exception.ts';
 import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
+import type { LexerPatternType, LexerPattern } from '../source/lexer/lexer-pattern.ts';
 
 describe('Lexer', () => {
     enum TestTokenType {
@@ -34,8 +35,8 @@ describe('Lexer', () => {
                 end: { regex: /\)/, type: TestTokenType.Braket }
             },
             meta: [TestTokenMetas.Braket, TestTokenMetas.List]
-        }, (pLexer: Lexer<TestTokenType>) => {
-            pLexer.useTokenPattern(lWordPattern);
+        }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
+            pPattern.addDependency(lWordPattern);
         });
 
 
@@ -407,9 +408,9 @@ describe('Lexer', () => {
                     start: { regex: /\(/, type: TestTokenType.Braket },
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
-            }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenPattern(lBraketPattern);
-                pLexer.useTokenPattern(lValuePattern);
+            }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
+                pPattern.addDependency(lBraketPattern);
+                pPattern.addDependency(lValuePattern);
             });
             lLexer.useTokenPattern(lBraketPattern);
 
@@ -434,9 +435,9 @@ describe('Lexer', () => {
                     start: { regex: /\(/, type: TestTokenType.Braket },
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
-            }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenPattern(lBraketPattern);
-                pLexer.useTokenPattern(lValuePattern);
+            }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
+                pPattern.addDependency(lBraketPattern);
+                pPattern.addDependency(lValuePattern);
             });
             lLexer.useTokenPattern(lBraketPattern);
 
@@ -463,18 +464,18 @@ describe('Lexer', () => {
                     start: { regex: /\(/, type: TestTokenType.Word },
                     end: { regex: /\)/, type: TestTokenType.Word }
                 },
-            }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenPattern(lBraketTwoPattern);
-                pLexer.useTokenPattern(lValuePattern);
+            }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
+                pPattern.addDependency(lBraketTwoPattern);
+                pPattern.addDependency(lValuePattern);
             });
             const lBraketTwoPattern = lLexer.createTokenPattern({
                 pattern: {
                     start: { regex: /\[/, type: TestTokenType.Braket },
                     end: { regex: /\]/, type: TestTokenType.Braket }
                 },
-            }, (pLexer: Lexer<TestTokenType>) => {
-                pLexer.useTokenPattern(lBraketOnePattern);
-                pLexer.useTokenPattern(lValuePattern);
+            }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
+                pPattern.addDependency(lBraketOnePattern);
+                pPattern.addDependency(lValuePattern);
             });
             lLexer.useTokenPattern(lBraketOnePattern);
 
@@ -867,6 +868,21 @@ describe('Lexer', () => {
 
             // Evaluation.
             expect(lSuccessFunction).not.toThrow();
+        });
+
+        it('-- Different lexer', () => {
+            // Setup.
+            const lLexerOne: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lLexerTwo: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTokenPatternTwo = lLexerTwo.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } });
+
+            // Process.
+            const lSuccessFunction = () => {
+                lLexerOne.useTokenPattern(lTokenPatternTwo);
+            };
+
+            // Evaluation.
+            expect(lSuccessFunction).toThrow('Token pattern must be created by this lexer.');
         });
     });
 });

@@ -6,20 +6,26 @@ import type { Lexer } from './lexer.ts';
  * Represents a pattern that can be used to match a series of token.
  */
 export class LexerPattern<TTokenType extends string, TPatternType extends LexerPatternType> {
-    private mDependecnyFetchResolved: boolean;
-    private readonly mDependencyFetch: LexerPatternDependencyFetch<TTokenType> | null;
+    private readonly mDependencyFetch: LexerPatternDependencyFetch<TTokenType, TPatternType> | null;
+    private mDependencyFetchResolved: boolean;
     private readonly mLexer: Lexer<TTokenType>;
-    private readonly mPattern: LexerPatternDefinition<TTokenType, TPatternType>;
-
-    private readonly mType: TPatternType;
     private readonly mMeta: Array<string>;
+    private readonly mPattern: LexerPatternDefinition<TTokenType, TPatternType>;
     private readonly mPatternDependencies: Array<LexerPattern<TTokenType, LexerPatternType>>;
+    private readonly mType: TPatternType;
+
+    /**
+     * Dependencies for the pattern.
+     */
+    public get dependencies(): Array<LexerPattern<TTokenType, LexerPatternType>> {
+        return this.mPatternDependencies;
+    }
 
     /**
      * Check if all dependencies are resolved.
      */
     public get dependenciesResolved(): boolean {
-        return this.mDependecnyFetchResolved;
+        return this.mDependencyFetchResolved;
     }
 
     /**
@@ -30,13 +36,6 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 
     /**
-     * Lexer token pattern.
-     */
-    public get pattern(): LexerPatternDefinition<TTokenType, TPatternType> {
-        return this.mPattern;
-    }
-
-    /**
      * Meta data for the pattern.
      */
     public get meta(): Array<string> {
@@ -44,10 +43,10 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 
     /**
-     * Dependencies for the pattern.
+     * Lexer token pattern.
      */
-    public get dependencies(): Array<LexerPattern<TTokenType, LexerPatternType>> {
-        return this.mPatternDependencies;
+    public get pattern(): LexerPatternDefinition<TTokenType, TPatternType> {
+        return this.mPattern;
     }
 
     /**
@@ -67,7 +66,7 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
 
         // Set inner fetch data and fetch resolved state based on parameter.
         this.mDependencyFetch = pParameter.dependencyFetch ?? null;
-        this.mDependecnyFetchResolved = !pParameter.dependencyFetch;
+        this.mDependencyFetchResolved = !pParameter.dependencyFetch;
 
         // Enforce inner fetch for pattern with a start and end token.
         if (this.mType === 'split' && !this.mDependencyFetch) {
@@ -84,6 +83,19 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 
     /**
+     * Add a dependency to the lexer token pattern.
+     * 
+     * @param pPattern - Lexer token pattern.
+     */
+    public addDependency(pPattern: LexerPattern<TTokenType, LexerPatternType>): void {
+        if (this.mLexer !== pPattern.lexer) {
+            throw new Exception(`Can only add dependencies of the same lexer.`, this);
+        }
+
+        this.mPatternDependencies.push(pPattern);
+    }
+
+    /**
      * Determines if the current lexer pattern is of type 'split'.
      *
      * @returns {boolean} True if the lexer pattern type is 'split', otherwise false.
@@ -97,13 +109,13 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      * 
      * @param pLexer - The lexer instance used to resolve dependencies.
      */
-    public resolveDependencies(pLexer: Lexer<TTokenType>): void {
-        if (this.mDependecnyFetchResolved) {
+    public resolveDependencies(): void {
+        if (this.mDependencyFetchResolved) {
             return;
         }
 
-        this.mDependencyFetch!(pLexer);
-        this.mDependecnyFetchResolved = true;
+        this.mDependencyFetch!(this);
+        this.mDependencyFetchResolved = true;
     }
 
     /**
@@ -118,7 +130,7 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
         if ('single' in pPattern) {
             // Pattern type must be single pattern.
             if (pPatternType === 'split') {
-                throw new Exception(`Can't use single pattern with split pattern definition.`, this);
+                throw new Exception(`Can't use split pattern type with single pattern definition.`, this);
             }
 
             // Single pattern
@@ -130,7 +142,7 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
         } else {
             // Pattern type must be single pattern.
             if (pPatternType === 'single') {
-                throw new Exception(`Can't use split pattern with single pattern definition.`, this);	
+                throw new Exception(`Can't use single pattern type with split pattern definition.`, this);
             }
 
             // Split pattern.
@@ -160,7 +172,7 @@ export type LexerPatternType = 'split' | 'single';
 /*
  * Functions and callbacks
  */
-export type LexerPatternDependencyFetch<TTokenType extends string> = (pLexer: Lexer<TTokenType>) => void;
+export type LexerPatternDependencyFetch<TTokenType extends string, TPatternType extends LexerPatternType> = (pLexerToken: LexerPattern<TTokenType, TPatternType>) => void;
 export type LexerPatternTokenValidator<TTokenType extends string> = (pToken: LexerToken<TTokenType>, pText: string, pIndex: number) => boolean;
 
 /**
@@ -177,7 +189,7 @@ export type LexerPatternTokenMatcher<TTokenType extends string> = {
 export type LexerPatternConstructorParameter<TTokenType extends string, TPatternType extends LexerPatternType> = {
     type: TPatternType;
     metadata: Array<string>;
-    dependencyFetch: LexerPatternDependencyFetch<TTokenType> | null;
+    dependencyFetch: LexerPatternDependencyFetch<TTokenType, TPatternType> | null;
     pattern: {
         start: LexerPatternTokenMatcher<TTokenType>;
         end: LexerPatternTokenMatcher<TTokenType>;

@@ -98,15 +98,10 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         // Save values. Spool back all values to the root node.
         this.mConnections = {
             required: pRequired,
-            next: null,
-            // Convert all graph nodes to their root node.
-            values: pValues.map(pValue => {
-                if (pValue instanceof GraphNode) {
-                    return pValue.root;
-                }
+            values: pValues,
 
-                return pValue;
-            })
+            // Is set when the node is chained.
+            next: null, 
         };
 
         // If the root node is not set, then this node is the root node.

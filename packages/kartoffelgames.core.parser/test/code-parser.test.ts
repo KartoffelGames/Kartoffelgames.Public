@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { CodeParser } from '../source/code-parser.ts';
+import { CodeParser } from '../source/parser/code-parser.ts';
 import { ParserException } from '../source/exception/parser-exception.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { Graph } from "../source/graph/graph.ts";

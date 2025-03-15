@@ -3,7 +3,19 @@ import { expect } from '@std/expect';
 export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object): [boolean, string] => {
     // Must have same length.
     if (Reflect.ownKeys(pSource).length !== Reflect.ownKeys(pTarget).length) {
-        return [false, `Not all keys are present in object "${pRootKey}"`];
+        // Find missing.
+        const lSourceKeys: Set<PropertyKey> = new Set<PropertyKey>(Reflect.ownKeys(pSource));
+        const lTargetKeys: Set<PropertyKey> = new Set<PropertyKey>(Reflect.ownKeys(pTarget));
+
+        // Remove same keys from list.
+        for (const lKey in lSourceKeys) {
+            if (lTargetKeys.has(lKey)) {
+                lSourceKeys.delete(lKey);
+                lTargetKeys.delete(lKey);
+            }
+        }
+
+        return [false, `Not all keys are present in object "${pRootKey}". Difference (SOURCE[${[...lSourceKeys].join(', ')}]) => (TARGET[${[...lTargetKeys].join(', ')}])`];
     }
 
     // Compare values.

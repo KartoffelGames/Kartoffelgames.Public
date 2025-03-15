@@ -164,7 +164,7 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 }
 
-/**
+/*
  * Pattern type.
  */
 export type LexerPatternType = 'split' | 'single';
@@ -175,7 +175,7 @@ export type LexerPatternType = 'split' | 'single';
 export type LexerPatternDependencyFetch<TTokenType extends string, TPatternType extends LexerPatternType> = (pLexerToken: LexerPattern<TTokenType, TPatternType>) => void;
 export type LexerPatternTokenValidator<TTokenType extends string> = (pToken: LexerToken<TTokenType>, pText: string, pIndex: number) => boolean;
 
-/**
+/*
  * External pattern constructor parameter.
  */
 export type LexerPatternTokenTypes<TTokenType> = { [SubGroup: string]: TTokenType; };
@@ -197,7 +197,7 @@ export type LexerPatternConstructorParameter<TTokenType extends string, TPattern
     } | { single: LexerPatternTokenMatcher<TTokenType>; };
 };
 
-/**
+/*
  * Internal pattern definition.
  */
 

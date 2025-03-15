@@ -6,7 +6,7 @@ import type { GraphNode } from './graph-node.ts';
  * @template TTokenType - The type of tokens used in the graph.
  * @template TResultData - The type of the result produced by the graph.
  */
-export class Graph<TTokenType extends string, TOriginalData extends object, TResultData = TOriginalData> {
+export class Graph<TTokenType extends string, TOriginalData extends object = object, TResultData = TOriginalData> {
     /**
      * Defines a graph with the provided graph collector and optional data collector.
      * The collector can be used to mutate the raw data into a desired result.

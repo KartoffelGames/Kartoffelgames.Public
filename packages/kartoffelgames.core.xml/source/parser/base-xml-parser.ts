@@ -340,7 +340,7 @@ export abstract class BaseXmlParser {
             }
         );
 
-        lParser.setRootGraphPart('XmlDocument');
+        lParser.setRootGraph('XmlDocument');
 
         return lParser;
     }

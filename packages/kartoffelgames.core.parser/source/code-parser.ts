@@ -1,12 +1,10 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { GraphException, type GraphParseError } from './exception/graph-exception.ts';
 import { ParserException } from './exception/parser-exception.ts';
-import { AnonymousGrammarNode } from './graph/node/anonymous-grammar-node.ts';
-import type { BaseGrammarNode } from './graph/node/base-grammar-node.ts';
-import { GraphPart, type GraphPartDataCollector } from './graph/part/graph-part.ts';
-import { GraphPartReference } from './graph/part/graph-part-reference.ts';
-import type { Lexer } from './lexer/lexer.ts';
+import { GraphNode } from "./graph/graph-node.ts";
+import { Graph } from "./graph/graph.ts";
 import type { LexerToken } from './lexer/lexer-token.ts';
+import type { Lexer } from './lexer/lexer.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -18,11 +16,9 @@ import type { LexerToken } from './lexer/lexer-token.ts';
  * @typeparam TParseResult - The result object the parser returns on success.
  */
 export class CodeParser<TTokenType extends string, TParseResult> {
-    private readonly mGraphParts: Dictionary<string, GraphPart<TTokenType>>;
     private readonly mLexer: Lexer<TTokenType>;
     private mMaxRecursion: number;
-    private mRootPartName: string | null;
-
+    private mRootPart: Graph<TTokenType, any, TParseResult> | null;
 
     /**
      * Get lexer.
@@ -48,63 +44,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     public constructor(pLexer: Lexer<TTokenType>) {
         this.mLexer = pLexer;
         this.mMaxRecursion = 100;
-        this.mRootPartName = null;
-        this.mGraphParts = new Dictionary<string, GraphPart<TTokenType>>();
+        this.mRootPart = null;
     }
 
     /**
-     * Create a new graph part that can be chained and references in other nodes or itself.
-     * 
-     * @param pPartName - Graph part name. Used for referencing,
-     * @param pGraph - Graph part.
-     * @param pDataCollector - Optional data collector that parses the parse result data into another type. 
-     * 
-     * @throws {@link Exception}
-     * When the part name is already defined.
-     */
-    public defineGraphPart<TRawData extends object>(pPartName: string, pGraph: BaseGrammarNode<TTokenType, TRawData>, pDataCollector?: GraphPartDataCollector<TTokenType, TRawData>): void {
-        if (this.mGraphParts.has(pPartName)) {
-            throw new Exception(`Graph part "${pPartName}" already defined.`, this);
-        }
-
-        // Create and set graph part.
-        const lGraphPart: GraphPart<TTokenType, TRawData> = new GraphPart<TTokenType, TRawData>(pGraph, pDataCollector);
-        this.mGraphParts.set(pPartName, lGraphPart as GraphPart<TTokenType>);
-    }
-
-    /**
-     * Get graph part by its name.
-     * Validates existence.
-     * 
-     * @param pPartName - Part name.
-     * 
-     * @returns Graph part.  
-     * 
-     * @throws {@link Exception}
-     * When the graph part does not exist.
-     * 
-     * @internal
-     */
-    public getGraphPart(pPartName: string): GraphPart<TTokenType> {
-        if (!this.mGraphParts.has(pPartName)) {
-            throw new Exception(`Path part "${pPartName}" not defined.`, this);
-        }
-
-        return this.mGraphParts.get(pPartName)!;
-    }
-
-    /**
-     * Creates a new graph staring node.
-     * This generated graph node must be chanined to not generate errors on parsing.
-     * 
-     * @returns new graph root.
-     */
-    public graph(): BaseGrammarNode<TTokenType> {
-        return new AnonymousGrammarNode<TTokenType>();
-    }
-
-    /**
-     * Parse a text with the set syntax from {@link CodeParser.setRootGraphPart} into a sytnax tree
+     * Parse a text with the set syntax from {@link CodeParser.setRootGraph} into a sytnax tree
      * or custom data structure.
      * 
      * @param pCodeText - Code as text.
@@ -117,7 +61,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      */
     public parse(pCodeText: string): TParseResult {
         // Validate lazy parameters.
-        if (this.mRootPartName === null) {
+        if (this.mRootPart === null) {
             throw new Exception('Parser has not root part set.', this);
         }
 
@@ -125,12 +69,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lTokenList: Array<LexerToken<TTokenType>> = [...this.mLexer.tokenize(pCodeText)];
 
         // Create part reference.
-        const lRootPartReference: GraphPartReference<TTokenType, unknown> = new GraphPartReference<TTokenType, unknown>(this, this.mRootPartName);
+        const lRootPart: Graph<TTokenType, any, TParseResult> = this.mRootPart;
 
         let lRootParseData: GraphParseResult;
         try {
             // Parse root part. Start at 0 recursion level. Technicaly impossible to exit reference path because of recursion chain.
-            lRootParseData = this.parseGraphReference(lRootPartReference, lTokenList, 0, new Set<GraphPartReference<TTokenType, unknown>>(), 0)!;
+            lRootParseData = this.parseGraph(lRootPart, lTokenList, 0, new Set<Graph<TTokenType>>(), 0)!;
         } catch (pException) {
             // Only handle exclusive graph errors.
             if (!(pException instanceof GraphException)) {
@@ -163,18 +107,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Generate a reference to a graph part.
-     * The graph part doen't need to exist at this moment.
-     * 
-     * @param pPartName - Part name.
-     * 
-     * @returns Reference to the part. 
-     */
-    public partReference<TResult = unknown>(pPartName: string): GraphPartReference<TTokenType, TResult> {
-        return new GraphPartReference<TTokenType, TResult>(this, pPartName);
-    }
-
-    /**
      * Set the root graph part of this parser.
      * 
      * @param pPartName - Graph part name.
@@ -182,17 +114,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When the graph part is not defined or has no defined data collector.
      */
-    public setRootGraphPart(pPartName: string): void {
-        if (!this.mGraphParts.has(pPartName)) {
-            throw new Exception(`Path part "${pPartName}" not defined.`, this);
-        }
-
-        // Validate that the root part has a data collector.
-        if (!this.mGraphParts.get(pPartName)!.dataCollector) {
-            throw new Exception(`A root graph part needs a defined data collector.`, this);
-        }
-
-        this.mRootPartName = pPartName;
+    public setRootGraph(pGraph: Graph<TTokenType, any, TParseResult>): void {
+        this.mRootPart = pGraph;
     }
 
     /**
@@ -263,7 +186,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraph(pGraph: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType, unknown>>, pGraphHops: number): GraphNodeParseResult {
+    private parseGraphBranch(pGraph: GraphNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<Graph<TTokenType>>, pGraphHops: number): GraphNodeParseResult {
         const lRootNode: BaseGrammarNode<TTokenType> = pGraph.branchRoot;
 
         return this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops);
@@ -301,7 +224,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Parse the token, marked with {@link pCurrentTokenIndex} with the set graph part.
      * Return null when no token was processed.
      * 
-     * @param pPartReference - Graph part or a reference to a part.
+     * @param pGraph - Graph part or a reference to a part.
      * @param pTokenList - Current parsed list of all token in appearing order..
      * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
      * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
@@ -313,25 +236,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link ParserException}
      * When an error is thrown while paring collected data.
      */
-    private parseGraphReference(pPartReference: GraphPartReference<TTokenType, unknown>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType, unknown>>, pGraphHops: number): GraphParseResult | null {
+    private parseGraph(pGraph: Graph<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<Graph<TTokenType>>, pGraphHops: number): GraphParseResult | null {
         // When the reference was already used in the current recursion chain and since the last time the cursor was not moved, continue.
         // This breaks an endless recursion loop where eighter a reference is calling itself directly or between this and the last invoke only optional nodes without any found value were used.
-        if (pRecursionNodeChain.has(pPartReference)) {
+        if (pRecursionNodeChain.has(pGraph)) {
             return null;
         }
 
         // Read referenced root node and optional data collector.
-        const lGraphPart: GraphPart<TTokenType, object> = pPartReference.resolveReference();
-        const lCollector: GraphPartDataCollector<TTokenType, object> | null = lGraphPart.dataCollector;
+        const lCollector: GraphPartDataCollector<TTokenType, object> | null = pGraph.dataCollector;
 
         // Only graph references can have a infinite recursion, so we focus on these.
-        pRecursionNodeChain.add(pPartReference);
+        pRecursionNodeChain.add(pGraph);
 
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops);
+        const lNodeParseResult: GraphNodeParseResult = this.parseGraphBranch(pGraph.node, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops);
 
         // Remove graph recursion entry after using graph.
-        pRecursionNodeChain.delete(pPartReference);
+        pRecursionNodeChain.delete(pGraph);
 
         // Read start end end token.
         const lStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
@@ -381,7 +303,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionNodeChain: Set<GraphPartReference<TTokenType, unknown>>): GraphChainResult {
+    private retrieveChainedValues(pNode: GraphNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionNodeChain: Set<Graph<TTokenType>>): GraphChainResult {
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
         // Run chained node parse for each node value.
@@ -562,7 +484,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
      */
-    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType, unknown>>, pGraphHops: number): Array<GraphParseResult> {
+    private retrieveNodeValues(pNode: GraphNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<Graph<TTokenType>>, pGraphHops: number): Array<GraphParseResult> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
 
@@ -611,7 +533,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         // When it fails the graph reference set into pRecursionNodeChain persists for next node values until a node in another node value graph resolves into a value.
                         // This prevents other branches without or only optional nodes between the same reference to try to resolve the same graph reference.
                         // This includes looping nodes.
-                        const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
+                        const lReferenceResult: GraphParseResult | null = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
                         if (!lReferenceResult) {
                             // Build error list.
                             const lReferenceRecursionList: Array<string> = new Array<string>();
@@ -629,7 +551,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                         lValueGraphResult = lReferenceResult;
                     } else {
-                        const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
+                        const lGraphParseResult: GraphNodeParseResult = this.parseGraphBranch(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
 
                         // Parse empty GraphParseResult with undefined data.
                         lValueGraphResult = lGraphParseResult;

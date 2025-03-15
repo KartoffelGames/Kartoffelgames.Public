@@ -519,7 +519,7 @@ export class TemplateParser {
         );
 
         // Set root part.
-        lParser.setRootGraphPart('TemplateRoot');
+        lParser.setRootGraph('TemplateRoot');
 
         return lParser;
     }

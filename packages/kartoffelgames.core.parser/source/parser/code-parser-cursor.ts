@@ -159,6 +159,9 @@ export class CodeParserCursor<TTokenType extends string> {
             }
         });
 
+        // Add the branch to the unprogressed circular call list.
+        this.mUnprogressedCircularBranches.add(pBranch);
+
         // Call pushed branch.
         try {
             return pStackCall(pBranch);

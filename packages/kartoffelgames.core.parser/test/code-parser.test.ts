@@ -486,7 +486,7 @@ describe('CodeParser', () => {
 
                 // Process. Convert code.
                 const lErrorFunction = () => {
-                    lParser.parse(lCodeText);
+                    const a = lParser.parse(lCodeText);
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
@@ -728,9 +728,6 @@ describe('CodeParser', () => {
             });
 
             it('-- Prevent circular detection on infinit depths with exit token first', () => {
-                // TODO: Test is endless.
-                expect(false).toBeTruthy();
-
                 // Setup. Init lexer.
                 const lLexer = new Lexer<TokenType>();
                 lLexer.trimWhitespace = true;
@@ -740,11 +737,11 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
-                const lVariableGraph = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required('variable', TokenType.Identifier);
-                });
                 const lAdditionGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required('left', lExpressionGraph).required(TokenType.Custom).required('right', lExpressionGraph);
+                });
+                const lVariableGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('variable', TokenType.Identifier);
                 });
                 const lExpressionGraph = Graph.define(() => {
                     const lLoopingAdditionGraph: Graph<TokenType, any> = lAdditionGraph;
@@ -787,9 +784,6 @@ describe('CodeParser', () => {
             });
 
             it('-- Prevent circular detection on infinit depths with exit token last', () => {
-                // TODO: Test is endless.
-                expect(false).toBeTruthy();
-
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
@@ -846,9 +840,6 @@ describe('CodeParser', () => {
             });
 
             it('-- Prevent circular detection on infinit depths with none hitting optional branching', () => {
-                // TODO: Test is endless.
-                expect(false).toBeTruthy();
-
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;

@@ -8,7 +8,7 @@ export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object): [
         const lTargetKeys: Set<PropertyKey> = new Set<PropertyKey>(Reflect.ownKeys(pTarget));
 
         // Remove same keys from list.
-        for (const lKey in lSourceKeys) {
+        for (const lKey of lSourceKeys) {
             if (lTargetKeys.has(lKey)) {
                 lSourceKeys.delete(lKey);
                 lTargetKeys.delete(lKey);

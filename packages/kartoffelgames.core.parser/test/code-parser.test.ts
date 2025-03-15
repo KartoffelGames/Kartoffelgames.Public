@@ -281,31 +281,6 @@ describe('CodeParser', () => {
                 expect(lParsedData.data).toBeDeepEqual(['one', 'two', 'three', 'four', 'five']);
             });
 
-            it('-- Loop wrapped greedy parsing.', () => {
-                // Setup.
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lCodeText: string = 'one two three four five';
-
-                // Setup. Define graph part and set as root.
-                const lLoopGraph = Graph.define(() => {
-                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lLoopGraph;
-                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
-                });
-                const lMainGraph = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required('first', TokenType.Identifier).required('data<-data', lLoopGraph).required('second', TokenType.Identifier);
-                });
-                lParser.setRootGraph(lMainGraph);
-
-                // Process. Convert code.
-                const lParsedData: any = lParser.parse(lCodeText);
-
-                // Evaluation.
-                expect(lParsedData).toHaveProperty('first', 'one');
-                expect(lParsedData).toHaveProperty('data');
-                expect(lParsedData.data).toBeDeepEqual(['two', 'three', 'four']);
-                expect(lParsedData).toHaveProperty('second', 'five');
-            });
-
             it('-- Loop start greedy parsing', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -397,28 +372,6 @@ describe('CodeParser', () => {
                     }
                 });
             });
-
-            it('-- Empty data for nested loops into single', () => {
-                // Setup.
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lCodeText: string = '';
-
-                // Setup. Define graph part and set as root.
-                const lLoopGraph = Graph.define(() => {
-                    const lSelfReference: Graph<TokenType, { loop: string[]; }> = lLoopGraph;
-                    return GraphNode.new<TokenType>().required('loop[]', TokenType.Identifier).optional('loop<-loop', lSelfReference);
-                });
-                const lMainGraph = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required('value<-loop', lLoopGraph);
-                });
-                lParser.setRootGraph(lMainGraph);
-
-                // Process. Convert code.
-                const lParsedData: any = lParser.parse(lCodeText);
-
-                expect(lParsedData).toHaveProperty('value');
-                expect(lParsedData.value).toHaveLength(0);
-            });
         });
 
         describe('--Part references', () => {
@@ -428,17 +381,17 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define additive part.
-                const NewPart = Graph.define(() => {
+                const lLoopGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required('data', TokenType.Modifier);
                 }).converter((pData) => {
                     return pData.data;
                 });
 
                 // Setup. Define graph part and set as root.
-                const StartPart = Graph.define(() => {
-                    return GraphNode.new<TokenType>().optional('part', NewPart);
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional('part', lLoopGraph);
                 });
-                lParser.setRootGraph(StartPart);
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -519,7 +472,7 @@ describe('CodeParser', () => {
                 expect(lResult).not.toHaveProperty('part');
             });
 
-            it('-- Self reference with same data for inner and outer reference.', () => {
+            it('-- Optional self reference fail when not on end of graph', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const const const const';
@@ -532,17 +485,33 @@ describe('CodeParser', () => {
                 lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
-                const lResult = lParser.parse(lCodeText);
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lResult).toBeDeepEqual({
-                    start: 'const',
-                    inner: {
-                        start: 'const',
-                        end: 'const'
-                    },
-                    end: 'const'
+                expect(lErrorFunction).toThrow('Graph end meet without reaching last token. Current: "const" (Modifier)');
+            });
+
+            it('-- Required self reference fail when not on end of graph', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const const const const';
+
+                // Setup. Define graph part and set as root.
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, any> = lMainGraph;
+                    return GraphNode.new<TokenType>().required('start', TokenType.Modifier).required('inner', lSelfReference).required('end', TokenType.Modifier);
                 });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process. Convert code.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lErrorFunction).toThrow('Unexpected end of statement. TokenIndex: "4" missing.');
             });
 
             it('-- Self reference with different start and end data.', () => {
@@ -666,27 +635,30 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).toThrow(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "identifier" (${TokenType.Identifier})`);
             });
 
-            it('-- Dublicate branching paths', () => {
+            it('-- Dublicate branchings paths takes the first', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const identifier;';
 
                 // Setup. Define graph part and set as root.
                 const DublicateBranchingCode = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required([
-                        GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier),
-                        GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier)
+                    return GraphNode.new<TokenType>().required('data', [
+                        GraphNode.new<TokenType>().required('one', TokenType.Modifier).required('name', TokenType.Identifier),
+                        GraphNode.new<TokenType>().required('two', TokenType.Modifier).required('name', TokenType.Identifier)
                     ]).required(TokenType.Semicolon);
                 });
                 lParser.setRootGraph(DublicateBranchingCode);
 
                 // Process.
-                const lErrorFunction = () => {
-                    lParser.parse(lCodeText);
-                };
+                const lResult = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
+                expect(lResult).toBeDeepEqual({
+                    data: {
+                        one: 'const',
+                        name: 'identifier'
+                    }
+                });
             });
 
             it('-- Detect endless circular dependency over multiple references.', () => {
@@ -731,7 +703,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
 
-            it('-- Prevent duplicate paths on optional partReference with a loop', () => {
+            it('-- Dont add data from empty loop node.', () => {
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
@@ -742,50 +714,40 @@ describe('CodeParser', () => {
                 lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /1/, type: '1' } }));
 
                 // Setup. Init grapth.
-                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                const lLoopGraph = Graph.define(() => {
-                    const lSelfReference: Graph<string, { list: string[]; }> = lLoopGraph;
-                    return GraphNode.new().required('list[]', '@').optional('list<-list', lSelfReference);
-                });
-                const lListGraph = Graph.define(() => {
-                    return GraphNode.new().optional('list<-list', lLoopGraph);
-                });
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lMainGraph = Graph.define(() => {
-                    return GraphNode.new().optional('list', lListGraph).required('type', 'a').required([
-                        ';',
-                        GraphNode.new().required('1').required(';')
-                    ]);
+                    return GraphNode.new<TokenType>().optional('list', GraphNode.new<TokenType>().optional('list[]', TokenType.Identifier)).required('type', TokenType.Modifier);
                 });
                 lParser.setRootGraph(lMainGraph);
 
                 // Process
-                const lResult: any = lParser.parse('a1;');
+                const lResult: any = lParser.parse('const');
 
                 // Evaluation.
-                expect(lResult).toBeDeepEqual({ type: 'a' });
+                expect(lResult).toBeDeepEqual({ type: 'const' });
             });
 
             it('-- Prevent circular detection on infinit depths with exit token first', () => {
                 // Setup. Init lexer.
-                const lLexer = new Lexer<string>();
+                const lLexer = new Lexer<TokenType>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' } }));
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: TokenType.Identifier } }));
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: TokenType.Custom } }));
 
                 // Setup. Init grapth.
-                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
                 const lVariableGraph = Graph.define(() => {
-                    return GraphNode.new<string>().required('variable', 'ident');
+                    return GraphNode.new<TokenType>().required('variable', TokenType.Identifier);
                 });
                 const lAdditionGraph = Graph.define(() => {
-                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
+                    return GraphNode.new<TokenType>().required('left', lExpressionGraph).required(TokenType.Custom).required('right', lExpressionGraph);
                 });
                 const lExpressionGraph = Graph.define(() => {
-                    const lLoopingAdditionGraph: Graph<string, any> = lAdditionGraph;
-                    const lLoopingVariableGraph: Graph<string, any> = lVariableGraph;
+                    const lLoopingAdditionGraph: Graph<TokenType, any> = lAdditionGraph;
+                    const lLoopingVariableGraph: Graph<TokenType, any> = lVariableGraph;
 
-                    return GraphNode.new<string>().required('expression', [
+                    return GraphNode.new<TokenType>().required('expression', [
                         lLoopingAdditionGraph,
                         lLoopingVariableGraph
                     ]);
@@ -1225,7 +1187,7 @@ describe('CodeParser', () => {
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Semicolon),
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon),
                     ]);
-                }).converter(() => { });
+                });
                 lParser.setRootGraph(lMainGraph);
 
                 // Process.
@@ -1243,15 +1205,18 @@ describe('CodeParser', () => {
             });
 
             it('-- Error with an multiline token.', () => {
-                // Setup.
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                lParser.lexer.useTokenPattern(lParser.lexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
+                // Setup. Lexer
+                const lLexer: Lexer<TokenType> = new Lexer<TokenType>();
+                lLexer.validWhitespaces = ' \n\t\r';
+                lLexer.trimWhitespace = true;
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
 
-                const lErrorMessage: string = 'Error message';
+                // Setup. Parser.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
+
                 const lMainGraph = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon);
-                }).converter(() => {
-                    throw lErrorMessage;
+                    return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier).required(TokenType.Semicolon);
                 });
                 lParser.setRootGraph(lMainGraph);
 

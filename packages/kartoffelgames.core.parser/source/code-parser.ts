@@ -163,7 +163,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lChainParseResult: GraphChainResult = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, pRecursionNodeChain);
 
         return {
-            data: pNode.mergeData(lChainParseResult.nodeData, lChainParseResult.chainData),
+            data: pNode.mergeData(lChainParseResult.nodeData.data, lChainParseResult.chainData.data),
             nextTokenIndex: lChainParseResult.chainData.nextTokenIndex,
             tokenProcessed: lChainParseResult.chainData.tokenProcessed || lChainParseResult.nodeData.tokenProcessed,
             hops: lChainParseResult.chainData.hops,
@@ -187,12 +187,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When an error is thrown while paring collected data.
      */
     private parseGraph(pGraph: Graph<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<Graph<TTokenType>>, pGraphHops: number): GraphParseResult | null {
+        // TODO: Thats not good.
         // When the reference was already used in the current recursion chain and since the last time the cursor was not moved, continue.
         // This breaks an endless recursion loop where eighter a reference is calling itself directly or between this and the last invoke only optional nodes without any found value were used.
         if (pRecursionNodeChain.has(pGraph)) {
             return null;
         }
-
+        
         // Only graph references can have a infinite recursion, so we focus on these.
         pRecursionNodeChain.add(pGraph);
 
@@ -267,8 +268,19 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             };
         }
 
+        // Every graph branch should have their own recursion chain.
+        let lRecursionNodeChainBranchCopy: Set<Graph<TTokenType>>;
+        if (pNodeValue.tokenProcessed) {
+            // Reset recursion node chain when the current node had a parsed value.
+            // This prevents only infinit recursions when every node was optional.
+            lRecursionNodeChainBranchCopy = new Set<Graph<TTokenType>>();
+        } else {
+            // Copy recursion node chain to prevent stacking from other graph branches.
+            lRecursionNodeChainBranchCopy = new Set<Graph<TTokenType>>(pRecursionNodeChain);
+        }
+
         // Parse chained node.
-        const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lNextNode, pTokenList, pNodeValue.nextTokenIndex, pRecursionNodeChain, pNodeValue.hops);
+        const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lNextNode, pTokenList, pNodeValue.nextTokenIndex, lRecursionNodeChainBranchCopy, pNodeValue.hops);
 
         // Process graph with chained node values.
         return {
@@ -344,7 +356,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         }
                     } catch (lError) {
                         // Append error message thrown by parsing graph/node.
-                        if (lError instanceof Error) {
+                        if (lError instanceof GraphException) {
+                            lGraphErrors.merge(lError);
+                        } else if (lError instanceof Error) {
                             lGraphErrors.appendError(lError.message, lCurrentToken);
                         } else {
                             lGraphErrors.appendError((<any>lError).toString(), lCurrentToken);
@@ -362,7 +376,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Empty result when no node value was found and node is optional.
         if (lNodeResult === null && !lNodeConnections.required) {
             return {
-                data: null,
+                data: undefined,
                 nextTokenIndex: pCurrentTokenIndex,
                 tokenProcessed: false,
                 hops: pGraphHops

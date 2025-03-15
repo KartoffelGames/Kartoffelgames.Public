@@ -29,7 +29,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
     private readonly mConnections: GraphNodeConnections<TTokenType>;
     private readonly mIdentifier: GraphNodeIdentifier;
     private mRootNode: GraphNode<TTokenType>;
-    
+
     /**
      * Overall graph node configuration.
      * Dont use it for production code.
@@ -101,7 +101,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
             values: pValues,
 
             // Is set when the node is chained.
-            next: null, 
+            next: null,
         };
 
         // If the root node is not set, then this node is the root node.
@@ -119,7 +119,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
      * @param pChainData - Value that the chained node has generated.
      * @returns 
      */
-    public mergeData(pNodeData: unknown, pChainData: object): TResultData {
+    public mergeData(pNodeData: unknown | undefined, pChainData: object): TResultData {
         // Nothing to do on empty nodes.
         if (this.mIdentifier.omitData) {
             return pChainData as TResultData;
@@ -132,6 +132,11 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
                 throw new Exception(`Graph path has a dublicate value identifier "${this.mIdentifier.dataKey}"`, this);
             }
 
+            // Skip adding node data when it is not set.
+            if (typeof pNodeData === 'undefined') {
+                return pChainData as TResultData;
+            }
+
             // Merge as single key.
             (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = pNodeData;
 
@@ -139,26 +144,31 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         }
 
         // Data that should be merged into the chain data.
-        let lNodeData: unknown | null = null;
-
-        // Merge with merge key.
-        if (this.mIdentifier.mergeKey) {
-            // Node data must be an object
-            if (typeof pNodeData !== 'object' || pNodeData === null) {
-                throw new Exception('Node data must be an object when merge key is set.', this);
+        let lNodeData: unknown = (() => {
+            // Node is optional and data is undefined, node data is a empty array.
+            if (!this.mConnections.required && typeof pNodeData === 'undefined') {
+                return new Array<unknown>();
             }
 
-            // Chain data must contain the merge key.
-            if (!(this.mIdentifier.mergeKey in pNodeData)) {
-                throw new Exception(`Node data does not contain merge key "${this.mIdentifier.mergeKey}"`, this);
+            // Merge with merge key.
+            if (this.mIdentifier.mergeKey) {
+                // Node data must be an object
+                if (typeof pNodeData !== 'object' || pNodeData === null) {
+                    throw new Exception('Node data must be an object when merge key is set.', this);
+                }
+
+                // Chain data must contain the merge key.
+                if (!(this.mIdentifier.mergeKey in pNodeData)) {
+                    throw new Exception(`Node data does not contain merge key "${this.mIdentifier.mergeKey}"`, this);
+                }
+
+                // Read value from node data.
+                return (<Record<string, unknown>>pNodeData)[this.mIdentifier.mergeKey];
             }
 
-            // Read value from node data.
-            lNodeData = (<Record<string, unknown>>pNodeData)[this.mIdentifier.mergeKey];
-        } else {
             // Node data is the value.
-            lNodeData = pNodeData;
-        }
+            return pNodeData;
+        })();
 
         // Merge as list.
 
@@ -171,7 +181,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
             throw new Exception(`Chain data merge value is not an array but should be.`, this);
         }
 
-        // Create new array when is does not already exists in the chain data.
+        // Create and add new array when is does not already exists in the chain data.
         if (!lChainMergeValueIsArray) {
             lChainMergeValue = new Array<unknown>();
             (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lChainMergeValue;
@@ -179,7 +189,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
 
         // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
         if (Array.isArray(lNodeData)) {
-            (<Array<unknown>>lChainMergeValue).unshift(...lNodeData.reverse());
+            (<Array<unknown>>lChainMergeValue).unshift(...lNodeData);
         } else {
             (<Array<unknown>>lChainMergeValue).unshift(lNodeData);
         }

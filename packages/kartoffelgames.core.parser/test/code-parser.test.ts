@@ -67,13 +67,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const name: number;';
 
                 // Setup. Define graph part and set as root.
-                const lGraph = Graph.define(() => {
+                const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).required(TokenType.Semicolon);
-                }).converter((pData) => {
-                    return pData;
                 });
 
-                lParser.setRootGraph(lGraph);
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -90,13 +88,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const name: number';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -113,13 +108,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const name: number';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon).optional(TokenType.Semicolon),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon).optional(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -139,16 +131,13 @@ describe('CodeParser', () => {
                 const lCodeTextIdentifier: string = 'notconst';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('BranchCode',
-                    GraphNode.new<TokenType>().required('data', [
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', [
                         TokenType.Identifier,
                         TokenType.Modifier
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('BranchCode');
+                    ]);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
@@ -166,16 +155,13 @@ describe('CodeParser', () => {
                 const lCodeTextIdentifier: string = 'myname';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('BranchCode',
-                    GraphNode.new<TokenType>().required('data', [
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', [
                         GraphNode.new<TokenType>().required('required', TokenType.Identifier),
                         GraphNode.new<TokenType>().optional('optional', TokenType.Number)
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('BranchCode');
+                    ]);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
@@ -194,15 +180,12 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const ;';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('BranchCode',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).required('data', [
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required('data', [
                         GraphNode.new<TokenType>().optional('optional', TokenType.Identifier)
-                    ]).required(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .required() is not optional and needs a token to proceed.
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('BranchCode');
+                    ]).required(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -218,15 +201,12 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('BranchCode',
-                    GraphNode.new<TokenType>().optional('data', [
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional('data', [
                         GraphNode.new<TokenType>().required('optional', TokenType.Modifier)
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('BranchCode');
+                    ]);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -242,15 +222,12 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('BranchCode',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).optional('data', [
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional('data', [
                         GraphNode.new<TokenType>().required('optional', TokenType.Identifier)
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('BranchCode');
+                    ]);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -267,13 +244,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'one two three four five';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().loop('data', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lMainGraph;
+                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -289,13 +264,14 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const one two three four five const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).loop('data', TokenType.Identifier).required(TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required('data<-data', lLoopGraph).required(TokenType.Modifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -311,13 +287,14 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'one two three four five';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().required('first', TokenType.Identifier).loop('data', TokenType.Identifier).required('second', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('first', TokenType.Identifier).required('data<-data', lLoopGraph).required('second', TokenType.Identifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -335,13 +312,14 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'one two three four five const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().required('first', TokenType.Identifier).loop('data', TokenType.Identifier).required('second', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('first', TokenType.Identifier).required('data<-data', lLoopGraph).required('second', TokenType.Modifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -359,13 +337,14 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).loop('loop', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { data: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional('loop<-data', lLoopGraph);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -381,13 +360,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().optional('optional', TokenType.Modifier).optional(lParser.partReference('LoopCode')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { optional?: string; }> = lMainGraph;
+                    return GraphNode.new<TokenType>().optional('optional', TokenType.Modifier).optional(lSelfReference);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -404,13 +381,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().optional('optional', GraphNode.new<TokenType>().required('mod', TokenType.Modifier)).optional(lParser.partReference('LoopCode')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { optional?: { mod: string; }; }> = lMainGraph;
+                    return GraphNode.new<TokenType>().optional('optional', GraphNode.new<TokenType>().required('mod', TokenType.Modifier)).optional(lSelfReference);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
@@ -423,74 +398,26 @@ describe('CodeParser', () => {
                 });
             });
 
-            it('-- Empty data for loops', () => {
-                // Setup.
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lCodeText: string = '';
-
-                // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().loop('loop', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
-
-                // Process. Convert code.
-                const lParsedData: any = lParser.parse(lCodeText);
-
-                expect(lParsedData).toHaveProperty('loop');
-                expect(lParsedData.loop).toHaveLength(0);
-            });
-
             it('-- Empty data for nested loops into single', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = '';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().loop('loop', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('value', lParser.partReference('LoopCode')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { loop: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('loop[]', TokenType.Identifier).optional('loop<-loop', lSelfReference);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('value<-loop', lLoopGraph);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 expect(lParsedData).toHaveProperty('value');
                 expect(lParsedData.value).toHaveLength(0);
-            });
-
-            it('-- Loop with optional inner node.', () => {
-                // Setup.
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lCodeText: string = 'one five';
-
-                // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LoopCode',
-                    GraphNode.new<TokenType>().required('first', TokenType.Identifier).loop(GraphNode.new<TokenType>().optional(TokenType.Modifier)).required('second', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LoopCode');
-
-                // Process. Convert code.
-                const lParsedData: any = lParser.parse(lCodeText);
-
-                // Evaluation.
-                expect(lParsedData).toHaveProperty('first', 'one');
-                expect(lParsedData).toHaveProperty('second', 'five');
             });
         });
 
@@ -501,21 +428,17 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define additive part.
-                lParser.defineGraphPart('NewPart',
-                    GraphNode.new<TokenType>().required('data', TokenType.Modifier),
-                    (pData) => {
-                        return pData.data;
-                    }
-                );
+                const NewPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', TokenType.Modifier);
+                }).converter((pData) => {
+                    return pData.data;
+                });
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().optional('part', lParser.partReference('NewPart')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const StartPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional('part', NewPart);
+                });
+                lParser.setRootGraph(StartPart);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -530,18 +453,15 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define additive part without collector
-                lParser.defineGraphPart('NewPart',
-                    GraphNode.new<TokenType>().required('data', TokenType.Modifier)
-                );
+                const NewPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', TokenType.Modifier);
+                });
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().optional('part', lParser.partReference('NewPart')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const StartPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional('part', NewPart);
+                });
+                lParser.setRootGraph(StartPart);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -557,21 +477,15 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define additive part.
-                lParser.defineGraphPart('NewPart',
-                    GraphNode.new<TokenType>().required('data', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
+                const NewPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', TokenType.Modifier);
+                });
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().optional('part', lParser.partReference('NewPart')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const StartPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional('part', NewPart);
+                });
+                lParser.setRootGraph(StartPart);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -587,21 +501,15 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define additive part.
-                lParser.defineGraphPart('NewPart',
-                    GraphNode.new<TokenType>().required('data', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
+                const NewPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('data', TokenType.Identifier);
+                });
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).optional('part', lParser.partReference('NewPart')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const StartPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).optional('part', NewPart);
+                });
+                lParser.setRootGraph(StartPart);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -617,13 +525,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const const const const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().required('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).required('end', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, any> = lMainGraph;
+                    return GraphNode.new<TokenType>().required('start', TokenType.Modifier).optional('inner', lSelfReference).required('end', TokenType.Modifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -645,13 +551,11 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const const indent indent';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('StartPart',
-                    GraphNode.new<TokenType>().required('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).required('end', TokenType.Identifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('StartPart');
+                const lMainGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, any> = lMainGraph;
+                    return GraphNode.new<TokenType>().required('start', TokenType.Modifier).optional('inner', lSelfReference).required('end', TokenType.Identifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process. Convert code.
                 const lResult = lParser.parse(lCodeText);
@@ -688,13 +592,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('Something', TokenType.Number),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('Something', TokenType.Number);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -711,13 +612,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).required('Something', TokenType.Number),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required('Something', TokenType.Number);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -734,13 +632,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = '';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('Something', TokenType.Number),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('Something', TokenType.Number);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -757,13 +652,10 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const identifier';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('LinearCode',
-                    GraphNode.new<TokenType>().required('Something', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('LinearCode');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('Something', TokenType.Modifier);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -780,16 +672,13 @@ describe('CodeParser', () => {
                 const lCodeText: string = 'const identifier;';
 
                 // Setup. Define graph part and set as root.
-                lParser.defineGraphPart('DublicateBranchingCode',
-                    GraphNode.new<TokenType>().required([
+                const DublicateBranchingCode = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required([
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier),
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier)
-                    ]).required(TokenType.Semicolon),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('DublicateBranchingCode');
+                    ]).required(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(DublicateBranchingCode);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -803,19 +692,14 @@ describe('CodeParser', () => {
             it('-- Detect endless circular dependency over multiple references.', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
-                lParser.defineGraphPart('Level1',
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lParser.partReference('Level2')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Level2',
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lParser.partReference('Level1')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Level1');
+                const lLevel1Graph = Graph.define(() => {
+                    const lLevel2GraphReference: Graph<TokenType, any> = lLevel2Graph;
+                    return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lLevel2GraphReference);
+                });
+                const lLevel2Graph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(lLevel1Graph);
+                });
+                lParser.setRootGraph(lLevel1Graph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -826,39 +710,17 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
             });
 
-            it('-- Detect endless circular dependency with loop.', () => {
-                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-
-                lParser.defineGraphPart('Level1',
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier).loop(TokenType.Identifier).required(lParser.partReference('Level1')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Level1');
-
-                // Process.
-                const lErrorFunction = () => {
-                    lParser.parse('identifier');
-                };
-
-                // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular dependency detected between: Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
-            });
-
             it('-- Detect endless circular dependency with branch.', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
-                lParser.defineGraphPart('Level1',
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier).required([
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, any> = lLoopGraph;
+                    return GraphNode.new<TokenType>().optional(TokenType.Modifier).required([
                         GraphNode.new<TokenType>().optional(TokenType.Identifier),
                         GraphNode.new<TokenType>().optional(TokenType.Number)
-                    ]).required(lParser.partReference('Level1')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Level1');
+                    ]).required(lSelfReference);
+                });
+                lParser.setRootGraph(lLoopGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -881,24 +743,20 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                lParser.defineGraphPart('List', GraphNode.new<TokenType>()
-                    .loop('list', GraphNode.new<TokenType>().required('@')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Graph', GraphNode.new<TokenType>()
-                    .optional('list', lParser.partReference('List'))
-                    .required('type', 'a')
-                    .required([
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<string, { list: string[]; }> = lLoopGraph;
+                    return GraphNode.new().required('list[]', '@').optional('list<-list', lSelfReference);
+                });
+                const lListGraph = Graph.define(() => {
+                    return GraphNode.new().optional('list<-list', lLoopGraph);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new().optional('list', lListGraph).required('type', 'a').required([
                         ';',
-                        GraphNode.new<TokenType>().required('1').required(';')
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Graph');
+                        GraphNode.new().required('1').required(';')
+                    ]);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process
                 const lResult: any = lParser.parse('a1;');
@@ -917,30 +775,22 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                lParser.defineGraphPart('Variable', GraphNode.new<TokenType>()
-                    .required('variable', 'ident'),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Addition', GraphNode.new<TokenType>()
-                    .required('left', lParser.partReference('Expression'))
-                    .required('operator')
-                    .required('right', lParser.partReference('Expression')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Expression', GraphNode.new<TokenType>()
-                    .required('expression', [
-                        lParser.partReference('Variable'),
-                        lParser.partReference('Addition')
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Expression');
+                const lVariableGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('variable', 'ident');
+                });
+                const lAdditionGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
+                });
+                const lExpressionGraph = Graph.define(() => {
+                    const lLoopingAdditionGraph: Graph<string, any> = lAdditionGraph;
+                    const lLoopingVariableGraph: Graph<string, any> = lVariableGraph;
+
+                    return GraphNode.new<string>().required('expression', [
+                        lLoopingAdditionGraph,
+                        lLoopingVariableGraph
+                    ]);
+                });
+                lParser.setRootGraph(lExpressionGraph);
 
                 // Process
                 const lResult: any = lParser.parse('a + b - c');
@@ -981,30 +831,22 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                lParser.defineGraphPart('Variable', GraphNode.new<TokenType>()
-                    .required('variable', 'ident'),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Addition', GraphNode.new<TokenType>()
-                    .required('left', lParser.partReference('Expression'))
-                    .required('operator')
-                    .required('right', lParser.partReference('Expression')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Expression', GraphNode.new<TokenType>()
-                    .required('expression', [
-                        lParser.partReference('Addition'),
-                        lParser.partReference('Variable')
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Expression');
+                const lVariableGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('variable', 'ident');
+                });
+                const lAdditionGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
+                });
+                const lExpressionGraph = Graph.define(() => {
+                    const lLoopingAdditionGraph: Graph<string, any> = lAdditionGraph;
+                    const lLoopingVariableGraph: Graph<string, any> = lVariableGraph;
+
+                    return GraphNode.new<string>().required('expression', [
+                        lLoopingAdditionGraph,
+                        lLoopingVariableGraph
+                    ]);
+                });
+                lParser.setRootGraph(lExpressionGraph);
 
                 // Process
                 const lResult: any = lParser.parse('a + b - c');
@@ -1045,38 +887,29 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                lParser.defineGraphPart('Variable', GraphNode.new<TokenType>()
-                    .required('variable', 'ident'),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Optional', GraphNode.new<TokenType>()
-                    .optional('optional')
-                    .required('expression', lParser.partReference('Expression')),
-                    (pData) => {
-                        return pData.expression;
-                    }
-                );
-                lParser.defineGraphPart('Addition', GraphNode.new<TokenType>()
-                    .required('left', lParser.partReference('Expression'))
-                    .required('operator')
-                    .required('right', lParser.partReference('Expression')),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.defineGraphPart('Expression', GraphNode.new<TokenType>()
-                    .required('expression', [
-                        lParser.partReference('Optional'),
-                        lParser.partReference('Addition'),
-                        lParser.partReference('Variable')
-                    ]),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph('Expression');
+                const lVariableGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('variable', 'ident');
+                });
+                const lOptionalGraph = Graph.define(() => {
+                    return GraphNode.new<string>().optional('optional').required('expression', lExpressionGraph);
+                }).converter((pData) => {
+                    return pData.expression;
+                });
+                const lAdditionGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
+                });
+                const lExpressionGraph = Graph.define(() => {
+                    const lLoopingOptionalGraph: Graph<string, any> = lOptionalGraph;
+                    const lLoopingAdditionGraph: Graph<string, any> = lAdditionGraph;
+                    const lLoopingVariableGraph: Graph<string, any> = lVariableGraph;
+
+                    return GraphNode.new<string>().required('expression', [
+                        lLoopingOptionalGraph,
+                        lLoopingAdditionGraph,
+                        lLoopingVariableGraph
+                    ]);
+                });
+                lParser.setRootGraph(lExpressionGraph);
 
                 // Process
                 const lResult: any = lParser.parse('a + b - c');
@@ -1112,14 +945,11 @@ describe('CodeParser', () => {
             it('-- Graph has dublicate single value identifier', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lPartName: string = 'DublicateValueIdentifierPart';
-                lParser.defineGraphPart(lPartName,
-                    GraphNode.new<TokenType>().required('Something', TokenType.Modifier).required('Something', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph(lPartName);
+                const llMainGraph: string = 'DublicateValueIdentifierPart';
+                const DublicateValueIdentifierPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('Something', TokenType.Modifier).required('Something', TokenType.Modifier);
+                });
+                lParser.setRootGraph(DublicateValueIdentifierPart);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1133,14 +963,14 @@ describe('CodeParser', () => {
             it('-- Graph has dublicate list value identifier. With existing single identifier.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lPartName: string = 'DublicateValueIdentifierPart';
-                lParser.defineGraphPart(lPartName,
-                    GraphNode.new<TokenType>().loop('Something', TokenType.Modifier).required('Something', TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph(lPartName);
+                const lLoopGraph = Graph.define(() => {
+                    const lSelfReference: Graph<TokenType, { something: string[]; }> = lLoopGraph;
+                    return GraphNode.new<TokenType>().required('something[]', TokenType.Modifier).required('something<-something', lSelfReference);
+                });
+                const DublicateValueIdentifierPart = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('something<-something', lLoopGraph).required('something', TokenType.Modifier);
+                });
+                lParser.setRootGraph(DublicateValueIdentifierPart);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1148,20 +978,17 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "Something" that is not a list value but should be.`);
+                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "something" that is not a list value but should be.`);
             });
 
             it('-- Not completing to end and failing on the first token.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lPartName: string = 'FailingToEnd';
-                lParser.defineGraphPart(lPartName,
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier),
-                    (pData) => {
-                        return pData;
-                    }
-                );
-                lParser.setRootGraph(lPartName);
+                const llMainGraph: string = 'FailingToEnd';
+                const FailingToEnd = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional(TokenType.Modifier);
+                });
+                lParser.setRootGraph(FailingToEnd);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1178,13 +1005,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    () => {
-                        throw new Error(lErrorMessage);
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw new Error(lErrorMessage);
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1201,13 +1027,12 @@ describe('CodeParser', () => {
 
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    function lMyErrorFunctionName() {
-                        throw new Error();
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(function lMyErrorFunctionName() {
+                    throw new Error();
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 let lError: Error | null = null;
@@ -1229,13 +1054,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1250,13 +1074,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1276,13 +1099,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1302,13 +1124,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lError: ParserException<any> = new ParserException('', null, 2, 3, 4, 5);
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    () => {
-                        throw lError;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lError;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1325,13 +1146,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1351,13 +1171,12 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().optional(TokenType.Modifier),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1377,13 +1196,12 @@ describe('CodeParser', () => {
             it('-- Error positions with no parse data.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier),
-                    () => {
-                        return {};
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    return {};
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1402,14 +1220,13 @@ describe('CodeParser', () => {
             it('-- Multi error after line break.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required([
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required([
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Semicolon),
                         GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon),
-                    ]),
-                    () => { }
-                );
-                lParser.setRootGraph('PartName');
+                    ]);
+                }).converter(() => { });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1431,13 +1248,12 @@ describe('CodeParser', () => {
                 lParser.lexer.useTokenPattern(lParser.lexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
 
                 const lErrorMessage: string = 'Error message';
-                lParser.defineGraphPart('PartName',
-                    GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon),
-                    () => {
-                        throw lErrorMessage;
-                    }
-                );
-                lParser.setRootGraph('PartName');
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -1461,12 +1277,12 @@ describe('CodeParser', () => {
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
             // Process.
-            const lGraph = Graph.define(() => {
+            const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Assignment);
             });
 
             // Evaluation.
-            lParser.setRootGraph(lGraph);
+            lParser.setRootGraph(lMainGraph);
         });
     });
 });

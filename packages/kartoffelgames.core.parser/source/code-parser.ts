@@ -82,7 +82,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         let lRootParseData: GraphParseResult;
         try {
             // Parse root part. Start at 0 recursion level. Technicaly impossible to exit reference path because of recursion chain.
-            lRootParseData = this.parseGraph(this.mRootPart, lTokenList, 0, new Set<Graph<TTokenType>>(), 0)!;
+            lRootParseData = this.parseGraph(this.mRootPart as Graph<TTokenType>, lTokenList, 0, new Set<Graph<TTokenType>>(), 0)!;
         } catch (pException) {
             // Only handle exclusive graph errors.
             if (!(pException instanceof GraphException)) {

@@ -248,169 +248,32 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pNode: GraphNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionNodeChain: Set<Graph<TTokenType>>): GraphChainResult {
-        // TODO: pNodeValues should be a single result.
+    private retrieveChainedValues(pNode: GraphNode<TTokenType>, pNodeValue: GraphParseResult, pTokenList: Array<LexerToken<TTokenType>>, pRecursionNodeChain: Set<Graph<TTokenType>>): GraphChainResult {
+        const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
 
-        const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
+        // Next chained node.
+        const lNextNode: GraphNode<TTokenType, object> | null = lNodeConnections.next;
 
-        // Run chained node parse for each node value.
-        const lChainList: Array<ChainGraph> = new Array<ChainGraph>();
-        for (const lNodeValue of pNodeValues) {
-            // Process chained nodes in parallel.
-            for (const lChainedNode of pNode.next()) {
-                // Graph end. No chaining value.
-                if (lChainedNode === null) {
-                    lChainList.push({
-                        nodeValue: lNodeValue,
-                        chainedValue: {
-                            data: {}, // Empty chain data.
-                            nextTokenIndex: lNodeValue.nextTokenIndex,
-                            tokenProcessed: false,
-                            hops: lNodeValue.hops
-                        },
-                        loopNode: false,
-                        hops: lNodeValue.hops
-                    });
-                    continue;
+        // No result when branch end was meet.
+        if (lNextNode === null) {
+            return {
+                nodeData: pNodeValue,
+                chainData: {
+                    data: {}, // Empty chain data.
+                    nextTokenIndex: pNodeValue.nextTokenIndex,
+                    tokenProcessed: false,
+                    hops: pNodeValue.hops
                 }
-
-                // Skip endless loops by preventing the same optional node chaining itself.
-                if (!lNodeValue.tokenProcessed && lChainedNode === pNode) {
-                    continue;
-                }
-
-                // Try to parse next graph node saves all errors on exception.
-                lGraphErrors.onErrorMergeAndContinue(() => {
-
-                    // Every graph branch should have their own recursion chain.
-                    let lRecursionNodeChainBranchCopy: Set<GraphPartReference<TTokenType, unknown>>;
-                    if (lNodeValue.tokenProcessed) {
-                        // Reset recursion node chain when the current node had a parsed value.
-                        // This prevents only infinit recursions when every node was optional.
-                        lRecursionNodeChainBranchCopy = new Set<GraphPartReference<TTokenType, unknown>>();
-                    } else {
-                        // Copy recursion node chain to prevent stacking from other graph branches.
-                        lRecursionNodeChainBranchCopy = new Set<GraphPartReference<TTokenType, unknown>>(pRecursionNodeChain);
-                    }
-
-                    // Parse chained node.
-                    const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lChainedNode, pTokenList, lNodeValue.nextTokenIndex, lRecursionNodeChainBranchCopy, lNodeValue.hops);
-
-                    // Process graph with chained node values.
-                    lChainList.push({
-                        nodeValue: lNodeValue,
-                        chainedValue: lChainedNodeParseResult,
-                        loopNode: lChainedNode === pNode,
-                        hops: lChainedNodeParseResult.hops
-                    });
-                });
-            }
+            };
         }
 
-        // Throw error list when no result was found.
-        if (lChainList.length === 0) {
-            throw lGraphErrors;
-        }
+        // Parse chained node.
+        const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lNextNode, pTokenList, pNodeValue.nextTokenIndex, pRecursionNodeChain, pNodeValue.hops);
 
-        // Filtered result list.
-        const lChainResultList: Array<ChainGraph> = ((pChainList: Array<ChainGraph>) => {
-            let lFilterdValues: Array<ChainGraph> = pChainList;
-
-            // Fast exit on distinct graph value.
-            if (lFilterdValues.length === 1) {
-                return lFilterdValues;
-            }
-
-            // Prefere chains with node value with processed token.
-            const lProcessedNodeValue: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.nodeValue.tokenProcessed; });
-            if (lProcessedNodeValue.length !== 0) {
-                lFilterdValues = lProcessedNodeValue;
-            }
-
-            // Fast exit on distinct graph value.
-            if (lFilterdValues.length === 1) {
-                return lFilterdValues;
-            }
-
-            // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
-            // Keep the "failed" optional chains, when no none-optional chain exists.
-            const lNoOptionalChainList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.chainedValue.tokenProcessed; });
-            if (lNoOptionalChainList.length !== 0) {
-                lFilterdValues = lNoOptionalChainList;
-            }
-
-            // Fast exit on distinct graph value.
-            if (lFilterdValues.length === 1) {
-                return lFilterdValues;
-            }
-
-            // Enforce greedy loops, Allways choose looped chains over static chains.
-            // When a static and a loop chain exists it does not count as ambiguity paths.
-            const lLoopChainList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.loopNode; });
-            if (lLoopChainList.length !== 0) {
-                lFilterdValues = lLoopChainList;
-            }
-
-            // Fast exit on distinct graph value.
-            if (lFilterdValues.length === 1) {
-                return lFilterdValues;
-            }
-
-            // When chain contains empty values at this point, no none empty where found.
-            // This includes branches on graph end as well.
-            // When a optional exists, take the one with the most consumed token and the shortest path taken.
-            const lOnlyOptionalList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return !pResult.chainedValue.tokenProcessed; });
-            if (lOnlyOptionalList.length !== 0) {
-                // Find value with the most consumed token and the shortest path taken
-                lFilterdValues = [lOnlyOptionalList.reduce((pPrevItem: ChainGraph, pCurrentItem: ChainGraph) => {
-                    // Only include for hops when consumed token are the same.
-                    if (pPrevItem.chainedValue.nextTokenIndex === pCurrentItem.chainedValue.nextTokenIndex) {
-                        if (pPrevItem.hops < pCurrentItem.hops) {
-                            return pPrevItem;
-                        }
-
-                        return pCurrentItem;
-                    }
-
-                    // Prefer higher token index as it has consumed more token.
-                    return (pPrevItem.chainedValue.nextTokenIndex > pCurrentItem.chainedValue.nextTokenIndex) ? pPrevItem : pCurrentItem;
-                })];
-            }
-
-            return lFilterdValues;
-        })(lChainList);
-
-        // Validate ambiguity paths.
-        if (lChainResultList.length > 1) {
-            // Recreate token path of every ambiguity path.
-            const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
-            for (const lAmbiguityPath of lChainResultList) {
-                // Get current token index of node value.
-                // Only one node value can be null, so two ambiguity paths with a node null value does not exists and the node value null check can be omited.
-                const lStartTokenIndex: number = lAmbiguityPath.nodeValue.nextTokenIndex - 2;
-                const lEndTokenIndex: number = lAmbiguityPath.chainedValue.nextTokenIndex;
-
-                // Cut token Ambiguity path from complete token list.
-                const lAmbiguityPathToken: Array<LexerToken<TTokenType>> = pTokenList.slice(lStartTokenIndex, lEndTokenIndex);
-
-                // Build path string from lAmbiguityPathToken. 
-                const lAmbiguityPathDescription: string = lAmbiguityPathToken.reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
-                    return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
-                }, '');
-
-                // Add ambiguity path description to output list.
-                lAmbiguityPathDescriptionList.push(`{${lAmbiguityPathDescription} }`);
-            }
-
-            // Throw error with all ambiguity paths.
-            throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lAmbiguityPathDescriptionList.join(',\n\t')}\n]`, this);
-        }
-
-        // Read first successfull chain result. At this point only one should remain.
-        const lChainResult: ChainGraph = lChainResultList.at(0)!;
+        // Process graph with chained node values.
         return {
-            nodeData: lChainResult.nodeValue,
-            chainData: lChainResult.chainedValue
+            nodeData: pNodeValue,
+            chainData: lChainedNodeParseResult
         };
     }
 
@@ -441,11 +304,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read node connections.
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
 
-        // TODO: What this do?
-        let lHasEmptyResult: boolean = false;
-
         // Find first node value result.
-        const lNodeResultXXXXX: GraphParseResult | null = (() => {
+        const lNodeResult: GraphParseResult | null = (() => {
             for (const lNodeValue of lNodeConnections.values) {
                 if (typeof lNodeValue === 'string') {
                     // When no current token was found, skip node value parsing.
@@ -476,44 +336,22 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     };
                 } else {
                     // Try to retrieve values from graphs.
-                    lGraphErrors.onErrorMergeAndContinue(() => {
-                        // Process inner value.
-                        let lValueGraphResult: GraphParseResult;
-                        if (lNodeValue instanceof GraphPartReference) {
-                            // Call can fail:
-                            // When it fails the graph reference set into pRecursionNodeChain persists for next node values until a node in another node value graph resolves into a value.
-                            // This prevents other branches without or only optional nodes between the same reference to try to resolve the same graph reference.
-                            // This includes looping nodes.
-                            const lReferenceResult: GraphParseResult | null = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
-                            if (!lReferenceResult) {
-                                // Build error list.
-                                const lReferenceRecursionList: Array<string> = new Array<string>();
-                                for (const lRecursionReference of pRecursionNodeChain) {
-                                    lReferenceRecursionList.push(`Ref<${lRecursionReference.partName}>`);
-                                }
-    
-                                // Add current reference to recursion error list.
-                                lReferenceRecursionList.push(`Ref<${lNodeValue.partName}>`);
-    
-                                // Add potential error that prevents parsing.
-                                lGraphErrors.appendError(`Infinite part reference recursion prevented for "${lReferenceRecursionList.join(' -> ')}".`, lCurrentToken);
-                                return;
-                            }
-    
-                            lValueGraphResult = lReferenceResult;
+                    try {
+                        if (lNodeValue instanceof Graph) {
+                            return this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
                         } else {
-                            const lGraphParseResult: GraphNodeParseResult = this.parseGraphBranch(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
-    
-                            // Parse empty GraphParseResult with undefined data.
-                            lValueGraphResult = lGraphParseResult;
+                            return this.parseGraphBranch(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
                         }
-    
-                        // Save if result list has an empty result.
-                        lHasEmptyResult = lHasEmptyResult || !lValueGraphResult.tokenProcessed;
-    
-                        // Add graph result.
-                        lResultList.push(lValueGraphResult);
-                    });
+                    } catch (lError) {
+                        // Append error message thrown by parsing graph/node.
+                        if (lError instanceof Error) {
+                            lGraphErrors.appendError(lError.message, lCurrentToken);
+                        } else {
+                            lGraphErrors.appendError((<any>lError).toString(), lCurrentToken);
+                        }
+
+                        continue;
+                    }
                 }
             }
 
@@ -521,46 +359,22 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return null;
         })();
 
-
-
-
-
-
-        
-
-        // Add single empty data when result was empty and node is optional.
-        if (!pNode.required && !lHasEmptyResult) {
-            lHasEmptyResult = true;
-
-            lResultList.push({
-                data: undefined,
+        // Empty result when no node value was found and node is optional.
+        if (lNodeResult === null && !lNodeConnections.required) {
+            return {
+                data: null,
                 nextTokenIndex: pCurrentTokenIndex,
                 tokenProcessed: false,
                 hops: pGraphHops
-            });
+            };
         }
 
         // When no result was added, node was required
-        if (lResultList.length === 0) {
+        if (lNodeResult === null) {
             throw lGraphErrors;
         }
 
-        // Nothing to filter. Better performance than iterating each time.
-        if (lResultList.length === 1 || !lHasEmptyResult) {
-            return lResultList;
-        }
-
-        // Filter only one result with a tokenProcessed false.
-        // Prevents optional nodes with optional graph references to keep ambiguity paths till the next branch. 
-        return [
-            // All graphs result with processed token.
-            ...lResultList.filter((pItem) => { return pItem.tokenProcessed; }),
-
-            // Single graph result without processed token and the lowest hop count.
-            lResultList.filter((pItem) => { return !pItem.tokenProcessed; }).reduce((pPrevItem: GraphParseResult, pCurrentItem: GraphParseResult) => {
-                return (pPrevItem.hops < pCurrentItem.hops) ? pPrevItem : pCurrentItem;
-            })
-        ];
+        return lNodeResult;
     }
 }
 

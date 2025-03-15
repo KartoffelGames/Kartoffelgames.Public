@@ -31,7 +31,7 @@ export class GraphException<TTokenType extends string> extends Error {
      * @param pMessage - Error message.
      * @param pErrorToken - Error token.
      */
-    public appendError(pMessage: string, pErrorToken: LexerToken<TTokenType> | undefined): void {
+    public appendError(pMessage: string, pErrorToken: LexerToken<TTokenType> | null): void {
         this.mErrorList.push({
             message: pMessage,
             errorToken: pErrorToken
@@ -110,5 +110,5 @@ export class GraphException<TTokenType extends string> extends Error {
 
 export type GraphParseError<TTokenType extends string> = {
     message: string;
-    errorToken: LexerToken<TTokenType> | undefined;
+    errorToken: LexerToken<TTokenType> | null;
 };

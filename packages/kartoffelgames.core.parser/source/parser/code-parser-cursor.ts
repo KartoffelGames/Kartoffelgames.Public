@@ -36,8 +36,59 @@ export class CodeParserCursor<TTokenType extends string> {
      * @throws {@link Exception}
      * If there is no graph branch on the stack.
      */
-    public nextToken(): LexerToken<TTokenType> | null {
+    public current(): LexerToken<TTokenType> | null {
         // Pop branch.
+        const lCurrentBranchStack: CodeParserCursorBranchStack<TTokenType> | undefined = this.mBranchStack.top;
+        if (!lCurrentBranchStack) {
+            throw new Exception("No graph branch on the stack.", this);
+        }
+
+        // Performance reasons: Dont start a iterator when we dont need to.
+        if (lCurrentBranchStack.token.index < lCurrentBranchStack.token.cache.length) {
+            // Read token from cache.
+            return lCurrentBranchStack.token.cache[lCurrentBranchStack.token.index];
+        }
+
+        // Fill up cache until the current index is reached.
+        for (let lCacheLength = lCurrentBranchStack.token.cache.length; lCacheLength <= lCurrentBranchStack.token.index; lCacheLength++) {
+            // Read token from generator.
+            const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
+            if (lToken.done) {
+                return null;
+            }
+
+            // Store token in cache.
+            lCurrentBranchStack.token.cache.push(lToken.value);
+        }
+
+        // Read token from cache.
+        return lCurrentBranchStack.token.cache[lCurrentBranchStack.token.index];
+    }
+
+    /**
+     * Moves the cursor to the end of the token stream.
+     * Irreversible deconstruction of this cursor.
+     * 
+     * @returns {Array<LexerToken<TTokenType>>} An array of lexer tokens from the current position to the end.
+     * 
+     * @throws {Exception} Throws an exception if there is a graph branch on the stack.
+     */
+    public moveEnd(): Array<LexerToken<TTokenType>> {
+        // Prevent moving to end while there is a graph branch on the stack.
+        if (this.mBranchStack.top) {
+            throw new Exception("Cannot move to end while there is a graph branch on the stack.", this);
+        }
+
+        return [...this.mGenerator];
+    }
+
+    /**
+     * Advances the cursor to the next token in the current branch stack.
+     * 
+     * @throws {Exception} If there is no branch on the stack.
+     */
+    public moveNext(): void {
+        // Get top branch.
         const lCurrentBranchStack: CodeParserCursorBranchStack<TTokenType> | undefined = this.mBranchStack.top;
         if (!lCurrentBranchStack) {
             throw new Exception("No graph branch on the stack.", this);
@@ -48,23 +99,7 @@ export class CodeParserCursor<TTokenType extends string> {
             this.mUnprogressedCircularBranches.delete(lCurrentBranchStack.branch);
         }
 
-        // Read token from cache.
-        if (lCurrentBranchStack.token.index < lCurrentBranchStack.token.cache.length) {
-            const lToken: LexerToken<TTokenType> = lCurrentBranchStack.token.cache[lCurrentBranchStack.token.index];
-            lCurrentBranchStack.token.index++;
-            return lToken;
-        }
-
-        // Read token from generator.
-        const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
-        if (lToken.done) {
-            return null;
-        }
-
-        // Store token in cache.
-        lCurrentBranchStack.token.cache.push(lToken.value);
         lCurrentBranchStack.token.index++;
-        return lToken.value;
     }
 
     /**
@@ -73,8 +108,8 @@ export class CodeParserCursor<TTokenType extends string> {
      * @throws {@link Exception} If there is no graph branch on the stack.
      * @throws {@link Exception} If there is no previous token available.
      */
-    public movePreviousToken(): void {
-        // Pop branch.
+    public movePrevious(): void {
+        // Get top branch.
         const lCurrentBranchStack: CodeParserCursorBranchStack<TTokenType> | undefined = this.mBranchStack.top;
         if (!lCurrentBranchStack) {
             throw new Exception("No graph branch on the stack.", this);

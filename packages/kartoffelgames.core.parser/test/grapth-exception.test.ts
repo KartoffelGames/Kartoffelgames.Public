@@ -107,8 +107,8 @@ describe('GrapthException', () => {
             // Setup.
             const lErrorMessage: string = 'Message1';
             const lError: GraphException<string> = new GraphException();
-            lError.appendError('Message2', undefined);
-            lError.appendError(lErrorMessage, undefined);
+            lError.appendError('Message2', null);
+            lError.appendError(lErrorMessage, null);
 
             // Process.
             const lGraphError: GraphParseError<string> = lError.mostRelevant();
@@ -122,7 +122,7 @@ describe('GrapthException', () => {
             const lErrorMessage: string = 'Message1';
             const lError: GraphException<string> = new GraphException();
             lError.appendError(lErrorMessage, new LexerToken('Type', 'Value', 1, 2));
-            lError.appendError('Message2', undefined);
+            lError.appendError('Message2', null);
 
             // Process.
             const lGraphError: GraphParseError<string> = lError.mostRelevant();

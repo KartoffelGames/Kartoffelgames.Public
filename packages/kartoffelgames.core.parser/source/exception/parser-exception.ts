@@ -24,7 +24,7 @@ export class ParserException<T> extends Exception<T> {
      * 
      * @returns A new ParserException object.
      */
-    public static fromToken<T, TTokenType extends string>(pCause: any, pTarget: T, pStartToken: LexerToken<TTokenType> | undefined, pEndToken: LexerToken<TTokenType> | undefined): ParserException<T> {
+    public static fromToken<T, TTokenType extends string>(pCause: any, pTarget: T, pStartToken: LexerToken<TTokenType> | null, pEndToken: LexerToken<TTokenType> | null): ParserException<T> {
         // Save actual error as error option.
         let lMessage: string;
         let lErrorOptions: ErrorOptions | undefined;

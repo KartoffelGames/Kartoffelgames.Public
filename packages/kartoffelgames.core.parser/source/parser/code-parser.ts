@@ -87,7 +87,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
-        const lRemainingToken: Array<LexerToken<TTokenType>> = lCursor.moveEnd();
+        const lRemainingToken: Array<LexerToken<TTokenType>> = lCursor.collapse();
 
         // Validate, that every token was parsed.
         if (lRemainingToken.length !== 0) {
@@ -298,7 +298,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     if (!lCurrentToken) {
                         // Append error when node was required.
                         if (lNodeConnections.required) {
-                            lGraphErrors.appendError(`Unexpected end of statement.`, null); // TODO: Null token hides the message.
+                            lGraphErrors.appendError(`Unexpected end of statement. Token "${lNodeValue}" expected.`, null); // TODO: Null token hides the message.
                         }
 
                         continue;

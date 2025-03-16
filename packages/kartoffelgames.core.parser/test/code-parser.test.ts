@@ -486,7 +486,7 @@ describe('CodeParser', () => {
 
                 // Process. Convert code.
                 const lErrorFunction = () => {
-                    const a = lParser.parse(lCodeText);
+                    lParser.parse(lCodeText);
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
@@ -511,7 +511,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow('Unexpected end of statement. TokenIndex: "4" missing.');
+                expect(lErrorFunction).toThrow('Unexpected end of statement. Token "Modifier" expected.');
             });
 
             it('-- Self reference with different start and end data.', () => {
@@ -592,7 +592,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Unexpected end of statement. TokenIndex: "1" missing.`);
+                expect(lErrorFunction).toThrow(`Unexpected end of statement. Token "Number" expected.`);
             });
 
             it('-- Single parse error, no token.', () => {
@@ -612,7 +612,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Unexpected end of statement. TokenIndex: "0" missing.`);
+                expect(lErrorFunction).toThrow(`Unexpected end of statement. Token "Number" expected.`);
             });
 
             it('-- Graph end meet without reaching last token.', () => {
@@ -703,7 +703,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
 
-            it('-- Dont add data from empty loop node.', () => {
+            it('-- Add data from empty loop node.', () => {
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
@@ -724,7 +724,7 @@ describe('CodeParser', () => {
                 const lResult: any = lParser.parse('const');
 
                 // Evaluation.
-                expect(lResult).toBeDeepEqual({ type: 'const' });
+                expect(lResult).toBeDeepEqual({ type: 'const', list: [] });
             });
 
             it('-- Prevent circular detection on infinit depths with exit token first', () => {
@@ -849,25 +849,26 @@ describe('CodeParser', () => {
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
-                const lVariableGraph = Graph.define(() => {
-                    return GraphNode.new<string>().required('variable', 'ident');
+
+                const lAdditionGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
                 });
                 const lOptionalGraph = Graph.define(() => {
                     return GraphNode.new<string>().optional('optional').required('expression', lExpressionGraph);
                 }).converter((pData) => {
                     return pData.expression;
                 });
-                const lAdditionGraph = Graph.define(() => {
-                    return GraphNode.new<string>().required('left', lExpressionGraph).required('operator').required('right', lExpressionGraph);
+                const lVariableGraph = Graph.define(() => {
+                    return GraphNode.new<string>().required('variable', 'ident');
                 });
                 const lExpressionGraph = Graph.define(() => {
-                    const lLoopingOptionalGraph: Graph<string, any> = lOptionalGraph;
                     const lLoopingAdditionGraph: Graph<string, any> = lAdditionGraph;
+                    const lLoopingOptionalGraph: Graph<string, any> = lOptionalGraph;
                     const lLoopingVariableGraph: Graph<string, any> = lVariableGraph;
 
                     return GraphNode.new<string>().required('expression', [
-                        lLoopingOptionalGraph,
                         lLoopingAdditionGraph,
+                        lLoopingOptionalGraph,
                         lLoopingVariableGraph
                     ]);
                 });
@@ -892,8 +893,11 @@ describe('CodeParser', () => {
                                     }
                                 },
                                 right: {
+                                    // Last variable can not be parsed with AdditionGraph so it takes the OptionalGraph what calls the expression again , that than calls the AdditionGraph.
                                     expression: {
-                                        variable: 'c'
+                                        expression: {
+                                            variable: 'c'
+                                        }
                                     }
                                 },
                             }

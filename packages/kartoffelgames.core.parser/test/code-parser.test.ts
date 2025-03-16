@@ -679,7 +679,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+                expect(lErrorFunction).toThrow(`Circular graph branch detected.`);
             });
 
             it('-- Detect endless circular dependency with branch.', () => {
@@ -700,7 +700,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
+                expect(lErrorFunction).toThrow(`Circular graph branch detected.`);
             });
 
             it('-- Add data from empty loop node.', () => {
@@ -716,7 +716,7 @@ describe('CodeParser', () => {
                 // Setup. Init grapth.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lMainGraph = Graph.define(() => {
-                    return GraphNode.new<TokenType>().optional('list', GraphNode.new<TokenType>().optional('list[]', TokenType.Identifier)).required('type', TokenType.Modifier);
+                    return GraphNode.new<TokenType>().optional('list', GraphNode.new<TokenType>().optional('innerList[]', TokenType.Identifier)).required('type', TokenType.Modifier);
                 });
                 lParser.setRootGraph(lMainGraph);
 
@@ -724,7 +724,7 @@ describe('CodeParser', () => {
                 const lResult: any = lParser.parse('const');
 
                 // Evaluation.
-                expect(lResult).toBeDeepEqual({ type: 'const', list: [] });
+                expect(lResult).toBeDeepEqual({ type: 'const', list: { innerList: [] } });
             });
 
             it('-- Prevent circular detection on infinit depths with exit token first', () => {
@@ -911,11 +911,10 @@ describe('CodeParser', () => {
             it('-- Graph has dublicate single value identifier', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const llMainGraph: string = 'DublicateValueIdentifierPart';
-                const DublicateValueIdentifierPart = Graph.define(() => {
+                const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required('Something', TokenType.Modifier).required('Something', TokenType.Modifier);
                 });
-                lParser.setRootGraph(DublicateValueIdentifierPart);
+                lParser.setRootGraph(lMainGraph);
 
                 // Process.
                 const lErrorFunction = () => {
@@ -931,20 +930,22 @@ describe('CodeParser', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lLoopGraph = Graph.define(() => {
                     const lSelfReference: Graph<TokenType, { something: string[]; }> = lLoopGraph;
-                    return GraphNode.new<TokenType>().required('something[]', TokenType.Modifier).required('something<-something', lSelfReference);
+                    return GraphNode.new<TokenType>().required('something[]', TokenType.Modifier).optional('something<-something', lSelfReference);
                 });
-                const DublicateValueIdentifierPart = Graph.define(() => {
-                    return GraphNode.new<TokenType>().required('something<-something', lLoopGraph).required('something', TokenType.Modifier);
+                const lMaingraph = Graph.define(() => {
+                    // Big type upfuck here. But it is too typesafe.
+                    const lMainGraph: GraphNode<TokenType, any> = GraphNode.new<TokenType>().required('something', TokenType.Identifier);
+                    return lMainGraph.required('something<-something', lLoopGraph) as GraphNode<TokenType, any>;
                 });
-                lParser.setRootGraph(DublicateValueIdentifierPart);
+                lParser.setRootGraph(lMaingraph);
 
                 // Process.
                 const lErrorFunction = () => {
-                    lParser.parse('const const');
+                    lParser.parse('identifier const const');
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "something" that is not a list value but should be.`);
+                expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "something"`);
             });
 
             it('-- Not completing to end and failing on the first token.', () => {

@@ -124,19 +124,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraphBranch(pCursor: CodeParserCursor<TTokenType>, pGraph: GraphNode<TTokenType>, pGraphCalledLinear: boolean): GraphNodeParseResult {
+    private parseGraphBranch(pCursor: CodeParserCursor<TTokenType>, pGraph: GraphNode<TTokenType>, pGraphCalledLinear: boolean): GraphBranchParseResult<TTokenType> {
         const lBranchRootNode: GraphNode<TTokenType> = pGraph.root;
 
         // Prevent circular graph branches calls that doesnt progressed itself.
         if (pCursor.graphBranchIsCircular(lBranchRootNode)) {
+            // TODO: Add debug information in graphs.
             const lGraphException: GraphException<TTokenType> = new GraphException();
-            lGraphException.appendError(`Circular graph branch detected.`, null); // TODO: Null token hides the mesage.
+            lGraphException.appendError(`Circular graph branch detected.`, null);
             throw lGraphException;
         }
 
-        return pCursor.pushGraphBranch(() => {
+        const lGraphBranchResult = pCursor.pushGraphBranch(() => {
             return this.parseGraphNode(pCursor, pGraph.root);
         }, pGraph.root, pGraphCalledLinear);
+
+        return {
+            data: lGraphBranchResult.result.data,
+            tokenProcessed: lGraphBranchResult.result.tokenProcessed,
+            token: lGraphBranchResult.token
+        };
     }
 
     /**
@@ -183,7 +190,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      */
     private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraphBranch(pCursor, pGraph.node, pGraphCalledLinear);
+        const lNodeParseResult: GraphBranchParseResult<TTokenType> = this.parseGraphBranch(pCursor, pGraph.node, pGraphCalledLinear);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
@@ -195,17 +202,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 throw pError;
             }
 
-            // Read start end end token.
-            const lStartToken: LexerToken<TTokenType> | null = pCursor.current();
-
-            // TODO: Implement end token.
-            // const lEndTokenIndex: number = (lNodeParseResult.nextTokenIndex === pCurrentTokenIndex) ? pCurrentTokenIndex : lNodeParseResult.nextTokenIndex - 1;
-            // const lEndToken: LexerToken<TTokenType> | null = pTokenList.at(lEndTokenIndex) ?? null;
-
-            const lEndToken: LexerToken<TTokenType> | null = pCursor.current();
-
             // When no token was processed, throw default error on first token.
-            throw ParserException.fromToken(pError, this, lStartToken, lEndToken);
+            throw ParserException.fromToken(pError, this, lNodeParseResult.token.start, lNodeParseResult.token.end);
         }
 
         return {
@@ -298,7 +296,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     if (!lCurrentToken) {
                         // Append error when node was required.
                         if (lNodeConnections.required) {
-                            lGraphErrors.appendError(`Unexpected end of statement. Token "${lNodeValue}" expected.`, null); // TODO: Null token hides the message.
+                            lGraphErrors.appendError(`Unexpected end of statement. Token "${lNodeValue}" expected.`, null);
                         }
 
                         continue;
@@ -368,6 +366,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 type GraphNodeParseResult = {
     data: object;
     tokenProcessed: boolean;
+};
+
+type GraphBranchParseResult<TTokenType extends string> = GraphNodeParseResult & {
+    token: {
+        start: LexerToken<TTokenType>;
+        end: LexerToken<TTokenType>;
+    };
 };
 
 type GraphParseResult = {

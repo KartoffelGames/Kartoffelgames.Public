@@ -44,7 +44,7 @@ export class CodeParserCursor<TTokenType extends string> {
         }
 
         // Check if the branch is circular.
-        if(!lCurrentBranchStack.circularBranches.has(pBranch)) {
+        if (!lCurrentBranchStack.circularBranches.has(pBranch)) {
             return false;
         }
 
@@ -160,7 +160,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * @param pLinear - If the branch is linear, so a token cache is not needed.
      * @returns 
      */
-    public pushGraphBranch<TBranch extends GraphNode<TTokenType>, TResult>(pStackCall: (pBranch: TBranch) => TResult, pBranch: TBranch, pLinear: boolean): TResult {
+    public pushGraphBranch<TBranch extends GraphNode<TTokenType>, TResult>(pStackCall: (pBranch: TBranch) => TResult, pBranch: TBranch, pLinear: boolean): CodeParserCursorGraphBranchResult<TTokenType, TResult> {
         // Read the current stack state.
         let lLastBranchStack: CodeParserCursorGraphBranch<TTokenType> | undefined = this.mBranchStack.top!;
 
@@ -192,7 +192,15 @@ export class CodeParserCursor<TTokenType extends string> {
 
         // Call pushed branch.
         try {
-            return pStackCall(pBranch);
+            return {
+                result: pStackCall(pBranch),
+                token: {
+                    // Read first used token from the new token stack.
+                    start: lNewTokenStack.token.cache[0],
+                    // -1 because the index is already moved to the next token.
+                    end: lNewTokenStack.token.cache[lNewTokenStack.token.index - 1]
+                }
+            };
         } catch (lError) {
             // Revert current stack index.
             this.mBranchStack.top!.token.index = 0;
@@ -212,7 +220,6 @@ export class CodeParserCursor<TTokenType extends string> {
             // Add the new tokens to the parent stack.
             lLastBranchStack.token.cache.push(...lNewTokenStackCache);
 
-            // TODO: When do we need to move the parent stack index? Only when child has no exception?
             // TODO: When do we need to cut down the parent token cache, so the memory gets freed?
         }
     }
@@ -227,4 +234,12 @@ type CodeParserCursorGraphBranch<TTokenType extends string> = {
         index: number;
     };
     isRoot: boolean;
+};
+
+type CodeParserCursorGraphBranchResult<TTokenType extends string, TResult> = {
+    result: TResult;
+    token: {
+        start: LexerToken<TTokenType>;
+        end: LexerToken<TTokenType>;
+    };
 };

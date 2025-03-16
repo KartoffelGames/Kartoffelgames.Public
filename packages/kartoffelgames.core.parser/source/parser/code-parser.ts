@@ -129,9 +129,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Prevent circular graph branches calls that doesnt progressed itself.
         if (pCursor.graphBranchIsCircular(lBranchRootNode)) {
-            // TODO: Add debug information in graphs.
             const lGraphException: GraphException<TTokenType> = new GraphException();
-            lGraphException.appendError(`Circular graph branch detected.`, null);
+            lGraphException.appendError(`Circular graph branch detected.`, pCursor.current());
             throw lGraphException;
         }
 
@@ -331,10 +330,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         // Append error message thrown by parsing graph/node.
                         if (lError instanceof GraphException) {
                             lGraphErrors.merge(lError);
-                        } else if (lError instanceof Error) {
-                            lGraphErrors.appendError(lError.message, lCurrentToken);
-                        } else {
-                            lGraphErrors.appendError((<any>lError).toString(), lCurrentToken);
                         }
 
                         continue;

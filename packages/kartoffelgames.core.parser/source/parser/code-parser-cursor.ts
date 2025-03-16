@@ -38,10 +38,7 @@ export class CodeParserCursor<TTokenType extends string> {
      */
     public graphBranchIsCircular(pBranch: GraphNode<TTokenType>): boolean {
         // Get top branch.
-        const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> | undefined = this.mBranchStack.top;
-        if (!lCurrentBranchStack) {
-            return false;
-        }
+        const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
 
         // Check if the branch is circular.
         if (!lCurrentBranchStack.circularBranches.has(pBranch)) {
@@ -61,11 +58,8 @@ export class CodeParserCursor<TTokenType extends string> {
      * If there is no graph branch on the stack.
      */
     public current(): LexerToken<TTokenType> | null {
-        // Pop branch.
+        // Get top branch.
         const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
-        if (lCurrentBranchStack.isRoot) {
-            throw new Exception("No graph branch on the stack.", this);
-        }
 
         // Performance reasons: Dont start a iterator when we dont need to.
         if (lCurrentBranchStack.token.index < lCurrentBranchStack.token.cache.length) {
@@ -100,11 +94,7 @@ export class CodeParserCursor<TTokenType extends string> {
     public collapse(): Array<LexerToken<TTokenType>> {
         const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
 
-        // Prevent moving to end while there is a graph branch on the stack.
-        if (!lCurrentBranchStack.isRoot) {
-            throw new Exception("Cannot move to end while there is a graph branch on the stack.", this);
-        }
-
+        // Generate all remaining tokens and cached unused tokens.
         const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
         const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentBranchStack.token.cache.slice(lCurrentBranchStack.token.index);
 
@@ -119,9 +109,6 @@ export class CodeParserCursor<TTokenType extends string> {
     public moveNext(): void {
         // Get top branch.
         const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
-        if (lCurrentBranchStack.isRoot) {
-            throw new Exception("No graph branch on the stack.", this);
-        }
 
         // When the current branch has progressed, event deep circular branches process a new token and eventually reach the end token.
         if (lCurrentBranchStack.circularBranches.size > 0) {
@@ -132,33 +119,17 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Moves the cursor to the previous token in the current branch stack.
+     * Pushes a new branch onto the graph branch stack, executes a callback function with the branch, and manages the token stack.
      * 
-     * @throws {@link Exception} If there is no graph branch on the stack.
-     * @throws {@link Exception} If there is no previous token available.
-     */
-    public movePrevious(): void {
-        // Get top branch.
-        const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
-        if (lCurrentBranchStack.isRoot) {
-            throw new Exception("No graph branch on the stack.", this);
-        }
-
-        // Cant move back if no token is available.
-        if (lCurrentBranchStack.token.index === 0) {
-            throw new Exception("No previous token available.", this);
-        }
-
-        // Move index back.
-        lCurrentBranchStack.token.index--;
-    }
-
-    /**
+     * @param pStackCall - The callback function to be executed with the branch.
+     * @param pBranch - The branch node to be pushed onto the stack.
+     * @param pLinear - A boolean indicating whether the branch is linear.
+     * @returns An object containing the result of the callback function and the range of tokens used.
      * 
-     * @param pStackCall - Call that happend on the stack. 
-     * @param pBranch - Branch that is pushed on the stack.
-     * @param pLinear - If the branch is linear, so a token cache is not needed.
-     * @returns 
+     * @template TBranch - The type of the branch node.
+     * @template TResult - The type of the result returned by the callback function.
+     * 
+     * @throws Will rethrow any error encountered during the execution of the callback function.
      */
     public pushGraphBranch<TBranch extends GraphNode<TTokenType>, TResult>(pStackCall: (pBranch: TBranch) => TResult, pBranch: TBranch, pLinear: boolean): CodeParserCursorGraphBranchResult<TTokenType, TResult> {
         // Read the current stack state.
@@ -221,6 +192,7 @@ export class CodeParserCursor<TTokenType extends string> {
             lLastBranchStack.token.cache.push(...lNewTokenStackCache);
 
             // TODO: When do we need to cut down the parent token cache, so the memory gets freed?
+            // TODO: Yes the cache can be cut down when the current branch is linear. Dont forget to adjust the parents token index.
         }
     }
 }

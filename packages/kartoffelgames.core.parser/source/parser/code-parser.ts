@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { GraphException, type GraphParseError } from '../exception/graph-exception.ts';
 import { ParserException } from '../exception/parser-exception.ts';
-import { GraphNode, GraphNodeConnections } from "../graph/graph-node.ts";
-import { Graph } from "../graph/graph.ts";
+import type { GraphNode, GraphNodeConnections } from '../graph/graph-node.ts';
+import { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
-import { CodeParserCursor } from "./code-parser-cursor.ts";
+import { CodeParserCursor } from './code-parser-cursor.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -113,6 +113,46 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
+     * Parse the token, marked with {@link pCurrentTokenIndex} with the set graph part.
+     * Return null when no token was processed.
+     * 
+     * @param pGraph - Graph part or a reference to a part.
+     * @param pTokenList - Current parsed list of all token in appearing order..
+     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
+     *  
+     * @returns The Token data object, or when the graph part has a data collector, the collected and altered data object is returned.
+     * Additionally the last used token index is returned.
+     * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
+     * 
+     * @throws {@link ParserException}
+     * When an error is thrown while paring collected data.
+     */
+    private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
+        // Parse graph node, returns empty when graph has no value and was optional
+        const lNodeParseResult: GraphBranchParseResult<TTokenType> = this.parseGraphBranch(pCursor, pGraph.node, pGraphCalledLinear);
+
+        // Execute optional collector.
+        let lResultData: unknown = lNodeParseResult.data;
+        try {
+            lResultData = pGraph.convert(lNodeParseResult.data);
+        } catch (pError: any) {
+            // Rethrow parser exception.
+            if (pError instanceof ParserException) {
+                throw pError;
+            }
+
+            // When no token was processed, throw default error on first token.
+            throw ParserException.fromToken(pError, this, lNodeParseResult.token.start, lNodeParseResult.token.end);
+        }
+
+        return {
+            data: lResultData,
+            tokenProcessed: lNodeParseResult.tokenProcessed
+        };
+    }
+
+    /**
      * Parse the graph, marked with {@link pCurrentTokenIndex}. Allways uses the root node of the provided
      * Returns null when the complete graph processed no token.
      * 
@@ -168,46 +208,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return {
             data: pNode.mergeData(lChainParseResult.nodeData.data, lChainParseResult.chainData.data),
             tokenProcessed: lChainParseResult.chainData.tokenProcessed || lChainParseResult.nodeData.tokenProcessed
-        };
-    }
-
-    /**
-     * Parse the token, marked with {@link pCurrentTokenIndex} with the set graph part.
-     * Return null when no token was processed.
-     * 
-     * @param pGraph - Graph part or a reference to a part.
-     * @param pTokenList - Current parsed list of all token in appearing order..
-     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     *  
-     * @returns The Token data object, or when the graph part has a data collector, the collected and altered data object is returned.
-     * Additionally the last used token index is returned.
-     * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
-     * 
-     * @throws {@link ParserException}
-     * When an error is thrown while paring collected data.
-     */
-    private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
-        // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphBranchParseResult<TTokenType> = this.parseGraphBranch(pCursor, pGraph.node, pGraphCalledLinear);
-
-        // Execute optional collector.
-        let lResultData: unknown = lNodeParseResult.data;
-        try {
-            lResultData = pGraph.convert(lNodeParseResult.data);
-        } catch (pError: any) {
-            // Rethrow parser exception.
-            if (pError instanceof ParserException) {
-                throw pError;
-            }
-
-            // When no token was processed, throw default error on first token.
-            throw ParserException.fromToken(pError, this, lNodeParseResult.token.start, lNodeParseResult.token.end);
-        }
-
-        return {
-            data: lResultData,
-            tokenProcessed: lNodeParseResult.tokenProcessed
         };
     }
 

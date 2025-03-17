@@ -144,7 +144,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         }
 
         // Data that should be merged into the chain data.
-        let lNodeData: unknown = (() => {
+        const lNodeData: unknown = (() => {
             // Node is optional and data is undefined, node data is a empty array.
             if (!this.mConnections.required && typeof pNodeData === 'undefined') {
                 return new Array<unknown>();

@@ -1,12 +1,13 @@
-import { Dictionary, Exception, Stack } from "@kartoffelgames/core";
-import { GraphNode } from "../graph/graph-node.ts";
-import { LexerToken } from "../lexer/lexer-token.ts";
+import { Dictionary, Stack } from '@kartoffelgames/core';
+import type { GraphNode } from '../graph/graph-node.ts';
+import type { LexerToken } from '../lexer/lexer-token.ts';
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mBranchStack: Stack<CodeParserCursorGraphBranch<TTokenType>>;
+    private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
+
 
     /**
      * Constructor.
@@ -31,22 +32,21 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Checks if the given graph branch is circular.
-     *
-     * @param pBranch - The graph node to check for circularity.
-     * @returns `true` if the branch is circular, otherwise `false`.
+     * Moves the cursor to the end of the token stream and returns all unused token.
+     * Irreversible deconstruction of this cursor.
+     * 
+     * @returns {Array<LexerToken<TTokenType>>} An array of lexer tokens from the current position to the end.
+     * 
+     * @throws {Exception} Throws an exception if there is a graph branch on the stack.
      */
-    public graphBranchIsCircular(pBranch: GraphNode<TTokenType>): boolean {
-        // Get top branch.
+    public collapse(): Array<LexerToken<TTokenType>> {
         const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
 
-        // Check if the branch is circular.
-        if (!lCurrentBranchStack.circularBranches.has(pBranch)) {
-            return false;
-        }
+        // Generate all remaining tokens and cached unused tokens.
+        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
+        const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentBranchStack.token.cache.slice(lCurrentBranchStack.token.index);
 
-        // Branch is circular if the branch is visited more than once.
-        return lCurrentBranchStack.circularBranches.get(pBranch)! > CodeParserCursor.MAX_CIRULAR_REFERENCES;
+        return [...lUnusedToken, ...lUngeneratedToken];
     }
 
     /**
@@ -84,21 +84,22 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Moves the cursor to the end of the token stream and returns all unused token.
-     * Irreversible deconstruction of this cursor.
-     * 
-     * @returns {Array<LexerToken<TTokenType>>} An array of lexer tokens from the current position to the end.
-     * 
-     * @throws {Exception} Throws an exception if there is a graph branch on the stack.
+     * Checks if the given graph branch is circular.
+     *
+     * @param pBranch - The graph node to check for circularity.
+     * @returns `true` if the branch is circular, otherwise `false`.
      */
-    public collapse(): Array<LexerToken<TTokenType>> {
+    public graphBranchIsCircular(pBranch: GraphNode<TTokenType>): boolean {
+        // Get top branch.
         const lCurrentBranchStack: CodeParserCursorGraphBranch<TTokenType> = this.mBranchStack.top!;
 
-        // Generate all remaining tokens and cached unused tokens.
-        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
-        const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentBranchStack.token.cache.slice(lCurrentBranchStack.token.index);
+        // Check if the branch is circular.
+        if (!lCurrentBranchStack.circularBranches.has(pBranch)) {
+            return false;
+        }
 
-        return [...lUnusedToken, ...lUngeneratedToken];
+        // Branch is circular if the branch is visited more than once.
+        return lCurrentBranchStack.circularBranches.get(pBranch)! > CodeParserCursor.MAX_CIRULAR_REFERENCES;
     }
 
     /**
@@ -133,7 +134,7 @@ export class CodeParserCursor<TTokenType extends string> {
      */
     public pushGraphBranch<TBranch extends GraphNode<TTokenType>, TResult>(pStackCall: (pBranch: TBranch) => TResult, pBranch: TBranch, pLinear: boolean): CodeParserCursorGraphBranchResult<TTokenType, TResult> {
         // Read the current stack state.
-        let lLastBranchStack: CodeParserCursorGraphBranch<TTokenType> | undefined = this.mBranchStack.top!;
+        const lLastBranchStack: CodeParserCursorGraphBranch<TTokenType> | undefined = this.mBranchStack.top!;
 
         // Copy the current token stack from parent from its current token stack index index.
         const lTokenStack: Array<LexerToken<TTokenType>> = lLastBranchStack.token.cache.slice(lLastBranchStack.token.index);
@@ -178,21 +179,21 @@ export class CodeParserCursor<TTokenType extends string> {
             // Pop branch.
             this.mBranchStack.pop()!;
 
-            // Read only the new tokens that are added to the stack and are not present in the parent stack.
-            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lNewTokenStack.token.cache.slice(lLastBranchStack.token.cache.length - lLastBranchStack.token.index);
-
-            // Move parent stack index to the last branch stack index.
-            lLastBranchStack.token.index += lNewTokenStack.token.index;
-
-            // Add the new tokens to the parent stack.
-            lLastBranchStack.token.cache.splice(lLastBranchStack.token.cache.length, 0, ...lNewTokenStackCache);
-
-            // TODO: When do we need to cut down the parent token cache, so the memory gets freed?
-            // TODO: Yes the cache can be cut down when the current branch is linear. Dont forget to adjust the parents token index.
+            // Truncate parent graph branches token cache to the current token.
+            // So the token memory gets marked as disposeable.
             if (lNewTokenStack.linear) {
                 // Reset parent index to zero.
-                //lLastBranchStack.token.cache = lLastBranchStack.token.cache.slice(lLastBranchStack.token.index);
-                //lLastBranchStack.token.index = 0;
+                lLastBranchStack.token.cache = lNewTokenStack.token.cache.slice(lNewTokenStack.token.index);
+                lLastBranchStack.token.index = 0;
+            } else {
+                // Read only the new tokens that are added to the stack and are not present in the parent stack.
+                const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lNewTokenStack.token.cache.slice(lLastBranchStack.token.cache.length - lLastBranchStack.token.index);
+
+                // Move parent stack index to the last branch stack index.
+                lLastBranchStack.token.index += lNewTokenStack.token.index;
+
+                // Add the new tokens to the parent stack.
+                lLastBranchStack.token.cache.splice(lLastBranchStack.token.cache.length, 0, ...lNewTokenStackCache);
             }
         }
     }

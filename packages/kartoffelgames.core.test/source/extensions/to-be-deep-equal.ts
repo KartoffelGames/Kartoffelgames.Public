@@ -1,6 +1,15 @@
 import { expect } from '@std/expect';
+import { Dictionary } from "@kartoffelgames/core";
 
-export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object): [boolean, string] => {
+export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object, pCheckedObject: Dictionary<object, object>): [boolean, string] => {
+    // Whatever. Should work.
+    if (pCheckedObject.get(pSource) === pTarget) {
+        return [true, 'Objects are equal.'];
+    }
+
+    // Add current object to checked list.
+    pCheckedObject.set(pSource, pTarget);
+
     // Must have same length.
     if (Reflect.ownKeys(pSource).length !== Reflect.ownKeys(pTarget).length) {
         // Find missing.
@@ -32,13 +41,18 @@ export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object): [
 
         // Deep compare objects.
         if (typeof lSourceValue === 'object' && typeof lTargetValue === 'object') {
+            // Both null, both are equal.
+            if (lSourceValue === null && lTargetValue === null) {
+                continue;
+            }
+
             // Check for null and object. When both are objects but one of them is null
             if ((lSourceValue === null || lTargetValue === null) && (lSourceValue !== lTargetValue)) {
                 return [false, `Value does not match for key "${lCurrentKey}". "null" !== "object"`];
             }
 
             // Deep compare.
-            const [lDeepEqualResult, lDeepEqualMessage] = DeepEqual(lCurrentKey, lSourceValue, lTargetValue);
+            const [lDeepEqualResult, lDeepEqualMessage] = DeepEqual(lCurrentKey, lSourceValue, lTargetValue, pCheckedObject);
             if (!lDeepEqualResult) {
                 return [lDeepEqualResult, lDeepEqualMessage];
             }
@@ -73,7 +87,7 @@ expect.extend({
         const lSourceValue: object = pContext.value;
         const lTargetValue: object = pTargetValue;
 
-        const [lCheckPassed, lMessage] = DeepEqual('[OBJECT]', lSourceValue, lTargetValue);
+        const [lCheckPassed, lMessage] = DeepEqual('[OBJECT]', lSourceValue, lTargetValue,  new Dictionary<object, object>);
 
         return { message: () => lMessage, pass: lCheckPassed };
     }

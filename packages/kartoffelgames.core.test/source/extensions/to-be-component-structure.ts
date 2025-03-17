@@ -1,5 +1,6 @@
-import { expect } from '@std/expect';
+import { Dictionary } from "@kartoffelgames/core";
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { expect } from '@std/expect';
 import { DeepEqual } from './to-be-deep-equal.ts';
 
 const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pExpectedStructure: T, pActualNode: Node): T => {
@@ -107,7 +108,7 @@ expect.extend({
             lActualStructure = gRecreateComponentChildStructure(pStructure, pContext.value);
         }
 
-        const [lCheckPassed, lMessage] = DeepEqual('[ROOT]', pStructure, lActualStructure);
+        const [lCheckPassed, lMessage] = DeepEqual('[ROOT]', pStructure, lActualStructure, new Dictionary<object, object>());
 
         return { message: () => lMessage, pass: lCheckPassed };
     }

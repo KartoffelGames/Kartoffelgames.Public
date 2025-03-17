@@ -478,8 +478,11 @@ type UnwrapBranchResult<TTokenType extends string, TValue extends Array<GraphVal
 type OptionalChainResult<TTokenType extends string, TCurrentResult extends object, TKey extends GraphNodeKey, TValue extends GraphValue<TTokenType>> =
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
     TKey extends `${infer TPropertyKey}[]` ? (
-        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<string> }>> :
-        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>> :
+        TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<string> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+            TNodeResultValue extends Array<infer TArrayType> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TArrayType> }>> :
+            GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>>
+        ) :
         never
     ) :
     TKey extends `${infer TPropertyKey}<-${infer TMergeKey}` ? (
@@ -493,8 +496,8 @@ type OptionalChainResult<TTokenType extends string, TCurrentResult extends objec
         ) :
         TCurrentResult extends { [x in TPropertyKey]: any } ? unknown : // Should not have the key. 
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
-            TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: Array<TMergeValue> }>> :
-            TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: TMergeValue }>> :
+            TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TMergeValue> }>> :
+            TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: TMergeValue }>> :
             unknown
         ) :
         unknown
@@ -510,7 +513,10 @@ type RequiredChainResult<TTokenType extends string, TCurrentResult extends objec
     TKey extends GraphNodeEmptyKey ? GraphNode<TTokenType, TCurrentResult> :
     TKey extends `${infer TPropertyKey}[]` ? (
         TValue extends TTokenType ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<string> }>> :
-        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>> :
+        TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
+            TNodeResultValue extends Array<infer TArrayType> ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TArrayType> }>> :
+            GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TNodeResultValue> }>>
+        ) :
         never
     ) :
     TKey extends `${infer TPropertyKey}<-${infer TMergeKey}` ? (

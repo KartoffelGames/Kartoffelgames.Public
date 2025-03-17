@@ -1253,4 +1253,59 @@ describe('CodeParser', () => {
             lParser.setRootGraph(lMainGraph);
         });
     });
+
+    describe('Functionality: Timechecking', () => {
+        type TypedTokenType = 'item1' | 'item2' | 'item3';
+        type TypedBaseObject = { a: 'a'; };
+        type TypedBaseObject1 = TypedBaseObject & { b: 'item1'; };
+        type TypedBaseObject2 = TypedBaseObject & { c: 'item2'; };
+        type TypedBaseObject3 = TypedBaseObject & { d: 'item3'; };
+
+        it(() => {
+            // Content data.
+            const lContentGraph = Graph.define(() => {
+                return GraphNode.new<TypedTokenType>().required('node', ['item1', 'item2', 'item3']);
+            }).converter((): Array<TypedBaseObject> => {
+                return {} as any; // doesnt matter
+            });;
+
+            const lContentListGraph = Graph.define(() => {
+                const lSelfReference: Graph<TypedTokenType, any, Array<TypedBaseObject>> = lContentListGraph as any;
+
+                return GraphNode.new<TypedTokenType>().required('list[]', lContentGraph).optional('list[]', lSelfReference);
+
+            }).converter((pData): Array<TypedBaseObject> => {
+                const lContentList: Array<TypedBaseObject> = new Array<TypedBaseObject>();
+
+                for (const lItem of pData.list) {
+                    lContentList.push(lItem);
+                }
+
+                return lContentList;
+            });
+        });
+
+        it(() => {
+            const lContentGraph = Graph.define(() => {
+                return GraphNode.new<TypedTokenType>().required('node', ['item1', 'item2', 'item3']);
+            }).converter((): TypedBaseObject => {
+                return {} as any; // doesnt matter
+            });
+
+            const lContentListGraph = Graph.define(() => {
+                const lSelfReference: Graph<TypedTokenType, any, { list: Array<TypedBaseObject>; }> = lContentListGraph;
+
+                return GraphNode.new<TypedTokenType>().required('list[]', lContentGraph).optional('list<-list', lSelfReference);
+
+            }).converter((pData): { list: Array<TypedBaseObject>; } => {
+                const lContentList: Array<TypedBaseObject> = new Array<TypedBaseObject>();
+
+                for (const lItem of pData.list) {
+                    lContentList.push(lItem);
+                }
+
+                return { list: lContentList };
+            });
+        });
+    });
 });

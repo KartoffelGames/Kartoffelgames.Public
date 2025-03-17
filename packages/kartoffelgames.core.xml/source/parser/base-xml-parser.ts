@@ -237,7 +237,7 @@ export abstract class BaseXmlParser {
                         .required(XmlToken.CloseClosingBracket),
                     GraphNode.new<XmlToken>()
                         .required(XmlToken.CloseBracket)
-                        .required('values', lLoopedContentGraph)
+                        .optional('values', lLoopedContentGraph)
                         .required(XmlToken.OpenClosingBracket)
                         .optional('closingNamespace',
                             GraphNode.new<XmlToken>().required('name', XmlToken.Identifier).required(XmlToken.NamespaceDelimiter)
@@ -282,26 +282,14 @@ export abstract class BaseXmlParser {
         });
 
         // Content data.
-        const lContentGraph = Graph.define(() => {
-            return GraphNode.new<XmlToken>().required('node', [
+        const lContentListGraph = Graph.define(() => {
+            const lSelfReference: Graph<XmlToken, any, Array<BaseXmlNode>> = lContentListGraph;
+
+            return GraphNode.new<XmlToken>().required('list[]', [
+                lXmlElementGraph,
                 lCommentNodeGraph,
                 lTextNodeGraph,
-                lXmlElementGraph,
-            ]);
-        }).converter((pData): Array<BaseXmlNode> => {
-            // Skip omitted comments.
-            if (this.mConfig.removeComments && pData.node instanceof CommentNode) {
-                return new Array<BaseXmlNode>();
-            }
-
-            return [pData.node];
-        });;
-
-        const lContentListGraph = Graph.define(() => {
-            const lSelfReference: Graph<XmlToken, any, Array<BaseXmlNode>> = lContentListGraph as any;
-
-            return GraphNode.new<XmlToken>().required('list[]', lContentGraph).optional('list[]', lSelfReference);
-
+            ]).optional('list[]', lSelfReference);
         }).converter((pData): Array<BaseXmlNode> => {
             const lContentList: Array<BaseXmlNode> = new Array<BaseXmlNode>();
 
@@ -319,7 +307,7 @@ export abstract class BaseXmlParser {
 
         // Document.
         const lXmlDocumentGraph = Graph.define(() => {
-            return GraphNode.new<XmlToken>().required('content', lContentListGraph);
+            return GraphNode.new<XmlToken>().optional('content[]', lContentListGraph);
         }).converter((pData): XmlDocument => {
             const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 

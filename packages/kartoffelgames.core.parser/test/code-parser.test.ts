@@ -1270,7 +1270,7 @@ describe('CodeParser', () => {
             });;
 
             const lContentListGraph = Graph.define(() => {
-                const lSelfReference: Graph<TypedTokenType, any, Array<TypedBaseObject>> = lContentListGraph as any;
+                const lSelfReference: Graph<TypedTokenType, any, Array<TypedBaseObject>> = lContentListGraph;
 
                 return GraphNode.new<TypedTokenType>().required('list[]', lContentGraph).optional('list[]', lSelfReference);
 

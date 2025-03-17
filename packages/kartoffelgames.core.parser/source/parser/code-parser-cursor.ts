@@ -151,12 +151,8 @@ export class CodeParserCursor<TTokenType extends string> {
         };
 
         // Add itself to the circular branch list.
-        if (lNewTokenStack.circularBranches.has(pBranch)) {
-            // Count the circular references to the same branch.
-            lNewTokenStack.circularBranches.set(pBranch, lNewTokenStack.circularBranches.get(pBranch)! + 1);
-        } else {
-            lNewTokenStack.circularBranches.set(pBranch, 1);
-        }
+        const lCurrentBranchCirularCount: number = lNewTokenStack.circularBranches.get(pBranch) ?? 0;
+        lNewTokenStack.circularBranches.set(pBranch, lCurrentBranchCirularCount + 1);
 
         // Push the new branch stack on the stack.
         this.mBranchStack.push(lNewTokenStack);
@@ -174,7 +170,7 @@ export class CodeParserCursor<TTokenType extends string> {
             };
         } catch (lError) {
             // Revert current stack index.
-            this.mBranchStack.top!.token.index = 0;
+            lNewTokenStack.token.index = 0;
 
             // Rethrow error.
             throw lError;
@@ -189,10 +185,15 @@ export class CodeParserCursor<TTokenType extends string> {
             lLastBranchStack.token.index += lNewTokenStack.token.index;
 
             // Add the new tokens to the parent stack.
-            lLastBranchStack.token.cache.push(...lNewTokenStackCache);
+            lLastBranchStack.token.cache.splice(lLastBranchStack.token.cache.length, 0, ...lNewTokenStackCache);
 
             // TODO: When do we need to cut down the parent token cache, so the memory gets freed?
             // TODO: Yes the cache can be cut down when the current branch is linear. Dont forget to adjust the parents token index.
+            if (lNewTokenStack.linear) {
+                // Reset parent index to zero.
+                //lLastBranchStack.token.cache = lLastBranchStack.token.cache.slice(lLastBranchStack.token.index);
+                //lLastBranchStack.token.index = 0;
+            }
         }
     }
 }

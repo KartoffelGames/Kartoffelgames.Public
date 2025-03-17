@@ -572,7 +572,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).toThrow(`Unexpected token. "${TokenType.Number}" expected`);
+                expect(lErrorFunction).toThrow(`Unexpected token "const". "${TokenType.Number}" expected`);
             });
 
             it('-- Single parse error, missing token.', () => {

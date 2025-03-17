@@ -304,7 +304,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Push possible parser error when token type does not match node value.
                     if (lNodeValue !== lCurrentToken.type) {
                         if (lNodeConnections.required) {
-                            lGraphErrors.appendError(`Unexpected token. "${lNodeValue}" expected`, lCurrentToken);
+                            lGraphErrors.appendError(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, lCurrentToken);
                         }
 
                         continue;

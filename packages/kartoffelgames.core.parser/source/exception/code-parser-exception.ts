@@ -69,7 +69,7 @@ export class CodeParserException<TTokenType extends string> {
         }
 
         // Check if priority is higher than current top incident and replace it when necessary.
-        if (this.mTop && pException.top.priority > this.mTop.priority) {
+        if (!this.mTop || pException.top.priority > this.mTop.priority) {
             this.mTop = pException.top;
         }
     }
@@ -83,6 +83,8 @@ export class CodeParserException<TTokenType extends string> {
      * @param pEndToken - End topen of error. 
      */
     public push(pError: Error, pGraph: Graph<TTokenType>, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>): void {
+        // TODO: Dont use token. Use line and column number directly.
+
         // Calculate priority
         const lPriority: number = (pEndToken.lineNumber * 10000) + pEndToken.columnNumber;
 

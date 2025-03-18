@@ -135,18 +135,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     tokenProcessed: lNodeParseResult.tokenProcessed
                 };
             } catch (pError: any) {
-                // Rethrow parser exception.
-                if (pError instanceof CodeParserException) {
-                    throw pError;
-                }
-
-                // Or integrate exception into parser exception.
+                // Integrate exception into parser exception, this should never be a code parser exception.
                 pCursor.addIncident(pError, false);
 
-                // Rethrow code parser exception.
+                // It doesn't matter what we throw here. We just need to throw something.
                 throw pCursor.error;
             }
-
         }, pGraph, pGraphCalledLinear);
     }
 

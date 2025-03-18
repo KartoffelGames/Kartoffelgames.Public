@@ -1088,19 +1088,17 @@ describe('CodeParser', () => {
                 lParser.setRootGraph(lMainGraph);
 
                 // Process.
-                let lError: Error | null = null;
-                try {
+                const lErrorFunction = () => {
                     lParser.parse('const');
-                } catch (pError) {
-                    lError = <Error>pError;
-                }
+                };
 
                 // Evaluation.
-                expect(lError).not.toBeNull();
-                expect(lError).toHaveProperty('cause');
-                expect(lError!.cause).toBeInstanceOf(Error);
-                expect(lError!.cause).toHaveProperty('stack');
-                expect((<any>lError!.cause).stack).toContain(lFunctionName);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException.top.error).not.toBeNull();
+                expect(lException.top.error).toHaveProperty('cause');
+                expect(lException.top.error!.cause).toBeInstanceOf(Error);
+                expect(lException.top.error!.cause).toHaveProperty('stack');
+                expect((<any>lException.top.error!.cause).stack).toContain(lFunctionName);
             });
 
             it('-- Keep error messages of string', () => {
@@ -1264,10 +1262,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.token.start.columnNumber).toBe( 1);
-                expect(lException.top.token.end.columnNumber).toBe( 1);
-                expect(lException.top.token.start.lineNumber).toBe( 1);
-                expect(lException.top.token.end.lineNumber).toBe( 1);
+                expect(lException.top.token.start.columnNumber).toBe(1);
+                expect(lException.top.token.end.columnNumber).toBe(1);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(1);
             });
 
             it('-- Multi error after line break.', () => {
@@ -1289,10 +1287,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.token.start.columnNumber).toBe( 12);
-                expect(lException.top.token.end.columnNumber).toBe( 17);
-                expect(lException.top.token.start.lineNumber).toBe( 2);
-                expect(lException.top.token.end.lineNumber).toBe( 2);
+                expect(lException.top.token.start.columnNumber).toBe(12);
+                expect(lException.top.token.end.columnNumber).toBe(17);
+                expect(lException.top.token.start.lineNumber).toBe(2);
+                expect(lException.top.token.end.lineNumber).toBe(2);
             });
 
             it('-- Error with an multiline token.', () => {

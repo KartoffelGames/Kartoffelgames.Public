@@ -9,6 +9,7 @@ export class CodeParserCursor<TTokenType extends string> {
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mDebug: boolean;
+    private mLastGeneratedToken: LexerToken<TTokenType> | null;
 
     /**
      * Read the current token from the stream.
@@ -32,6 +33,9 @@ export class CodeParserCursor<TTokenType extends string> {
             if (lToken.done) {
                 return null;
             }
+
+            // Save last generated token.
+            this.mLastGeneratedToken = lToken.value;
 
             // Store token in cache.
             lCurrentGraphStack.token.cache.push(lToken.value);
@@ -57,6 +61,7 @@ export class CodeParserCursor<TTokenType extends string> {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mDebug = pDebug;
+        this.mLastGeneratedToken = null;
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -78,17 +83,27 @@ export class CodeParserCursor<TTokenType extends string> {
      * @param pError - The error to add to the current graph stack.
      */
     public addIncident(pError: Error, pSingleToken: boolean): void {
+        // TODO: Push error as lines and columns. Start token beginns at first char and end token ends at last chars line and column. 
+
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        // Read current token.
-        const lGraphEndToken: LexerToken<TTokenType> = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index];
+        let lStartToken: LexerToken<TTokenType> | null = null;
+        let lEndToken: LexerToken<TTokenType> | null = null;
 
-        // Read graph start token.
-        const lGraphStartToken: LexerToken<TTokenType> = pSingleToken ? lGraphEndToken : lCurrentGraphStack.token.cache[0];
+        if (pSingleToken) {
+            lStartToken = this.current!;
+            lEndToken = lStartToken;
+        } else {
+            lStartToken = lCurrentGraphStack.token.cache[0];
+            lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
+        }
 
-        console.log(lGraphStartToken, lGraphEndToken, lCurrentGraphStack.token.cache.length)
+        lStartToken = lStartToken ?? this.mLastGeneratedToken;
+        lEndToken = lEndToken ?? this.mLastGeneratedToken;
 
-        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lGraphStartToken, lGraphEndToken);
+        console.log(!!lStartToken, !!lEndToken, pSingleToken, lCurrentGraphStack.token.cache.length);
+
+        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lStartToken, lEndToken);
     }
 
     /**

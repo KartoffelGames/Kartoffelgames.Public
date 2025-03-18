@@ -383,7 +383,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(/noneclosing/);
+            expect(lFailingFunction).toThrow(/Unexpected token "="/);
         });
 
         it('-- Unexpected closing tag', () => {
@@ -398,7 +398,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(/unexpectedclosing/);
+            expect(lFailingFunction).toThrow(/Unexpected token "<\/"/);
         });
 
         it('-- Different closing namespace', () => {
@@ -427,7 +427,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(/Tokens could not be parsed./);
+            expect(lFailingFunction).toThrow(/Unexpected token ">"/);
         });
     });
 

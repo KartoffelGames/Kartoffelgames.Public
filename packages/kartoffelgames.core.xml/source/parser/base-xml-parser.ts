@@ -78,6 +78,11 @@ export abstract class BaseXmlParser {
      * @returns a new XmlDocument 
      */
     public parse(pText: string): XmlDocument {
+        // Empty result when not content is set.
+        if (pText.trim() === '') {
+            return new XmlDocument(this.getDefaultNamespace());
+        }
+
         if (this.mRebuildParser || !this.mParser) {
             const lLexer: Lexer<XmlToken> = this.createLexer();
             this.mParser = this.createParser(lLexer);
@@ -307,7 +312,7 @@ export abstract class BaseXmlParser {
 
         // Document.
         const lXmlDocumentGraph = Graph.define(() => {
-            return GraphNode.new<XmlToken>().optional('content[]', lContentListGraph);
+            return GraphNode.new<XmlToken>().required('content[]', lContentListGraph);
         }).converter((pData): XmlDocument => {
             const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 

@@ -84,16 +84,14 @@ export class CodeParserException<TTokenType extends string> {
      */
     public push(pError: Error, pGraph: Graph<TTokenType>, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>): void {
         // Calculate priority
-        const lStartPriority: number = (pStartToken.lineNumber * 10000) + pStartToken.columnNumber;
-        const lEndPriority: number = (pEndToken.lineNumber * 10000) + pEndToken.columnNumber;
-        const lGeneralPriority: number = (lStartPriority > lEndPriority) ? lStartPriority : lEndPriority;
+        const lPriority: number = (pEndToken.lineNumber * 10000) + pEndToken.columnNumber;
 
         // Create and push a debuging incident when debugging is enabled.
         if (this.mIncidents !== null) {
             // Create new incident. Only purpose is that not every time a incident is pushed a new item must be generated without debug mode.
             const lDebugIncident: CodeParserExceptionIncident<TTokenType> = {
                 error: pError,
-                priority: lGeneralPriority,
+                priority: lPriority,
                 graph: pGraph,
                 token: {
                     start: pStartToken,
@@ -105,14 +103,14 @@ export class CodeParserException<TTokenType extends string> {
         }
 
         // Skip incident creation when priority is lower than previous top incident.
-        if (this.mTop && lGeneralPriority < this.mTop.priority) {
+        if (this.mTop && lPriority < this.mTop.priority) {
             return;
         }
 
         // Create new Incident and push to top.
         this.mTop = {
             error: pError,
-            priority: lGeneralPriority,
+            priority: lPriority,
             graph: pGraph,
             token: {
                 start: pStartToken,

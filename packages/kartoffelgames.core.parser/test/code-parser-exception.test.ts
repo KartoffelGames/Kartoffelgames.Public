@@ -23,8 +23,8 @@ describe('CodeParserException', () => {
             expect(lException.top.graph).toBe(lGraph);
             expect(lException.top.token.start).toBe(lStartToken);
             expect(lException.top.token.end).toBe(lEndToken);
-
         });
+
         it('Property: top throws exception when no incidents are available', () => {
             // Setup.
             const lException: CodeParserException<string> = new CodeParserException(true);
@@ -85,21 +85,55 @@ describe('CodeParserException', () => {
         expect(lException1.top.error).toBe(lError2);
     });
 
-    it('Method: push', () => {
-        // Setup.
-        const lException: CodeParserException<string> = new CodeParserException(true);
-        const lError: Error = new Error('Test error');
-        const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-        const lStartToken: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
-        const lEndToken: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
+    describe('Method: push', () => {
+        it('-- Single Default', () => {
+            // Setup.
+            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lError: Error = new Error('Test error');
+            const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
+            const lStartToken: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
+            const lEndToken: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
 
-        // Process.
-        lException.push(lError, lGraph, lStartToken, lEndToken);
+            // Process.
+            lException.push(lError, lGraph, lStartToken, lEndToken);
 
-        // Evaluation.
-        expect(lException.top.error).toBe(lError);
-        expect(lException.top.graph).toBe(lGraph);
-        expect(lException.top.token.start).toBe(lStartToken);
-        expect(lException.top.token.end).toBe(lEndToken);
+            // Evaluation.
+            expect(lException.top.error).toBe(lError);
+            expect(lException.top.graph).toBe(lGraph);
+            expect(lException.top.token.start).toBe(lStartToken);
+            expect(lException.top.token.end).toBe(lEndToken);
+        });
+
+        it('-- Priority is higher', () => {
+            // Setup.
+            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lError1: Error = new Error('Test error');
+            const lError2: Error = new Error('Test error');
+            const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
+
+            // Process.
+            lException.push(lError1, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 3));
+            lException.push(lError2, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 2));
+
+            // Evaluation.
+            expect(lException.top.error).toBe(lError1);
+        });
+
+        it('-- Priority is lower', () => {
+            // Setup.
+            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lError1: Error = new Error('Test error');
+            const lError2: Error = new Error('Test error');
+            const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
+
+            // Process.
+            lException.push(lError1, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 2));
+            lException.push(lError2, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 3));
+
+            // Evaluation.
+            expect(lException.top.error).toBe(lError2);
+        });
     });
+
+
 });

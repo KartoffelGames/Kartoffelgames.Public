@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { ParserException } from '../exception/parser-exception.ts';
+import { LexerException } from "../index.ts";
 import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
@@ -550,7 +550,7 @@ export class Lexer<TTokenType extends string> {
             // Throw a parser error when error ignoring is off.
             if (!this.mSettings.errorType) {
                 // Throw error with next twenty chars as example data.
-                throw new ParserException(`Unable to parse next token. No valid pattern found for "${pCursor.data.substring(pCursor.cursorPosition, pCursor.cursorPosition + 20)}".`, this, pCursor.currentColumn, pCursor.currentLine, pCursor.currentColumn, pCursor.currentLine);
+                throw new LexerException(`Unable to parse next token. No valid pattern found for "${pCursor.data.substring(pCursor.cursorPosition, pCursor.cursorPosition + 20)}".`, this, pCursor.currentColumn, pCursor.currentLine, pCursor.currentColumn, pCursor.currentLine);
             }
 
             // Init new error cursor when no error cursor exists.

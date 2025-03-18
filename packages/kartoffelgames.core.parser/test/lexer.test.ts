@@ -1,9 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { ParserException } from '../source/exception/parser-exception.ts';
 import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 import type { LexerPatternType, LexerPattern } from '../source/lexer/lexer-pattern.ts';
+import { LexerException } from "../source/exception/lexer-exception.ts";
 
 describe('Lexer', () => {
     enum TestTokenType {
@@ -92,7 +92,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow(ParserException);
+            expect(lErrorFunction).toThrow(LexerException);
         });
 
         it('-- Get default', () => {

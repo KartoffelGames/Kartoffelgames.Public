@@ -50,6 +50,31 @@ export class CodeParserException<TTokenType extends string> {
     }
 
     /**
+     * Integrates another `CodeParserException` into the current exception.
+     * When debug mode is enabled, all incidents from the provided exception are pushed to the current incident list.
+     * If the priority of the top incident in the provided exception is higher than the current top incident, 
+     * the top incident is replaced.
+     * 
+     * @param pException - The `CodeParserException` to integrate.
+     */
+    public integrate(pException: CodeParserException<TTokenType>): void {
+        // Skip integration when there is no top incident.
+        if (pException.mTop === null) {
+            return;
+        }
+
+        // When debug mode is enabled, push all incidents to the current incident list.
+        if (this.mIncidents !== null && pException.mIncidents !== null) {
+            this.mIncidents.push(...pException.incidents);
+        }
+
+        // Check if priority is higher than current top incident and replace it when necessary.
+        if (this.mTop && pException.top.priority > this.mTop.priority) {
+            this.mTop = pException.top;
+        }
+    }
+
+    /**
      * Push a new error incident.
      * 
      * @param pError - General error element.

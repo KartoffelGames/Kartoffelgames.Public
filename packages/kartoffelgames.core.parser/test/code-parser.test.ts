@@ -1,10 +1,10 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { ParserException } from '../source/exception/parser-exception.ts';
 import { GraphNode } from '../source/graph/graph-node.ts';
 import { Graph } from '../source/graph/graph.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParser } from '../source/parser/code-parser.ts';
+import { CodeParserException } from "../source/exception/code-parser-exception.ts";
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -1140,12 +1140,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 1);
-                expect(lException).toHaveProperty('columnEnd', 6);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe(1);
+                expect(lException.top.token.end.columnNumber).toBe(6);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(1);
             });
 
             it('-- Error positions chained token without newline.', () => {
@@ -1165,18 +1165,18 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 1);
-                expect(lException).toHaveProperty('columnEnd', 12);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe(1);
+                expect(lException.top.token.end.columnNumber).toBe(12);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(1);
             });
 
-            it('-- Error rethrow on parser erro.', () => {
+            it('-- Keep error object on parser error.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lError: ParserException<any> = new ParserException('', null, 2, 3, 4, 5);
+                const lError: Error = new Error('My message is clear');
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier);
                 }).converter(() => {
@@ -1190,9 +1190,9 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toBe(lError);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.error).toBe(lError);
             });
 
             it('-- Error positions chained token with newline.', () => {
@@ -1212,12 +1212,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 1);
-                expect(lException).toHaveProperty('columnEnd', 6);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe(1);
+                expect(lException.top.token.end.columnNumber).toBe(6);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(2);
             });
 
             it('-- Error positions with only optional token.', () => {
@@ -1237,13 +1237,13 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('message', lErrorMessage);
-                expect(lException).toHaveProperty('columnStart', 1);
-                expect(lException).toHaveProperty('columnEnd', 1);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.error.message).toBe(lErrorMessage);
+                expect(lException.top.token.start.columnNumber).toBe(1);
+                expect(lException.top.token.end.columnNumber).toBe(1);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(1);
             });
 
             it('-- Error positions with no parse data.', () => {
@@ -1262,12 +1262,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 1);
-                expect(lException).toHaveProperty('columnEnd', 1);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 1);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe( 1);
+                expect(lException.top.token.end.columnNumber).toBe( 1);
+                expect(lException.top.token.start.lineNumber).toBe( 1);
+                expect(lException.top.token.end.lineNumber).toBe( 1);
             });
 
             it('-- Multi error after line break.', () => {
@@ -1287,12 +1287,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 12);
-                expect(lException).toHaveProperty('columnEnd', 17);
-                expect(lException).toHaveProperty('lineStart', 2);
-                expect(lException).toHaveProperty('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe( 12);
+                expect(lException.top.token.end.columnNumber).toBe( 17);
+                expect(lException.top.token.start.lineNumber).toBe( 2);
+                expect(lException.top.token.end.lineNumber).toBe( 2);
             });
 
             it('-- Error with an multiline token.', () => {
@@ -1317,12 +1317,12 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })();
-                expect(lException).toBeInstanceOf(ParserException);
-                expect(lException).toHaveProperty('columnStart', 18);
-                expect(lException).toHaveProperty('columnEnd', 5);
-                expect(lException).toHaveProperty('lineStart', 1);
-                expect(lException).toHaveProperty('lineEnd', 2);
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.top.token.start.columnNumber).toBe(18);
+                expect(lException.top.token.end.columnNumber).toBe(5);
+                expect(lException.top.token.start.lineNumber).toBe(1);
+                expect(lException.top.token.end.lineNumber).toBe(2);
             });
 
             it('-- Error messages of optional graphs when end not meet', () => {
@@ -1339,7 +1339,7 @@ describe('CodeParser', () => {
                 });
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().optional(lOptionalGraph);
-                })
+                });
                 lParser.setRootGraph(lMainGraph);
 
                 // Process.

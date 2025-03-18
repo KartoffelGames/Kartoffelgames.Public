@@ -1,4 +1,5 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
+import { CodeParserException } from "../exception/code-parser-exception.ts";
 import { Graph } from "../graph/graph.ts";
 import type { LexerToken } from '../lexer/lexer-token.ts';
 
@@ -7,56 +8,14 @@ export class CodeParserCursor<TTokenType extends string> {
 
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
+    private readonly mDebug: boolean;
 
     /**
-     * Constructor.
-     * 
-     * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
-     */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>) {
-        this.mGenerator = pLexerGenerator;
-        this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
-
-        // Push a placeholder root graph on the stack.
-        this.mGraphStack.push({
-            graph: null as any,
-            linear: true,
-            circularGraphs: new Dictionary<Graph<TTokenType>, number>(),
-            token: {
-                cache: [],
-                index: 0
-            },
-            isRoot: true
-        });
-    }
-
-    /**
-     * Moves the cursor to the end of the token stream and returns all unused token.
-     * Irreversible deconstruction of this cursor.
-     * 
-     * @returns {Array<LexerToken<TTokenType>>} An array of lexer tokens from the current position to the end.
-     * 
-     * @throws {Exception} Throws an exception if there is a graph on the stack.
-     */
-    public collapse(): Array<LexerToken<TTokenType>> {
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        // Generate all remaining tokens and cached unused tokens.
-        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
-        const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentGraphStack.token.cache.slice(lCurrentGraphStack.token.index);
-
-        return [...lUnusedToken, ...lUngeneratedToken];
-    }
-
-    /**
-     * Advances the cursor to the next token in the lexer stream.
+     * Read the current token from the stream.
      * 
      * @returns The next token if available, otherwise null if the end of the stream is reached.
-     * 
-     * @throws {@link Exception}
-     * If there is no graph on the stack.
      */
-    public current(): LexerToken<TTokenType> | null {
+    public get current(): LexerToken<TTokenType> | null {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
@@ -80,6 +39,74 @@ export class CodeParserCursor<TTokenType extends string> {
 
         // Read token from cache.
         return lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index];
+    }
+
+    /**
+     * Get current graphs error bucket.
+     */
+    public get error(): CodeParserException<TTokenType> {
+        return this.mGraphStack.top!.errorBucket;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
+     */
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
+        this.mGenerator = pLexerGenerator;
+        this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
+        this.mDebug = pDebug;
+
+        // Push a placeholder root graph on the stack.
+        this.mGraphStack.push({
+            graph: null as any,
+            linear: true,
+            circularGraphs: new Dictionary<Graph<TTokenType>, number>(),
+            token: {
+                cache: [],
+                index: 0
+            },
+            isRoot: true,
+            errorBucket: new CodeParserException<TTokenType>(this.mDebug)
+        });
+    }
+
+    /**
+     * Add incident to the current cursor.
+     * 
+     * @param pError - The error to add to the current graph stack.
+     */
+    public addIncident(pError: Error, pSingleToken: boolean): void {
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Read current token.
+        const lGraphEndToken: LexerToken<TTokenType> = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index];
+
+        // Read graph start token.
+        const lGraphStartToken: LexerToken<TTokenType> = pSingleToken ? lGraphEndToken : lCurrentGraphStack.token.cache[0];
+
+        console.log(lGraphStartToken, lGraphEndToken, lCurrentGraphStack.token.cache.length)
+
+        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lGraphStartToken, lGraphEndToken);
+    }
+
+    /**
+     * Moves the cursor to the end of the token stream and returns all unused token.
+     * Irreversible deconstruction of this cursor.
+     * 
+     * @returns {Array<LexerToken<TTokenType>>} An array of lexer tokens from the current position to the end.
+     * 
+     * @throws {Exception} Throws an exception if there is a graph on the stack.
+     */
+    public collapse(): Array<LexerToken<TTokenType>> {
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Generate all remaining tokens and cached unused tokens.
+        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
+        const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentGraphStack.token.cache.slice(lCurrentGraphStack.token.index);
+
+        return [...lUnusedToken, ...lUngeneratedToken];
     }
 
     /**
@@ -147,7 +174,8 @@ export class CodeParserCursor<TTokenType extends string> {
                 cache: lTokenStack,
                 index: 0
             },
-            isRoot: false
+            isRoot: false,
+            errorBucket: new CodeParserException<TTokenType>(this.mDebug)
         };
 
         // Add itself to the circular graph list.
@@ -159,16 +187,7 @@ export class CodeParserCursor<TTokenType extends string> {
 
         // Call pushed graph.
         try {
-            // Callback of current used token range.
-            const lCurrentTokenRangeCallback = (): [LexerToken<TTokenType>, LexerToken<TTokenType>] => {
-                return [
-                    lNewTokenStack.token.cache[0],
-                    // -1 because the index is already moved to the next token.
-                    lNewTokenStack.token.cache[lNewTokenStack.token.index - 1]
-                ];
-            };
-
-            return pStackCall(pGraph, lCurrentTokenRangeCallback);
+            return pStackCall(pGraph);
         } catch (lError) {
             // Revert current stack index.
             lNewTokenStack.token.index = 0;
@@ -200,11 +219,14 @@ export class CodeParserCursor<TTokenType extends string> {
                 // Add the new tokens to the parent stack.
                 lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
             }
+
+            // Add error to the parent error bucket.
+            lLastGraphStack.errorBucket.integrate(lNewTokenStack.errorBucket);
         }
     }
 }
 
-type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph, pTokenRange: (() => [LexerToken<TTokenType>, LexerToken<TTokenType>])) => TResult;
+type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph) => TResult;
 
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType>;
@@ -215,4 +237,5 @@ type CodeParserCursorGraph<TTokenType extends string> = {
         index: number;
     };
     isRoot: boolean;
+    errorBucket: CodeParserException<TTokenType>;
 };

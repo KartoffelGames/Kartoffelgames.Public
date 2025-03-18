@@ -1,12 +1,12 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { ParserException } from '../source/exception/parser-exception.ts';
+import { LexerException } from '../source/exception/lexer-exception.ts';
 
 describe('ParserException', () => {
     it('Method: columnEnd', () => {
         // Process.
         const lValue: number = 5505;
-        const lError: ParserException<null> = new ParserException('Message', null, 11, 22, lValue, 44);
+        const lError: LexerException<null> = new LexerException('Message', null, 11, 22, lValue, 44);
 
         // Process.
         const lColumnEnd: number = lError.columnEnd;
@@ -18,7 +18,7 @@ describe('ParserException', () => {
     it('Method: columnStart', () => {
         // Process.
         const lValue: number = 5505;
-        const lError: ParserException<null> = new ParserException('Message', null, lValue, 22, 33, 44);
+        const lError: LexerException<null> = new LexerException('Message', null, lValue, 22, 33, 44);
 
         // Process.
         const lColumnStart: number = lError.columnStart;
@@ -30,7 +30,7 @@ describe('ParserException', () => {
     it('Method: lineEnd', () => {
         // Process.
         const lValue: number = 5505;
-        const lError: ParserException<null> = new ParserException('Message', null, 11, 22, 33, lValue);
+        const lError: LexerException<null> = new LexerException('Message', null, 11, 22, 33, lValue);
 
         // Process.
         const lLineEnd: number = lError.lineEnd;
@@ -42,7 +42,7 @@ describe('ParserException', () => {
     it('Method: lineStart', () => {
         // Process.
         const lValue: number = 5505;
-        const lError: ParserException<null> = new ParserException('Message', null, 11, lValue, 33, 44);
+        const lError: LexerException<null> = new LexerException('Message', null, 11, lValue, 33, 44);
 
         // Process.
         const lLineStart: number = lError.lineStart;

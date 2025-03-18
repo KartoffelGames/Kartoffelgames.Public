@@ -1324,6 +1324,29 @@ describe('CodeParser', () => {
                 expect(lException).toHaveProperty('lineStart', 1);
                 expect(lException).toHaveProperty('lineEnd', 2);
             });
+
+            it('-- Error messages of optional graphs when end not meet', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                const lOptionalGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw lErrorMessage;
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional(lOptionalGraph);
+                })
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).toThrow(lErrorMessage);
+            });
         });
     });
 
@@ -1342,12 +1365,9 @@ describe('CodeParser', () => {
         });
     });
 
-    describe('Functionality: Timechecking', () => {
+    describe('Functionality: Type checking', () => {
         type TypedTokenType = 'item1' | 'item2' | 'item3';
         type TypedBaseObject = { a: 'a'; };
-        type TypedBaseObject1 = TypedBaseObject & { b: 'item1'; };
-        type TypedBaseObject2 = TypedBaseObject & { c: 'item2'; };
-        type TypedBaseObject3 = TypedBaseObject & { d: 'item3'; };
 
         it(() => {
             // Content data.

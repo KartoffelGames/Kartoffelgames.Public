@@ -538,6 +538,94 @@ describe('CodeParser', () => {
                     end: 'indent'
                 });
             });
+
+            it('-- Wide references in loops', () => {
+                // Setup Type
+                type XmlToken = 'VALUE' | 'OPENBRACKET' | 'IDENTIFIER' | 'CLOSEBRACKET' | 'OPENCLOSINGBRACKET';
+
+                // Setup. Lexer
+                const lLexer: Lexer<XmlToken> = new Lexer<XmlToken>();
+                lLexer.validWhitespaces = ' \n';
+                lLexer.trimWhitespace = true;
+                {
+                    const lIdentifier = lLexer.createTokenPattern({ pattern: { regex: /[^<>\s\n/:="]+/, type: 'IDENTIFIER' } });
+                    const lExplicitValue = lLexer.createTokenPattern({ pattern: { regex: /"[^"]*"/, type: 'VALUE' } });
+                    const lOpeningBracket = lLexer.createTokenPattern({
+                        pattern: {
+                            start: {
+                                regex: /<\//,
+                                type: 'OPENCLOSINGBRACKET'
+                            },
+                            end: {
+                                regex: />/,
+                                type: 'CLOSEBRACKET'
+                            }
+                        }
+                    }, () => {
+                        lLexer.useTokenPattern(lIdentifier);
+                    });
+                    const lClosingBracket = lLexer.createTokenPattern({
+                        pattern: {
+                            start: {
+                                regex: /</,
+                                type: 'OPENBRACKET'
+                            },
+                            end: {
+                                regex: />/,
+                                type: 'CLOSEBRACKET'
+                            }
+                        }
+                    }, () => {
+                        lLexer.useTokenPattern(lIdentifier);
+                        lLexer.useTokenPattern(lExplicitValue);
+                    });
+                    lLexer.useTokenPattern(lOpeningBracket);
+                    lLexer.useTokenPattern(lClosingBracket);
+                    lLexer.useTokenPattern(lExplicitValue);
+                    lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[^<>"]+/, type: 'VALUE' } }));
+                }
+
+                // Setup. Graphs.
+                const lTextNodeGraph = Graph.define(() => {
+                    return GraphNode.new<XmlToken>().required('text', 'VALUE');
+                });
+                const lXmlElementGraph = Graph.define(() => {
+                    const lLoopedContentGraph: Graph<XmlToken, any, any> = lContentListGraph;
+
+                    return GraphNode.new<XmlToken>()
+                        .required('OPENBRACKET')
+                        .required('IDENTIFIER')
+                        .required(GraphNode.new<XmlToken>()
+                            .required('CLOSEBRACKET')
+                            .optional(lLoopedContentGraph)
+                            .required('OPENCLOSINGBRACKET')
+                            .required('IDENTIFIER').required('CLOSEBRACKET')
+                        );
+                });
+                const lContentListGraph = Graph.define(() => {
+                    const lSelfReference: Graph<XmlToken, any, any> = lContentListGraph;
+
+                    return GraphNode.new<XmlToken>().required('list[]', [
+                        lXmlElementGraph,
+                        lTextNodeGraph,
+                    ]).optional('list[]', lSelfReference);
+                });
+                const lXmlDocumentGraph = Graph.define(() => {
+                    return GraphNode.new<XmlToken>().optional('content[]', lContentListGraph);
+                });
+
+                // Setup. Parser.
+                const lParser = new CodeParser<XmlToken, any>(lLexer);
+                lParser.setRootGraph(lXmlDocumentGraph);
+
+                // Process.
+                const lFunction = () => {
+                    lParser.parse(`MyText"MyOtherText"<quotation>"AnotherText"</quotation>`);
+                };
+
+                // Evaluation.
+                expect(lFunction).not.toThrow();
+            });
         });
 
         describe('-- Parse Graph Errors', () => {

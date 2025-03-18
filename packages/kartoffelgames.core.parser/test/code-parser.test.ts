@@ -1327,6 +1327,7 @@ describe('CodeParser', () => {
 
             it('-- Error messages of optional graphs when end not meet', () => {
                 // TODO: // FIXME: Look and priorize parser exception so the own error message gets priorized.
+                // TODO: Remove/rename GraphError and keep any exceptions in global/cursor at the end, Take error message with the latest end or start token. 
 
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());

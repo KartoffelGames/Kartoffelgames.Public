@@ -136,7 +136,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw lGraphException;
         }
 
-
         // Execute graph parse on a new graph stack.
         return pCursor.pushGraph((pGraph: Graph<TTokenType>, pTokenRange) => {
             // Get parse result.

@@ -27,8 +27,10 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * Get the resolved graph.
      */
     public get node(): GraphNode<TTokenType, TOriginalData> {
+        // Resolve node when not already resolved.
         if (!this.mResolvedGraphNode) {
-            this.mResolvedGraphNode = this.mGraphCollector();
+            // Resolve and cache root node.
+            this.mResolvedGraphNode = this.mGraphCollector().root;
         }
 
         return this.mResolvedGraphNode as GraphNode<TTokenType, TOriginalData>;

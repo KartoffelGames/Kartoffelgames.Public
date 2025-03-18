@@ -129,8 +129,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When an error is thrown while paring collected data.
      */
     private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
-        // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphBranchParseResult<TTokenType> = this.parseGraphBranch(pCursor, pGraph.node, pGraphCalledLinear);
+        const lBranchRootNode: GraphNode<TTokenType> = pGraph.node;
+
+        // TODO: Move in exception.
+
+        // Prevent circular graph branches calls that doesnt progressed itself.
+        if (pCursor.graphIsCircular(pGraph)) {
+            const lGraphException: GraphException<TTokenType> = new GraphException();
+            lGraphException.appendError(`Circular graph branch detected.`, pCursor.current());
+            throw lGraphException;
+        }
+
+        const lGraphBranchResult = pCursor.pushGraph(() => {
+            return this.parseGraphNode(pCursor, pGraph.node);
+        }, pGraph, pGraphCalledLinear);
+
+        const lNodeParseResult: GraphBranchParseResult<TTokenType> = {
+            data: lGraphBranchResult.result.data,
+            tokenProcessed: lGraphBranchResult.result.tokenProcessed,
+            token: lGraphBranchResult.token
+        };
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
@@ -149,39 +167,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return {
             data: lResultData,
             tokenProcessed: lNodeParseResult.tokenProcessed
-        };
-    }
-
-    /**
-     * Parse the graph, marked with {@link pCurrentTokenIndex}. Allways uses the root node of the provided
-     * Returns null when the complete graph processed no token.
-     * 
-     * @param pGraph - Node of graph. Used to get the root node.
-     * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     * 
-     * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
-     * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
-     */
-    private parseGraphBranch(pCursor: CodeParserCursor<TTokenType>, pGraph: GraphNode<TTokenType>, pGraphCalledLinear: boolean): GraphBranchParseResult<TTokenType> {
-        const lBranchRootNode: GraphNode<TTokenType> = pGraph.root;
-
-        // Prevent circular graph branches calls that doesnt progressed itself.
-        if (pCursor.graphBranchIsCircular(lBranchRootNode)) {
-            const lGraphException: GraphException<TTokenType> = new GraphException();
-            lGraphException.appendError(`Circular graph branch detected.`, pCursor.current());
-            throw lGraphException;
-        }
-
-        const lGraphBranchResult = pCursor.pushGraphBranch(() => {
-            return this.parseGraphNode(pCursor, pGraph.root);
-        }, pGraph.root, pGraphCalledLinear);
-
-        return {
-            data: lGraphBranchResult.result.data,
-            tokenProcessed: lGraphBranchResult.result.tokenProcessed,
-            token: lGraphBranchResult.token
         };
     }
 
@@ -321,11 +306,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 } else {
                     // Try to retrieve values from graphs.
                     try {
-                        if (lNodeValue instanceof Graph) {
-                            return this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
-                        } else {
-                            return this.parseGraphBranch(pCursor, lNodeValue, lNodeValueIsLinear);
-                        }
+                        return this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
                     } catch (lError) {
                         // Append error message thrown by parsing graph/node.
                         if (lError instanceof GraphException) {

@@ -131,7 +131,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * 
      * @throws Will rethrow any error encountered during the execution of the callback function.
      */
-    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: (pGraph: TGraph) => TResult, pGraph: TGraph, pLinear: boolean): CodeParserCursorGraphResult<TTokenType, TResult> {
+    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
@@ -159,15 +159,16 @@ export class CodeParserCursor<TTokenType extends string> {
 
         // Call pushed graph.
         try {
-            return {
-                result: pStackCall(pGraph),
-                token: {
-                    // Read first used token from the new token stack.
-                    start: lNewTokenStack.token.cache[0],
+            // Callback of current used token range.
+            const lCurrentTokenRangeCallback = (): [LexerToken<TTokenType>, LexerToken<TTokenType>] => {
+                return [
+                    lNewTokenStack.token.cache[0],
                     // -1 because the index is already moved to the next token.
-                    end: lNewTokenStack.token.cache[lNewTokenStack.token.index - 1]
-                }
+                    lNewTokenStack.token.cache[lNewTokenStack.token.index - 1]
+                ];
             };
+
+            return pStackCall(pGraph, lCurrentTokenRangeCallback);
         } catch (lError) {
             // Revert current stack index.
             lNewTokenStack.token.index = 0;
@@ -203,6 +204,8 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 }
 
+type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph, pTokenRange: (() => [LexerToken<TTokenType>, LexerToken<TTokenType>])) => TResult;
+
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType>;
     linear: boolean;
@@ -212,12 +215,4 @@ type CodeParserCursorGraph<TTokenType extends string> = {
         index: number;
     };
     isRoot: boolean;
-};
-
-type CodeParserCursorGraphResult<TTokenType extends string, TResult> = {
-    result: TResult;
-    token: {
-        start: LexerToken<TTokenType>;
-        end: LexerToken<TTokenType>;
-    };
 };

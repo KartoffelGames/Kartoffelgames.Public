@@ -129,45 +129,39 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When an error is thrown while paring collected data.
      */
     private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
-        const lBranchRootNode: GraphNode<TTokenType> = pGraph.node;
-
-        // TODO: Move in exception.
-
-        // Prevent circular graph branches calls that doesnt progressed itself.
+        // Prevent circular graph calls that doesnt progressed itself.
         if (pCursor.graphIsCircular(pGraph)) {
             const lGraphException: GraphException<TTokenType> = new GraphException();
-            lGraphException.appendError(`Circular graph branch detected.`, pCursor.current());
+            lGraphException.appendError(`Circular graph detected.`, pCursor.current());
             throw lGraphException;
         }
 
-        const lGraphBranchResult = pCursor.pushGraph(() => {
-            return this.parseGraphNode(pCursor, pGraph.node);
-        }, pGraph, pGraphCalledLinear);
 
-        const lNodeParseResult: GraphBranchParseResult<TTokenType> = {
-            data: lGraphBranchResult.result.data,
-            tokenProcessed: lGraphBranchResult.result.tokenProcessed,
-            token: lGraphBranchResult.token
-        };
+        // Execute graph parse on a new graph stack.
+        return pCursor.pushGraph((pGraph: Graph<TTokenType>, pTokenRange) => {
+            // Get parse result.
+            const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(pCursor, pGraph.node);
 
-        // Execute optional collector.
-        let lResultData: unknown = lNodeParseResult.data;
-        try {
-            lResultData = pGraph.convert(lNodeParseResult.data);
-        } catch (pError: any) {
-            // Rethrow parser exception.
-            if (pError instanceof ParserException) {
-                throw pError;
+            try {
+                // Try to convert data.
+                return {
+                    data: pGraph.convert(lNodeParseResult.data),
+                    tokenProcessed: lNodeParseResult.tokenProcessed
+                };
+            } catch (pError: any) {
+                // Rethrow parser exception.
+                if (pError instanceof ParserException) {
+                    throw pError;
+                }
+
+                // Read token range for failing convert function.
+                const [lStartToken, lEndToken] = pTokenRange();
+
+                // When no token was processed, throw default error on first token.
+                throw ParserException.fromToken(pError, this, lStartToken, lEndToken);
             }
 
-            // When no token was processed, throw default error on first token.
-            throw ParserException.fromToken(pError, this, lNodeParseResult.token.start, lNodeParseResult.token.end);
-        }
-
-        return {
-            data: lResultData,
-            tokenProcessed: lNodeParseResult.tokenProcessed
-        };
+        }, pGraph, pGraphCalledLinear);
     }
 
     /**

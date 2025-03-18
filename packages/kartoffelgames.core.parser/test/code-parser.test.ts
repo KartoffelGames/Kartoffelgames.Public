@@ -766,7 +766,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular graph branch detected.`);
+                expect(lErrorFunction).toThrow(`Circular graph detected.`);
             });
 
             it('-- Detect endless circular dependency with branch.', () => {
@@ -787,7 +787,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).toThrow(`Circular graph branch detected.`);
+                expect(lErrorFunction).toThrow(`Circular graph detected.`);
             });
 
             it('-- Add data from empty loop node.', () => {
@@ -1326,7 +1326,7 @@ describe('CodeParser', () => {
             });
 
             it('-- Error messages of optional graphs when end not meet', () => {
-                // TODO: // FIXME: Any branch gets converted into a graph. Remove the parseGraphBranch and only use the reworked parseGraph.
+                // TODO: // FIXME: Look and priorize parser exception so the own error message gets priorized.
 
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());

@@ -1326,6 +1326,8 @@ describe('CodeParser', () => {
             });
 
             it('-- Error messages of optional graphs when end not meet', () => {
+                // TODO: // FIXME: Any branch gets converted into a graph. Remove the parseGraphBranch and only use the reworked parseGraph.
+
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';

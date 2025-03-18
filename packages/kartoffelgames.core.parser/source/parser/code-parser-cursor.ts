@@ -179,6 +179,8 @@ export class CodeParserCursor<TTokenType extends string> {
             // Pop branch.
             this.mBranchStack.pop()!;
 
+            // FIXME: Parent circular must be cleared, when any cursor movement happens.
+
             // Truncate parent graph branches token cache to the current token.
             // So the token memory gets marked as disposeable.
             if (lNewTokenStack.linear) {

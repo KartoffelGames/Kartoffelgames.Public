@@ -826,7 +826,7 @@ describe('Lexer', () => {
             expect(lTokenList[0].type).toBe(TestTokenType.Custom);
         });
 
-        it('-- Prefer longer token, added order from long to short', () => {
+        it('-- Prefer token of pattern added first', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
             const lTestString: string = 'aaaaaa';

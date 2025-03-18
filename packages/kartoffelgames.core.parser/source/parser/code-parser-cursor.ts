@@ -179,7 +179,10 @@ export class CodeParserCursor<TTokenType extends string> {
             // Pop branch.
             this.mBranchStack.pop()!;
 
-            // FIXME: Parent circular must be cleared, when any cursor movement happens.
+            // When the current branch has progressed, event deep circular branches process a new token and eventually reach the end token.
+            if (lNewTokenStack.token.index !== 0 && lLastBranchStack.circularBranches.size > 0) {
+                lLastBranchStack.circularBranches = new Dictionary<GraphNode<TTokenType>, number>();
+            }
 
             // Truncate parent graph branches token cache to the current token.
             // So the token memory gets marked as disposeable.

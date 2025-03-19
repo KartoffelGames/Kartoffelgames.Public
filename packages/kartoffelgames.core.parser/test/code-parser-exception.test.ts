@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { CodeParserException } from '../source/exception/code-parser-exception.ts';
 import { Graph } from '../source/graph/graph.ts';
-import { GraphNode } from "../source/index.ts";
+import { GraphNode } from '../source/index.ts';
 
 describe('CodeParserException', () => {
     describe('Property: incidents', () => {
@@ -22,6 +22,29 @@ describe('CodeParserException', () => {
             // Evaluation.
             expect(lException.incidents).toHaveLength(1);
             expect(lException.incidents[0].error).toBe(lError);
+            expect(lException.incidents[0].graph).toBe(lGraph);
+            expect(lException.lineStart).toBe(lStartLine);
+            expect(lException.columnStart).toBe(lStartColumn);
+            expect(lException.lineEnd).toBe(lEndLine);
+            expect(lException.columnEnd).toBe(lEndColumn);
+        });
+
+        it('-- Default error not an Error object', () => {
+            // Setup.
+            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lError: string = 'Test error';
+            const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
+            const lStartLine: number = 1;
+            const lStartColumn: number = 1;
+            const lEndLine: number = 2;
+            const lEndColumn: number = 2;
+
+            // Process.
+            lException.push(lError, lGraph, lStartLine, lStartColumn, lEndLine, lEndColumn);
+
+            // Evaluation.
+            expect(lException.incidents).toHaveLength(1);
+            expect(lException.incidents[0].error.message).toBe(lError);
             expect(lException.incidents[0].graph).toBe(lGraph);
             expect(lException.lineStart).toBe(lStartLine);
             expect(lException.columnStart).toBe(lStartColumn);

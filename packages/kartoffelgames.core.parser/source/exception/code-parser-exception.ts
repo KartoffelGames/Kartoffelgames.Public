@@ -1,5 +1,5 @@
-import { Exception } from "../../../kartoffelgames.core/source/index.ts";
-import { Graph } from "../graph/graph.ts";
+import { Exception } from '../../../kartoffelgames.core/source/index.ts';
+import type { Graph } from '../graph/graph.ts';
 
 /**
  * Code parser exceptions holding the top incident.
@@ -8,18 +8,6 @@ import { Graph } from "../graph/graph.ts";
 export class CodeParserException<TTokenType extends string> extends Error {
     private readonly mIncidents: Array<CodeParserExceptionIncident<TTokenType>> | null;
     private mTop: CodeParserExceptionIncident<TTokenType> | null;
-
-    /**
-     * Get a complete incident list of all incidents.
-     * Only available in debug mode.
-     */
-    public get incidents(): Array<CodeParserExceptionIncident<TTokenType>> {
-        if (this.mIncidents === null) {
-            throw new Exception('A complete incident list is only available on debug mode.', this);
-        }
-
-        return this.mIncidents;
-    }
 
     /**
      * Affected graph of error.
@@ -44,14 +32,14 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
-     * Error line start.
+     * Error column end.
      */
-    public get lineStart(): number {
+    public get columnEnd(): number {
         if (!this.mTop) {
             return 1;
         }
 
-        return this.mTop.range.lineStart;
+        return this.mTop.range.columnEnd;
     }
 
     /**
@@ -66,6 +54,18 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
+     * Get a complete incident list of all incidents.
+     * Only available in debug mode.
+     */
+    public get incidents(): Array<CodeParserExceptionIncident<TTokenType>> {
+        if (this.mIncidents === null) {
+            throw new Exception('A complete incident list is only available on debug mode.', this);
+        }
+
+        return this.mIncidents;
+    }
+    
+    /**
      * Error line end.
      */
     public get lineEnd(): number {
@@ -77,14 +77,14 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
-     * Error column end.
+     * Error line start.
      */
-    public get columnEnd(): number {
+    public get lineStart(): number {
         if (!this.mTop) {
             return 1;
         }
 
-        return this.mTop.range.columnEnd;
+        return this.mTop.range.lineStart;
     }
 
     /**
@@ -137,15 +137,17 @@ export class CodeParserException<TTokenType extends string> extends Error {
      * @param pStartToken - Staring token of error.
      * @param pEndToken - End topen of error. 
      */
-    public push(pError: Error, pGraph: Graph<TTokenType>, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
+    public push(pError: unknown, pGraph: Graph<TTokenType>, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
         // Calculate priority
         const lPriority: number = (pLineEnd * 10000) + pColumnEnd;
 
         // Create and push a debuging incident when debugging is enabled.
         if (this.mIncidents !== null) {
+            const lError: Error = (pError instanceof Error) ? pError : new Error((<any>pError).toString());
+
             // Create new incident. Only purpose is that not every time a incident is pushed a new item must be generated without debug mode.
             const lDebugIncident: CodeParserExceptionIncident<TTokenType> = {
-                error: pError,
+                error: lError,
                 priority: lPriority,
                 graph: pGraph,
                 range: {
@@ -164,9 +166,11 @@ export class CodeParserException<TTokenType extends string> extends Error {
             return;
         }
 
+        const lError: Error = (pError instanceof Error) ? pError : new Error((<any>pError).toString());
+
         // Create new Incident and push to top.
         this.setTop({
-            error: pError,
+            error: lError,
             priority: lPriority,
             graph: pGraph,
             range: {

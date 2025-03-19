@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GraphNode, GraphNodeConnections } from '../graph/graph-node.ts';
-import { Graph } from '../graph/graph.ts';
+import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
@@ -15,11 +15,11 @@ import { CodeParserCursor } from './code-parser-cursor.ts';
  * @typeparam TParseResult - The result object the parser returns on success.
  */
 export class CodeParser<TTokenType extends string, TParseResult> {
+    private readonly mDebug: boolean;
     private readonly mLexer: Lexer<TTokenType>;
     private mMaxRecursion: number;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
-    private readonly mDebug: boolean;
-
+    
     /**
      * Get lexer.
      */
@@ -279,7 +279,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Try to retrieve values from graphs.
                     try {
                         return this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
-                    } catch (lError) {
+                    } catch {
                         // When graph fails, skip to next node value.
                         // Incidents are stored in cursor, so we dont need to handle them here.
                         continue;
@@ -312,13 +312,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 type GraphNodeParseResult = {
     data: object;
     tokenProcessed: boolean;
-};
-
-type GraphBranchParseResult<TTokenType extends string> = GraphNodeParseResult & {
-    token: {
-        start: LexerToken<TTokenType>;
-        end: LexerToken<TTokenType>;
-    };
 };
 
 type GraphParseResult = {

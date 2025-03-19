@@ -1,5 +1,5 @@
 import { expect } from '@std/expect';
-import { Dictionary } from "@kartoffelgames/core";
+import { Dictionary } from '@kartoffelgames/core';
 
 export const DeepEqual = (pRootKey: string, pSource: object, pTarget: object, pCheckedObject: Dictionary<object, object>): [boolean, string] => {
     // Whatever. Should work.
@@ -87,7 +87,7 @@ expect.extend({
         const lSourceValue: object = pContext.value;
         const lTargetValue: object = pTargetValue;
 
-        const [lCheckPassed, lMessage] = DeepEqual('[OBJECT]', lSourceValue, lTargetValue,  new Dictionary<object, object>);
+        const [lCheckPassed, lMessage] = DeepEqual('[OBJECT]', lSourceValue, lTargetValue,  new Dictionary<object, object>());
 
         return { message: () => lMessage, pass: lCheckPassed };
     }

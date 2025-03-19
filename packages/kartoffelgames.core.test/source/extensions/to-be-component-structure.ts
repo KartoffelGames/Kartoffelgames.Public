@@ -1,4 +1,4 @@
-import { Dictionary } from "@kartoffelgames/core";
+import { Dictionary } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { expect } from '@std/expect';
 import { DeepEqual } from './to-be-deep-equal.ts';

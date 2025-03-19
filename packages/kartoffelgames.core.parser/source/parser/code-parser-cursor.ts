@@ -1,14 +1,14 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
-import { CodeParserException } from "../exception/code-parser-exception.ts";
-import { Graph } from "../graph/graph.ts";
+import { CodeParserException } from '../exception/code-parser-exception.ts';
+import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
-    private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mDebug: boolean;
+    private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
+    private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private mLastGeneratedToken: LexerToken<TTokenType> | null;
 
     /**

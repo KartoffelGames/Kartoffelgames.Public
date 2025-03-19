@@ -8,6 +8,7 @@ import type { Graph } from '../graph/graph.ts';
 export class CodeParserException<TTokenType extends string> extends Error {
     private readonly mIncidents: Array<CodeParserExceptionIncident<TTokenType>> | null;
     private mTop: CodeParserExceptionIncident<TTokenType> | null;
+    private mIsAborted: boolean;
 
     /**
      * Affected graph of error.
@@ -66,6 +67,13 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
+     * Is the parsing process aborted.
+     */
+    public get isAborted(): boolean {
+        return this.mIsAborted;
+    }
+
+    /**
      * Error line end.
      */
     public get lineEnd(): number {
@@ -95,6 +103,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
     public constructor(pDebug: boolean) {
         super('Unknown parser error');
 
+        this.mIsAborted = false;
         this.mTop = null;
 
         if (pDebug) {
@@ -102,6 +111,38 @@ export class CodeParserException<TTokenType extends string> extends Error {
         } else {
             this.mIncidents = null;
         }
+    }
+
+
+    /**
+     * Aborts the current parsing process and logs an error with the specified details.
+     * 
+     * @param pError - The error object or any value that can be converted to an error object.
+     * @param pGraph - The graph associated with the error, or null if not applicable.
+     * @param pLineStart - The starting line number of the error range.
+     * @param pColumnStart - The starting column number of the error range.
+     * @param pLineEnd - The ending line number of the error range.
+     * @param pColumnEnd - The ending column number of the error range.
+     */
+    public abort(pError: unknown, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
+        // Convert any non error object to an error object.
+        const lError: Error = (pError instanceof Error) ? pError : new Error((<any>pError).toString());
+
+        // Set abort flag.
+        this.mIsAborted = true;
+
+        // Create new Incident and push to top.
+        this.setTop({
+            error: lError,
+            priority: Number.MAX_VALUE,
+            graph: pGraph,
+            range: {
+                lineStart: pLineStart,
+                columnStart: pColumnStart,
+                lineEnd: pLineEnd,
+                columnEnd: pColumnEnd,
+            }
+        });
     }
 
     /**
@@ -141,6 +182,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
             return;
         }
 
+        // Convert any non error object to an error object.
         const lError: Error = (pError instanceof Error) ? pError : new Error((<any>pError).toString());
 
         // Create new Incident and push to top.

@@ -6,6 +6,7 @@ import type { LexerToken } from '../lexer/lexer-token.ts';
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
+    private readonly errorBucket: CodeParserException<TTokenType>; // TODO: Rename to something better. use this thing.
     private readonly mDebug: boolean;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
@@ -141,20 +142,8 @@ export class CodeParserCursor<TTokenType extends string> {
         let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
         lColumnEnd += lEndTokenLines.at(-1)!.length;
 
+        // Push new error.
         this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd);
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -303,5 +292,4 @@ type CodeParserCursorGraph<TTokenType extends string> = {
         index: number;
     };
     isRoot: boolean;
-    errorBucket: CodeParserException<TTokenType>;
 };

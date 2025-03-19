@@ -1140,10 +1140,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(1);
-                expect(lException.top.range.columnEnd).toBe(6);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(1);
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(6);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
             });
 
             it('-- Error positions chained token without newline.', () => {
@@ -1165,10 +1165,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(1);
-                expect(lException.top.range.columnEnd).toBe(12);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(1);
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(12);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
             });
 
             it('-- Keep error object on parser error.', () => {
@@ -1190,7 +1190,7 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.error).toBe(lError);
+                expect(lException.cause).toBe(lError);
             });
 
             it('-- Error positions chained token with newline.', () => {
@@ -1212,10 +1212,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(1);
-                expect(lException.top.range.columnEnd).toBe(6);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(2);
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(6);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(2);
             });
 
             it('-- Error positions with only optional token.', () => {
@@ -1238,10 +1238,10 @@ describe('CodeParser', () => {
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.message).toBe(lErrorMessage);
-                expect(lException.top.range.columnStart).toBe(1);
-                expect(lException.top.range.columnEnd).toBe(1);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(1);
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(1);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
             });
 
             it('-- Error positions with no parse data.', () => {
@@ -1262,10 +1262,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(1);
-                expect(lException.top.range.columnEnd).toBe(1);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(1);
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(1);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
             });
 
             it('-- Multi error after line break.', () => {
@@ -1287,10 +1287,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(12);
-                expect(lException.top.range.columnEnd).toBe(17);
-                expect(lException.top.range.lineStart).toBe(2);
-                expect(lException.top.range.lineEnd).toBe(2);
+                expect(lException.columnStart).toBe(12);
+                expect(lException.columnEnd).toBe(17);
+                expect(lException.lineStart).toBe(2);
+                expect(lException.lineEnd).toBe(2);
             });
 
             it('-- Error with an multiline token.', () => {
@@ -1317,10 +1317,10 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.top.range.columnStart).toBe(18);
-                expect(lException.top.range.columnEnd).toBe(5);
-                expect(lException.top.range.lineStart).toBe(1);
-                expect(lException.top.range.lineEnd).toBe(2);
+                expect(lException.columnStart).toBe(18);
+                expect(lException.columnEnd).toBe(5);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(2);
             });
 
             it('-- Error messages of optional graphs when end not meet', () => {

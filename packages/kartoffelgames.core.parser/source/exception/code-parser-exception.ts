@@ -10,18 +10,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
     private mTop: CodeParserExceptionIncident<TTokenType> | null;
 
     /**
-     * Get the top incident of all parser incidents.
-     * The top incident is the furthest incident in the parsing process.
-     */
-    public get top(): CodeParserExceptionIncident<TTokenType> {
-        if (!this.mTop) {
-            throw new Exception('No incidents are available', this);
-        }
-
-        return this.mTop;
-    }
-
-    /**
      * Get a complete incident list of all incidents.
      * Only available in debug mode.
      */
@@ -31,6 +19,17 @@ export class CodeParserException<TTokenType extends string> extends Error {
         }
 
         return this.mIncidents;
+    }
+
+    /**
+     * Affected graph of error.
+     */
+    public get affectedGraph(): Graph<TTokenType> | null {
+        if (!this.mTop) {
+            return null;
+        }
+
+        return this.mTop.graph;
     }
 
     /**
@@ -56,12 +55,56 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
+     * Error line start.
+     */
+    public get lineStart(): number {
+        if (!this.mTop) {
+            return 1;
+        }
+
+        return this.mTop.range.lineStart;
+    }
+
+    /**
+     * Error column start.
+     */
+    public get columnStart(): number {
+        if (!this.mTop) {
+            return 1;
+        }
+
+        return this.mTop.range.columnStart;
+    }
+
+    /**
+     * Error line end.
+     */
+    public get lineEnd(): number {
+        if (!this.mTop) {
+            return 1;
+        }
+
+        return this.mTop.range.lineEnd;
+    }
+
+    /**
+     * Error column end.
+     */
+    public get columnEnd(): number {
+        if (!this.mTop) {
+            return 1;
+        }
+
+        return this.mTop.range.columnEnd;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pDebug - Keeps a complete list of all incidents.
      */
     public constructor(pDebug: boolean) {
-        super('Unknown parser error')
+        super('Unknown parser error');
 
         this.mTop = null;
 
@@ -92,8 +135,8 @@ export class CodeParserException<TTokenType extends string> extends Error {
         }
 
         // Check if priority is higher than current top incident and replace it when necessary.
-        if (!this.mTop || pException.top.priority > this.mTop.priority) {
-            this.mTop = pException.top;
+        if (!this.mTop || pException.mTop.priority > this.mTop.priority) {
+            this.mTop = pException.mTop;
         }
     }
 

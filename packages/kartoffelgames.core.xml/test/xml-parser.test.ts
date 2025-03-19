@@ -7,6 +7,7 @@ import type { CommentNode } from '../source/node/comment-node.ts';
 import type { TextNode } from '../source/node/text-node.ts';
 import type { XmlElement } from '../source/node/xml-element.ts';
 import { XmlParser } from '../source/parser/xml-parser.ts';
+import { CodeParserException } from "../../kartoffelgames.core.parser/source/index.ts";
 
 describe('XmlParser', () => {
     it('Property: removeComments', () => {
@@ -340,7 +341,7 @@ describe('XmlParser', () => {
 
             // Evaluation.
             expect(lRightFunction).not.toThrow();
-            expect(lFailingFunction).toThrow(Exception);
+            expect(lFailingFunction).toThrow(CodeParserException);
         });
 
         it('Same content twice', () => {
@@ -398,7 +399,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(/Unexpected token "<\/"/);
+            expect(lFailingFunction).toThrow(/unexpectedclosing/);
         });
 
         it('-- Different closing namespace', () => {
@@ -461,7 +462,8 @@ describe('XmlParser', () => {
 
         it('-- Restrict attribute characters', () => {
             // Setup.
-            const lXmlString: string = `<node notAllowed />`;
+            const lNotAllowedCharacters: string = 'notAllowed';
+            const lXmlString: string = `<node ${lNotAllowedCharacters}/>`;
             const lParser: XmlParser = new XmlParser();
             lParser.allowedAttributeCharacters = 'abc';
 
@@ -471,12 +473,13 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(Exception);
+            expect(lFailingFunction).toThrow(`Attribute contains illegal characters: "${lNotAllowedCharacters}"`);
         });
 
         it('-- Restrict tagname characters', () => {
             // Setup.
-            const lXmlString: string = `<notallowed/>`;
+            const lNotAllowedCharacters: string = 'notAllowed';
+            const lXmlString: string = `<${lNotAllowedCharacters}/>`;
             const lParser: XmlParser = new XmlParser();
             lParser.allowedTagNameCharacters = 'abc';
 
@@ -486,7 +489,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(Exception);
+            expect(lFailingFunction).toThrow(`Tagname contains illegal characters: "${lNotAllowedCharacters}"`);
         });
     });
 });

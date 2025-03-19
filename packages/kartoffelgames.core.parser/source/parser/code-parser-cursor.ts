@@ -6,11 +6,9 @@ import type { LexerToken } from '../lexer/lexer-token.ts';
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly errorBucket: CodeParserException<TTokenType>; // TODO: Rename to something better. use this thing.
-    private readonly mDebug: boolean;
+    private readonly mErrorCache: CodeParserException<TTokenType>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
-    private mLastGeneratedToken: LexerToken<TTokenType> | null;
 
     /**
      * Read the current token from the stream.
@@ -35,9 +33,6 @@ export class CodeParserCursor<TTokenType extends string> {
                 return null;
             }
 
-            // Save last generated token.
-            this.mLastGeneratedToken = lToken.value;
-
             // Store token in cache.
             lCurrentGraphStack.token.cache.push(lToken.value);
         }
@@ -47,25 +42,22 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Get current graphs error bucket.
+     * Get cursors error cache.
      */
     public get error(): CodeParserException<TTokenType> {
-        return this.mGraphStack.top!.errorBucket;
+        return this.mErrorCache;
     }
 
     /**
      * Get the current graph the cursor is in.
+     * Graph can be null. But in normal cases it should not be null.
      */
     public get graph(): Graph<TTokenType> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        // No graph is set.
-        if (lCurrentGraphStack.graph === null) {
-            throw new Error('No graph is set on the stack.');
-        }
-
-        return lCurrentGraphStack.graph;
+        // Return the graph.
+        return lCurrentGraphStack.graph!;
     }
 
     /**
@@ -76,8 +68,7 @@ export class CodeParserCursor<TTokenType extends string> {
     public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
-        this.mDebug = pDebug;
-        this.mLastGeneratedToken = null;
+        this.mErrorCache = new CodeParserException<TTokenType>(pDebug);
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -89,12 +80,12 @@ export class CodeParserCursor<TTokenType extends string> {
                 index: 0
             },
             isRoot: true,
-            errorBucket: new CodeParserException<TTokenType>(this.mDebug)
         });
     }
 
     /**
      * Add incident to the current cursor.
+     * When no graph is on the stack, the graph can be null.
      * 
      * @param pError - The error to add to the current graph stack.
      */
@@ -116,23 +107,17 @@ export class CodeParserCursor<TTokenType extends string> {
             lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
         }
 
-        console.log(!!lStartToken, !!lEndToken, !!this.mLastGeneratedToken); // TODO: Can we remove mLastGeneratedToken
-
         // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? this.mLastGeneratedToken;
-        lEndToken = lEndToken ?? this.mLastGeneratedToken;
-
-        // When graph is not set on current top, throw.
-        if (lCurrentGraphStack.graph === null) {
-            throw new Exception('Cursor currently no in a graph.', this);
-        }
+        lStartToken = lStartToken ?? lEndToken;
+        lEndToken = lEndToken ?? lStartToken;
 
         // No start token means there is also no endtoken.
         if (!lStartToken || !lEndToken) {
-            this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
+            this.mErrorCache.push(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
             return;
         }
 
+        // Split the end token into lines.
         const lEndTokenLines = lEndToken.value.split('\n');
 
         // Extends the end token line end.
@@ -143,7 +128,7 @@ export class CodeParserCursor<TTokenType extends string> {
         lColumnEnd += lEndTokenLines.at(-1)!.length;
 
         // Push new error.
-        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd);
+        this.mErrorCache.push(pError, lCurrentGraphStack.graph, lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd);
     }
 
     /**
@@ -229,8 +214,7 @@ export class CodeParserCursor<TTokenType extends string> {
                 cache: lTokenStack,
                 index: 0
             },
-            isRoot: false,
-            errorBucket: new CodeParserException<TTokenType>(this.mDebug)
+            isRoot: false
         };
 
         // Add itself to the circular graph list.
@@ -274,9 +258,6 @@ export class CodeParserCursor<TTokenType extends string> {
                 // Add the new tokens to the parent stack.
                 lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
             }
-
-            // Add error to the parent error bucket.
-            lLastGraphStack.errorBucket.integrate(lNewTokenStack.errorBucket);
         }
     }
 }

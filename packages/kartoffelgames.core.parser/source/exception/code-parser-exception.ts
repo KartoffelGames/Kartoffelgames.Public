@@ -64,7 +64,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
 
         return this.mIncidents;
     }
-    
+
     /**
      * Error line end.
      */
@@ -105,31 +105,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
-     * Integrates another `CodeParserException` into the current exception.
-     * When debug mode is enabled, all incidents from the provided exception are pushed to the current incident list.
-     * If the priority of the top incident in the provided exception is higher than the current top incident, 
-     * the top incident is replaced.
-     * 
-     * @param pException - The `CodeParserException` to integrate.
-     */
-    public integrate(pException: CodeParserException<TTokenType>): void {
-        // Skip integration when there is no top incident.
-        if (pException.mTop === null) {
-            return;
-        }
-
-        // When debug mode is enabled, push all incidents to the current incident list.
-        if (this.mIncidents !== null && pException.mIncidents !== null) {
-            this.mIncidents.push(...pException.incidents);
-        }
-
-        // Check if priority is higher than current top incident and replace it when necessary.
-        if (!this.mTop || pException.mTop.priority > this.mTop.priority) {
-            this.setTop(pException.mTop);
-        }
-    }
-
-    /**
      * Push a new error incident.
      * 
      * @param pError - General error element.
@@ -137,7 +112,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
      * @param pStartToken - Staring token of error.
      * @param pEndToken - End topen of error. 
      */
-    public push(pError: unknown, pGraph: Graph<TTokenType>, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
+    public push(pError: unknown, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
         // Calculate priority
         const lPriority: number = (pLineEnd * 10000) + pColumnEnd;
 
@@ -197,7 +172,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
 type CodeParserExceptionIncident<TTokenType extends string> = {
     error: Error,
     priority: number;
-    graph: Graph<TTokenType>;
+    graph: Graph<TTokenType> | null;
     range: {
         lineStart: number;
         columnStart: number;

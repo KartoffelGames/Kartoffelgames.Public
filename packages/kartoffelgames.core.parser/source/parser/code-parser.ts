@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GraphNode, GraphNodeConnections } from '../graph/graph-node.ts';
 import type { Graph } from '../graph/graph.ts';
+import { LexerException } from "../index.ts";
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
-import { LexerException } from "../index.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -241,13 +241,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         try {
             lCurrentToken = pCursor.current;
         } catch (pError) {
-            // Rethrow error when is does not happened in lexer.
-            if (!(pError instanceof LexerException)) {
-                throw pError;
-            }
+            // Its allways a lexer error.
+            const lLexerError: LexerException<TTokenType> = pError as unknown as LexerException<TTokenType>;
 
             // Add lexer error to cursor. Exit parsing of this node.
-            pCursor.error.push(pError, pCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd);
+            pCursor.error.push(pError, pCursor.graph, lLexerError.lineStart, lLexerError.columnStart, lLexerError.lineEnd, lLexerError.columnEnd);
 
             // Something to throw. Doesn't matter what.
             throw pCursor.error;

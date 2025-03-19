@@ -216,32 +216,6 @@ describe('CodeParserException', () => {
         });
     });
 
-    it('Method: integrate', () => {
-        // Setup.
-        const lException1: CodeParserException<string> = new CodeParserException(true);
-        const lException2: CodeParserException<string> = new CodeParserException(true);
-        const lError1: Error = new Error('Test error 1');
-        const lError2: Error = new Error('Test error 2');
-        const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-        const lStartLine1: number = 1;
-        const lStartColumn1: number = 1;
-        const lEndLine1: number = 2;
-        const lEndColumn1: number = 2;
-        const lStartLine2: number = 3;
-        const lStartColumn2: number = 3;
-        const lEndLine2: number = 4;
-        const lEndColumn2: number = 4;
-
-        // Process.
-        lException1.push(lError1, lGraph, lStartLine1, lStartColumn1, lEndLine1, lEndColumn1);
-        lException2.push(lError2, lGraph, lStartLine2, lStartColumn2, lEndLine2, lEndColumn2);
-        lException1.integrate(lException2);
-
-        // Evaluation.
-        expect(lException1.incidents).toHaveLength(2);
-        expect(lException1.cause).toBe(lError2);
-    });
-
     describe('Method: push', () => {
         it('-- Single Default', () => {
             // Setup.

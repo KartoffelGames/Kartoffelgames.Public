@@ -1442,6 +1442,38 @@ describe('CodeParser', () => {
                 expect(lException.lineStart).toBe(1);
                 expect(lException.lineEnd).toBe(1);
             });
+
+            it('-- Abort parsing process with optional graph without output but aborts.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+
+                // Setup graphs.
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().optional(TokenType.Identifier);
+                }).converter(() => {
+                    throw new CodeParserAbortException(lErrorMessage);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(lFailingGraph);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.message).toBe(lErrorMessage);
+                expect(lException.isAborted).toBeTruthy();
+                expect(lException.columnStart).toBe(1);
+                expect(lException.columnEnd).toBe(1);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
+            });
         });
     });
 

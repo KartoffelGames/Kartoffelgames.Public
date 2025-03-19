@@ -1,4 +1,5 @@
-import { Dictionary, Stack, Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
+import { CodeParserAbortException } from "../exception/code-parser-abort-exception.ts";
 import { CodeParserException } from '../exception/code-parser-exception.ts';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
@@ -6,9 +7,17 @@ import type { LexerToken } from '../lexer/lexer-token.ts';
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
+    private readonly mPosition: CodeParserCursorPosition;
     private readonly mErrorCache: CodeParserException<TTokenType>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
+
+    /**
+     * Get the current cursor position in the token stream.
+     */
+    public get isAborted(): boolean {
+        return this.mErrorCache.isAborted;
+    }
 
     /**
      * Read the current token from the stream.
@@ -32,6 +41,10 @@ export class CodeParserCursor<TTokenType extends string> {
             if (lToken.done) {
                 return null;
             }
+
+            // Update cursor position on any new generated token.
+            this.mPosition.column = lToken.value.columnNumber;
+            this.mPosition.line = lToken.value.lineNumber;
 
             // Store token in cache.
             lCurrentGraphStack.token.cache.push(lToken.value);
@@ -69,6 +82,10 @@ export class CodeParserCursor<TTokenType extends string> {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mErrorCache = new CodeParserException<TTokenType>(pDebug);
+        this.mPosition = {
+            column: 1,
+            line: 1
+        };
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -88,14 +105,14 @@ export class CodeParserCursor<TTokenType extends string> {
      * The error is logged at the current cursor position and has allways top priority.
      *
      * @param pError - The error to be logged.
-     * @param pSingleToken - A boolean indicating whether the error is related to a single token.
      */
-    public abort(pError: Error, pSingleToken: boolean): void {
+    public abort(pError: CodeParserAbortException): void {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
+        // Calculate error position. Allways calculated for the current graph.
+        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, false)!;
         if (lErrorPosition === null) {
-            this.mErrorCache.abort(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
+            this.mErrorCache.abort(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
             return;
         }
 
@@ -114,7 +131,7 @@ export class CodeParserCursor<TTokenType extends string> {
 
         const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
         if (lErrorPosition === null) {
-            this.mErrorCache.push(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
+            this.mErrorCache.push(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
             return;
         }
 
@@ -260,7 +277,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * @param {boolean} pSingleToken - A flag indicating whether to use a single token mode.
      * @returns {[number, number, number, number] | null} - A tuple containing the start line number, start column number, end line number, and end column number of the error position, or null if no valid tokens are found.
      */
-    private calculateErrorPosition(pGraphStack: CodeParserCursorGraph<TTokenType> ,pSingleToken: boolean): [number, number, number, number] | null {
+    private calculateErrorPosition(pGraphStack: CodeParserCursorGraph<TTokenType>, pSingleToken: boolean): [number, number, number, number] | null {
         // Define start and end token.
         let lStartToken: LexerToken<TTokenType>;
         let lEndToken: LexerToken<TTokenType>;
@@ -310,4 +327,9 @@ type CodeParserCursorGraph<TTokenType extends string> = {
         index: number;
     };
     isRoot: boolean;
+};
+
+type CodeParserCursorPosition = {
+    column: number;
+    line: number;
 };

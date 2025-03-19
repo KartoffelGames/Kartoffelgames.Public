@@ -1,5 +1,6 @@
 import { Exception } from '../../../kartoffelgames.core/source/index.ts';
 import type { Graph } from '../graph/graph.ts';
+import { CodeParserAbortException } from "./code-parser-abort-exception.ts";
 
 /**
  * Code parser exceptions holding the top incident.
@@ -113,7 +114,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
         }
     }
 
-
     /**
      * Aborts the current parsing process and logs an error with the specified details.
      * 
@@ -124,16 +124,13 @@ export class CodeParserException<TTokenType extends string> extends Error {
      * @param pLineEnd - The ending line number of the error range.
      * @param pColumnEnd - The ending column number of the error range.
      */
-    public abort(pError: unknown, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
-        // Convert any non error object to an error object.
-        const lError: Error = (pError instanceof Error) ? pError : new Error((<any>pError).toString());
-
+    public abort(pError: CodeParserAbortException, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
         // Set abort flag.
         this.mIsAborted = true;
 
         // Create new Incident and push to top.
         this.setTop({
-            error: lError,
+            error: pError,
             priority: Number.MAX_VALUE,
             graph: pGraph,
             range: {

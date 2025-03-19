@@ -138,8 +138,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     tokenProcessed: lNodeParseResult.tokenProcessed
                 };
             } catch (pError: any) {
-                if(pError instanceof CodeParserAbortException) {
-                    //pCursor.
+                // When a code parser abort exception is thrown, we need to abort the parsing process.
+                if (pError instanceof CodeParserAbortException) {
+                    pCursor.abort(pError);
+                    throw pCursor.error;
                 }
 
                 // Integrate exception into parser exception, this should never be a code parser exception.
@@ -298,6 +300,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     try {
                         return this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
                     } catch {
+                        // Exit parsing immediately when cursor is aborted.
+                        if (pCursor.isAborted) {
+                            throw pCursor.error;
+                        }
+
                         // When graph fails, skip to next node value.
                         // Incidents are stored in cursor, so we dont need to handle them here.
                         continue;

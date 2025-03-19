@@ -1,12 +1,11 @@
 import { Exception } from "../../../kartoffelgames.core/source/index.ts";
 import { Graph } from "../graph/graph.ts";
-import { LexerToken } from "../index.ts";
 
 /**
  * Code parser exceptions holding the top incident.
  * Can save a complete incident list on debug mode.
  */
-export class CodeParserException<TTokenType extends string> {
+export class CodeParserException<TTokenType extends string> extends Error {
     private readonly mIncidents: Array<CodeParserExceptionIncident<TTokenType>> | null;
     private mTop: CodeParserExceptionIncident<TTokenType> | null;
 
@@ -35,11 +34,35 @@ export class CodeParserException<TTokenType extends string> {
     }
 
     /**
+     * Error message.
+     */
+    public override get message(): string {
+        if (!this.mTop) {
+            return super.message;
+        }
+
+        return this.mTop.error.message;
+    }
+
+    /**
+     * Cause of exception.
+     */
+    public override get cause(): unknown {
+        if (!this.mTop) {
+            return super.cause;
+        }
+
+        return this.mTop.error;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pDebug - Keeps a complete list of all incidents.
      */
     public constructor(pDebug: boolean) {
+        super('Unknown parser error')
+
         this.mTop = null;
 
         if (pDebug) {
@@ -82,11 +105,9 @@ export class CodeParserException<TTokenType extends string> {
      * @param pStartToken - Staring token of error.
      * @param pEndToken - End topen of error. 
      */
-    public push(pError: Error, pGraph: Graph<TTokenType>, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>): void {
-        // TODO: Dont use token. Use line and column number directly.
-
+    public push(pError: Error, pGraph: Graph<TTokenType>, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number): void {
         // Calculate priority
-        const lPriority: number = (pEndToken.lineNumber * 10000) + pEndToken.columnNumber;
+        const lPriority: number = (pLineEnd * 10000) + pColumnEnd;
 
         // Create and push a debuging incident when debugging is enabled.
         if (this.mIncidents !== null) {
@@ -95,9 +116,11 @@ export class CodeParserException<TTokenType extends string> {
                 error: pError,
                 priority: lPriority,
                 graph: pGraph,
-                token: {
-                    start: pStartToken,
-                    end: pEndToken
+                range: {
+                    lineStart: pLineStart,
+                    columnStart: pColumnStart,
+                    lineEnd: pLineEnd,
+                    columnEnd: pColumnEnd,
                 }
             };
 
@@ -114,9 +137,11 @@ export class CodeParserException<TTokenType extends string> {
             error: pError,
             priority: lPriority,
             graph: pGraph,
-            token: {
-                start: pStartToken,
-                end: pEndToken
+            range: {
+                lineStart: pLineStart,
+                columnStart: pColumnStart,
+                lineEnd: pLineEnd,
+                columnEnd: pColumnEnd,
             }
         };
     }
@@ -126,8 +151,10 @@ type CodeParserExceptionIncident<TTokenType extends string> = {
     error: Error,
     priority: number;
     graph: Graph<TTokenType>;
-    token: {
-        start: LexerToken<TTokenType>;
-        end: LexerToken<TTokenType>;
+    range: {
+        lineStart: number;
+        columnStart: number;
+        lineEnd: number;
+        columnEnd: number;
     };
 };

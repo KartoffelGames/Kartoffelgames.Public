@@ -12,17 +12,21 @@ describe('CodeParserException', () => {
             const lException: CodeParserException<string> = new CodeParserException(true);
             const lError: Error = new Error('Test error');
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-            const lStartToken: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
-            const lEndToken: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
+            const lStartLine: number = 1;
+            const lStartColumn: number = 1;
+            const lEndLine: number = 2;
+            const lEndColumn: number = 2;
 
             // Process.
-            lException.push(lError, lGraph, lStartToken, lEndToken);
+            lException.push(lError, lGraph, lStartLine, lStartColumn, lEndLine, lEndColumn);
 
             // Evaluation.
             expect(lException.top.error).toBe(lError);
             expect(lException.top.graph).toBe(lGraph);
-            expect(lException.top.token.start).toBe(lStartToken);
-            expect(lException.top.token.end).toBe(lEndToken);
+            expect(lException.top.range.lineStart).toBe(lStartLine);
+            expect(lException.top.range.columnStart).toBe(lStartColumn);
+            expect(lException.top.range.lineEnd).toBe(lEndLine);
+            expect(lException.top.range.columnEnd).toBe(lEndColumn);
         });
 
         it('Property: top throws exception when no incidents are available', () => {
@@ -40,18 +44,22 @@ describe('CodeParserException', () => {
             const lException: CodeParserException<string> = new CodeParserException(true);
             const lError: Error = new Error('Test error');
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-            const lStartToken: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
-            const lEndToken: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
+            const lStartLine: number = 1;
+            const lStartColumn: number = 1;
+            const lEndLine: number = 2;
+            const lEndColumn: number = 2;
 
             // Process.
-            lException.push(lError, lGraph, lStartToken, lEndToken);
+            lException.push(lError, lGraph, lStartLine, lStartColumn, lEndLine, lEndColumn);
 
             // Evaluation.
             expect(lException.incidents).toHaveLength(1);
             expect(lException.incidents[0].error).toBe(lError);
             expect(lException.incidents[0].graph).toBe(lGraph);
-            expect(lException.incidents[0].token.start).toBe(lStartToken);
-            expect(lException.incidents[0].token.end).toBe(lEndToken);
+            expect(lException.top.range.lineStart).toBe(lStartLine);
+            expect(lException.top.range.columnStart).toBe(lStartColumn);
+            expect(lException.top.range.lineEnd).toBe(lEndLine);
+            expect(lException.top.range.columnEnd).toBe(lEndColumn);
         });
 
         it('Property: incidents throws exception when not in debug mode', () => {
@@ -70,14 +78,19 @@ describe('CodeParserException', () => {
         const lError1: Error = new Error('Test error 1');
         const lError2: Error = new Error('Test error 2');
         const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-        const lStartToken1: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
-        const lEndToken1: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
-        const lStartToken2: LexerToken<string> = new LexerToken('Type', 'Value', 3, 3);
-        const lEndToken2: LexerToken<string> = new LexerToken('Type', 'Value', 4, 4);
+        const lStartLine1: number = 1;
+        const lStartColumn1: number = 1;
+        const lEndLine1: number = 2;
+        const lEndColumn1: number = 2;
+        const lStartLine2: number = 3;
+        const lStartColumn2: number = 3;
+        const lEndLine2: number = 4;
+        const lEndColumn2: number = 4;
+
 
         // Process.
-        lException1.push(lError1, lGraph, lStartToken1, lEndToken1);
-        lException2.push(lError2, lGraph, lStartToken2, lEndToken2);
+        lException1.push(lError1, lGraph, lStartLine1, lStartColumn1, lEndLine1, lEndColumn1);
+        lException2.push(lError2, lGraph, lStartLine2, lStartColumn2, lEndLine2, lEndColumn2);
         lException1.integrate(lException2);
 
         // Evaluation.
@@ -91,17 +104,21 @@ describe('CodeParserException', () => {
             const lException: CodeParserException<string> = new CodeParserException(true);
             const lError: Error = new Error('Test error');
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
-            const lStartToken: LexerToken<string> = new LexerToken('Type', 'Value', 1, 1);
-            const lEndToken: LexerToken<string> = new LexerToken('Type', 'Value', 2, 2);
+            const lStartLine: number = 1;
+            const lStartColumn: number = 1;
+            const lEndLine: number = 2;
+            const lEndColumn: number = 2;
 
             // Process.
-            lException.push(lError, lGraph, lStartToken, lEndToken);
+            lException.push(lError, lGraph, lStartLine, lStartColumn, lEndLine, lEndColumn);
 
             // Evaluation.
             expect(lException.top.error).toBe(lError);
             expect(lException.top.graph).toBe(lGraph);
-            expect(lException.top.token.start).toBe(lStartToken);
-            expect(lException.top.token.end).toBe(lEndToken);
+            expect(lException.top.range.lineStart).toBe(lStartLine);
+            expect(lException.top.range.columnStart).toBe(lStartColumn);
+            expect(lException.top.range.lineEnd).toBe(lEndLine);
+            expect(lException.top.range.columnEnd).toBe(lEndColumn);
         });
 
         it('-- Priority is higher', () => {
@@ -112,8 +129,8 @@ describe('CodeParserException', () => {
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
 
             // Process.
-            lException.push(lError1, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 3));
-            lException.push(lError2, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 2));
+            lException.push(lError1, lGraph, 1, 1, 2, 3);
+            lException.push(lError2, lGraph, 1, 1, 2, 2);
 
             // Evaluation.
             expect(lException.top.error).toBe(lError1);
@@ -127,13 +144,11 @@ describe('CodeParserException', () => {
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
 
             // Process.
-            lException.push(lError1, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 2));
-            lException.push(lError2, lGraph, new LexerToken('Type', 'Value', 1, 1), new LexerToken('Type', 'Value', 2, 3));
+            lException.push(lError1, lGraph, 1, 1, 2, 2);
+            lException.push(lError2, lGraph, 1, 1, 2, 3);
 
             // Evaluation.
             expect(lException.top.error).toBe(lError2);
         });
     });
-
-
 });

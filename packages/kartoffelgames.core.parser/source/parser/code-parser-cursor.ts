@@ -83,8 +83,6 @@ export class CodeParserCursor<TTokenType extends string> {
      * @param pError - The error to add to the current graph stack.
      */
     public addIncident(pError: Error, pSingleToken: boolean): void {
-        // TODO: Push error as lines and columns. Start token beginns at first char and end token ends at last chars line and column. 
-
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         let lStartToken: LexerToken<TTokenType> | null = null;
@@ -101,9 +99,41 @@ export class CodeParserCursor<TTokenType extends string> {
         lStartToken = lStartToken ?? this.mLastGeneratedToken;
         lEndToken = lEndToken ?? this.mLastGeneratedToken;
 
-        console.log(!!lStartToken, !!lEndToken, pSingleToken, lCurrentGraphStack.token.cache.length);
 
-        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lStartToken, lEndToken);
+
+
+        // Save actual error as error option.
+
+
+        // No start token means there is also no endtoken.
+        if (!lStartToken || !lEndToken) {
+            this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
+            return;
+        }
+
+        const lEndTokenLines = lEndToken.value.split('\n');
+
+        // Extends the end token line end.
+        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
+
+        // Set column end based on, if the token is multiline or not.
+        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
+        lColumnEnd += lEndTokenLines.at(-1)!.length;
+
+        this.mGraphStack.top!.errorBucket.push(pError, lCurrentGraphStack.graph, lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd);
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     /**

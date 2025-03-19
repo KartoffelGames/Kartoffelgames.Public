@@ -4,7 +4,6 @@ import { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
-import { CodeParserException } from "../exception/code-parser-exception.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -81,7 +80,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lNextToken: LexerToken<TTokenType> = lRemainingToken[0];
             const lLastToken: LexerToken<TTokenType> = lRemainingToken.at(-1)!;
 
-            lCursor.error.push(new Exception(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this), this.mRootPart as Graph<TTokenType>, lNextToken, lLastToken);
+            const lError: Exception<this> = new Exception(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this);
+
+            lCursor.error.push(lError, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
             throw lCursor.error;
         }
 

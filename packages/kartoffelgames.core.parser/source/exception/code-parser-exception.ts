@@ -33,17 +33,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
-     * Error message.
-     */
-    public override get message(): string {
-        if (!this.mTop) {
-            return super.message;
-        }
-
-        return this.mTop.error.message;
-    }
-
-    /**
      * Cause of exception.
      */
     public override get cause(): unknown {
@@ -136,7 +125,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
 
         // Check if priority is higher than current top incident and replace it when necessary.
         if (!this.mTop || pException.mTop.priority > this.mTop.priority) {
-            this.mTop = pException.mTop;
+            this.setTop(pException.mTop);
         }
     }
 
@@ -176,7 +165,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
         }
 
         // Create new Incident and push to top.
-        this.mTop = {
+        this.setTop({
             error: pError,
             priority: lPriority,
             graph: pGraph,
@@ -186,10 +175,21 @@ export class CodeParserException<TTokenType extends string> extends Error {
                 lineEnd: pLineEnd,
                 columnEnd: pColumnEnd,
             }
-        };
+        });
+    }
+
+    /**
+     * Sets the top incident for the code parser exception.
+     * 
+     * @param pIncident - The incident to set as the top incident.
+     */
+    private setTop(pIncident: CodeParserExceptionIncident<TTokenType>): void {
+        this.mTop = pIncident;
+
+        // Set error message as error message property can not be overriden.
+        this.message = pIncident.error.message;
     }
 }
-
 type CodeParserExceptionIncident<TTokenType extends string> = {
     error: Error,
     priority: number;

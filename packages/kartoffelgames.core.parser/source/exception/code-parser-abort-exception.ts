@@ -3,7 +3,7 @@
  * Can be used in coverter functions to abort the parsing process.
  * Other exceptions do not abort the parsing process.
  */
-export class CodeParserException extends Error {
+export class CodeParserAbortException extends Error {
     /**
      * Constructor.
      * 

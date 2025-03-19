@@ -1,5 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
+import { CodeParserAbortException } from "../source/exception/code-parser-abort-exception.ts";
 import { CodeParserException } from '../source/exception/code-parser-exception.ts';
 import { GraphNode } from '../source/graph/graph-node.ts';
 import { Graph } from '../source/graph/graph.ts';
@@ -997,7 +998,7 @@ describe('CodeParser', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const name: ????;';
-                const lExpectedMessage = `Unable to parse next token. No valid pattern found for "${lCodeText.substring(12)}".`
+                const lExpectedMessage = `Unable to parse next token. No valid pattern found for "${lCodeText.substring(12)}".`;
 
                 // Setup. Define graph part and set as root.
                 const lMainGraph = Graph.define(() => {
@@ -1009,17 +1010,17 @@ describe('CodeParser', () => {
                 // Process. Convert code.
                 const lErrorFunction = () => {
                     lParser.parse(lCodeText);
-                }
+                };
 
                 // Evaluation.
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
-                expect(lException.message).toBe(lExpectedMessage)
+                expect(lException.message).toBe(lExpectedMessage);
                 expect(lException.columnStart).toBe(13);
                 expect(lException.columnEnd).toBe(13);
                 expect(lException.lineStart).toBe(1);
                 expect(lException.lineEnd).toBe(1);
-            })
+            });
         });
 
         describe('-- Identifier errors.', () => {
@@ -1352,9 +1353,6 @@ describe('CodeParser', () => {
             });
 
             it('-- Error messages of optional graphs when end not meet', () => {
-                // TODO: // FIXME: Look and priorize parser exception so the own error message gets priorized.
-                // TODO: Remove/rename GraphError and keep any exceptions in global/cursor at the end, Take error message with the latest end or start token. 
-
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
@@ -1375,6 +1373,74 @@ describe('CodeParser', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).toThrow(lErrorMessage);
+            });
+
+            it('-- Abort parsing process that would otherwise fail.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+
+                // Setup graphs.
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
+                }).converter((pData) => {
+                    if (pData.name === 'someidentifier') {
+                        throw new CodeParserAbortException(lErrorMessage);
+                    }
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(lFailingGraph).required(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const someidentifier notSemicolon');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.message).toBe(lErrorMessage);
+                expect(lException.isAborted).toBeTruthy();
+                expect(lException.columnStart).toBe(7);
+                expect(lException.columnEnd).toBe(21);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
+            });
+
+            it('-- Abort parsing process that would suceed.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+
+                // Setup graphs.
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
+                }).converter((pData) => {
+                    if (pData.name === 'someidentifier') {
+                        throw new CodeParserAbortException(lErrorMessage);
+                    }
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(lFailingGraph).required(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const someidentifier;');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.message).toBe(lErrorMessage);
+                expect(lException.isAborted).toBeTruthy();
+                expect(lException.columnStart).toBe(7);
+                expect(lException.columnEnd).toBe(21);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
             });
         });
     });

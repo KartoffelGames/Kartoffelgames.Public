@@ -1,5 +1,5 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import { CodeParser, Lexer } from '@kartoffelgames/core-parser';
+import { CodeParser, CodeParserAbortException, Lexer } from '@kartoffelgames/core-parser';
 import { GraphNode } from '../../../kartoffelgames.core.parser/source/graph/graph-node.ts';
 import { Graph } from '../../../kartoffelgames.core.parser/source/graph/graph.ts';
 import { XmlDocument } from '../document/xml-document.ts';
@@ -180,7 +180,7 @@ export abstract class BaseXmlParser {
             // Validate tag name.
             const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
             if (!lRegexNameCheck.test(pData.name)) {
-                throw new Exception(`Attribute contains illegal characters: "${pData.name}"`, this);
+                throw new CodeParserAbortException(`Attribute contains illegal characters: "${pData.name}"`);
             }
 
             return {
@@ -253,19 +253,19 @@ export abstract class BaseXmlParser {
             // Validate data consistency.
             if ('closingTageName' in pData.ending) {
                 if (pData.openingTagName !== pData.ending.closingTageName) {
-                    throw new Exception(`Opening (${pData.openingTagName}) and closing tagname (${pData.ending.closingTageName}) does not match`, this);
+                    throw new CodeParserAbortException(`Opening (${pData.openingTagName}) and closing tagname (${pData.ending.closingTageName}) does not match`);
                 }
 
                 // Validate namespace prefix.
                 if (pData.ending.closingNamespace !== pData.openingNamespace) {
-                    throw new Exception(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`, this);
+                    throw new CodeParserAbortException(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`);
                 }
             }
 
             // Validate tag name.
             const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
             if (!lRegexNameCheck.test(pData.openingTagName)) {
-                throw new Exception(`Tagname contains illegal characters: "${pData.openingTagName}"`, this);
+                throw new CodeParserAbortException(`Tagname contains illegal characters: "${pData.openingTagName}"`);
             }
 
             // Create xml element.

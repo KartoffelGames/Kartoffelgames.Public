@@ -992,6 +992,34 @@ describe('CodeParser', () => {
                     }
                 });
             });
+
+            it('-- Error on lexing while parsing.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const name: ????;';
+                const lExpectedMessage = `Unable to parse next token. No valid pattern found for "${lCodeText.substring(12)}".`
+
+                // Setup. Define graph part and set as root.
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).required(TokenType.Semicolon);
+                });
+
+                lParser.setRootGraph(lMainGraph);
+
+                // Process. Convert code.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                }
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.message).toBe(lExpectedMessage)
+                expect(lException.columnStart).toBe(13);
+                expect(lException.columnEnd).toBe(13);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(1);
+            })
         });
 
         describe('-- Identifier errors.', () => {

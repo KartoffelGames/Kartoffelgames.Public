@@ -4,6 +4,7 @@ import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
+import { LexerException } from "../index.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -19,7 +20,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mLexer: Lexer<TTokenType>;
     private mMaxRecursion: number;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
-    
+
     /**
      * Get lexer.
      */
@@ -235,8 +236,22 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
      */
     private retrieveNodeValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult {
-        // Read current token.
-        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.current;
+        // Read current token. Can fail when lexer fails.
+        let lCurrentToken: LexerToken<TTokenType> | null = null;
+        try {
+            lCurrentToken = pCursor.current;
+        } catch (pError) {
+            // Rethrow error when is does not happened in lexer.
+            if (!(pError instanceof LexerException)) {
+                throw pError;
+            }
+
+            // Add lexer error to cursor. Exit parsing of this node.
+            pCursor.error.push(pError, pCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd);
+
+            // Something to throw. Doesn't matter what.
+            throw pCursor.error;
+        }
 
         // Read node connections.
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;

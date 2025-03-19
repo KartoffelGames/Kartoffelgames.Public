@@ -1,4 +1,4 @@
-import { Dictionary, Stack } from '@kartoffelgames/core';
+import { Dictionary, Stack, Exception } from '@kartoffelgames/core';
 import { CodeParserException } from '../exception/code-parser-exception.ts';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
@@ -53,6 +53,21 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
+     * Get the current graph the cursor is in.
+     */
+    public get graph(): Graph<TTokenType> {
+        // Get top graph.
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // No graph is set.
+        if (lCurrentGraphStack.graph === null) {
+            throw new Error('No graph is set on the stack.');
+        }
+
+        return lCurrentGraphStack.graph;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
@@ -85,25 +100,31 @@ export class CodeParserCursor<TTokenType extends string> {
     public addIncident(pError: Error, pSingleToken: boolean): void {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        let lStartToken: LexerToken<TTokenType> | null = null;
-        let lEndToken: LexerToken<TTokenType> | null = null;
+        // Define start and end token.
+        let lStartToken: LexerToken<TTokenType>;
+        let lEndToken: LexerToken<TTokenType>;
 
+        // Find current token range.
         if (pSingleToken) {
+            // Get current token, when in single token mode.
             lStartToken = this.current!;
             lEndToken = lStartToken;
         } else {
+            // Get start and end token from current graph stack.
             lStartToken = lCurrentGraphStack.token.cache[0];
             lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
         }
 
+        console.log(!!lStartToken, !!lEndToken, !!this.mLastGeneratedToken); // TODO: Can we remove mLastGeneratedToken
+
+        // Default to last generated token when token was not set.
         lStartToken = lStartToken ?? this.mLastGeneratedToken;
         lEndToken = lEndToken ?? this.mLastGeneratedToken;
 
-
-
-
-        // Save actual error as error option.
-
+        // When graph is not set on current top, throw.
+        if (lCurrentGraphStack.graph === null) {
+            throw new Exception('Cursor currently no in a graph.', this);
+        }
 
         // No start token means there is also no endtoken.
         if (!lStartToken || !lEndToken) {
@@ -274,7 +295,7 @@ export class CodeParserCursor<TTokenType extends string> {
 type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph) => TResult;
 
 type CodeParserCursorGraph<TTokenType extends string> = {
-    graph: Graph<TTokenType>;
+    graph: Graph<TTokenType> | null;
     linear: boolean;
     circularGraphs: Dictionary<Graph<TTokenType>, number>;
     token: {

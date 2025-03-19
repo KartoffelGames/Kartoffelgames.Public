@@ -5,6 +5,7 @@ import { LexerException } from "../index.ts";
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
+import { CodeParserAbortException } from "../exception/code-parser-abort-exception.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -137,6 +138,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     tokenProcessed: lNodeParseResult.tokenProcessed
                 };
             } catch (pError: any) {
+                if(pError instanceof CodeParserAbortException) {
+                    //pCursor.
+                }
+
                 // Integrate exception into parser exception, this should never be a code parser exception.
                 pCursor.addIncident(pError, false);
 

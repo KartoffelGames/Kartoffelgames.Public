@@ -84,6 +84,26 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
+     * Aborts the current parsing process and logs an error.
+     * The error is logged at the current cursor position and has allways top priority.
+     *
+     * @param pError - The error to be logged.
+     * @param pSingleToken - A boolean indicating whether the error is related to a single token.
+     */
+    public abort(pError: Error, pSingleToken: boolean): void {
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
+        if (lErrorPosition === null) {
+            this.mErrorCache.abort(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
+            return;
+        }
+
+        // Push new error.
+        this.mErrorCache.abort(pError, lCurrentGraphStack.graph, ...lErrorPosition);
+    }
+
+    /**
      * Add incident to the current cursor.
      * When no graph is on the stack, the graph can be null.
      * 
@@ -92,43 +112,14 @@ export class CodeParserCursor<TTokenType extends string> {
     public addIncident(pError: Error, pSingleToken: boolean): void {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        // Define start and end token.
-        let lStartToken: LexerToken<TTokenType>;
-        let lEndToken: LexerToken<TTokenType>;
-
-        // Find current token range.
-        if (pSingleToken) {
-            // Get current token, when in single token mode.
-            lStartToken = this.current!;
-            lEndToken = lStartToken;
-        } else {
-            // Get start and end token from current graph stack.
-            lStartToken = lCurrentGraphStack.token.cache[0];
-            lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
-        }
-
-        // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? lEndToken;
-        lEndToken = lEndToken ?? lStartToken;
-
-        // No start token means there is also no endtoken.
-        if (!lStartToken || !lEndToken) {
+        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
+        if (lErrorPosition === null) {
             this.mErrorCache.push(pError, lCurrentGraphStack.graph, 1, 1, 1, 1);
             return;
         }
 
-        // Split the end token into lines.
-        const lEndTokenLines = lEndToken.value.split('\n');
-
-        // Extends the end token line end.
-        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
-
-        // Set column end based on, if the token is multiline or not.
-        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
-        lColumnEnd += lEndTokenLines.at(-1)!.length;
-
         // Push new error.
-        this.mErrorCache.push(pError, lCurrentGraphStack.graph, lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd);
+        this.mErrorCache.push(pError, lCurrentGraphStack.graph, ...lErrorPosition);
     }
 
     /**
@@ -259,6 +250,52 @@ export class CodeParserCursor<TTokenType extends string> {
                 lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
             }
         }
+    }
+
+    /**
+     * Calculates the error position in the code based on the provided graph stack and token mode.
+     *
+     * @template TTokenType - The type of the token.
+     * @param {CodeParserCursorGraph<TTokenType>} pGraphStack - The current graph stack containing tokens.
+     * @param {boolean} pSingleToken - A flag indicating whether to use a single token mode.
+     * @returns {[number, number, number, number] | null} - A tuple containing the start line number, start column number, end line number, and end column number of the error position, or null if no valid tokens are found.
+     */
+    private calculateErrorPosition(pGraphStack: CodeParserCursorGraph<TTokenType> ,pSingleToken: boolean): [number, number, number, number] | null {
+        // Define start and end token.
+        let lStartToken: LexerToken<TTokenType>;
+        let lEndToken: LexerToken<TTokenType>;
+
+        // Find current token range.
+        if (pSingleToken) {
+            // Get current token, when in single token mode.
+            lStartToken = this.current!;
+            lEndToken = lStartToken;
+        } else {
+            // Get start and end token from current graph stack.
+            lStartToken = pGraphStack.token.cache[0];
+            lEndToken = pGraphStack.token.cache[pGraphStack.token.index - 1];
+        }
+
+        // Default to last generated token when token was not set.
+        lStartToken = lStartToken ?? lEndToken;
+        lEndToken = lEndToken ?? lStartToken;
+
+        // No start token means there is also no endtoken.
+        if (!lStartToken || !lEndToken) {
+            return null;
+        }
+
+        // Split the end token into lines.
+        const lEndTokenLines = lEndToken.value.split('\n');
+
+        // Extends the end token line end.
+        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
+
+        // Set column end based on, if the token is multiline or not.
+        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
+        lColumnEnd += lEndTokenLines.at(-1)!.length;
+
+        return [lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd];
     }
 }
 

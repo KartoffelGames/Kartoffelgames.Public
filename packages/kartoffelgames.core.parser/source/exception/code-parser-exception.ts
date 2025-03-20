@@ -6,6 +6,8 @@ import { CodeParserTrace } from "../parser/code-parser-trace.ts";
  * Can save a complete incident list on debug mode.
  */
 export class CodeParserException<TTokenType extends string> extends Error {
+    public static readonly PARSER_ERROR: unique symbol = Symbol('PARSER_ERROR');
+
     private readonly mTrace: CodeParserTrace<TTokenType>;
 
     /**
@@ -54,3 +56,5 @@ export class CodeParserException<TTokenType extends string> extends Error {
         this.mTrace = pTrace;
     }
 }
+
+export type PARSER_ERROR_SYMBOL = typeof CodeParserException.PARSER_ERROR;

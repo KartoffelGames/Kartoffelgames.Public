@@ -1,23 +1,14 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
-import { PARSER_ERROR, PARSER_ERROR_SYMBOL } from "./code-parser.ts";
-import { CodeParserTrace } from "./code-parser-trace.ts";
+import { CodeParserException, PARSER_ERROR_SYMBOL } from "../exception/code-parser-exception.ts";
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
     private readonly mPosition: CodeParserCursorPosition;
-    private readonly mTrace: CodeParserTrace<TTokenType>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
-
-    /**
-     * Get the current cursor position in the token stream.
-     */
-    public get isAborted(): boolean {
-        return this.mTrace.isAborted;
-    }
 
     /**
      * Read the current token from the stream.
@@ -55,13 +46,6 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Get cursors error cache.
-     */
-    public get trace(): CodeParserTrace<TTokenType> {
-        return this.mTrace;
-    }
-
-    /**
      * Get the current graph the cursor is in.
      * Graph can be null. But in normal cases it should not be null.
      */
@@ -78,10 +62,9 @@ export class CodeParserCursor<TTokenType extends string> {
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
      */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>) {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
-        this.mTrace = new CodeParserTrace<TTokenType>(pDebug);
         this.mPosition = {
             column: 1,
             line: 1
@@ -101,25 +84,6 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Add incident to the current cursor.
-     * When no graph is on the stack, the graph can be null.
-     * 
-     * @param pError - The error to add to the current graph stack.
-     */
-    public addIncident(pError: string, pSingleToken: boolean): void {
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
-        if (lErrorPosition === null) {
-            this.mTrace.push(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
-            return;
-        }
-
-        // Push new error.
-        this.mTrace.push(pError, lCurrentGraphStack.graph, ...lErrorPosition);
-    }
-
-    /**
      * Moves the cursor to the end of the token stream and returns all unused token.
      * Irreversible deconstruction of this cursor.
      * 
@@ -135,6 +99,118 @@ export class CodeParserCursor<TTokenType extends string> {
         const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentGraphStack.token.cache.slice(lCurrentGraphStack.token.index);
 
         return [...lUnusedToken, ...lUngeneratedToken];
+    }
+
+    /**
+     * Retrieves the current position of the parser cursor within the code graph.
+     *
+     * This method calculates the start and end positions (line and column) of the current token
+     * within the graph stack. If no tokens are available, it defaults to the current cursor position.
+     * 
+     * @returns - An object representing the start and end positions of the current graph, including line and column numbers.
+     *
+     * The returned object contains:
+     * - `lineStart`: The starting line number of the token.
+     * - `columnStart`: The starting column number of the token.
+     * - `lineEnd`: The ending line number of the token.
+     * - `columnEnd`: The ending column number of the token.
+     * 
+     * If there is no current token, the start and end positions will be the same as the current cursor position.
+     */
+    public getGraphPosition(): CodeParserCursorGraphPosition<TTokenType> {
+        // Get top graph.
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Define start and end token.
+        let lStartToken: LexerToken<TTokenType>;
+        let lEndToken: LexerToken<TTokenType>;
+
+        // Get start and end token from current graph stack.
+        lStartToken = lCurrentGraphStack.token.cache[0];
+        lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
+
+        // Default to last generated token when token was not set.
+        lStartToken = lStartToken ?? lEndToken;
+        lEndToken = lEndToken ?? lStartToken;
+
+        // No start token means there is also no endtoken.
+        if (!lStartToken || !lEndToken) {
+            return {
+                graph: lCurrentGraphStack.graph,
+                columnEnd: this.mPosition.column,
+                columnStart: this.mPosition.column,
+                lineEnd: this.mPosition.line,
+                lineStart: this.mPosition.line
+            };
+        }
+
+        // Split the end token into lines.
+        const lEndTokenLines = lEndToken.value.split('\n');
+
+        // Extends the end token line end.
+        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
+
+        // Set column end based on, if the token is multiline or not.
+        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
+        lColumnEnd += lEndTokenLines.at(-1)!.length;
+
+        return {
+            graph: lCurrentGraphStack.graph,
+            lineStart: lStartToken.lineNumber,
+            columnStart: lStartToken.columnNumber,
+            lineEnd: lLineEnd,
+            columnEnd: lColumnEnd,
+        };
+    }
+
+    /**
+     * Calculates and returns the current token's position within the code.
+     * 
+     * @returns - An object representing the start and end positions of the current token, including line and column numbers.
+     * 
+     * The returned object contains:
+     * - `lineStart`: The starting line number of the token.
+     * - `columnStart`: The starting column number of the token.
+     * - `lineEnd`: The ending line number of the token.
+     * - `columnEnd`: The ending column number of the token.
+     * 
+     * If there is no current token, the start and end positions will be the same as the current cursor position.
+     */
+    public getCurrentTokenPosition(): CodeParserCursorTokenPosition<TTokenType> {
+        // Get top graph.
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Calculate token position.
+        let lPositionToken: LexerToken<TTokenType> | null = this.current;
+
+        // No start token means there is also no endtoken.
+        if (!lPositionToken) {
+            return {
+                graph: lCurrentGraphStack.graph,
+                columnEnd: this.mPosition.column,
+                columnStart: this.mPosition.column,
+                lineEnd: this.mPosition.line,
+                lineStart: this.mPosition.line
+            };
+        }
+
+        // Split the end token into lines.
+        const lTokenLines = lPositionToken.value.split('\n');
+
+        // Extends the end token line end.
+        const lLineEnd: number = lPositionToken.lineNumber + lTokenLines.length - 1;
+
+        // Set column end based on, if the token is multiline or not.
+        let lColumnEnd: number = (lTokenLines.length > 1) ? 1 : lPositionToken.columnNumber;
+        lColumnEnd += lTokenLines.at(-1)!.length;
+
+        return {
+            graph: lCurrentGraphStack.graph,
+            lineStart: lPositionToken.lineNumber,
+            columnStart: lPositionToken.columnNumber,
+            lineEnd: lLineEnd,
+            columnEnd: lColumnEnd,
+        };
     }
 
     /**
@@ -214,7 +290,7 @@ export class CodeParserCursor<TTokenType extends string> {
 
         // Call pushed graph.
         const lResult: TResult | PARSER_ERROR_SYMBOL = pStackCall(pGraph);
-        if (lResult === PARSER_ERROR) {
+        if (lResult === CodeParserException.PARSER_ERROR) {
             // Revert current stack index.
             lNewTokenStack.token.index = 0;
         }
@@ -246,52 +322,6 @@ export class CodeParserCursor<TTokenType extends string> {
 
         return lResult;
     }
-
-    /**
-     * Calculates the error position in the code based on the provided graph stack and token mode.
-     *
-     * @template TTokenType - The type of the token.
-     * @param {CodeParserCursorGraph<TTokenType>} pGraphStack - The current graph stack containing tokens.
-     * @param {boolean} pSingleToken - A flag indicating whether to use a single token mode.
-     * @returns {[number, number, number, number] | null} - A tuple containing the start line number, start column number, end line number, and end column number of the error position, or null if no valid tokens are found.
-     */
-    private calculateErrorPosition(pGraphStack: CodeParserCursorGraph<TTokenType>, pSingleToken: boolean): [number, number, number, number] | null {
-        // Define start and end token.
-        let lStartToken: LexerToken<TTokenType>;
-        let lEndToken: LexerToken<TTokenType>;
-
-        // Find current token range.
-        if (pSingleToken) {
-            // Get current token, when in single token mode.
-            lStartToken = this.current!;
-            lEndToken = lStartToken;
-        } else {
-            // Get start and end token from current graph stack.
-            lStartToken = pGraphStack.token.cache[0];
-            lEndToken = pGraphStack.token.cache[pGraphStack.token.index - 1];
-        }
-
-        // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? lEndToken;
-        lEndToken = lEndToken ?? lStartToken;
-
-        // No start token means there is also no endtoken.
-        if (!lStartToken || !lEndToken) {
-            return null;
-        }
-
-        // Split the end token into lines.
-        const lEndTokenLines = lEndToken.value.split('\n');
-
-        // Extends the end token line end.
-        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
-
-        // Set column end based on, if the token is multiline or not.
-        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
-        lColumnEnd += lEndTokenLines.at(-1)!.length;
-
-        return [lStartToken.lineNumber, lStartToken.columnNumber, lLineEnd, lColumnEnd];
-    }
 }
 
 type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph) => TResult;
@@ -310,4 +340,19 @@ type CodeParserCursorGraph<TTokenType extends string> = {
 type CodeParserCursorPosition = {
     column: number;
     line: number;
+};
+
+export type CodeParserCursorTokenPosition<TTokenType extends string> = {
+    graph: Graph<TTokenType> | null;
+    columnEnd: number;
+    columnStart: number;
+    lineEnd: number;
+    lineStart: number;
+};
+export type CodeParserCursorGraphPosition<TTokenType extends string> = {
+    graph: Graph<TTokenType> | null;
+    columnEnd: number;
+    columnStart: number;
+    lineEnd: number;
+    lineStart: number;
 };

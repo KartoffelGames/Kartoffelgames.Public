@@ -3,6 +3,7 @@ import { CodeParserAbortException } from "../exception/code-parser-abort-excepti
 import { CodeParserException } from '../exception/code-parser-exception.ts';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
+import { PARSER_ERROR, PARSER_ERROR_SYMBOL } from "./code-parser.ts";
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
@@ -206,7 +207,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * 
      * @throws Will rethrow any error encountered during the execution of the callback function.
      */
-    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult {
+    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult | PARSER_ERROR_SYMBOL {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
@@ -233,40 +234,38 @@ export class CodeParserCursor<TTokenType extends string> {
         this.mGraphStack.push(lNewTokenStack);
 
         // Call pushed graph.
-        try {
-            return pStackCall(pGraph);
-        } catch (lError) {
+        const lResult: TResult | PARSER_ERROR_SYMBOL = pStackCall(pGraph);
+        if (lResult === PARSER_ERROR) {
             // Revert current stack index.
             lNewTokenStack.token.index = 0;
-
-            // Rethrow error.
-            throw lError;
-        } finally {
-            // Pop graph.
-            this.mGraphStack.pop()!;
-
-            // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
-            if (lNewTokenStack.token.index !== 0 && lLastGraphStack.circularGraphs.size > 0) {
-                lLastGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
-            }
-
-            // Truncate parent graphs token cache to the current token.
-            // So the token memory gets marked as disposeable.
-            if (lNewTokenStack.linear) {
-                // Reset parent index to zero.
-                lLastGraphStack.token.cache = lNewTokenStack.token.cache.slice(lNewTokenStack.token.index);
-                lLastGraphStack.token.index = 0;
-            } else {
-                // Read only the new tokens that are added to the stack and are not present in the parent stack.
-                const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lNewTokenStack.token.cache.slice(lLastGraphStack.token.cache.length - lLastGraphStack.token.index);
-
-                // Move parent stack index to the last graphs stack index.
-                lLastGraphStack.token.index += lNewTokenStack.token.index;
-
-                // Add the new tokens to the parent stack.
-                lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
-            }
         }
+
+        // Pop graph.
+        this.mGraphStack.pop()!;
+
+        // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
+        if (lNewTokenStack.token.index !== 0 && lLastGraphStack.circularGraphs.size > 0) {
+            lLastGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
+        }
+
+        // Truncate parent graphs token cache to the current token.
+        // So the token memory gets marked as disposeable.
+        if (lNewTokenStack.linear) {
+            // Reset parent index to zero.
+            lLastGraphStack.token.cache = lNewTokenStack.token.cache.slice(lNewTokenStack.token.index);
+            lLastGraphStack.token.index = 0;
+        } else {
+            // Read only the new tokens that are added to the stack and are not present in the parent stack.
+            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lNewTokenStack.token.cache.slice(lLastGraphStack.token.cache.length - lLastGraphStack.token.index);
+
+            // Move parent stack index to the last graphs stack index.
+            lLastGraphStack.token.index += lNewTokenStack.token.index;
+
+            // Add the new tokens to the parent stack.
+            lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
+        }
+
+        return lResult;
     }
 
     /**

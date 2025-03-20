@@ -72,7 +72,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lCursor: CodeParserCursor<TTokenType> = new CodeParserCursor<TTokenType>(this.mLexer.tokenize(pCodeText), this.mDebug);
 
         // Parse root graph part.
-        const lRootParseData: GraphParseResult = this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>, true)!;
+        const lRootParseData: GraphParseResult | PARSER_ERROR_SYMBOL = this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>, true)!;
+        if (lRootParseData === PARSER_ERROR) {
+            throw lCursor.error;
+        }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
         const lRemainingToken: Array<LexerToken<TTokenType>> = lCursor.collapse();
@@ -119,17 +122,22 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link ParserException}
      * When an error is thrown while paring collected data.
      */
-    private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | null {
+    private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | PARSER_ERROR_SYMBOL {
         // Prevent circular graph calls that doesnt progressed itself.
         if (pCursor.graphIsCircular(pGraph)) {
             pCursor.addIncident(new Exception(`Circular graph detected.`, this), false);
-            throw pCursor.error;
+
+            // Exit parsing with error.
+            return PARSER_ERROR;
         }
 
         // Execute graph parse on a new graph stack.
         return pCursor.pushGraph((pGraph: Graph<TTokenType>) => {
             // Get parse result.
-            const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(pCursor, pGraph.node);
+            const lNodeParseResult: GraphNodeParseResult | PARSER_ERROR_SYMBOL = this.parseGraphNode(pCursor, pGraph.node);
+            if (lNodeParseResult === PARSER_ERROR) {
+                return PARSER_ERROR;
+            }
 
             try {
                 // Try to convert data.
@@ -141,14 +149,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // When a code parser abort exception is thrown, we need to abort the parsing process.
                 if (pError instanceof CodeParserAbortException) {
                     pCursor.abort(pError);
+                    // TODO: In the end that should really throw an exception, but for now we just return the error.
                     throw pCursor.error;
                 }
 
                 // Integrate exception into parser exception, this should never be a code parser exception.
                 pCursor.addIncident(pError, false);
 
-                // It doesn't matter what we throw here. We just need to throw something.
-                throw pCursor.error;
+                // Exit parsing with error.
+                return PARSER_ERROR;
             }
         }, pGraph, pGraphCalledLinear);
     }
@@ -166,12 +175,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraphNode(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphNodeParseResult {
+    private parseGraphNode(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphNodeParseResult | PARSER_ERROR_SYMBOL {
         // Parse and read current node values. Throws when no value was found and required.
-        const lNodeValueParseResult: GraphParseResult = this.retrieveNodeValues(pCursor, pNode);
+        const lNodeValueParseResult: GraphParseResult | PARSER_ERROR_SYMBOL = this.retrieveNodeValues(pCursor, pNode);
+        if (lNodeValueParseResult === PARSER_ERROR) {
+            return PARSER_ERROR;
+        }
 
         // Parse and read data of chanined nodes. Add each error to the complete error list.
-        const lChainParseResult: GraphChainResult = this.retrieveChainedValues(pCursor, pNode, lNodeValueParseResult);
+        const lChainParseResult: GraphChainResult | PARSER_ERROR_SYMBOL = this.retrieveChainedValues(pCursor, pNode, lNodeValueParseResult);
+        if (lChainParseResult === PARSER_ERROR) {
+            return PARSER_ERROR;
+        }
 
         return {
             data: pNode.mergeData(lChainParseResult.nodeData.data, lChainParseResult.chainData.data),
@@ -198,7 +213,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>, pNodeValue: GraphParseResult): GraphChainResult {
+    private retrieveChainedValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>, pNodeValue: GraphParseResult): GraphChainResult | PARSER_ERROR_SYMBOL {
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
 
         // Next chained node.
@@ -216,7 +231,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Parse chained node.
-        const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(pCursor, lNextNode);
+        const lChainedNodeParseResult: GraphNodeParseResult | PARSER_ERROR_SYMBOL = this.parseGraphNode(pCursor, lNextNode);
+        if (lChainedNodeParseResult === PARSER_ERROR) {
+            return PARSER_ERROR;
+        }
 
         // Process graph with chained node values.
         return {
@@ -242,10 +260,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
      */
-    private retrieveNodeValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult {
+    private retrieveNodeValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult | PARSER_ERROR_SYMBOL {
         // Read current token. Can fail when lexer fails.
         let lCurrentToken: LexerToken<TTokenType> | null = null;
         try {
+            // TODO: This can be simplified by just lettingh the lexer throw an exception.
             lCurrentToken = pCursor.current;
         } catch (pError) {
             // Its allways a lexer error.
@@ -255,7 +274,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             pCursor.error.push(pError, pCursor.graph, lLexerError.lineStart, lLexerError.columnStart, lLexerError.lineEnd, lLexerError.columnEnd);
 
             // Something to throw. Doesn't matter what.
-            throw pCursor.error;
+            return PARSER_ERROR;
         }
 
         // Read node connections.
@@ -297,18 +316,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     };
                 } else {
                     // Try to retrieve values from graphs.
-                    try {
-                        return this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
-                    } catch {
-                        // Exit parsing immediately when cursor is aborted.
-                        if (pCursor.isAborted) {
-                            throw pCursor.error;
-                        }
-
-                        // When graph fails, skip to next node value.
-                        // Incidents are stored in cursor, so we dont need to handle them here.
+                    const lGraphParseResult: GraphParseResult | PARSER_ERROR_SYMBOL = this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
+                    if (lGraphParseResult === PARSER_ERROR) {
                         continue;
                     }
+
+                    return lGraphParseResult;
                 }
             }
 
@@ -324,15 +337,17 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             };
         }
 
-        // When no result was added, node was required
+        // When no result was added, node was required and should fail.
         if (lNodeResult === null) {
-            // Something to throw. Doesn't matter what.
-            throw pCursor.error;
+            return PARSER_ERROR;
         }
 
         return lNodeResult;
     }
 }
+
+export const PARSER_ERROR: unique symbol = Symbol('Error');
+export type PARSER_ERROR_SYMBOL = typeof PARSER_ERROR;
 
 type GraphNodeParseResult = {
     data: object;

@@ -2,9 +2,9 @@ import { XmlParser as NewXmlParser } from "../source/index.ts";
 import { XmlParser as OldXmlParser} from "npm:@kartoffelgames/core.xml@0.2.1"
 
 // Load xml files.
-const gNormal: string = new TextDecoder("utf-8").decode(Deno.readFileSync("basic-structure.xml"));
-const gComplex: string = new TextDecoder("utf-8").decode(Deno.readFileSync("complex-nested.xml"));
-const gLarge: string = new TextDecoder("utf-8").decode(Deno.readFileSync("large-dataset.xml"));
+const gNormal: string = new TextDecoder("utf-8").decode(Deno.readFileSync(import.meta.dirname + "/basic-structure.xml"));
+const gComplex: string = new TextDecoder("utf-8").decode(Deno.readFileSync(import.meta.dirname + "/complex-nested.xml"));
+const gLarge: string = new TextDecoder("utf-8").decode(Deno.readFileSync(import.meta.dirname + "/large-dataset.xml"));
 
 Deno.bench("Normal - Cold - NEW", { group: "normal-cold", baseline: true }, () => {
     const lXmlParser = new NewXmlParser();

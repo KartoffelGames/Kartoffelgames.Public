@@ -1,6 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { CodeParserAbortException } from "../source/exception/code-parser-abort-exception.ts";
 import { CodeParserException } from '../source/exception/code-parser-exception.ts';
 import { GraphNode } from '../source/graph/graph-node.ts';
 import { Graph } from '../source/graph/graph.ts';
@@ -1090,7 +1089,7 @@ describe('CodeParser', () => {
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier);
                 }).converter(() => {
-                    throw new Error(lErrorMessage);
+                    return Symbol();
                 });
                 lParser.setRootGraph(lMainGraph);
 
@@ -1112,7 +1111,7 @@ describe('CodeParser', () => {
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier);
                 }).converter(function lMyErrorFunctionName() {
-                    throw new Error();
+                    return Symbol(); // No name.
                 });
                 lParser.setRootGraph(lMainGraph);
 
@@ -1385,7 +1384,7 @@ describe('CodeParser', () => {
                     return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
                 }).converter((pData) => {
                     if (pData.name === 'someidentifier') {
-                        throw new CodeParserAbortException(lErrorMessage);
+                        throw new Error(lErrorMessage);
                     }
                 });
                 const lMainGraph = Graph.define(() => {
@@ -1402,7 +1401,6 @@ describe('CodeParser', () => {
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.message).toBe(lErrorMessage);
-                expect(lException.isAborted).toBeTruthy();
                 expect(lException.columnStart).toBe(7);
                 expect(lException.columnEnd).toBe(21);
                 expect(lException.lineStart).toBe(1);
@@ -1419,7 +1417,7 @@ describe('CodeParser', () => {
                     return GraphNode.new<TokenType>().required('name', TokenType.Identifier);
                 }).converter((pData) => {
                     if (pData.name === 'someidentifier') {
-                        throw new CodeParserAbortException(lErrorMessage);
+                        throw new Error(lErrorMessage);
                     }
                 });
                 const lMainGraph = Graph.define(() => {
@@ -1436,7 +1434,6 @@ describe('CodeParser', () => {
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.message).toBe(lErrorMessage);
-                expect(lException.isAborted).toBeTruthy();
                 expect(lException.columnStart).toBe(7);
                 expect(lException.columnEnd).toBe(21);
                 expect(lException.lineStart).toBe(1);
@@ -1452,7 +1449,7 @@ describe('CodeParser', () => {
                 const lFailingGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().optional(TokenType.Identifier);
                 }).converter(() => {
-                    throw new CodeParserAbortException(lErrorMessage);
+                    throw new Error(lErrorMessage);
                 });
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(lFailingGraph);
@@ -1468,7 +1465,6 @@ describe('CodeParser', () => {
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.message).toBe(lErrorMessage);
-                expect(lException.isAborted).toBeTruthy();
                 expect(lException.columnStart).toBe(1);
                 expect(lException.columnEnd).toBe(1);
                 expect(lException.lineStart).toBe(1);

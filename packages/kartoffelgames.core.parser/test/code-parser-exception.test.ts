@@ -1,15 +1,15 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { CodeParserException } from '../source/exception/code-parser-exception.ts';
 import { Graph } from '../source/graph/graph.ts';
 import { GraphNode } from '../source/index.ts';
+import { CodeParserTrace } from "../source/parser/code-parser-trace.ts";
 
-describe('CodeParserException', () => {
+describe('CodeParserTrace', () => {
     describe('Property: incidents', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
             const lStartLine: number = 1;
             const lStartColumn: number = 1;
@@ -31,7 +31,7 @@ describe('CodeParserException', () => {
 
         it('-- Default error not an Error object', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
             const lError: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
             const lStartLine: number = 1;
@@ -44,7 +44,7 @@ describe('CodeParserException', () => {
 
             // Evaluation.
             expect(lException.incidents).toHaveLength(1);
-            expect(lException.incidents[0].error.message).toBe(lError);
+            expect(lException.incidents[0].error).toBe(lError);
             expect(lException.incidents[0].graph).toBe(lGraph);
             expect(lException.lineStart).toBe(lStartLine);
             expect(lException.columnStart).toBe(lStartColumn);
@@ -54,41 +54,41 @@ describe('CodeParserException', () => {
 
         it('Property: incidents throws exception when not in debug mode', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(false);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(false);
 
             // Process & Evaluation.
             expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
         });
     });
 
-    describe('Property: affectedGraph', () => {
+    describe('Property: graph', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
 
             // Process.
             lException.push(lError, lGraph, 1, 1, 2, 2);
 
             // Evaluation.
-            expect(lException.affectedGraph).toBe(lGraph);
+            expect(lException.graph).toBe(lGraph);
         });
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
-            expect(lException.affectedGraph).toBeNull();
+            expect(lException.graph).toBeNull();
         });
     });
 
     describe('Property: message', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
 
             // Process.
             lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
@@ -99,40 +99,18 @@ describe('CodeParserException', () => {
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
             expect(lException.message).toBe('Unknown parser error');
         });
     });
 
-    describe('Property: cause', () => {
-        it('-- Default', () => {
-            // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
-
-            // Process.
-            lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
-
-            // Evaluation.
-            expect(lException.cause).toBe(lError);
-        });
-
-        it('-- No incidents', () => {
-            // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-
-            // Evaluation.
-            expect(lException.cause).toBeUndefined();
-        });
-    });
-
     describe('Property: lineStart', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
 
             // Process.
             lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
@@ -143,7 +121,7 @@ describe('CodeParserException', () => {
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
             expect(lException.lineStart).toBe(1);
@@ -153,8 +131,8 @@ describe('CodeParserException', () => {
     describe('Property: columnStart', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
 
             // Process.
             lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
@@ -165,7 +143,7 @@ describe('CodeParserException', () => {
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
             expect(lException.columnStart).toBe(1);
@@ -175,8 +153,8 @@ describe('CodeParserException', () => {
     describe('Property: lineEnd', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
 
             // Process.
             lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
@@ -187,7 +165,7 @@ describe('CodeParserException', () => {
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
             expect(lException.lineEnd).toBe(1);
@@ -197,8 +175,8 @@ describe('CodeParserException', () => {
     describe('Property: columnEnd', () => {
         it('-- Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
 
             // Process.
             lException.push(lError, Graph.define(() => { return GraphNode.new<string>(); }), 1, 1, 2, 2);
@@ -209,7 +187,7 @@ describe('CodeParserException', () => {
 
         it('-- No incidents', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
 
             // Evaluation.
             expect(lException.columnEnd).toBe(1);
@@ -219,8 +197,8 @@ describe('CodeParserException', () => {
     describe('Method: push', () => {
         it('-- Single Default', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
             const lStartLine: number = 1;
             const lStartColumn: number = 1;
@@ -231,8 +209,8 @@ describe('CodeParserException', () => {
             lException.push(lError, lGraph, lStartLine, lStartColumn, lEndLine, lEndColumn);
 
             // Evaluation.
-            expect(lException.cause).toBe(lError);
-            expect(lException.affectedGraph).toBe(lGraph);
+            expect(lException.message).toBe(lError);
+            expect(lException.graph).toBe(lGraph);
             expect(lException.lineStart).toBe(lStartLine);
             expect(lException.columnStart).toBe(lStartColumn);
             expect(lException.lineEnd).toBe(lEndLine);
@@ -241,32 +219,32 @@ describe('CodeParserException', () => {
 
         it('-- Priority is higher', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError1: Error = new Error('Test error');
-            const lError2: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError1Message: string = 'Test error';
+            const lError2Message: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
 
             // Process.
-            lException.push(lError1, lGraph, 1, 1, 2, 3);
-            lException.push(lError2, lGraph, 1, 1, 2, 2);
+            lException.push(lError1Message, lGraph, 1, 1, 2, 3);
+            lException.push(lError2Message, lGraph, 1, 1, 2, 2);
 
             // Evaluation.
-            expect(lException.cause).toBe(lError1);
+            expect(lException.message).toBe(lError1Message);
         });
 
         it('-- Priority is lower', () => {
             // Setup.
-            const lException: CodeParserException<string> = new CodeParserException(true);
-            const lError1: Error = new Error('Test error');
-            const lError2: Error = new Error('Test error');
+            const lException: CodeParserTrace<string> = new CodeParserTrace(true);
+            const lError1Message: string = 'Test error';
+            const lError2Message: string = 'Test error';
             const lGraph: Graph<string> = Graph.define(() => { return GraphNode.new<string>(); });
 
             // Process.
-            lException.push(lError1, lGraph, 1, 1, 2, 2);
-            lException.push(lError2, lGraph, 1, 1, 2, 3);
+            lException.push(lError1Message, lGraph, 1, 1, 2, 2);
+            lException.push(lError2Message, lGraph, 1, 1, 2, 3);
 
             // Evaluation.
-            expect(lException.cause).toBe(lError2);
+            expect(lException.message).toBe(lError2Message);
         });
     });
 });

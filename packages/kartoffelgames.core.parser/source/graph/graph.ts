@@ -55,11 +55,15 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * 
      * @returns Resolved data.
      */
-    public convert(pRawData: TOriginalData): TResultData {
+    public convert(pRawData: TOriginalData): TResultData | symbol {
         // Convert data with each added data converter.
         let lData: any = pRawData;
-        for(const lDataConverter of this.mDataConverterList) {
+        for (const lDataConverter of this.mDataConverterList) {
+            // Convert data and skip parsing when result is a symbol (error).
             lData = lDataConverter(lData);
+            if (typeof lData === 'symbol') {
+                return lData;
+            }
         }
 
         return lData as TResultData;
@@ -73,7 +77,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      */
     public converter<TConvertedData>(pConverter: GraphDataCollector<TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
         const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector);
-        
+
         // Add all previous data converters and the new converter to the new graph.
         lNewGraph.mDataConverterList.push(...this.mDataConverterList, pConverter);
 
@@ -82,6 +86,6 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
 }
 
 type GraphNodeCollector<TTokenType extends string = string, TResultData extends object = object> = () => GraphNode<TTokenType, TResultData>;
-type GraphDataCollector<TCurrentData = any, TResult = any> = (pRawData: TCurrentData) => TResult;
+type GraphDataCollector<TCurrentData = any, TResult = any> = (pRawData: TCurrentData) => TResult | symbol;
 
 export type GraphRef<TResultType> = Graph<string, any, TResultType>;

@@ -1,15 +1,14 @@
-import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
-import { CodeParserAbortException } from "../exception/code-parser-abort-exception.ts";
-import { CodeParserException } from '../exception/code-parser-exception.ts';
+import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { PARSER_ERROR, PARSER_ERROR_SYMBOL } from "./code-parser.ts";
+import { CodeParserTrace } from "./code-parser-trace.ts";
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
     private readonly mPosition: CodeParserCursorPosition;
-    private readonly mErrorCache: CodeParserException<TTokenType>;
+    private readonly mTrace: CodeParserTrace<TTokenType>;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
 
@@ -17,7 +16,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * Get the current cursor position in the token stream.
      */
     public get isAborted(): boolean {
-        return this.mErrorCache.isAborted;
+        return this.mTrace.isAborted;
     }
 
     /**
@@ -58,8 +57,8 @@ export class CodeParserCursor<TTokenType extends string> {
     /**
      * Get cursors error cache.
      */
-    public get error(): CodeParserException<TTokenType> {
-        return this.mErrorCache;
+    public get trace(): CodeParserTrace<TTokenType> {
+        return this.mTrace;
     }
 
     /**
@@ -82,7 +81,7 @@ export class CodeParserCursor<TTokenType extends string> {
     public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
-        this.mErrorCache = new CodeParserException<TTokenType>(pDebug);
+        this.mTrace = new CodeParserTrace<TTokenType>(pDebug);
         this.mPosition = {
             column: 1,
             line: 1
@@ -102,42 +101,22 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
-     * Aborts the current parsing process and logs an error.
-     * The error is logged at the current cursor position and has allways top priority.
-     *
-     * @param pError - The error to be logged.
-     */
-    public abort(pError: CodeParserAbortException): void {
-        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        // Calculate error position. Allways calculated for the current graph.
-        const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, false)!;
-        if (lErrorPosition === null) {
-            this.mErrorCache.abort(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
-            return;
-        }
-
-        // Push new error.
-        this.mErrorCache.abort(pError, lCurrentGraphStack.graph, ...lErrorPosition);
-    }
-
-    /**
      * Add incident to the current cursor.
      * When no graph is on the stack, the graph can be null.
      * 
      * @param pError - The error to add to the current graph stack.
      */
-    public addIncident(pError: Error, pSingleToken: boolean): void {
+    public addIncident(pError: string, pSingleToken: boolean): void {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         const lErrorPosition = this.calculateErrorPosition(lCurrentGraphStack, pSingleToken);
         if (lErrorPosition === null) {
-            this.mErrorCache.push(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
+            this.mTrace.push(pError, lCurrentGraphStack.graph, this.mPosition.line, this.mPosition.column, this.mPosition.line, this.mPosition.column);
             return;
         }
 
         // Push new error.
-        this.mErrorCache.push(pError, lCurrentGraphStack.graph, ...lErrorPosition);
+        this.mTrace.push(pError, lCurrentGraphStack.graph, ...lErrorPosition);
     }
 
     /**

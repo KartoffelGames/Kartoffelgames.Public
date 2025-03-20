@@ -1,11 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GraphNode, GraphNodeConnections } from '../graph/graph-node.ts';
 import type { Graph } from '../graph/graph.ts';
-import { LexerException } from "../index.ts";
+import { CodeParserException, LexerException } from "../index.ts";
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor } from './code-parser-cursor.ts';
-import { CodeParserAbortException } from "../exception/code-parser-abort-exception.ts";
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -72,9 +71,25 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lCursor: CodeParserCursor<TTokenType> = new CodeParserCursor<TTokenType>(this.mLexer.tokenize(pCodeText), this.mDebug);
 
         // Parse root graph part.
-        const lRootParseData: GraphParseResult | PARSER_ERROR_SYMBOL = this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>, true)!;
+        const lRootParseData: GraphParseResult | PARSER_ERROR_SYMBOL = (() => {
+            try {
+                return this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>, true)!;
+            } catch (pError) {
+                // The graph is still in the right state the error was thrown, so we can still extract data from it.
+
+                // Lexer error can be directly added to the trace.
+                if(pError instanceof LexerException) {
+                    lCursor.trace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd);
+                    return PARSER_ERROR;
+                }
+
+                throw pError;
+            }
+        })();
+
+        // Or throw a normal parser exception when it was handled.
         if (lRootParseData === PARSER_ERROR) {
-            throw lCursor.error;
+            throw new CodeParserException(lCursor.trace);
         }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
@@ -85,10 +100,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lNextToken: LexerToken<TTokenType> = lRemainingToken[0];
             const lLastToken: LexerToken<TTokenType> = lRemainingToken.at(-1)!;
 
-            const lError: Exception<this> = new Exception(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this);
+            // Create a error message and add a incident.
+            const lErrorMessage: string = `Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`;
+            lCursor.trace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
 
-            lCursor.error.push(lError, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
-            throw lCursor.error;
+            // Throw error with pushed incident.
+            throw new CodeParserException(lCursor.trace);
         }
 
         return lRootParseData.data as TParseResult;
@@ -125,7 +142,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | PARSER_ERROR_SYMBOL {
         // Prevent circular graph calls that doesnt progressed itself.
         if (pCursor.graphIsCircular(pGraph)) {
-            pCursor.addIncident(new Exception(`Circular graph detected.`, this), false);
+            pCursor.addIncident(`Circular graph detected.`, false);
 
             // Exit parsing with error.
             return PARSER_ERROR;
@@ -139,26 +156,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 return PARSER_ERROR;
             }
 
-            try {
-                // Try to convert data.
-                return {
-                    data: pGraph.convert(lNodeParseResult.data),
-                    tokenProcessed: lNodeParseResult.tokenProcessed
-                };
-            } catch (pError: any) {
-                // When a code parser abort exception is thrown, we need to abort the parsing process.
-                if (pError instanceof CodeParserAbortException) {
-                    pCursor.abort(pError);
-                    // TODO: In the end that should really throw an exception, but for now we just return the error.
-                    throw pCursor.error;
-                }
-
+            // Try to convert data.
+            const lConvertedData: object | symbol = pGraph.convert(lNodeParseResult.data);
+            if (typeof lConvertedData === 'symbol') {
                 // Integrate exception into parser exception, this should never be a code parser exception.
-                pCursor.addIncident(pError, false);
+                pCursor.addIncident(lConvertedData.description ?? 'Unknown data convert error', false);
 
                 // Exit parsing with error.
                 return PARSER_ERROR;
             }
+
+            return {
+                data: lConvertedData,
+                tokenProcessed: lNodeParseResult.tokenProcessed
+            };
         }, pGraph, pGraphCalledLinear);
     }
 
@@ -262,20 +273,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      */
     private retrieveNodeValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult | PARSER_ERROR_SYMBOL {
         // Read current token. Can fail when lexer fails.
-        let lCurrentToken: LexerToken<TTokenType> | null = null;
-        try {
-            // TODO: This can be simplified by just lettingh the lexer throw an exception.
-            lCurrentToken = pCursor.current;
-        } catch (pError) {
-            // Its allways a lexer error.
-            const lLexerError: LexerException<TTokenType> = pError as unknown as LexerException<TTokenType>;
-
-            // Add lexer error to cursor. Exit parsing of this node.
-            pCursor.error.push(pError, pCursor.graph, lLexerError.lineStart, lLexerError.columnStart, lLexerError.lineEnd, lLexerError.columnEnd);
-
-            // Something to throw. Doesn't matter what.
-            return PARSER_ERROR;
-        }
+        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.current;
 
         // Read node connections.
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
@@ -291,7 +289,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     if (!lCurrentToken) {
                         // Append error when node was required.
                         if (lNodeConnections.required) {
-                            pCursor.addIncident(new Exception(`Unexpected end of statement. Token "${lNodeValue}" expected.`, this), true);
+                            pCursor.addIncident(`Unexpected end of statement. Token "${lNodeValue}" expected.`, true);
                         }
 
                         continue;
@@ -300,7 +298,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Push possible parser error when token type does not match node value.
                     if (lNodeValue !== lCurrentToken.type) {
                         if (lNodeConnections.required) {
-                            pCursor.addIncident(new Exception(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, this), true);
+                            pCursor.addIncident(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, true);
                         }
 
                         continue;

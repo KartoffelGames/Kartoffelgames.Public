@@ -122,9 +122,9 @@ export abstract class BaseXmlParser {
                     type: XmlToken.CloseBracket
                 }
             }
-        }, () => {
-            lLexer.useRootTokenPattern(lNamespaceDelimiter);
-            lLexer.useRootTokenPattern(lIdentifier);
+        }, (pPattern) => {
+            pPattern.addDependency(lNamespaceDelimiter);
+            pPattern.addDependency(lIdentifier);
         });
         const lClosingBracket = lLexer.createTokenPattern({
             pattern: {
@@ -140,11 +140,11 @@ export abstract class BaseXmlParser {
                     }
                 }
             }
-        }, () => {
-            lLexer.useRootTokenPattern(lAssignment);
-            lLexer.useRootTokenPattern(lNamespaceDelimiter);
-            lLexer.useRootTokenPattern(lIdentifier);
-            lLexer.useRootTokenPattern(lExplicitValue);
+        }, (pPattern) => {
+            pPattern.addDependency(lAssignment);
+            pPattern.addDependency(lNamespaceDelimiter);
+            pPattern.addDependency(lIdentifier);
+            pPattern.addDependency(lExplicitValue);
         });
 
         // Stack templates.

@@ -73,7 +73,7 @@ export class Lexer<TTokenType extends string> {
         // Core dependency scope
         this.mRootPatternScope = {
             dependencies: Array<LexerPattern<TTokenType, LexerPatternType>>(),
-            addDependency: function (pPattern: LexerPattern<TTokenType, LexerPatternType>) {
+            useChildPattern: function (pPattern: LexerPattern<TTokenType, LexerPatternType>) {
                 this.dependencies.push(pPattern);
             }
         };
@@ -209,12 +209,11 @@ export class Lexer<TTokenType extends string> {
                 line: 1,
             },
             error: null,
-            scope: this.mRootPatternScope, // TODO: Use this.
             processTracker: pProcessTracker ?? null
         };
 
         // Start tokenizing step with the current root pattern scope.
-        yield* this.tokenizeRecursionLayer(lLexerStateObject, lLexerStateObject.scope, new Array<string>(), null, null);
+        yield* this.tokenizeRecursionLayer(lLexerStateObject, this.mRootPatternScope, new Array<string>(), null, null);
     }
 
     /**
@@ -249,7 +248,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Set template pattern to current pattern scope.
-        this.mRootPatternScope.addDependency(pTokenPattern);
+        this.mRootPatternScope.useChildPattern(pTokenPattern);
     }
 
     /**
@@ -627,7 +626,7 @@ export type LexerPatternBuildDefinition<TTokenType extends string> = LexerPatter
 
 type LexerPatternScope = {
     dependencies: Array<LexerPattern<any, any>>;
-    addDependency: (pPattern: LexerPattern<any, any>) => void;
+    useChildPattern: (pPattern: LexerPattern<any, any>) => void;
 };
 
 type LexerStateObject = {
@@ -642,7 +641,6 @@ type LexerStateObject = {
         startColumn: number;
         startLine: number;
     };
-    scope: LexerPatternScope;
     processTracker: LexerPatternProgressTracker | null;
 };
 

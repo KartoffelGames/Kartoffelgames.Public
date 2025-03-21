@@ -1,21 +1,23 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
-import type { Graph } from './graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
+import { CodeParserTrace } from './code-parser-trace.ts';
+import type { Graph } from './graph/graph.ts';
 
-export class CodeParserCursor<TTokenType extends string> {
+export class CodeParserState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mPosition: CodeParserCursorPosition;
+    private readonly mTrace: CodeParserTrace<TTokenType>;
 
     /**
      * Read the current token from the stream.
      * 
      * @returns The next token if available, otherwise null if the end of the stream is reached.
      */
-    public get current(): LexerToken<TTokenType> | null {
+    public get currentToken(): LexerToken<TTokenType> | null {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
@@ -58,17 +60,27 @@ export class CodeParserCursor<TTokenType extends string> {
     }
 
     /**
+     * Get the trace of parser state.
+     */
+    public get trace(): CodeParserTrace<TTokenType> {
+        return this.mTrace;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
      */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>) {
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mPosition = {
             column: 1,
             line: 1
         };
+
+        // Create trace.
+        this.mTrace = new CodeParserTrace<TTokenType>(pDebug);
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -181,7 +193,7 @@ export class CodeParserCursor<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Calculate token position.
-        const lPositionToken: LexerToken<TTokenType> | null = this.current;
+        const lPositionToken: LexerToken<TTokenType> | null = this.currentToken;
 
         // No start token means there is also no endtoken.
         if (!lPositionToken) {
@@ -229,7 +241,7 @@ export class CodeParserCursor<TTokenType extends string> {
         }
 
         // Graph is circular if the graph is visited more than once.
-        return lCurrentGraphStack.circularGraphs.get(pGraph)! > CodeParserCursor.MAX_CIRULAR_REFERENCES;
+        return lCurrentGraphStack.circularGraphs.get(pGraph)! > CodeParserState.MAX_CIRULAR_REFERENCES;
     }
 
     /**

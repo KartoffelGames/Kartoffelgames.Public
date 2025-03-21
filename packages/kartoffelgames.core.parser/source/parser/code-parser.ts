@@ -1,12 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
-import type { Graph } from './graph/graph.ts';
 import { CodeParserException, LexerException } from '../index.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
-import { CodeParserCursor, type CodeParserCursorGraphPosition, type CodeParserCursorTokenPosition } from './code-parser-cursor.ts';
-import { CodeParserTrace } from './code-parser-trace.ts';
 import type { CodeParserErrorSymbol } from './code-parser-exception.ts';
+import { CodeParserState, type CodeParserCursorGraphPosition, type CodeParserCursorTokenPosition } from './code-parser-state.ts';
+import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
+import type { Graph } from './graph/graph.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -21,7 +20,16 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mLexer: Lexer<TTokenType>;
     private mMaxRecursion: number;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
-    private readonly mTrace: CodeParserTrace<TTokenType>;
+    private mDebugMode: boolean;
+
+    /**
+     * Get debug mode.
+     */
+    public get debugMode(): boolean {
+        return this.mDebugMode;
+    } set debugMode(pValue: boolean) {
+        this.mDebugMode = pValue;
+    }
 
     /**
      * Get lexer.
@@ -44,11 +52,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @param pLexer - Token lexer.
      */
-    public constructor(pLexer: Lexer<TTokenType>, pDebug: boolean = false) {
+    public constructor(pLexer: Lexer<TTokenType>) {
         this.mLexer = pLexer;
         this.mMaxRecursion = 100;
         this.mRootPart = null;
-        this.mTrace = new  CodeParserTrace<TTokenType>(pDebug);
+        this.mDebugMode = false;
     }
 
     /**
@@ -63,14 +71,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When the graph could not be resolved with the set code text.
      * Or {@link Exception} when no tokenizeable text should be parsed.
      */
-    public parse(pCodeText: string): TParseResult {
+    public parse(pCodeText: string, pProgressTracker?: CodeParserProgressTracker): TParseResult {
         // Validate lazy parameters.
         if (this.mRootPart === null) {
             throw new Exception('Parser has not root part set.', this);
         }
 
-        // Create a parser cursor for the code text.
-        const lCursor: CodeParserCursor<TTokenType> = new CodeParserCursor<TTokenType>(this.mLexer.tokenize(pCodeText));
+        // Create a parser cursor for the code text. // TODO: Add process tracker.
+        const lCursor: CodeParserState<TTokenType> = new CodeParserState<TTokenType>(this.mLexer.tokenize(pCodeText, pProgressTracker), this.mDebugMode);
 
         // Parse root graph part.
         const lRootParseData: GraphParseResult | CodeParserErrorSymbol = (() => {
@@ -80,8 +88,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // The graph is still in the right state the error was thrown, so we can still extract data from it.
 
                 // Lexer error can be directly added to the trace.
-                if(pError instanceof LexerException) {
-                    this.mTrace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd, true, pError);
+                if (pError instanceof LexerException) {
+                    lCursor.trace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd, true, pError);
                     return CodeParserException.PARSER_ERROR;
                 }
 
@@ -92,14 +100,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 const lCursorPosition: CodeParserCursorGraphPosition<TTokenType> = lCursor.getGraphPosition();
 
                 // Add error as trace incident and return an error.
-                this.mTrace.push(lErrorMessage, lCursor.graph, lCursorPosition.lineStart, lCursorPosition.columnStart, lCursorPosition.lineEnd, lCursorPosition.columnEnd, true, pError);
+                lCursor.trace.push(lErrorMessage, lCursor.graph, lCursorPosition.lineStart, lCursorPosition.columnStart, lCursorPosition.lineEnd, lCursorPosition.columnEnd, true, pError);
                 return CodeParserException.PARSER_ERROR;
             }
         })();
 
         // Or throw a normal parser exception when it was handled.
         if (lRootParseData === CodeParserException.PARSER_ERROR) {
-            throw new CodeParserException(this.mTrace);
+            throw new CodeParserException(lCursor.trace);
         }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
@@ -112,10 +120,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Create a error message and add a incident.
             const lErrorMessage: string = `Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`;
-            this.mTrace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
+            lCursor.trace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
 
             // Throw error with pushed incident.
-            throw new CodeParserException(this.mTrace);
+            throw new CodeParserException(lCursor.trace);
         }
 
         return lRootParseData.data as TParseResult;
@@ -149,14 +157,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link ParserException}
      * When an error is thrown while paring collected data.
      */
-    private parseGraph(pCursor: CodeParserCursor<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | CodeParserErrorSymbol {
+    private parseGraph(pCursor: CodeParserState<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): GraphParseResult | CodeParserErrorSymbol {
         // Prevent circular graph calls that doesnt progressed itself.
         if (pCursor.graphIsCircular(pGraph)) {
             // Read the current graph position.
             const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
 
             // Add a circular graph incident.
-            this.mTrace.push(`Circular graph detected.`, pGraph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+            pCursor.trace.push(`Circular graph detected.`, pGraph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
 
             // Exit parsing with error.
             return CodeParserException.PARSER_ERROR;
@@ -177,7 +185,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
 
                 // Integrate exception into parser exception, this should never be a code parser exception.
-                this.mTrace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+                pCursor.trace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
 
                 // Exit parsing with error.
                 return CodeParserException.PARSER_ERROR;
@@ -203,7 +211,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraphNode(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphNodeParseResult | CodeParserErrorSymbol {
+    private parseGraphNode(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>): GraphNodeParseResult | CodeParserErrorSymbol {
         // Parse and read current node values. Throws when no value was found and required.
         const lNodeValueParseResult: GraphParseResult | CodeParserErrorSymbol = this.retrieveNodeValues(pCursor, pNode);
         if (lNodeValueParseResult === CodeParserException.PARSER_ERROR) {
@@ -241,7 +249,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>, pNodeValue: GraphParseResult): GraphChainResult | CodeParserErrorSymbol {
+    private retrieveChainedValues(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>, pNodeValue: GraphParseResult): GraphChainResult | CodeParserErrorSymbol {
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
 
         // Next chained node.
@@ -288,9 +296,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
      */
-    private retrieveNodeValues(pCursor: CodeParserCursor<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult | CodeParserErrorSymbol {
+    private retrieveNodeValues(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>): GraphParseResult | CodeParserErrorSymbol {
         // Read current token. Can fail when lexer fails.
-        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.current;
+        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.currentToken;
 
         // Read node connections.
         const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
@@ -310,7 +318,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                             const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
 
                             // Push parser incident as the current token position.
-                            this.mTrace.push(`Unexpected end of statement. Token "${lNodeValue}" expected.`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
+                            pCursor.trace.push(`Unexpected end of statement. Token "${lNodeValue}" expected.`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
                         }
 
                         continue;
@@ -323,7 +331,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                             const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
 
                             // Push parser incident as the current token position.
-                            this.mTrace.push(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
+                            pCursor.trace.push(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
                         }
 
                         continue;
@@ -368,6 +376,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return lNodeResult;
     }
 }
+
+export type CodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
 
 type GraphNodeParseResult = {
     data: object;

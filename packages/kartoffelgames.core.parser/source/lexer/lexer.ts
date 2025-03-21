@@ -3,8 +3,6 @@ import { LexerException } from '../index.ts';
 import { LexerPattern, type LexerPatternScope, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
-// TODO: Lexer and Parser should revert to root state on fail. So another run can be done without creating another instance.
-
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
  * Creates a iterator that iterates over each found token till end of text.
@@ -199,7 +197,7 @@ export class Lexer<TTokenType extends string> {
      * @throws 
      * On any text part that can not be tokeniszd.
      */
-    public * tokenize(pText: string, pProcessTracker?: LexerPatternProgressTracker): Generator<LexerToken<TTokenType>> {
+    public * tokenize(pText: string, pProgressTracker?: LexerPatternProgressTracker): Generator<LexerToken<TTokenType>> {
         // Create a new local lexer state object.
         const lLexerStateObject: LexerStateObject = {
             data: pText,
@@ -209,7 +207,7 @@ export class Lexer<TTokenType extends string> {
                 line: 1,
             },
             error: null,
-            processTracker: pProcessTracker ?? null
+            progressTracker: pProgressTracker ?? null
         };
 
         // Start tokenizing step with the current root pattern scope.
@@ -399,7 +397,7 @@ export class Lexer<TTokenType extends string> {
         // Update untokenised text.
         pStateObject.cursor.position += pTokenValue.length;
 
-        // Track process.
+        // Track progress.
         this.trackProgress(pStateObject);
     }
 
@@ -570,19 +568,19 @@ export class Lexer<TTokenType extends string> {
     }
 
     /**
-     * Tracks the progress of the lexer process.
+     * Tracks the progress of the lexer progress.
      *
      * @param pPosition - The current position in the input.
      * @param pLine - The current line number in the input.
      * @param pColumn - The current column number in the input.
      */
     private trackProgress(pStateObject: LexerStateObject): void {
-        if (pStateObject.processTracker === null) {
+        if (pStateObject.progressTracker === null) {
             return;
         }
 
         // Call progress tracker.
-        pStateObject.processTracker(pStateObject.cursor.position, pStateObject.cursor.line, pStateObject.cursor.column);
+        pStateObject.progressTracker(pStateObject.cursor.position, pStateObject.cursor.line, pStateObject.cursor.column);
     }
 }
 
@@ -636,7 +634,7 @@ type LexerStateObject = {
         startColumn: number;
         startLine: number;
     };
-    processTracker: LexerPatternProgressTracker | null;
+    progressTracker: LexerPatternProgressTracker | null;
 };
 
 type LexerSettings<TTokenType> = {

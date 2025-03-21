@@ -12,8 +12,8 @@ export class CodeParserTrace<TTokenType extends string> {
     /**
      * Get the current top incident of trace.
      */
-    public get top():CodeParserTraceIncident<TTokenType> {
-        return this.mTop
+    public get top(): CodeParserTraceIncident<TTokenType> {
+        return this.mTop;
     }
 
     /**
@@ -63,9 +63,15 @@ export class CodeParserTrace<TTokenType extends string> {
      * @param pStartToken - Staring token of error.
      * @param pEndToken - End topen of error. 
      */
-    public push(pError: string, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number, pErrorCause: unknown = null): void {
+    public push(pError: string, pGraph: Graph<TTokenType> | null, pLineStart: number, pColumnStart: number, pLineEnd: number, pColumnEnd: number, pOverridePriority: boolean = false, pErrorCause: unknown = null): void {
         // Calculate priority
-        const lPriority: number = (pLineEnd * 10000) + pColumnEnd;
+        let lPriority: number;
+        if (pOverridePriority) {
+            // Set new top. :)
+            lPriority = this.mTop.priority + 1;
+        } else {
+            lPriority = (pLineEnd * 10000) + pColumnEnd;
+        }
 
         // Create and push a debuging incident when debugging is enabled.
         if (this.mIncidents !== null) {

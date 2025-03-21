@@ -1593,6 +1593,36 @@ describe('CodeParser', () => {
                 expect(lException.lineStart).toBe(1);
                 expect(lException.lineEnd).toBe(1);
             });
+
+            it('-- Override error priority on converter abort', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Aborted Error';
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>()
+                    .optional('namespace',
+                        GraphNode.new<TokenType>().required('name', TokenType.Identifier).required(TokenType.Assignment)
+                    )
+                    .required('name', TokenType.Identifier)
+                    .optional('value',
+                        GraphNode.new<TokenType>().required(TokenType.Assignment).required('value', TokenType.Custom)
+                    );
+                }).converter(() => {
+                    throw Error(lErrorMessage);
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(lFailingGraph).required(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const ident;');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).toThrow(lErrorMessage);
+            });
         });
     });
 

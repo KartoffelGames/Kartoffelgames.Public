@@ -384,7 +384,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).toThrow(/Unexpected token "="/);
+            expect(lFailingFunction).toThrow(/noneclosing/);
         });
 
         it('-- Unexpected closing tag', () => {

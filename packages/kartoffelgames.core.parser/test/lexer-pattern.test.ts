@@ -200,7 +200,7 @@ describe('LexerPattern', () => {
         });
     });
 
-    it('Method: addDependency', () => {
+    it('Method: useChildPattern', () => {
         // Setup
         const lLexer = new Lexer<string>();
         const lPatternOne = new LexerPattern(lLexer, gDefaultPattern);

@@ -8,7 +8,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
  * @internal
  */
 export class CoreEntityProcessorProxy<T extends object> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+     
     private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
@@ -19,9 +19,9 @@ export class CoreEntityProcessorProxy<T extends object> {
         return lIgnoreList;
     })();
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+     
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+     
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**

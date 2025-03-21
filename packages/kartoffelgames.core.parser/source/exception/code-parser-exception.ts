@@ -1,5 +1,5 @@
 import type { Graph } from '../graph/graph.ts';
-import { CodeParserTrace } from "../parser/code-parser-trace.ts";
+import type { CodeParserTrace } from '../parser/code-parser-trace.ts';
 
 /**
  * Code parser exceptions holding the top incident.
@@ -9,13 +9,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
     public static readonly PARSER_ERROR: unique symbol = Symbol('PARSER_ERROR');
 
     private readonly mTrace: CodeParserTrace<TTokenType>;
-
-    /**
-     * Affected graph of error.
-     */
-    public get graph(): Graph<TTokenType> | null {
-        return this.mTrace.top.graph;
-    }
 
     /**
      * Error column end.
@@ -29,6 +22,13 @@ export class CodeParserException<TTokenType extends string> extends Error {
      */
     public get columnStart(): number {
         return this.mTrace.top.range.columnStart;
+    }
+
+    /**
+     * Affected graph of error.
+     */
+    public get graph(): Graph<TTokenType> | null {
+        return this.mTrace.top.graph;
     }
 
     /**
@@ -57,4 +57,4 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 }
 
-export type PARSER_ERROR_SYMBOL = typeof CodeParserException.PARSER_ERROR;
+export type CodeParserErrorSymbol = typeof CodeParserException.PARSER_ERROR;

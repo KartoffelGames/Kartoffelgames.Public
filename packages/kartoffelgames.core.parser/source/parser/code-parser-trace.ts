@@ -10,13 +10,6 @@ export class CodeParserTrace<TTokenType extends string> {
     private mTop: CodeParserTraceIncident<TTokenType>;
 
     /**
-     * Get the current top incident of trace.
-     */
-    public get top(): CodeParserTraceIncident<TTokenType> {
-        return this.mTop;
-    }
-
-    /**
      * Get a complete incident list of all incidents.
      * Only available in debug mode.
      */
@@ -26,6 +19,13 @@ export class CodeParserTrace<TTokenType extends string> {
         }
 
         return this.mIncidents;
+    }
+
+    /**
+     * Get the current top incident of trace.
+     */
+    public get top(): CodeParserTraceIncident<TTokenType> {
+        return this.mTop;
     }
 
     /**

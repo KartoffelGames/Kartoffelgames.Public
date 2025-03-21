@@ -1,9 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { XmlAttribute } from '../source/attribute/xml-attribute.ts';
+import type { XmlAttribute } from '../source/attribute/xml-attribute.ts';
 import { TextNode } from '../source/node/text-node.ts';
 import { XmlElement } from '../source/node/xml-element.ts';
-import { BaseXmlNode } from "../source/index.ts";
+import type { BaseXmlNode } from '../source/index.ts';
 
 describe('XmlElement', () => {
     it('Property: attributeList', () => {
@@ -217,7 +217,7 @@ describe('XmlElement', () => {
             // Evaluation.
             expect(lIsEqual).toBeFalsy();
         });
-    })
+    });
     
     it('Method: getAttribute', () => {
         // Setup.

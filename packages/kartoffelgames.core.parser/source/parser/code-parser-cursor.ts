@@ -1,14 +1,14 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { Graph } from '../graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
-import { CodeParserException, PARSER_ERROR_SYMBOL } from "../exception/code-parser-exception.ts";
+import { CodeParserException, type CodeParserErrorSymbol } from '../exception/code-parser-exception.ts';
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly mPosition: CodeParserCursorPosition;
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
+    private readonly mPosition: CodeParserCursorPosition;
 
     /**
      * Read the current token from the stream.
@@ -176,12 +176,12 @@ export class CodeParserCursor<TTokenType extends string> {
      * 
      * If there is no current token, the start and end positions will be the same as the current cursor position.
      */
-    public getCurrentTokenPosition(): CodeParserCursorTokenPosition<TTokenType> {
+    public getTokenPosition(): CodeParserCursorTokenPosition<TTokenType> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Calculate token position.
-        let lPositionToken: LexerToken<TTokenType> | null = this.current;
+        const lPositionToken: LexerToken<TTokenType> | null = this.current;
 
         // No start token means there is also no endtoken.
         if (!lPositionToken) {
@@ -262,7 +262,7 @@ export class CodeParserCursor<TTokenType extends string> {
      * 
      * @throws Will rethrow any error encountered during the execution of the callback function.
      */
-    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult | PARSER_ERROR_SYMBOL {
+    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult | CodeParserErrorSymbol {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
@@ -289,7 +289,7 @@ export class CodeParserCursor<TTokenType extends string> {
         this.mGraphStack.push(lNewTokenStack);
 
         // Call pushed graph.
-        const lResult: TResult | PARSER_ERROR_SYMBOL = pStackCall(pGraph);
+        const lResult: TResult | CodeParserErrorSymbol = pStackCall(pGraph);
         if (lResult === CodeParserException.PARSER_ERROR) {
             // Revert current stack index.
             lNewTokenStack.token.index = 0;

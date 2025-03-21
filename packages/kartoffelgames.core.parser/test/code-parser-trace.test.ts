@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { Graph } from '../source/graph/graph.ts';
 import { GraphNode } from '../source/index.ts';
-import { CodeParserTrace } from "../source/parser/code-parser-trace.ts";
+import { CodeParserTrace } from '../source/parser/code-parser-trace.ts';
 
 describe('CodeParserTrace', () => {
     describe('Property: incidents', () => {

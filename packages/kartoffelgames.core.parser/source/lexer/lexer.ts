@@ -3,6 +3,8 @@ import { LexerException } from '../index.ts';
 import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
+// TODO: Lexer and Parser should revert to root state on fail. So another run can be done without creating another instance.
+
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
  * Creates a iterator that iterates over each found token till end of text.
@@ -197,14 +199,15 @@ export class Lexer<TTokenType extends string> {
      * @throws 
      * On any text part that can not be tokeniszd.
      */
-    public * tokenize(pText: string): Generator<LexerToken<TTokenType>> {
+    public * tokenize(pText: string, pProcessTracker?: LexerPatternProgressTracker): Generator<LexerToken<TTokenType>> {
         // Create tokenize cursor.
         const lCursor: LexerCursor = {
             data: pText,
             cursorPosition: 0,
             currentColumn: 1,
             currentLine: 1,
-            error: null
+            error: null,
+            processTracker: pProcessTracker ?? null
         };
 
         // Start tokenizing step with the current root pattern scope.
@@ -393,6 +396,9 @@ export class Lexer<TTokenType extends string> {
 
         // Update untokenised text.
         pCursor.cursorPosition += pTokenValue.length;
+
+        // Track process.
+        this.trackProgress(pCursor);
     }
 
     /**
@@ -408,17 +414,8 @@ export class Lexer<TTokenType extends string> {
             return false;
         }
 
-        // Start newline when whitespace is a newline.
-        if (lCharacter === '\n') {
-            pCursor.currentLine++;
-            pCursor.currentColumn = 1;
-        } else {
-            // On every other character, count column.
-            pCursor.currentColumn++;
-        }
-
-        // Move cursor forward by one.
-        pCursor.cursorPosition += 1;
+        // Move cursor the length of the whitespace character.
+        this.moveCursor(pCursor, lCharacter);
 
         return true;
     }
@@ -576,13 +573,36 @@ export class Lexer<TTokenType extends string> {
             yield lErrorToken;
         }
     }
+
+    /**
+     * Tracks the progress of the lexer process.
+     *
+     * @param pPosition - The current position in the input.
+     * @param pLine - The current line number in the input.
+     * @param pColumn - The current column number in the input.
+     * @returns void
+     */
+    private trackProgress(pCursor: LexerCursor): void {
+        if (pCursor.processTracker === null) {
+            return;
+        }
+
+        // Call progress tracker.
+        pCursor.processTracker(pCursor.cursorPosition, pCursor.currentLine, pCursor.currentColumn);
+    }
 }
+
+/**
+ * Lexer debug.
+ */
+
+export type LexerPatternProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
 
 /*
  * Lexer build pattern.
  */
 
-export type LexerPatternBuildDefinitionTypes<TTokenType> = TTokenType | { [SubGroup: string]: TTokenType; };
+export type LexerPatternBuildDefinitionTypes<TTokenType extends string> = TTokenType | { [SubGroup: string]: TTokenType; };
 
 export type LexerPatternBuildDefinitionTokenMatcher<TTokenType extends string> = {
     regex: RegExp;
@@ -625,6 +645,7 @@ type LexerCursor = {
         startColumn: number;
         startLine: number;
     };
+    processTracker: LexerPatternProgressTracker | null;
 };
 
 type LexerSettings<TTokenType> = {

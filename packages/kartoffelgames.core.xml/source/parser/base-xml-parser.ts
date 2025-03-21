@@ -237,15 +237,15 @@ export abstract class BaseXmlParser {
                 .optional('attributes<-attributes', lAttributeListGraph)
                 .required('ending', [
                     GraphNode.new<XmlToken>()
-                        .required(XmlToken.CloseClosingBracket),
-                    GraphNode.new<XmlToken>()
                         .required(XmlToken.CloseBracket)
                         .optional('values', lLoopedContentGraph)
                         .required(XmlToken.OpenClosingBracket)
                         .optional('closingNamespace',
                             GraphNode.new<XmlToken>().required('name', XmlToken.Identifier).required(XmlToken.NamespaceDelimiter)
                         )
-                        .required('closingTageName', XmlToken.Identifier).required(XmlToken.CloseBracket)
+                        .required('closingTageName', XmlToken.Identifier).required(XmlToken.CloseBracket),
+                    GraphNode.new<XmlToken>()
+                        .required(XmlToken.CloseClosingBracket),
                 ]);
         }).converter((pData): XmlElement => {
             // Validate data consistency.
@@ -290,8 +290,8 @@ export abstract class BaseXmlParser {
 
             return GraphNode.new<XmlToken>().required('list[]', [
                 lXmlElementGraph,
-                lCommentNodeGraph,
                 lTextNodeGraph,
+                lCommentNodeGraph,
             ]).optional('list[]', lSelfReference);
         }).converter((pData): Array<BaseXmlNode> => {
             const lContentList: Array<BaseXmlNode> = new Array<BaseXmlNode>();

@@ -5,7 +5,7 @@ import type { Lexer } from './lexer.ts';
 /**
  * Represents a pattern that can be used to match a series of token.
  */
-export class LexerPattern<TTokenType extends string, TPatternType extends LexerPatternType> {
+export class LexerPattern<TTokenType extends string, TPatternType extends LexerPatternType> implements LexerPatternScope {
     private readonly mDependencyFetch: LexerPatternDependencyFetch<TTokenType, TPatternType> | null;
     private mDependencyFetchResolved: boolean;
     private readonly mLexer: Lexer<TTokenType>;
@@ -168,6 +168,11 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
  * Pattern type.
  */
 export type LexerPatternType = 'split' | 'single';
+
+export interface LexerPatternScope {
+    dependencies: Array<LexerPattern<any, any>>;
+    useChildPattern: (pPattern: LexerPattern<any, any>) => void;
+};
 
 /*
  * Functions and callbacks

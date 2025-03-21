@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { LexerException } from '../index.ts';
-import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
+import { LexerPattern, LexerPatternScope, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
 // TODO: Lexer and Parser should revert to root state on fail. So another run can be done without creating another instance.
@@ -623,11 +623,6 @@ export type LexerPatternBuildDefinition<TTokenType extends string> = LexerPatter
 /*
  * Internal lexer settings and states. 
  */
-
-type LexerPatternScope = {
-    dependencies: Array<LexerPattern<any, any>>;
-    useChildPattern: (pPattern: LexerPattern<any, any>) => void;
-};
 
 type LexerStateObject = {
     data: string;

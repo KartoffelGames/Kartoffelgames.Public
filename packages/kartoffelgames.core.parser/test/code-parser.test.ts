@@ -1082,10 +1082,9 @@ describe('CodeParser', () => {
         });
 
         describe('-- Data collector errors.', () => {
-            it('-- Keep error messages of error objects', () => {
+            it('-- Unknown error messages of symbol errors without description', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lErrorMessage: string = 'Error message';
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier);
                 }).converter(() => {
@@ -1099,7 +1098,99 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
+                expect(lErrorFunction).toThrow('Unknown data convert error');
+            });
+
+            it('-- Keep error messages of symbol errors', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    return Symbol(lErrorMessage);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
                 expect(lErrorFunction).toThrow(lErrorMessage);
+            });
+
+            it('-- Keep error messages of error objects', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier);
+                }).converter(() => {
+                    throw Error(lErrorMessage);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).toThrow(lErrorMessage);
+            });
+
+            it('-- Correct error graph of error object', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                // Setup graphs.
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Identifier);
+                }).converter(() => {
+                    throw new Error();
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(lFailingGraph);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.graph).toBe(lFailingGraph);
+            });
+
+            it('-- Correct error graph of error symbol', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                // Setup graphs.
+                const lFailingGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Identifier);
+                }).converter(() => {
+                    return Symbol();
+                });
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).required(lFailingGraph);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.graph).toBe(lFailingGraph);
             });
 
             it('-- Keep error messages stacktrace', () => {
@@ -1111,7 +1202,7 @@ describe('CodeParser', () => {
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Modifier);
                 }).converter(function lMyErrorFunctionName() {
-                    return Symbol(); // No name.
+                    throw new Error();
                 });
                 lParser.setRootGraph(lMainGraph);
 
@@ -1321,7 +1412,7 @@ describe('CodeParser', () => {
                 expect(lException.lineEnd).toBe(2);
             });
 
-            it('-- Error with an multiline token.', () => {
+            it('-- Token error with an multiline token.', () => {
                 // Setup. Lexer
                 const lLexer: Lexer<TokenType> = new Lexer<TokenType>();
                 lLexer.validWhitespaces = ' \n\t\r';
@@ -1346,6 +1437,38 @@ describe('CodeParser', () => {
                 const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.columnStart).toBe(18);
+                expect(lException.columnEnd).toBe(5);
+                expect(lException.lineStart).toBe(1);
+                expect(lException.lineEnd).toBe(2);
+            });
+
+            it('-- Graph error with an multiline token.', () => {
+                // Setup. Lexer
+                const lLexer: Lexer<TokenType> = new Lexer<TokenType>();
+                lLexer.validWhitespaces = ' \n\t\r';
+                lLexer.trimWhitespace = true;
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
+                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
+
+                // Setup. Parser.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
+
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier).required(TokenType.Custom);
+                }).converter(()=>{
+                    return Symbol();
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const identifier new\nline');
+                };
+
+                // Evaluation.
+                const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+                expect(lException).toBeInstanceOf(CodeParserException);
+                expect(lException.columnStart).toBe(1);
                 expect(lException.columnEnd).toBe(5);
                 expect(lException.lineStart).toBe(1);
                 expect(lException.lineEnd).toBe(2);

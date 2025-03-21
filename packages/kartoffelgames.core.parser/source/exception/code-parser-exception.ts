@@ -13,36 +13,36 @@ export class CodeParserException<TTokenType extends string> extends Error {
     /**
      * Affected graph of error.
      */
-    public get affectedGraph(): Graph<TTokenType> | null {
-        return this.mTrace.graph;
+    public get graph(): Graph<TTokenType> | null {
+        return this.mTrace.top.graph;
     }
 
     /**
      * Error column end.
      */
     public get columnEnd(): number {
-        return this.mTrace.columnEnd;
+        return this.mTrace.top.range.columnEnd;
     }
 
     /**
      * Error column start.
      */
     public get columnStart(): number {
-        return this.mTrace.columnStart;
+        return this.mTrace.top.range.columnStart;
     }
 
     /**
      * Error line end.
      */
     public get lineEnd(): number {
-        return this.mTrace.lineEnd;
+        return this.mTrace.top.range.lineEnd;
     }
 
     /**
      * Error line start.
      */
     public get lineStart(): number {
-        return this.mTrace.lineStart;
+        return this.mTrace.top.range.lineStart;
     }
 
     /**
@@ -51,7 +51,7 @@ export class CodeParserException<TTokenType extends string> extends Error {
      * @param pDebug - Keeps a complete list of all incidents.
      */
     public constructor(pTrace: CodeParserTrace<TTokenType>) {
-        super(pTrace.message);
+        super(pTrace.top.message, { cause: pTrace.top.cause });
 
         this.mTrace = pTrace;
     }

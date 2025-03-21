@@ -81,11 +81,19 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Lexer error can be directly added to the trace.
                 if(pError instanceof LexerException) {
-                    this.mTrace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd);
+                    this.mTrace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd, pError);
                     return CodeParserException.PARSER_ERROR;
                 }
 
-                throw pError;
+                // Read error message from error object. Default to toString.
+                let lErrorMessage: string = pError instanceof Error ? pError.message : (<any>pError).toString();
+
+                // Read current graph position, as errors can only be thrown in the data converter functions.
+                const lCursorPosition: CodeParserCursorGraphPosition<TTokenType> = lCursor.getGraphPosition();
+
+                // Add error as trace incident and return an error.
+                this.mTrace.push(lErrorMessage, lCursor.graph, lCursorPosition.lineStart, lCursorPosition.columnStart, lCursorPosition.lineEnd, lCursorPosition.columnEnd, pError);
+                return CodeParserException.PARSER_ERROR;
             }
         })();
 

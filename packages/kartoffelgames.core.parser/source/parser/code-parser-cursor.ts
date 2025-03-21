@@ -1,7 +1,7 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
-import type { Graph } from '../graph/graph.ts';
+import type { Graph } from './graph/graph.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
-import { CodeParserException, type CodeParserErrorSymbol } from '../exception/code-parser-exception.ts';
+import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
 
 export class CodeParserCursor<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;

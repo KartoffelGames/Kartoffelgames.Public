@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
-import type { GraphNode, GraphNodeConnections } from '../graph/graph-node.ts';
-import type { Graph } from '../graph/graph.ts';
+import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
+import type { Graph } from './graph/graph.ts';
 import { CodeParserException, LexerException } from '../index.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserCursor, type CodeParserCursorGraphPosition, type CodeParserCursorTokenPosition } from './code-parser-cursor.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
-import type { CodeParserErrorSymbol } from '../exception/code-parser-exception.ts';
+import type { CodeParserErrorSymbol } from './code-parser-exception.ts';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.

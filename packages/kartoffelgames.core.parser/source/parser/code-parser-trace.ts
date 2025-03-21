@@ -1,5 +1,5 @@
 import { Exception } from '../../../kartoffelgames.core/source/index.ts';
-import type { Graph } from '../graph/graph.ts';
+import type { Graph } from './graph/graph.ts';
 
 /**
  * Code parser exceptions holding the top incident.

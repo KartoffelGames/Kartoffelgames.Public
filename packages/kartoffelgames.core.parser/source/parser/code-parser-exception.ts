@@ -1,5 +1,5 @@
-import type { Graph } from '../graph/graph.ts';
-import type { CodeParserTrace } from '../parser/code-parser-trace.ts';
+import type { Graph } from './graph/graph.ts';
+import type { CodeParserTrace } from './code-parser-trace.ts';
 
 /**
  * Code parser exceptions holding the top incident.

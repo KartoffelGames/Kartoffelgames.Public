@@ -3,7 +3,7 @@ import { describe, it } from '@std/testing/bdd';
 import type { LexerToken } from '../source/lexer/lexer-token.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 import type { LexerPatternType, LexerPattern } from '../source/lexer/lexer-pattern.ts';
-import { LexerException } from '../source/exception/lexer-exception.ts';
+import { LexerException } from '../source/lexer/lexer-exception.ts';
 
 describe('Lexer', () => {
     enum TestTokenType {

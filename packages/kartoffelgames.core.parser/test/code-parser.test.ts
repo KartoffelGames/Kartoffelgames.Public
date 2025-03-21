@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { CodeParserException } from '../source/exception/code-parser-exception.ts';
-import { GraphNode } from '../source/graph/graph-node.ts';
-import { Graph } from '../source/graph/graph.ts';
+import { CodeParserException } from '../source/parser/code-parser-exception.ts';
+import { GraphNode } from '../source/parser/graph/graph-node.ts';
+import { Graph } from '../source/parser/graph/graph.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParser } from '../source/parser/code-parser.ts';
 

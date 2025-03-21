@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { GraphNode, type GraphNodeConnections } from '../source/graph/graph-node.ts';
+import { GraphNode, type GraphNodeConnections } from '../source/parser/graph/graph-node.ts';
 
 
 describe('graphNode', () => {

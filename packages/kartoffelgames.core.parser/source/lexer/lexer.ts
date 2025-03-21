@@ -14,7 +14,7 @@ import { LexerToken } from './lexer-token.ts';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: LexerPatternScope;
+    private mRootPatternScope: LexerPatternScope;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     /**
@@ -71,7 +71,7 @@ export class Lexer<TTokenType extends string> {
         };
 
         // Core dependency scope
-        this.mCurrentPatternScope = {
+        this.mRootPatternScope = {
             dependencies: Array<LexerPattern<TTokenType, LexerPatternType>>(),
             addDependency: function (pPattern: LexerPattern<TTokenType, LexerPatternType>) {
                 this.dependencies.push(pPattern);
@@ -200,18 +200,21 @@ export class Lexer<TTokenType extends string> {
      * On any text part that can not be tokeniszd.
      */
     public * tokenize(pText: string, pProcessTracker?: LexerPatternProgressTracker): Generator<LexerToken<TTokenType>> {
-        // Create tokenize cursor.
-        const lCursor: LexerCursor = {
+        // Create a new local lexer state object.
+        const lLexerStateObject: LexerStateObject = {
             data: pText,
-            cursorPosition: 0,
-            currentColumn: 1,
-            currentLine: 1,
+            cursor: {
+                position: 0,
+                column: 1,
+                line: 1,
+            },
             error: null,
+            scope: this.mRootPatternScope, // TODO: Use this.
             processTracker: pProcessTracker ?? null
         };
 
         // Start tokenizing step with the current root pattern scope.
-        yield* this.tokenizeRecursionLayer(lCursor, this.mCurrentPatternScope, new Array<string>(), null, null);
+        yield* this.tokenizeRecursionLayer(lLexerStateObject, lLexerStateObject.scope, new Array<string>(), null, null);
     }
 
     /**
@@ -239,19 +242,19 @@ export class Lexer<TTokenType extends string> {
      * lexerParam.useTokenTemplate('myName');
      * ```
      */
-    public useTokenPattern(pTokenPattern: LexerPattern<TTokenType, LexerPatternType>): void {
+    public useRootTokenPattern(pTokenPattern: LexerPattern<TTokenType, LexerPatternType>): void {
         // Must be assigned to this pattern.
         if (pTokenPattern.lexer !== this) {
             throw new Exception('Token pattern must be created by this lexer.', this);
         }
 
         // Set template pattern to current pattern scope.
-        this.mCurrentPatternScope.addDependency(pTokenPattern);
+        this.mRootPatternScope.addDependency(pTokenPattern);
     }
 
     /**
      * Try to find valid token based on the provided token patter.
-     * When it find the token, it clears the cursor error and prepend those token into the result when it is not empty,
+     * When it find the token, it clears the error state and prepend those token into the result when it is not empty,
      * moves the cursor and returns.
      * 
      * The result is always empty then the current token and provided tokenpatten does not match.
@@ -259,28 +262,28 @@ export class Lexer<TTokenType extends string> {
      * @param pPattern - Current pattern to seach next match.
      * @param pTokenMatchDefinition - Match definition of current token. Can be single, end or start match defintion of token.
      * @param pTokenTypes - Types of pattern. Can be single, end or start types of token.
-     * @param pCursor - Current lexer token.
+     * @param pStateObject - Current lexer token.
      * @param pCurrentMetas - Current metas valid in recursion scope.
      * @param pForcedType - Forced token type. Overrides all types specified in {@link pTokenTypes}.
      * 
-     * @returns The found token based on {@link pPattern} and additionally the an error token when the cursor has errors stored. 
+     * @returns The found token based on {@link pPattern} and additionally the an error token when the lexer state has an error state. 
      */
-    private findNextToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pTokenTypes: LexerPatternTokenTypes<TTokenType>, pCursor: LexerCursor, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
+    private findNextToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pTokenTypes: LexerPatternTokenTypes<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
         // Set token regex and start matching at current cursor position.
         const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
-        lTokenRegex.lastIndex = pCursor.cursorPosition;
+        lTokenRegex.lastIndex = pStateObject.cursor.position;
 
         // Try to match pattern. Pattern is valid when matched from first character.
-        const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pCursor.data);
-        if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
+        const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pStateObject.data);
+        if (!lTokenStartMatch || lTokenStartMatch.index !== pStateObject.cursor.position) {
             return null;
         }
 
         // Generate single token, move cursor and yield.
-        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType, lTokenRegex);
+        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType, lTokenRegex);
 
         // Validate token with optional validator.
-        if (pTokenMatchDefinition.validator && !pTokenMatchDefinition.validator(lSingleToken, pCursor.data, pCursor.cursorPosition)) {
+        if (pTokenMatchDefinition.validator && !pTokenMatchDefinition.validator(lSingleToken, pStateObject.data, pStateObject.cursor.position)) {
             return null;
         }
 
@@ -332,21 +335,21 @@ export class Lexer<TTokenType extends string> {
      * Generate new error lexer token. When error data is available.
      * When not error data is available or no error token type is specified, null is returned.
      * 
-     * @param pCursor - Cursor object.
+     * @param pStateObject - Lexer state object.
      * 
      * @returns Error token when error data is available.  
      */
-    private generateErrorToken(pCursor: LexerCursor, pParentMetas: Array<string>): LexerToken<TTokenType> | null {
-        if (!pCursor.error || !this.mSettings.errorType) {
+    private generateErrorToken(pStateObject: LexerStateObject, pParentMetas: Array<string>): LexerToken<TTokenType> | null {
+        if (!pStateObject.error || !this.mSettings.errorType) {
             return null;
         }
 
         // Generate error token.
-        const lErrorToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(this.mSettings.errorType, pCursor.error.data, pCursor.error.startColumn, pCursor.error.startLine);
+        const lErrorToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(this.mSettings.errorType, pStateObject.error.data, pStateObject.error.startColumn, pStateObject.error.startLine);
         lErrorToken.addMeta(...pParentMetas);
 
-        // Reset error cursor.
-        pCursor.error = null;
+        // Reset error state.
+        pStateObject.error = null;
 
         return lErrorToken;
     }
@@ -354,22 +357,22 @@ export class Lexer<TTokenType extends string> {
     /**
      * Generate a token for a matched token.
      * 
-     * @param pCursor - Current cursor.
+     * @param pStateObject - Lexer state object.
      * @param pTokenPattern - Token pattern.
      * @param pTokenMatch - Match array of found token.
      * @param pAvailableTokenTypes - Match group to token mapping. 
      * @param pParentMetas - Metas of parent pattern.
      * @param pForcedType - Forced type of token.
      * 
-     * @returns A new generated token with the current cursor data.  
+     * @returns A new generated token.  
      */
-    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternTokenTypes<TTokenType>, pForcedType: TTokenType | null, pTargetRegex: RegExp): LexerToken<TTokenType> {
+    private generateToken(pStateObject: LexerStateObject, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternTokenTypes<TTokenType>, pForcedType: TTokenType | null, pTargetRegex: RegExp): LexerToken<TTokenType> {
         // Read token type of
         const lTokenValue: string = pTokenMatch[0];
         const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes, pTargetRegex);
 
         // Create single value token and append metas. Force token type when forced type is set.
-        const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lTokenType, lTokenValue, pCursor.currentColumn, pCursor.currentLine);
+        const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lTokenType, lTokenValue, pStateObject.cursor.column, pStateObject.cursor.line);
         lToken.addMeta(...pTokenMetas);
 
         return lToken;
@@ -378,36 +381,36 @@ export class Lexer<TTokenType extends string> {
     /**
      * Move cursor for the provided {@link pToken.value}.
      * 
-     * @param pCursor - Cursor object.
+     * @param pStateObject - Lexer state object.
      * @param pToken - Token.
      */
-    private moveCursor(pCursor: LexerCursor, pTokenValue: string): void {
+    private moveCursor(pStateObject: LexerStateObject, pTokenValue: string): void {
         // Move cursor.
         const lLines: Array<string> = pTokenValue.split('\n');
 
         // Reset column number when any newline was tokenized.
         if (lLines.length > 1) {
-            pCursor.currentColumn = 1;
+            pStateObject.cursor.column = 1;
         }
 
         // Step line and column number.
-        pCursor.currentLine += lLines.length - 1;
-        pCursor.currentColumn += lLines.at(-1)!.length;
+        pStateObject.cursor.line += lLines.length - 1;
+        pStateObject.cursor.column += lLines.at(-1)!.length;
 
         // Update untokenised text.
-        pCursor.cursorPosition += pTokenValue.length;
+        pStateObject.cursor.position += pTokenValue.length;
 
         // Track process.
-        this.trackProgress(pCursor);
+        this.trackProgress(pStateObject);
     }
 
     /**
-     * Move cursor forward one character when it is a white space character.
+     * Move cursor forward by the current character when it is a white space character.
      * 
-     * @param pCursor - Tokenize cursor.
+     * @param pStateObject - Tokenize state object.
      */
-    private skipNextWhitespace(pCursor: LexerCursor): boolean {
-        const lCharacter: string = pCursor.data.charAt(pCursor.cursorPosition);
+    private skipNextWhitespace(pStateObject: LexerStateObject): boolean {
+        const lCharacter: string = pStateObject.data.charAt(pStateObject.cursor.position);
 
         // Validate character if it can be skipped.
         if (!this.mSettings.trimSpaces || !this.mSettings.whiteSpaces.has(lCharacter)) {
@@ -415,18 +418,18 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Move cursor the length of the whitespace character.
-        this.moveCursor(pCursor, lCharacter);
+        this.moveCursor(pStateObject, lCharacter);
 
         return true;
     }
 
     /**
-     * Tokenize data present in {@link pCursor}.
+     * Tokenize data present in {@link pStateObject}.
      * Generation ends when all data is tokenized or the {@link pEndToken} has matched.
      * 
      * When an error token type is specified it skips all data that is not tokenizable and yield an error token instead.
      * 
-     * @param pCursor - Current lexer token.
+     * @param pStateObject - Current lexer token.
      * @param pPatternScope - All available token pattern for this recursion scope. It does not contains merged patter lists from previous recursions.
      * @param pParentMetas  - Metas from current recursion scope.
      * @param pForcedType - Forced token type. Overrides all types specified in all token pattern.
@@ -434,33 +437,33 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns Generator, generating all token till it reaches end of data.
      */
-    private * tokenizeRecursionLayer(pCursor: LexerCursor, pPatternScope: LexerPatternScope, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPattern<TTokenType, LexerPatternType> | null): Generator<LexerToken<TTokenType>> {
+    private * tokenizeRecursionLayer(pStateObject: LexerStateObject, pPatternScope: LexerPatternScope, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPattern<TTokenType, LexerPatternType> | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
         const lPatternScopeDefinitionList: Array<LexerPattern<TTokenType, LexerPatternType>> = pPatternScope.dependencies;
 
         // Tokenize until end.
-        remainingDataLoop: while (pCursor.cursorPosition < pCursor.data.length) {
-            // Skip whitespace but only when the current cursor has no buffered error.
-            if (!pCursor.error && this.skipNextWhitespace(pCursor)) {
+        remainingDataLoop: while (pStateObject.cursor.position < pStateObject.data.length) {
+            // Skip whitespace but only when the current lexer state has no buffered error.
+            if (!pStateObject.error && this.skipNextWhitespace(pStateObject)) {
                 continue;
             }
 
             // Check endtoken first.
             if (pEndToken && pEndToken.is('split')) {
-                // Get token start regex and set cursor position.
+                // Get token start regex.
                 const lEndTokenMatcher: LexerPatternTokenMatcher<TTokenType> = pEndToken.pattern.end;
 
                 // Use single token types or start token types for different pattern types.
                 const lTokenTypes: LexerPatternTokenTypes<TTokenType> = pEndToken.pattern.end.types;
 
                 // Try to find end token.
-                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(pEndToken, lEndTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(pEndToken, lEndTokenMatcher, lTokenTypes, pStateObject, pParentMetas, pForcedType);
                 if (lFoundToken !== null) {
                     // Move cursor when any validation has passed.
-                    this.moveCursor(pCursor, lFoundToken.value);
+                    this.moveCursor(pStateObject, lFoundToken.value);
 
                     // Yield error token when a next valid token was found.
-                    const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
+                    const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pStateObject, pParentMetas);
                     if (lErrorToken) {
                         yield lErrorToken;
                     }
@@ -476,7 +479,7 @@ export class Lexer<TTokenType extends string> {
             // Iterate available token pattern.
             let lBestFoundToken: { pattern: LexerPattern<TTokenType, LexerPatternType>, token: LexerToken<TTokenType>; } | null = null;
             for (const lTokenPattern of lPatternScopeDefinitionList) {
-                // Get token start regex and set cursor position and use single token types or start token types for different pattern types.
+                // Get token start regex and use single token types or start token types for different pattern types.
                 let lStartTokenMatcher!: LexerPatternTokenMatcher<TTokenType>;
                 let lTokenTypes!: LexerPatternTokenTypes<TTokenType>;
                 if (lTokenPattern.is('split')) {
@@ -488,7 +491,7 @@ export class Lexer<TTokenType extends string> {
                 }
 
                 // Try to find next token.
-                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(lTokenPattern, lStartTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(lTokenPattern, lStartTokenMatcher, lTokenTypes, pStateObject, pParentMetas, pForcedType);
                 if (lFoundToken === null) {
                     continue;
                 }
@@ -508,10 +511,10 @@ export class Lexer<TTokenType extends string> {
                 const lTokenPattern: LexerPattern<TTokenType, LexerPatternType> = lBestFoundToken.pattern;
 
                 // Move cursor when any validation has passed.
-                this.moveCursor(pCursor, lFoundToken.value);
+                this.moveCursor(pStateObject, lFoundToken.value);
 
                 // Yield error token when a next valid token was found.
-                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
+                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pStateObject, pParentMetas);
                 if (lErrorToken) {
                     yield lErrorToken;
                 }
@@ -527,18 +530,18 @@ export class Lexer<TTokenType extends string> {
                 // Execute unresolved inner dependency imports before using it.
                 if (!lTokenPattern.dependenciesResolved) {
                     // Buffer last scope and set created pattern as current scope.
-                    const lLastPatternScope: LexerPatternScope | null = this.mCurrentPatternScope;
-                    this.mCurrentPatternScope = lTokenPattern;
+                    const lLastPatternScope: LexerPatternScope | null = this.mRootPatternScope;
+                    this.mRootPatternScope = lTokenPattern;
 
                     // Execute inner pattern fetches.
                     lTokenPattern.resolveDependencies();
 
                     // Reset scope to last used scope.
-                    this.mCurrentPatternScope = lLastPatternScope;
+                    this.mRootPatternScope = lLastPatternScope;
                 }
 
                 // Yield every inner pattern token.
-                yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
+                yield* this.tokenizeRecursionLayer(pStateObject, lTokenPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
 
                 // Continue next token.
                 continue remainingDataLoop;
@@ -547,28 +550,28 @@ export class Lexer<TTokenType extends string> {
             // Throw a parser error when error ignoring is off.
             if (!this.mSettings.errorType) {
                 // Throw error with next twenty chars as example data.
-                throw new LexerException(`Unable to parse next token. No valid pattern found for "${pCursor.data.substring(pCursor.cursorPosition, pCursor.cursorPosition + 20)}".`, this, pCursor.currentColumn, pCursor.currentLine, pCursor.currentColumn, pCursor.currentLine);
+                throw new LexerException(`Unable to parse next token. No valid pattern found for "${pStateObject.data.substring(pStateObject.cursor.position, pStateObject.cursor.position + 20)}".`, this, pStateObject.cursor.column, pStateObject.cursor.line, pStateObject.cursor.column, pStateObject.cursor.line);
             }
 
-            // Init new error cursor when no error cursor exists.
-            if (!pCursor.error) {
-                pCursor.error = {
+            // Init new error state when no error state exists.
+            if (!pStateObject.error) {
+                pStateObject.error = {
                     data: '',
-                    startColumn: pCursor.currentColumn,
-                    startLine: pCursor.currentLine
+                    startColumn: pStateObject.cursor.column,
+                    startLine: pStateObject.cursor.line
                 };
             }
 
-            // Apppend error character to error cursor.
-            const lErrorChar: string = pCursor.data.charAt(pCursor.cursorPosition);
-            pCursor.error.data += lErrorChar;
+            // Apppend error character to error state.
+            const lErrorChar: string = pStateObject.data.charAt(pStateObject.cursor.position);
+            pStateObject.error.data += lErrorChar;
 
             // Move cursor position by the error character.
-            this.moveCursor(pCursor, lErrorChar);
+            this.moveCursor(pStateObject, lErrorChar);
         }
 
         // Yield error token when a next valid token was found.
-        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
+        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pStateObject, pParentMetas);
         if (lErrorToken) {
             yield lErrorToken;
         }
@@ -580,15 +583,14 @@ export class Lexer<TTokenType extends string> {
      * @param pPosition - The current position in the input.
      * @param pLine - The current line number in the input.
      * @param pColumn - The current column number in the input.
-     * @returns void
      */
-    private trackProgress(pCursor: LexerCursor): void {
-        if (pCursor.processTracker === null) {
+    private trackProgress(pStateObject: LexerStateObject): void {
+        if (pStateObject.processTracker === null) {
             return;
         }
 
         // Call progress tracker.
-        pCursor.processTracker(pCursor.cursorPosition, pCursor.currentLine, pCursor.currentColumn);
+        pStateObject.processTracker(pStateObject.cursor.position, pStateObject.cursor.line, pStateObject.cursor.column);
     }
 }
 
@@ -635,16 +637,19 @@ type LexerPatternScope = {
     addDependency: (pPattern: LexerPattern<any, any>) => void;
 };
 
-type LexerCursor = {
+type LexerStateObject = {
     data: string;
-    cursorPosition: number;
-    currentColumn: number;
-    currentLine: number;
+    cursor: {
+        position: number;
+        column: number;
+        line: number;
+    },
     error: null | {
         data: string;
         startColumn: number;
         startLine: number;
     };
+    scope: LexerPatternScope;
     processTracker: LexerPatternProgressTracker | null;
 };
 

@@ -22,13 +22,13 @@ describe('CodeParser', () => {
         const lLexer = new Lexer<TokenType>();
 
         // Add token patterns
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /const/, type: TokenType.Modifier } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /=/, type: TokenType.Assignment } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /:/, type: TokenType.TypeDelimiter } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /;/, type: TokenType.Semicolon } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[0-9]+/, type: TokenType.Number } }));
-        lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /".*?"/, type: TokenType.String } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /const/, type: TokenType.Modifier } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /=/, type: TokenType.Assignment } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /:/, type: TokenType.TypeDelimiter } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /;/, type: TokenType.Semicolon } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[0-9]+/, type: TokenType.Number } }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /".*?"/, type: TokenType.String } }));
 
         // Configure whitespace handling
         lLexer.validWhitespaces = ' \n\t\r';
@@ -562,7 +562,7 @@ describe('CodeParser', () => {
                             }
                         }
                     }, () => {
-                        lLexer.useTokenPattern(lIdentifier);
+                        lLexer.useRootTokenPattern(lIdentifier);
                     });
                     const lClosingBracket = lLexer.createTokenPattern({
                         pattern: {
@@ -576,13 +576,13 @@ describe('CodeParser', () => {
                             }
                         }
                     }, () => {
-                        lLexer.useTokenPattern(lIdentifier);
-                        lLexer.useTokenPattern(lExplicitValue);
+                        lLexer.useRootTokenPattern(lIdentifier);
+                        lLexer.useRootTokenPattern(lExplicitValue);
                     });
-                    lLexer.useTokenPattern(lOpeningBracket);
-                    lLexer.useTokenPattern(lClosingBracket);
-                    lLexer.useTokenPattern(lExplicitValue);
-                    lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[^<>"]+/, type: 'VALUE' } }));
+                    lLexer.useRootTokenPattern(lOpeningBracket);
+                    lLexer.useRootTokenPattern(lClosingBracket);
+                    lLexer.useRootTokenPattern(lExplicitValue);
+                    lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[^<>"]+/, type: 'VALUE' } }));
                 }
 
                 // Setup. Graphs.
@@ -795,10 +795,10 @@ describe('CodeParser', () => {
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /@/, type: '@' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /a/, type: 'a' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /;/, type: ';' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /1/, type: '1' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /@/, type: '@' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /a/, type: 'a' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /;/, type: ';' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /1/, type: '1' } }));
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -819,8 +819,8 @@ describe('CodeParser', () => {
                 const lLexer = new Lexer<TokenType>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: TokenType.Identifier } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: TokenType.Custom } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: TokenType.Identifier } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: TokenType.Custom } }));
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
@@ -875,8 +875,8 @@ describe('CodeParser', () => {
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' } }));
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
@@ -931,8 +931,8 @@ describe('CodeParser', () => {
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' } }));
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
@@ -1417,8 +1417,8 @@ describe('CodeParser', () => {
                 const lLexer: Lexer<TokenType> = new Lexer<TokenType>();
                 lLexer.validWhitespaces = ' \n\t\r';
                 lLexer.trimWhitespace = true;
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
 
                 // Setup. Parser.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);
@@ -1447,8 +1447,8 @@ describe('CodeParser', () => {
                 const lLexer: Lexer<TokenType> = new Lexer<TokenType>();
                 lLexer.validWhitespaces = ' \n\t\r';
                 lLexer.trimWhitespace = true;
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
-                lLexer.useTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom } }));
+                lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier } }));
 
                 // Setup. Parser.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lLexer);

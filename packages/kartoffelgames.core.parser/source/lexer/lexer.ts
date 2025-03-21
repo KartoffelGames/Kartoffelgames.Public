@@ -197,7 +197,7 @@ export class Lexer<TTokenType extends string> {
      * @throws 
      * On any text part that can not be tokeniszd.
      */
-    public * tokenize(pText: string, pProgressTracker?: LexerPatternProgressTracker): Generator<LexerToken<TTokenType>> {
+    public * tokenize(pText: string, pProgressTracker?: LexerProgressTracker): Generator<LexerToken<TTokenType>> {
         // Create a new local lexer state object.
         const lLexerStateObject: LexerStateObject = {
             data: pText,
@@ -588,7 +588,7 @@ export class Lexer<TTokenType extends string> {
  * Lexer debug.
  */
 
-export type LexerPatternProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
+export type LexerProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
 
 /*
  * Lexer build pattern.
@@ -634,7 +634,7 @@ type LexerStateObject = {
         startColumn: number;
         startLine: number;
     };
-    progressTracker: LexerPatternProgressTracker | null;
+    progressTracker: LexerProgressTracker | null;
 };
 
 type LexerSettings<TTokenType> = {

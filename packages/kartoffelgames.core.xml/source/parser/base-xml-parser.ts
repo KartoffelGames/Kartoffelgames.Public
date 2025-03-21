@@ -1,5 +1,5 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import { CodeParser, Graph, GraphNode, Lexer } from '@kartoffelgames/core-parser';
+import { CodeParser, CodeParserProgressTracker, Graph, GraphNode, Lexer } from '@kartoffelgames/core-parser';
 import { XmlDocument } from '../document/xml-document.ts';
 import type { BaseXmlNode } from '../node/base-xml-node.ts';
 import { CommentNode } from '../node/comment-node.ts';
@@ -75,7 +75,7 @@ export abstract class BaseXmlParser {
      * 
      * @returns a new XmlDocument 
      */
-    public parse(pText: string): XmlDocument {
+    public parse(pText: string, pProgressTracker?: XmlparserProgressTracker): XmlDocument {
         // Empty result when not content is set.
         if (pText.trim() === '') {
             return new XmlDocument(this.getDefaultNamespace());
@@ -89,7 +89,21 @@ export abstract class BaseXmlParser {
             this.mRebuildParser = false;
         }
 
-        return this.mParser.parse(pText);
+        // Create a custom progress tracker.
+        let lCodeParserProgressTracker: CodeParserProgressTracker | undefined;
+        if (pProgressTracker) {
+            // Create a code parser progress tracker wrapper.
+            const lTextLength: number = pText.length;
+            lCodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => {
+                // Calculate percentage.
+                const lPercent: number = Math.round((pPosition / lTextLength) * 100);
+
+                // Execute custom progress tracker.
+                pProgressTracker(pPosition, pLine, pColumn, lPercent);
+            };
+        }
+
+        return this.mParser.parse(pText, lCodeParserProgressTracker);
     }
 
     /**
@@ -353,6 +367,8 @@ export abstract class BaseXmlParser {
      */
     protected abstract getXmlElementConstructor(): IVoidParameterConstructor<XmlElement>;
 }
+
+type XmlparserProgressTracker = (pPosition: number, pLine: number, pColumn: number, pPercent: number) => void;
 
 /**
  * Xml parser config for xml names.

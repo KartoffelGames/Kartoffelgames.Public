@@ -6,6 +6,9 @@ const gFile: string = new TextDecoder("utf-8").decode(Deno.readFileSync(import.m
 //const gFile: string = new TextDecoder("utf-8").decode(Deno.readFileSync(import.meta.dirname + "/large-dataset.xml"));
 
 const lXmlParser = new XmlParser();
+//const lResult = lXmlParser.parse(gFile, (pPosition: number, pLine: number, pColumn: number, pPercent: number) => {
+//    console.log(pPercent.toFixed(2).padStart(5, ' '), pPosition)
+//});
 const lResult = lXmlParser.parse(gFile);
 
 console.log(lResult)

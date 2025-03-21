@@ -529,15 +529,8 @@ export class Lexer<TTokenType extends string> {
 
                 // Execute unresolved inner dependency imports before using it.
                 if (!lTokenPattern.dependenciesResolved) {
-                    // Buffer last scope and set created pattern as current scope.
-                    const lLastPatternScope: LexerPatternScope | null = this.mRootPatternScope;
-                    this.mRootPatternScope = lTokenPattern;
-
                     // Execute inner pattern fetches.
                     lTokenPattern.resolveDependencies();
-
-                    // Reset scope to last used scope.
-                    this.mRootPatternScope = lLastPatternScope;
                 }
 
                 // Yield every inner pattern token.

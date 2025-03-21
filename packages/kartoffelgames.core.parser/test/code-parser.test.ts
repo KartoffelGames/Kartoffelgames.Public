@@ -561,8 +561,8 @@ describe('CodeParser', () => {
                                 type: 'CLOSEBRACKET'
                             }
                         }
-                    }, () => {
-                        lLexer.useRootTokenPattern(lIdentifier);
+                    }, (pPattern) => {
+                        pPattern.addDependency(lIdentifier);
                     });
                     const lClosingBracket = lLexer.createTokenPattern({
                         pattern: {
@@ -575,9 +575,9 @@ describe('CodeParser', () => {
                                 type: 'CLOSEBRACKET'
                             }
                         }
-                    }, () => {
-                        lLexer.useRootTokenPattern(lIdentifier);
-                        lLexer.useRootTokenPattern(lExplicitValue);
+                    }, (pPattern) => {
+                        pPattern.addDependency(lIdentifier);
+                        pPattern.addDependency(lExplicitValue);
                     });
                     lLexer.useRootTokenPattern(lOpeningBracket);
                     lLexer.useRootTokenPattern(lClosingBracket);

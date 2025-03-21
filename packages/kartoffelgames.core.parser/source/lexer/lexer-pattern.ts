@@ -83,19 +83,6 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
     }
 
     /**
-     * Add a dependency to the lexer token pattern.
-     * 
-     * @param pPattern - Lexer token pattern.
-     */
-    public addDependency(pPattern: LexerPattern<TTokenType, LexerPatternType>): void {
-        if (this.mLexer !== pPattern.lexer) {
-            throw new Exception(`Can only add dependencies of the same lexer.`, this);
-        }
-
-        this.mPatternDependencies.push(pPattern);
-    }
-
-    /**
      * Determines if the current lexer pattern is of type 'split'.
      *
      * @returns {boolean} True if the lexer pattern type is 'split', otherwise false.
@@ -116,6 +103,19 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
 
         this.mDependencyFetch!(this);
         this.mDependencyFetchResolved = true;
+    }
+
+    /**
+     * User a lexer pattern as child pattern.
+     * 
+     * @param pPattern - Lexer token pattern.
+     */
+    public useChildPattern(pPattern: LexerPattern<TTokenType, LexerPatternType>): void {
+        if (this.mLexer !== pPattern.lexer) {
+            throw new Exception(`Can only add dependencies of the same lexer.`, this);
+        }
+
+        this.mPatternDependencies.push(pPattern);
     }
 
     /**

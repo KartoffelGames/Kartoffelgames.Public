@@ -36,7 +36,7 @@ describe('Lexer', () => {
             },
             meta: [TestTokenMetas.Braket, TestTokenMetas.List]
         }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
-            pPattern.addDependency(lWordPattern);
+            pPattern.useChildPattern(lWordPattern);
         });
 
 
@@ -409,8 +409,8 @@ describe('Lexer', () => {
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
             }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
-                pPattern.addDependency(lBraketPattern);
-                pPattern.addDependency(lValuePattern);
+                pPattern.useChildPattern(lBraketPattern);
+                pPattern.useChildPattern(lValuePattern);
             });
             lLexer.useRootTokenPattern(lBraketPattern);
 
@@ -436,8 +436,8 @@ describe('Lexer', () => {
                     end: { regex: /\)/, type: TestTokenType.Braket }
                 },
             }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
-                pPattern.addDependency(lBraketPattern);
-                pPattern.addDependency(lValuePattern);
+                pPattern.useChildPattern(lBraketPattern);
+                pPattern.useChildPattern(lValuePattern);
             });
             lLexer.useRootTokenPattern(lBraketPattern);
 
@@ -465,8 +465,8 @@ describe('Lexer', () => {
                     end: { regex: /\)/, type: TestTokenType.Word }
                 },
             }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
-                pPattern.addDependency(lBraketTwoPattern);
-                pPattern.addDependency(lValuePattern);
+                pPattern.useChildPattern(lBraketTwoPattern);
+                pPattern.useChildPattern(lValuePattern);
             });
             const lBraketTwoPattern = lLexer.createTokenPattern({
                 pattern: {
@@ -474,8 +474,8 @@ describe('Lexer', () => {
                     end: { regex: /\]/, type: TestTokenType.Braket }
                 },
             }, (pPattern: LexerPattern<TestTokenType, LexerPatternType>) => {
-                pPattern.addDependency(lBraketOnePattern);
-                pPattern.addDependency(lValuePattern);
+                pPattern.useChildPattern(lBraketOnePattern);
+                pPattern.useChildPattern(lValuePattern);
             });
             lLexer.useRootTokenPattern(lBraketOnePattern);
 

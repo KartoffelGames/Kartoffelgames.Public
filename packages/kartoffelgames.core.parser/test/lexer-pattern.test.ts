@@ -156,8 +156,8 @@ describe('LexerPattern', () => {
                     innerType: null
                 },
                 dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
-                    pPattern.addDependency(lPatternOne);
-                    pPattern.addDependency(lPatternTwo);
+                    pPattern.useChildPattern(lPatternOne);
+                    pPattern.useChildPattern(lPatternTwo);
                 },
             };
             const lPattern = new LexerPattern(lLexer, lPatternParam);
@@ -185,7 +185,7 @@ describe('LexerPattern', () => {
                     innerType: null
                 },
                 dependencyFetch: (pPattern: LexerPattern<string, LexerPatternType>) => {
-                    pPattern.addDependency(lPatternOne);
+                    pPattern.useChildPattern(lPatternOne);
                 },
             };
             const lPattern = new LexerPattern(lLexer, lPatternParam);
@@ -217,8 +217,8 @@ describe('LexerPattern', () => {
         });
 
         // Process.
-        lMainPattern.addDependency(lPatternOne);
-        lMainPattern.addDependency(lPatternTwo);
+        lMainPattern.useChildPattern(lPatternOne);
+        lMainPattern.useChildPattern(lPatternTwo);
 
         // Evaluation
         expect(lMainPattern.dependencies).toEqual([lPatternOne, lPatternTwo]);

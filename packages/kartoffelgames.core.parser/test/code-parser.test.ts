@@ -562,7 +562,7 @@ describe('CodeParser', () => {
                             }
                         }
                     }, (pPattern) => {
-                        pPattern.addDependency(lIdentifier);
+                        pPattern.useChildPattern(lIdentifier);
                     });
                     const lClosingBracket = lLexer.createTokenPattern({
                         pattern: {
@@ -576,8 +576,8 @@ describe('CodeParser', () => {
                             }
                         }
                     }, (pPattern) => {
-                        pPattern.addDependency(lIdentifier);
-                        pPattern.addDependency(lExplicitValue);
+                        pPattern.useChildPattern(lIdentifier);
+                        pPattern.useChildPattern(lExplicitValue);
                     });
                     lLexer.useRootTokenPattern(lOpeningBracket);
                     lLexer.useRootTokenPattern(lClosingBracket);

@@ -96,7 +96,7 @@ export abstract class BaseXmlParser {
             const lTextLength: number = pText.length;
             lCodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => {
                 // Calculate percentage.
-                const lPercent: number = Math.round((pPosition / lTextLength) * 100);
+                const lPercent: number = (pPosition / lTextLength) * 100;
 
                 // Execute custom progress tracker.
                 pProgressTracker(pPosition, pLine, pColumn, lPercent);

@@ -138,10 +138,9 @@ export class Lexer<TTokenType extends string> {
         const lConvertRegex = (pRegex: RegExp): RegExp => {
             // Create flag set and add sticky. Set removes all dublicate flags.
             const lFlags: Set<string> = new Set(pRegex.flags.split(''));
-            lFlags.add('g');
 
             // Create pattern with same flags and added default group.
-            return new RegExp(`(?<token>${pRegex.source})`, [...lFlags].join(''));
+            return new RegExp(`^(?<token>${pRegex.source})`, [...lFlags].join(''));
         };
 
         // Create metas.
@@ -274,20 +273,26 @@ export class Lexer<TTokenType extends string> {
     private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
         // Set token regex and start matching at current cursor position.
         const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
-        lTokenRegex.lastIndex = pStateObject.cursor.position;
+        lTokenRegex.lastIndex = 0;
 
         // Try to match pattern. Pattern is valid when matched from first character.
         const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pStateObject.data);
-        if (!lTokenStartMatch || lTokenStartMatch.index !== pStateObject.cursor.position) {
+        if (!lTokenStartMatch || lTokenStartMatch.index !== 0) {
             return null;
         }
 
         // Generate single token, move cursor and yield.
         const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenMatchDefinition.types, pForcedType, lTokenRegex);
 
-        // Validate token with optional validator.
-        if (pTokenMatchDefinition.validator && !pTokenMatchDefinition.validator(lSingleToken, pStateObject.data, pStateObject.cursor.position)) {
-            return null;
+        // Process token validation only when set.
+        if (pTokenMatchDefinition.validator) {
+            // Get following text after token.
+            const lFollowingText: string = pStateObject.data.substring(lSingleToken.value.length);
+
+            // Validate token.
+            if (!pTokenMatchDefinition.validator(lSingleToken, lFollowingText, pStateObject.cursor.position)) {
+                return null;
+            }
         }
 
         // Move cursor when any validation has passed.
@@ -333,8 +338,14 @@ export class Lexer<TTokenType extends string> {
             }
         }
 
+        // Collect valid type groups.
+        const lTypeGroupList: Array<string> = new Array<string>();
+        for (const lGroupName in pTypes) {
+            lTypeGroupList.push(lGroupName);
+        }
+
         // No group that matched a token type was found.
-        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Regex: "${pTargetRegex.source}"`, this);
+        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Available: "${lTypeGroupList.join(', ')}", Regex: "${pTargetRegex.source}"`, this);
     }
 
     /**
@@ -407,6 +418,9 @@ export class Lexer<TTokenType extends string> {
         // Update untokenised text.
         pStateObject.cursor.position += pTokenValue.length;
 
+        // Cut off tokenized text.
+        pStateObject.data = pStateObject.data.substring(pTokenValue.length);
+
         // Track progress.
         this.trackProgress(pStateObject);
     }
@@ -417,7 +431,7 @@ export class Lexer<TTokenType extends string> {
      * @param pStateObject - Tokenize state object.
      */
     private skipNextWhitespace(pStateObject: LexerStateObject): boolean {
-        const lCharacter: string = pStateObject.data.charAt(pStateObject.cursor.position);
+        const lCharacter: string = pStateObject.data.charAt(0);
 
         // Validate character if it can be skipped.
         if (!this.mSettings.trimSpaces || !this.mSettings.whiteSpaces.has(lCharacter)) {
@@ -449,7 +463,7 @@ export class Lexer<TTokenType extends string> {
         const lPatternScopeDefinitionList: Array<LexerPattern<TTokenType, LexerPatternType>> = pPatternScope.dependencies;
 
         // Tokenize until end.
-        while (pStateObject.cursor.position < pStateObject.data.length) {
+        while (pStateObject.data.length > 0) {
             // Skip whitespace but only when the current lexer state has no buffered error.
             if (!pStateObject.error && this.skipNextWhitespace(pStateObject)) {
                 continue;
@@ -517,7 +531,7 @@ export class Lexer<TTokenType extends string> {
         // Throw a parser error when error ignoring is off.
         if (!this.mSettings.errorType) {
             // Throw error with next twenty chars as example data.
-            throw new LexerException(`Unable to parse next token. No valid pattern found for "${pStateObject.data.substring(pStateObject.cursor.position, pStateObject.cursor.position + 20)}".`, this, pStateObject.cursor.column, pStateObject.cursor.line, pStateObject.cursor.column, pStateObject.cursor.line);
+            throw new LexerException(`Unable to parse next token. No valid pattern found for "${pStateObject.data.substring(0, 20)}".`, this, pStateObject.cursor.column, pStateObject.cursor.line, pStateObject.cursor.column, pStateObject.cursor.line);
         }
 
         // Init new error state when no error state exists.
@@ -530,7 +544,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Apppend error character to error state.
-        const lErrorChar: string = pStateObject.data.charAt(pStateObject.cursor.position);
+        const lErrorChar: string = pStateObject.data.charAt(0);
         pStateObject.error.data += lErrorChar;
 
         // Move cursor position by the error character.

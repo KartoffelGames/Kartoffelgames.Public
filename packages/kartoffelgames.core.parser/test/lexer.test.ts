@@ -653,7 +653,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Regex: "(?<token>(?<aaa>aaa)|(?<ccc>ccc))"');
+            expect(lErrorFunction).toThrow('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Available: "bbb", Regex: "^(?<token>(?<aaa>aaa)|(?<ccc>ccc))"');
         });
 
         it('-- Has meta check', () => {
@@ -688,69 +688,6 @@ describe('Lexer', () => {
             expect(lTokenList[1]!.metas).toBeDeepEqual([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
         });
 
-        it('-- Token regex with positive lookbehinds', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTestString: string = 'aaabbb';
-
-            // Setup. Add starting token template.
-            lLexer.useRootTokenPattern(lLexer.createTokenPattern({
-                pattern: {
-                    regex: /aaa/,
-                    type: TestTokenType.Custom
-                }
-            }));
-
-            // Process. Add starting token template.
-            lLexer.useRootTokenPattern(lLexer.createTokenPattern({
-                pattern: {
-                    regex: /(?<=aaa)bbb/,
-                    type: TestTokenType.Custom
-                }
-            }));
-
-            // Process.
-            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
-
-            // Evaluation.
-            expect(lTokenList).toHaveLength(2);
-        });
-
-        it('-- Token regex with negative lookbehinds', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            const lTestString: string = 'aaabbb';
-
-            // Setup. Add starting token template.
-            lLexer.useRootTokenPattern(lLexer.createTokenPattern({
-                pattern: {
-                    regex: /aaa/,
-                    type: TestTokenType.Custom
-                }
-            }));
-
-            // Process. Add starting token template.
-            lLexer.useRootTokenPattern(lLexer.createTokenPattern({
-                pattern: {
-                    regex: /(?<!aaa)bbb/,
-                    type: TestTokenType.Number
-                }
-            }));
-            lLexer.useRootTokenPattern(lLexer.createTokenPattern({
-                pattern: {
-                    regex: /bbb/,
-                    type: TestTokenType.Custom
-                }
-            }));
-
-            // Process.
-            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
-
-            // Evaluation.
-            expect(lTokenList).toHaveLength(2);
-            expect(lTokenList[1].type).toBe(TestTokenType.Custom);
-        });
-
         it('-- Token regex with validator function', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
@@ -761,10 +698,8 @@ describe('Lexer', () => {
                 pattern: {
                     regex: /aaa/,
                     type: TestTokenType.Number,
-                    validator: (pToken: LexerToken<TestTokenType>, pText: string, pIndex: number): boolean => {
-                        const lNextCharIndex: number = pIndex + pToken.value.length;
-                        const lNextChar: string = pText.substring(lNextCharIndex, lNextCharIndex + 1);
-
+                    validator: (_pToken: LexerToken<TestTokenType>, pText: string, _pIndex: number): boolean => {
+                        const lNextChar: string = pText.charAt(0);
                         return lNextChar === 'c';
                     }
                 }

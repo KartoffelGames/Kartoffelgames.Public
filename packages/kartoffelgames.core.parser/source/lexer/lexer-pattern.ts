@@ -175,7 +175,7 @@ export type LexerPatternType = 'split' | 'single';
  * Functions and callbacks
  */
 export type LexerPatternDependencyFetch<TTokenType extends string, TPatternType extends LexerPatternType> = (pLexerToken: LexerPattern<TTokenType, TPatternType>) => void;
-export type LexerPatternTokenValidator<TTokenType extends string> = (pToken: LexerToken<TTokenType>, pText: string, pIndex: number) => boolean;
+export type LexerPatternTokenValidator<TTokenType extends string> = (pToken: LexerToken<TTokenType>, pFollowingText: string, pIndex: number) => boolean;
 
 /*
  * External pattern constructor parameter.

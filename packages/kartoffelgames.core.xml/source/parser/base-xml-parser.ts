@@ -69,11 +69,14 @@ export abstract class BaseXmlParser {
         this.mParser = null;
     }
 
+    
     /**
+     * Parses the given XML text and returns an XmlDocument.
      * 
-     * @param pText - Xml based code compatible to this parser.
+     * @param pText - The XML text to parse.
+     * @param pProgressTracker - Optional progress tracker callback that receives the current position, line, column, and percentage of parsing completion.
      * 
-     * @returns a new XmlDocument 
+     * @returns An XmlDocument representing the parsed XML.
      */
     public parse(pText: string, pProgressTracker?: XmlparserProgressTracker): XmlDocument {
         // Empty result when not content is set.
@@ -81,6 +84,7 @@ export abstract class BaseXmlParser {
             return new XmlDocument(this.getDefaultNamespace());
         }
 
+        // Create parser if not exists or a rebuild is requested.
         if (this.mRebuildParser || !this.mParser) {
             const lLexer: Lexer<XmlToken> = this.createLexer();
             this.mParser = this.createParser(lLexer);

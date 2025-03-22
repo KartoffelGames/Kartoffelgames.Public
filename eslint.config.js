@@ -260,10 +260,18 @@ export default typescriptlint.config(
                 {
                     "selector": "classProperty",
                     "format": ["UPPER_CASE"],
-                    "modifiers": ["static", "readonly"],
-                    "types": ["boolean", "string", "number"]
+                    "modifiers": ["public", "static", "readonly"]
                 },
-
+                {
+                    "selector": "classProperty",
+                    "format": ["UPPER_CASE"],
+                    "modifiers": ["static", "readonly"],
+                    "filter": {
+                        "regex": "^[A-Z_]",
+                        "match": true
+                    }
+                },
+            
                 // Class accessors and methods
                 {
                     "selector": ["accessor", "classMethod"],

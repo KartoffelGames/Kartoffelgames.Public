@@ -1,5 +1,5 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import { CodeParser, CodeParserProgressTracker, Graph, GraphNode, Lexer } from '@kartoffelgames/core-parser';
+import { CodeParser, type CodeParserProgressTracker, Graph, GraphNode, Lexer } from '@kartoffelgames/core-parser';
 import { XmlDocument } from '../document/xml-document.ts';
 import type { BaseXmlNode } from '../node/base-xml-node.ts';
 import { CommentNode } from '../node/comment-node.ts';

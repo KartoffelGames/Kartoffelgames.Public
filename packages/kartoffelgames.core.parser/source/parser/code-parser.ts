@@ -17,11 +17,11 @@ import type { Graph } from './graph/graph.ts';
  * @typeparam TParseResult - The result object the parser returns on success.
  */
 export class CodeParser<TTokenType extends string, TParseResult> {
+    private mDebugMode: boolean;
     private readonly mLexer: Lexer<TTokenType>;
     private mMaxRecursion: number;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
-    private mDebugMode: boolean;
-
+    
     /**
      * Get debug mode.
      */

@@ -255,50 +255,35 @@ export class Lexer<TTokenType extends string> {
     }
 
     /**
-     * Try to find valid token based on the provided token matcher.
-     * When it find the token, it clears the error state and prepend those token into the result when it is not empty,
-     * moves the cursor and returns.
-     * 
-     * The result is always empty then the current token and provided tokenpatten does not match.
-     * 
-     * @param pPattern - Pattern of token matcher.
-     * @param pTokenMatchDefinition - Match definition of current token. Can be single, end or start match defintion of token.
-     * @param pTokenTypes - Types of pattern. Can be single, end or start types of token.
-     * @param pStateObject - Current lexer token.
-     * @param pCurrentMetas - Current metas valid in recursion scope.
-     * @param pForcedType - Forced token type. Overrides all types specified in {@link pTokenTypes}.
-     * 
-     * @returns The found token based on {@link pPattern} and additionally the an error token when the lexer state has an error state. 
+     * Tries to match the next token with the pattern start tokem matcher returns the best match.
+     *
+     * @template TTokenType - The type of the token.
+     * @param pStateObject - The current state of the lexer.
+     * @param pPattern - An array of lexer patterns to match against.
+     * @param pParentMetas - An array of parent metadata strings.
+     * @param pForcedType - A forced token type, or null if not forced.
+     * @returns The best matching token pattern start match, or null if no match is found.
      */
-    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
-        // Set token regex and start matching at current cursor position.
-        const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
-        lTokenRegex.lastIndex = 0;
+    private findNextStartToken(pStateObject: LexerStateObject, pPattern: Array<LexerPattern<TTokenType, LexerPatternType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): LexerPatternStartMatch<TTokenType> | null {
+        // Iterate available token pattern.
+        for (const lTokenPattern of pPattern) {
+            // Get token start regex and use single token types or start token types for different pattern types.
+            const lTokenMatcher: LexerPatternTokenMatcher<TTokenType> = lTokenPattern.pattern.start;
 
-        // Try to match pattern. Pattern is valid when matched from first character.
-        const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pStateObject.data);
-        if (!lTokenStartMatch || lTokenStartMatch.index !== 0) {
-            return null;
-        }
-
-        // Generate single token, move cursor and yield.
-        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenMatchDefinition.types, pForcedType, lTokenRegex);
-
-        // Process token validation only when set.
-        if (pTokenMatchDefinition.validator) {
-            // Get following text after token.
-            const lFollowingText: string = pStateObject.data.substring(lSingleToken.value.length);
-
-            // Validate token.
-            if (!pTokenMatchDefinition.validator(lSingleToken, lFollowingText, pStateObject.cursor.position)) {
-                return null;
+            // Try to find next token.
+            const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenPattern, lTokenMatcher, pStateObject, pParentMetas, pForcedType);
+            if (lFoundToken === null) {
+                continue;
             }
+
+            // Return found token.
+            return {
+                pattern: lTokenPattern,
+                token: lFoundToken
+            };
         }
 
-        // Move cursor when any validation has passed.
-        this.moveCursor(pStateObject, lSingleToken.value);
-
-        return lSingleToken;
+        return null;
     }
 
     /**
@@ -397,6 +382,53 @@ export class Lexer<TTokenType extends string> {
     }
 
     /**
+     * Try to find valid token based on the provided token matcher.
+     * When it find the token, it clears the error state and prepend those token into the result when it is not empty,
+     * moves the cursor and returns.
+     * 
+     * The result is always empty then the current token and provided tokenpatten does not match.
+     * 
+     * @param pPattern - Pattern of token matcher.
+     * @param pTokenMatchDefinition - Match definition of current token. Can be single, end or start match defintion of token.
+     * @param pTokenTypes - Types of pattern. Can be single, end or start types of token.
+     * @param pStateObject - Current lexer token.
+     * @param pCurrentMetas - Current metas valid in recursion scope.
+     * @param pForcedType - Forced token type. Overrides all types specified in {@link pTokenTypes}.
+     * 
+     * @returns The found token based on {@link pPattern} and additionally the an error token when the lexer state has an error state. 
+     */
+    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
+        // Set token regex and start matching at current cursor position.
+        const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
+        lTokenRegex.lastIndex = 0;
+
+        // Try to match pattern. Pattern is valid when matched from first character.
+        const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pStateObject.data);
+        if (!lTokenStartMatch || lTokenStartMatch.index !== 0) {
+            return null;
+        }
+
+        // Generate single token, move cursor and yield.
+        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenMatchDefinition.types, pForcedType, lTokenRegex);
+
+        // Process token validation only when set.
+        if (pTokenMatchDefinition.validator) {
+            // Get following text after token.
+            const lFollowingText: string = pStateObject.data.substring(lSingleToken.value.length);
+
+            // Validate token.
+            if (!pTokenMatchDefinition.validator(lSingleToken, lFollowingText, pStateObject.cursor.position)) {
+                return null;
+            }
+        }
+
+        // Move cursor when any validation has passed.
+        this.moveCursor(pStateObject, lSingleToken.value);
+
+        return lSingleToken;
+    }
+
+    /**
      * Move cursor for the provided {@link pToken.value}.
      * 
      * @param pStateObject - Lexer state object.
@@ -423,6 +455,41 @@ export class Lexer<TTokenType extends string> {
 
         // Track progress.
         this.trackProgress(pStateObject);
+    }
+
+    /**
+     * Pushes the next single character to the error state of the lexer.
+     * 
+     * This method handles the error state by either throwing a `LexerException` 
+     * if error ignoring is off, or by appending the erroneous character to the 
+     * error state and moving the cursor position.
+     * 
+     * @param pStateObject - The current state object of the lexer.
+     * 
+     * @throws {@link LexerException} - If no valid pattern is found and error ignoring is off.
+     */
+    private pushNextCharToErrorState(pStateObject: LexerStateObject): void {
+        // Throw a parser error when error ignoring is off.
+        if (!this.mSettings.errorType) {
+            // Throw error with next twenty chars as example data.
+            throw new LexerException(`Unable to parse next token. No valid pattern found for "${pStateObject.data.substring(0, 20)}".`, this, pStateObject.cursor.column, pStateObject.cursor.line, pStateObject.cursor.column, pStateObject.cursor.line);
+        }
+
+        // Init new error state when no error state exists.
+        if (!pStateObject.error) {
+            pStateObject.error = {
+                data: '',
+                startColumn: pStateObject.cursor.column,
+                startLine: pStateObject.cursor.line
+            };
+        }
+
+        // Apppend error character to error state.
+        const lErrorChar: string = pStateObject.data.charAt(0);
+        pStateObject.error.data += lErrorChar;
+
+        // Move cursor position by the error character.
+        this.moveCursor(pStateObject, lErrorChar);
     }
 
     /**
@@ -514,73 +581,6 @@ export class Lexer<TTokenType extends string> {
 
         // Yield error token when eof was reached.
         yield* this.generateErrorToken(pStateObject, pParentMetas);
-    }
-
-    /**
-     * Pushes the next single character to the error state of the lexer.
-     * 
-     * This method handles the error state by either throwing a `LexerException` 
-     * if error ignoring is off, or by appending the erroneous character to the 
-     * error state and moving the cursor position.
-     * 
-     * @param pStateObject - The current state object of the lexer.
-     * 
-     * @throws {@link LexerException} - If no valid pattern is found and error ignoring is off.
-     */
-    private pushNextCharToErrorState(pStateObject: LexerStateObject): void {
-        // Throw a parser error when error ignoring is off.
-        if (!this.mSettings.errorType) {
-            // Throw error with next twenty chars as example data.
-            throw new LexerException(`Unable to parse next token. No valid pattern found for "${pStateObject.data.substring(0, 20)}".`, this, pStateObject.cursor.column, pStateObject.cursor.line, pStateObject.cursor.column, pStateObject.cursor.line);
-        }
-
-        // Init new error state when no error state exists.
-        if (!pStateObject.error) {
-            pStateObject.error = {
-                data: '',
-                startColumn: pStateObject.cursor.column,
-                startLine: pStateObject.cursor.line
-            };
-        }
-
-        // Apppend error character to error state.
-        const lErrorChar: string = pStateObject.data.charAt(0);
-        pStateObject.error.data += lErrorChar;
-
-        // Move cursor position by the error character.
-        this.moveCursor(pStateObject, lErrorChar);
-    }
-
-    /**
-     * Tries to match the next token with the pattern start tokem matcher returns the best match.
-     *
-     * @template TTokenType - The type of the token.
-     * @param pStateObject - The current state of the lexer.
-     * @param pPattern - An array of lexer patterns to match against.
-     * @param pParentMetas - An array of parent metadata strings.
-     * @param pForcedType - A forced token type, or null if not forced.
-     * @returns The best matching token pattern start match, or null if no match is found.
-     */
-    private findNextStartToken(pStateObject: LexerStateObject, pPattern: Array<LexerPattern<TTokenType, LexerPatternType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): LexerPatternStartMatch<TTokenType> | null {
-        // Iterate available token pattern.
-        for (const lTokenPattern of pPattern) {
-            // Get token start regex and use single token types or start token types for different pattern types.
-            const lTokenMatcher: LexerPatternTokenMatcher<TTokenType> = lTokenPattern.pattern.start;
-
-            // Try to find next token.
-            const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenPattern, lTokenMatcher, pStateObject, pParentMetas, pForcedType);
-            if (lFoundToken === null) {
-                continue;
-            }
-
-            // Return found token.
-            return {
-                pattern: lTokenPattern,
-                token: lFoundToken
-            };
-        }
-
-        return null;
     }
 
     /**

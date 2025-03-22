@@ -87,8 +87,8 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
      *
      * @returns {boolean} True if the lexer pattern type is 'split', otherwise false.
      */
-    public is<T extends TPatternType>(pPatternType: T): this is LexerPattern<TTokenType, T> {
-        return this.mType === pPatternType;
+    public isSplit(): this is LexerPattern<TTokenType, 'split'> {
+        return this.mType === 'split';
     }
 
     /**
@@ -135,9 +135,11 @@ export class LexerPattern<TTokenType extends string, TPatternType extends LexerP
 
             // Single pattern
             return {
-                regex: pPattern.single.regex,
-                types: pPattern.single.types,
-                validator: pPattern.single.validator ?? null
+                start: {
+                    regex: pPattern.single.regex,
+                    types: pPattern.single.types,
+                    validator: pPattern.single.validator ?? null
+                }
             } satisfies LexerPatternDefinitionSingle<TTokenType> as any;
         } else {
             // Pattern type must be single pattern.
@@ -218,7 +220,9 @@ export type LexerPatternDefinitionSplit<TTokenType extends string> = {
     innerType: TTokenType | null;
 };
 
-export type LexerPatternDefinitionSingle<TTokenType extends string> = LexerPatternDefinitionMatcher<TTokenType>;
+export type LexerPatternDefinitionSingle<TTokenType extends string> = {
+    start: LexerPatternDefinitionMatcher<TTokenType>;
+};
 
 export type LexerPatternDefinition<TTokenType extends string, TPatternType extends LexerPatternType> =
     TPatternType extends 'split' ? LexerPatternDefinitionSplit<TTokenType> :

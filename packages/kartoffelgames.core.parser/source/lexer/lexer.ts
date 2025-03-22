@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { LexerException } from '../index.ts';
-import { LexerPattern, type LexerPatternScope, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
+import { LexerPattern, type LexerPatternConstructorParameter, type LexerPatternDependencyFetch, type LexerPatternScope, type LexerPatternTokenMatcher, type LexerPatternTokenTypes, type LexerPatternTokenValidator, type LexerPatternType } from './lexer-pattern.ts';
 import { LexerToken } from './lexer-token.ts';
 
 /**
@@ -265,7 +265,7 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns The found token based on {@link pPattern} and additionally the an error token when the lexer state has an error state. 
      */
-    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pTokenTypes: LexerPatternTokenTypes<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
+    private matchToken(pPattern: LexerPattern<TTokenType, LexerPatternType>, pTokenMatchDefinition: LexerPatternTokenMatcher<TTokenType>, pStateObject: LexerStateObject, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
         // Set token regex and start matching at current cursor position.
         const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
         lTokenRegex.lastIndex = pStateObject.cursor.position;
@@ -277,7 +277,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Generate single token, move cursor and yield.
-        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType, lTokenRegex);
+        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pStateObject, [...pCurrentMetas, ...pPattern.meta], lTokenStartMatch, pTokenMatchDefinition.types, pForcedType, lTokenRegex);
 
         // Validate token with optional validator.
         if (pTokenMatchDefinition.validator && !pTokenMatchDefinition.validator(lSingleToken, pStateObject.data, pStateObject.cursor.position)) {
@@ -446,15 +446,12 @@ export class Lexer<TTokenType extends string> {
             }
 
             // Check endtoken first.
-            if (pEndToken && pEndToken.is('split')) {
+            if (pEndToken && pEndToken.isSplit()) {
                 // Get token start regex.
                 const lEndTokenMatcher: LexerPatternTokenMatcher<TTokenType> = pEndToken.pattern.end;
 
-                // Use single token types or start token types for different pattern types.
-                const lTokenTypes: LexerPatternTokenTypes<TTokenType> = pEndToken.pattern.end.types;
-
                 // Try to find end token.
-                const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(pEndToken, lEndTokenMatcher, lTokenTypes, pStateObject, pParentMetas, pForcedType);
+                const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(pEndToken, lEndTokenMatcher, pStateObject, pParentMetas, pForcedType);
                 if (lFoundToken !== null) {
                     // Move cursor when any validation has passed.
                     this.moveCursor(pStateObject, lFoundToken.value);
@@ -492,7 +489,7 @@ export class Lexer<TTokenType extends string> {
                 yield lFoundToken;
 
                 // Continue with next token when the current pattern is not a split pattern.
-                if (!lTokenPattern.is('split')) {
+                if (!lTokenPattern.isSplit()) {
                     continue remainingDataLoop;
                 }
 
@@ -553,18 +550,10 @@ export class Lexer<TTokenType extends string> {
         // Iterate available token pattern.
         for (const lTokenPattern of pPattern) {
             // Get token start regex and use single token types or start token types for different pattern types.
-            let lStartTokenMatcher!: LexerPatternTokenMatcher<TTokenType>;
-            let lTokenTypes!: LexerPatternTokenTypes<TTokenType>;
-            if (lTokenPattern.is('split')) {
-                lStartTokenMatcher = lTokenPattern.pattern.start;
-                lTokenTypes = lTokenPattern.pattern.start.types;
-            } else if (lTokenPattern.is('single')) {
-                lStartTokenMatcher = lTokenPattern.pattern;
-                lTokenTypes = lTokenPattern.pattern.types;
-            }
+            const lTokenMatcher: LexerPatternTokenMatcher<TTokenType> = lTokenPattern.pattern.start;
 
             // Try to find next token.
-            const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenPattern, lStartTokenMatcher, lTokenTypes, pStateObject, pParentMetas, pForcedType);
+            const lFoundToken: LexerToken<TTokenType> | null = this.matchToken(lTokenPattern, lTokenMatcher, pStateObject, pParentMetas, pForcedType);
             if (lFoundToken === null) {
                 continue;
             }

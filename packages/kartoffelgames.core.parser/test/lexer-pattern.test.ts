@@ -108,9 +108,9 @@ describe('LexerPattern', () => {
             const lPattern = new LexerPattern<string, 'single'>(lLexer, lPatternParam);
 
             // Evaluation
-            expect(lPattern.pattern.regex).toEqual(lPatternDefinition.single.regex);
-            expect(lPattern.pattern.types).toEqual(lPatternDefinition.single.types);
-            expect(lPattern.pattern.validator).toEqual(lPatternDefinition.single.validator);
+            expect(lPattern.pattern.start.regex).toEqual(lPatternDefinition.single.regex);
+            expect(lPattern.pattern.start.types).toEqual(lPatternDefinition.single.types);
+            expect(lPattern.pattern.start.validator).toEqual(lPatternDefinition.single.validator);
         });
     });
 
@@ -236,8 +236,7 @@ describe('LexerPattern', () => {
         const lPattern = new LexerPattern(lLexer, lPatternParam);
 
         // Evaluation
-        expect(lPattern.is('single')).toBe(true);
-        expect(lPattern.is('split')).toBe(false);
+        expect(lPattern.isSplit()).toBe(false);
     });
 
     it('Method: resolveDependencies', () => {

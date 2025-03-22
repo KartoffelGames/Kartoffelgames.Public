@@ -262,19 +262,14 @@ export class CodeParserState<TTokenType extends string> {
     }
 
     /**
-     * Pushes a new graph onto the graph stack, executes a callback function with the graph, and manages the token stack.
+     * Pushes a new graph onto the graph stack and manages the token stack.
      * 
-     * @param pStackCall - The callback function to be executed with the graph.
      * @param pGraph - The graph to be pushed onto the stack.
      * @param pLinear - A boolean indicating whether the graph is linear and not part of branch.
-     * @returns An object containing the result of the callback function and the range of tokens used.
      * 
      * @template TGraph - The type of the graph.
-     * @template TResult - The type of the result returned by the callback function.
-     * 
-     * @throws Will rethrow any error encountered during the execution of the callback function.
      */
-    public pushGraph<TGraph extends Graph<TTokenType>, TResult>(pStackCall: CoderParserCursorStackCallback<TTokenType, TGraph, TResult>, pGraph: TGraph, pLinear: boolean): TResult | CodeParserErrorSymbol {
+    public pushGraph<TGraph extends Graph<TTokenType>>(pGraph: TGraph, pLinear: boolean): void {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
@@ -299,40 +294,44 @@ export class CodeParserState<TTokenType extends string> {
 
         // Push the new graph stack on the stack.
         this.mGraphStack.push(lNewTokenStack);
+    }
 
-        // Call pushed graph.
-        const lResult: TResult | CodeParserErrorSymbol = pStackCall(pGraph);
-        if (lResult === CodeParserException.PARSER_ERROR) {
-            // Revert current stack index.
-            lNewTokenStack.token.index = 0;
+    /**
+     * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
+     * 
+     * @param pFailed - A boolean indicating whether the current graph failed with an error.
+     */
+    public popGraph(pFailed: boolean): void {
+        // Pop graph.
+        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.pop()!;
+        const lParentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Revert current stack index when the graph failed with an error.
+        if (pFailed) {
+            lCurrentTokenStack.token.index = 0;
         }
 
-        // Pop graph.
-        this.mGraphStack.pop()!;
-
         // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
-        if (lNewTokenStack.token.index !== 0 && lLastGraphStack.circularGraphs.size > 0) {
-            lLastGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
+        if (lCurrentTokenStack.token.index !== 0 && lParentGraphStack.circularGraphs.size > 0) {
+            lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
 
         // Truncate parent graphs token cache to the current token.
         // So the token memory gets marked as disposeable.
-        if (lNewTokenStack.linear) {
+        if (lCurrentTokenStack.linear) {
             // Reset parent index to zero.
-            lLastGraphStack.token.cache = lNewTokenStack.token.cache.slice(lNewTokenStack.token.index);
-            lLastGraphStack.token.index = 0;
+            lParentGraphStack.token.cache = lCurrentTokenStack.token.cache.slice(lCurrentTokenStack.token.index);
+            lParentGraphStack.token.index = 0;
         } else {
             // Read only the new tokens that are added to the stack and are not present in the parent stack.
-            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lNewTokenStack.token.cache.slice(lLastGraphStack.token.cache.length - lLastGraphStack.token.index);
+            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lCurrentTokenStack.token.cache.slice(lParentGraphStack.token.cache.length - lParentGraphStack.token.index);
 
             // Move parent stack index to the last graphs stack index.
-            lLastGraphStack.token.index += lNewTokenStack.token.index;
+            lParentGraphStack.token.index += lCurrentTokenStack.token.index;
 
             // Add the new tokens to the parent stack.
-            lLastGraphStack.token.cache.splice(lLastGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
+            lParentGraphStack.token.cache.splice(lParentGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
         }
-
-        return lResult;
     }
 }
 

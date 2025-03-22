@@ -77,7 +77,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw new Exception('Parser has not root part set.', this);
         }
 
-        // Create a parser cursor for the code text. // TODO: Add process tracker.
+        // Create a parser cursor for the code text.
         const lCursor: CodeParserState<TTokenType> = new CodeParserState<TTokenType>(this.mLexer.tokenize(pCodeText, pProgressTracker), this.mDebugMode);
 
         // Parse root graph part.
@@ -170,32 +170,42 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return CodeParserException.PARSER_ERROR;
         }
 
-        // Execute graph parse on a new graph stack.
-        return pCursor.pushGraph((pGraph: Graph<TTokenType>) => {
-            // Get parse result.
-            const lNodeParseResult: GraphNodeParseResult | CodeParserErrorSymbol = this.parseGraphNode(pCursor, pGraph.node);
-            if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
-                return CodeParserException.PARSER_ERROR;
-            }
+        // Add graph to parser state graph stack.
+        pCursor.pushGraph(pGraph, pGraphCalledLinear);
 
-            // Try to convert data.
-            const lConvertedData: object | symbol = pGraph.convert(lNodeParseResult.data);
-            if (typeof lConvertedData === 'symbol') {
-                // Read the current graph position.
-                const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
+        // Get parse result.
+        const lNodeParseResult: GraphNodeParseResult | CodeParserErrorSymbol = this.parseGraphNode(pCursor, pGraph.node);
+        if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
+            // Pop graph with an error.
+            pCursor.popGraph(true);
 
-                // Integrate exception into parser exception, this should never be a code parser exception.
-                pCursor.trace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+            // Exit parsing with error.
+            return CodeParserException.PARSER_ERROR;
+        }
 
-                // Exit parsing with error.
-                return CodeParserException.PARSER_ERROR;
-            }
+        // Try to convert data.
+        const lConvertedData: object | symbol = pGraph.convert(lNodeParseResult.data);
+        if (typeof lConvertedData === 'symbol') {
+            // Read the current graph position.
+            const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
 
-            return {
-                data: lConvertedData,
-                tokenProcessed: lNodeParseResult.tokenProcessed
-            };
-        }, pGraph, pGraphCalledLinear);
+            // Integrate exception into parser exception, this should never be a code parser exception.
+            pCursor.trace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+
+            // Pop graph with an error.
+            pCursor.popGraph(true);
+
+            // Exit parsing with error.
+            return CodeParserException.PARSER_ERROR;
+        }
+
+        // Pop graph with success.
+        pCursor.popGraph(false)
+
+        return {
+            data: lConvertedData,
+            tokenProcessed: lNodeParseResult.tokenProcessed
+        };
     }
 
     /**

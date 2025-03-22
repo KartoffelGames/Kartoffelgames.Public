@@ -69,7 +69,6 @@ export abstract class BaseXmlParser {
         this.mParser = null;
     }
 
-    
     /**
      * Parses the given XML text and returns an XmlDocument.
      * 
@@ -182,6 +181,10 @@ export abstract class BaseXmlParser {
     private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
         const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
 
+        // Build cached regex.
+        const lRegexAttributeNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
+        const lRegexTagNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
+
         // Attribute graph.
         const lAttributeGraph = Graph.define(() => {
             return GraphNode.new<XmlToken>()
@@ -194,8 +197,7 @@ export abstract class BaseXmlParser {
                 );
         }).converter((pData): AttributeData => {
             // Validate tag name.
-            const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
-            if (!lRegexNameCheck.test(pData.name)) {
+            if (!lRegexAttributeNameCheck.test(pData.name)) {
                 throw new Exception(`Attribute contains illegal characters: "${pData.name}"`, this);
             }
 
@@ -279,8 +281,7 @@ export abstract class BaseXmlParser {
             }
 
             // Validate tag name.
-            const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
-            if (!lRegexNameCheck.test(pData.openingTagName)) {
+            if (!lRegexTagNameCheck.test(pData.openingTagName)) {
                 throw new Exception(`Tagname contains illegal characters: "${pData.openingTagName}"`, this);
             }
 

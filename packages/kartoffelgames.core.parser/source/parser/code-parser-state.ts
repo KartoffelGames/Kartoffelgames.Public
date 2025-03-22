@@ -1,6 +1,5 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
-import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { Graph } from './graph/graph.ts';
 
@@ -334,8 +333,6 @@ export class CodeParserState<TTokenType extends string> {
         }
     }
 }
-
-type CoderParserCursorStackCallback<TTokenType extends string, TGraph extends Graph<TTokenType>, TResult> = (pGraph: TGraph) => TResult;
 
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;

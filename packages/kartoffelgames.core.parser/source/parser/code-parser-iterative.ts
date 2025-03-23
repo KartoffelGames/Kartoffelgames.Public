@@ -415,6 +415,44 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                     // TODO: Special code, when no top stack was found, return result or so.
                 }
 
+                case 'node-parse__start': {
+                    // Read parameter.
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
+
+                    // Continue with node parse end after node value parse
+                    lProcessStack.push({ type: 'node-parse__end', process: { node: lNode, nodeNextParseResult: CodeParserException.PARSER_ERROR, nodeValueResult: CodeParserException.PARSER_ERROR } });
+
+                    // Add starting node value as parse process.
+                    lProcessStack.push({ type: 'node-value-parse__start', process: { node: lNode, valueIndex: 0 } });
+
+                    continue MAIN_LOOP;
+                }
+
+                case 'node-parse__end': {
+                    // Read parameter.
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
+                    const lNodeValueParseResult: unknown | CodeParserErrorSymbol = lCurrentProcess.process.nodeValueResult;
+                    const lChainParseResult: object | CodeParserErrorSymbol = lCurrentProcess.process.nodeNextParseResult;
+
+                    // Exit on node parse error.
+                    if (lNodeValueParseResult === CodeParserException.PARSER_ERROR || lChainParseResult === CodeParserException.PARSER_ERROR) {
+                        continue MAIN_LOOP;
+                    }
+
+                    // Merge data.
+                    const lMergedData: object = lNode.mergeData(lNodeValueParseResult, lChainParseResult);
+
+                    // Previous process must be a parser result process item.
+                    if (!lProcessStack.top || !('parseResult' in lProcessStack.top.process)) {
+                        throw new Exception('Missmatched process stack state.', this);
+                    }
+
+                    // Update previous stacks values to parse result.
+                    lProcessStack.top.process.parseResult = lMergedData;
+
+                    continue MAIN_LOOP;
+                }
+
                 case 'node-value-parse__start': {
                     // Read node.
                     const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
@@ -476,21 +514,21 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                         // Push value parse end to process stack.
                         lProcessStack.push({ type: 'node-value-parse__end', process: { node: lNode, parseResult: lCurrentToken.value } });
                         continue MAIN_LOOP;
-                    } else {
-                        // Continue with node value parse end after node value parse
-                        lProcessStack.push({ type: 'node-value-parse__end', process: { node: lNode, parseResult: CodeParserException.PARSER_ERROR } });
-
-                        // Push parser process for graph value.
-                        lProcessStack.push({ type: 'graph-parse__start', process: { graph: lNodeValue, linear: lNodeValueIsLinear } });
-                        continue MAIN_LOOP;
                     }
+
+                    // Continue with node value parse end after node value parse
+                    lProcessStack.push({ type: 'node-value-parse__end', process: { node: lNode, parseResult: CodeParserException.PARSER_ERROR } });
+
+                    // Push parser process for graph value.
+                    lProcessStack.push({ type: 'graph-parse__start', process: { graph: lNodeValue, linear: lNodeValueIsLinear } });
+                    continue MAIN_LOOP;
                 }
 
                 case 'node-value-parse__end': {
                     // Read node.
                     const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
 
-                    // Read current value index.
+                    // Read node value parse result.
                     const lNodeResult: unknown = lCurrentProcess.process.parseResult;
 
                     // Read node connections.
@@ -512,6 +550,59 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                     lProcessStack.push({ type: 'node-next-parse__start', process: { node: lNode, nodeValue: lNodeResult } });
                     continue MAIN_LOOP;
                 }
+
+                case 'node-next-parse__start': {
+                    // Read parameters.
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
+                    const lNodeValue: unknown = lCurrentProcess.process.nodeValue;
+
+                    // Read node connections.
+                    const lNodeConnections: GraphNodeConnections<TTokenType> = lNode.connections;
+
+                    // Next chained node.
+                    const lNextNode: GraphNode<TTokenType, object> | null = lNodeConnections.next;
+
+                    // No result when branch end was meet.
+                    if (lNextNode === null) {
+                        // Empty chain data.
+                        lProcessStack.push({ type: 'node-next-parse__end', process: { parseResult: {}, nodeValue: lNodeValue } });
+                        continue MAIN_LOOP;
+                    }
+
+                    // After parsing execute parse end.
+                    lProcessStack.push({ type: 'node-next-parse__end', process: { parseResult: CodeParserException.PARSER_ERROR, nodeValue: lNodeValue } });
+
+                    // Parse chained node.
+                    lProcessStack.push({ type: 'node-parse__start', process: { node: lNextNode } });
+
+                    continue MAIN_LOOP;
+                }
+
+                case 'node-next-parse__end': {
+                    // Read parameters.
+                    const lNodeResult: unknown | CodeParserErrorSymbol = lCurrentProcess.process.nodeValue;
+                    const lChainResult: unknown | CodeParserErrorSymbol = lCurrentProcess.process.parseResult;
+
+                    // Exit on node parse error.
+                    if (lNodeResult === CodeParserException.PARSER_ERROR) {
+                        continue MAIN_LOOP;
+                    }
+
+                    // Next process MUST be a 'node-parse__end' process.
+                    if (!lProcessStack.top || lProcessStack.top.type !== 'node-parse__end') {
+                        throw new Exception('Missmatched process stack state.', this);
+                    }
+
+                    // Parse result must be an object.
+                    if (typeof lChainResult !== 'object' || lChainResult === null) {
+                        throw new Exception('Parse result type missmatch', this);
+                    }
+
+                    // Update previous stacks values to parse result.
+                    lProcessStack.top.process.nodeNextParseResult = lChainResult;
+                    lProcessStack.top.process.nodeValueResult = lNodeResult;
+                    continue MAIN_LOOP;
+                }
             }
         }
 
@@ -522,6 +613,10 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
 /*
  * State control types.
  */
+type CodeParserProcessStackItemParseResult = {
+    parseResult: CodeParserErrorSymbol | unknown;
+};
+
 type CodeParserProcessStackMapping<TTokenType extends string> = {
     // Graph parse
     'graph-parse__start': {
@@ -530,8 +625,7 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
     },
     'graph-parse__end': {
         graph: Graph<TTokenType>;
-        parseResult: CodeParserErrorSymbol | unknown;
-    },
+    } & CodeParserProcessStackItemParseResult,
 
     // Node parse.
     'node-parse__start': {
@@ -539,7 +633,8 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
     };
     'node-parse__end': {
         node: GraphNode<TTokenType>;
-        parseResult: CodeParserErrorSymbol | unknown;
+        nodeValueResult: CodeParserErrorSymbol | unknown;
+        nodeNextParseResult: CodeParserErrorSymbol | object;
     };
 
     // Node value parse.
@@ -549,8 +644,7 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
     };
     'node-value-parse__end': {
         node: GraphNode<TTokenType>;
-        parseResult: CodeParserErrorSymbol | unknown;
-    };
+    } & CodeParserProcessStackItemParseResult;
 
     // Node next parse
     'node-next-parse__start': {
@@ -558,9 +652,8 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
         nodeValue: unknown;
     };
     'node-next-parse__end': {
-        node: GraphNode<TTokenType>;
-        parseResult: CodeParserErrorSymbol | unknown;
-    };
+        nodeValue: CodeParserErrorSymbol | unknown;
+    } & CodeParserProcessStackItemParseResult;
 };
 
 export type CodeParserProcessStackItem<TTokenType extends string> =

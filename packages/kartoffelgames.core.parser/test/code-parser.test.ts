@@ -4,7 +4,7 @@ import { CodeParserException } from '../source/parser/code-parser-exception.ts';
 import { GraphNode } from '../source/parser/graph/graph-node.ts';
 import { Graph } from '../source/parser/graph/graph.ts';
 import { Lexer } from '../source/lexer/lexer.ts';
-import { CodeParser } from '../source/parser/code-parser.ts';
+import { CodeParserIterative as CodeParser } from '../source/parser/code-parser-iterative.ts';
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -109,6 +109,29 @@ describe('CodeParser', () => {
                 // Setup. Define graph part and set as root.
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required(TokenType.TypeDelimiter).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon).optional(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).toHaveProperty('modifier', 'const');
+                expect(lParsedData).toHaveProperty('variableName', 'name');
+                expect(lParsedData).toHaveProperty('typeName', 'number');
+            });
+
+            it('-- Linear Parsing with branching', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const name: number';
+
+                // Setup. Define graph part and set as root.
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required('modifier', TokenType.Modifier).required('variableName', TokenType.Identifier).required([
+                        TokenType.Custom,
+                        TokenType.TypeDelimiter,
+                    ]).required('typeName', TokenType.Identifier).optional(TokenType.Semicolon);
                 });
                 lParser.setRootGraph(lMainGraph);
 

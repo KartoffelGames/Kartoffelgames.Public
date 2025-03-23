@@ -1,7 +1,9 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
+import { GraphNode } from "./graph/graph-node.ts";
 import type { Graph } from './graph/graph.ts';
+import { CodeParserErrorSymbol } from "./code-parser-exception.ts";
 
 export class CodeParserStateIterative<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
@@ -334,6 +336,12 @@ export class CodeParserStateIterative<TTokenType extends string> {
     }
 }
 
+
+
+/*
+ * Graph stack types.
+ */
+
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
     linear: boolean;
@@ -344,6 +352,11 @@ type CodeParserCursorGraph<TTokenType extends string> = {
     };
     isRoot: boolean;
 };
+
+/*
+ * Cursor types.
+ */
+
 
 type CodeParserCursorPosition = {
     column: number;

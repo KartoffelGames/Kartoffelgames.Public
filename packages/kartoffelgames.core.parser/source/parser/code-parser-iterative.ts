@@ -197,7 +197,7 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
 
                     // Parse result must be an object.
                     if (typeof lNodeParseResult !== 'object' || lNodeParseResult === null) {
-                        throw new Exception('Parse result type missmatch', this);
+                        throw new Exception('Parse result type missmatch (3)', this);
                     }
 
                     // Try to convert data.
@@ -226,7 +226,7 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
 
                     // Previous process must be a parser result process item.
                     if (!('parseResult' in lProcessStack.top.process)) {
-                        throw new Exception('Missmatched process stack state.', this);
+                        throw new Exception('Missmatched process stack state. (3)', this);
                     }
 
                     // Update previous stacks values to parse result.
@@ -248,6 +248,8 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                     continue MAIN_LOOP;
                 }
 
+                // TODO: is there a 'node-parse__middle'?
+
                 case 'node-parse__end': {
                     // Read parameter.
                     const lNode: GraphNode<TTokenType> = lCurrentProcess.process.node;
@@ -264,7 +266,7 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
 
                     // Previous process must be a parser result process item.
                     if (!lProcessStack.top || !('parseResult' in lProcessStack.top.process)) {
-                        throw new Exception('Missmatched process stack state.', this);
+                        throw new Exception('Missmatched process stack state. (2)', this);
                     }
 
                     // Update previous stacks values to parse result.
@@ -334,6 +336,21 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                         // Push value parse end to process stack.
                         lProcessStack.push({ type: 'node-value-parse__end', process: { node: lNode, parseResult: lCurrentToken.value } });
                     } else {
+                        // FIXME: Thats fucked up. When this graph parse fails, no sibling value is parsed.
+                        // TODO: Rethink process design. 
+                        /*
+                         {
+                            type: 'node-parse__start',
+                            parameter: { node },
+                            results: { // Any local variable that must persist. Has a {[key: string]: unknown} structure.
+                                lNodeValueParseResult, // they are allways optional.
+                                lChainParseResult
+                            }
+                         }
+                         */
+
+                         // TODO: is 'node-value-parse__start' more a 'node-value-parse__loop'? Think about it.
+
                         // Continue with node value parse end after node value parse
                         lProcessStack.push({ type: 'node-value-parse__end', process: { node: lNode, parseResult: CodeParserException.PARSER_ERROR } });
 
@@ -405,18 +422,18 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                     const lChainResult: unknown | CodeParserErrorSymbol = lCurrentProcess.process.parseResult;
 
                     // Exit on node parse error.
-                    if (lNodeResult === CodeParserException.PARSER_ERROR) {
+                    if (lChainResult === CodeParserException.PARSER_ERROR) {
                         continue MAIN_LOOP;
                     }
 
                     // Next process MUST be a 'node-parse__end' process.
                     if (!lProcessStack.top || lProcessStack.top.type !== 'node-parse__end') {
-                        throw new Exception('Missmatched process stack state.', this);
+                        throw new Exception('Missmatched process stack state. (1)', this);
                     }
 
                     // Parse result must be an object.
                     if (typeof lChainResult !== 'object' || lChainResult === null) {
-                        throw new Exception('Parse result type missmatch', this);
+                        throw new Exception('Parse result type missmatch (1)', this);
                     }
 
                     // Update previous stacks values to parse result.

@@ -329,7 +329,7 @@ export class CodeParserState<TTokenType extends string> {
             lParentGraphStack.token.index += lCurrentTokenStack.token.index;
 
             // Add the new tokens to the parent stack.
-            lParentGraphStack.token.cache.splice(lParentGraphStack.token.cache.length, 0, ...lNewTokenStackCache);
+            lParentGraphStack.token.cache = lParentGraphStack.token.cache.concat(lNewTokenStackCache);
         }
     }
 }

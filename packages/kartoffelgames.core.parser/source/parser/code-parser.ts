@@ -144,11 +144,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private parseGraph(pCursor: CodeParserState<TTokenType>, pRootGraph: Graph<TTokenType>): unknown | CodeParserErrorSymbol {
         const lProcessStack: Stack<CodeParserProcessStackItem<TTokenType>> = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
-        // TODO: Any state exceptions can be removed after the parser is stable.
         // TODO: Combine the pop-pushError-continue pattern into a function.
 
         // Push the first process.
-        lProcessStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0, values: {} });
+        lProcessStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0 });
 
         // Process stack as long as something is stacked.
         MAIN_LOOP: while (lProcessStack.top) {
@@ -212,7 +211,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // State 1: End graph parse.
                     if (lCurrentProcess.state === 1) {
                         // Read node parse result.
-                        const lNodeParseResult: unknown | CodeParserErrorSymbol = lStackResult;
+                        const lNodeParseResult: object | CodeParserErrorSymbol = lStackResult as (object | CodeParserErrorSymbol);
 
                         if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
                             // Pop graph with an error.
@@ -226,11 +225,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                             // Exit parsing without pushing a new process.
                             continue MAIN_LOOP;
-                        }
-
-                        // Parse result must be an object.
-                        if (typeof lNodeParseResult !== 'object' || lNodeParseResult === null) {
-                            throw new Exception('Parse result type missmatch (3)', this);
                         }
 
                         // Try to convert data.
@@ -270,7 +264,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     throw new Exception(`Invalid graph parse state "${lCurrentProcess.state}".`, this);
                 }
 
-
                 /**
                  * Parse node.
                  */
@@ -309,7 +302,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         lCurrentProcess.values.nodeValueResult = lNodeParseResult;
 
                         // Proceed with next node parse.
-                        lProcessStack.push({ type: 'node-next-parse', parameter: { node: lNode }, state: 0, values: {} });
+                        lProcessStack.push({ type: 'node-next-parse', parameter: { node: lNode }, state: 0 });
 
                         // Proceed to next state.
                         lCurrentProcess.state++;
@@ -320,7 +313,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // State 2: Save node next parse and return value.
                     if (lCurrentProcess.state === 2) {
                         // Read node next parse result.
-                        const lNodeNextParseResult: unknown | CodeParserErrorSymbol = lStackResult;
+                        const lNodeNextParseResult: object | CodeParserErrorSymbol = lStackResult as (object | CodeParserErrorSymbol);
 
                         // Exit on node parse error.
                         if (lNodeNextParseResult === CodeParserException.PARSER_ERROR) {
@@ -332,11 +325,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                             // Exit parsing without pushing a new process.
                             continue MAIN_LOOP;
-                        }
-
-                        // Parse result must be an object.
-                        if (typeof lNodeNextParseResult !== 'object' || lNodeNextParseResult === null) {
-                            throw new Exception('Parse result type missmatch (1)', this);
                         }
 
                         // Merge data.
@@ -363,7 +351,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // State 0: Iterate over node values.
                     if (lCurrentProcess.state === 0) {
                         // When the last process hat returned a value, use at parse result when it is not a error value.
-                        if (typeof lStackResult !== 'undefined' && lStackResult !== CodeParserException.PARSER_ERROR) {
+                        if (lStackResult && lStackResult !== CodeParserException.PARSER_ERROR) {
                             // Set parsed value to last stack result.
                             lCurrentProcess.values.parseResult = lStackResult;
 
@@ -439,7 +427,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                             lProcessStack.push({ type: 'STACK_RETURN', result: lCurrentToken.value });
                         } else {
                             // Push parser process for graph value.
-                            lProcessStack.push({ type: 'graph-parse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear }, state: 0, values: {} });
+                            lProcessStack.push({ type: 'graph-parse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear }, state: 0 });
                         }
 
                         continue MAIN_LOOP;
@@ -525,7 +513,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // State 1: End node next parse.
                     if (lCurrentProcess.state === 1) {
                         // Read parameters.
-                        const lChainResult: unknown | CodeParserErrorSymbol = lStackResult;
+                        const lChainResult: object | CodeParserErrorSymbol = lStackResult as (object | CodeParserErrorSymbol);
 
                         // Exit on node parse error.
                         if (lChainResult === CodeParserException.PARSER_ERROR) {
@@ -536,11 +524,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                             lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
 
                             continue MAIN_LOOP;
-                        }
-
-                        // Parse result must be an object.
-                        if (typeof lChainResult !== 'object' || lChainResult === null) {
-                            throw new Exception('Parse result type missmatch (1)', this);
                         }
 
                         // Pop itself from stack.
@@ -579,7 +562,6 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
             graph: Graph<TTokenType>;
             linear: boolean;
         },
-        values: {};
     };
 
     // Parse node.
@@ -614,7 +596,6 @@ type CodeParserProcessStackMapping<TTokenType extends string> = {
         parameter: {
             node: GraphNode<TTokenType>;
         },
-        values: {};
     };
 };
 

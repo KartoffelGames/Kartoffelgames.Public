@@ -3,6 +3,8 @@ import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { Graph } from './graph/graph.ts';
 
+// TODO: Rename it to something like CodeParserLexerCursor.
+
 export class CodeParserState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
@@ -314,6 +316,8 @@ export class CodeParserState<TTokenType extends string> {
         if (lCurrentTokenStack.token.index !== 0 && lParentGraphStack.circularGraphs.size > 0) {
             lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
+
+        // TODO: Share the same token cache between parent and child graph.
 
         // Truncate parent graphs token cache to the current token.
         // So the token memory gets marked as disposeable.

@@ -390,6 +390,9 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                             continue MAIN_LOOP;
                         }
 
+                        // Increment value.
+                        lCurrentProcess.parameter.valueIndex++;
+
                         // Read current token. Can fail when lexer fails.
                         const lCurrentToken: LexerToken<TTokenType> | null = pCursor.currentToken;
 
@@ -410,7 +413,6 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                                 }
 
                                 // No token was found, try next value.
-                                lCurrentProcess.parameter.valueIndex++;
                                 continue MAIN_LOOP;
                             }
 
@@ -425,7 +427,6 @@ export class CodeParserIterative<TTokenType extends string, TParseResult> {
                                 }
 
                                 // No token was found, try next value.
-                                lCurrentProcess.parameter.valueIndex++;
                                 continue MAIN_LOOP;
                             }
 

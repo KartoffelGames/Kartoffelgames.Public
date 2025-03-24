@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, Stack } from '@kartoffelgames/core';
 import { CodeParserException, LexerException } from '../index.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
@@ -83,7 +83,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Parse root graph part.
         const lRootParseData: unknown | CodeParserErrorSymbol = (() => {
             try {
-                return this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>, true)!;
+                return this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>)!;
             } catch (pError) {
                 // The graph is still in the right state the error was thrown, so we can still extract data from it.
 
@@ -141,231 +141,488 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mRootPart = pGraph;
     }
 
-    /**
-     * Parse the token, marked with {@link pCurrentTokenIndex} with the set graph part.
-     * Return null when no token was processed.
-     * 
-     * @param pGraph - Graph part or a reference to a part.
-     * @param pTokenList - Current parsed list of all token in appearing order..
-     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     *  
-     * @returns The Token data object, or when the graph part has a data collector, the collected and altered data object is returned.
-     * Additionally the last used token index is returned.
-     * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
-     * 
-     * @throws {@link ParserException}
-     * When an error is thrown while paring collected data.
-     */
-    private parseGraph(pCursor: CodeParserState<TTokenType>, pGraph: Graph<TTokenType>, pGraphCalledLinear: boolean): unknown | CodeParserErrorSymbol {
-        // Prevent circular graph calls that doesnt progressed itself.
-        if (pCursor.graphIsCircular(pGraph)) {
-            // Read the current graph position.
-            const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
+    private parseGraph(pCursor: CodeParserState<TTokenType>, pRootGraph: Graph<TTokenType>): unknown | CodeParserErrorSymbol {
+        const lProcessStack: Stack<CodeParserProcessStackItem<TTokenType>> = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
-            // Add a circular graph incident.
-            pCursor.trace.push(`Circular graph detected.`, pGraph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+        // TODO: Any state exceptions can be removed after the parser is stable.
+        // TODO: Combine the pop-pushError-continue pattern into a function.
 
-            // Exit parsing with error.
-            return CodeParserException.PARSER_ERROR;
-        }
+        // Push the first process.
+        lProcessStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0, values: {} });
 
-        // Add graph to parser state graph stack.
-        pCursor.pushGraph(pGraph, pGraphCalledLinear);
-
-        // Get parse result.
-        const lNodeParseResult: object | CodeParserErrorSymbol = this.parseGraphNode(pCursor, pGraph.node);
-        if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
-            // Pop graph with an error.
-            pCursor.popGraph(true);
-
-            // Exit parsing with error.
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        // Try to convert data.
-        const lConvertedData: object | symbol = pGraph.convert(lNodeParseResult);
-        if (typeof lConvertedData === 'symbol') {
-            // Read the current graph position.
-            const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
-
-            // Integrate exception into parser exception, this should never be a code parser exception.
-            pCursor.trace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
-
-            // Pop graph with an error.
-            pCursor.popGraph(true);
-
-            // Exit parsing with error.
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        // Pop graph with success.
-        pCursor.popGraph(false);
-
-        // Return converted data.
-        return lConvertedData;
-    }
-
-    /**
-     * Parse the token, marked with {@link pCurrentTokenIndex} with the set node.
-     * Also parses chained nodes.
-     * Returns null when the complete node graph chain processed no token.
-     * 
-     * @param pNode - Current node that should handle the set token.
-     * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     * 
-     * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
-     * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
-     */
-    private parseGraphNode(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>): object | CodeParserErrorSymbol {
-        // Parse and read current node values. Throws when no value was found and required.
-        const lNodeValueParseResult: unknown | CodeParserErrorSymbol = this.retrieveNodeValues(pCursor, pNode);
-        if (lNodeValueParseResult === CodeParserException.PARSER_ERROR) {
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        // Parse and read data of chanined nodes. Add each error to the complete error list.
-        const lChainParseResult: object | CodeParserErrorSymbol = this.retrieveChainedValues(pCursor, pNode);
-        if (lChainParseResult === CodeParserException.PARSER_ERROR) {
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        return pNode.mergeData(lNodeValueParseResult, lChainParseResult);
-    }
-
-    /**
-     * Processes every node value, a successfull parsed value of a node, until only one is successfull or the graph end is reached.
-     * When more than one node value chain is successfull, the graph is invalid and an error is thrown.
-     * Returns null when no token was processed.
-     * 
-     * @param pNode - Current node.
-     * @param pNodeTokenIndex - Current token index of {@link pNode}.
-     * @param pNodeValues - Every sucessfull value of the node.
-     * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     * 
-     * @returns The data of the successfull graph value chain or null when no token was processed.
-     * 
-     * @throws {@link Exception}
-     * When more than one node value chain resolves to be valid.
-     * 
-     * @throws {@link GraphException}
-     * When no valid token for the next chaining node was found.
-     */
-    private retrieveChainedValues(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>): object | CodeParserErrorSymbol {
-        const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
-
-        // Next chained node.
-        const lNextNode: GraphNode<TTokenType, object> | null = lNodeConnections.next;
-
-        // No result when branch end was meet.
-        if (lNextNode === null) {
-            // Empty chain data.
-            return {};
-        }
-
-        // Parse chained node.
-        const lChainedNodeParseResult: object | CodeParserErrorSymbol = this.parseGraphNode(pCursor, lNextNode);
-        if (lChainedNodeParseResult === CodeParserException.PARSER_ERROR) {
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        // Process graph with chained node values.
-        return lChainedNodeParseResult;
-    }
-
-    /**
-     * Read data and errors for all node values. 
-     * Return null, when the node is optional and no token was found
-     * or when the node is optional and no node value fits the current token.
-     * 
-     * The {@link GraphException} contains every possible error generated for any possible static or graph value.
-     * 
-     * @param pNode - Current node.
-     * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
-     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
-     * 
-     * @throws {@link GraphException}
-     * When no value was found but the node is required.
-     * 
-     * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
-     */
-    private retrieveNodeValues(pCursor: CodeParserState<TTokenType>, pNode: GraphNode<TTokenType>): unknown | CodeParserErrorSymbol {
-        // Read current token. Can fail when lexer fails.
-        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.currentToken;
-
-        // Read node connections.
-        const lNodeConnections: GraphNodeConnections<TTokenType> = pNode.connections;
-
-        // Check of node has any branches or is linear.
-        const lNodeValueIsLinear: boolean = lNodeConnections.values.length === 1;
-
-        // Find first node value result.
-        const lNodeResult: unknown | null = (() => {
-            for (const lNodeValue of lNodeConnections.values) {
-                if (typeof lNodeValue === 'string') {
-                    // When no current token was found, skip node value parsing.
-                    if (!lCurrentToken) {
-                        // Append error when node was required.
-                        if (lNodeConnections.required) {
-                            // Get current token position.
-                            const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
-
-                            // Push parser incident as the current token position.
-                            pCursor.trace.push(`Unexpected end of statement. Token "${lNodeValue}" expected.`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
-                        }
-
-                        continue;
-                    }
-
-                    // Push possible parser error when token type does not match node value.
-                    if (lNodeValue !== lCurrentToken.type) {
-                        if (lNodeConnections.required) {
-                            // Get current token position.
-                            const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
-
-                            // Push parser incident as the current token position.
-                            pCursor.trace.push(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
-                        }
-
-                        continue;
-                    }
-
-                    // Move cursor to next token.
-                    pCursor.moveNext();
-
-                    // Set node value.
-                    return lCurrentToken.value;
-                } else {
-                    // Try to retrieve values from graphs.
-                    const lGraphParseResult: unknown | CodeParserErrorSymbol = this.parseGraph(pCursor, lNodeValue, lNodeValueIsLinear);
-                    if (lGraphParseResult === CodeParserException.PARSER_ERROR) {
-                        continue;
-                    }
-
-                    return lGraphParseResult;
-                }
+        // Process stack as long as something is stacked.
+        MAIN_LOOP: while (lProcessStack.top) {
+            // Check for stack return
+            let lStackResult: unknown | undefined = undefined;
+            if (lProcessStack.top.type === 'STACK_RETURN') {
+                const lResultStackItem: CodeParserStackResultItem = lProcessStack.pop()! as CodeParserStackResultItem;
+                lStackResult = lResultStackItem.result;
             }
 
-            // No node value was found.
-            return null;
-        })();
+            // Return current stack result when no more processes are in the stack.
+            if (!lProcessStack.top) {
+                return lStackResult;
+            }
 
-        // Empty result when no node value was found and node is optional.
-        if (lNodeResult === null && !lNodeConnections.required) {
-            return undefined;
+            // Process current process
+            const lCurrentProcess: CodeParserProcessStackItem<TTokenType> = lProcessStack.top;
+            switch (lCurrentProcess.type) {
+                /**
+                 * Parse graph.
+                 */
+                case 'graph-parse': {
+                    const lGraph: Graph<TTokenType> = lCurrentProcess.parameter.graph;
+
+                    // State 0: Start graph parse.
+                    if (lCurrentProcess.state === 0) {
+                        // Prevent circular graph calls that doesnt progressed itself.
+                        if (pCursor.graphIsCircular(lGraph)) {
+                            // Read the current graph position.
+                            const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
+
+                            // Add a circular graph incident.
+                            pCursor.trace.push(`Circular graph detected.`, lGraph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            // Exit parsing without pushing a new process.
+                            continue MAIN_LOOP;
+                        }
+
+                        // Read linear parameter of the graph.
+                        const lCalledLinear: boolean = lCurrentProcess.parameter.linear;
+
+                        // Add graph to parser state graph stack.
+                        pCursor.pushGraph(lGraph, lCalledLinear);
+
+                        // Proceed to next state.
+                        lCurrentProcess.state++;
+
+                        // Parse node of graph.
+                        lProcessStack.push({ type: 'node-parse', parameter: { node: lGraph.node }, state: 0, values: {} });
+
+                        // Proceed next stack item.
+                        continue MAIN_LOOP;
+                    }
+
+                    // State 1: End graph parse.
+                    if (lCurrentProcess.state === 1) {
+                        // Read node parse result.
+                        const lNodeParseResult: unknown | CodeParserErrorSymbol = lStackResult;
+
+                        if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
+                            // Pop graph with an error.
+                            pCursor.popGraph(true);
+
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            // Exit parsing without pushing a new process.
+                            continue MAIN_LOOP;
+                        }
+
+                        // Parse result must be an object.
+                        if (typeof lNodeParseResult !== 'object' || lNodeParseResult === null) {
+                            throw new Exception('Parse result type missmatch (3)', this);
+                        }
+
+                        // Try to convert data.
+                        const lConvertedData: object | symbol = lGraph.convert(lNodeParseResult);
+                        if (typeof lConvertedData === 'symbol') {
+                            // Read the current graph position.
+                            const lGraphPosition: CodeParserCursorGraphPosition<TTokenType> = pCursor.getGraphPosition();
+
+                            // Integrate exception into parser exception, this should never be a code parser exception.
+                            pCursor.trace.push(lConvertedData.description ?? 'Unknown data convert error', lGraphPosition.graph, lGraphPosition.lineStart, lGraphPosition.columnStart, lGraphPosition.lineEnd, lGraphPosition.columnEnd);
+
+                            // Pop graph with an error.
+                            pCursor.popGraph(true);
+
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            // Exit parsing without pushing a new process.
+                            continue MAIN_LOOP;
+                        }
+
+                        // Pop graph with success.
+                        pCursor.popGraph(false);
+
+                        // Pop itself from stack.
+                        lProcessStack.pop();
+
+                        // Set return value to converted data.
+                        lProcessStack.push({ type: 'STACK_RETURN', result: lConvertedData });
+
+                        continue MAIN_LOOP;
+                    }
+
+                    throw new Exception(`Invalid graph parse state "${lCurrentProcess.state}".`, this);
+                }
+
+
+                /**
+                 * Parse node.
+                 */
+                case 'node-parse': {
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.parameter.node;
+
+                    // State 0: Start node parse.
+                    if (lCurrentProcess.state === 0) {
+                        // Continue with node parse end after node value parse
+                        lProcessStack.push({ type: 'node-value-parse', parameter: { node: lNode, valueIndex: 0 }, state: 0, values: {} });
+
+                        // Proceed to next state.
+                        lCurrentProcess.state++;
+
+                        continue MAIN_LOOP;
+                    }
+
+                    // State 1: Save node value parse result and proceed to parse next node.
+                    if (lCurrentProcess.state === 1) {
+                        // Read node value parse result.
+                        const lNodeParseResult: unknown | CodeParserErrorSymbol = lStackResult;
+
+                        // Exit on node parse error.
+                        if (lNodeParseResult === CodeParserException.PARSER_ERROR) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            // Exit parsing without pushing a new process.
+                            continue MAIN_LOOP;
+                        }
+
+                        // Save node value parse result in values.
+                        lCurrentProcess.values.nodeValueResult = lNodeParseResult;
+
+                        // Proceed with next node parse.
+                        lProcessStack.push({ type: 'node-next-parse', parameter: { node: lNode }, state: 0, values: {} });
+
+                        // Proceed to next state.
+                        lCurrentProcess.state++;
+
+                        continue MAIN_LOOP;
+                    }
+
+                    // State 2: Save node next parse and return value.
+                    if (lCurrentProcess.state === 2) {
+                        // Read node next parse result.
+                        const lNodeNextParseResult: unknown | CodeParserErrorSymbol = lStackResult;
+
+                        // Exit on node parse error.
+                        if (lNodeNextParseResult === CodeParserException.PARSER_ERROR) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            // Exit parsing without pushing a new process.
+                            continue MAIN_LOOP;
+                        }
+
+                        // Parse result must be an object.
+                        if (typeof lNodeNextParseResult !== 'object' || lNodeNextParseResult === null) {
+                            throw new Exception('Parse result type missmatch (1)', this);
+                        }
+
+                        // Merge data.
+                        const lMergedData: object = lNode.mergeData(lCurrentProcess.values.nodeValueResult, lNodeNextParseResult);
+
+                        // Pop itself from stack.
+                        lProcessStack.pop();
+
+                        // Set return value to node parse result.
+                        lProcessStack.push({ type: 'STACK_RETURN', result: lMergedData });
+
+                        continue MAIN_LOOP;
+                    }
+
+                    throw new Exception(`Invalid node parse state "${lCurrentProcess.state}".`, this);
+                }
+
+                /**
+                 * Parse node value.
+                 */
+                case 'node-value-parse': {
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.parameter.node;
+
+                    // State 0: Iterate over node values.
+                    if (lCurrentProcess.state === 0) {
+                        // When the last process hat returned a value, use at parse result when it is not a error value.
+                        if (typeof lStackResult !== 'undefined' && lStackResult !== CodeParserException.PARSER_ERROR) {
+                            // Set parsed value to last stack result.
+                            lCurrentProcess.values.parseResult = lStackResult;
+
+                            // Proceed to next state.
+                            lCurrentProcess.state++;
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // Read current value index.
+                        const lValueIndex: number = lCurrentProcess.parameter.valueIndex;
+
+                        // Read node connections.
+                        const lNodeConnections: GraphNodeConnections<TTokenType> = lNode.connections;
+
+                        // Check if node has any more values.
+                        if (lValueIndex >= lNodeConnections.values.length) {
+                            // Set parsed value to null.
+                            lCurrentProcess.values.parseResult = null;
+
+                            // Proceed to next state.
+                            lCurrentProcess.state++;
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // Increment value.
+                        lCurrentProcess.parameter.valueIndex++;
+
+                        // Read current token. Can fail when lexer fails.
+                        const lCurrentToken: LexerToken<TTokenType> | null = pCursor.currentToken;
+
+                        // Check of node has any branches or is linear.
+                        const lNodeValueIsLinear: boolean = lNodeConnections.values.length === 1;
+
+                        const lNodeValue = lNodeConnections.values[lValueIndex];
+                        if (typeof lNodeValue === 'string') {
+                            // When no current token was found, skip node value parsing.
+                            if (!lCurrentToken) {
+                                // Append error when node was required.
+                                if (lNodeConnections.required) {
+                                    // Get current token position.
+                                    const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
+
+                                    // Push parser incident as the current token position.
+                                    pCursor.trace.push(`Unexpected end of statement. Token "${lNodeValue}" expected.`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
+                                }
+
+                                // No token was found, try next value.
+                                continue MAIN_LOOP;
+                            }
+
+                            // Push possible parser error when token type does not match node value.
+                            if (lNodeValue !== lCurrentToken.type) {
+                                if (lNodeConnections.required) {
+                                    // Get current token position.
+                                    const lTokenPosition: CodeParserCursorTokenPosition<TTokenType> = pCursor.getTokenPosition();
+
+                                    // Push parser incident as the current token position.
+                                    pCursor.trace.push(`Unexpected token "${lCurrentToken.value}". "${lNodeValue}" expected`, pCursor.graph, lTokenPosition.lineStart, lTokenPosition.columnStart, lTokenPosition.lineEnd, lTokenPosition.columnEnd);
+                                }
+
+                                // No token was found, try next value.
+                                continue MAIN_LOOP;
+                            }
+
+                            // Move cursor to next token.
+                            pCursor.moveNext();
+
+                            // Dont pop current process.
+
+                            // Set value as result. The next iteration reads it and proceeds to the next state.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: lCurrentToken.value });
+                        } else {
+                            // Push parser process for graph value.
+                            lProcessStack.push({ type: 'graph-parse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear }, state: 0, values: {} });
+                        }
+
+                        continue MAIN_LOOP;
+                    }
+
+                    // State 1: Validate parsed value.
+                    if (lCurrentProcess.state === 1) {
+                        // Read node value parse result.
+                        const lNodeResult: unknown = lCurrentProcess.values.parseResult;
+
+                        // Read node connections.
+                        const lNodeConnections: GraphNodeConnections<TTokenType> = lNode.connections;
+
+                        // Empty result when no node value was found and node is optional.
+                        if (lNodeResult === null && !lNodeConnections.required) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to node parse result.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: undefined });
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // When no result was added, node was required and should fail.
+                        if (lNodeResult === null) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // Pop itself from stack.
+                        lProcessStack.pop();
+
+                        // Set return value to node parse result.
+                        lProcessStack.push({ type: 'STACK_RETURN', result: lNodeResult });
+
+                        continue MAIN_LOOP;
+                    }
+
+                    throw new Exception(`Invalid node value parse state "${lCurrentProcess.state}".`, this);
+                }
+
+                /**
+                 * Parse chained node.
+                 */
+                case 'node-next-parse': {
+                    // Read parameters.
+                    const lNode: GraphNode<TTokenType> = lCurrentProcess.parameter.node;
+
+                    // State 0: Start node next parse.
+                    if (lCurrentProcess.state === 0) {
+                        // Read node connections.
+                        const lNodeConnections: GraphNodeConnections<TTokenType> = lNode.connections;
+
+                        // Next chained node.
+                        const lNextNode: GraphNode<TTokenType, object> | null = lNodeConnections.next;
+
+                        // No result when branch end was meet.
+                        if (lNextNode === null) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to an empty chain result.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: {} });
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // Proceed to next state.
+                        lCurrentProcess.state++;
+
+                        // Start parsing next node.
+                        lProcessStack.push({ type: 'node-parse', parameter: { node: lNextNode }, state: 0, values: {} });
+
+                        continue MAIN_LOOP;
+                    }
+
+                    // State 1: End node next parse.
+                    if (lCurrentProcess.state === 1) {
+                        // Read parameters.
+                        const lChainResult: unknown | CodeParserErrorSymbol = lStackResult;
+
+                        // Exit on node parse error.
+                        if (lChainResult === CodeParserException.PARSER_ERROR) {
+                            // Pop itself from stack.
+                            lProcessStack.pop();
+
+                            // Set return value to error.
+                            lProcessStack.push({ type: 'STACK_RETURN', result: CodeParserException.PARSER_ERROR });
+
+                            continue MAIN_LOOP;
+                        }
+
+                        // Parse result must be an object.
+                        if (typeof lChainResult !== 'object' || lChainResult === null) {
+                            throw new Exception('Parse result type missmatch (1)', this);
+                        }
+
+                        // Pop itself from stack.
+                        lProcessStack.pop();
+
+                        // Set return value to node parse result.
+                        lProcessStack.push({ type: 'STACK_RETURN', result: lChainResult });
+
+                        continue MAIN_LOOP;
+                    }
+
+                    throw new Exception(`Invalid node next parse state "${lCurrentProcess.state}".`, this);
+                }
+
+                default: {
+                    throw new Exception(`Invalid process type "${lCurrentProcess.type}".`, this);
+                }
+            }
         }
 
-        // When no result was added, node was required and should fail.
-        if (lNodeResult === null) {
-            return CodeParserException.PARSER_ERROR;
-        }
-
-        return lNodeResult;
+        throw new Exception('Parser process stack reached an unexpected end.', this);
     }
 }
+
+/*
+ * State control types.
+ */
+
+type CodeParserProcessStackMapping<TTokenType extends string> = {
+
+    // Parse graph.
+    graphParse: {
+        type: 'graph-parse',
+        state: number;
+        parameter: {
+            graph: Graph<TTokenType>;
+            linear: boolean;
+        },
+        values: {};
+    };
+
+    // Parse node.
+    nodeParse: {
+        type: 'node-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+        },
+        values: {
+            nodeValueResult?: unknown;
+        };
+    };
+
+    // Node value parse.
+    nodeValueParse: {
+        type: 'node-value-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+            valueIndex: number;
+        },
+        values: {
+            parseResult?: unknown | null;
+        };
+    };
+
+    // Node next parse
+    nodeNextParse: {
+        type: 'node-next-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+        },
+        values: {};
+    };
+};
+
+type CodeParserStackResultItem = {
+    type: 'STACK_RETURN';
+    result: unknown;
+};
+
+type CodeParserProcessStackItem<TTokenType extends string> = CodeParserProcessStackMapping<TTokenType>[keyof CodeParserProcessStackMapping<TTokenType>] | CodeParserStackResultItem;
 
 export type CodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;

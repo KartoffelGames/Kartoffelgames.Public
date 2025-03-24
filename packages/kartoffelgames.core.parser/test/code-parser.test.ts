@@ -1,10 +1,10 @@
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
+import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParserException } from '../source/parser/code-parser-exception.ts';
+import { CodeParser } from '../source/parser/code-parser.ts';
 import { GraphNode } from '../source/parser/graph/graph-node.ts';
 import { Graph } from '../source/parser/graph/graph.ts';
-import { Lexer } from '../source/lexer/lexer.ts';
-import { CodeParserIterative as CodeParser } from '../source/parser/code-parser-iterative.ts';
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -1478,7 +1478,7 @@ describe('CodeParser', () => {
 
                 const lMainGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier).required(TokenType.Custom);
-                }).converter(()=>{
+                }).converter(() => {
                     return Symbol();
                 });
                 lParser.setRootGraph(lMainGraph);
@@ -1623,13 +1623,13 @@ describe('CodeParser', () => {
                 const lErrorMessage: string = 'Aborted Error';
                 const lFailingGraph = Graph.define(() => {
                     return GraphNode.new<TokenType>()
-                    .optional('namespace',
-                        GraphNode.new<TokenType>().required('name', TokenType.Identifier).required(TokenType.Assignment)
-                    )
-                    .required('name', TokenType.Identifier)
-                    .optional('value',
-                        GraphNode.new<TokenType>().required(TokenType.Assignment).required('value', TokenType.Custom)
-                    );
+                        .optional('namespace',
+                            GraphNode.new<TokenType>().required('name', TokenType.Identifier).required(TokenType.Assignment)
+                        )
+                        .required('name', TokenType.Identifier)
+                        .optional('value',
+                            GraphNode.new<TokenType>().required(TokenType.Assignment).required('value', TokenType.Custom)
+                        );
                 }).converter(() => {
                     throw Error(lErrorMessage);
                 });

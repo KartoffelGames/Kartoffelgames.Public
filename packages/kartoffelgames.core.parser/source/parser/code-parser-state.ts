@@ -334,6 +334,10 @@ export class CodeParserState<TTokenType extends string> {
     }
 }
 
+/*
+ * Graph stack types.
+ */
+
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
     linear: boolean;
@@ -344,6 +348,11 @@ type CodeParserCursorGraph<TTokenType extends string> = {
     };
     isRoot: boolean;
 };
+
+/*
+ * Cursor types.
+ */
+
 
 type CodeParserCursorPosition = {
     column: number;

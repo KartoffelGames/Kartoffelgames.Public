@@ -316,6 +316,9 @@ export class CodeParserState<TTokenType extends string> {
             lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
 
+        // TODO: clean comments.
+        // TODO: When node is required and parent graph is linear and the current value is the last in the node this is technically also linear.
+
         // Truncate parent graphs token cache to the current token.
         // So the token memory gets marked as disposeable.
         if (lCurrentTokenStack.linear) {

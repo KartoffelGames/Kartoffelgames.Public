@@ -83,7 +83,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Parse root graph part.
         const lRootParseData: unknown | CodeParserErrorSymbol = (() => {
             try {
-                return this.parseGraph(lCursor, this.mRootPart as Graph<TTokenType>)!;
+                return this.beginParseProcess(lCursor, this.mRootPart as Graph<TTokenType>)!;
             } catch (pError) {
                 // The graph is still in the right state the error was thrown, so we can still extract data from it.
 
@@ -141,10 +141,29 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mRootPart = pGraph;
     }
 
-    private parseGraph(pCursor: CodeParserState<TTokenType>, pRootGraph: Graph<TTokenType>): unknown | CodeParserErrorSymbol {
+    /**
+     * Begins the parsing process for the given cursor and root graph.
+     * 
+     * The parsing process involves managing a stack of parsing tasks, each represented by a `CodeParserProcessStackItem`.
+     * The main loop processes each item on the stack until it is empty, handling different types of parsing tasks such as
+     * graph parsing, node parsing, node value parsing, and chained node parsing.
+     * 
+     * The function handles various states within each parsing task, ensuring proper transitions and error handling.
+     * It also manages circular graph detection, token validation, and data conversion.
+     * 
+     * The function throws exceptions for invalid states or process types, ensuring robust error handling.
+     * 
+     * @param pCursor - The current state of the code parser.
+     * @param pRootGraph - The root graph to start parsing from.
+     * 
+     * @returns The result of the parsing process, which can be either an unknown value or a CodeParserErrorSymbol.
+     */
+    private beginParseProcess(pCursor: CodeParserState<TTokenType>, pRootGraph: Graph<TTokenType>): unknown | CodeParserErrorSymbol {
         const lProcessStack: Stack<CodeParserProcessStackItem<TTokenType>> = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
         // TODO: Combine the pop-pushError-continue pattern into a function.
+        // TODO: Wrap the switch in a function. And the return value gets pushed as STACK_RETURN ?
+        // TODO: Technically all processes can be split into seperate methods.
 
         // Push the first process.
         lProcessStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0 });

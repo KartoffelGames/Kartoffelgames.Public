@@ -12,6 +12,7 @@ export class CodeParserState<TTokenType extends string> {
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mPosition: CodeParserCursorPosition;
     private readonly mTrace: CodeParserTrace<TTokenType>;
+    private readonly mTokenCache: Array<LexerToken<TTokenType>>;
 
     /**
      * Read the current token from the stream.
@@ -23,13 +24,13 @@ export class CodeParserState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Performance reasons: Dont start a iterator when we dont need to.
-        if (lCurrentGraphStack.token.index < lCurrentGraphStack.token.cache.length) {
+        if (lCurrentGraphStack.tokenCacheSlice.cursor < this.mTokenCache.length) {
             // Read token from cache.
-            return lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index];
+            return this.mTokenCache[lCurrentGraphStack.tokenCacheSlice.cursor];
         }
 
         // Fill up cache until the current index is reached.
-        for (let lCacheLength = lCurrentGraphStack.token.cache.length; lCacheLength <= lCurrentGraphStack.token.index; lCacheLength++) {
+        for (let lCacheLength = this.mTokenCache.length; lCacheLength <= lCurrentGraphStack.tokenCacheSlice.cursor; lCacheLength++) {
             // Read token from generator.
             const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
             if (lToken.done) {
@@ -41,11 +42,11 @@ export class CodeParserState<TTokenType extends string> {
             this.mPosition.line = lToken.value.lineNumber;
 
             // Store token in cache.
-            lCurrentGraphStack.token.cache.push(lToken.value);
+            this.mTokenCache.push(lToken.value);
         }
 
         // Read token from cache.
-        return lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index];
+        return this.mTokenCache[lCurrentGraphStack.tokenCacheSlice.cursor];
     }
 
     /**
@@ -79,6 +80,7 @@ export class CodeParserState<TTokenType extends string> {
             column: 1,
             line: 1
         };
+        this.mTokenCache = new Array<LexerToken<TTokenType>>();
 
         // Create trace.
         this.mTrace = new CodeParserTrace<TTokenType>(pDebug);
@@ -88,9 +90,9 @@ export class CodeParserState<TTokenType extends string> {
             graph: null as any,
             linear: true,
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(),
-            token: {
-                cache: [],
-                index: 0
+            tokenCacheSlice: {
+                start: 0,
+                cursor: 0
             },
             isRoot: true,
         });
@@ -108,10 +110,10 @@ export class CodeParserState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Generate all remaining tokens and cached unused tokens.
-        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
-        const lUnusedToken: Array<LexerToken<TTokenType>> = lCurrentGraphStack.token.cache.slice(lCurrentGraphStack.token.index);
+        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator]; // TODO: might throw an callstack overflow.
+        const lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.tokenCacheSlice.cursor);
 
-        return [...lUnusedToken, ...lUngeneratedToken];
+        return lUnusedToken.concat(lUngeneratedToken);
     }
 
     /**
@@ -139,8 +141,8 @@ export class CodeParserState<TTokenType extends string> {
         let lEndToken: LexerToken<TTokenType>;
 
         // Get start and end token from current graph stack.
-        lStartToken = lCurrentGraphStack.token.cache[0];
-        lEndToken = lCurrentGraphStack.token.cache[lCurrentGraphStack.token.index - 1];
+        lStartToken = this.mTokenCache[lCurrentGraphStack.tokenCacheSlice.start];
+        lEndToken = this.mTokenCache[lCurrentGraphStack.tokenCacheSlice.cursor - 1];
 
         // Default to last generated token when token was not set.
         lStartToken = lStartToken ?? lEndToken;
@@ -259,7 +261,7 @@ export class CodeParserState<TTokenType extends string> {
             lCurrentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
 
-        lCurrentGraphStack.token.index++;
+        lCurrentGraphStack.tokenCacheSlice.cursor++;
     }
 
     /**
@@ -274,17 +276,14 @@ export class CodeParserState<TTokenType extends string> {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
-        // Copy the current token stack from parent from its current token stack index index.
-        const lTokenStack: Array<LexerToken<TTokenType>> = lLastGraphStack.token.cache.slice(lLastGraphStack.token.index);
-
         // Create a new empty graph stack.
         const lNewTokenStack: CodeParserCursorGraph<TTokenType> = {
             graph: pGraph,
             linear: pLinear && lLastGraphStack.linear, // If a parent graph is not linear, the child graph is not linear.
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(lLastGraphStack.circularGraphs),
-            token: {
-                cache: lTokenStack,
-                index: 0
+            tokenCacheSlice: {
+                start: lLastGraphStack.tokenCacheSlice.cursor,
+                cursor: lLastGraphStack.tokenCacheSlice.cursor
             },
             isRoot: false
         };
@@ -309,31 +308,24 @@ export class CodeParserState<TTokenType extends string> {
 
         // Revert current stack index when the graph failed with an error.
         if (pFailed) {
-            lCurrentTokenStack.token.index = 0;
+            lCurrentTokenStack.tokenCacheSlice.cursor = lCurrentTokenStack.tokenCacheSlice.start;
         }
 
         // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
-        if (lCurrentTokenStack.token.index !== 0 && lParentGraphStack.circularGraphs.size > 0) {
+        if (lCurrentTokenStack.tokenCacheSlice.cursor !== lCurrentTokenStack.tokenCacheSlice.start && lParentGraphStack.circularGraphs.size > 0) {
             lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
-
-        // TODO: Share the same token cache between parent and child graph.
 
         // Truncate parent graphs token cache to the current token.
         // So the token memory gets marked as disposeable.
         if (lCurrentTokenStack.linear) {
             // Reset parent index to zero.
-            lParentGraphStack.token.cache = lCurrentTokenStack.token.cache.slice(lCurrentTokenStack.token.index);
-            lParentGraphStack.token.index = 0;
+            this.mTokenCache.splice(0, lCurrentTokenStack.tokenCacheSlice.cursor);
+            lParentGraphStack.tokenCacheSlice.start = 0;
+            lParentGraphStack.tokenCacheSlice.cursor = 0;
         } else {
-            // Read only the new tokens that are added to the stack and are not present in the parent stack.
-            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lCurrentTokenStack.token.cache.slice(lParentGraphStack.token.cache.length - lParentGraphStack.token.index);
-
             // Move parent stack index to the last graphs stack index.
-            lParentGraphStack.token.index += lCurrentTokenStack.token.index;
-
-            // Add the new tokens to the parent stack.
-            lParentGraphStack.token.cache = lParentGraphStack.token.cache.concat(lNewTokenStackCache);
+            lParentGraphStack.tokenCacheSlice.cursor = lCurrentTokenStack.tokenCacheSlice.cursor;
         }
     }
 }
@@ -346,9 +338,9 @@ type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
     linear: boolean;
     circularGraphs: Dictionary<Graph<TTokenType>, number>;
-    token: {
-        cache: Array<LexerToken<TTokenType>>,
-        index: number;
+    tokenCacheSlice: {
+        start: number;
+        cursor: number;
     };
     isRoot: boolean;
 };

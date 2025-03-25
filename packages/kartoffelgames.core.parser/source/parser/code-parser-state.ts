@@ -11,8 +11,8 @@ export class CodeParserState<TTokenType extends string> {
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mPosition: CodeParserCursorPosition;
-    private readonly mTrace: CodeParserTrace<TTokenType>;
     private readonly mTokenCache: Array<LexerToken<TTokenType>>;
+    private readonly mTrace: CodeParserTrace<TTokenType>;
 
     /**
      * Read the current token from the stream.
@@ -265,38 +265,6 @@ export class CodeParserState<TTokenType extends string> {
     }
 
     /**
-     * Pushes a new graph onto the graph stack and manages the token stack.
-     * 
-     * @param pGraph - The graph to be pushed onto the stack.
-     * @param pLinear - A boolean indicating whether the graph is linear and not part of branch.
-     * 
-     * @template TGraph - The type of the graph.
-     */
-    public pushGraph<TGraph extends Graph<TTokenType>>(pGraph: TGraph, pLinear: boolean): void {
-        // Read the current stack state.
-        const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
-
-        // Create a new empty graph stack.
-        const lNewTokenStack: CodeParserCursorGraph<TTokenType> = {
-            graph: pGraph,
-            linear: pLinear && lLastGraphStack.linear, // If a parent graph is not linear, the child graph is not linear.
-            circularGraphs: new Dictionary<Graph<TTokenType>, number>(lLastGraphStack.circularGraphs),
-            tokenCacheSlice: {
-                start: lLastGraphStack.tokenCacheSlice.cursor,
-                cursor: lLastGraphStack.tokenCacheSlice.cursor
-            },
-            isRoot: false
-        };
-
-        // Add itself to the circular graph list.
-        const lCurrentGraphCirularCount: number = lNewTokenStack.circularGraphs.get(pGraph) ?? 0;
-        lNewTokenStack.circularGraphs.set(pGraph, lCurrentGraphCirularCount + 1);
-
-        // Push the new graph stack on the stack.
-        this.mGraphStack.push(lNewTokenStack);
-    }
-
-    /**
      * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
      * 
      * @param pFailed - A boolean indicating whether the current graph failed with an error.
@@ -330,6 +298,38 @@ export class CodeParserState<TTokenType extends string> {
             // Move parent stack index to the last graphs stack index.
             lParentGraphStack.tokenCacheSlice.cursor = lCurrentTokenStack.tokenCacheSlice.cursor;
         }
+    }
+
+    /**
+     * Pushes a new graph onto the graph stack and manages the token stack.
+     * 
+     * @param pGraph - The graph to be pushed onto the stack.
+     * @param pLinear - A boolean indicating whether the graph is linear and not part of branch.
+     * 
+     * @template TGraph - The type of the graph.
+     */
+    public pushGraph<TGraph extends Graph<TTokenType>>(pGraph: TGraph, pLinear: boolean): void {
+        // Read the current stack state.
+        const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
+
+        // Create a new empty graph stack.
+        const lNewTokenStack: CodeParserCursorGraph<TTokenType> = {
+            graph: pGraph,
+            linear: pLinear && lLastGraphStack.linear, // If a parent graph is not linear, the child graph is not linear.
+            circularGraphs: new Dictionary<Graph<TTokenType>, number>(lLastGraphStack.circularGraphs),
+            tokenCacheSlice: {
+                start: lLastGraphStack.tokenCacheSlice.cursor,
+                cursor: lLastGraphStack.tokenCacheSlice.cursor
+            },
+            isRoot: false
+        };
+
+        // Add itself to the circular graph list.
+        const lCurrentGraphCirularCount: number = lNewTokenStack.circularGraphs.get(pGraph) ?? 0;
+        lNewTokenStack.circularGraphs.set(pGraph, lCurrentGraphCirularCount + 1);
+
+        // Push the new graph stack on the stack.
+        this.mGraphStack.push(lNewTokenStack);
     }
 }
 

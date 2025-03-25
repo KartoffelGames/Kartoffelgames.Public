@@ -440,9 +440,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Read current token. Can fail when lexer fails.
                 const lCurrentToken: LexerToken<TTokenType> | null = pCursor.currentToken;
 
-                // Check of node has any branches or is linear.
-                const lNodeValueIsLinear: boolean = lNodeConnections.values.length === 1;
-
+                // Read and parse node value based on type.
                 const lNodeValue = lNodeConnections.values[lValueIndex];
                 if (typeof lNodeValue === 'string') {
                     // When no current token was found, skip node value parsing.
@@ -482,6 +480,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Set value as result. The next iteration reads it and proceeds to the next state.
                     return lCurrentToken.value;
                 } else {
+                    // Check of current node value is linear.
+                    const lNodeValueIsLinear: boolean = lNodeConnections.values.length === 1 || lNodeConnections.values.length === (lValueIndex + 1);
+
                     // Push parser process for graph value.
                     pProcessStack.push({ type: 'graph-parse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear }, state: 0 });
 

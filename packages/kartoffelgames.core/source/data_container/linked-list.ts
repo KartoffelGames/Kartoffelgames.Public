@@ -29,6 +29,14 @@ export class LinkedList<T> {
      * Get current item.
      */
     public get current(): T | null {
+        // If current is null revert to the last item.
+        if (!this.mCurrent) {
+            // TODO: na also not great. How to move only one back and one forward???
+            this.moveLast();
+            
+        }
+
+        // When it still null, no value is set.
         if (!this.mCurrent) {
             return null;
         }
@@ -59,6 +67,10 @@ export class LinkedList<T> {
      * @param pList 
      */
     public append(pList: LinkedList<T>): void {
+        if (!pList.mCurrent) {
+            return;
+        }
+
         // If root is not set, set root and current to the first item of the other list.
         if (!this.mHead || !this.mTail) {
             this.mHead = pList.mHead;
@@ -110,10 +122,14 @@ export class LinkedList<T> {
 
     /**
      * Creates a new linked list starting from the current node.
+     * The list is still linked to the original list.
+     * Appending to the original list will expand the chaining.
      *
      * @returns {LinkedList<T>} A new linked list instance starting from the current node.
      */
     public newFromCurrent(): LinkedList<T> {
+        // TODO. Thats shitty. Make it better. Make it without referencing. Name it slice and make it a feature hehehe.
+        // TODO: referenceSlice? How to update expand tail only tail
         const lNewList = new LinkedList<T>();
 
         // Only set head and tail if current is set.
@@ -132,7 +148,13 @@ export class LinkedList<T> {
      * @returns false when the end of the list is reached.
      */
     public next(): boolean {
-        // If current is null, return false.
+        // If current is null revert to the last item.
+        if (!this.mCurrent) {
+            // TODO: Thats also shitty. How to move only one back and one forward???
+            this.moveLast(); 
+        }
+
+        // When it still null, no value is set.
         if (!this.mCurrent) {
             return false;
         }

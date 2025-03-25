@@ -1,6 +1,29 @@
 export class LinkedList<T> {
-    private mRoot: LinkedListItem<T> | null;
+    private mHead: LinkedListItem<T> | null;
+    private mTail: LinkedListItem<T> | null;
     private mCurrent: LinkedListItem<T> | null;
+
+    /**
+     * Get the first item.
+     */
+    public get head(): T | null {
+        if (!this.mHead) {
+            return null;
+        }
+
+        return this.mHead.value;
+    }
+
+    /**
+     * Get the last item.
+     */
+    public get tail(): T | null {
+        if (!this.mTail) {
+            return null;
+        }
+
+        return this.mTail.value;
+    }
 
     /**
      * Get current item.
@@ -14,11 +37,19 @@ export class LinkedList<T> {
     }
 
     /**
+     * Get if the list is done
+     */
+    public get done(): boolean {
+        return !this.mCurrent;
+    }
+
+    /**
      * Constructor.
      */
     public constructor() {
-        this.mRoot = null;
+        this.mHead = null;
         this.mCurrent = null;
+        this.mTail = null;
     }
 
     /**
@@ -29,18 +60,28 @@ export class LinkedList<T> {
      */
     public append(pList: LinkedList<T>): void {
         // If root is not set, set root and current to the first item of the other list.
-        if (!this.mRoot) {
-            this.mRoot = pList.mRoot;
-            this.mCurrent = pList.mRoot;
+        if (!this.mHead || !this.mTail) {
+            this.mHead = pList.mHead;
+            this.mCurrent = pList.mHead;
+            this.mTail = pList.mTail;
+            return;
+        }
+
+        // When current is not set, move to the last item and append the other list.
+        if (!this.mCurrent) {
+            this.moveLast();
+            this.append(pList);
+            this.next();
             return;
         }
 
         // Append the other list to the current item.
-        this.mCurrent!.next = pList.mCurrent;
+        this.mCurrent.next = pList.mCurrent;
+        this.mTail = pList.mTail;
     }
 
     /**
-     * Add a new item after the current item.
+     * Add a new item to the end.
      * 
      * @param pValue The value to add.
      */
@@ -50,19 +91,21 @@ export class LinkedList<T> {
             value: pValue,
         };
 
-        // If root is not set, set root and current to new item.
-        if (!this.mRoot) {
-            this.mRoot = lNewItem;
+        // If head is not set, set head, tail and current to new item.
+        if (!this.mHead || !this.mTail) {
+            this.mHead = lNewItem;
             this.mCurrent = lNewItem;
+            this.mTail = lNewItem;
             return;
         }
 
-        // Push that little boy between the current and the next.
-        lNewItem.next = this.mCurrent!.next;
-        this.mCurrent!.next = lNewItem;
+        // Push that little boy after tail
+        this.mTail.next = lNewItem;
+        this.mTail = lNewItem;
 
-        // Move to the new item.
-        this.mCurrent = lNewItem;
+        if (!this.mCurrent) {
+            this.mCurrent = lNewItem;
+        }
     }
 
     /**
@@ -72,8 +115,13 @@ export class LinkedList<T> {
      */
     public newFromCurrent(): LinkedList<T> {
         const lNewList = new LinkedList<T>();
-        lNewList.mRoot = this.mCurrent;
-        lNewList.moveFirst();
+
+        // Only set head and tail if current is set.
+        if (this.mCurrent) {
+            lNewList.mHead = this.mCurrent;
+            lNewList.mTail = this.mTail;
+            lNewList.moveFirst();
+        }
 
         return lNewList;
     }
@@ -84,27 +132,29 @@ export class LinkedList<T> {
      * @returns false when the end of the list is reached.
      */
     public next(): boolean {
-        // If current is not set, return true.
+        // If current is null, return false.
         if (!this.mCurrent) {
-            return false;
-        }
-
-        // If next is not set, return true.
-        if (!this.mCurrent.next) {
             return false;
         }
 
         // Move to next item.
         this.mCurrent = this.mCurrent.next;
 
-        return true;
+        return !!this.mCurrent;
     }
 
     /**
      * Move to the previous item in the linked list.
      */
     public moveFirst(): void {
-        this.mCurrent = this.mRoot;
+        this.mCurrent = this.mHead;
+    }
+
+    /**
+     * Move to the last item in the linked list.
+     */
+    public moveLast(): void {
+        this.mCurrent = this.mTail;
     }
 }
 

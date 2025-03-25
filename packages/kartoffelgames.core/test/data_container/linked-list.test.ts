@@ -22,6 +22,46 @@ describe('LinkedList', () => {
         });
     });
 
+    describe('Property: head', () => {
+        it('-- should return null when list is empty', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+
+            // Evaluation.
+            expect(lList.head).toBeNull();
+        });
+
+        it('-- should return the first value', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+            lList.push('Value2');
+
+            // Evaluation.
+            expect(lList.head).toBe('Value1');
+        });
+    });
+
+    describe('Property: tail', () => {
+        it('-- should return null when list is empty', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+
+            // Evaluation.
+            expect(lList.tail).toBeNull();
+        });
+
+        it('-- should return the last value', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+            lList.push('Value2');
+
+            // Evaluation.
+            expect(lList.tail).toBe('Value2');
+        });
+    });
+
     describe('Method: push', () => {
         it('-- should add a value to the list', () => {
             // Setup.
@@ -41,15 +81,31 @@ describe('LinkedList', () => {
             // Process.
             lList.push('Value1');
             lList.push('Value2');
-
-            // Evaluation.
-            expect(lList.current).toBe('Value2');
-
-            // Process.
             lList.push('Value3');
 
             // Evaluation.
+            expect(lList.current).toBe('Value1');
+            lList.next();
+            expect(lList.current).toBe('Value2');
+            lList.next();
             expect(lList.current).toBe('Value3');
+        });
+
+        it('-- Should append an new item after list was done', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+            lList.moveFirst();
+            lList.next();
+
+            // Evaluation.
+            expect(lList.done).toBeTruthy();
+
+            // Process.
+            lList.push('Value2');
+
+            // Evaluation.
+            expect(lList.current).toBe('Value2');
         });
     });
 
@@ -85,7 +141,7 @@ describe('LinkedList', () => {
 
             // Evaluation.
             expect(lHasNext).toBeFalsy();
-            expect(lList.current).toBe('Value2');
+            expect(lList.current).toBeNull();
         });
 
         it('-- should return false when current is null', () => {
@@ -107,6 +163,7 @@ describe('LinkedList', () => {
             const lList: LinkedList<string> = new LinkedList<string>();
             lList.push('Value1');
             lList.push('Value2');
+            lList.moveLast();
 
             // Evaluation.
             expect(lList.current).toBe('Value2');
@@ -165,6 +222,28 @@ describe('LinkedList', () => {
             expect(lList1.current).toBe('Value1');
             lList1.next();
             expect(lList1.current).toBe('Value2');
+        });
+
+        it('-- should append the other list to the current when current list is on end', () => {
+            // Setup.
+            const lList1: LinkedList<string> = new LinkedList<string>();
+            lList1.push('Value1');
+            lList1.next();
+
+            const lList2: LinkedList<string> = new LinkedList<string>();
+            lList2.push('Value2');
+            lList2.push('Value3');
+            lList2.moveFirst();
+
+            // Process.
+            lList1.append(lList2);
+
+            // Evaluation.
+            expect(lList1.current).toBe('Value2');
+            lList1.next();
+            expect(lList1.current).toBe('Value3');
+            lList1.moveFirst();
+            expect(lList1.current).toBe('Value1');
         });
     });
 

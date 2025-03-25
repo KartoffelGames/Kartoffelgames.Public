@@ -12,6 +12,7 @@ export { Dictionary } from './data_container/dictionary.ts';
 export { List } from './data_container/list.ts';
 export { Stack } from './data_container/stack.ts';
 export { Exception } from './exception/exception.ts';
+export { LinkedList } from './data_container/linked-list.ts';
 
 // Handler.
 export { EnumUtil } from './util/enum-util.ts';

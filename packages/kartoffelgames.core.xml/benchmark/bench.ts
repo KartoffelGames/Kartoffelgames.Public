@@ -42,7 +42,7 @@ Deno.bench("Complex - Warm - OLD", { group: "complex-warm", baseline: true }, ()
 });
 
 
-Deno.bench("Large - Cold - NEW", { group: "large", baseline: true, n: 2  }, () => {
-    const lXmlParser = new NewXmlParser();
-    lXmlParser.parse(gLarge);
-});
+// Deno.bench("Large - Cold - NEW", { group: "large", baseline: true, n: 2  }, () => {
+//     const lXmlParser = new NewXmlParser();
+//     lXmlParser.parse(gLarge);
+// });

@@ -22,33 +22,13 @@ describe('LinkedList', () => {
         });
     });
 
-    describe('Property: head', () => {
+    describe('Property: root', () => {
         it('-- should return null when list is empty', () => {
             // Setup.
             const lList: LinkedList<string> = new LinkedList<string>();
 
             // Evaluation.
-            expect(lList.head).toBeNull();
-        });
-
-        it('-- should return the first value', () => {
-            // Setup.
-            const lList: LinkedList<string> = new LinkedList<string>();
-            lList.push('Value1');
-            lList.push('Value2');
-
-            // Evaluation.
-            expect(lList.head).toBe('Value1');
-        });
-    });
-
-    describe('Property: tail', () => {
-        it('-- should return null when list is empty', () => {
-            // Setup.
-            const lList: LinkedList<string> = new LinkedList<string>();
-
-            // Evaluation.
-            expect(lList.tail).toBeNull();
+            expect(lList.root).toBeNull();
         });
 
         it('-- should return the last value', () => {
@@ -58,9 +38,32 @@ describe('LinkedList', () => {
             lList.push('Value2');
 
             // Evaluation.
-            expect(lList.tail).toBe('Value2');
+            expect(lList.root).toBe('Value1');
         });
     });
+
+    describe('Property: done', () => {
+        it('-- should return false when there are more items', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+
+            // Evaluation.
+            expect(lList.done).toBeFalsy();
+        });
+
+        it('-- should return true when there are no more items', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+
+            // Process.
+            lList.moveEnd();
+
+            // Evaluation.
+            expect(lList.done).toBeTruthy();
+        });
+    })
 
     describe('Method: push', () => {
         it('-- should add a value to the list', () => {
@@ -163,10 +166,10 @@ describe('LinkedList', () => {
             const lList: LinkedList<string> = new LinkedList<string>();
             lList.push('Value1');
             lList.push('Value2');
-            lList.moveLast();
+            lList.moveEnd();
 
             // Evaluation.
-            expect(lList.current).toBe('Value2');
+            expect(lList.current).toBeNull();
 
             // Process.
             lList.moveFirst();
@@ -176,78 +179,7 @@ describe('LinkedList', () => {
         });
     });
 
-    describe('Method: append', () => {
-        it('-- should set root and current to the first item of the other list when root is not set', () => {
-            // Setup.
-            const lList1: LinkedList<string> = new LinkedList<string>();
-            const lList2: LinkedList<string> = new LinkedList<string>();
-            lList2.push('Value1');
-
-            // Process.
-            lList1.append(lList2);
-
-            // Evaluation.
-            expect(lList1.current).toBe('Value1');
-        });
-
-        it('-- should set current to the current item of the other list when current is not set', () => {
-            // Setup.
-            const lList1: LinkedList<string> = new LinkedList<string>();
-            lList1.push('Value1');
-            const lList2: LinkedList<string> = new LinkedList<string>();
-            lList2.push('Value2');
-            lList2.moveFirst();
-
-            // Process.
-            lList1.append(lList2);
-
-            // Evaluation.
-            expect(lList1.current).toBe('Value1');
-            lList1.next();
-            expect(lList1.current).toBe('Value2');
-        });
-
-        it('-- should append the other list to the current when host list is empty', () => {
-            // Setup.
-            const lList1: LinkedList<string> = new LinkedList<string>();
-            const lList2: LinkedList<string> = new LinkedList<string>();
-            lList2.push('Value1');
-            lList2.push('Value2');
-            lList2.moveFirst();
-
-            // Process.
-            lList1.append(lList2);
-
-            // Evaluation.
-            expect(lList1.current).toBe('Value1');
-            lList1.next();
-            expect(lList1.current).toBe('Value2');
-        });
-
-        it('-- should append the other list to the current when current list is on end', () => {
-            // Setup.
-            const lList1: LinkedList<string> = new LinkedList<string>();
-            lList1.push('Value1');
-            lList1.next();
-
-            const lList2: LinkedList<string> = new LinkedList<string>();
-            lList2.push('Value2');
-            lList2.push('Value3');
-            lList2.moveFirst();
-
-            // Process.
-            lList1.append(lList2);
-
-            // Evaluation.
-            expect(lList1.current).toBe('Value2');
-            lList1.next();
-            expect(lList1.current).toBe('Value3');
-            lList1.moveFirst();
-            expect(lList1.current).toBe('Value1');
-        });
-    });
-
-    describe('Method: newFromCurrent', () => {
+    describe('Method: sliceReference', () => {
         it('-- should create a new list from the current item', () => {
             // Setup.
             const lList: LinkedList<string> = new LinkedList<string>();
@@ -257,7 +189,7 @@ describe('LinkedList', () => {
             lList.moveFirst();
 
             // Process.
-            const lNewList: LinkedList<string> = lList.newFromCurrent();
+            const lNewList: LinkedList<string> = lList.sliceReference();
 
             // Evaluation.
             expect(lNewList.current).toBe('Value1');
@@ -265,6 +197,8 @@ describe('LinkedList', () => {
             expect(lNewList.current).toBe('Value2');
             lNewList.next();
             expect(lNewList.current).toBe('Value3');
+            lNewList.next();
+            expect(lNewList.current).toBeNull();
         });
 
         it('-- should append current items not previous', () => {
@@ -277,13 +211,63 @@ describe('LinkedList', () => {
             lList.next();
 
             // Process.
-            const lNewList: LinkedList<string> = lList.newFromCurrent();
+            const lNewList: LinkedList<string> = lList.sliceReference();
             lNewList.moveFirst();
 
             // Evaluation.
             expect(lNewList.current).toBe('Value2');
             lNewList.next();
             expect(lNewList.current).toBe('Value3');
+            lNewList.next();
+            expect(lNewList.current).toBeNull();
+        });
+
+        it('-- should append new items to the original list', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+            lList.push('Value2');
+            lList.push('Value3');
+            lList.moveFirst();
+            lList.next();
+
+            // Process.
+            const lNewList: LinkedList<string> = lList.sliceReference();
+            lNewList.push('Value4');
+
+            // Evaluation.
+            lList.moveFirst();
+            expect(lList.current).toBe('Value1');
+            lList.next();
+            expect(lList.current).toBe('Value2');
+            lList.next();
+            expect(lList.current).toBe('Value3');
+            lList.next();
+            expect(lList.current).toBe('Value4');
+        });
+    });
+
+    describe('Method: sync', () => {
+        it('-- should create a new list from the current item', () => {
+            // Setup.
+            const lList: LinkedList<string> = new LinkedList<string>();
+            lList.push('Value1');
+            lList.push('Value2');
+            lList.push('Value3');
+            lList.moveFirst();
+
+            // Setup. Create slice.
+            const lNewList: LinkedList<string> = lList.sliceReference();
+
+            // Setup. Move child list.
+            lNewList.next();
+            lNewList.next();
+
+            // Process.
+            lList.sync(lNewList);
+
+            // Evaluation.
+            expect(lList.current).toBe(lNewList.current);
         });
     });
 });

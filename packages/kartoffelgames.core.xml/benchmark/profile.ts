@@ -23,7 +23,7 @@ const lResult = lXmlParser.parse(gFile, (pPosition: number, pLine: number, pColu
     if (Date.now() - lLastTime > 1000) {
         console.log(lCurrentPercent.toFixed(2).padStart(5, ' '), '%', 'P:' + lCurrentPosition, 'L:' + lCurrentLine, 'C:' + lCurrentColumn, 'L/s:', (lCurrentLine - lLastLine));
         lLastLine = lCurrentLine;
-        lLastTime = Date.now();
+        lLastTime += 1000; 
     }
 });
 

@@ -22,7 +22,7 @@ export class CodeParserState<TTokenType extends string> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        if (!lCurrentGraphStack.token.done) {
+        if (lCurrentGraphStack.token.done) {
             // Read token from generator.
             const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
             if (lToken.done) {
@@ -103,10 +103,10 @@ export class CodeParserState<TTokenType extends string> {
 
         // Read all unused tokens from the cache.
         const lUnusedToken: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
-        do {
+        while(!lCurrentGraphStack.token.done) {
             lUnusedToken.push(lCurrentGraphStack.token.current!);
-        } while (lCurrentGraphStack.token.next());
-
+            lCurrentGraphStack.token.next();
+        }
 
         return lUnusedToken.concat(lUngeneratedToken);
     }
@@ -136,7 +136,7 @@ export class CodeParserState<TTokenType extends string> {
         let lEndToken: LexerToken<TTokenType> | null;
 
         // Get start and end token from current graph stack.
-        lStartToken = lCurrentGraphStack.token.head;
+        lStartToken = lCurrentGraphStack.token.root;
         lEndToken = this.currentToken!;
 
         // Default to last generated token when token was not set.
@@ -281,7 +281,7 @@ export class CodeParserState<TTokenType extends string> {
             linear: pLinear && lLastGraphStack.linear, // If a parent graph is not linear, the child graph is not linear.
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(lLastGraphStack.circularGraphs),
             // Copy the current token stack from parent from its current token stack index index.
-            token: lLastGraphStack.token.newFromCurrent(),
+            token: lLastGraphStack.token.sliceReference(),
             isRoot: false,
             moved: false
         };
@@ -318,20 +318,10 @@ export class CodeParserState<TTokenType extends string> {
         // So the token memory gets marked as disposeable.
         if (lCurrentTokenStack.linear) {
             // Reset parent index to zero.
-            lParentGraphStack.token = lCurrentTokenStack.token.newFromCurrent();
-            lParentGraphStack.token.moveFirst();
+            lParentGraphStack.token = lCurrentTokenStack.token.sliceReference();
         } else {
-            // Move current token one more, as the current stack items first item is the last item of the parent stack.
-            lCurrentTokenStack.token.next()
-
-            // Read only the new tokens that are added to the stack and are not present in the parent stack.
-            const lNewTokenStackCache: Array<LexerToken<TTokenType>> = lCurrentTokenStack.token.cache.slice(lParentGraphStack.token.cache.length - lParentGraphStack.token.index);
-
-            // Move parent stack index to the last graphs stack index.
-            lParentGraphStack.token.index += lCurrentTokenStack.token.index;
-
-            // Add the new tokens to the parent stack.
-            lParentGraphStack.token.cache = lParentGraphStack.token.cache.concat(lNewTokenStackCache);
+            // Set the parent item to current item of child stack.
+            lParentGraphStack.token.sync(lCurrentTokenStack.token)
         }
     }
 }

@@ -1,28 +1,17 @@
 export class LinkedList<T> {
-    private mHead: LinkedListItem<T> | null;
-    private mTail: LinkedListItem<T> | null;
-    private mCurrent: LinkedListItem<T> | null;
+    private mHeadElement: LinkedListHeadElement<T>;
+    private mRoot: LinkedListChain<T>;
+    private mCurrent: LinkedListChain<T>;
 
     /**
-     * Get the first item.
+     * Get the root item.
      */
-    public get head(): T | null {
-        if (!this.mHead) {
+    public get root(): T | null {
+        if (!this.mRoot.item) {
             return null;
         }
 
-        return this.mHead.value;
-    }
-
-    /**
-     * Get the last item.
-     */
-    public get tail(): T | null {
-        if (!this.mTail) {
-            return null;
-        }
-
-        return this.mTail.value;
+        return this.mRoot.item.value;
     }
 
     /**
@@ -30,66 +19,35 @@ export class LinkedList<T> {
      */
     public get current(): T | null {
         // If current is null revert to the last item.
-        if (!this.mCurrent) {
-            // TODO: na also not great. How to move only one back and one forward???
-            this.moveLast();
-            
-        }
-
-        // When it still null, no value is set.
-        if (!this.mCurrent) {
+        if (!this.mCurrent.item) {
             return null;
         }
 
-        return this.mCurrent.value;
+        return this.mCurrent.item.value;
     }
 
     /**
      * Get if the list is done
      */
     public get done(): boolean {
-        return !this.mCurrent;
+        return !this.mCurrent.next;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mHead = null;
-        this.mCurrent = null;
-        this.mTail = null;
-    }
+        // Set root.
+        this.mRoot = {
+            next: null,
+            item: null,
+        };
 
-    /**
-     * Append all remaining items from another linked list after the current item.
-     * All items after the current item will be lost.
-     * 
-     * @param pList 
-     */
-    public append(pList: LinkedList<T>): void {
-        if (!pList.mCurrent) {
-            return;
-        }
-
-        // If root is not set, set root and current to the first item of the other list.
-        if (!this.mHead || !this.mTail) {
-            this.mHead = pList.mHead;
-            this.mCurrent = pList.mHead;
-            this.mTail = pList.mTail;
-            return;
-        }
-
-        // When current is not set, move to the last item and append the other list.
-        if (!this.mCurrent) {
-            this.moveLast();
-            this.append(pList);
-            this.next();
-            return;
-        }
-
-        // Append the other list to the current item.
-        this.mCurrent.next = pList.mCurrent;
-        this.mTail = pList.mTail;
+        // List is empty, so it is also the root.
+        this.mHeadElement = {
+            head: this.mRoot
+        };
+        this.mCurrent = this.mRoot;
     }
 
     /**
@@ -98,48 +56,48 @@ export class LinkedList<T> {
      * @param pValue The value to add.
      */
     public push(pValue: T): void {
-        const lNewItem: LinkedListItem<T> = {
+        const lNewChain: LinkedListChain<T> = {
             next: null,
-            value: pValue,
+            item: null,
         };
 
-        // If head is not set, set head, tail and current to new item.
-        if (!this.mHead || !this.mTail) {
-            this.mHead = lNewItem;
-            this.mCurrent = lNewItem;
-            this.mTail = lNewItem;
-            return;
-        }
+        // Set value to current head.
+        this.mHeadElement.head.item = {
+            value: pValue
+        };
 
-        // Push that little boy after tail
-        this.mTail.next = lNewItem;
-        this.mTail = lNewItem;
-
-        if (!this.mCurrent) {
-            this.mCurrent = lNewItem;
-        }
+        // Chain the new item.
+        this.mHeadElement.head.next = lNewChain;
+        
+        // Set the new head.
+        this.mHeadElement.head = lNewChain;
     }
 
     /**
      * Creates a new linked list starting from the current node.
      * The list is still linked to the original list.
-     * Appending to the original list will expand the chaining.
+     * Appending to the original list will expand the new list and vice versa.
      *
      * @returns {LinkedList<T>} A new linked list instance starting from the current node.
      */
-    public newFromCurrent(): LinkedList<T> {
-        // TODO. Thats shitty. Make it better. Make it without referencing. Name it slice and make it a feature hehehe.
-        // TODO: referenceSlice? How to update expand tail only tail
-        const lNewList = new LinkedList<T>();
+    public sliceReference(): LinkedList<T> {
+        const lNewList: LinkedList<T> = new LinkedList<T>();
+        lNewList.mRoot = lNewList.mCurrent = this.mCurrent;
 
-        // Only set head and tail if current is set.
-        if (this.mCurrent) {
-            lNewList.mHead = this.mCurrent;
-            lNewList.mTail = this.mTail;
-            lNewList.moveFirst();
-        }
+        // Both lists are linked to the same head element.
+        lNewList.mHeadElement = this.mHeadElement;
 
         return lNewList;
+    }
+
+    /**
+     * Sync the list with another list by setting 
+     * the current element to the current element of the other list.
+     * 
+     * @param pList The list to sync with.
+     */
+    public sync(pList: LinkedList<T>): void {
+        this.mCurrent = pList.mCurrent;
     }
 
     /**
@@ -149,38 +107,41 @@ export class LinkedList<T> {
      */
     public next(): boolean {
         // If current is null revert to the last item.
-        if (!this.mCurrent) {
-            // TODO: Thats also shitty. How to move only one back and one forward???
-            this.moveLast(); 
-        }
-
-        // When it still null, no value is set.
-        if (!this.mCurrent) {
+        if (!this.mCurrent.next) {
             return false;
         }
 
         // Move to next item.
         this.mCurrent = this.mCurrent.next;
 
-        return !!this.mCurrent;
+        // Return if there is an item.
+        return !!this.mCurrent.item;
     }
 
     /**
      * Move to the previous item in the linked list.
      */
     public moveFirst(): void {
-        this.mCurrent = this.mHead;
+        this.mCurrent = this.mRoot;
     }
 
     /**
      * Move to the last item in the linked list.
      */
-    public moveLast(): void {
-        this.mCurrent = this.mTail;
+    public moveEnd(): void {
+        this.mCurrent = this.mHeadElement.head;
     }
 }
 
+type LinkedListHeadElement<T> = {
+    head: LinkedListChain<T>;
+};
+
+type LinkedListChain<T> = {
+    next: LinkedListChain<T> | null;
+    item: LinkedListItem<T> | null;
+};
+
 type LinkedListItem<T> = {
-    next: LinkedListItem<T> | null;
     value: T;
 };

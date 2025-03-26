@@ -63,7 +63,7 @@ describe('LinkedList', () => {
             // Evaluation.
             expect(lList.done).toBeTruthy();
         });
-    })
+    });
 
     describe('Method: push', () => {
         it('-- should add a value to the list', () => {

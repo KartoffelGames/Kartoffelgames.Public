@@ -85,13 +85,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             try {
                 return this.beginParseProcess(lCursor, this.mRootPart as Graph<TTokenType>)!;
             } catch (pError) {
-                // The graph is still in the right state the error was thrown, so we can still extract data from it.
-
                 // Lexer error can be directly added to the trace.
                 if (pError instanceof LexerException) {
                     lCursor.trace.push(pError.message, lCursor.graph, pError.lineStart, pError.columnStart, pError.lineEnd, pError.columnEnd, true, pError);
                     return CodeParserException.PARSER_ERROR;
                 }
+
+                // The graph stack is still in the state the error was thrown, so we can still extract data from it.
 
                 // Read error message from error object. Default to toString.
                 const lErrorMessage: string = pError instanceof Error ? pError.message : (<any>pError).toString();

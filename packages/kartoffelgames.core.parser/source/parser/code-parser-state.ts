@@ -3,8 +3,15 @@ import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { Graph } from './graph/graph.ts';
 
-// TODO: Rename it to something like CodeParserLexerCursor.
-
+/**
+ * Represents the state of a code parser, managing the parsing process stack, token stream, and graph stack.
+ * 
+ * This class is responsible for handling the current position of the parser, managing the token stream,
+ * and maintaining a stack of graphs to track the parsing process. It provides methods to navigate
+ * through tokens, manage circular references, and retrieve positional information about tokens and graphs.
+ * 
+ * @template TTokenType - The type of tokens being parsed, extending the `string` type.
+ */
 export class CodeParserState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
@@ -103,7 +110,7 @@ export class CodeParserState<TTokenType extends string> {
 
         // Read all unused tokens from the cache.
         const lUnusedToken: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
-        while(!lCurrentGraphStack.token.done) {
+        while (!lCurrentGraphStack.token.done) {
             lUnusedToken.push(lCurrentGraphStack.token.current!);
             lCurrentGraphStack.token.next();
         }
@@ -131,20 +138,14 @@ export class CodeParserState<TTokenType extends string> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        // Define start and end token.
-        let lStartToken: LexerToken<TTokenType> | null;
-        let lEndToken: LexerToken<TTokenType> | null;
+        // TODO: Position finding is still fucked up. How to read the last token of a graph?
 
         // Get start and end token from current graph stack.
-        lStartToken = lCurrentGraphStack.token.root;
-        lEndToken = this.currentToken!;
+        let lStartToken: LexerToken<TTokenType> | null = lCurrentGraphStack.token.root;
+        let lEndToken: LexerToken<TTokenType> | null = lCurrentGraphStack.token.current;
 
-        // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? lEndToken;
-        lEndToken = lEndToken ?? lStartToken;
-
-        // No start token means there is also no endtoken.
-        if (!lStartToken || !lEndToken) {
+        // No start and end token.
+        if (!lStartToken && !lEndToken) {
             return {
                 graph: lCurrentGraphStack.graph,
                 columnEnd: this.mPosition.column,
@@ -153,6 +154,10 @@ export class CodeParserState<TTokenType extends string> {
                 lineStart: this.mPosition.line
             };
         }
+
+        // Default to last generated token when token was not set.
+        lStartToken ??= lEndToken!;
+        lEndToken ??= lStartToken!;
 
         // Split the end token into lines.
         const lEndTokenLines = lEndToken.value.split('\n');
@@ -264,6 +269,37 @@ export class CodeParserState<TTokenType extends string> {
     }
 
     /**
+     * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
+     * 
+     * @param pFailed - A boolean indicating whether the current graph failed with an error.
+     */
+    public popGraph(pFailed: boolean): void {
+        // Pop graph.
+        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.pop()!;
+        const lParentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Revert current stack index when the graph failed with an error.
+        if (pFailed) {
+            lCurrentTokenStack.token.moveFirst();
+        }
+
+        // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
+        if (lCurrentTokenStack.moved && lParentGraphStack.circularGraphs.size > 0) {
+            lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
+        }
+
+        // Truncate parent graphs token cache to the current token.
+        // So the token memory gets marked as disposeable.
+        if (lCurrentTokenStack.linear) {
+            // Reset parent index to zero.
+            lParentGraphStack.token = lCurrentTokenStack.token.sliceReference();
+        } else {
+            // Set the parent item to current item of child stack.
+            lParentGraphStack.token.sync(lCurrentTokenStack.token);
+        }
+    }
+
+    /**
      * Pushes a new graph onto the graph stack and manages the token stack.
      * 
      * @param pGraph - The graph to be pushed onto the stack.
@@ -292,37 +328,6 @@ export class CodeParserState<TTokenType extends string> {
 
         // Push the new graph stack on the stack.
         this.mGraphStack.push(lNewTokenStack);
-    }
-
-    /**
-     * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
-     * 
-     * @param pFailed - A boolean indicating whether the current graph failed with an error.
-     */
-    public popGraph(pFailed: boolean): void {
-        // Pop graph.
-        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.pop()!;
-        const lParentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        // Revert current stack index when the graph failed with an error.
-        if (pFailed) {
-            lCurrentTokenStack.token.moveFirst();
-        }
-
-        // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
-        if (lCurrentTokenStack.moved && lParentGraphStack.circularGraphs.size > 0) {
-            lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
-        }
-
-        // Truncate parent graphs token cache to the current token.
-        // So the token memory gets marked as disposeable.
-        if (lCurrentTokenStack.linear) {
-            // Reset parent index to zero.
-            lParentGraphStack.token = lCurrentTokenStack.token.sliceReference();
-        } else {
-            // Set the parent item to current item of child stack.
-            lParentGraphStack.token.sync(lCurrentTokenStack.token)
-        }
     }
 }
 

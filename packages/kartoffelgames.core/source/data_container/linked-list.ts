@@ -1,18 +1,8 @@
 export class LinkedList<T> {
+    private mCurrent: LinkedListChain<T>;
     private mHeadElement: LinkedListHeadElement<T>;
     private mRoot: LinkedListChain<T>;
-    private mCurrent: LinkedListChain<T>;
 
-    /**
-     * Get the root item.
-     */
-    public get root(): T | null {
-        if (!this.mRoot.item) {
-            return null;
-        }
-
-        return this.mRoot.item.value;
-    }
 
     /**
      * Get current item.
@@ -34,6 +24,17 @@ export class LinkedList<T> {
     }
 
     /**
+     * Get the root item.
+     */
+    public get root(): T | null {
+        if (!this.mRoot.item) {
+            return null;
+        }
+
+        return this.mRoot.item.value;
+    }
+
+    /**
      * Constructor.
      */
     public constructor() {
@@ -48,6 +49,38 @@ export class LinkedList<T> {
             head: this.mRoot
         };
         this.mCurrent = this.mRoot;
+    }
+
+    /**
+     * Move to the last item in the linked list.
+     */
+    public moveEnd(): void {
+        this.mCurrent = this.mHeadElement.head;
+    }
+
+    /**
+     * Move to the previous item in the linked list.
+     */
+    public moveFirst(): void {
+        this.mCurrent = this.mRoot;
+    }
+
+    /**
+     * Move to the next item in the linked list.
+     * 
+     * @returns false when the end of the list is reached.
+     */
+    public next(): boolean {
+        // If current is null revert to the last item.
+        if (!this.mCurrent.next) {
+            return false;
+        }
+
+        // Move to next item.
+        this.mCurrent = this.mCurrent.next;
+
+        // Return if there is an item.
+        return !!this.mCurrent.item;
     }
 
     /**
@@ -68,7 +101,7 @@ export class LinkedList<T> {
 
         // Chain the new item.
         this.mHeadElement.head.next = lNewChain;
-        
+
         // Set the new head.
         this.mHeadElement.head = lNewChain;
     }
@@ -98,38 +131,6 @@ export class LinkedList<T> {
      */
     public sync(pList: LinkedList<T>): void {
         this.mCurrent = pList.mCurrent;
-    }
-
-    /**
-     * Move to the next item in the linked list.
-     * 
-     * @returns false when the end of the list is reached.
-     */
-    public next(): boolean {
-        // If current is null revert to the last item.
-        if (!this.mCurrent.next) {
-            return false;
-        }
-
-        // Move to next item.
-        this.mCurrent = this.mCurrent.next;
-
-        // Return if there is an item.
-        return !!this.mCurrent.item;
-    }
-
-    /**
-     * Move to the previous item in the linked list.
-     */
-    public moveFirst(): void {
-        this.mCurrent = this.mRoot;
-    }
-
-    /**
-     * Move to the last item in the linked list.
-     */
-    public moveEnd(): void {
-        this.mCurrent = this.mHeadElement.head;
     }
 }
 

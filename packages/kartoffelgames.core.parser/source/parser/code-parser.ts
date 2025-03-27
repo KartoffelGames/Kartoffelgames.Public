@@ -19,7 +19,6 @@ import type { Graph } from './graph/graph.ts';
 export class CodeParser<TTokenType extends string, TParseResult> {
     private mDebugMode: boolean;
     private readonly mLexer: Lexer<TTokenType>;
-    private mMaxRecursion: number;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
 
     /**
@@ -39,22 +38,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Set max recursion count for detecting circular part dependencies.
-     */
-    public get maxRecursion(): number {
-        return this.mMaxRecursion;
-    } set maxRecursion(pValue: number) {
-        this.mMaxRecursion = pValue;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pLexer - Token lexer.
      */
     public constructor(pLexer: Lexer<TTokenType>) {
         this.mLexer = pLexer;
-        this.mMaxRecursion = 100;
         this.mRootPart = null;
         this.mDebugMode = false;
     }

@@ -46,18 +46,6 @@ describe('CodeParser', () => {
         expect(lParser.lexer).toBe(lLexer);
     });
 
-    it('Property: maxRecursion', () => {
-        // Setup
-        const lParser = new CodeParser<string, any>(new Lexer<string>());
-        const lRecursionValue: number = 121;
-
-        // Process.
-        lParser.maxRecursion = lRecursionValue;
-
-        // Evaluation
-        expect(lParser.maxRecursion).toBe(lRecursionValue);
-    });
-
     describe('Method: parse', () => {
         describe('-- Linear', () => {
             it('-- Linear Parsing no optionals', () => {

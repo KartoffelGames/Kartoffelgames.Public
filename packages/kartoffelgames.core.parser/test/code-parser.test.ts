@@ -1612,7 +1612,7 @@ describe('CodeParser', () => {
                 expect(lException).toBeInstanceOf(CodeParserException);
                 expect(lException.message).toBe(lErrorMessage);
                 expect(lException.columnStart).toBe(1);
-                expect(lException.columnEnd).toBe(6);
+                expect(lException.columnEnd).toBe(1);
                 expect(lException.lineStart).toBe(1);
                 expect(lException.lineEnd).toBe(1);
             });

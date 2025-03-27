@@ -1,9 +1,9 @@
-import { Exception, Stack } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { CodeParserException, LexerException } from '../index.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import type { CodeParserErrorSymbol } from './code-parser-exception.ts';
-import { CodeParserProcessCursorPosition, CodeParserProcessStackItem, CodeParserProcessStackMapping, CodeParserProcessState } from './code-parser-process-state.ts';
+import { type CodeParserProcessCursorPosition, type CodeParserProcessStackItem, type CodeParserProcessStackMapping, CodeParserProcessState } from './code-parser-process-state.ts';
 import type { GraphNode, GraphNodeConnections } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
 
@@ -528,7 +528,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 const lNodeConnections: GraphNodeConnections<TTokenType> = lNode.connections;
 
                 // Empty result when no node value was found and node is optional.
-                if (lNodeResult === null && !lNodeConnections.required) { // TODO: === null? Why?
+                // Null means it has not found any fitting node value but meet the end of the node value parse.
+                if (lNodeResult === null && !lNodeConnections.required) {
                     // Pop itself from stack.
                     pParsingProcessState.processStack.pop();
 

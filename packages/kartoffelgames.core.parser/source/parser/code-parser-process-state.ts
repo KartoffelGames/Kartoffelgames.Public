@@ -1,23 +1,18 @@
-import { Dictionary, LinkedList, Stack } from '@kartoffelgames/core';
+import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { Graph } from './graph/graph.ts';
+import { GraphNode } from "./graph/graph-node.ts";
 
-/**
- * Represents the state of a code parser, managing the parsing process stack, token stream, and graph stack.
- * 
- * This class is responsible for handling the current position of the parser, managing the token stream,
- * and maintaining a stack of graphs to track the parsing process. It provides methods to navigate
- * through tokens, manage circular references, and retrieve positional information about tokens and graphs.
- * 
- * @template TTokenType - The type of tokens being parsed, extending the `string` type.
- */
-export class CodeParserState<TTokenType extends string> {
+export class CodeParserProcessState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
     private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
+    private readonly mPosition: CodeParserCursorPosition;
+    private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
     private readonly mTrace: CodeParserTrace<TTokenType>;
+    private readonly mTokenCache: Array<LexerToken<TTokenType>>;
 
     /**
      * Read the current token from the stream.
@@ -28,32 +23,37 @@ export class CodeParserState<TTokenType extends string> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        if (lCurrentGraphStack.token.cache.done) {
+        // Performance reasons: Dont start a iterator when we dont need to.
+        if (lCurrentGraphStack.token.cursor < this.mTokenCache.length) {
+            // Read token from cache.
+            return this.mTokenCache[lCurrentGraphStack.token.cursor];
+        }
+
+        // Fill up cache until the current index is reached.
+        for (let lCacheLength = this.mTokenCache.length; lCacheLength <= lCurrentGraphStack.token.cursor; lCacheLength++) {
             // Read token from generator.
-            const lTokenIteratorValue: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
-            if (lTokenIteratorValue.done) {
+            const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
+            if (lToken.done) {
                 return null;
             }
 
-            const lToken: LexerToken<TTokenType> = lTokenIteratorValue.value;
+            // Update cursor position on any new generated token.
+            this.mPosition.column = lToken.value.columnNumber;
+            this.mPosition.line = lToken.value.lineNumber;
 
             // Store token in cache.
-            lCurrentGraphStack.token.cache.push(lToken);
-
-            // Update end token.
-            lCurrentGraphStack.token.start ??= lToken;
-            lCurrentGraphStack.token.end = lToken;
+            this.mTokenCache.push(lToken.value);
         }
 
         // Read token from cache.
-        return lCurrentGraphStack.token.cache.current;
+        return this.mTokenCache[lCurrentGraphStack.token.cursor];
     }
 
     /**
      * Get the current graph the cursor is in.
      * Graph can be null. But in normal cases it should not be null.
      */
-    public get graph(): Graph<TTokenType> {
+    public get currentGraph(): Graph<TTokenType> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
@@ -64,8 +64,18 @@ export class CodeParserState<TTokenType extends string> {
     /**
      * Get the trace of parser state.
      */
-    public get trace(): CodeParserTrace<TTokenType> {
+    public get incidentTrace(): CodeParserTrace<TTokenType> {
         return this.mTrace;
+    }
+
+    /**
+     * Gets the current process stack of the code parser.
+     * 
+     * The process stack contains items of type `CodeParserProcessStackItem<TTokenType>`,
+     * which represent the current state of the parsing process.
+     */
+    public get processStack(): Stack<CodeParserProcessStackItem<TTokenType>> {
+        return this.mProcessStack;
     }
 
     /**
@@ -76,6 +86,12 @@ export class CodeParserState<TTokenType extends string> {
     public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
         this.mGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
+        this.mPosition = {
+            column: 1,
+            line: 1
+        };
+        this.mTokenCache = new Array<LexerToken<TTokenType>>();
+        this.mProcessStack = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
         // Create trace.
         this.mTrace = new CodeParserTrace<TTokenType>(pDebug);
@@ -86,10 +102,8 @@ export class CodeParserState<TTokenType extends string> {
             linear: true,
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(),
             token: {
-                cache: new LinkedList<LexerToken<TTokenType>>(),
-                moved: false,
-                start: null,
-                end: null
+                start: 0,
+                cursor: 0
             }
         });
     }
@@ -106,14 +120,8 @@ export class CodeParserState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Generate all remaining tokens and cached unused tokens.
-        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator];
-
-        // Read all unused tokens from the cache.
-        const lUnusedToken: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
-        while (!lCurrentGraphStack.token.cache.done) {
-            lUnusedToken.push(lCurrentGraphStack.token.cache.current!);
-            lCurrentGraphStack.token.cache.next();
-        }
+        const lUngeneratedToken: Array<LexerToken<TTokenType>> = [...this.mGenerator]; // TODO: might throw an callstack overflow.
+        const lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor);
 
         return lUnusedToken.concat(lUngeneratedToken);
     }
@@ -123,8 +131,6 @@ export class CodeParserState<TTokenType extends string> {
      *
      * This method calculates the start and end positions (line and column) of the current token
      * within the graph stack. If no tokens are available, it defaults to the current cursor position.
-     * 
-     * @returns - An object representing the start and end positions of the current graph, including line and column numbers.
      *
      * The returned object contains:
      * - `lineStart`: The starting line number of the token.
@@ -132,29 +138,36 @@ export class CodeParserState<TTokenType extends string> {
      * - `lineEnd`: The ending line number of the token.
      * - `columnEnd`: The ending column number of the token.
      * 
-     * If there is no current token, the start and end positions will be the same as the current cursor position.
+     * If there is no current token, the start and end positions will be the same as the last generated token.
+     * 
+     * @returns - An object representing the start and end positions of the current graph, including line and column numbers.
      */
-    public getGraphPosition(): CodeParserCursorGraphPosition<TTokenType> {
+    public getGraphPosition(): CodeParserProcessCursorPosition<TTokenType> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
-        // Get start and end token from current graph stack.
-        let lStartToken: LexerToken<TTokenType> | null = lCurrentGraphStack.token.start;
-        let lEndToken: LexerToken<TTokenType> | null = lCurrentGraphStack.token.end;
+        // Define start and end token.
+        let lStartToken: LexerToken<TTokenType>;
+        let lEndToken: LexerToken<TTokenType>;
 
-        if (!lStartToken && !lEndToken) {
-            return {
-                graph: lCurrentGraphStack.graph,
-                columnEnd: 1,
-                columnStart: 1,
-                lineEnd: 1,
-                lineStart: 1
-            };
-        }
+        // Get start and end token from current graph stack.
+        lStartToken = this.mTokenCache[lCurrentGraphStack.token.start];
+        lEndToken = this.mTokenCache[lCurrentGraphStack.token.cursor - 1];
 
         // Default to last generated token when token was not set.
-        lStartToken ??= lEndToken!;
-        lEndToken ??= lStartToken!;
+        lStartToken = lStartToken ?? lEndToken;
+        lEndToken = lEndToken ?? lStartToken;
+
+        // No start token means there is also no endtoken.
+        if (!lStartToken || !lEndToken) {
+            return {
+                graph: lCurrentGraphStack.graph,
+                columnEnd: this.mPosition.column,
+                columnStart: this.mPosition.column,
+                lineEnd: this.mPosition.line,
+                lineStart: this.mPosition.line
+            };
+        }
 
         // Split the end token into lines.
         const lEndTokenLines = lEndToken.value.split('\n');
@@ -178,38 +191,32 @@ export class CodeParserState<TTokenType extends string> {
     /**
      * Calculates and returns the current token's position within the code.
      * 
-     * @returns - An object representing the start and end positions of the current token, including line and column numbers.
-     * 
      * The returned object contains:
      * - `lineStart`: The starting line number of the token.
      * - `columnStart`: The starting column number of the token.
      * - `lineEnd`: The ending line number of the token.
      * - `columnEnd`: The ending column number of the token.
      * 
-     * If there is no current token, the start and end positions will be the same as the current cursor position.
+     * If there is no current token, the start and end positions will be the same as the last generated token.
+     * 
+     * @returns - An object representing the start and end positions of the current token, including line and column numbers.
      */
-    public getTokenPosition(): CodeParserCursorTokenPosition<TTokenType> {
+    public getTokenPosition(): CodeParserProcessCursorPosition<TTokenType> {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Calculate token position.
-        let lPositionToken: LexerToken<TTokenType> | null = this.currentToken;
+        const lPositionToken: LexerToken<TTokenType> | null = this.currentToken;
 
         // No start token means there is also no endtoken.
         if (!lPositionToken) {
-            // Last token of graph.
-            const lLastGraphToken: LexerToken<TTokenType> | null = lCurrentGraphStack.token.end;
-            if (!lLastGraphToken) {
-                return {
-                    graph: lCurrentGraphStack.graph,
-                    columnEnd: 1,
-                    columnStart: 1,
-                    lineEnd: 1,
-                    lineStart: 1
-                };
-            }
-
-            lPositionToken = lLastGraphToken;
+            return {
+                graph: lCurrentGraphStack.graph,
+                columnEnd: this.mPosition.column,
+                columnStart: this.mPosition.column,
+                lineEnd: this.mPosition.line,
+                lineStart: this.mPosition.line
+            };
         }
 
         // Split the end token into lines.
@@ -232,7 +239,7 @@ export class CodeParserState<TTokenType extends string> {
     }
 
     /**
-     * Checks if the given graph is circular.
+     * Checks if the given graph would be called circular.
      *
      * @param pGraph - The graph node to check for circularity.
      * @returns `true` if the graph is circular, otherwise `false`.
@@ -247,15 +254,13 @@ export class CodeParserState<TTokenType extends string> {
         }
 
         // Graph is circular if the graph is visited more than once.
-        return lCurrentGraphStack.circularGraphs.get(pGraph)! > CodeParserState.MAX_CIRULAR_REFERENCES;
+        return lCurrentGraphStack.circularGraphs.get(pGraph)! > CodeParserProcessState.MAX_CIRULAR_REFERENCES;
     }
 
     /**
      * Advances the cursor to the next token in the current graph stack.
-     * 
-     * @throws {Exception} If there is no graph on the stack.
      */
-    public moveNext(): void {
+    public moveNextToken(): void {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
@@ -264,45 +269,7 @@ export class CodeParserState<TTokenType extends string> {
             lCurrentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
 
-        // Move to the next token.
-        lCurrentGraphStack.token.cache.next();
-
-        // Set moved flag.
-        lCurrentGraphStack.token.moved = true;
-    }
-
-    /**
-     * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
-     * 
-     * @param pFailed - A boolean indicating whether the current graph failed with an error.
-     */
-    public popGraph(pFailed: boolean): void {
-        // Pop graph.
-        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.pop()!;
-        const lParentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        // Revert current stack index when the graph failed with an error.
-        if (pFailed) {
-            lCurrentTokenStack.token.cache.moveFirst();
-        }
-
-        // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
-        if (lCurrentTokenStack.token.moved && lParentGraphStack.circularGraphs.size > 0) {
-            lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
-        }
-
-        // Truncate parent graphs token cache to the current token.
-        // So the token memory gets marked as disposeable.
-        if (lCurrentTokenStack.linear) {
-            // Reset parent index to zero.
-            lParentGraphStack.token.cache = lCurrentTokenStack.token.cache.sliceReference();
-        } else {
-            // Set the parent item to current item of child stack.
-            lParentGraphStack.token.cache.sync(lCurrentTokenStack.token.cache);
-        }
-
-        // Update end token.
-        lParentGraphStack.token.end = lCurrentTokenStack.token.end;
+        lCurrentGraphStack.token.cursor++;
     }
 
     /**
@@ -313,48 +280,73 @@ export class CodeParserState<TTokenType extends string> {
      * 
      * @template TGraph - The type of the graph.
      */
-    public pushGraph<TGraph extends Graph<TTokenType>>(pGraph: TGraph, pLinear: boolean): void {
+    public pushGraphStack<TGraph extends Graph<TTokenType>>(pGraph: TGraph, pLinear: boolean): void {
         // Read the current stack state.
         const lLastGraphStack: CodeParserCursorGraph<TTokenType> | undefined = this.mGraphStack.top!;
 
-        const lTokenCacheSlice = lLastGraphStack.token.cache.sliceReference();
-
         // Create a new empty graph stack.
-        const lNewTokenStack: CodeParserCursorGraph<TTokenType> = {
+        const lNewGraphStack: CodeParserCursorGraph<TTokenType> = {
             graph: pGraph,
             linear: pLinear && lLastGraphStack.linear, // If a parent graph is not linear, the child graph is not linear.
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(lLastGraphStack.circularGraphs),
-            // Copy the current token stack from parent from its current token stack index index.
             token: {
-                cache: lTokenCacheSlice,
-                moved: false,
-                start: lTokenCacheSlice.current,
-                end: lTokenCacheSlice.current,
+                start: lLastGraphStack.token.cursor,
+                cursor: lLastGraphStack.token.cursor
             }
         };
 
         // Add itself to the circular graph list.
-        const lCurrentGraphCirularCount: number = lNewTokenStack.circularGraphs.get(pGraph) ?? 0;
-        lNewTokenStack.circularGraphs.set(pGraph, lCurrentGraphCirularCount + 1);
+        const lCurrentGraphCirularCount: number = lNewGraphStack.circularGraphs.get(pGraph) ?? 0;
+        lNewGraphStack.circularGraphs.set(pGraph, lCurrentGraphCirularCount + 1);
 
         // Push the new graph stack on the stack.
-        this.mGraphStack.push(lNewTokenStack);
+        this.mGraphStack.push(lNewGraphStack);
+    }
+
+    /**
+     * Pops the current graph from the graph stack and updates the parent graph stack accordingly.
+     * 
+     * @param pFailed - A boolean indicating whether the current graph failed with an error.
+     */
+    public popGraphStack(pFailed: boolean): void {
+        // Pop graph.
+        const lCurrentTokenStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.pop()!;
+        const lParentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Revert current stack index when the graph failed with an error.
+        if (pFailed) {
+            lCurrentTokenStack.token.cursor = lCurrentTokenStack.token.start;
+        }
+
+        // When the current graph has progressed any token, event deep circular graphs process a new token and eventually reach the end token.
+        if (lCurrentTokenStack.token.cursor !== lCurrentTokenStack.token.start && lParentGraphStack.circularGraphs.size > 0) {
+            lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
+        }
+
+        // Truncate parent graphs token cache to the current token.
+        // So the token memory gets marked as disposeable.
+        if (lCurrentTokenStack.linear) {
+            // Reset parent index to zero.
+            this.mTokenCache.splice(0, lCurrentTokenStack.token.cursor);
+            lParentGraphStack.token.start = 0;
+            lParentGraphStack.token.cursor = 0;
+        } else {
+            // Move parent stack index to the last graphs stack index.
+            lParentGraphStack.token.cursor = lCurrentTokenStack.token.cursor;
+        }
     }
 }
 
 /*
  * Graph stack types.
  */
-
 type CodeParserCursorGraph<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
     linear: boolean;
     circularGraphs: Dictionary<Graph<TTokenType>, number>;
     token: {
-        cache: LinkedList<LexerToken<TTokenType>>;
-        moved: boolean;
-        start: LexerToken<TTokenType> | null;
-        end: LexerToken<TTokenType> | null;
+        start: number;
+        cursor: number;
     };
 };
 
@@ -366,17 +358,61 @@ type CodeParserCursorPosition = {
     line: number;
 };
 
-export type CodeParserCursorTokenPosition<TTokenType extends string> = {
+export type CodeParserProcessCursorPosition<TTokenType extends string> = {
     graph: Graph<TTokenType> | null;
     columnEnd: number;
     columnStart: number;
     lineEnd: number;
     lineStart: number;
 };
-export type CodeParserCursorGraphPosition<TTokenType extends string> = {
-    graph: Graph<TTokenType> | null;
-    columnEnd: number;
-    columnStart: number;
-    lineEnd: number;
-    lineStart: number;
+
+/**
+ * Process stack types.
+ */
+export type CodeParserProcessStackMapping<TTokenType extends string> = {
+    // Parse graph.
+    graphParse: {
+        type: 'graph-parse',
+        state: number;
+        parameter: {
+            graph: Graph<TTokenType>;
+            linear: boolean;
+        },
+    };
+
+    // Parse node.
+    nodeParse: {
+        type: 'node-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+        },
+        values: {
+            nodeValueResult?: unknown;
+        };
+    };
+
+    // Node value parse.
+    nodeValueParse: {
+        type: 'node-value-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+            valueIndex: number;
+        },
+        values: {
+            parseResult?: unknown | null;
+        };
+    };
+
+    // Node next parse
+    nodeNextParse: {
+        type: 'node-next-parse',
+        state: number;
+        parameter: {
+            node: GraphNode<TTokenType>;
+        },
+    };
 };
+
+export type CodeParserProcessStackItem<TTokenType extends string> = CodeParserProcessStackMapping<TTokenType>[keyof CodeParserProcessStackMapping<TTokenType>];

@@ -60,7 +60,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Parse a text with the set syntax from {@link CodeParser.setRootGraph} into a sytnax tree
+     * Parse a text with the set syntax from {@link CodeParser.setRootGraph} into a syntax tree
      * or custom data structure.
      * 
      * @param pCodeText - Code as text.
@@ -136,7 +136,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pGraph - Graph.
      * 
      * @throws {@link Exception}
-     * When the graph part is not defined or has no defined data collector.
+     * If the graph part is not defined or lacks a defined data collector.
      */
     public setRootGraph(pGraph: Graph<TTokenType, any, TParseResult>): void {
         this.mRootPart = pGraph;
@@ -435,7 +435,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         switch (pCurrentProcess.state) {
             // State 0: Iterate over node values.
             case 0: {
-                // When the last process hat returned a value, use at parse result when it is not a error value.
+                // When the last process has returned a value, use the parse result when it is not a error value.
                 if (pStackResult && pStackResult !== CodeParserException.PARSER_ERROR) {
                     // Set parsed value to last stack result.
                     pCurrentProcess.values.parseResult = pStackResult;

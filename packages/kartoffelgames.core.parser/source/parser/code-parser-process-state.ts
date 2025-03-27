@@ -298,7 +298,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // Truncate parent graphs token cache to the current token.
-        // So the token memory gets marked as disposeable.
+        // So the token memory gets cleared from memory.
         if (lCurrentTokenStack.linear) {
             // Reset parent index to zero.
             this.mTokenCache.splice(0, lCurrentTokenStack.token.cursor);

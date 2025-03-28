@@ -752,7 +752,7 @@ describe('Lexer', () => {
                     type: TestTokenType.Number
                 }
             }));
-            
+
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
 
@@ -819,5 +819,26 @@ describe('Lexer', () => {
             // Evaluation.
             expect(lSuccessFunction).toThrow('Token pattern must be created by this lexer.');
         });
+    });
+
+    it('Functionality: Progress tracker', () => {
+        // Setup.
+        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lText: string = 'aaa aa';
+
+        // Setup. Progress tracker.
+        const lProgressList: Array<[number, number, number]> = new Array<[number, number, number]>();
+        const lProcessTracker = (pPosition: number, pLine: number, pColumn: number) => {
+            lProgressList.push([pPosition, pLine, pColumn]);
+        };
+
+        // Process.
+        [...lLexer.tokenize(lText, lProcessTracker)];
+
+        // Evaluation.
+        expect(lProgressList).toHaveLength(3);
+        expect(lProgressList[0]).toBeDeepEqual([3, 1, 4]);
+        expect(lProgressList[1]).toBeDeepEqual([4, 1, 5]);
+        expect(lProgressList[2]).toBeDeepEqual([6, 1, 7]);
     });
 });

@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { LexerException } from '../source/lexer/lexer-exception.ts';
 
-describe('ParserException', () => {
+describe('LexerException', () => {
     it('Method: columnEnd', () => {
         // Process.
         const lValue: number = 5505;

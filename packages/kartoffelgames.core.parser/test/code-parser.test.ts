@@ -46,6 +46,78 @@ describe('CodeParser', () => {
         expect(lParser.lexer).toBe(lLexer);
     });
 
+    describe('Property: debugMode', () => {
+        it('-- Should correctly set and get debugMode to true', () => {
+            // Setup
+            const lParser: CodeParser<string, any> = new CodeParser(new Lexer<string>());
+
+            // Process
+            lParser.debugMode = true;
+
+            // Evaluation
+            expect(lParser.debugMode).toBe(true);
+        });
+
+        it('-- Should correctly set and get debugMode to false', () => {
+            // Setup
+            const lParser: CodeParser<string, any> = new CodeParser(new Lexer<string>());
+
+            // Process
+            lParser.debugMode = false;
+
+            // Evaluation
+            expect(lParser.debugMode).toBe(false);
+        });
+
+        it('-- Should include a complete trace in the exception when debugMode is true', () => {
+            // Setup
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            lParser.debugMode = true;
+
+            // Define a graph that will fail
+            const lMainGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().optional(
+                    GraphNode.new<TokenType>().required(TokenType.Modifier)
+                ).required(TokenType.Identifier).required(TokenType.Semicolon);
+            });
+            lParser.setRootGraph(lMainGraph);
+
+            // Process and evaluate
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('identifier');
+            };
+
+            // Evaluation.
+            const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+            expect(lException).toBeInstanceOf(CodeParserException);
+            expect(lException.incidents).toHaveLength(2);
+        });
+
+        it('-- Should not include a complete trace in the exception when debugMode is false', () => {
+            // Setup
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            lParser.debugMode = false;
+
+            // Define a graph that will fail
+            const lMainGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon);
+            });
+            lParser.setRootGraph(lMainGraph);
+
+            // Process and evaluate
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('const');
+            };
+
+            // Evaluation.
+            const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+            expect(lException).toBeInstanceOf(CodeParserException);
+            expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
+        });
+    });
+
     describe('Method: parse', () => {
         describe('-- Linear', () => {
             it('-- Linear Parsing no optionals', () => {

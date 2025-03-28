@@ -121,7 +121,7 @@ export class CodeParserTrace<TTokenType extends string> {
         this.mTop = pIncident;
     }
 }
-type CodeParserTraceIncident<TTokenType extends string> = {
+export type CodeParserTraceIncident<TTokenType extends string> = {
     message: string,
     cause: unknown,
     priority: number;

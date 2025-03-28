@@ -1,5 +1,5 @@
 import type { Graph } from './graph/graph.ts';
-import type { CodeParserTrace } from './code-parser-trace.ts';
+import type { CodeParserTrace, CodeParserTraceIncident } from './code-parser-trace.ts';
 
 /**
  * Code parser exceptions holding the top incident.
@@ -43,6 +43,14 @@ export class CodeParserException<TTokenType extends string> extends Error {
      */
     public get lineStart(): number {
         return this.mTrace.top.range.lineStart;
+    }
+
+    /**
+     * All parsing incidents.
+     * Only available in debug mode.
+     */
+    public get incidents(): Array<CodeParserTraceIncident<TTokenType>> {
+        return this.mTrace.incidents;
     }
 
     /**

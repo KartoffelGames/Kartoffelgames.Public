@@ -7,7 +7,7 @@ import type { Graph } from './graph/graph.ts';
 export class CodeParserProcessState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly mGenerator: Generator<LexerToken<TTokenType>, any, any>;
+    private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
     private readonly mLastTokenPosition: CodeParserCursorPosition;
@@ -62,7 +62,7 @@ export class CodeParserProcessState<TTokenType extends string> {
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
      */
     public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
-        this.mGenerator = pLexerGenerator;
+        this.mTokenGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mLastTokenPosition = {
             column: 1,
@@ -104,7 +104,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // Generate all remaining tokens and cached unused tokens.
-        for (const lToken of this.mGenerator) {
+        for (const lToken of this.mTokenGenerator) {
             lUnusedToken.push(lToken);
         }
 
@@ -272,7 +272,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         // Read token from generator.
-        const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
+        const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mTokenGenerator.next();
         if (lToken.done) {
             this.mTokenCache.push(null);
             return;

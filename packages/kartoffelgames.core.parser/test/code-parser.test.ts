@@ -203,6 +203,26 @@ describe('CodeParser', () => {
                 expect(lParsedData).toHaveProperty('variableName', 'name');
                 expect(lParsedData).toHaveProperty('typeName', 'number');
             });
+
+            it('-- Linear Parsing where the graph ends before the file is finished', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const; and it goes on';
+
+                // Setup. Define graph part and set as root.
+                const lMainGraph = Graph.define(() => {
+                    return GraphNode.new<TokenType>().required(TokenType.Modifier).optional(TokenType.Semicolon);
+                });
+                lParser.setRootGraph(lMainGraph);
+
+                // Process. Convert code.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).toThrow(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "and" (Identifier)`);
+            });
         });
 
         describe('-- Branches', () => {

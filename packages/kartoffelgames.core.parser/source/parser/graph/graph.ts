@@ -56,6 +56,16 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * @returns Resolved data.
      */
     public convert(pRawData: TOriginalData): TResultData | symbol {
+        // No parser skip any converter.
+        if(this.mDataConverterList.length === 0) {
+            return pRawData as unknown as TResultData;
+        }
+
+        // Single parser, skip iteration.
+        if(this.mDataConverterList.length === 1) {
+            return this.mDataConverterList[0](pRawData);
+        }
+
         // Convert data with each added data converter.
         let lData: any = pRawData;
         for (const lDataConverter of this.mDataConverterList) {

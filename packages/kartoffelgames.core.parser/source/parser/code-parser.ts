@@ -149,6 +149,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The result of the parsing process, which can be either an unknown value or a CodeParserErrorSymbol.
      */
     private beginParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pRootGraph: Graph<TTokenType>): unknown | CodeParserErrorSymbol {
+        // Move to first token.
+        pParsingProcessState.moveNextToken();
+
         // Push the first process.
         pParsingProcessState.processStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0 });
 
@@ -241,7 +244,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} If an invalid graph parse state is encountered.
      */
-    private processGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>,  pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['graphParse'], pStackResult: unknown): unknown {
+    private processGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['graphParse'], pStackResult: unknown): unknown {
         const lGraph: Graph<TTokenType> = pCurrentProcess.parameter.graph;
 
         switch (pCurrentProcess.state) {

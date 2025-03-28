@@ -12,7 +12,7 @@ export class CodeParserProcessState<TTokenType extends string> {
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
     private readonly mLastTokenPosition: CodeParserCursorPosition;
     private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
-    private readonly mTokenCache: Array<LexerToken<TTokenType>>;
+    private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
 
     /**
      * Get the current graph the cursor is in.
@@ -34,28 +34,6 @@ export class CodeParserProcessState<TTokenType extends string> {
     public get currentToken(): LexerToken<TTokenType> | null {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        // Performance reasons: Dont start a iterator when we dont need to.
-        if (lCurrentGraphStack.token.cursor < this.mTokenCache.length) {
-            // Read token from cache.
-            return this.mTokenCache[lCurrentGraphStack.token.cursor];
-        }
-
-        // Fill up cache until the current index is reached.
-        for (let lCacheLength = this.mTokenCache.length; lCacheLength <= lCurrentGraphStack.token.cursor; lCacheLength++) {
-            // Read token from generator.
-            const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
-            if (lToken.done) {
-                return null;
-            }
-
-            // Update cursor position on any new generated token.
-            this.mLastTokenPosition.column = lToken.value.columnNumber;
-            this.mLastTokenPosition.line = lToken.value.lineNumber;
-
-            // Store token in cache.
-            this.mTokenCache.push(lToken.value);
-        }
 
         // Read token from cache.
         return this.mTokenCache[lCurrentGraphStack.token.cursor];
@@ -103,7 +81,7 @@ export class CodeParserProcessState<TTokenType extends string> {
             circularGraphs: new Dictionary<Graph<TTokenType>, number>(),
             token: {
                 start: 0,
-                cursor: 0
+                cursor: -1
             }
         });
     }
@@ -120,15 +98,17 @@ export class CodeParserProcessState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Copy all unused token of the current token cache. 
-        const lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor);
+        let lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor) as Array<LexerToken<TTokenType>>;
+        if (lUnusedToken[lUnusedToken.length - 1] === null) {
+            lUnusedToken = new Array<LexerToken<TTokenType>>();
+        }
 
         // Generate all remaining tokens and cached unused tokens.
-        const lUngeneratedToken: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
         for (const lToken of this.mGenerator) {
             lUnusedToken.push(lToken);
         }
 
-        return lUnusedToken.concat(lUngeneratedToken);
+        return lUnusedToken;
     }
 
     /**
@@ -152,8 +132,8 @@ export class CodeParserProcessState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Define start and end token.
-        let lStartToken: LexerToken<TTokenType>;
-        let lEndToken: LexerToken<TTokenType>;
+        let lStartToken: LexerToken<TTokenType> | null;
+        let lEndToken: LexerToken<TTokenType> | null;
 
         // Get start and end token from current graph stack.
         lStartToken = this.mTokenCache[lCurrentGraphStack.token.start];
@@ -285,6 +265,25 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         lCurrentGraphStack.token.cursor++;
+
+        // Skip generation when token is already generated.
+        if (lCurrentGraphStack.token.cursor < this.mTokenCache.length) {
+            return;
+        }
+
+        // Read token from generator.
+        const lToken: IteratorResult<LexerToken<TTokenType>, any> = this.mGenerator.next();
+        if (lToken.done) {
+            this.mTokenCache.push(null);
+            return;
+        }
+
+        // Update cursor position on any new generated token.
+        this.mLastTokenPosition.column = lToken.value.columnNumber;
+        this.mLastTokenPosition.line = lToken.value.lineNumber;
+
+        // Store token in cache.
+        this.mTokenCache.push(lToken.value);
     }
 
     /**

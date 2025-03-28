@@ -1,8 +1,8 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
-import type { Graph } from './graph/graph.ts';
 import type { GraphNode } from './graph/graph-node.ts';
+import type { Graph } from './graph/graph.ts';
 
 export class CodeParserProcessState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
@@ -13,7 +13,7 @@ export class CodeParserProcessState<TTokenType extends string> {
     private readonly mLastTokenPosition: CodeParserCursorPosition;
     private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
     private readonly mTokenCache: Array<LexerToken<TTokenType>>;
-    
+
     /**
      * Get the current graph the cursor is in.
      * Graph can be null. But in normal cases it should not be null.
@@ -124,7 +124,7 @@ export class CodeParserProcessState<TTokenType extends string> {
 
         // Generate all remaining tokens and cached unused tokens.
         const lUngeneratedToken: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
-        for(const lToken of this.mGenerator) {
+        for (const lToken of this.mGenerator) {
             lUnusedToken.push(lToken);
         }
 
@@ -174,15 +174,20 @@ export class CodeParserProcessState<TTokenType extends string> {
             };
         }
 
-        // Split the end token into lines.
-        const lEndTokenLines = lEndToken.value.split('\n');
+        let lColumnEnd: number;
+        let lLineEnd: number;
 
-        // Extends the end token line end.
-        const lLineEnd: number = lEndToken.lineNumber + lEndTokenLines.length - 1;
+        // Extends the end token line end when token contains a newline.
+        if (lEndToken.value.includes('\n')) {
+            // Split the end token into lines.
+            const lTokenLines = lEndToken.value.split('\n');
 
-        // Set column end based on, if the token is multiline or not.
-        let lColumnEnd: number = (lEndTokenLines.length > 1) ? 1 : lEndToken.columnNumber;
-        lColumnEnd += lEndTokenLines.at(-1)!.length;
+            lLineEnd = lEndToken.lineNumber + lTokenLines.length - 1;
+            lColumnEnd = 1 + lTokenLines[lTokenLines.length - 1]!.length;
+        } else {
+            lColumnEnd = lEndToken.columnNumber + lEndToken.value.length;
+            lLineEnd = lEndToken.lineNumber;
+        }
 
         return {
             graph: lCurrentGraphStack.graph,
@@ -224,15 +229,20 @@ export class CodeParserProcessState<TTokenType extends string> {
             };
         }
 
-        // Split the end token into lines.
-        const lTokenLines = lPositionToken.value.split('\n');
+        let lColumnEnd: number;
+        let lLineEnd: number;
 
-        // Extends the end token line end.
-        const lLineEnd: number = lPositionToken.lineNumber + lTokenLines.length - 1;
+        // Extends the end token line end when token contains a newline.
+        if (lPositionToken.value.includes('\n')) {
+            // Split the end token into lines.
+            const lTokenLines = lPositionToken.value.split('\n');
 
-        // Set column end based on, if the token is multiline or not.
-        let lColumnEnd: number = (lTokenLines.length > 1) ? 1 : lPositionToken.columnNumber;
-        lColumnEnd += lTokenLines.at(-1)!.length;
+            lLineEnd = lPositionToken.lineNumber + lTokenLines.length - 1;
+            lColumnEnd = 1 + lTokenLines[lTokenLines.length - 1]!.length;
+        } else {
+            lColumnEnd = lPositionToken.columnNumber + lPositionToken.value.length;;
+            lLineEnd = lPositionToken.lineNumber;
+        }
 
         return {
             graph: lCurrentGraphStack.graph,

@@ -1,17 +1,17 @@
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
-import { Patcher } from '../source/patcher/patcher.ts';
+import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
 
-describe('Patcher', () => {
+describe('InteractionZoneGlobalScope', () => {
     describe('Static Method: patch', () => {
         it('-- Default', async () => {
             // Setup. Zone.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process. Its patched anyway.
-            Patcher.patch(globalThis);
+            InteractionZoneGlobalScope.patch(globalThis);
 
             // Process. Get patched and original function.
              
@@ -30,8 +30,8 @@ describe('Patcher', () => {
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process. Its patched anyway.
-            Patcher.patch(globalThis);
-            Patcher.patch(globalThis);
+            InteractionZoneGlobalScope.patch(globalThis);
+            InteractionZoneGlobalScope.patch(globalThis);
 
             // Process. Get patched and original function.
              
@@ -52,7 +52,7 @@ describe('Patcher', () => {
             const lClass = class { };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             const lObject = new lPatchedClass();
 
             // Evaluation.
@@ -71,7 +71,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
@@ -95,7 +95,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
@@ -110,7 +110,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             const lObject = new lPatchedClass();
             lObject.a = lValue;
 
@@ -131,7 +131,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             let lObject: any | null = null;
 
             // Process. Interaction.
@@ -164,7 +164,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass,);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass,);
             const lObject = new lPatchedClass();
 
             // Process. Interaction.
@@ -195,7 +195,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
+            const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
             const lObject = new lPatchedClass();
             lObject.setCallback(() => { return lValue; });
 
@@ -209,7 +209,7 @@ describe('Patcher', () => {
 
     describe('Method: patchEventTarget', () => {
         before(() => {
-            Patcher.patch(globalThis);
+            InteractionZoneGlobalScope.patch(globalThis);
         });
 
         it('-- AddEventListener correct listener zone', async () => {
@@ -414,7 +414,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
              
@@ -438,8 +438,8 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
              
@@ -462,7 +462,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lCallCounter: number = 0;
@@ -482,7 +482,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lCallCounter: number = 0;
@@ -503,7 +503,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             lEventTarget.oncustom = 'My string';
@@ -516,7 +516,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             lEventTarget.oncustom = lValue;
@@ -532,7 +532,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             lEventTarget.oncustom = lValue;
@@ -545,7 +545,7 @@ describe('Patcher', () => {
 
     describe('Method: patchPromise', () => {
         before(() => {
-            Patcher.patch(globalThis);
+            InteractionZoneGlobalScope.patch(globalThis);
         });
 
         it('-- Promise executor correct zone', async () => {

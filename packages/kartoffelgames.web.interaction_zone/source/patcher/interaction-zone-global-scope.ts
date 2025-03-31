@@ -3,7 +3,23 @@ import { ErrorAllocation } from '../zone/error-allocation.ts';
 import { InteractionZone } from '../zone/interaction-zone.ts';
 import { EventNames } from './event-names.ts';
 
-export class Patcher {
+export class InteractionZoneGlobalScope {
+    /**
+     * Enable zones in the global scope.
+     */
+    public static enable(pTarget: InteractionZoneGlobalScopeTarget): boolean {
+
+        // TODO: Patch global scope.
+
+        // TODO: Patch Promise and EventTarget
+
+        // TODO: Patch functions.
+
+        // TODO: Check all classes for any '^on' properties. When it has some, patch on properties.
+
+        // TODO: Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
+    }
+
     /**
      * Patches functions and objects in global scope to track asynchron calls.
      * 
@@ -13,9 +29,66 @@ export class Patcher {
         if (!pGlobalObject.globalPatched) {
             pGlobalObject.globalPatched = true;
 
-            const lPatcher: Patcher = new Patcher();
+            const lPatcher: InteractionZoneGlobalScope = new InteractionZoneGlobalScope();
             lPatcher.patchGlobals(pGlobalObject);
         }
+    }
+
+    /**
+     * Default settings of the global scope of the runtime.
+     */
+    public get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
+        // Create default globalThis target.
+        const lTarget = {
+            target: globalThis,
+            patches: {
+                promise: globalThis.Promise.name,
+                eventTarget: globalThis.EventTarget.name,
+                classes: new Array<string>(),
+                functions: new Array<string>()
+            }
+        } satisfies InteractionZoneGlobalScopeTarget;
+
+        // Add all asyncron functions.
+        lTarget.patches.functions.push(
+            globalThis.requestAnimationFrame.name,
+            globalThis.setInterval.name,
+            globalThis.setTimeout.name
+        );
+
+        // Add all global classes with events.
+        lTarget.patches.classes.push( // TODO: Check with globalThis.HTMLFrameElement?.name and filter for undefined.
+            globalThis.XMLHttpRequestEventTarget.name,
+            globalThis.XMLHttpRequest.name,
+            globalThis.Document.name,
+            globalThis.SVGElement.name,
+            globalThis.Element.name,
+            globalThis.HTMLElement.name,
+            globalThis.HTMLMediaElement.name,
+            globalThis.HTMLFrameSetElement.name,
+            globalThis.HTMLBodyElement.name,
+            globalThis.HTMLFrameElement.name,
+            globalThis.HTMLIFrameElement.name,
+            globalThis.HTMLMarqueeElement.name,
+            globalThis.Worker.name,
+            globalThis.IDBRequest.name,
+            globalThis.IDBOpenDBRequest.name,
+            globalThis.IDBDatabase.name,
+            globalThis.IDBTransaction.name,
+            globalThis.WebSocket.name,
+            globalThis.FileReader.name,
+            globalThis.Notification.name,
+            globalThis.RTCPeerConnection.name
+        );
+
+        // Add all global classes with async callbacks.
+        lTarget.patches.classes.push(
+            globalThis.ResizeObserver.name,
+            globalThis.MutationObserver.name,
+            globalThis.IntersectionObserver.name
+        );
+
+        return lTarget;
     }
 
     /**
@@ -94,7 +167,7 @@ export class Patcher {
      * 
      * @param pGlobalObject - Global this object.
      */
-    private patchEventTarget(pGlobalObject: typeof globalThis): void {
+    private patchEventTarget(pGlobalObject: typeof globalThis): any {
         const lProto = pGlobalObject.EventTarget.prototype;
         const lSelf: this = this;
 
@@ -146,6 +219,8 @@ export class Patcher {
             // Remove event listener, eighter patched or original, from event target.
             lOriginalRemoveEventListener.call(this, pType, lUsedEventListener, pOptions);
         };
+
+        return lProto;
     }
 
     /**
@@ -197,49 +272,49 @@ export class Patcher {
         pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver);
 
         // Event target !!!before patching onEvents. 
-        this.patchEventTarget(pGlobalObject);
+        pGlobalObject.EventTarget = this.patchEventTarget(pGlobalObject);
 
         // Patch onEvents
         {
             // Global context.
-            this.patchOnEventProperties(pGlobalObject, ['messageerror', ...EventNames.ALL]);
+            this.patchEvents(pGlobalObject, ['messageerror', ...EventNames.ALL]);
 
             // XHR
-            this.patchOnEventProperties(pGlobalObject.XMLHttpRequestEventTarget?.prototype, [...EventNames.XML_HTTP_REQUEST]);
-            this.patchOnEventProperties(pGlobalObject.XMLHttpRequest?.prototype, [...EventNames.XML_HTTP_REQUEST]);
+            this.patchEvents(pGlobalObject.XMLHttpRequestEventTarget?.prototype, [...EventNames.XML_HTTP_REQUEST]);
+            this.patchEvents(pGlobalObject.XMLHttpRequest?.prototype, [...EventNames.XML_HTTP_REQUEST]);
 
             // Patch HTML elements
-            this.patchOnEventProperties(pGlobalObject.Document?.prototype, [...EventNames.ALL]);
-            this.patchOnEventProperties(pGlobalObject.SVGElement?.prototype, [...EventNames.ALL]);
-            this.patchOnEventProperties(pGlobalObject.Element?.prototype, [...EventNames.ALL]);
-            this.patchOnEventProperties(pGlobalObject.HTMLElement?.prototype, [...EventNames.ALL]);
-            this.patchOnEventProperties(pGlobalObject.HTMLMediaElement?.prototype, [...EventNames.MEDIA_ELEMENT]);
-            this.patchOnEventProperties(pGlobalObject.HTMLFrameSetElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
-            this.patchOnEventProperties(pGlobalObject.HTMLBodyElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
-            this.patchOnEventProperties(pGlobalObject.HTMLFrameElement?.prototype, [...EventNames.FRAME]);
-            this.patchOnEventProperties(pGlobalObject.HTMLIFrameElement?.prototype, [...EventNames.FRAME]);
-            this.patchOnEventProperties(pGlobalObject.HTMLMarqueeElement?.prototype, [...EventNames.MARQUEE]);
+            this.patchEvents(pGlobalObject.Document?.prototype, [...EventNames.ALL]);
+            this.patchEvents(pGlobalObject.SVGElement?.prototype, [...EventNames.ALL]);
+            this.patchEvents(pGlobalObject.Element?.prototype, [...EventNames.ALL]);
+            this.patchEvents(pGlobalObject.HTMLElement?.prototype, [...EventNames.ALL]);
+            this.patchEvents(pGlobalObject.HTMLMediaElement?.prototype, [...EventNames.MEDIA_ELEMENT]);
+            this.patchEvents(pGlobalObject.HTMLFrameSetElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
+            this.patchEvents(pGlobalObject.HTMLBodyElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
+            this.patchEvents(pGlobalObject.HTMLFrameElement?.prototype, [...EventNames.FRAME]);
+            this.patchEvents(pGlobalObject.HTMLIFrameElement?.prototype, [...EventNames.FRAME]);
+            this.patchEvents(pGlobalObject.HTMLMarqueeElement?.prototype, [...EventNames.MARQUEE]);
 
             // Worker.
-            this.patchOnEventProperties(pGlobalObject.Worker && Worker?.prototype, EventNames.WORKER);
+            this.patchEvents(pGlobalObject.Worker && Worker?.prototype, EventNames.WORKER);
 
             // Index DB.
-            this.patchOnEventProperties(pGlobalObject.IDBRequest?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchOnEventProperties(pGlobalObject.IDBOpenDBRequest?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchOnEventProperties(pGlobalObject.IDBDatabase?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchOnEventProperties(pGlobalObject.IDBTransaction?.prototype, [...EventNames.IDB_INDEX]);
+            this.patchEvents(pGlobalObject.IDBRequest?.prototype, [...EventNames.IDB_INDEX]);
+            this.patchEvents(pGlobalObject.IDBOpenDBRequest?.prototype, [...EventNames.IDB_INDEX]);
+            this.patchEvents(pGlobalObject.IDBDatabase?.prototype, [...EventNames.IDB_INDEX]);
+            this.patchEvents(pGlobalObject.IDBTransaction?.prototype, [...EventNames.IDB_INDEX]);
 
             // Websocket.
-            this.patchOnEventProperties(pGlobalObject.WebSocket?.prototype, [...EventNames.WEBSOCKET]);
+            this.patchEvents(pGlobalObject.WebSocket?.prototype, [...EventNames.WEBSOCKET]);
 
             // Filereader
-            this.patchOnEventProperties(pGlobalObject.FileReader?.prototype, [...EventNames.XML_HTTP_REQUEST]);
+            this.patchEvents(pGlobalObject.FileReader?.prototype, [...EventNames.XML_HTTP_REQUEST]);
 
             // Notification
-            this.patchOnEventProperties(pGlobalObject.Notification?.prototype, [...EventNames.NOTIFICATION]);
+            this.patchEvents(pGlobalObject.Notification?.prototype, [...EventNames.NOTIFICATION]);
 
             // RTCPeerConnection
-            this.patchOnEventProperties(pGlobalObject.RTCPeerConnection?.prototype, [...EventNames.RTC_PEER_CONNECTION]);
+            this.patchEvents(pGlobalObject.RTCPeerConnection?.prototype, [...EventNames.RTC_PEER_CONNECTION]);
         }
 
         // HTMLCanvasElement.toBlob
@@ -284,7 +359,7 @@ export class Patcher {
      * Patch every onproperty of an object.
      * Adds and remove listener as {@link EventTarget} eventlistener. 
      */
-    private patchOnEventProperties(pObject: EventTarget, pEventNames: Array<string>): void {
+    private patchEvents(pObject: EventTarget, pEventNames: Array<string>): void {
         // Check for correct object type.
         if (!pObject || !(pObject instanceof EventTarget)) {
             return;
@@ -369,3 +444,13 @@ export class Patcher {
 declare global {
     var globalPatched: boolean;
 }
+
+type InteractionZoneGlobalScopeTarget = {
+    target: object;
+    patches: {
+        promise?: string;
+        eventTarget?: string;
+        classes?: Array<string>;
+        functions?: Array<string>;
+    };
+};

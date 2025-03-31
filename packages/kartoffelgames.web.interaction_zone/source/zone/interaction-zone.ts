@@ -1,7 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation.ts';
 import { InteractionEvent, type InteractionEventTriggerType } from './interaction-event.ts';
-import { Patcher } from '../patcher/patcher.ts';
 
 /**
  * Merges execution zone and proxy tracking.
@@ -42,7 +41,6 @@ export class InteractionZone {
 
     // Needs to be isolated to prevent parent listener execution.
     private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
-
 
     /**
      * Current execution zone.
@@ -108,9 +106,6 @@ export class InteractionZone {
      * @param pSettings - Interaction zone settings.
      */
     private constructor(pName: string, pParent: InteractionZone | null, pIsolate: boolean) {
-        // Init patcher when it is not allready.
-        Patcher.patch(globalThis);
-
         // Initialize error listener list
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 

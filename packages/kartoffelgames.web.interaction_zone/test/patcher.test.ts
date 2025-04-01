@@ -11,7 +11,7 @@ describe('InteractionZoneGlobalScope', () => {
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process. Its patched anyway.
-            InteractionZoneGlobalScope.patch(globalThis);
+            InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
 
             // Process. Get patched and original function.
              
@@ -30,11 +30,10 @@ describe('InteractionZoneGlobalScope', () => {
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process. Its patched anyway.
-            InteractionZoneGlobalScope.patch(globalThis);
-            InteractionZoneGlobalScope.patch(globalThis);
+            InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
+            InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
 
-            // Process. Get patched and original function.
-             
+            // Process. Get patched and original function.  
             const lZoneResult: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     pResolve(InteractionZone.current);
@@ -209,7 +208,7 @@ describe('InteractionZoneGlobalScope', () => {
 
     describe('Method: patchEventTarget', () => {
         before(() => {
-            InteractionZoneGlobalScope.patch(globalThis);
+            InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
         });
 
         it('-- AddEventListener correct listener zone', async () => {
@@ -545,7 +544,7 @@ describe('InteractionZoneGlobalScope', () => {
 
     describe('Method: patchPromise', () => {
         before(() => {
-            InteractionZoneGlobalScope.patch(globalThis);
+            InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
         });
 
         it('-- Promise executor correct zone', async () => {

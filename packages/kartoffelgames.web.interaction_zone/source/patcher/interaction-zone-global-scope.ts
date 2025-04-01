@@ -1,92 +1,116 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from '../zone/error-allocation.ts';
 import { InteractionZone } from '../zone/interaction-zone.ts';
-import { EventNames } from './event-names.ts';
 
 export class InteractionZoneGlobalScope {
     /**
      * Enable zones in the global scope.
      */
     public static enable(pTarget: InteractionZoneGlobalScopeTarget): boolean {
-
-        // TODO: Patch global scope.
-
-        // TODO: Patch Promise and EventTarget
-
-        // TODO: Patch functions.
-
-        // TODO: Check all classes for any '^on' properties. When it has some, patch on properties.
-
-        // TODO: Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
-    }
-
-    /**
-     * Patches functions and objects in global scope to track asynchron calls.
-     * 
-     * @param pGlobalObject - Global enviroment object
-     */
-    public static patch(pGlobalObject: typeof globalThis): void {
-        if (!pGlobalObject.globalPatched) {
-            pGlobalObject.globalPatched = true;
-
-            const lPatcher: InteractionZoneGlobalScope = new InteractionZoneGlobalScope();
-            lPatcher.patchGlobals(pGlobalObject);
+        // Guard to not patch twice.
+        if ((<any>pTarget.target).globalPatched) {
+            return false;
         }
+        (<any>pTarget.target).globalPatched = true;
+
+        const lGlobalScope: Record<string, any> = pTarget.target;
+
+        // Create local patcher instance.
+        const lPatcher: InteractionZoneGlobalScope = new InteractionZoneGlobalScope();
+
+        // Patch Promise
+        if (pTarget.patches.promise) {
+            const lPromiseName: string = pTarget.patches.promise;
+            lGlobalScope[lPromiseName] = lPatcher.patchPromise(lGlobalScope[lPromiseName]);
+        }
+
+        // Patch EventTarget
+        if (pTarget.patches.eventTarget) {
+            const lEventTargetName: string = pTarget.patches.eventTarget;
+            lGlobalScope[lEventTargetName] = lPatcher.patchEventTarget(lGlobalScope[lEventTargetName]);
+        }
+
+        // Patch global scope events.
+        lPatcher.patchEvents(lGlobalScope);
+
+        // Patch functions.
+        for (const lFunctionName of pTarget.patches.functions ?? []) {
+            lGlobalScope[lFunctionName] = lPatcher.patchFunctionCallbacks(lGlobalScope[lFunctionName]);
+        }
+
+        // Patch all classes.
+        for (const lClassName of pTarget.patches.classes ?? []) {
+            let lClass: Function = lGlobalScope[lClassName];
+
+            // Patch class.
+            lClass = lPatcher.patchClass(lClass);
+
+            // Patch properties.
+            lPatcher.patchEvents(lClass.prototype);
+
+            // TODO: Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
+            lGlobalScope[lClassName] = lClass;
+        }
+
+        return true;
     }
 
     /**
      * Default settings of the global scope of the runtime.
      */
-    public get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
+    public static get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
         // Create default globalThis target.
         const lTarget = {
             target: globalThis,
             patches: {
-                promise: globalThis.Promise.name,
-                eventTarget: globalThis.EventTarget.name,
+                promise: globalThis.Promise?.name,
+                eventTarget: globalThis.EventTarget?.name,
                 classes: new Array<string>(),
                 functions: new Array<string>()
             }
         } satisfies InteractionZoneGlobalScopeTarget;
 
         // Add all asyncron functions.
-        lTarget.patches.functions.push(
-            globalThis.requestAnimationFrame.name,
-            globalThis.setInterval.name,
-            globalThis.setTimeout.name
-        );
+        const lAsyncFunctionNames: Array<string | undefined> = [
+            globalThis.requestAnimationFrame?.name,
+            globalThis.setInterval?.name,
+            globalThis.setTimeout?.name
+        ];
+        lTarget.patches.functions.push(...lAsyncFunctionNames.filter(lClass => !!lClass) as Array<string>);
 
         // Add all global classes with events.
-        lTarget.patches.classes.push( // TODO: Check with globalThis.HTMLFrameElement?.name and filter for undefined.
-            globalThis.XMLHttpRequestEventTarget.name,
-            globalThis.XMLHttpRequest.name,
-            globalThis.Document.name,
-            globalThis.SVGElement.name,
-            globalThis.Element.name,
-            globalThis.HTMLElement.name,
-            globalThis.HTMLMediaElement.name,
-            globalThis.HTMLFrameSetElement.name,
-            globalThis.HTMLBodyElement.name,
-            globalThis.HTMLFrameElement.name,
-            globalThis.HTMLIFrameElement.name,
-            globalThis.HTMLMarqueeElement.name,
-            globalThis.Worker.name,
-            globalThis.IDBRequest.name,
-            globalThis.IDBOpenDBRequest.name,
-            globalThis.IDBDatabase.name,
-            globalThis.IDBTransaction.name,
-            globalThis.WebSocket.name,
-            globalThis.FileReader.name,
-            globalThis.Notification.name,
-            globalThis.RTCPeerConnection.name
-        );
+        const lDomClassNames: Array<string | undefined> = [
+            globalThis.XMLHttpRequestEventTarget?.name,
+            globalThis.XMLHttpRequest?.name,
+            globalThis.Document?.name,
+            globalThis.SVGElement?.name,
+            globalThis.Element?.name,
+            globalThis.HTMLElement?.name,
+            globalThis.HTMLMediaElement?.name,
+            globalThis.HTMLFrameSetElement?.name,
+            globalThis.HTMLBodyElement?.name,
+            globalThis.HTMLFrameElement?.name,
+            globalThis.HTMLIFrameElement?.name,
+            globalThis.HTMLMarqueeElement?.name,
+            globalThis.Worker?.name,
+            globalThis.IDBRequest?.name,
+            globalThis.IDBOpenDBRequest?.name,
+            globalThis.IDBDatabase?.name,
+            globalThis.IDBTransaction?.name,
+            globalThis.WebSocket?.name,
+            globalThis.FileReader?.name,
+            globalThis.Notification?.name,
+            globalThis.RTCPeerConnection?.name
+        ];
+        lTarget.patches.classes.push(...lDomClassNames.filter(lClass => !!lClass) as Array<string>);
 
         // Add all global classes with async callbacks.
-        lTarget.patches.classes.push(
-            globalThis.ResizeObserver.name,
-            globalThis.MutationObserver.name,
-            globalThis.IntersectionObserver.name
-        );
+        const lObserverClassNames: Array<string | undefined> = [
+            globalThis.ResizeObserver?.name,
+            globalThis.MutationObserver?.name,
+            globalThis.IntersectionObserver?.name
+        ];
+        lTarget.patches.classes.push(...lObserverClassNames.filter(lClass => !!lClass) as Array<string>);
 
         return lTarget;
     }
@@ -117,19 +141,6 @@ export class InteractionZoneGlobalScope {
         // Patch method callbacks of class.
         this.patchMethods(pConstructor);
 
-        // Patch constructor callbacks
-        return this.patchConstructor(pConstructor);
-    }
-
-    /**
-     * Patch constructor callbacks.
-     * 
-     * @param pConstructor - Class constructor.
-     * @param pInteractionType - Interaction type for constructor callback call end interactions.
-     * 
-     * @returns patched {@link pConstructor}
-     */
-    private patchConstructor(pConstructor: any): any {
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
@@ -167,8 +178,8 @@ export class InteractionZoneGlobalScope {
      * 
      * @param pGlobalObject - Global this object.
      */
-    private patchEventTarget(pGlobalObject: typeof globalThis): any {
-        const lProto = pGlobalObject.EventTarget.prototype;
+    private patchEventTarget(pEventTargetType: typeof EventTarget): any {
+        const lProto = pEventTargetType.prototype;
         const lSelf: this = this;
 
         const lOriginalListener: WeakMap<EventListenerOrEventListenerObject, EventListener> = new WeakMap<EventListenerOrEventListenerObject, EventListener>();
@@ -220,7 +231,7 @@ export class InteractionZoneGlobalScope {
             lOriginalRemoveEventListener.call(this, pType, lUsedEventListener, pOptions);
         };
 
-        return lProto;
+        return pEventTargetType;
     }
 
     /**
@@ -251,76 +262,6 @@ export class InteractionZoneGlobalScope {
                 return pFunction.call(this, ...pArgs);
             });
         };
-    }
-
-    /**
-     * Patches functions and objects in global scope to track asynchron calls.
-     * @param pGlobalObject - Global enviroment object
-     */
-    private patchGlobals(pGlobalObject: typeof globalThis): void {
-        // Timer
-        pGlobalObject.requestAnimationFrame = this.patchFunctionCallbacks(pGlobalObject.requestAnimationFrame);
-        pGlobalObject.setInterval = <any>this.patchFunctionCallbacks(pGlobalObject.setInterval);
-        pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout);
-
-        // Promise
-        pGlobalObject.Promise = this.patchPromise(pGlobalObject);
-
-        // Observer
-        pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver);
-        pGlobalObject.MutationObserver = this.patchClass(pGlobalObject.MutationObserver);
-        pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver);
-
-        // Event target !!!before patching onEvents. 
-        pGlobalObject.EventTarget = this.patchEventTarget(pGlobalObject);
-
-        // Patch onEvents
-        {
-            // Global context.
-            this.patchEvents(pGlobalObject, ['messageerror', ...EventNames.ALL]);
-
-            // XHR
-            this.patchEvents(pGlobalObject.XMLHttpRequestEventTarget?.prototype, [...EventNames.XML_HTTP_REQUEST]);
-            this.patchEvents(pGlobalObject.XMLHttpRequest?.prototype, [...EventNames.XML_HTTP_REQUEST]);
-
-            // Patch HTML elements
-            this.patchEvents(pGlobalObject.Document?.prototype, [...EventNames.ALL]);
-            this.patchEvents(pGlobalObject.SVGElement?.prototype, [...EventNames.ALL]);
-            this.patchEvents(pGlobalObject.Element?.prototype, [...EventNames.ALL]);
-            this.patchEvents(pGlobalObject.HTMLElement?.prototype, [...EventNames.ALL]);
-            this.patchEvents(pGlobalObject.HTMLMediaElement?.prototype, [...EventNames.MEDIA_ELEMENT]);
-            this.patchEvents(pGlobalObject.HTMLFrameSetElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
-            this.patchEvents(pGlobalObject.HTMLBodyElement?.prototype, [...EventNames.WINDOW, ...EventNames.FRAME_SET]);
-            this.patchEvents(pGlobalObject.HTMLFrameElement?.prototype, [...EventNames.FRAME]);
-            this.patchEvents(pGlobalObject.HTMLIFrameElement?.prototype, [...EventNames.FRAME]);
-            this.patchEvents(pGlobalObject.HTMLMarqueeElement?.prototype, [...EventNames.MARQUEE]);
-
-            // Worker.
-            this.patchEvents(pGlobalObject.Worker && Worker?.prototype, EventNames.WORKER);
-
-            // Index DB.
-            this.patchEvents(pGlobalObject.IDBRequest?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchEvents(pGlobalObject.IDBOpenDBRequest?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchEvents(pGlobalObject.IDBDatabase?.prototype, [...EventNames.IDB_INDEX]);
-            this.patchEvents(pGlobalObject.IDBTransaction?.prototype, [...EventNames.IDB_INDEX]);
-
-            // Websocket.
-            this.patchEvents(pGlobalObject.WebSocket?.prototype, [...EventNames.WEBSOCKET]);
-
-            // Filereader
-            this.patchEvents(pGlobalObject.FileReader?.prototype, [...EventNames.XML_HTTP_REQUEST]);
-
-            // Notification
-            this.patchEvents(pGlobalObject.Notification?.prototype, [...EventNames.NOTIFICATION]);
-
-            // RTCPeerConnection
-            this.patchEvents(pGlobalObject.RTCPeerConnection?.prototype, [...EventNames.RTC_PEER_CONNECTION]);
-        }
-
-        // HTMLCanvasElement.toBlob
-        if (pGlobalObject.HTMLCanvasElement) {
-            pGlobalObject.HTMLCanvasElement.prototype.toBlob = this.patchFunctionCallbacks(pGlobalObject.HTMLCanvasElement.prototype.toBlob);
-        }
     }
 
     /**
@@ -359,17 +300,25 @@ export class InteractionZoneGlobalScope {
      * Patch every onproperty of an object.
      * Adds and remove listener as {@link EventTarget} eventlistener. 
      */
-    private patchEvents(pObject: EventTarget, pEventNames: Array<string>): void {
+    private patchEvents(pObject: object): void {
         // Check for correct object type.
         if (!pObject || !(pObject instanceof EventTarget)) {
             return;
+        }
+
+        // Find all on events.
+        const lEventNames: Array<string> = new Array<string>();
+        for (const lPropertyName of Object.getOwnPropertyNames(pObject)) {
+            if (lPropertyName.startsWith('on')) {
+                lEventNames.push(lPropertyName.substring(2));
+            }
         }
 
         // Storage to save all patched events by name.
         const lEventFunctions: Dictionary<string, (...pArgs: Array<any>) => any> = new Dictionary<string, (...pArgs: Array<any>) => any>();
 
         // Patch every event.
-        for (const lEventName of pEventNames) {
+        for (const lEventName of lEventNames) {
             const lPropertyName: string = `on${lEventName}`;
             const lDescriptorInformation: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pObject, lPropertyName);
 
@@ -416,8 +365,8 @@ export class InteractionZoneGlobalScope {
      * 
      * @param pConstructor - Promise constructor.
      */
-    private patchPromise(pGlobalObject: typeof globalThis): any {
-        const lOriginalPromiseConstructor: any = pGlobalObject.Promise;
+    private patchPromise(pPromiseType: typeof Promise): any {
+        const lOriginalPromiseConstructor: any = pPromiseType;
 
         // Promise methods needs to be patched. They dont create own promises.
         this.patchMethods(lOriginalPromiseConstructor);

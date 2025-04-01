@@ -14,7 +14,7 @@ describe('InteractionZoneGlobalScope', () => {
             InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
 
             // Process. Get patched and original function.
-             
+
             const lZoneResult: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     pResolve(InteractionZone.current);
@@ -217,7 +217,7 @@ describe('InteractionZoneGlobalScope', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-             
+
             const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
@@ -266,7 +266,7 @@ describe('InteractionZoneGlobalScope', () => {
             };
 
             // Process.
-             
+
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lListener);
                 lEventTarget.removeEventListener('customwrong', lListener);
@@ -336,7 +336,7 @@ describe('InteractionZoneGlobalScope', () => {
 
             // Process.
 
-             
+
             const lZoneResultPromise = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     const lHandlerObject = {
@@ -361,7 +361,7 @@ describe('InteractionZoneGlobalScope', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. 
-             
+
             const lEventWait = lZone.execute(() => {
                 return new Promise<boolean>((pResolve) => {
                     const lHandlerObject = {
@@ -394,7 +394,7 @@ describe('InteractionZoneGlobalScope', () => {
             };
 
             // Process.
-             
+
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lHandlerObject);
                 lEventTarget.removeEventListener('custom', lHandlerObject);
@@ -410,38 +410,21 @@ describe('InteractionZoneGlobalScope', () => {
         it('-- Correct zone on event listener call', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
-
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
-
-            // Process.
-             
-            const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
-                return new Promise<InteractionZone>((pResolve) => {
-                    lEventTarget.oncustom = () => {
-                        pResolve(InteractionZone.current);
-                    };
-                });
-            });
-            lEventTarget.dispatchEvent(new Event('custom'));
-            const lResultZone: InteractionZone = await lResultZonePromise;
-
-            // Evaluation.
-            expect(lResultZone).toBe(lZone);
-        });
-
-        it('-- Double patch', async () => {
             // Setup.
-            const lZone: InteractionZone = InteractionZone.current.create('Zone');
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
-             
             const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.oncustom = () => {
@@ -454,14 +437,23 @@ describe('InteractionZoneGlobalScope', () => {
 
             // Evaluation.
             expect(lResultZone).toBe(lZone);
+            expect(false).toBe(true) // TODO: WHAAAAAAT
         });
 
         it('-- Override function with self', async () => {
             // Setup.
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
             let lCallCounter: number = 0;
@@ -478,14 +470,22 @@ describe('InteractionZoneGlobalScope', () => {
 
         it('-- Override function with null', () => {
             // Setup.
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
             let lCallCounter: number = 0;
-             
+
             const lListener = () => {
                 lCallCounter++;
             };
@@ -499,10 +499,18 @@ describe('InteractionZoneGlobalScope', () => {
 
         it('-- Set string value', () => {
             // Setup.
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
             lEventTarget.oncustom = 'My string';
@@ -512,10 +520,18 @@ describe('InteractionZoneGlobalScope', () => {
         it('-- Get string value', () => {
             // Setup.
             const lValue: string = 'ValueOrSo';
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
             lEventTarget.oncustom = lValue;
@@ -528,10 +544,18 @@ describe('InteractionZoneGlobalScope', () => {
         it('-- Get function value', () => {
             // Setup.
             const lValue: () => void = () => { };
-            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+            const lScopeTarget = {
+                eventTarget: class extends EventTarget { public oncustom: any = null; }
+            };
 
-            // Process. Patch
-            (<any>new InteractionZoneGlobalScope()).patchOnEventProperties(lEventTarget, ['custom']);
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    eventTarget: 'eventTarget'
+                }
+            });
+            const lEventTarget = new lScopeTarget.eventTarget();
 
             // Process.
             lEventTarget.oncustom = lValue;
@@ -552,7 +576,7 @@ describe('InteractionZoneGlobalScope', () => {
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
             // Process.
-             
+
             const lResultZone: InteractionZone = await lZone.execute(() => {
                 return new Promise<InteractionZone>((pResolve) => { pResolve(InteractionZone.current); });
             });

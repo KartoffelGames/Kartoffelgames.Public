@@ -1,84 +1,81 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Metadata } from '../../source/metadata/metadata.ts';
 import { PropertyMetadata } from '../../source/metadata/property-metadata.ts';
 
-describe('PropertyMetadata', () => {
-    describe('Method: getMetadata', () => {
-        it('-- Available Metadata', () => {
-            // Setup. Specify values.
-            const lMetadataKey: string = 'MetadataKey';
-            const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
-            lMetadata.setMetadata(lMetadataKey, lMetadataValue);
+Deno.test('PropertyMetadata.getMetadata()', async (pContext) => {
+    await pContext.step('Available Metadata', () => {
+        // Setup. Specify values.
+        const lMetadataKey: string = 'MetadataKey';
+        const lMetadataValue: string = 'MetadataValue';
+        const lMetadata: PropertyMetadata = new PropertyMetadata();
+        lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
-            // Process.
-            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
+        // Process.
+        const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
-            // Evaluation.
-            expect(lResultMetadatavalue).toBe(lMetadataValue);
-        });
-
-        it('-- Missing Metadata', () => {
-            // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
-
-            // Process.
-            const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
-
-            // Evaluation.
-            expect(lResultMetadatavalue).toBeNull();
-        });
+        // Evaluation.
+        expect(lResultMetadatavalue).toBe(lMetadataValue);
     });
 
-    describe('Method: getMetadata', () => {
-        it('-- Default', () => {
-            // Setup. Specify values.
-            const lMetadataKey: string = 'MetadataKey';
-            const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
-            lMetadata.setMetadata(lMetadataKey, lMetadataValue);
+    await pContext.step('Missing Metadata', () => {
+        // Setup. Specify values.
+        const lMetadata: PropertyMetadata = new PropertyMetadata();
 
-            // Process.
-            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
+        // Process.
+        const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
 
-            // Evaluation.
-            expect(lResultMetadatavalue).toBe(lMetadataValue);
-        });
+        // Evaluation.
+        expect(lResultMetadatavalue).toBeNull();
+    });
+});
 
-        it('-- Overwrite value', () => {
-            // Setup. Specify values.
-            const lMetadataKey: string = 'MetadataKey';
-            const lMetadataValue: string = 'NewMetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+Deno.test('PropertyMetadata.setMetadata()', async (pContext) => {
+    await pContext.step('Default', () => {
+        // Setup. Specify values.
+        const lMetadataKey: string = 'MetadataKey';
+        const lMetadataValue: string = 'MetadataValue';
+        const lMetadata: PropertyMetadata = new PropertyMetadata();
+        lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
-            // Process.
-            lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');
-            lMetadata.setMetadata(lMetadataKey, lMetadataValue);
-            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
+        // Process.
+        const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
-            // Evaluation.
-            expect(lResultMetadatavalue).toBe(lMetadataValue);
-        });
+        // Evaluation.
+        expect(lResultMetadatavalue).toBe(lMetadataValue);
+    });
 
-        it('-- Get inside decorator', () => {
-            // Setup. Create decorator that reads metadata inside decorator.
-            let lInnerPropertyMetadata: PropertyMetadata | null = null;
-            const lInnerDecorator = (_pOriginalTarget: any, pContext: ClassFieldDecoratorContext) => {
-                lInnerPropertyMetadata = Metadata.forInternalDecorator(pContext.metadata).getProperty(pContext.name);
-            };
+    await pContext.step('Overwrite value', () => {
+        // Setup. Specify values.
+        const lMetadataKey: string = 'MetadataKey';
+        const lMetadataValue: string = 'NewMetadataValue';
+        const lMetadata: PropertyMetadata = new PropertyMetadata();
 
-            // Process.
-            class Test {
-                @lInnerDecorator
-                public id!: number;
-            }
+        // Process.
+        lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');
+        lMetadata.setMetadata(lMetadataKey, lMetadataValue);
+        const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
-            // Process. Read outer metadata.
-            const lOuterPropertyMetadata: PropertyMetadata = Metadata.get(Test).getProperty('id');
+        // Evaluation.
+        expect(lResultMetadatavalue).toBe(lMetadataValue);
+    });
 
-            // Evaluation.
-            expect(lInnerPropertyMetadata).toBe(lOuterPropertyMetadata);
-        });
+    await pContext.step('Get inside decorator', () => {
+        // Setup. Create decorator that reads metadata inside decorator.
+        let lInnerPropertyMetadata: PropertyMetadata | null = null;
+        const lInnerDecorator = (_pOriginalTarget: any, pContext: ClassFieldDecoratorContext) => {
+            lInnerPropertyMetadata = Metadata.forInternalDecorator(pContext.metadata).getProperty(pContext.name);
+        };
+
+        // Process.
+        class Test {
+            @lInnerDecorator
+            public id!: number;
+        }
+
+        // Process. Read outer metadata.
+        const lOuterPropertyMetadata: PropertyMetadata = Metadata.get(Test).getProperty('id');
+
+        // Evaluation.
+        expect(lInnerPropertyMetadata).toBe(lOuterPropertyMetadata);
     });
 });

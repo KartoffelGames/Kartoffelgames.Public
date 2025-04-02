@@ -1,10 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { XmlAttribute } from '../source/attribute/xml-attribute.ts';
 import { XmlElement } from '../source/node/xml-element.ts';
 
-describe('XmlAttribute', () => {
-    it('Property: name', () => {
+Deno.test('XmlAttribute.name', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lAttributeName: string = 'AttributeName';
         const lAttribute: XmlAttribute = new XmlAttribute(lAttributeName);
@@ -15,39 +14,41 @@ describe('XmlAttribute', () => {
         // Evaluation.
         expect(lAttributeNameResult).toBe(lAttributeName);
     });
+});
 
-    describe('Property: namespace', () => {
-        it('-- Namespace from Prefix', () => {
-            // Setup. Specify values.
-            const lNamespacePrefix: string = 'prefix';
-            const lNamespace: string = 'Namespace';
+Deno.test('XmlAttribute.namespace', async (pContext) => {
+    await pContext.step('Namespace from Prefix', () => {
+        // Setup. Specify values.
+        const lNamespacePrefix: string = 'prefix';
+        const lNamespace: string = 'Namespace';
 
-            // Setup. Set xml attribute namespace with xml element.
-            const lXmlElement: XmlElement = new XmlElement();
-            lXmlElement.setAttribute(lNamespacePrefix, lNamespace, 'xmlns');
-            const lAttribute: XmlAttribute = lXmlElement.setAttribute('Name', 'Value', lNamespacePrefix);
+        // Setup. Set xml attribute namespace with xml element.
+        const lXmlElement: XmlElement = new XmlElement();
+        lXmlElement.setAttribute(lNamespacePrefix, lNamespace, 'xmlns');
+        const lAttribute: XmlAttribute = lXmlElement.setAttribute('Name', 'Value', lNamespacePrefix);
 
-            // Process.
-            const lAttributeNamespaceResult: string  | null= lAttribute.namespace;
+        // Process.
+        const lAttributeNamespaceResult: string | null = lAttribute.namespace;
 
-            // Evaluation.
-            expect(lAttributeNamespaceResult).toBe(lNamespace);
-        });
-
-        it('-- No Namespace', () => {
-            // Setup.
-            const lXmlElement: XmlElement = new XmlElement();
-            const lAttribute: XmlAttribute = lXmlElement.setAttribute('Name', 'Value');
-
-            // Process.
-            const lAttributeNamespaceResult: string  | null= lAttribute.namespace;
-
-            // Evaluation.
-            expect(lAttributeNamespaceResult).toBeNull();
-        });
+        // Evaluation.
+        expect(lAttributeNamespaceResult).toBe(lNamespace);
     });
 
-    it('Property: namespacePrefix', () => {
+    await pContext.step('No Namespace', () => {
+        // Setup.
+        const lXmlElement: XmlElement = new XmlElement();
+        const lAttribute: XmlAttribute = lXmlElement.setAttribute('Name', 'Value');
+
+        // Process.
+        const lAttributeNamespaceResult: string | null = lAttribute.namespace;
+
+        // Evaluation.
+        expect(lAttributeNamespaceResult).toBeNull();
+    });
+});
+
+Deno.test('XmlAttribute.namespacePrefix', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lAttributeNamespacePrefix: string = 'NamespacePrefix';
         const lAttribute: XmlAttribute = new XmlAttribute('AttributeName', lAttributeNamespacePrefix);
@@ -58,8 +59,10 @@ describe('XmlAttribute', () => {
         // Evaluation.
         expect(lAttributeNamespacePrefixResult).toBe(lAttributeNamespacePrefix);
     });
+});
 
-    it('Property: qualifiedName', () => {
+Deno.test('XmlAttribute.qualifiedName', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup. Specify values.
         const lAttributeName: string = 'AttributeName';
         const lAttributeNamespacePrefix: string = 'NamespacePrefix';
@@ -73,8 +76,10 @@ describe('XmlAttribute', () => {
         // Evaluation.
         expect(lQualifierName).toBe(`${lAttributeNamespacePrefix}:${lAttributeName}`);
     });
+});
 
-    it('Property: seperator', () => {
+Deno.test('XmlAttribute.seperator', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lSeperator: string = '-';
         const lAttribute: XmlAttribute = new XmlAttribute('AttributeName', 'NamespacePrefix', lSeperator);
@@ -85,39 +90,41 @@ describe('XmlAttribute', () => {
         // Evaluation.
         expect(lSeperatorResult).toBe(lSeperator);
     });
+});
 
-    describe('Property: value', () => {
-        it('-- With value', () => {
-            // Setup.
-            const lValue: string = 'New Value';
-            const lAttribute: XmlAttribute = new XmlAttribute('AttributeName');
+Deno.test('XmlAttribute.value', async (pContext) => {
+    await pContext.step('With value', () => {
+        // Setup.
+        const lValue: string = 'New Value';
+        const lAttribute: XmlAttribute = new XmlAttribute('AttributeName');
 
-            // Process.
-            lAttribute.value = lValue;
-            const lValueResult: string = lAttribute.value;
+        // Process.
+        lAttribute.value = lValue;
+        const lValueResult: string = lAttribute.value;
 
-            // Evaluation.
-            expect(lValueResult).toBe(lValue);
-        });
-
-        it('-- Without value', () => {
-            // Setup.
-            const lAttribute: XmlAttribute = new XmlAttribute('AttributeName');
-
-            // Process.
-            const lValueResult: string = lAttribute.value;
-
-            // Evaluation.
-            expect(lValueResult).toBe('');
-        });
+        // Evaluation.
+        expect(lValueResult).toBe(lValue);
     });
 
-    it('Property: valueList', () => {
+    await pContext.step('Without value', () => {
+        // Setup.
+        const lAttribute: XmlAttribute = new XmlAttribute('AttributeName');
+
+        // Process.
+        const lValueResult: string = lAttribute.value;
+
+        // Evaluation.
+        expect(lValueResult).toBe('');
+    });
+});
+
+Deno.test('XmlAttribute.valueList', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup. Specify values.
         const lValue: string = 'Value1-Value2';
         const lSeperator: string = '-';
 
-        // Setup. Create atribute.
+        // Setup. Create attribute.
         const lAttribute: XmlAttribute = new XmlAttribute('AttributeName', 'NamespacePrefix', lSeperator);
         lAttribute.value = lValue;
 

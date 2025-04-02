@@ -1,11 +1,10 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { InteractionEvent } from '../source/zone/interaction-event.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
 
-describe('InteractionEvent', () => {
-    it('Property: data', () => {
+Deno.test('InteractionEvent.data', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lData = {};
@@ -17,8 +16,10 @@ describe('InteractionEvent', () => {
         // Evaluation.
         expect(lResult).toBe(lData);
     });
+});
 
-    it('Property: origin', () => {
+Deno.test('InteractionEvent.origin', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
@@ -29,8 +30,10 @@ describe('InteractionEvent', () => {
         // Evaluation.
         expect(lResult).toBe(lZone);
     });
+});
 
-    it('Property: stacktrace', () => {
+Deno.test('InteractionEvent.stacktrace', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
 
@@ -46,8 +49,10 @@ describe('InteractionEvent', () => {
         // Evaluation.
         expect(lResultStackTrace).toContain('lMycoolname');
     });
+});
 
-    it('Property: trigger', () => {
+Deno.test('InteractionEvent.trigger', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionTrigger = TestTriggerType.CustomDifferent;
@@ -59,8 +64,10 @@ describe('InteractionEvent', () => {
         // Evaluation.
         expect(lResult).toBe(lInteractionTrigger);
     });
+});
 
-    it('Property: type', () => {
+Deno.test('InteractionEvent.type', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionType = TestTriggerType;
@@ -72,8 +79,10 @@ describe('InteractionEvent', () => {
         // Evaluation.
         expect(lResult).toBe(TestTriggerType);
     });
+});
 
-    it('Method: toString', () => {
+Deno.test('InteractionEvent.toString()', async (pContext) => {
+    await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionType: typeof TestTriggerType = TestTriggerType;
@@ -86,7 +95,6 @@ describe('InteractionEvent', () => {
 
         // Evaluation.
         expect(lResult).toBe(`${lZone.name} -> ${lInteractionType[lInteractionTrigger]} - ${lData.toString()}`);
-
     });
 });
 

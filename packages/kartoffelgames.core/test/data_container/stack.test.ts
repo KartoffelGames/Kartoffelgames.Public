@@ -1,106 +1,105 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Stack } from '../../source/data_container/stack.ts';
 
-describe('Stack', () => {
-    describe('Property: size', () => {
-        it('-- Single value stack', () => {
-            // Setup.
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push('1');
+Deno.test('Stack.size', async (pContext) => {
+    await pContext.step('Single value stack', () => {
+        // Setup.
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push('1');
 
-            // Process.
-            const lSize: number = lStack.size;
+        // Process.
+        const lSize: number = lStack.size;
 
-            // Evaluation.
-            expect(lSize).toBe(1);
-        });
-
-        it('-- Multi value stack', () => {
-            // Setup.
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push('1');
-            lStack.push('2');
-
-            // Process.
-            const lSize: number = lStack.size;
-
-            // Evaluation.
-            expect(lSize).toBe(2);
-        });
-
-        it('-- Cloned stack', () => {
-            // Setup.
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push('1');
-            lStack.push('2');
-
-            // Setup. Clone stack.
-            const lStackCopy: Stack<string> = lStack.clone();
-
-            // Process.
-            const lSize: number = lStackCopy.size;
-
-            // Evaluation.
-            expect(lSize).toBe(2);
-        });
-
-        it('-- Poped stack item', () => {
-            // Setup.
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push('1');
-            lStack.push('2');
-            lStack.pop();
-
-            // Process.
-            const lSize: number = lStack.size;
-
-            // Evaluation.
-            expect(lSize).toBe(1);
-        });
+        // Evaluation.
+        expect(lSize).toBe(1);
     });
 
-    describe('Property: top', () => {
-        it('-- Single value stack', () => {
-            // Setup.
-            const lValue: string = 'test value';
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push(lValue);
+    await pContext.step('Multi value stack', () => {
+        // Setup.
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push('1');
+        lStack.push('2');
 
-            // Process.
-            const lTopValue: string | undefined = lStack.top;
+        // Process.
+        const lSize: number = lStack.size;
 
-            // Evaluation.
-            expect(lTopValue).toBe(lValue);
-        });
-
-        it('-- Multi value stack', () => {
-            // Setup.
-            const lValue: string = 'test value';
-            const lStack: Stack<string> = new Stack<string>();
-            lStack.push('first top value');
-            lStack.push(lValue);
-
-            // Process.
-            const lTopValue: string | undefined = lStack.top;
-
-            // Evaluation.
-            expect(lTopValue).toBe(lValue);
-        });
-
-        it('-- Empty stack', () => {
-            // Setup.
-            const lStack: Stack<string> = new Stack<string>();
-
-            // Process.
-            const lTopValue: string | undefined = lStack.top;
-
-            // Evaluation.
-            expect(lTopValue).toBeUndefined();
-        });
+        // Evaluation.
+        expect(lSize).toBe(2);
     });
 
-    it('Method: enties', () => {
+    await pContext.step('Cloned stack', () => {
+        // Setup.
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push('1');
+        lStack.push('2');
+
+        // Setup. Clone stack.
+        const lStackCopy: Stack<string> = lStack.clone();
+
+        // Process.
+        const lSize: number = lStackCopy.size;
+
+        // Evaluation.
+        expect(lSize).toBe(2);
+    });
+
+    await pContext.step('Popped stack item', () => {
+        // Setup.
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push('1');
+        lStack.push('2');
+        lStack.pop();
+
+        // Process.
+        const lSize: number = lStack.size;
+
+        // Evaluation.
+        expect(lSize).toBe(1);
+    });
+});
+
+Deno.test('Stack.top', async (pContext) => {
+    await pContext.step('Single value stack', () => {
+        // Setup.
+        const lValue: string = 'test value';
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push(lValue);
+
+        // Process.
+        const lTopValue: string | undefined = lStack.top;
+
+        // Evaluation.
+        expect(lTopValue).toBe(lValue);
+    });
+
+    await pContext.step('Multi value stack', () => {
+        // Setup.
+        const lValue: string = 'test value';
+        const lStack: Stack<string> = new Stack<string>();
+        lStack.push('first top value');
+        lStack.push(lValue);
+
+        // Process.
+        const lTopValue: string | undefined = lStack.top;
+
+        // Evaluation.
+        expect(lTopValue).toBe(lValue);
+    });
+
+    await pContext.step('Empty stack', () => {
+        // Setup.
+        const lStack: Stack<string> = new Stack<string>();
+
+        // Process.
+        const lTopValue: string | undefined = lStack.top;
+
+        // Evaluation.
+        expect(lTopValue).toBeUndefined();
+    });
+});
+
+Deno.test('Stack.entries()', async (pContext) => {
+    await pContext.step('should return all entries in reverse order', () => {
         // Setup.
         const lValues: Array<number> = [12, 14, 16];
         const lStack: Stack<number> = new Stack<number>();
@@ -114,53 +113,55 @@ describe('Stack', () => {
         // Evaluation.
         expect(lValues.reverse()).toBeDeepEqual(lAsArray);
     });
+});
 
-    describe('Property: flush', () => {
-        it('-- With values', () => {
-            // Setup.
-            const lValueList: Array<number> = [1, 2, 4, 8];
-            const lStack: Stack<number> = new Stack<number>();
-            lStack.push(lValueList[0]);
-            lStack.push(lValueList[1]);
-            lStack.push(lValueList[2]);
-            lStack.push(lValueList[3]);
+Deno.test('Stack.flush()', async (pContext) => {
+    await pContext.step('With values', () => {
+        // Setup.
+        const lValueList: Array<number> = [1, 2, 4, 8];
+        const lStack: Stack<number> = new Stack<number>();
+        lStack.push(lValueList[0]);
+        lStack.push(lValueList[1]);
+        lStack.push(lValueList[2]);
+        lStack.push(lValueList[3]);
 
-            // Process.
-            const lFlushedValues = lStack.flush();
+        // Process.
+        const lFlushedValues = lStack.flush();
 
-            // Evaluation.
-            expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
-        });
-
-        it('-- No values', () => {
-            // Setup.
-            const lStack: Stack<number> = new Stack<number>();
-
-            // Process.
-            const lFlushedValues = lStack.flush();
-
-            // Evaluation.
-            expect(lFlushedValues).toHaveLength(0);
-        });
-
-        it('-- Undefined values', () => {
-            // Setup.
-            const lValueList: Array<number> = [1, 2, <any>undefined, 8];
-            const lStack: Stack<number> = new Stack<number>();
-            lStack.push(lValueList[0]);
-            lStack.push(lValueList[1]);
-            lStack.push(lValueList[2]);
-            lStack.push(lValueList[3]);
-
-            // Process.
-            const lFlushedValues = lStack.flush();
-
-            // Evaluation.
-            expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
-        });
+        // Evaluation.
+        expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
     });
 
-    it('Method: push', () => {
+    await pContext.step('No values', () => {
+        // Setup.
+        const lStack: Stack<number> = new Stack<number>();
+
+        // Process.
+        const lFlushedValues = lStack.flush();
+
+        // Evaluation.
+        expect(lFlushedValues).toHaveLength(0);
+    });
+
+    await pContext.step('Undefined values', () => {
+        // Setup.
+        const lValueList: Array<number> = [1, 2, <any>undefined, 8];
+        const lStack: Stack<number> = new Stack<number>();
+        lStack.push(lValueList[0]);
+        lStack.push(lValueList[1]);
+        lStack.push(lValueList[2]);
+        lStack.push(lValueList[3]);
+
+        // Process.
+        const lFlushedValues = lStack.flush();
+
+        // Evaluation.
+        expect(lFlushedValues).toBeDeepEqual(lValueList.reverse());
+    });
+});
+
+Deno.test('Stack.push()', async (pContext) => {
+    await pContext.step('should push a value onto the stack', () => {
         // Setup.
         const lValue: number = 12;
         const lStack: Stack<number> = new Stack<number>();
@@ -171,8 +172,10 @@ describe('Stack', () => {
         // Evaluation.
         expect(lStack.top).toBe(lValue);
     });
+});
 
-    it('Method: toArray', () => {
+Deno.test('Stack.toArray()', async (pContext) => {
+    await pContext.step('should convert the stack to an array', () => {
         // Setup.
         const lValues: Array<number> = [12, 14, 16];
         const lStack: Stack<number> = new Stack<number>();
@@ -186,8 +189,10 @@ describe('Stack', () => {
         // Evaluation.
         expect(lValues.reverse()).toBeDeepEqual(lAsArray);
     });
+});
 
-    it('Method: clone', () => {
+Deno.test('Stack.clone()', async (pContext) => {
+    await pContext.step('should clone the stack', () => {
         // Setup.
         const lValues: Array<number> = [12, 14, 16];
         const lStack: Stack<number> = new Stack<number>();
@@ -201,48 +206,48 @@ describe('Stack', () => {
         // Evaluation.
         expect(lStack.toArray()).toBeDeepEqual(lClone.toArray());
     });
+});
 
-    describe('Method: pop', () => {
-        it('-- Single value', () => {
-            // Setup.
-            const lValue: number = 34;
-            const lStack: Stack<number> = new Stack<number>();
-            lStack.push(lValue);
+Deno.test('Stack.pop()', async (pContext) => {
+    await pContext.step('Single value', () => {
+        // Setup.
+        const lValue: number = 34;
+        const lStack: Stack<number> = new Stack<number>();
+        lStack.push(lValue);
 
-            // Process.
-            const lPoppedValue: number | undefined = lStack.pop();
+        // Process.
+        const lPoppedValue: number | undefined = lStack.pop();
 
-            // Evaluation.
-            expect(lPoppedValue).toBe(lValue);
-            expect(lStack.top).toBeUndefined();
-        });
+        // Evaluation.
+        expect(lPoppedValue).toBe(lValue);
+        expect(lStack.top).toBeUndefined();
+    });
 
-        it('-- Multi value', () => {
-            // Setup.
-            const lValueOne: number = 34;
-            const lValueTwo: number = 67;
-            const lStack: Stack<number> = new Stack<number>();
-            lStack.push(lValueOne);
-            lStack.push(lValueTwo);
+    await pContext.step('Multi value', () => {
+        // Setup.
+        const lValueOne: number = 34;
+        const lValueTwo: number = 67;
+        const lStack: Stack<number> = new Stack<number>();
+        lStack.push(lValueOne);
+        lStack.push(lValueTwo);
 
-            // Process.
-            const lPoppedValue: number | undefined = lStack.pop();
+        // Process.
+        const lPoppedValue: number | undefined = lStack.pop();
 
-            // Evaluation.
-            expect(lPoppedValue).toBe(lValueTwo);
-            expect(lStack.top).toBe(lValueOne);
-        });
+        // Evaluation.
+        expect(lPoppedValue).toBe(lValueTwo);
+        expect(lStack.top).toBe(lValueOne);
+    });
 
-        it('-- Without values', () => {
-            // Setup.
-            const lStack: Stack<number> = new Stack<number>();
+    await pContext.step('Without values', () => {
+        // Setup.
+        const lStack: Stack<number> = new Stack<number>();
 
-            // Process.
-            const lPoppedValue: number | undefined = lStack.pop();
+        // Process.
+        const lPoppedValue: number | undefined = lStack.pop();
 
-            // Evaluation.
-            expect(lPoppedValue).toBeUndefined();
-            expect(lStack.top).toBeUndefined();
-        });
+        // Evaluation.
+        expect(lPoppedValue).toBeUndefined();
+        expect(lStack.top).toBeUndefined();
     });
 });

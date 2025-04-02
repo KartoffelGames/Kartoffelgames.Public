@@ -1,45 +1,44 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Dictionary } from '../../source/data_container/dictionary.ts';
 import { Exception } from '../../source/exception/exception.ts';
 
-describe('Dictionary', () => {
-    describe('Method: add', () => {
-        it('-- Add item', () => {
-            // Setup. Specify values. 
-            const lKey: string = 'Key';
-            const lValue: string = 'Value';
+Deno.test('Dictionary.add()', async (pContext) => {
+    await pContext.step('Add item', () => {
+        // Setup. Specify values.
+        const lKey: string = 'Key';
+        const lValue: string = 'Value';
 
-            // Setup. Create dictionary.
-            const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
+        // Setup. Create dictionary.
+        const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
 
-            // Process.
-            lDictionary.add(lKey, lValue);
+        // Process.
+        lDictionary.add(lKey, lValue);
 
-            // Evaluation.
-            expect(lDictionary.get(lKey)).toBe(lValue);
-        });
-
-        it('-- Throw double add error', () => {
-            // Setup. Specify values. 
-            const lKey: string = 'Key';
-
-            // Setup. Create dictionary and add item.
-            const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
-            lDictionary.add(lKey, 'Value');
-
-            // Process.
-            const lIlligalInstruction = () => {
-                lDictionary.add(lKey, 'Value');
-            };
-
-            // Evaluation.
-            expect(lIlligalInstruction).toThrow(Exception);
-        });
+        // Evaluation.
+        expect(lDictionary.get(lKey)).toBe(lValue);
     });
 
-    it('Method: set', () => {
-        // Setup. Specify values. 
+    await pContext.step('Throw double add error', () => {
+        // Setup. Specify values.
+        const lKey: string = 'Key';
+
+        // Setup. Create dictionary and add item.
+        const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
+        lDictionary.add(lKey, 'Value');
+
+        // Process.
+        const lIlligalInstruction = () => {
+            lDictionary.add(lKey, 'Value');
+        };
+
+        // Evaluation.
+        expect(lIlligalInstruction).toThrow(Exception);
+    });
+});
+
+Deno.test('Dictionary.set()', async (pContext) => {
+    await pContext.step('Set value', () => {
+        // Setup. Specify values.
         const lKey: string = 'Key';
         const lNewValue: string = 'NewValue';
 
@@ -53,49 +52,51 @@ describe('Dictionary', () => {
         // Evaluation.
         expect(lDictionary.get(lKey)).toBe(lNewValue);
     });
+});
 
-    describe('Method: delete', () => {
-        it('-- Delete existant item', () => {
-            // Setup. Specify values. 
-            const lKey: string = 'Key';
+Deno.test('Dictionary.delete()', async (pContext) => {
+    await pContext.step('Delete existant item', () => {
+        // Setup. Specify values.
+        const lKey: string = 'Key';
 
-            // Setup. Create dictionary and add item.
-            const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
-            lDictionary.set(lKey, 'Value');
+        // Setup. Create dictionary and add item.
+        const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
+        lDictionary.set(lKey, 'Value');
 
-            // Process
-            const lRemovedResult: boolean = lDictionary.delete(lKey);
+        // Process.
+        const lRemovedResult: boolean = lDictionary.delete(lKey);
 
-            // Evaluation
-            expect(lDictionary.get(lKey)).toBeUndefined();
-            expect(lRemovedResult).toBeTruthy();
-        });
-
-        it('-- Delete none existant item', () => {
-            // Setup. Specify values. 
-            const lKey: string = 'Key';
-
-            // Setup. Create dictionary and add item.
-            const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
-
-            // Process
-            const lRemovedResult: boolean = lDictionary.delete(lKey);
-
-            // Evaluation
-            expect(lDictionary.get(lKey)).toBeUndefined();
-            expect(lRemovedResult).toBeFalsy();
-        });
+        // Evaluation.
+        expect(lDictionary.get(lKey)).toBeUndefined();
+        expect(lRemovedResult).toBeTruthy();
     });
 
-    it('Method: getAllKeysOfValue', () => {
-        // Setup. Specify values. 
+    await pContext.step('Delete none existant item', () => {
+        // Setup. Specify values.
+        const lKey: string = 'Key';
+
+        // Setup. Create dictionary.
+        const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
+
+        // Process.
+        const lRemovedResult: boolean = lDictionary.delete(lKey);
+
+        // Evaluation.
+        expect(lDictionary.get(lKey)).toBeUndefined();
+        expect(lRemovedResult).toBeFalsy();
+    });
+});
+
+Deno.test('Dictionary.getAllKeysOfValue()', async (pContext) => {
+    await pContext.step('Get all keys of a value', () => {
+        // Setup. Specify values.
         const lKey1: string = 'Key1';
         const lKey2: string = 'Key2';
         const lKey3: string = 'Key3';
         const lValue1: string = 'Value1';
         const lValue2: string = 'Value2';
 
-        // Setup. Create dictionary and add item.
+        // Setup. Create dictionary and add items.
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
         lDictionary.set(lKey1, lValue1);
         lDictionary.set(lKey2, lValue2);
@@ -107,8 +108,10 @@ describe('Dictionary', () => {
         // Evaluation.
         expect(lKeyOfValue1List).toBeDeepEqual([lKey1, lKey3]);
     });
+});
 
-    it('Method: getOrDefault', () => {
+Deno.test('Dictionary.getOrDefault()', async (pContext) => {
+    await pContext.step('Get value or default', () => {
         // Setup.
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
         lDictionary.add('SetKey', 'SetValue');
@@ -121,8 +124,10 @@ describe('Dictionary', () => {
         expect(lDefaultValue).toBe('DefaultValue');
         expect(lFoundValue).toBe('SetValue');
     });
+});
 
-    it('Method: map', () => {
+Deno.test('Dictionary.map()', async (pContext) => {
+    await pContext.step('Map dictionary', () => {
         // Setup.
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
         lDictionary.set('Key1', 'Value1');
@@ -136,8 +141,10 @@ describe('Dictionary', () => {
         // Evaluation.
         expect(lMappedList).toBeDeepEqual(['Key1Value1', 'Key2Value2']);
     });
+});
 
-    it('Method: has', () => {
+Deno.test('Dictionary.has()', async (pContext) => {
+    await pContext.step('Check if dictionary has key', () => {
         // Setup.
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
         lDictionary.set('Key', 'Value');
@@ -148,8 +155,10 @@ describe('Dictionary', () => {
         // Evaluation.
         expect(lHasValue).toBeTruthy();
     });
+});
 
-    it('Functionality: Copy', () => {
+Deno.test('Dictionary functionality', async (pContext) => {
+    await pContext.step('Copy', () => {
         // Setup.
         const lValue1: string = 'Value1';
         const lValue2: string = 'Value2';
@@ -166,7 +175,7 @@ describe('Dictionary', () => {
         expect(lCopiedDictionary.get('Key2')).toBe(lDictionary.get('Key2'));
     });
 
-    it('Functionality: Clone', () => {
+    await pContext.step('Clone', () => {
         // Setup.
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
         lDictionary.set('Key1', 'Value1');

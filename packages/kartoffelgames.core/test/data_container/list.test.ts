@@ -1,9 +1,8 @@
-import { describe, it } from '@std/testing/bdd';
 import { expect } from '@kartoffelgames/core-test';
 import { List } from '../../source/data_container/list.ts';
 
-describe('List', () => {
-    it('Static Method: newListWith', () => {
+Deno.test('List.newListWith()', async (pContext) => {
+    await pContext.step('should create a new list with provided values', () => {
         // Setup
         const lArray: Array<string> = ['Value1', 'Value2', 'Value3'];
 
@@ -13,70 +12,72 @@ describe('List', () => {
         // Evaluation.
         expect(lList).toBeDeepEqual(lArray);
     });
+});
 
-    describe('Method: equals', () => {
-        it('-- Compare different lists', () => {
-            // Setup.
-            const lList1: List<string> = List.newListWith('Value1', 'Value2');
-            const lList2: List<string> = List.newListWith('Value1', 'Value2');
-            const lList3: List<string> = List.newListWith('Value2', 'Value1');
+Deno.test('List.equals()', async (pContext) => {
+    await pContext.step('should compare different lists', () => {
+        // Setup.
+        const lList1: List<string> = List.newListWith('Value1', 'Value2');
+        const lList2: List<string> = List.newListWith('Value1', 'Value2');
+        const lList3: List<string> = List.newListWith('Value2', 'Value1');
 
-            // Process.
-            const lList1IsList2: boolean = lList1.equals(lList2);
-            const lList1IsList3: boolean = lList1.equals(lList3);
+        // Process.
+        const lList1IsList2: boolean = lList1.equals(lList2);
+        const lList1IsList3: boolean = lList1.equals(lList3);
 
-            // Evaluation.
-            expect(lList1IsList2).toBeTruthy();
-            expect(lList1IsList3).toBeFalsy();
-        });
-
-        it('-- Compare same List', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1', 'Value2');
-
-            // Process.
-            const lListIsSame: boolean = lList.equals(lList);
-
-            // Evaluation.
-            expect(lListIsSame).toBeTruthy();
-        });
-
-        it('-- Compare with null', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1', 'Value2');
-
-            // Process.
-            const lListIsSame: boolean = lList.equals(<any>null);
-
-            // Evaluation.
-            expect(lListIsSame).toBeFalsy();
-        });
-
-        it('-- Compare with undefined', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1', 'Value2');
-
-            // Process.
-            const lListIsSame: boolean = lList.equals(<any>undefined);
-
-            // Evaluation.
-            expect(lListIsSame).toBeFalsy();
-        });
-
-        it('-- Compare List with different length', () => {
-            // Setup.
-            const lList1: List<string> = List.newListWith('Value1', 'Value2');
-            const lList2: List<string> = List.newListWith('Value1', 'Value2', 'Value3');
-
-            // Process.
-            const lList1IsList2: boolean = lList1.equals(lList2);
-
-            // Evaluation.
-            expect(lList1IsList2).toBeFalsy();
-        });
+        // Evaluation.
+        expect(lList1IsList2).toBeTruthy();
+        expect(lList1IsList3).toBeFalsy();
     });
 
-    it('Method: clear', () => {
+    await pContext.step('should compare the same list', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1', 'Value2');
+
+        // Process.
+        const lListIsSame: boolean = lList.equals(lList);
+
+        // Evaluation.
+        expect(lListIsSame).toBeTruthy();
+    });
+
+    await pContext.step('should compare with null', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1', 'Value2');
+
+        // Process.
+        const lListIsSame: boolean = lList.equals(<any>null);
+
+        // Evaluation.
+        expect(lListIsSame).toBeFalsy();
+    });
+
+    await pContext.step('should compare with undefined', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1', 'Value2');
+
+        // Process.
+        const lListIsSame: boolean = lList.equals(<any>undefined);
+
+        // Evaluation.
+        expect(lListIsSame).toBeFalsy();
+    });
+
+    await pContext.step('should compare lists with different lengths', () => {
+        // Setup.
+        const lList1: List<string> = List.newListWith('Value1', 'Value2');
+        const lList2: List<string> = List.newListWith('Value1', 'Value2', 'Value3');
+
+        // Process.
+        const lList1IsList2: boolean = lList1.equals(lList2);
+
+        // Evaluation.
+        expect(lList1IsList2).toBeFalsy();
+    });
+});
+
+Deno.test('List.clear()', async (pContext) => {
+    await pContext.step('should clear the list', () => {
         // Setup.
         const lList: List<string> = List.newListWith('Value');
 
@@ -86,8 +87,10 @@ describe('List', () => {
         // Evaluation.
         expect(lList).toHaveLength(0);
     });
+});
 
-    it('Method: clone', () => {
+Deno.test('List.clone()', async (pContext) => {
+    await pContext.step('should clone the list', () => {
         // Setup.
         const lList: List<string> = List.newListWith('Value1', 'Value2');
 
@@ -98,8 +101,10 @@ describe('List', () => {
         expect(lListClone).toBeDeepEqual(lList);
         expect(lListClone).not.toBe(lList);
     });
+});
 
-    it('Method: distinct', () => {
+Deno.test('List.distinct()', async (pContext) => {
+    await pContext.step('should return a distinct list', () => {
         // Setup.
         const lList: List<string> = List.newListWith('Value1', 'Value2', 'Value1');
 
@@ -109,60 +114,62 @@ describe('List', () => {
         // Evaluation.
         expect(lDistinctList).toBeDeepEqual(['Value1', 'Value2']);
     });
+});
 
-    describe('Method: remove', () => {
-        it('-- Remove existing item', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1', 'Value2', 'Value1');
+Deno.test('List.remove()', async (pContext) => {
+    await pContext.step('should remove an existing item', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1', 'Value2', 'Value1');
 
-            // Process.
-            const lRemovedValue: string | undefined = lList.remove('Value1');
+        // Process.
+        const lRemovedValue: string | undefined = lList.remove('Value1');
 
-            // Evaluation.
-            expect(lRemovedValue).toBe('Value1');
-            expect(lList).toBeDeepEqual(['Value2', 'Value1']);
-        });
-
-        it('-- Remove none existing item', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1');
-
-            // Process.
-            const lRemovedValue: string | undefined = lList.remove('Value2');
-
-            // Evaluation.
-            expect(lRemovedValue).toBeUndefined();
-            expect(lList).toBeDeepEqual(['Value1']);
-        });
+        // Evaluation.
+        expect(lRemovedValue).toBe('Value1');
+        expect(lList).toBeDeepEqual(['Value2', 'Value1']);
     });
 
-    describe('Method: replace', () => {
-        it('-- Replace existant item', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1', 'Value2', 'Value1');
+    await pContext.step('should not remove a non-existing item', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1');
 
-            // Process.
-            const lRemovedValue: string | undefined = lList.replace('Value1', 'Value3');
+        // Process.
+        const lRemovedValue: string | undefined = lList.remove('Value2');
 
-            // Evaluation.
-            expect(lRemovedValue).toBe('Value1');
-            expect(lList).toBeDeepEqual(['Value3', 'Value2', 'Value1']);
-        });
+        // Evaluation.
+        expect(lRemovedValue).toBeUndefined();
+        expect(lList).toBeDeepEqual(['Value1']);
+    });
+});
 
-        it('-- Replace none existant item', () => {
-            // Setup.
-            const lList: List<string> = List.newListWith('Value1');
+Deno.test('List.replace()', async (pContext) => {
+    await pContext.step('should replace an existing item', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1', 'Value2', 'Value1');
 
-            // Process.
-            const lRemovedValue: string | undefined = lList.replace('Value2', 'Value3');
+        // Process.
+        const lRemovedValue: string | undefined = lList.replace('Value1', 'Value3');
 
-            // Evaluation.
-            expect(lRemovedValue).toBeUndefined();
-            expect(lList).toBeDeepEqual(['Value1']);
-        });
+        // Evaluation.
+        expect(lRemovedValue).toBe('Value1');
+        expect(lList).toBeDeepEqual(['Value3', 'Value2', 'Value1']);
     });
 
-    it('Method: toString', () => {
+    await pContext.step('should not replace a non-existing item', () => {
+        // Setup.
+        const lList: List<string> = List.newListWith('Value1');
+
+        // Process.
+        const lRemovedValue: string | undefined = lList.replace('Value2', 'Value3');
+
+        // Evaluation.
+        expect(lRemovedValue).toBeUndefined();
+        expect(lList).toBeDeepEqual(['Value1']);
+    });
+});
+
+Deno.test('List.toString()', async (pContext) => {
+    await pContext.step('should convert the list to a string', () => {
         // Setup.
         const lList: List<string> = List.newListWith('Value1', 'Value2');
 

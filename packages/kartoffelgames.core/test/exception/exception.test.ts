@@ -1,9 +1,8 @@
-import { describe, it } from '@std/testing/bdd';
 import { expect } from '@std/expect';
 import { Exception } from '../../source/exception/exception.ts';
 
-describe('Exception', () => {
-    it('Property: target', () => {
+Deno.test('Exception.target', async (pContext) => {
+    await pContext.step('should return the target of the exception', () => {
         // Setup.
         const lTarget: string = 'Target';
         const lException: Exception<string> = new Exception('Message', lTarget);

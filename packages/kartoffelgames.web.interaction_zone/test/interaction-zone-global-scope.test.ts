@@ -1,80 +1,69 @@
 import { expect } from '@kartoffelgames/core-test';
-import './mock/request-animation-frame-mock-session.ts';
-import { InteractionZone } from "../source/zone/interaction-zone.ts";
 import { InteractionZoneGlobalScope } from "../source/patcher/interaction-zone-global-scope.ts";
+import { InteractionZone } from "../source/zone/interaction-zone.ts";
+import './mock/request-animation-frame-mock-session.ts';
 
-Deno.test('InteractionZoneGlobalScope.patch()', async (pContext) => {
+Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
     await pContext.step('Default', async () => {
+        // Setup. Global.
+        const lGlobalScope = {};
+
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Process. Its patched anyway.
-        InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
+        const lWasPatched = InteractionZoneGlobalScope.enable({
+            target: lGlobalScope,
+            patches: {}
+        });
 
         // Process. Get patched and original function.
-        const lZoneResult: InteractionZone = await lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => {
-                pResolve(InteractionZone.current);
-            });
-        });
+        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
 
         // Evaluation.
-        expect(lZoneResult).toBe(lZone);
+        expect(lPatched).toBeTruthy();
+        expect(lWasPatched).toBeTruthy();
     });
     await pContext.step('Double patch', async () => {
+        // Setup. Global.
+        const lGlobalScope = {};
+
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Process. Its patched anyway.
-        InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
-        InteractionZoneGlobalScope.enable(InteractionZoneGlobalScope.globalDefaultTarget);
-
-        // Process. Get patched and original function.  
-        const lZoneResult: InteractionZone = await lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => {
-                pResolve(InteractionZone.current);
-            });
+        const lWasPatchedOne = InteractionZoneGlobalScope.enable({
+            target: lGlobalScope,
+            patches: {}
+        });
+        const lWasPatchedTwo = InteractionZoneGlobalScope.enable({
+            target: lGlobalScope,
+            patches: {}
         });
 
+        // Process. Get patched and original function.
+        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
+
         // Evaluation.
-        expect(lZoneResult).toBe(lZone);
+        expect(lPatched).toBeTruthy();
+        expect(lWasPatchedOne).toBeTruthy();
+        expect(lWasPatchedTwo).toBeFalsy();
     });
 });
 
 Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
-    await pContext.step('PatchedClass instance of original', () => {
-        // Setup.
-        const lClass = class { };
+    const lOriginalEmptyClass = class { };
 
-        // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        const lObject = new lPatchedClass();
-
-        // Evaluation.
-        expect(lPatchedClass).not.toBe(lClass);
-        expect(lObject).toBeInstanceOf(lClass);
-    });
-    await pContext.step('Property constructor set value', () => {
-        // Setup.
-        const lValue = 11;
-        const lClass = class {
+    // Create a local global scope.
+    const lPatchClassGlobal = {
+        emptyClass: lOriginalEmptyClass,
+        constuctorParameterClass: class {
             a: number = 0;
             constructor(pArgOne: number) {
                 this.a = pArgOne;
             }
-        };
-
-        // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        const lObject = new lPatchedClass(lValue);
-
-        // Evaluation.
-        expect(lObject.a).toBe(lValue);
-    });
-    await pContext.step('Property accessor set value', () => {
-        // Setup.
-        const lValue = 11;
-        const lClass = class {
+        },
+        accessorClass: class {
             private mA: number;
 
             public get a(): number {
@@ -85,11 +74,56 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
             constructor(pArgOne: number) {
                 this.mA = pArgOne;
             }
-        };
+        },
+        properyClass: class {
+            a: number = 0;
+        },
+        constructorCallbackClass: class {
+            public callback: () => void;
+            constructor(pArgOne: () => void) {
+                this.callback = pArgOne;
+            }
+        },
+        methodCallbackClass: class {
+            public callback: (() => number) | null = null;
+            public setCallback(pArgOne: () => number) {
+                this.callback = pArgOne;
+            }
+        },
+    };
+
+    // Patch classes of local global scope.
+    InteractionZoneGlobalScope.enable({
+        target: lPatchClassGlobal,
+        patches: {
+            classes: ['emptyClass', 'constuctorParameterClass', 'accessorClass', 'properyClass', 'constructorCallbackClass', 'methodCallbackClass']
+        }
+    });
+
+    await pContext.step('PatchedClass instance of original', () => {
+        // Process.
+        const lObject = new lPatchClassGlobal.emptyClass();
+
+        // Evaluation.
+        expect(lPatchClassGlobal.emptyClass).not.toBe(lOriginalEmptyClass);
+        expect(lObject).toBeInstanceOf(lOriginalEmptyClass);
+    });
+    await pContext.step('Property constructor set value', () => {
+        // Setup.
+        const lValue = 11;
 
         // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        const lObject = new lPatchedClass(lValue);
+        const lObject = new lPatchClassGlobal.constuctorParameterClass(lValue);
+
+        // Evaluation.
+        expect(lObject.a).toBe(lValue);
+    });
+    await pContext.step('Property accessor set value', () => {
+        // Setup.
+        const lValue = 11;
+
+        // Process.
+        const lObject = new lPatchClassGlobal.accessorClass(lValue);
 
         // Evaluation.
         expect(lObject.a).toBe(lValue);
@@ -97,78 +131,50 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Property property set value', () => {
         // Setup.
         const lValue = 11;
-        const lClass = class {
-            a: number = 0;
-        };
 
         // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        const lObject = new lPatchedClass();
+        const lObject = new lPatchClassGlobal.properyClass();
         lObject.a = lValue;
 
         // Evaluation.
         expect(lObject.a).toBe(lValue);
     });
-    await pContext.step('Constructor callback correct callback zone', async () => {
+    await pContext.step('Constructor callback correct callback zone', () => {
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
-        // Setup.
-        const lClass = class {
-            public callback: () => void;
-            constructor(pArgOne: () => void) {
-                this.callback = pArgOne;
-            }
-        };
-
-        // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        let lObject: any | null = null;
-
         // Process. Interaction.
-        const lResultZonePromise: Promise<InteractionZone> = lZone.execute(async () => {
-            return new Promise<InteractionZone>((pResolve) => {
-                lObject = new lPatchedClass(() => {
-                    pResolve(InteractionZone.current);
-                });
+        let lResultZone: InteractionZone | null = null;
+        const lObject: any = lZone.execute(() => {
+            return new lPatchClassGlobal.constructorCallbackClass(() => {
+                lResultZone = InteractionZone.current;
             });
         });
 
         // Call callback and wait for execution.
         lObject.callback();
-        const lResultZone = await lResultZonePromise;
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
     });
-    await pContext.step('Method callback correct callback zone', async () => {
+    await pContext.step('Method callback correct callback zone', () => {
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-
-        // Setup.
-        const lClass = class {
-            public callback: (() => void) | null = null;
-            public setCallback(pArgOne: () => void) {
-                this.callback = pArgOne;
-            }
-        };
-
+ 
         // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass,);
-        const lObject = new lPatchedClass();
+        const lObject = new lPatchClassGlobal.methodCallbackClass();
 
         // Process. Interaction.
-        const lResultZonePromise: Promise<InteractionZone> = lZone.execute(async () => {
-            return new Promise<InteractionZone>((pResolve) => {
-                lObject.setCallback(() => {
-                    pResolve(InteractionZone.current);
-                });
+        let lResultZone: InteractionZone | null = null;
+        lZone.execute(() => {
+            lObject.setCallback(() => {
+                lResultZone = InteractionZone.current;
+                return 1;
             });
         });
 
         // Call callback and wait for execution.
-        lObject.callback();
-        const lResultZone = await lResultZonePromise;
+        lObject.callback!();
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
@@ -176,20 +182,13 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Method callback correct result', () => {
         // Setup.
         const lValue: number = 11;
-        const lClass = class {
-            public callback: (() => number) | null = null;
-            public setCallback(pArgOne: () => number) {
-                this.callback = pArgOne;
-            }
-        };
 
         // Process.
-        const lPatchedClass = (<any>new InteractionZoneGlobalScope()).patchClass(lClass);
-        const lObject = new lPatchedClass();
+        const lObject = new lPatchClassGlobal.methodCallbackClass();
         lObject.setCallback(() => { return lValue; });
 
         // Process. Interaction.
-        const lValueResult: number = lObject.callback();
+        const lValueResult: number = lObject.callback!();
 
         // Evaluation.
         expect(lValueResult).toBe(lValue);
@@ -197,6 +196,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
 });
 
 Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
+    // TODO: Patch a global with a custom event classs.
+
     await pContext.step('AddEventListener correct listener zone', async () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
@@ -381,7 +382,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
     await pContext.step('Correct zone on event listener call', async () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        
+
         // Setup.
         const lScopeTarget = {
             eventTarget: class extends EventTarget { public oncustom: any = null; }

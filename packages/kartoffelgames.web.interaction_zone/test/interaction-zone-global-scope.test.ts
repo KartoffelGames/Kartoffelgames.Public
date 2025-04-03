@@ -265,7 +265,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
 });
 
 Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
-    await pContext.step('AddEventListener correct listener zone', async () => {
+    await pContext.step('AddEventListener correct listener zone', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
             eventTarget: class extends EventTarget { }
@@ -282,19 +282,18 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
-        const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => {
-                lEventTarget.addEventListener('custom', () => {
-                    pResolve(InteractionZone.current);
-                });
+        let lResultZone: InteractionZone | null = null;
+        lZone.execute(() => {
+            lEventTarget.addEventListener('custom', () => {
+                lResultZone = InteractionZone.current;
             });
         });
         lEventTarget.dispatchEvent(new Event('custom'));
-        const lResultZone = await lResultZonePromise;
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
     });
+
     await pContext.step('Remove event listener', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -327,7 +326,8 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lListenerCalled).toBeFalsy();
     });
-    await pContext.step('Remove event listener wrong type', async () => {
+
+    await pContext.step('Remove event listener wrong type', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
             eventTarget: class extends EventTarget { }
@@ -359,6 +359,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lListenerCalled).toBeTruthy();
     });
+
     await pContext.step('AddEventListener with null as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -382,6 +383,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lErroFunction).not.toThrow();
     });
+
     await pContext.step('RemoveEventListener with null as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -405,6 +407,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lErroFunction).not.toThrow();
     });
+
     await pContext.step('RemoveEventListener with string as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -428,6 +431,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lErroFunction).not.toThrow();
     });
+
     await pContext.step('RemoveEventListener with unregistered callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -451,7 +455,8 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         // Evaluation.
         expect(lErroFunction).not.toThrow();
     });
-    await pContext.step('AddEventListener correct zone in event handler object', async () => {
+
+    await pContext.step('AddEventListener correct zone in event handler object', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
             eventTarget: class extends EventTarget { }
@@ -468,24 +473,23 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
-        const lZoneResultPromise = lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => {
-                const lHandlerObject = {
-                    handleEvent: function () {
-                        pResolve(InteractionZone.current);
-                    }
-                };
+        let lZoneResult: InteractionZone | null = null;
+        lZone.execute(() => {
+            const lHandlerObject = {
+                handleEvent: function () {
+                    lZoneResult = InteractionZone.current;
+                }
+            };
 
-                lEventTarget.addEventListener('custom', lHandlerObject);
-            });
+            lEventTarget.addEventListener('custom', lHandlerObject);
         });
         lEventTarget.dispatchEvent(new Event('custom'));
-        const lZoneResult = await lZoneResultPromise;
 
         // Evaluation.
         expect(lZoneResult).toBe(lZone);
     });
-    await pContext.step('AddEventListener correct this context on event handler object call', async () => {
+
+    await pContext.step('AddEventListener correct this context on event handler object call', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
             eventTarget: class extends EventTarget { }
@@ -502,23 +506,21 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process. 
-        const lEventWait = lZone.execute(() => {
-            return new Promise<boolean>((pResolve) => {
-                const lHandlerObject = {
-                    handleEvent: function () {
-                        pResolve(this === lHandlerObject);
-                    }
-                };
-
-                lEventTarget.addEventListener('custom', lHandlerObject);
-            });
+        let lCorrectThisContext: boolean = false;
+        lZone.execute(() => {
+            const lHandlerObject = {
+                handleEvent: function () {
+                    lCorrectThisContext = this === lHandlerObject;
+                }
+            };
+            lEventTarget.addEventListener('custom', lHandlerObject);
         });
         lEventTarget.dispatchEvent(new Event('custom'));
-        const lCorrectThisContxt = await lEventWait;
 
         // Evaluation.
-        expect(lCorrectThisContxt).toBeTruthy();
+        expect(lCorrectThisContext).toBeTruthy();
     });
+
     await pContext.step('Remove event handler object', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -589,7 +591,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         expect(lResultZone).toBe(lZone);
         expect(false).toBe(true); // TODO: WHAAAAAAT
     });
-    await pContext.step('Override function with self', async () => {
+    await pContext.step('Override function with self', () => {
         // Setup.
         const lScopeTarget = {
             eventTarget: class extends EventTarget { public oncustom: any = null; }

@@ -265,8 +265,6 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
 });
 
 Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
-    // TODO: Patch a global with a custom event classs.
-
     await pContext.step('AddEventListener correct listener zone', async () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
@@ -298,9 +296,20 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lResultZone).toBe(lZone);
     });
     await pContext.step('Remove event listener', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Setup. Init listener.
         let lListenerCalled: boolean = false;
@@ -319,9 +328,20 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lListenerCalled).toBeFalsy();
     });
     await pContext.step('Remove event listener wrong type', async () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Setup. Init listener.
         let lListenerCalled: boolean = false;
@@ -340,8 +360,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lListenerCalled).toBeTruthy();
     });
     await pContext.step('AddEventListener with null as callback', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
         const lErroFunction = () => {
@@ -352,8 +383,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lErroFunction).not.toThrow();
     });
     await pContext.step('RemoveEventListener with null as callback', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
         const lErroFunction = () => {
@@ -364,8 +406,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lErroFunction).not.toThrow();
     });
     await pContext.step('RemoveEventListener with string as callback', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
         const lErroFunction = () => {
@@ -376,8 +429,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lErroFunction).not.toThrow();
     });
     await pContext.step('RemoveEventListener with unregistered callback', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
         const lErroFunction = () => {
@@ -388,9 +452,20 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lErroFunction).not.toThrow();
     });
     await pContext.step('AddEventListener correct zone in event handler object', async () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process.
         const lZoneResultPromise = lZone.execute(() => {
@@ -411,9 +486,20 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lZoneResult).toBe(lZone);
     });
     await pContext.step('AddEventListener correct this context on event handler object call', async () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Process. 
         const lEventWait = lZone.execute(() => {
@@ -434,9 +520,20 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         expect(lCorrectThisContxt).toBeTruthy();
     });
     await pContext.step('Remove event handler object', () => {
+        // Setup. Global scope.
+        const lPatchedGlobal = {
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchedGlobal,
+            patches: { eventTarget: 'eventTarget' }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lEventTarget: EventTarget = new EventTarget();
+        const lEventTarget: EventTarget = new lPatchedGlobal.eventTarget();
 
         // Setup listener.
         let lListenerCalled: boolean = false;

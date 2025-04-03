@@ -52,101 +52,146 @@ Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
 });
 
 Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
-    const lOriginalEmptyClass = class { };
-
-    // Create a local global scope.
-    const lPatchClassGlobal = {
-        emptyClass: lOriginalEmptyClass,
-        constuctorParameterClass: class {
-            a: number = 0;
-            constructor(pArgOne: number) {
-                this.a = pArgOne;
-            }
-        },
-        accessorClass: class {
-            private mA: number;
-
-            public get a(): number {
-                return this.mA;
-            } set a(pValue: number) {
-                this.mA = pValue;
-            }
-            constructor(pArgOne: number) {
-                this.mA = pArgOne;
-            }
-        },
-        properyClass: class {
-            a: number = 0;
-        },
-        constructorCallbackClass: class {
-            public callback: () => void;
-            constructor(pArgOne: () => void) {
-                this.callback = pArgOne;
-            }
-        },
-        methodCallbackClass: class {
-            public callback: (() => number) | null = null;
-            public setCallback(pArgOne: () => number) {
-                this.callback = pArgOne;
-            }
-        },
-    };
-
-    // Patch classes of local global scope.
-    InteractionZoneGlobalScope.enable({
-        target: lPatchClassGlobal,
-        patches: {
-            classes: ['emptyClass', 'constuctorParameterClass', 'accessorClass', 'properyClass', 'constructorCallbackClass', 'methodCallbackClass']
-        }
-    });
-
     await pContext.step('PatchedClass instance of original', () => {
+        // Setup. Global scope.
+        const lOriginalEmptyClass = class { };
+        const lPatchClassGlobal = {
+            class: lOriginalEmptyClass
+        };
+
+        // Setup. Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Process.
-        const lObject = new lPatchClassGlobal.emptyClass();
+        const lObject = new lPatchClassGlobal.class();
 
         // Evaluation.
-        expect(lPatchClassGlobal.emptyClass).not.toBe(lOriginalEmptyClass);
+        expect(lPatchClassGlobal.class).not.toBe(lOriginalEmptyClass);
         expect(lObject).toBeInstanceOf(lOriginalEmptyClass);
     });
+
     await pContext.step('Property constructor set value', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class: class {
+                a: number = 0;
+                constructor(pArgOne: number) {
+                    this.a = pArgOne;
+                }
+            }
+        };
+
+        // Setup. Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup.
         const lValue = 11;
 
         // Process.
-        const lObject = new lPatchClassGlobal.constuctorParameterClass(lValue);
+        const lObject = new lPatchClassGlobal.class(lValue);
 
         // Evaluation.
         expect(lObject.a).toBe(lValue);
     });
+
     await pContext.step('Property accessor set value', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class: class {
+                private mA: number;
+
+                public get a(): number {
+                    return this.mA;
+                } set a(pValue: number) {
+                    this.mA = pValue;
+                }
+                constructor(pArgOne: number) {
+                    this.mA = pArgOne;
+                }
+            }
+        };
+
+        // Setup. Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup.
         const lValue = 11;
 
         // Process.
-        const lObject = new lPatchClassGlobal.accessorClass(lValue);
+        const lObject = new lPatchClassGlobal.class(lValue);
 
         // Evaluation.
         expect(lObject.a).toBe(lValue);
     });
+
     await pContext.step('Property property set value', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class: class {
+                a: number = 0;
+            }
+        };
+
+        // Setup. Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup.
         const lValue = 11;
 
         // Process.
-        const lObject = new lPatchClassGlobal.properyClass();
+        const lObject = new lPatchClassGlobal.class();
         lObject.a = lValue;
 
         // Evaluation.
         expect(lObject.a).toBe(lValue);
     });
+
     await pContext.step('Constructor callback correct callback zone', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class: class {
+                public callback: () => void;
+                constructor(pArgOne: () => void) {
+                    this.callback = pArgOne;
+                }
+            }
+        };
+
+        // Setup. Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Process. Interaction.
         let lResultZone: InteractionZone | null = null;
         const lObject: any = lZone.execute(() => {
-            return new lPatchClassGlobal.constructorCallbackClass(() => {
+            return new lPatchClassGlobal.class(() => {
                 lResultZone = InteractionZone.current;
             });
         });
@@ -157,12 +202,31 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Evaluation.
         expect(lResultZone).toBe(lZone);
     });
+    
     await pContext.step('Method callback correct callback zone', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class:  class {
+                public callback: (() => number) | null = null;
+                public setCallback(pArgOne: () => number) {
+                    this.callback = pArgOne;
+                }
+            }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup. Zone.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
  
         // Process.
-        const lObject = new lPatchClassGlobal.methodCallbackClass();
+        const lObject = new lPatchClassGlobal.class();
 
         // Process. Interaction.
         let lResultZone: InteractionZone | null = null;
@@ -179,12 +243,31 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Evaluation.
         expect(lResultZone).toBe(lZone);
     });
+
     await pContext.step('Method callback correct result', () => {
+        // Setup. Global scope.
+        const lPatchClassGlobal = {
+            class:  class {
+                public callback: (() => number) | null = null;
+                public setCallback(pArgOne: () => number) {
+                    this.callback = pArgOne;
+                }
+            }
+        };
+
+        // Setup.Patch classes of local global scope.
+        InteractionZoneGlobalScope.enable({
+            target: lPatchClassGlobal,
+            patches: {
+                classes: ['class']
+            }
+        });
+
         // Setup.
         const lValue: number = 11;
 
         // Process.
-        const lObject = new lPatchClassGlobal.methodCallbackClass();
+        const lObject = new lPatchClassGlobal.class();
         lObject.setCallback(() => { return lValue; });
 
         // Process. Interaction.

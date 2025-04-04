@@ -31,7 +31,7 @@ export class InteractionZoneGlobalScope {
         }
 
         // Patch global scope events.
-        lPatcher.patchEvents(lGlobalScope);
+        lPatcher.patchOnEvents(lGlobalScope);
 
         // Patch functions.
         for (const lFunctionName of pTarget.patches.functions ?? []) {
@@ -46,7 +46,7 @@ export class InteractionZoneGlobalScope {
             lClass = lPatcher.patchClass(lClass);
 
             // Patch properties.
-            lPatcher.patchEvents(lClass.prototype);
+            lPatcher.patchOnEvents(lClass.prototype);
 
             // TODO: Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
             lGlobalScope[lClassName] = lClass;
@@ -138,9 +138,6 @@ export class InteractionZoneGlobalScope {
      * @returns patched {@link pConstructor}
      */
     private patchClass(pConstructor: any): any {
-        // Patch method callbacks of class.
-        this.patchMethods(pConstructor);
-
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
@@ -149,7 +146,7 @@ export class InteractionZoneGlobalScope {
         const lSelf: this = this;
 
         // Extend class to path constructor.
-        return class PatchedClass extends pConstructor {
+        const lPatchedClass = class extends pConstructor {
             /**
              * Patch all arguments of constructor.
              * @param pArgs - Any argument.
@@ -171,6 +168,11 @@ export class InteractionZoneGlobalScope {
                 super(...pArgs);
             }
         };
+
+        // Patch method callbacks of class.
+        this.patchMethods(lPatchedClass);
+
+        return lPatchedClass;
     }
 
     /**
@@ -189,47 +191,55 @@ export class InteractionZoneGlobalScope {
         const lOriginalRemoveEventListener = lProto.removeEventListener;
 
         // Patch add event listener.
-        lProto.addEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject | null, pOptions?: boolean | AddEventListenerOptions | undefined): void {
-            // When event listener is not a function. Let the browser decide the error.
-            if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
-                lOriginalAddEventListener.call(this, pType, pCallback, pOptions);
-                return;
-            }
-
-            // Get already patched event listener or patch it for the current interaction zone.
-            let lPatchedEventListener: EventListener | undefined = lOriginalListener.get(pCallback);
-            if (!lPatchedEventListener) {
-                // Save interaction zone of this execution.
-                const lCurrentZone: InteractionZone = InteractionZone.current;
-
-                if (typeof pCallback === 'function') {
-                    lPatchedEventListener = lSelf.callInZone(pCallback, lCurrentZone);
-                } else {
-                    lPatchedEventListener = lSelf.callInZone(pCallback.handleEvent.bind(pCallback), lCurrentZone);
+        Object.defineProperty(lProto, 'addEventListener', {
+            configurable: false,
+            writable: false,
+            value: function (pType: string, pCallback: EventListenerOrEventListenerObject | null, pOptions?: boolean | AddEventListenerOptions | undefined): void {
+                // When event listener is not a function. Let the browser decide the error.
+                if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
+                    lOriginalAddEventListener.call(this, pType, pCallback, pOptions);
+                    return;
                 }
+
+                // Get already patched event listener or patch it for the current interaction zone.
+                let lPatchedEventListener: EventListener | undefined = lOriginalListener.get(pCallback);
+                if (!lPatchedEventListener) {
+                    // Save interaction zone of this execution.
+                    const lCurrentZone: InteractionZone = InteractionZone.current;
+
+                    if (typeof pCallback === 'function') {
+                        lPatchedEventListener = lSelf.callInZone(pCallback, lCurrentZone);
+                    } else {
+                        lPatchedEventListener = lSelf.callInZone(pCallback.handleEvent.bind(pCallback), lCurrentZone);
+                    }
+                }
+
+                // Save patched function of original.
+                lOriginalListener.set(pCallback, lPatchedEventListener);
+
+                // Set patched function as new event listener.
+                lOriginalAddEventListener.call(this, pType, lPatchedEventListener, pOptions);
             }
-
-            // Save patched function of original.
-            lOriginalListener.set(pCallback, lPatchedEventListener);
-
-            // Set patched function as new event listener.
-            lOriginalAddEventListener.call(this, pType, lPatchedEventListener, pOptions);
-        };
+        });
 
         // Patch remove event listener
-        lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
-            // When event listener is not a function. Let the browser decide the error.
-            if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
-                lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
-                return;
+        Object.defineProperty(lProto, 'removeEventListener', {
+            configurable: false,
+            writable: false,
+            value: function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
+                // When event listener is not a function. Let the browser decide the error.
+                if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
+                    lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
+                    return;
+                }
+
+                // Get patched version of event listener the callback has no patched version, use the original.
+                const lUsedEventListener: EventListenerOrEventListenerObject = lOriginalListener.get(pCallback) ?? pCallback;
+
+                // Remove event listener, eighter patched or original, from event target.
+                lOriginalRemoveEventListener.call(this, pType, lUsedEventListener, pOptions);
             }
-
-            // Get patched version of event listener the callback has no patched version, use the original.
-            const lUsedEventListener: EventListenerOrEventListenerObject = lOriginalListener.get(pCallback) ?? pCallback;
-
-            // Remove event listener, eighter patched or original, from event target.
-            lOriginalRemoveEventListener.call(this, pType, lUsedEventListener, pOptions);
-        };
+        });
 
         return pEventTargetType;
     }
@@ -277,22 +287,62 @@ export class InteractionZoneGlobalScope {
             return pConstructor;
         }
 
+        const lFindFunctionProperties = (lTargetObject: any): Dictionary<string, PropertyDescriptor> => {
+            // Skip search on base class.
+            if (lTargetObject == null || lTargetObject.constructor === Object) {
+                return new Dictionary<string, PropertyDescriptor>();
+            }
+
+            const lFunctionProperties: Dictionary<string, PropertyDescriptor> = new Dictionary<string, PropertyDescriptor>();
+            for (const lPropertyName of Object.getOwnPropertyNames(lTargetObject)) {
+                // Skip constructor.
+                if (lPropertyName === 'constructor') {
+                    continue;
+                }
+
+                // Read property desciptor.
+                const lPropertyDescriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lTargetObject, lPropertyName);
+                if (!lPropertyDescriptor) {
+                    continue; // Skip if no property descriptor found.
+                }
+
+                // Skip if not function.
+                if (typeof lPropertyDescriptor.value !== 'function') {
+                    continue;
+                }
+
+                // Skip all properties that are not starting with on.
+                lFunctionProperties.set(lPropertyName, lPropertyDescriptor);
+            }
+
+            // Search all function properties in inheritance chain.
+            for (const [lPropertyName, lPropertyDescriptor] of lFindFunctionProperties(Object.getPrototypeOf(lTargetObject))) {
+                // Prevent overriding of properties that are already overridden.
+                if (lFunctionProperties.has(lPropertyName)) {
+                    continue; // Skip if already defined.
+                }
+
+                lFunctionProperties.set(lPropertyName, lPropertyDescriptor);
+            }
+
+            return lFunctionProperties;
+        };
+
         const lPrototype = pConstructor.prototype;
+        const lMethods = lFindFunctionProperties(lPrototype);
 
         // For each prototype property.
-        for (const lClassMemberName of Object.getOwnPropertyNames(lPrototype)) {
-            // Skip constructor.
-            if (lClassMemberName === 'constructor') {
+        for (const [lClassMemberName, lClassMemberDescriptor] of lMethods) {
+            // If the descriptor is not configurable skip the method patch.
+            if (!lClassMemberDescriptor.configurable) {
                 continue;
             }
 
-            const lDescriptor: PropertyDescriptor = <PropertyDescriptor>Object.getOwnPropertyDescriptor(lPrototype, lClassMemberName);
-            const lValue: any = lDescriptor.value;
+            // Patch function of decriptor.
+            lClassMemberDescriptor.value = this.patchFunctionCallbacks(lClassMemberDescriptor.value);
 
-            // Only try to patch methods.
-            if (typeof lValue === 'function') {
-                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue);
-            }
+            // Set property descriptor to class prototype.
+            Object.defineProperty(lPrototype, lClassMemberName, lClassMemberDescriptor);
         }
     }
 
@@ -300,71 +350,83 @@ export class InteractionZoneGlobalScope {
      * Patch every onproperty of an object.
      * Adds and remove listener as {@link EventTarget} eventlistener. 
      */
-    private patchEvents(pObject: object): void {
+    private patchOnEvents(pObject: object): void {
         // Check for correct object type.
         if (!pObject || !(pObject instanceof EventTarget)) {
             return;
         }
 
         // Recursive function to find all on properties of the object.
-        const findOnProperties = (obj: any): Array<string> => {
+        const lFindOnProperties = (pTargetObject: any): Dictionary<string, PropertyDescriptor> => {
             // Skip search on base class.
-            if (obj == null) {
-                return [];
+            if (pTargetObject == null) {
+                return new Dictionary<string, PropertyDescriptor>();
             }
 
-            const lOnProperties: Array<string> = new Array<string>();
-            for (const lPropertyName of Object.getOwnPropertyNames(obj)) {
+            const lOnProperties: Dictionary<string, PropertyDescriptor> = new Dictionary<string, PropertyDescriptor>();
+            for (const lPropertyName of Object.getOwnPropertyNames(pTargetObject)) {
                 // Skip all properties that are not starting with on.
-                if (lPropertyName.startsWith('on')) {
-                    lOnProperties.push(lPropertyName.substring(2));
+                if (!lPropertyName.startsWith('on')) {
+                    continue;
                 }
+
+                // Read property desciptor.
+                const lPropertyDescriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pTargetObject, lPropertyName);
+                if (!lPropertyDescriptor) {
+                    continue; // Skip if no property descriptor found.
+                }
+
+                // Skip functions.
+                if (typeof lPropertyDescriptor.value === 'function') {
+                    continue;
+                }
+
+                // Skip all properties that are not starting with on.
+                lOnProperties.set(lPropertyName.substring(2), lPropertyDescriptor);
             }
 
             // Search all on properties in inheritance chain.
-            lOnProperties.push(...findOnProperties(Object.getPrototypeOf(obj)));
+            for (const [lPropertyName, lPropertyDescriptor] of lFindOnProperties(Object.getPrototypeOf(pTargetObject))) {
+                // Prevent overriding of properties that are already overridden.
+                if (lOnProperties.has(lPropertyName)) {
+                    continue;
+                }
+
+                lOnProperties.set(lPropertyName, lPropertyDescriptor);
+            }
 
             return lOnProperties;
         };
 
         // Find all on events. Desinct list by swip and swap some cozzy sets.
-        const lEventNames: Array<string> = [...new Set(findOnProperties(pObject))];
-
-        // Storage to save all patched events by name.
-        const lEventFunctions: Dictionary<string, (...pArgs: Array<any>) => any> = new Dictionary<string, (...pArgs: Array<any>) => any>();
+        const lEventNames: Dictionary<string, PropertyDescriptor> = lFindOnProperties(pObject);
 
         // Patch every event.
-        for (const lEventName of lEventNames) {
-            const lPropertyName: string = `on${lEventName}`;
-            let lDescriptorInformation: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pObject, lPropertyName);
-
-            // Create a empty descriptor if not exists.
-            if (!lDescriptorInformation) {
-                lDescriptorInformation = {
-                    configurable: true,
-                    enumerable: true,
-                };
-            }
-
-            // If the descriptor not exists or is not configurable skip the property patch.
+        for (const [lEventName, lDescriptorInformation] of lEventNames) {
+            // If the descriptor is not configurable skip the property patch.
             if (!lDescriptorInformation.configurable) {
                 continue;
             }
+
+            const lPropertyName: string = `on${lEventName}`;
 
             // Remove set value and writable flag to be able to add set and get.
             delete lDescriptorInformation.writable;
             delete lDescriptorInformation.value;
 
+            // Storage to save all patched events by name.
+            const lEventFunctions: Dictionary<EventTarget, EventListener> = new Dictionary<EventTarget, EventListener>();
+
             // Override set behaviour.
-            lDescriptorInformation.set = function (this: EventTarget, pEventListener: (...pArgs: Array<any>) => any): void {
+            lDescriptorInformation.set = function (this: EventTarget, pEventListener: EventListener): void {
                 // Remove current added listener can be null.
-                const lCurrentValue: unknown = lEventFunctions.get(lEventName);
+                const lCurrentValue: unknown = lEventFunctions.get(this);
                 if (typeof lCurrentValue === 'function' || typeof lCurrentValue === 'object') {
-                    this.removeEventListener(lEventName, lEventFunctions.get(lEventName)!);
+                    this.removeEventListener(lEventName, lCurrentValue as EventListener);
                 }
 
                 // Save listener for event type. No need to patch, addEventListener should be patched anyway.
-                lEventFunctions.set(lEventName, pEventListener);
+                lEventFunctions.set(this, pEventListener);
 
                 // Add new listener if defined.
                 if (typeof pEventListener === 'function' || typeof pEventListener === 'object') {
@@ -375,7 +437,7 @@ export class InteractionZoneGlobalScope {
             // Override get gebaviour.
             lDescriptorInformation.get = function (this: EventTarget): any {
                 // Return set listener, or what ever value was set.
-                return lEventFunctions.get(lEventName);
+                return lEventFunctions.get(this);
             };
 
             // Set descriptor to event target.
@@ -392,9 +454,6 @@ export class InteractionZoneGlobalScope {
     private patchPromise(pPromiseType: typeof Promise): any {
         const lOriginalPromiseConstructor: any = pPromiseType;
 
-        // Promise methods needs to be patched. They dont create own promises.
-        this.patchMethods(lOriginalPromiseConstructor);
-
         // Promise executor type definitions.
         type ExecutorResolve<T> = (pResult: T) => void;
         type ExecutorReject = (pResult: any) => void;
@@ -409,6 +468,9 @@ export class InteractionZoneGlobalScope {
                 ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);
             }
         }
+
+        // Promise methods needs to be patched. They dont create own promises.
+        this.patchMethods(PatchedPromise);
 
         return PatchedPromise;
     }

@@ -552,7 +552,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
 });
 
 Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext) => {
-    await pContext.step('Correct zone on event listener call', async () => {
+    await pContext.step('Correct zone on event listener call', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
@@ -741,22 +741,47 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
 
 Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise executor correct zone', async () => {
+        // Setup. Patched promise.
+        const lScopeTarget = {
+            promise: class<T> extends Promise<T> {}
+        };
+
+        // Process. Patch scope.
+        InteractionZoneGlobalScope.enable({
+            target: lScopeTarget,
+            patches: {
+                promise: 'promise'
+            }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Process.
         const lResultZone: InteractionZone = await lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => { pResolve(InteractionZone.current); });
+            return new lScopeTarget.promise<InteractionZone>((pResolve) => { pResolve(InteractionZone.current); });
         });
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise then keep zone', async () => {
+        // Setup. Patched promise.
+        const lScopeTarget = {
+            promise: class<T> extends Promise<T> {}
+        };
+
+        // Process. Patch scope.
+        InteractionZoneGlobalScope.enable({
+            target: lScopeTarget,
+            patches: {
+                promise: 'promise'
+            }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+        const lPromise: Promise<void> = new lScopeTarget.promise<void>((pResolve) => { pResolve(); });
 
         // Process.
         // eslint-disable-next-line @typescript-eslint/promise-function-async
@@ -769,9 +794,22 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise catch keep zone', async () => {
+        // Setup. Patched promise.
+        const lScopeTarget = {
+            promise: class<T> extends Promise<T> {}
+        };
+
+        // Process. Patch scope.
+        InteractionZoneGlobalScope.enable({
+            target: lScopeTarget,
+            patches: {
+                promise: 'promise'
+            }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lPromise: Promise<InteractionZone> = new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); });
+        const lPromise: Promise<InteractionZone> = new lScopeTarget.promise<InteractionZone>((_pResolve, pReject) => { pReject(); });
 
         // Process.
         // eslint-disable-next-line @typescript-eslint/promise-function-async
@@ -784,9 +822,22 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise then keep zone async execution', async () => {
+        // Setup. Patched promise.
+        const lScopeTarget = {
+            promise: class<T> extends Promise<T> {}
+        };
+
+        // Process. Patch scope.
+        InteractionZoneGlobalScope.enable({
+            target: lScopeTarget,
+            patches: {
+                promise: 'promise'
+            }
+        });
+
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+        const lPromise: Promise<void> = new lScopeTarget.promise<void>((pResolve) => { pResolve(); });
 
         // Process.
         const lResultZone: InteractionZone = await lZone.execute(async () => {
@@ -798,9 +849,22 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise catch keep zone async execution', async () => {
+        // Setup. Patched promise.
+        const lScopeTarget = {
+            promise: class<T> extends Promise<T> {}
+        };
+
+        // Process. Patch scope.
+        InteractionZoneGlobalScope.enable({
+            target: lScopeTarget,
+            patches: {
+                promise: 'promise'
+            }
+        });
+        
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
-        const lPromise: Promise<InteractionZone> = new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); });
+        const lPromise: Promise<InteractionZone> = new lScopeTarget.promise<InteractionZone>((_pResolve, pReject) => { pReject(); });
 
         // Process.
         const lResultZone: InteractionZone = await lZone.execute(async () => {

@@ -306,13 +306,29 @@ export class InteractionZoneGlobalScope {
             return;
         }
 
-        // Find all on events.
-        const lEventNames: Array<string> = new Array<string>();
-        for (const lPropertyName of Object.getOwnPropertyNames(pObject)) {
-            if (lPropertyName.startsWith('on')) {
-                lEventNames.push(lPropertyName.substring(2));
+        // Recursive function to find all on properties of the object.
+        const findOnProperties = (obj: any): Array<string> => {
+            // Skip search on base class.
+            if (obj == null) {
+                return [];
             }
-        }
+
+            const lOnProperties: Array<string> = new Array<string>();
+            for (const lPropertyName of Object.getOwnPropertyNames(obj)) {
+                // Skip all properties that are not starting with on.
+                if (lPropertyName.startsWith('on')) {
+                    lOnProperties.push(lPropertyName.substring(2));
+                }
+            }
+
+            // Search all on properties in inheritance chain.
+            lOnProperties.push(...findOnProperties(Object.getPrototypeOf(obj)));
+
+            return lOnProperties;
+        };
+
+        // Find all on events. Desinct list by swip and swap some cozzy sets.
+        const lEventNames: Array<string> = [...new Set(findOnProperties(pObject))];
 
         // Storage to save all patched events by name.
         const lEventFunctions: Dictionary<string, (...pArgs: Array<any>) => any> = new Dictionary<string, (...pArgs: Array<any>) => any>();
@@ -320,10 +336,18 @@ export class InteractionZoneGlobalScope {
         // Patch every event.
         for (const lEventName of lEventNames) {
             const lPropertyName: string = `on${lEventName}`;
-            const lDescriptorInformation: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pObject, lPropertyName);
+            let lDescriptorInformation: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pObject, lPropertyName);
+
+            // Create a empty descriptor if not exists.
+            if (!lDescriptorInformation) {
+                lDescriptorInformation = {
+                    configurable: true,
+                    enumerable: true,
+                };
+            }
 
             // If the descriptor not exists or is not configurable skip the property patch.
-            if (!lDescriptorInformation || !lDescriptorInformation.configurable) {
+            if (!lDescriptorInformation.configurable) {
                 continue;
             }
 

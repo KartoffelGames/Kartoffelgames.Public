@@ -8,9 +8,6 @@ Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
         // Setup. Global.
         const lGlobalScope = {};
 
-        // Setup. Zone.
-        const lZone: InteractionZone = InteractionZone.current.create('Zone');
-
         // Process. Its patched anyway.
         const lWasPatched = InteractionZoneGlobalScope.enable({
             target: lGlobalScope,
@@ -27,9 +24,6 @@ Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
     await pContext.step('Double patch', async () => {
         // Setup. Global.
         const lGlobalScope = {};
-
-        // Setup. Zone.
-        const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Process. Its patched anyway.
         const lWasPatchedOne = InteractionZoneGlobalScope.enable({
@@ -563,48 +557,57 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         const lZone: InteractionZone = InteractionZone.current.create('Zone');
 
         // Setup.
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any = null;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
-        const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
-            return new Promise<InteractionZone>((pResolve) => {
-                lEventTarget.oncustom = () => {
-                    pResolve(InteractionZone.current);
-                };
-            });
+        let lResultZone: InteractionZone | null = null;
+        lZone.execute(() => {
+            lEventTarget.oncustom = () => {
+                lResultZone = InteractionZone.current;
+            };
         });
         lEventTarget.dispatchEvent(new Event('custom'));
-        const lResultZone: InteractionZone = await lResultZonePromise;
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
+
     await pContext.step('Override function with self', () => {
         // Setup.
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
         let lCallCounter: number = 0;
@@ -618,24 +621,29 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Evaluation.
         expect(lCallCounter).toBe(1);
     });
+
     await pContext.step('Override function with null', () => {
         // Setup.
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
         let lCallCounter: number = 0;
-
         const lListener = () => {
             lCallCounter++;
         };
@@ -646,40 +654,52 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Evaluation.
         expect(lCallCounter).toBe(0);
     });
+
     await pContext.step('Set string value', () => {
         // Setup.
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
         lEventTarget.oncustom = 'My string';
         lEventTarget.dispatchEvent(new Event('custom'));
     });
+
     await pContext.step('Get string value', () => {
         // Setup.
         const lValue: string = 'ValueOrSo';
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
         lEventTarget.oncustom = lValue;
@@ -688,21 +708,27 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Evaluation.
         expect(lResultValue).toBe(lValue);
     });
+
     await pContext.step('Get function value', () => {
         // Setup.
         const lValue: () => void = () => { };
+        const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
-            eventTarget: class extends EventTarget { public oncustom: any = null; }
+            eventTarget: lCustomlEventTarget,
+            onEventClass: class extends lCustomlEventTarget {
+                public accessor oncustom: any;
+            }
         };
 
         // Process. Patch scope.
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget'
+                eventTarget: 'eventTarget',
+                classes: ['onEventClass']
             }
         });
-        const lEventTarget = new lScopeTarget.eventTarget();
+        const lEventTarget = new lScopeTarget.onEventClass();
 
         // Process.
         lEventTarget.oncustom = lValue;

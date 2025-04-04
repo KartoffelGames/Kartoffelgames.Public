@@ -791,7 +791,6 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise catch keep zone', async () => {
         // Setup. Patched promise.
@@ -819,7 +818,6 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise then keep zone async execution', async () => {
         // Setup. Patched promise.
@@ -846,7 +844,6 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
     await pContext.step('Promise catch keep zone async execution', async () => {
         // Setup. Patched promise.
@@ -873,6 +870,5 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
 
         // Evaluation.
         expect(lResultZone).toBe(lZone);
-        expect(false).toBe(true); // TODO: WHAAAAAAT
     });
 });

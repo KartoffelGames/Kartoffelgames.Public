@@ -4,6 +4,66 @@ import { InteractionZone } from '../zone/interaction-zone.ts';
 
 export class InteractionZoneGlobalScope {
     /**
+     * Default settings of the global scope of the runtime.
+     */
+    public static get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
+        // Create default globalThis target.
+        const lTarget = {
+            target: globalThis,
+            patches: {
+                promise: globalThis.Promise?.name,
+                eventTarget: globalThis.EventTarget?.name,
+                classes: new Array<string>(),
+                functions: new Array<string>()
+            }
+        } satisfies InteractionZoneGlobalScopeTarget;
+
+        // Add all asyncron functions.
+        const lAsyncFunctionNames: Array<string | undefined> = [
+            globalThis.requestAnimationFrame?.name,
+            globalThis.setInterval?.name,
+            globalThis.setTimeout?.name
+        ];
+        lTarget.patches.functions.push(...lAsyncFunctionNames.filter(pClass => !!pClass) as Array<string>);
+
+        // Add all global classes with events.
+        const lDomClassNames: Array<string | undefined> = [
+            globalThis.XMLHttpRequestEventTarget?.name,
+            globalThis.XMLHttpRequest?.name,
+            globalThis.Document?.name,
+            globalThis.SVGElement?.name,
+            globalThis.Element?.name,
+            globalThis.HTMLElement?.name,
+            globalThis.HTMLMediaElement?.name,
+            globalThis.HTMLFrameSetElement?.name,
+            globalThis.HTMLBodyElement?.name,
+            globalThis.HTMLFrameElement?.name,
+            globalThis.HTMLIFrameElement?.name,
+            globalThis.HTMLMarqueeElement?.name,
+            globalThis.Worker?.name,
+            globalThis.IDBRequest?.name,
+            globalThis.IDBOpenDBRequest?.name,
+            globalThis.IDBDatabase?.name,
+            globalThis.IDBTransaction?.name,
+            globalThis.WebSocket?.name,
+            globalThis.FileReader?.name,
+            globalThis.Notification?.name,
+            globalThis.RTCPeerConnection?.name
+        ];
+        lTarget.patches.classes.push(...lDomClassNames.filter(pClass => !!pClass) as Array<string>);
+
+        // Add all global classes with async callbacks.
+        const lObserverClassNames: Array<string | undefined> = [
+            globalThis.ResizeObserver?.name,
+            globalThis.MutationObserver?.name,
+            globalThis.IntersectionObserver?.name
+        ];
+        lTarget.patches.classes.push(...lObserverClassNames.filter(pClass => !!pClass) as Array<string>);
+
+        return lTarget;
+    }
+
+    /**
      * Enable zones in the global scope.
      */
     public static enable(pTarget: InteractionZoneGlobalScopeTarget): boolean {
@@ -40,7 +100,7 @@ export class InteractionZoneGlobalScope {
 
         // Patch all classes.
         for (const lClassName of pTarget.patches.classes ?? []) {
-            let lClass: Function = lGlobalScope[lClassName];
+            let lClass: any = lGlobalScope[lClassName];
 
             // Patch class.
             lClass = lPatcher.patchClass(lClass);
@@ -53,66 +113,6 @@ export class InteractionZoneGlobalScope {
         }
 
         return true;
-    }
-
-    /**
-     * Default settings of the global scope of the runtime.
-     */
-    public static get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
-        // Create default globalThis target.
-        const lTarget = {
-            target: globalThis,
-            patches: {
-                promise: globalThis.Promise?.name,
-                eventTarget: globalThis.EventTarget?.name,
-                classes: new Array<string>(),
-                functions: new Array<string>()
-            }
-        } satisfies InteractionZoneGlobalScopeTarget;
-
-        // Add all asyncron functions.
-        const lAsyncFunctionNames: Array<string | undefined> = [
-            globalThis.requestAnimationFrame?.name,
-            globalThis.setInterval?.name,
-            globalThis.setTimeout?.name
-        ];
-        lTarget.patches.functions.push(...lAsyncFunctionNames.filter(lClass => !!lClass) as Array<string>);
-
-        // Add all global classes with events.
-        const lDomClassNames: Array<string | undefined> = [
-            globalThis.XMLHttpRequestEventTarget?.name,
-            globalThis.XMLHttpRequest?.name,
-            globalThis.Document?.name,
-            globalThis.SVGElement?.name,
-            globalThis.Element?.name,
-            globalThis.HTMLElement?.name,
-            globalThis.HTMLMediaElement?.name,
-            globalThis.HTMLFrameSetElement?.name,
-            globalThis.HTMLBodyElement?.name,
-            globalThis.HTMLFrameElement?.name,
-            globalThis.HTMLIFrameElement?.name,
-            globalThis.HTMLMarqueeElement?.name,
-            globalThis.Worker?.name,
-            globalThis.IDBRequest?.name,
-            globalThis.IDBOpenDBRequest?.name,
-            globalThis.IDBDatabase?.name,
-            globalThis.IDBTransaction?.name,
-            globalThis.WebSocket?.name,
-            globalThis.FileReader?.name,
-            globalThis.Notification?.name,
-            globalThis.RTCPeerConnection?.name
-        ];
-        lTarget.patches.classes.push(...lDomClassNames.filter(lClass => !!lClass) as Array<string>);
-
-        // Add all global classes with async callbacks.
-        const lObserverClassNames: Array<string | undefined> = [
-            globalThis.ResizeObserver?.name,
-            globalThis.MutationObserver?.name,
-            globalThis.IntersectionObserver?.name
-        ];
-        lTarget.patches.classes.push(...lObserverClassNames.filter(lClass => !!lClass) as Array<string>);
-
-        return lTarget;
     }
 
     /**
@@ -287,21 +287,21 @@ export class InteractionZoneGlobalScope {
             return pConstructor;
         }
 
-        const lFindFunctionProperties = (lTargetObject: any): Dictionary<string, PropertyDescriptor> => {
+        const lFindFunctionProperties = (pTargetObject: any): Dictionary<string, PropertyDescriptor> => {
             // Skip search on base class.
-            if (lTargetObject == null || lTargetObject.constructor === Object) {
+            if (pTargetObject === null || pTargetObject.constructor === Object) {
                 return new Dictionary<string, PropertyDescriptor>();
             }
 
             const lFunctionProperties: Dictionary<string, PropertyDescriptor> = new Dictionary<string, PropertyDescriptor>();
-            for (const lPropertyName of Object.getOwnPropertyNames(lTargetObject)) {
+            for (const lPropertyName of Object.getOwnPropertyNames(pTargetObject)) {
                 // Skip constructor.
                 if (lPropertyName === 'constructor') {
                     continue;
                 }
 
                 // Read property desciptor.
-                const lPropertyDescriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lTargetObject, lPropertyName);
+                const lPropertyDescriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pTargetObject, lPropertyName);
                 if (!lPropertyDescriptor) {
                     continue; // Skip if no property descriptor found.
                 }
@@ -316,7 +316,7 @@ export class InteractionZoneGlobalScope {
             }
 
             // Search all function properties in inheritance chain.
-            for (const [lPropertyName, lPropertyDescriptor] of lFindFunctionProperties(Object.getPrototypeOf(lTargetObject))) {
+            for (const [lPropertyName, lPropertyDescriptor] of lFindFunctionProperties(Object.getPrototypeOf(pTargetObject))) {
                 // Prevent overriding of properties that are already overridden.
                 if (lFunctionProperties.has(lPropertyName)) {
                     continue; // Skip if already defined.
@@ -359,7 +359,7 @@ export class InteractionZoneGlobalScope {
         // Recursive function to find all on properties of the object.
         const lFindOnProperties = (pTargetObject: any): Dictionary<string, PropertyDescriptor> => {
             // Skip search on base class.
-            if (pTargetObject == null) {
+            if (pTargetObject === null) {
                 return new Dictionary<string, PropertyDescriptor>();
             }
 
@@ -474,10 +474,6 @@ export class InteractionZoneGlobalScope {
 
         return PatchedPromise;
     }
-}
-
-declare global {
-    var globalPatched: boolean;
 }
 
 type InteractionZoneGlobalScopeTarget = {

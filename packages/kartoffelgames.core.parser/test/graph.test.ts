@@ -32,9 +32,9 @@ Deno.test('Graph.node', async (pContext) => {
 
     await pContext.step('should cache the resolved root node', () => {
         // Setup.
-        let callCount = 0;
+        let lCallCount = 0;
         const lNodeCollector = () => {
-            callCount++;
+            lCallCount++;
             return GraphNode.new<string>().required('key', 'value');
         };
         const lGraph = Graph.define(lNodeCollector);
@@ -44,7 +44,7 @@ Deno.test('Graph.node', async (pContext) => {
         const lSecondNode = lGraph.node;
 
         // Evaluation.
-        expect(callCount).toBe(1);
+        expect(lCallCount).toBe(1);
         expect(lFirstNode).toBe(lSecondNode);
     });
 });

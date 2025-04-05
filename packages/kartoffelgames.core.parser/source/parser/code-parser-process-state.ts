@@ -7,12 +7,12 @@ import type { Graph } from './graph/graph.ts';
 export class CodeParserProcessState<TTokenType extends string> {
     private static readonly MAX_CIRULAR_REFERENCES: number = 1;
 
-    private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
     private readonly mLastTokenPosition: CodeParserCursorPosition;
     private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
     private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
+    private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
 
     /**
      * Get the current graph the cursor is in.

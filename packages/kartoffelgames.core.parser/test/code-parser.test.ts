@@ -16,7 +16,7 @@ enum TokenType {
     Custom = 'Custom'
 }
 
-const lCreateLexer = (): Lexer<TokenType> => {
+const gCreateLexer = (): Lexer<TokenType> => {
     const lLexer = new Lexer<TokenType>();
 
     // Add token patterns
@@ -71,7 +71,7 @@ Deno.test('CodeParser.debugMode', async (pContext) => {
 
     await pContext.step('Should include a complete trace in the exception when debugMode is true', () => {
         // Setup
-        const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         lParser.debugMode = true;
 
         // Define a graph that will fail
@@ -94,7 +94,7 @@ Deno.test('CodeParser.debugMode', async (pContext) => {
 
     await pContext.step('Should not include a complete trace in the exception when debugMode is false', () => {
         // Setup
-        const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         lParser.debugMode = false;
 
         // Define a graph that will fail
@@ -118,7 +118,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Linear', async (pContext) => {
         await pContext.step('Linear Parsing no optionals', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const name: number;';
 
             // Setup. Define graph part and set as root.
@@ -139,7 +139,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Linear Parsing with optionals', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const name: number';
 
             // Setup. Define graph part and set as root.
@@ -159,7 +159,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Linear Parsing with two ending optionals without value', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const name: number';
 
             // Setup. Define graph part and set as root.
@@ -179,7 +179,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Linear Parsing with branching', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const name: number';
 
             // Setup. Define graph part and set as root.
@@ -202,7 +202,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Linear Parsing where the graph ends before the file is finished', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const; and it goes on';
 
             // Setup. Define graph part and set as root.
@@ -224,7 +224,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Branches', async (pContext) => {
         await pContext.step('Branch Parsing without optionals', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeTextModifier: string = 'const';
             const lCodeTextIdentifier: string = 'notconst';
 
@@ -248,7 +248,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Branch Parsing with existing optionals', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeTextNumber: string = '123';
             const lCodeTextIdentifier: string = 'myname';
 
@@ -274,7 +274,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Branch Parsing with missing optionals', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const ;';
 
             // Setup. Define graph part and set as root.
@@ -295,7 +295,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Optional branch parsing with existing token', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -316,7 +316,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Optional branch parsing without existing token', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -338,7 +338,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Loops', async (pContext) => {
         await pContext.step('Loop Parsing with existing items', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'one two three four five';
 
             // Setup. Define graph part and set as root.
@@ -358,7 +358,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Loop Parsing with different front and back data.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const one two three four five const';
 
             // Setup. Define graph part and set as root.
@@ -381,7 +381,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Loop start greedy parsing', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'one two three four five const';
 
             // Setup. Define graph part and set as root.
@@ -406,7 +406,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Loop Parsing with missing items', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -429,7 +429,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Optional recursion loops', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -450,7 +450,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Optional recursion loops with required node in optional graph', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -475,7 +475,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Part references', async (pContext) => {
         await pContext.step('Reference with collector', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define additive part.
@@ -500,7 +500,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Reference without collector', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define additive part without collector
@@ -524,7 +524,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Reference as optional value with value', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define additive part.
@@ -548,7 +548,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Reference as optional value without value', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define additive part.
@@ -572,7 +572,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Optional self reference fail when not on end of graph', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const const const const';
 
             // Setup. Define graph part and set as root.
@@ -593,7 +593,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Required self reference fail when not on end of graph', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const const const const';
 
             // Setup. Define graph part and set as root.
@@ -614,7 +614,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Self reference with different start and end data.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const const indent indent';
 
             // Setup. Define graph part and set as root.
@@ -730,7 +730,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Parse Graph Errors', async (pContext) => {
         await pContext.step('Parse without root part', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             // Process.
             const lErrorFunction = () => {
@@ -743,7 +743,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Single parse error, wrong token type.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -763,7 +763,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Single parse error, missing token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const';
 
             // Setup. Define graph part and set as root.
@@ -783,7 +783,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Single parse error, no token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = '';
 
             // Setup. Define graph part and set as root.
@@ -803,7 +803,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Graph end meet without reaching last token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const identifier';
 
             // Setup. Define graph part and set as root.
@@ -823,7 +823,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Dublicate branchings paths takes the first', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const identifier;';
 
             // Setup. Define graph part and set as root.
@@ -848,7 +848,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency over multiple references.', () => {
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLevel1Graph = Graph.define(() => {
                 const lLevel2GraphReference: Graph<TokenType, any> = lLevel2Graph;
@@ -869,7 +869,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency with branch.', () => {
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLoopGraph = Graph.define(() => {
                 const lSelfReference: Graph<TokenType, any> = lLoopGraph;
@@ -900,7 +900,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /1/, type: '1' } }));
 
             // Setup. Init grapth.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().optional('list', GraphNode.new<TokenType>().optional('innerList[]', TokenType.Identifier)).required('type', TokenType.Modifier);
             });
@@ -1094,7 +1094,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error on lexing while parsing.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const name: ????;';
             const lExpectedMessage = `Unable to parse next token. No valid pattern found for "${lCodeText.substring(12)}".`;
 
@@ -1124,7 +1124,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Identifier errors.', async (pContext) => {
         await pContext.step('Graph has dublicate single value identifier', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required('Something', TokenType.Modifier).required('Something', TokenType.Modifier);
             });
@@ -1141,7 +1141,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Graph has dublicate list value identifier. With existing single identifier.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lLoopGraph = Graph.define(() => {
                 const lSelfReference: Graph<TokenType, { something: Array<string>; }> = lLoopGraph;
                 return GraphNode.new<TokenType>().required('something[]', TokenType.Modifier).optional('something<-something', lSelfReference);
@@ -1164,7 +1164,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Not completing to end and failing on the first token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().optional(TokenType.Modifier);
             });
@@ -1183,7 +1183,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     await pContext.step('Data collector errors.', async (pContext) => {
         await pContext.step('Unknown error messages of symbol errors without description', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
             }).converter(() => {
@@ -1202,7 +1202,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Keep error messages of symbol errors', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1222,7 +1222,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Keep error messages of error objects', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1242,7 +1242,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Correct error graph of error object', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             // Setup graphs.
             const lFailingGraph = Graph.define(() => {
@@ -1268,7 +1268,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Correct error graph of error symbol', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             // Setup graphs.
             const lFailingGraph = Graph.define(() => {
@@ -1297,7 +1297,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             const lFunctionName: string = 'lMyErrorFunctionName';
 
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
             }).converter(function lMyErrorFunctionName() {
@@ -1321,7 +1321,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Keep error messages of string', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1341,7 +1341,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error positions single token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1366,7 +1366,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error positions chained token without newline.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier);
@@ -1391,7 +1391,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Keep error object on parser error.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lError: Error = new Error('My message is clear');
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1413,7 +1413,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error positions chained token with newline.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Modifier);
@@ -1438,7 +1438,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error positions with only optional token.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().optional(TokenType.Modifier);
@@ -1464,7 +1464,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error positions with no parse data.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
             }).converter(() => {
@@ -1488,7 +1488,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Multi error after line break.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required([
                     GraphNode.new<TokenType>().required(TokenType.Modifier).required(TokenType.Semicolon),
@@ -1575,7 +1575,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Error messages of optional graphs when end not meet', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
             const lOptionalGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>().required(TokenType.Modifier);
@@ -1598,7 +1598,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Abort parsing process that would otherwise fail.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
 
             // Setup graphs.
@@ -1631,7 +1631,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Abort parsing process that would suceed.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
 
             // Setup graphs.
@@ -1664,7 +1664,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Abort parsing process with optional graph without output but aborts.', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Error message';
 
             // Setup graphs.
@@ -1695,7 +1695,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
         await pContext.step('Override error priority on converter abort', () => {
             // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lErrorMessage: string = 'Aborted Error';
             const lFailingGraph = Graph.define(() => {
                 return GraphNode.new<TokenType>()
@@ -1728,7 +1728,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 Deno.test('CodeParser.setRootGraph()', async (pContext) => {
     await pContext.step('Set root part', () => {
         // Setup.
-        const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
         // Process.
         const lMainGraph = Graph.define(() => {

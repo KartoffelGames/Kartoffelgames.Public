@@ -20,7 +20,7 @@ enum TestTokenMetas {
 }
 
 // Init new lexer with all test node types set as token patterns.
-const lInitTestLexer = () => {
+const gInitTestLexer = () => {
     const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
     lLexer.validWhitespaces = ' \n';
 
@@ -49,7 +49,7 @@ const lInitTestLexer = () => {
 // 51 characters
 // 41 non whitespace characters
 // 10 whitespaces including newline.
-const lInitTestText = () => {
+const gInitTestText = () => {
     return 'A sentence with 1 or 10 words (Braket and \nnewline) end';
 };
 
@@ -69,11 +69,11 @@ Deno.test('Lexer.errorType', async (pContext) => {
 Deno.test('Lexer.trimWhitespace', async (pContext) => {
     await pContext.step('True', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
         lLexer.trimWhitespace = true;
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation.
         expect(lTokenList).toHaveLength(13);
@@ -81,13 +81,13 @@ Deno.test('Lexer.trimWhitespace', async (pContext) => {
 
     await pContext.step('False', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
         lLexer.trimWhitespace = false;
 
         const lErrorFunction = () => {
-            return [...lLexer.tokenize(lInitTestText())];
+            return [...lLexer.tokenize(gInitTestText())];
         };
 
         // Evaluation.
@@ -96,7 +96,7 @@ Deno.test('Lexer.trimWhitespace', async (pContext) => {
 
     await pContext.step('Get default', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Evaluation.
         expect(lLexer.trimWhitespace).toBeTruthy();
@@ -104,7 +104,7 @@ Deno.test('Lexer.trimWhitespace', async (pContext) => {
 
     await pContext.step('Get altered', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
         lLexer.trimWhitespace = false;
@@ -117,12 +117,12 @@ Deno.test('Lexer.trimWhitespace', async (pContext) => {
 Deno.test('Lexer.validWhitespaces', async (pContext) => {
     await pContext.step('Set', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
         lLexer.trimWhitespace = true;
         lLexer.validWhitespaces = ' A\n'; // Space and uppercase A. Should trim out the first word.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation.
         expect(lTokenList).toHaveLength(12);
@@ -131,7 +131,7 @@ Deno.test('Lexer.validWhitespaces', async (pContext) => {
     await pContext.step('Get', () => {
         // Setup.
         const lValidWhitespaces: string = ' A\n';
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
         lLexer.validWhitespaces = lValidWhitespaces;
@@ -149,7 +149,7 @@ Deno.test('Lexer.addTokenPattern()', async (pContext) => {
 
         // Process.
         lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word } }));
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation.
         expect(lTokenList).toHaveLength(44); // 44 characters without whitespace.
@@ -208,10 +208,10 @@ Deno.test('Lexer.createTokenPattern()', async (pContext) => {
 Deno.test('Lexer.tokenize()', async (pContext) => {
     await pContext.step('Valid lines and columns', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
 
@@ -270,10 +270,10 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Valid token types', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
         expect(lTokenList[0]).toHaveProperty('type', TestTokenType.Word);
@@ -293,10 +293,10 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Valid token values', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
         expect(lTokenList[0]).toHaveProperty('value', 'A');
@@ -316,10 +316,10 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Valid token metas', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
 
         // Process.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
         expect(lTokenList[0]).toHaveProperty('metas');
@@ -361,7 +361,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Invalid token', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
         const lTestTextWithInvalidToken: string = 'A Invalid Token // is here';
 
         // Process.
@@ -389,7 +389,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
         lLexer.useRootTokenPattern(lLexer.createTokenPattern({ pattern: { regex: /[0-9]+/, type: TestTokenType.Number }, meta: TestTokenMetas.Number }));
 
         // Process.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(gInitTestText())];
 
         // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
         expect(lTokenList[7]).toHaveProperty('value', '(Braket and \nnewline)');
@@ -493,7 +493,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
     await pContext.step('Error token', async (pContext) => {
         await pContext.step('Single token', () => {
             // Setup.
-            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            const lLexer: Lexer<TestTokenType> = gInitTestLexer();
             lLexer.errorType = TestTokenType.Error;
 
             // Setup. Text.
@@ -516,7 +516,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
         await pContext.step('Nested', () => {
             // Setup.
-            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            const lLexer: Lexer<TestTokenType> = gInitTestLexer();
             lLexer.errorType = TestTokenType.Error;
 
             // Setup. Text.
@@ -539,7 +539,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
         await pContext.step('Different lines', () => {
             // Setup.
-            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            const lLexer: Lexer<TestTokenType> = gInitTestLexer();
             lLexer.errorType = TestTokenType.Error;
 
             // Setup. Text.
@@ -570,7 +570,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
         await pContext.step('At end', () => {
             // Setup.
-            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            const lLexer: Lexer<TestTokenType> = gInitTestLexer();
             lLexer.errorType = TestTokenType.Error;
 
             // Setup. Text.
@@ -657,7 +657,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Has meta check', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
         lLexer.useRootTokenPattern(lLexer.createTokenPattern({
             pattern: {
                 regex: /1/,
@@ -675,7 +675,7 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
 
     await pContext.step('Nested token cant find closing token', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
         const lTestString: string = '(Start without end';
 
         // Process.
@@ -823,7 +823,7 @@ Deno.test('Lexer.useTokenPattern()', async (pContext) => {
 Deno.test('Lexer--Functionality: Progress tracker', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+        const lLexer: Lexer<TestTokenType> = gInitTestLexer();
         const lText: string = 'aaa aa';
 
         // Setup. Progress tracker.
@@ -833,7 +833,7 @@ Deno.test('Lexer--Functionality: Progress tracker', async (pContext) => {
         };
 
         // Process.
-        [...lLexer.tokenize(lText, lProcessTracker)];
+        const _ = [...lLexer.tokenize(lText, lProcessTracker)];
 
         // Evaluation.
         expect(lProgressList).toHaveLength(3);

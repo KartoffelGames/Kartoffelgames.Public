@@ -32,6 +32,14 @@ export class CodeParserException<TTokenType extends string> extends Error {
     }
 
     /**
+     * All parsing incidents.
+     * Only available in debug mode.
+     */
+    public get incidents(): Array<CodeParserTraceIncident<TTokenType>> {
+        return this.mTrace.incidents;
+    }
+
+    /**
      * Error line end.
      */
     public get lineEnd(): number {
@@ -43,14 +51,6 @@ export class CodeParserException<TTokenType extends string> extends Error {
      */
     public get lineStart(): number {
         return this.mTrace.top.range.lineStart;
-    }
-
-    /**
-     * All parsing incidents.
-     * Only available in debug mode.
-     */
-    public get incidents(): Array<CodeParserTraceIncident<TTokenType>> {
-        return this.mTrace.incidents;
     }
 
     /**

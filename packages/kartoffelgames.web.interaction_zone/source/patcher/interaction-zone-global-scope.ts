@@ -415,7 +415,7 @@ export class InteractionZoneGlobalScope {
             delete lDescriptorInformation.value;
 
             // Storage to save all patched events by name.
-            const lEventFunctions: Dictionary<EventTarget, EventListener> = new Dictionary<EventTarget, EventListener>();
+            const lEventFunctions: WeakMap<EventTarget, EventListener> = new WeakMap<EventTarget, EventListener>();
 
             // Override set behaviour.
             lDescriptorInformation.set = function (this: EventTarget, pEventListener: EventListener): void {

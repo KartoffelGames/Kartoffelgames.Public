@@ -8,14 +8,14 @@ import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
  * @param pIdChildName - Name of id child.
  */
 export function PwbChild(pIdChildName: string): any {
-    return (pTarget: object, pPropertyKey: string) => {
+    return (_: any, pContext: ClassAccessorDecoratorContext) => {
         // Check if real decorator on static property.
-        if (typeof pTarget === 'function') {
+        if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbChild);
         }
-
+        
         // Define getter accessor that returns id child.
-        Object.defineProperty(pTarget, pPropertyKey, {
+        return {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
                 const lComponent: Component = (() => {
@@ -36,6 +36,6 @@ export function PwbChild(pIdChildName: string): any {
                     throw new Exception(`Can't find child "${pIdChildName}".`, this);
                 }
             }
-        });
+        }
     };
 }

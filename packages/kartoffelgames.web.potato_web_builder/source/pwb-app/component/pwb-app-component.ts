@@ -5,14 +5,56 @@ import { PwbComponent } from '../../core/component/pwb-component.decorator.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbExport } from '../../module/export/pwb-export.decorator.ts';
-import pwbAppStyle from './pwb-app-component.css';
-import pwbAppTemplate from './pwb-app-component.html';
 import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbComponent({
     selector: 'pwb-app',
-    style: pwbAppStyle,
-    template: pwbAppTemplate
+    style: `
+        :host {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .splashscreen {
+            position: absolute;
+            display: grid;
+            align-content: center;
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+            background: var(--background, blue);
+        }
+
+        .splashscreen.hide {
+            opacity: 0;
+            transition: var(--transition-time-ms, 1000ms) linear;
+        }
+
+        .splashscreen__content {
+            width: fit-content;
+            height: fit-content;
+            margin: 0 auto;
+        }`,
+    template: `
+        <!-- Additional styles -->
+        $for(styleText of this.styleList) {
+            <style>{{this.styleText}}</style>
+        }
+
+        <!-- Splashscreen -->
+        $if(this.splashscreenState.append) {
+            <div class="splashscreen {{this.splashscreenState.hide ? 'hide' : ''}}" style="--transition-time-ms: {{this.splashscreenConfig.animationTime}}ms; --background: {{this.splashscreenConfig.background}}">
+                <div class="splashscreen__content">
+                    $dynamic-content(this.splashscreenConfig.content)
+                </div>
+            </div>
+        }
+
+        <!-- Actual content -->
+        <div>
+            $dynamic-content(this.content)
+        </div>`,
 })
 export class PwbAppComponent extends Processor implements IComponentOnConnect, IComponentOnDisconnect {
     // Used in view.

@@ -35,7 +35,7 @@
             },
             "test": {
                 "directory": "./test",
-                "bundleRequired": true
+                "bundleRequired": false
             },
             "transform": {
                 "enableNode": false,

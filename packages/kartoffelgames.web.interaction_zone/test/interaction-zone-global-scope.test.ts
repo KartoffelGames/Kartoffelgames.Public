@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
-import { InteractionZoneGlobalScope } from "../source/patcher/interaction-zone-global-scope.ts";
-import { InteractionZone } from "../source/zone/interaction-zone.ts";
+import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
+import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
 
 Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {

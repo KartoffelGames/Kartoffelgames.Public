@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import type { InteractionEvent } from '../source/zone/interaction-event.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import { PromiseRejectionEvent } from './mock/error-event.ts';
-import { InteractionZoneGlobalScope } from "../source/patcher/interaction-zone-global-scope.ts";
+import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
 
 Deno.test('InteractionZone.current', async (pContext) => {
     await pContext.step('Available Zone', () => {
@@ -433,8 +433,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                 });
             });
 
-            // Process. Create promise in zone. 
-            const lPromise: Promise<void> = lInteractionZone.execute(async () => {
+            // Process. Create promise in zone.
+            const lPromise: Promise<void> = lInteractionZone.execute(() => {
                 return new lScopeTarget.promise<void>(() => { });
             });
 
@@ -449,10 +449,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeTruthy();
-            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Error listener called with correct error', async () => {
+            // Setup. Patched promise.
+            const lScopeTarget = {
+                promise: class <T> extends Promise<T> { }
+            };
+
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    promise: 'promise'
+                }
+            });
+
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
             const lError: Error = new Error();
@@ -465,8 +477,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Create promise in zone. 
-            const lPromise: Promise<void> = lInteractionZone.execute(async () => {
-                return new Promise<void>(() => { });
+            const lPromise: Promise<void> = lInteractionZone.execute(() => {
+                return new lScopeTarget.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
@@ -480,10 +492,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerError).toBe(lError);
-            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Parent Error listener called', async () => {
+            // Setup. Patched promise.
+            const lScopeTarget = {
+                promise: class <T> extends Promise<T> { }
+            };
+
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    promise: 'promise'
+                }
+            });
+
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -496,8 +520,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Create promise in zone. 
-            const lPromise: Promise<void> = lChildInteractionZone.execute(async () => {
-                return new Promise<void>(() => { });
+            const lPromise: Promise<void> = lChildInteractionZone.execute(() => {
+                return new lScopeTarget.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
@@ -510,10 +534,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             const lErrorListenerCalled = await lErrorCalledWaiter;
             // Evaluation.
             expect(lErrorListenerCalled).toBeTruthy();
-            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Ignore Parent Error listener when default prevented', async () => {
+            // Setup. Patched promise.
+            const lScopeTarget = {
+                promise: class <T> extends Promise<T> { }
+            };
+
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    promise: 'promise'
+                }
+            });
+
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -533,8 +569,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Create promise in zone. 
-            const lPromise: Promise<void> = lChildInteractionZone.execute(async () => {
-                return new Promise<void>(() => { });
+            const lPromise: Promise<void> = lChildInteractionZone.execute(() => {
+                return new lScopeTarget.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
@@ -548,10 +584,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeFalsy();
-            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Ignore Error listener called outside zone', async () => {
+            // Setup. Patched promise.
+            const lScopeTarget = {
+                promise: class <T> extends Promise<T> { }
+            };
+
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    promise: 'promise'
+                }
+            });
+
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -566,8 +614,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Create promise in zone. 
-            const lPromise: Promise<void> = lCorrectInteractionZone.execute(async () => {
-                return new Promise<void>(() => { });
+            const lPromise: Promise<void> = lCorrectInteractionZone.execute(() => {
+                return new lScopeTarget.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
@@ -581,7 +629,6 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeFalsy();
-            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
     });
 

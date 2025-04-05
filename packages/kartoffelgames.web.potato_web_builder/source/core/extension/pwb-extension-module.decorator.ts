@@ -1,4 +1,4 @@
-import { type InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
+import { type InjectionConstructor, Injection } from '@kartoffelgames/core-dependency-injection';
 import { CoreEntityRegister } from '../core_entity/core-entity-register.ts';
 import type { AccessMode } from '../enum/access-mode.enum.ts';
 import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
@@ -10,10 +10,10 @@ import { ExtensionModule, type ExtensionModuleConfiguration, type IPwbExtensionM
  * @param pSettings - Extension settings.
  */
 export function PwbExtensionModule(pSettings: ExtensionSettings): any {
-    return (pExtensionProcessorConstructor: IPwbExtensionModuleProcessorConstructor) => {
+    return (pExtensionProcessorConstructor: IPwbExtensionModuleProcessorConstructor, pContext: ClassDecoratorContext) => {
 
         // Set processor to be injectable
-        Injector.Injectable(pExtensionProcessorConstructor);
+        Injection.registerInjectable(pExtensionProcessorConstructor, pContext.metadata, 'instanced');
 
         // Register module.
         CoreEntityRegister.register<ExtensionModuleConfiguration>(ExtensionModule, pExtensionProcessorConstructor, {

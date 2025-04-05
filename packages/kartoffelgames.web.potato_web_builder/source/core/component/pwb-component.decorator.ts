@@ -1,10 +1,10 @@
-import { type InjectionConstructor, Injector } from '@kartoffelgames/core-dependency-injection';
+import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
-import { Component, type ComponentProcessorConstructor } from './component.ts';
 import { ComponentRegister } from './component-register.ts';
+import { Component, type ComponentProcessorConstructor } from './component.ts';
 
 /**
  * AtScript. PWB Component.
@@ -13,9 +13,9 @@ import { ComponentRegister } from './component-register.ts';
  */
 export function PwbComponent(pParameter: HtmlComponentParameter): any {
     // Needs constructor without argument.
-    return (pComponentProcessorConstructor: ComponentProcessorConstructor) => {
+    return (pComponentProcessorConstructor: ComponentProcessorConstructor, pContext: ClassDecoratorContext) => {
         // Set component processor constructor to be injectable.
-        Injector.Injectable(pComponentProcessorConstructor);
+        Injection.registerInjectable(pComponentProcessorConstructor, pContext.metadata, 'instanced');
 
         // Register component constructor.
         ComponentRegister.registerConstructor(pComponentProcessorConstructor, pParameter.selector);

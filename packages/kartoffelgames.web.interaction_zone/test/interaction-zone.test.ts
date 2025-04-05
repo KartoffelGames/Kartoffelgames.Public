@@ -2,6 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import type { InteractionEvent } from '../source/zone/interaction-event.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import { PromiseRejectionEvent } from './mock/error-event.ts';
+import { InteractionZoneGlobalScope } from "../source/patcher/interaction-zone-global-scope.ts";
 
 Deno.test('InteractionZone.current', async (pContext) => {
     await pContext.step('Available Zone', () => {
@@ -233,7 +234,7 @@ Deno.test('InteractionZone.parent', async (pContext) => {
 
 Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
     await pContext.step('Synchron', async (pContext) => {
-        await pContext.step('Error listener called', async () => {
+        await pContext.step('Error listener called', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -258,7 +259,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerCalled).toBeTruthy();
         });
 
-        await pContext.step('Error listener called with correct error', async () => {
+        await pContext.step('Error listener called with correct error', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
             const lError: Error = new Error();
@@ -284,7 +285,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerError).toBe(lError);
         });
 
-        await pContext.step('Parent Error listener called', async () => {
+        await pContext.step('Parent Error listener called', () => {
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -310,7 +311,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerCalled).toBeTruthy();
         });
 
-        await pContext.step('Ignore Parent Error listener when default prevented', async () => {
+        await pContext.step('Ignore Parent Error listener when default prevented', () => {
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -340,7 +341,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerCalled).toBeFalsy();
         });
 
-        await pContext.step('Ignore Error listener for errors outside zone', async () => {
+        await pContext.step('Ignore Error listener for errors outside zone', () => {
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -366,7 +367,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerCalled).toBeFalsy();
         });
 
-        await pContext.step('Ignore Error listener for errors without zone', async () => {
+        await pContext.step('Ignore Error listener for errors without zone', () => {
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -386,7 +387,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             expect(lErrorListenerCalled).toBeFalsy();
         });
 
-        await pContext.step('Ignore Error listener for errors for errors that are none objects', async () => {
+        await pContext.step('Ignore Error listener for errors for errors that are none objects', () => {
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -409,6 +410,19 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
     await pContext.step('Asynchron', async (pContext) => {
         await pContext.step('Error listener called', async () => {
+            // Setup. Patched promise.
+            const lScopeTarget = {
+                promise: class <T> extends Promise<T> { }
+            };
+
+            // Process. Patch scope.
+            InteractionZoneGlobalScope.enable({
+                target: lScopeTarget,
+                patches: {
+                    promise: 'promise'
+                }
+            });
+
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -421,7 +435,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone. 
             const lPromise: Promise<void> = lInteractionZone.execute(async () => {
-                return new Promise<void>(() => { });
+                return new lScopeTarget.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
@@ -435,6 +449,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeTruthy();
+            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Error listener called with correct error', async () => {
@@ -465,6 +480,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerError).toBe(lError);
+            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Parent Error listener called', async () => {
@@ -494,6 +510,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             const lErrorListenerCalled = await lErrorCalledWaiter;
             // Evaluation.
             expect(lErrorListenerCalled).toBeTruthy();
+            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Ignore Parent Error listener when default prevented', async () => {
@@ -531,6 +548,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeFalsy();
+            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
 
         await pContext.step('Ignore Error listener called outside zone', async () => {
@@ -563,10 +581,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Evaluation.
             expect(lErrorListenerCalled).toBeFalsy();
+            expect(true).toBeFalsy(); // TODO: Whaaat!
         });
     });
 
-    await pContext.step('Convert non object errors into error objects for syncron errors', async () => {
+    await pContext.step('Convert non object errors into error objects for syncron errors', () => {
         // Setup.
         const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
         const lError: string = 'ERROR-MESSAGE';
@@ -585,7 +604,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         expect(lErrorResult?.message).toBe(lError);
     });
 
-    await pContext.step('Double added listener', async () => {
+    await pContext.step('Double added listener', () => {
         // Setup.
         const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 

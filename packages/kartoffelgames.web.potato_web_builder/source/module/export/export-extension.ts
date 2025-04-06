@@ -1,10 +1,11 @@
 import { List } from '@kartoffelgames/core';
-import { type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Component } from '../../core/component/component.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { PwbConfiguration } from "../../index.ts";
 
 @PwbExtensionModule({
     access: AccessMode.ReadWrite,
@@ -21,7 +22,7 @@ export class ExportExtension extends Processor {
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pComponent: Component) {
+    public constructor(pComponent = Injection.use(Component)) {
         super();
 
         this.mComponent = pComponent;
@@ -38,7 +39,7 @@ export class ExportExtension extends Processor {
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-             
+
         } while (lClass = Object.getPrototypeOf(lClass));
 
         const lDistinctExportedPropertys: Set<string> = new Set<string>(lExportedPropertyList);
@@ -97,8 +98,11 @@ export class ExportExtension extends Processor {
     private patchHtmlAttributes(pExportedAttributes: Set<string>): void {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
+        // Read global scope.
+        const lGlobalScope = PwbConfiguration.configuration.scope.window
+
         // Init mutation observerm observing attribute changes.
-        const lMutationObserver: MutationObserver = new globalThis.MutationObserver((pMutationList) => {
+        const lMutationObserver: MutationObserver = new lGlobalScope.MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
                 const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);
@@ -113,7 +117,7 @@ export class ExportExtension extends Processor {
 
         // Set initial state of attribute.
         for (const lAttributeName of pExportedAttributes) {
-            if (this.mComponent.element.hasAttribute(lAttributeName)) {                
+            if (this.mComponent.element.hasAttribute(lAttributeName)) {
                 const lCurrentAttributeValue: string = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName)!;
 
                 // Set again and trigger mutation observer.

@@ -1,12 +1,13 @@
-import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
+import { Injection } from "@kartoffelgames/core-dependency-injection";
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node.ts';
-import type { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
-import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
-import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator.ts';
-import { InstructionResult } from '../../core/module/instruction_module/instruction-result.ts';
-import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
 import { Processor } from '../../core/core_entity/processor.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
+import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
+import { InstructionResult } from '../../core/module/instruction_module/instruction-result.ts';
+import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator.ts';
 
 @PwbInstructionModule({
     instructionType: 'slot',
@@ -23,7 +24,7 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
      * @param pModuleValues - Values of modules.
      * @param pModuleExpression - Expression of module.
      */
-    public constructor(pModuleValues: ModuleDataLevel, pModuleExpression: ModuleExpression) {
+    public constructor(pModuleValues = Injection.use(ModuleDataLevel), pModuleExpression = Injection.use(ModuleExpression)) {
         super();
 
         this.mModuleValues = pModuleValues;

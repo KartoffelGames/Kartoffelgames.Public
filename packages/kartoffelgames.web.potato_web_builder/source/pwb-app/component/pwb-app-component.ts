@@ -1,11 +1,12 @@
-import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
+import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { ComponentRegister } from '../../core/component/component-register.ts';
+import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
 import { PwbComponent } from '../../core/component/pwb-component.decorator.ts';
-import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node.ts';
-import { PwbExport } from '../../module/export/pwb-export.decorator.ts';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
+import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 import { Processor } from '../../core/core_entity/processor.ts';
+import { PwbExport } from '../../module/export/pwb-export.decorator.ts';
 
 @PwbComponent({
     selector: 'pwb-app',
@@ -104,7 +105,7 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
     /**
      * Constructor.
      */
-    constructor(pComponent: Component) {
+    constructor(pComponent = Injection.use(Component)) {
         super();
 
         this.mContent = new PwbTemplate();
@@ -156,15 +157,18 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      * @returns promise that resolved when the splacescreen remove animation finishes.
      */
     @PwbExport async removeSplashScreen(): Promise<void> {
+        // Read global scope.
+        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window;
+
         // Wait for the next frame to give the splashscreen at least one frame time to set the default styles before applying transitions.
-        globalThis.requestAnimationFrame(() => {
+        lGlobalScope.requestAnimationFrame(() => {
             this.splashscreenState.hide = true;
         });
 
         // Remove splashscreen after transition.
         return new Promise<void>((pResolve) => {
             // Wait for transition to end.
-            globalThis.setTimeout(() => {
+            setTimeout(() => {
                 // Remove 
                 this.splashscreenState.append = false;
 

@@ -1,10 +1,11 @@
-import type { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Processor } from '../../core/core_entity/processor.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import type { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import type { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
-import type { LevelProcedure } from '../../core/data/level-procedure.ts';
-import { Processor } from '../../core/core_entity/processor.ts';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
 
 /**
  * Wannabe Mustache expression executor.
@@ -22,7 +23,7 @@ export class MustacheExpressionModule extends Processor implements IExpressionOn
      * @param pModuleValues - Values of module scope.
      * @param pModuleExpression - Expression value.
      */
-    public constructor(pModuleValues: ModuleDataLevel, pModuleExpression: ModuleExpression) {
+    public constructor(pModuleValues = Injection.use(ModuleDataLevel), pModuleExpression = Injection.use(ModuleExpression)) {
         super();
 
         this.mProcedure = pModuleValues.createExpressionProcedure(pModuleExpression.value);

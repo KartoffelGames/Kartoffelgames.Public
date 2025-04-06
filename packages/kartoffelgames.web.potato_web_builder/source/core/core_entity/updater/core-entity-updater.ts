@@ -209,7 +209,7 @@ export class CoreEntityUpdater {
         }
 
         // Measure performance.
-        const lStartPerformance = globalThis.performance.now();
+        const lStartPerformance = performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
         if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > PwbConfiguration.configuration.updating.frameTime) {
@@ -226,7 +226,7 @@ export class CoreEntityUpdater {
 
         // Log performance time.
         if (PwbConfiguration.configuration.log.updatePerformance) {
-            const lCurrentTimestamp: number = globalThis.performance.now();
+            const lCurrentTimestamp: number = performance.now();
 
             PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
                 '\n\t', 'Cycle:', lCurrentTimestamp - pUpdateCycle.timeStamp, 'ms',
@@ -313,7 +313,7 @@ export class CoreEntityUpdater {
                     // Logable reshedules.
                     if (PwbConfiguration.configuration.log.updateReshedule) {
                         PwbConfiguration.print(this.mLogLevel, 'Reshedule:', this.mInteractionZone.name,
-                            '\n\t', 'Cycle Performance', globalThis.performance.now() - pRunningCycle.timeStamp,
+                            '\n\t', 'Cycle Performance', performance.now() - pRunningCycle.timeStamp,
                             '\n\t', 'Runner Id:', pRunningCycle.runner.id.toString(),
                         );
                     }
@@ -345,8 +345,11 @@ export class CoreEntityUpdater {
             this.mUpdateStates.async.sheduledTaskIsResheduled = true;
         }
 
+        // Read global scope.
+        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window
+
         // Shedule task on next render frame.
-        globalThis.requestAnimationFrame(() => {
+        lGlobalScope.requestAnimationFrame(() => {
             if (pResheduledCycle) {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
                 CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lCycleUpdate);

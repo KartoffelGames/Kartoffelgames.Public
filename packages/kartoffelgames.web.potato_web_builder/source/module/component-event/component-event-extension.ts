@@ -1,11 +1,10 @@
-import { Exception } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Injection, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Component, type ComponentProcessorConstructor } from '../../core/component/component.ts';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 import { ComponentEventEmitter } from './component-event-emitter.ts';
-import { Processor } from '../../core/core_entity/processor.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
@@ -22,7 +21,7 @@ export class ComponentEventExtension extends Processor{
      * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pComponent - Component processor.
      */
-    public constructor(pComponent: Component) {
+    public constructor(pComponent = Injection.use(Component)) {
         super();
         
         // Find all event properties of current class layer and add all to merged property list.

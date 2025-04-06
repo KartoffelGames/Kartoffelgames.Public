@@ -212,11 +212,15 @@ describe('HtmlComponent', () => {
             updateScope: UpdateMode.Manual
         })
         class TestComponent extends Processor {
+            private readonly mComponent: Component;
+
             @PwbExport
             public value: string = lInitialValue;
 
-            public constructor(private readonly mComponent = Injection.use(Component)) {
+            public constructor(pComponent = Injection.use(Component)) {
                 super();
+
+                this.mComponent = pComponent;
             }
 
             @PwbExport
@@ -391,7 +395,7 @@ describe('HtmlComponent', () => {
         })
         class TestComponent extends Processor {
             private readonly mElementReference: Node;
-            public constructor(pElementReference: Component) {
+            public constructor(pElementReference = Injection.use(Component)) {
                 super();
 
                 this.mElementReference = pElementReference.element;

@@ -4,16 +4,17 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
+import { Injection } from "../../../../kartoffelgames.core.dependency_injection/source/index.ts";
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { DataLevel } from '../../../source/core/data/data-level.ts';
-import type { ModuleDataLevel } from '../../../source/core/data/module-data-level.ts';
+import { ModuleDataLevel } from '../../../source/core/data/module-data-level.ts';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum.ts';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
-import type { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template.ts';
+import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template.ts';
 import type { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module.ts';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
@@ -307,8 +308,14 @@ describe('ComponentEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule extends Processor implements IInstructionOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleDataLevel) {
+            private readonly mTemplate: ModuleTemplate;
+            private readonly mValue: ModuleDataLevel;
+
+            public constructor(pTemplate = Injection.use(ModuleTemplate), pValue = Injection.use(ModuleDataLevel)) {
                 super();
+
+                this.mTemplate = pTemplate;
+                this.mValue = pValue;
             }
 
             onUpdate(): InstructionResult | null {

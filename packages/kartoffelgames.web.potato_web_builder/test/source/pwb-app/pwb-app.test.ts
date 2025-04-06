@@ -186,7 +186,7 @@ describe('PwbApp', () => {
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
-            expect(lContent instanceof HTMLStyleElement).toBeTruthy();
+            expect(lContent instanceof MOCK_WINDOW.HTMLStyleElement).toBeTruthy();
             expect(lContent.textContent).toBe(lStyleContent);
         });
 
@@ -207,7 +207,7 @@ describe('PwbApp', () => {
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
-            expect(lContent instanceof HTMLStyleElement).toBeTruthy();
+            expect(lContent instanceof MOCK_WINDOW.HTMLStyleElement).toBeTruthy();
             expect(lContent.textContent).toBe(lStyleContent);
         });
     });

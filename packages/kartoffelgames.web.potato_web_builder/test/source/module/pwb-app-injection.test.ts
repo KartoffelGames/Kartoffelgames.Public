@@ -4,6 +4,7 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
+import { Injection } from "../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts";
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum.ts';
@@ -20,7 +21,7 @@ describe('PwbAppInjection', () => {
             selector: lSelector
         })
         class TestComponent extends Processor {
-            public constructor(pApp: PwbApp) {
+            public constructor(pApp = Injection.use(PwbApp)) {
                 super();
 
                 lApp = pApp;
@@ -60,7 +61,7 @@ describe('PwbAppInjection', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class CapsuledTestComponent extends Processor {
-            public constructor(pApp: PwbApp) {
+            public constructor(pApp = Injection.use(PwbApp)) {
                 super();
 
                 lApp = pApp;
@@ -110,7 +111,7 @@ describe('PwbAppInjection', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class ChildChildTestComponent extends Processor {
-            public constructor(pApp: PwbApp) {
+            public constructor(pApp = Injection.use(PwbApp)) {
                 super();
 
                 lApp = pApp;
@@ -170,7 +171,7 @@ describe('PwbAppInjection', () => {
 
         class TestComponent extends Processor {
 
-            public constructor(_pApp: PwbApp) {
+            public constructor(_pApp = Injection.use(PwbApp)) {
                 super();
             }
         }
@@ -206,7 +207,7 @@ describe('PwbAppInjection', () => {
             updateScope: UpdateMode.Isolated
         })
         class TestComponent extends Processor {
-            public constructor(pApp: PwbApp) {
+            public constructor(pApp = Injection.use(PwbApp)) {
                 super();
                 lApp = pApp;
             }

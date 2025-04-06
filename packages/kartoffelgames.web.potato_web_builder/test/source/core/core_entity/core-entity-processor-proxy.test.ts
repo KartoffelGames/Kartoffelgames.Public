@@ -1,21 +1,14 @@
+// Import mock at start of file. Has side effects on the test environment.
+import '../../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { describe, it } from '@std/testing/bdd';
 import { type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../../../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
-import { PwbConfiguration } from "../../../../source/core/configuration/pwb-configuration.ts";
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
+import { MOCK_WINDOW } from "../../../utility/test-util.ts";
 
 describe('CoreEntityProcessorProxy', () => {
     it('Property: proxy', () => {
@@ -754,7 +747,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             it('-- Native events', async () => {
                 // Setup.
-                const lProxy: HTMLDivElement = new CoreEntityProcessorProxy(document.createElement('div')).proxy;
+                const lProxy: HTMLDivElement = new CoreEntityProcessorProxy(MOCK_WINDOW.document.createElement('div')).proxy;
 
                 // Setup. InteractionZone.
                 const lListenerWaiter = new Promise<void>((pResolve) => {
@@ -791,7 +784,7 @@ describe('CoreEntityProcessorProxy', () => {
 
             it('-- Native events - Check without proxy', async () => {
                 // Setup.
-                const lProxy: HTMLDivElement = document.createElement('div');
+                const lProxy: HTMLDivElement = MOCK_WINDOW.document.createElement('div');
 
                 // Setup. InteractionZone.
                 const lListenerWaiter = new Promise<void>((pResolve) => {

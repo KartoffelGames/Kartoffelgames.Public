@@ -3,7 +3,10 @@ import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injec
 import { expect } from '@std/expect';
 import { DeepEqual } from './to-be-deep-equal.ts';
 
-const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pExpectedStructure: T, pActualNode: Node): T => {
+// @deno-types="npm:@types/jsdom"
+import type { DOMWindow } from 'npm:jsdom';
+
+const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pGlobalContext: DOMWindow, pExpectedStructure: T, pActualNode: Node): T => {
     // Check if structure or constructor.
     if (typeof pExpectedStructure === 'function') {
         return <T><InjectionConstructor>pActualNode.constructor;
@@ -18,11 +21,11 @@ const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStr
 
         // Recreate child list.
         if ('childs' in lExpectedStructure) {
-            if (pActualNode instanceof Element) {
+            if (pActualNode instanceof pGlobalContext.Element) {
                 if (lExpectedStructure.useShadowRoot) {
-                    lNewStructure.childs = gRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, <ShadowRoot>pActualNode.shadowRoot);
+                    lNewStructure.childs = gRecreateComponentChildStructure(pGlobalContext, <ComponentStructure>lExpectedStructure.childs, <ShadowRoot>pActualNode.shadowRoot);
                 } else {
-                    lNewStructure.childs = gRecreateComponentChildStructure(<ComponentStructure>lExpectedStructure.childs, pActualNode);
+                    lNewStructure.childs = gRecreateComponentChildStructure(pGlobalContext, <ComponentStructure>lExpectedStructure.childs, pActualNode);
                 }
             } else {
                 lNewStructure.childs = null;
@@ -36,7 +39,7 @@ const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStr
 
         // Recreate attributes.
         if ('attributes' in lExpectedStructure) {
-            if (pActualNode instanceof Element) {
+            if (pActualNode instanceof pGlobalContext.Element) {
                 // Create empty attribute list.
                 lNewStructure.attributes = new Array<{ name: string, value: string; } | null>();
 
@@ -68,7 +71,7 @@ const gRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStr
     }
 };
 
-const gRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure, pActualElement: Element | ShadowRoot): ComponentStructure => {
+const gRecreateComponentChildStructure = (pGlobalContext: DOMWindow, pExpectedStructure: ComponentStructure, pActualElement: Element | ShadowRoot): ComponentStructure => {
     const lRecreatedStructureList: ComponentStructure = new Array<InjectionConstructor | ChildNodeStructure>();
 
     // Get max length of expected or actual childs.
@@ -84,7 +87,7 @@ const gRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure
             lRecreatedStructureList.push(null);
         } else {
             // Try to recreate component structure.
-            lRecreatedStructureList.push(gRecreateElementStructure(lExpectedChild, lActualChild));
+            lRecreatedStructureList.push(gRecreateElementStructure(pGlobalContext, lExpectedChild, lActualChild));
         }
     }
 
@@ -94,18 +97,18 @@ const gRecreateComponentChildStructure = (pExpectedStructure: ComponentStructure
 
 // Extend expect with deepEqual.
 expect.extend({
-    toBeComponentStructure(pContext, pStructure: ComponentStructure, pUseShadowRoot: boolean) {
+    toBeComponentStructure(pContext, pGlobalContext: DOMWindow, pStructure: ComponentStructure, pUseShadowRoot: boolean) {
         // Cant compare none 
-        if (!(pContext.value instanceof Element)) {
+        if (!(pContext.value instanceof pGlobalContext.Element)) {
             // Must fail even when test is negated.
             return { message: () => `Expected value to be an html element.`, pass: false !== pContext.isNot };
         }
 
         let lActualStructure: ComponentStructure;
         if (pUseShadowRoot) {
-            lActualStructure = gRecreateComponentChildStructure(pStructure, pContext.value.shadowRoot!);
+            lActualStructure = gRecreateComponentChildStructure(pGlobalContext, pStructure, pContext.value.shadowRoot!);
         } else {
-            lActualStructure = gRecreateComponentChildStructure(pStructure, pContext.value);
+            lActualStructure = gRecreateComponentChildStructure(pGlobalContext, pStructure, pContext.value);
         }
 
         const [lCheckPassed, lMessage] = DeepEqual('[ROOT]', pStructure, lActualStructure, new Dictionary<object, object>());

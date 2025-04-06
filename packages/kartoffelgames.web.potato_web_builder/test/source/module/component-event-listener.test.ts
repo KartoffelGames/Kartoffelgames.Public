@@ -1,9 +1,12 @@
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { DataLevel } from '../../../source/core/data/data-level.ts';
 import type { ModuleDataLevel } from '../../../source/core/data/module-data-level.ts';
@@ -19,26 +22,8 @@ import type { ComponentEventEmitter } from '../../../source/module/component-eve
 import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
-import '../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
 
 describe('ComponentEventListener', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('-- Component click event', async () => {
         // Setup. Define component and wait for update.
         const lEventResult = await new Promise<MouseEvent>((pResolve) => {

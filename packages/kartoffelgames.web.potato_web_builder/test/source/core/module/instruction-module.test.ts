@@ -1,35 +1,21 @@
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
+import { Injection } from "../../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts";
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
-import type { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
+import { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import type { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
 import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
-import '../../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
 
 describe('Custom Module', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('-- Same result, twice', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
@@ -40,7 +26,7 @@ describe('Custom Module', () => {
         class WrongModule extends Processor implements IInstructionOnUpdate {
             private readonly mDataLevel: ComponentDataLevel;
 
-            public constructor(pValueReference: ComponentDataLevel) {
+            public constructor(pValueReference = Injection.use(ComponentDataLevel)) {
                 super();
 
                 this.mDataLevel = pValueReference;

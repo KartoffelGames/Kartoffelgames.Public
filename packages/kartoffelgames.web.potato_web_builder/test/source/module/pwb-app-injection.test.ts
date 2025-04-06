@@ -1,32 +1,15 @@
+// Import mock at start of file.
+import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum.ts';
-import '../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
-
-// Import after mocking dom.
 import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 
 describe('PwbAppInjection', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('-- PwbApp injection on global element', async () => {
         // Process.
         let lApp: PwbApp | null = null;
@@ -184,7 +167,7 @@ describe('PwbAppInjection', () => {
             selector: lSelector,
             template: '<div/>'
         })
-         
+
         class TestComponent extends Processor {
 
             public constructor(_pApp: PwbApp) {
@@ -193,7 +176,7 @@ describe('PwbAppInjection', () => {
         }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>globalThis.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>MOCK_WINDOW.customElements.get(lSelector);
 
         // Process.
         let lMessage: string | null = null;

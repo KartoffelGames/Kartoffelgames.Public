@@ -1,35 +1,16 @@
+// Import mock at start of file.
+import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
-import '../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM, DOMWindow } from 'npm:jsdom';
-
-// Setup global scope.
-const MOCK_WINDOW: DOMWindow = (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-
-    return lMockDom.window;
-})();
-
-// Import app after mock.
 import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 
 describe('PwbApp', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('Property: component', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
@@ -87,7 +68,7 @@ describe('PwbApp', () => {
             const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
 
             // Evaluation.
-            expect(lContent).toBeComponentStructure([
+            expect(lContent).toBeComponentStructure(MOCK_WINDOW, [
                 MOCK_WINDOW.Comment,
                 MOCK_WINDOW.HTMLDivElement
             ], true);
@@ -110,7 +91,7 @@ describe('PwbApp', () => {
     describe('Method: appendTo', () => {
         it('-- Default', async () => {
             // Setup.
-            const lDummyElement: HTMLDivElement = document.createElement('div');
+            const lDummyElement: HTMLDivElement = MOCK_WINDOW.document.createElement('div');
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
@@ -131,11 +112,11 @@ describe('PwbApp', () => {
             });
 
             // Process. Append and wait for splash screen remove
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
             await TestUtil.waitForUpdate(lApp.component);
 
             // Process
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
             await TestUtil.waitForUpdate(lApp.component);
         });
     });
@@ -164,7 +145,7 @@ describe('PwbApp', () => {
         // Setup. Init app.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ manual: true, animationTime: 0 });
-        lApp.appendTo(document.body);
+        lApp.appendTo(MOCK_WINDOW.document.body);
 
         // Process. Lof error.
         let lErrorMessageResult: string | null = null;
@@ -196,7 +177,7 @@ describe('PwbApp', () => {
 
             // Setup. Init app.
             const lApp: PwbApp = new PwbApp();
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
 
             // Process.
             lApp.addStyle(lStyleContent);
@@ -216,7 +197,7 @@ describe('PwbApp', () => {
             // Setup. Init app.
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ animationTime: 0 });
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
 
             // Process. Add style and wait.
             lApp.addStyle(lStyleContent);
@@ -235,7 +216,7 @@ describe('PwbApp', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ animationTime: 0 });
-        lApp.appendTo(document.body);
+        lApp.appendTo(MOCK_WINDOW.document.body);
 
         // Process
         await lApp.removeSplashScreen();
@@ -286,7 +267,7 @@ describe('PwbApp', () => {
 
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
@@ -315,7 +296,7 @@ describe('PwbApp', () => {
             });
 
             // Process. Append and wait for splash screen remove
-            lApp.appendTo(document.body);
+            lApp.appendTo(MOCK_WINDOW.document.body);
             const lBeforeRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process

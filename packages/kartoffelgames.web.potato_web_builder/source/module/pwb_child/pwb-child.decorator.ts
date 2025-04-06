@@ -1,7 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import type { Component, ComponentProcessor } from '../../core/component/component.ts';
 import { ComponentRegister } from '../../core/component/component-register.ts';
+import type { Component, ComponentProcessor } from '../../core/component/component.ts';
 import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
+import { PwbConfiguration } from "../../index.ts";
 
 /**
  * AtScript. Id child 
@@ -13,7 +14,10 @@ export function PwbChild(pIdChildName: string): any {
         if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbChild);
         }
-        
+
+        // Read global scope.
+        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window;
+
         // Define getter accessor that returns id child.
         return {
             get(this: ComponentProcessor) {
@@ -30,12 +34,12 @@ export function PwbChild(pIdChildName: string): any {
                 const lComponentRootValues: ComponentDataLevel = lComponent.getProcessorAttribute(ComponentDataLevel)!;
                 const lIdChild: any = lComponentRootValues.data.store[pIdChildName];
 
-                if (lIdChild instanceof Element) {
+                if (lIdChild instanceof lGlobalScope.Element) {
                     return lIdChild;
                 } else {
                     throw new Exception(`Can't find child "${pIdChildName}".`, this);
                 }
             }
-        }
+        };
     };
 }

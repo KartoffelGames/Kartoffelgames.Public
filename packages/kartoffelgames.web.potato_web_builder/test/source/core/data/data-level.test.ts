@@ -1,32 +1,19 @@
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { before, describe, it } from '@std/testing/bdd';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { DataLevel } from '../../../../source/core/data/data-level.ts';
-import '../../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
 
 describe('DataLevel', () => {
     let lComponent: Component;
 
     before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })

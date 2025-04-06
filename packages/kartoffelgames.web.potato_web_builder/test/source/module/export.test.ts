@@ -1,29 +1,14 @@
+// Import mock at start of file.
+import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
-import '../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
-
-// Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-})();
 
 describe('Export', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('-- Default export get', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
@@ -136,7 +121,7 @@ describe('Export', () => {
     });
 
     it('-- Get unexported value with getAttribute', async () => {
-         // Setup. Define component.
+        // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
@@ -160,7 +145,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor { 
+        class TestComponent extends Processor {
             @PwbExport
             public value: string = '';
         }
@@ -259,7 +244,7 @@ describe('Export', () => {
 
         // Process. Set component with value in DOM and try to read it.
         document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
-        const lComponent: HTMLElement & TestComponent = <any>document.body.querySelector(lSelector);
+        const lComponent: HTMLElement & TestComponent = MOCK_WINDOW.document.body.querySelector(lSelector)!;
 
         // Process. Start a async task to let the mutation observer to it thing.
         lComponent.justSomethingThatStartsUpdate = 'RED or GREEN i dont know';

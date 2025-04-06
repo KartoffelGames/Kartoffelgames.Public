@@ -1,6 +1,10 @@
 import type { Async, Expected } from '@std/expect';
 import type { ComponentStructure } from './extensions/to-be-component-structure.ts';
 
+// TODO: Remove JSDOM import.
+// @deno-types="npm:@types/jsdom"
+import type { DOMWindow } from 'npm:jsdom';
+
 // Extends the `Expected` interface with your new matchers signatures
 export interface ExtendedExpected<TIsAsync = false> extends Expected<TIsAsync> {
     /**
@@ -24,7 +28,7 @@ export interface ExtendedExpected<TIsAsync = false> extends Expected<TIsAsync> {
      * @param pStructure - Expected structure.
      * @param pUseShadowRoot - Use shadow root or threat it as a closed element.
      */
-    toBeComponentStructure: (pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
+    toBeComponentStructure: (pGlobalContext: DOMWindow, pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
 
     // NOTE: You also need to overrides the following typings to allow modifiers to correctly infer typing
     not: TIsAsync extends true ? Async<ExtendedExpected<true>> : ExtendedExpected<false>;

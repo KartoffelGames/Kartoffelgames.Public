@@ -1,7 +1,12 @@
+// Import mock at start of file.
+import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
+
+// Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { before, describe, it } from '@std/testing/bdd';
+import { describe, it } from '@std/testing/bdd';
+import { Injection } from "../../../../../kartoffelgames.core.dependency_injection/source/index.ts";
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
-import type { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
@@ -12,28 +17,8 @@ import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.
 import type { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
-import '../../../utility/request-animation-frame-mock-session.ts';
-import { TestUtil } from '../../../utility/test-util.ts';
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM, DOMWindow } from 'npm:jsdom';
-
-// Setup global scope.
-const MOCK_WINDOW: DOMWindow = (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-
-    return lMockDom.window;
-})();
 
 describe('HtmlComponent', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
     it('-- Single element', async () => {
         // Setup. Define component.
         @PwbComponent({
@@ -48,7 +33,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             MOCK_WINDOW.HTMLDivElement
         ], true);
@@ -68,7 +53,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(3);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             MOCK_WINDOW.HTMLDivElement,
             MOCK_WINDOW.HTMLSpanElement
@@ -89,7 +74,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -98,11 +83,11 @@ describe('HtmlComponent', () => {
         ], true);
     });
 
-    it('-- Ignore MOCK_WINDOW.Comments', async () => {
+    it('-- Ignore Comments', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div><!-- MOCK_WINDOW.Comment --></div>'
+            template: '<div><!-- Comment --></div>'
         })
         class TestComponent extends Processor { }
 
@@ -113,7 +98,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -160,7 +145,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment
         ], true);
     });
@@ -180,7 +165,7 @@ describe('HtmlComponent', () => {
         const lStyleElement: HTMLStyleElement = <HTMLStyleElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[0];
 
         // Evaluation
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.HTMLStyleElement,
             MOCK_WINDOW.Comment
         ], true);
@@ -206,7 +191,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -230,7 +215,7 @@ describe('HtmlComponent', () => {
             @PwbExport
             public value: string = lInitialValue;
 
-            public constructor(private readonly mComponent: Component) {
+            public constructor(private readonly mComponent = Injection.use(Component)) {
                 super();
             }
 
@@ -245,7 +230,7 @@ describe('HtmlComponent', () => {
         lComponent.value = lNewValue;
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -258,7 +243,7 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -350,7 +335,7 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment, // Component Anchor
             {
                 node: MOCK_WINDOW.HTMLDivElement,
@@ -373,7 +358,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             MOCK_WINDOW.HTMLUnknownElement
         ], true);
@@ -393,7 +378,7 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([
+        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
             MOCK_WINDOW.Comment,
             MOCK_WINDOW.HTMLElement
         ], true); // HTMLUnknownElement not creates in JSDOM.
@@ -525,7 +510,7 @@ describe('HtmlComponent', () => {
             public innerValue: number = 1;
 
             private readonly mComponent: Component;
-            public constructor(pComponent: Component) {
+            public constructor(pComponent = Injection.use(Component)) {
                 super();
 
                 this.mComponent = pComponent;

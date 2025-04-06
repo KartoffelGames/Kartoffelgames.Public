@@ -8,7 +8,7 @@ import type { ComponentProcessorConstructor } from '../../core/component/compone
  * @param pEventName - Name of event.
  */
 export function PwbComponentEventListener(pEventName: string): any {
-    return (pTarget: object, pPropertyKey: string, _pDescriptor: PropertyDescriptor): void => {
+    return (pTarget: object, pPropertyKey: string, _pDescriptor: PropertyDescriptor): void => { // TODO: DECORATOR REWORK NEEDED.
         // Usually Class Prototype. Globaly.
         const lPrototype: object = pTarget;
         const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;

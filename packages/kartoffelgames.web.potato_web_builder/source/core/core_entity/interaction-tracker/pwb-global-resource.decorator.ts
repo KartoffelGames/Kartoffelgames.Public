@@ -7,7 +7,7 @@ import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
  * Enables tracking of global static resources.
  */
 export function PwbGlobalResource(): any {
-    return (pProcessorConstructor: InjectionConstructor) => {
+    return (pProcessorConstructor: InjectionConstructor) => {  // TODO: DECORATOR REWORK NEEDED.
 
         const lStaticProxy: InjectionConstructor = new CoreEntityProcessorProxy(pProcessorConstructor).proxy;
 

@@ -243,7 +243,7 @@ describe('Export', () => {
         }
 
         // Process. Set component with value in DOM and try to read it.
-        document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
+        MOCK_WINDOW.document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
         const lComponent: HTMLElement & TestComponent = MOCK_WINDOW.document.body.querySelector(lSelector)!;
 
         // Process. Start a async task to let the mutation observer to it thing.

@@ -191,7 +191,7 @@ describe('PwbAppInjection', () => {
         }
 
         // Evaluation.
-        expect(lMessage).toBe('Parameter "PwbApp" of TestComponent is not registered to be injectable.');
+        expect(lMessage).toBe('Constructor "PwbApp" is not registered for injection and can not be build');
     });
 
     it('-- Creation with isloated component', async () => {

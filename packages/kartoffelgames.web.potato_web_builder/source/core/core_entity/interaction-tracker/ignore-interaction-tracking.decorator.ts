@@ -5,7 +5,7 @@ import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
  * 
  * @param pConstructor - Class.
  */
-export function IgnoreInteractionTracking(pConstructor: any): void {
+export function IgnoreInteractionTracking(pConstructor: any): void {  // TODO: DECORATOR REWORK NEEDED.
     CoreEntityProcessorProxy.ignoreClass(pConstructor);
 }
 

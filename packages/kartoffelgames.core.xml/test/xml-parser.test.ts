@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { CodeParserException } from '../../kartoffelgames.core.parser/source/index.ts';
+import { CodeParserException } from '@kartoffelgames/core-parser';
 import type { XmlAttribute } from '../source/attribute/xml-attribute.ts';
 import type { XmlDocument } from '../source/document/xml-document.ts';
 import type { CommentNode } from '../source/node/comment-node.ts';

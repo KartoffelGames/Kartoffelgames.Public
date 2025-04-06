@@ -1,4 +1,4 @@
-import { Exception } from '../../../kartoffelgames.core/source/index.ts';
+import { Exception } from '@kartoffelgames/core';
 import type { Graph } from './graph/graph.ts';
 
 /**

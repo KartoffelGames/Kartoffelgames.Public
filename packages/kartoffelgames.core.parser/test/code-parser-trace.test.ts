@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
-import { Graph } from '../source/parser/graph/graph.ts';
-import { GraphNode } from '../source/index.ts';
 import { CodeParserTrace } from '../source/parser/code-parser-trace.ts';
+import { GraphNode } from "../source/parser/graph/graph-node.ts";
+import { Graph } from '../source/parser/graph/graph.ts';
 
 Deno.test('CodeParserTrace.incidents', async (pContext) => {
     await pContext.step('Default', () => {

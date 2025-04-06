@@ -5,7 +5,7 @@ import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
-import { PwbConfiguration } from "../../index.ts";
+import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 
 @PwbExtensionModule({
     access: AccessMode.ReadWrite,

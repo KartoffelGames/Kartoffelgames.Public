@@ -1,4 +1,4 @@
-import { Dictionary } from '../../../kartoffelgames.core/source/index.ts';
+import { Dictionary } from '@kartoffelgames/core';
 import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 

@@ -8,14 +8,16 @@ import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return lMockDom.window;
 })();
 
 describe('ForInstruction', () => {
@@ -42,14 +44,14 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
-                Comment, // -- Manipulator 3. Child Anchor
-                HTMLDivElement, // 3. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 3. Element
             ], true);
         });
 
@@ -73,12 +75,12 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
             ], true);
         });
 
@@ -102,10 +104,10 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement // 1. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement // 1. Element
             ], true);
         });
 
@@ -129,14 +131,14 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
-                Comment, // -- Manipulator 3. Child Anchor
-                HTMLDivElement // 3. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
+                MOCK_WINDOW.HTMLDivElement // 3. Element
             ], true);
         });
 
@@ -160,12 +162,12 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement // 2. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement // 2. Element
             ], true);
         });
 
@@ -186,16 +188,16 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: '0'
                 },
-                Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: '1'
                 }
             ], true);
@@ -221,11 +223,11 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: lTextContent
                 }
             ], true);
@@ -254,11 +256,11 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: lTextContent
                 }
             ], true);
@@ -282,8 +284,8 @@ describe('ForInstruction', () => {
 
             // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
             ], true);
         });
     });
@@ -306,14 +308,14 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
-                Comment, // -- Manipulator 3. Child Anchor
-                HTMLDivElement, // 3. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 3. Element
             ], true);
         });
 
@@ -337,12 +339,12 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
             ], true);
         });
 
@@ -366,10 +368,10 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement // 1. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement // 1. Element
             ], true);
         });
 
@@ -393,12 +395,12 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement // 2. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement // 2. Element
             ], true);
         });
 
@@ -426,11 +428,11 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: lTextContent.toString()
                 }
             ], true);
@@ -453,16 +455,16 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: 'One'
                 },
-                Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: 'Two'
                 }
             ], true);
@@ -488,11 +490,11 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: lTextContent.toString()
                 }
             ], true);
@@ -524,14 +526,14 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
-                HTMLDivElement, // 1. Element
-                Comment, // -- Manipulator 2. Child Anchor
-                HTMLDivElement, // 2. Element
-                Comment, // -- Manipulator 3. Child Anchor
-                HTMLDivElement, // 3. Element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 1. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 2. Element
+                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
+                MOCK_WINDOW.HTMLDivElement, // 3. Element
             ], true);
         });
     });
@@ -575,21 +577,21 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: 'a'
                 },
-                Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: 'a'
                 },
-                Comment, // -- Manipulator 3. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: 'a'
                 }
             ], true);
@@ -615,16 +617,16 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: (0 * 2).toString()
                 },
-                Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: (1 * 2).toString()
                 }
             ], true);
@@ -650,16 +652,16 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Anchor
-                Comment, // -- Manipulator 1. Child Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: (0 * lList[0]).toString()
                 },
-                Comment, // -- Manipulator 2. Child Anchor
+                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     textContent: (1 * lList[1]).toString()
                 }
             ], true);
@@ -693,26 +695,26 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                Comment, // - Manipulator Parent Anchor
-                Comment, // Static
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // - Manipulator Parent Anchor
+                MOCK_WINDOW.Comment, // Static
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     childs: [
                         // First For element.
-                        Comment, // Manipulator
-                        Comment, // Static
-                        HTMLDivElement,
+                        MOCK_WINDOW.Comment, // Manipulator
+                        MOCK_WINDOW.Comment, // Static
+                        MOCK_WINDOW.HTMLDivElement,
                     ]
                 },
-                Comment, // Static
+                MOCK_WINDOW.Comment, // Static
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     childs: [
                         // First For element.
-                        Comment, // Manipulator
-                        Comment, // Static
-                        HTMLDivElement,
+                        MOCK_WINDOW.Comment, // Manipulator
+                        MOCK_WINDOW.Comment, // Static
+                        MOCK_WINDOW.HTMLDivElement,
                     ]
                 }
             ], true);
@@ -739,12 +741,12 @@ describe('ForInstruction', () => {
             // Evaluation.
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
-                HTMLDivElement,
-                Comment, // - Instruction Anchor
-                Comment, // Static Anchor
-                HTMLDivElement,
-                HTMLDivElement, // Static element
+                MOCK_WINDOW.Comment, // Component Anchor
+                MOCK_WINDOW.HTMLDivElement,
+                MOCK_WINDOW.Comment, // - Instruction Anchor
+                MOCK_WINDOW.Comment, // Static Anchor
+                MOCK_WINDOW.HTMLDivElement,
+                MOCK_WINDOW.HTMLDivElement, // Static element
             ], true);
         });
 
@@ -768,13 +770,13 @@ describe('ForInstruction', () => {
 
             // Evaluation.
             expect(lComponent).toBeComponentStructure([
-                Comment, // Component Anchor
+                MOCK_WINDOW.Comment, // Component Anchor
                 {
-                    node: HTMLDivElement,
+                    node: MOCK_WINDOW.HTMLDivElement,
                     childs: [
-                        Comment, // - Manipulator Parent Anchor
-                        Comment, // Static
-                        HTMLDivElement,
+                        MOCK_WINDOW.Comment, // - Manipulator Parent Anchor
+                        MOCK_WINDOW.Comment, // Static
+                        MOCK_WINDOW.HTMLDivElement,
                     ]
                 }
             ], true);
@@ -804,6 +806,4 @@ describe('ForInstruction', () => {
         // Evaluation.
         expect(lComponent).toBeComponentStructure([], true);
     });
-
-
 });

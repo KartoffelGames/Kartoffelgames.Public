@@ -4,7 +4,6 @@ import { PwbComponent } from '../../../source/core/component/pwb-component.decor
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum.ts';
-import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
@@ -13,11 +12,14 @@ import { JSDOM } from 'npm:jsdom';
 
 // Setup global scope.
 (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
 })();
+
+// Import after mocking dom.
+import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 
 describe('PwbAppInjection', () => {
     before(() => {

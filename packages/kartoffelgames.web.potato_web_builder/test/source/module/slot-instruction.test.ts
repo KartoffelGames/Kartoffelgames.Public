@@ -8,17 +8,16 @@ import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const HTMLSlotElement: InjectionConstructor = (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
 
-    return PwbConfiguration.configuration.scope.document.createElement('slot').constructor as InjectionConstructor;
+    return lMockDom.window;
 })();
 
 describe('SlotInstruction', () => {
@@ -41,10 +40,10 @@ describe('SlotInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // Instruction Anchor
-            Comment, // Static Anchor
-            HTMLSlotElement
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Instruction Anchor
+            MOCK_WINDOW.Comment, // Static Anchor
+            MOCK_WINDOW.HTMLSlotElement
         ], true);
         expect(lSlotName).toBeNull();
     });
@@ -65,11 +64,11 @@ describe('SlotInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // Instruction Anchor
-            Comment, // Static Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Instruction Anchor
+            MOCK_WINDOW.Comment, // Static Anchor
             {
-                node: HTMLSlotElement,
+                node: MOCK_WINDOW.HTMLSlotElement,
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
@@ -92,11 +91,11 @@ describe('SlotInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // Instruction Anchor
-            Comment, // Static Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Instruction Anchor
+            MOCK_WINDOW.Comment, // Static Anchor
             {
-                node: HTMLSlotElement,
+                node: MOCK_WINDOW.HTMLSlotElement,
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);

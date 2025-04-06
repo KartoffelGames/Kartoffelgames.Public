@@ -10,14 +10,16 @@ import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return lMockDom.window;
 })();
 
 describe('DynamicContent', () => {
@@ -51,10 +53,10 @@ describe('DynamicContent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator 1. Child Anchor
-            HTMLDivElement
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+            MOCK_WINDOW.HTMLDivElement
         ], true);
     });
 
@@ -92,11 +94,11 @@ describe('DynamicContent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator 1. Child Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);

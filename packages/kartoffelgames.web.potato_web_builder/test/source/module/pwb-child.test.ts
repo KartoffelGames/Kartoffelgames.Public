@@ -14,7 +14,7 @@ import { JSDOM } from 'npm:jsdom';
 
 // Setup global scope.
 (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
@@ -38,7 +38,7 @@ describe('PwbChild', () => {
         class TestComponent extends Processor {
             @PwbExport
             @PwbChild(lIdName)
-            public idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement;
         }
 
         // Setup. Create element.
@@ -59,7 +59,7 @@ describe('PwbChild', () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent extends Processor {
                 @PwbChild('Name')
-                public static idChild: HTMLDivElement;
+                public static accessor idChild: HTMLDivElement;
             }
         };
 
@@ -79,7 +79,7 @@ describe('PwbChild', () => {
         class TestComponent extends Processor {
             @PwbExport
             @PwbChild(lWrongName)
-            public idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement;
         }
 
         // Setup. Create element.
@@ -96,7 +96,7 @@ describe('PwbChild', () => {
         // Setup. Define class.
         class TestClass {
             @PwbChild('SomeName')
-            public child!: HTMLElement;
+            public accessor child!: HTMLElement;
         }
 
         // Process. Create class and read child.
@@ -117,7 +117,7 @@ describe('PwbChild', () => {
         class ParentClass extends Processor {
             @PwbExport
             @PwbChild(lIdName)
-            public idChild!: HTMLDivElement;
+            public accessor idChild!: HTMLDivElement;
         }
 
         // Setup. Define component.

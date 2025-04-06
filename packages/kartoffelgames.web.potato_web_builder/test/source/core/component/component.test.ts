@@ -16,14 +16,16 @@ import '../../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return lMockDom.window;
 })();
 
 describe('HtmlComponent', () => {
@@ -46,7 +48,10 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement], true);
+        expect(lComponent).toBeComponentStructure([
+            MOCK_WINDOW.Comment,
+            MOCK_WINDOW.HTMLDivElement
+        ], true);
     });
 
     it('-- Sibling element', async () => {
@@ -63,7 +68,11 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(3);
-        expect(lComponent).toBeComponentStructure([Comment, HTMLDivElement, HTMLSpanElement], true);
+        expect(lComponent).toBeComponentStructure([
+            MOCK_WINDOW.Comment,
+            MOCK_WINDOW.HTMLDivElement,
+            MOCK_WINDOW.HTMLSpanElement
+        ], true);
     });
 
     it('-- Child element', async () => {
@@ -81,19 +90,19 @@ describe('HtmlComponent', () => {
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([
-            Comment,
+            MOCK_WINDOW.Comment,
             {
-                node: HTMLDivElement,
-                childs: [HTMLSpanElement]
+                node: MOCK_WINDOW.HTMLDivElement,
+                childs: [MOCK_WINDOW.HTMLSpanElement]
             }
         ], true);
     });
 
-    it('-- Ignore comments', async () => {
+    it('-- Ignore MOCK_WINDOW.Comments', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div><!-- Comment --></div>'
+            template: '<div><!-- MOCK_WINDOW.Comment --></div>'
         })
         class TestComponent extends Processor { }
 
@@ -105,9 +114,9 @@ describe('HtmlComponent', () => {
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
         expect(lComponent).toBeComponentStructure([
-            Comment,
+            MOCK_WINDOW.Comment,
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 childs: []
             }
         ], true);
@@ -152,7 +161,7 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         expect(lComponent).toBeComponentStructure([
-            Comment
+            MOCK_WINDOW.Comment
         ], true);
     });
 
@@ -172,8 +181,8 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         expect(lComponent).toBeComponentStructure([
-            HTMLStyleElement,
-            Comment
+            MOCK_WINDOW.HTMLStyleElement,
+            MOCK_WINDOW.Comment
         ], true);
         expect(lStyleElement.textContent).toBe(lStyleContent);
     });
@@ -198,9 +207,9 @@ describe('HtmlComponent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment,
+            MOCK_WINDOW.Comment,
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lInitialValue
             }
         ], true);
@@ -237,9 +246,9 @@ describe('HtmlComponent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment,
+            MOCK_WINDOW.Comment,
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lInitialValue
             }
         ], true);
@@ -250,9 +259,9 @@ describe('HtmlComponent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment,
+            MOCK_WINDOW.Comment,
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lNewValue
             }
         ], true);
@@ -342,9 +351,9 @@ describe('HtmlComponent', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lExpressionValue
             }
         ], true);
@@ -364,7 +373,10 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([Comment, HTMLUnknownElement], true);
+        expect(lComponent).toBeComponentStructure([
+            MOCK_WINDOW.Comment,
+            MOCK_WINDOW.HTMLUnknownElement
+        ], true);
     });
 
     it('-- Create HTMLElement on unknown component', async () => {
@@ -381,7 +393,10 @@ describe('HtmlComponent', () => {
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure([Comment, HTMLElement], true); // HTMLUnknownElement not creates in JSDOM.
+        expect(lComponent).toBeComponentStructure([
+            MOCK_WINDOW.Comment,
+            MOCK_WINDOW.HTMLElement
+        ], true); // HTMLUnknownElement not creates in JSDOM.
     });
 
     it('-- Element reference', async () => {

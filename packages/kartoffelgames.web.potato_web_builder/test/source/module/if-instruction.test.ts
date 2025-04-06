@@ -8,14 +8,16 @@ import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return lMockDom.window;
 })();
 
 describe('IfInstruction', () => {
@@ -44,8 +46,8 @@ describe('IfInstruction', () => {
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
 
@@ -69,10 +71,10 @@ describe('IfInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator Child Anchor
-            HTMLDivElement
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
+            MOCK_WINDOW.HTMLDivElement
         ], true);
     });
 
@@ -99,8 +101,8 @@ describe('IfInstruction', () => {
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
 
@@ -127,10 +129,10 @@ describe('IfInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator Child Anchor
-            HTMLDivElement
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
+            MOCK_WINDOW.HTMLDivElement
         ], true);
     });
 
@@ -154,8 +156,8 @@ describe('IfInstruction', () => {
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
 
@@ -179,10 +181,10 @@ describe('IfInstruction', () => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([
-            Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator Child Anchor
-            HTMLDivElement
+            MOCK_WINDOW.Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // - Manipulator Anchor
+            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
+            MOCK_WINDOW.HTMLDivElement
         ], true);
     });
 });

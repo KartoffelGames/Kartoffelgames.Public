@@ -8,14 +8,16 @@ import { PwbExport } from '../../../../source/module/export/pwb-export.decorator
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // @deno-types="npm:@types/jsdom"
-import { JSDOM } from 'npm:jsdom';
+import { JSDOM, DOMWindow } from 'npm:jsdom';
 
 // Setup global scope.
-(() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+const MOCK_WINDOW: DOMWindow = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
 
     PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
     PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return lMockDom.window;
 })();
 
 describe('ExtensionModule', () => {
@@ -76,16 +78,16 @@ describe('ExtensionModule', () => {
         // Evaluation.
         expect(MyGlobalResource.getNumber()).toBe(lTestValue);
         expect(lComponentOne, 'Component One').toBeComponentStructure([
-            Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);
         expect(lComponentTwo, 'Component Two').toBeComponentStructure([
-            Comment, // Component Anchor
+            MOCK_WINDOW.Comment, // Component Anchor
             {
-                node: HTMLDivElement,
+                node: MOCK_WINDOW.HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);

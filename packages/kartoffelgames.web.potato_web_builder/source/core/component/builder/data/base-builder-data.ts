@@ -321,8 +321,11 @@ export abstract class BaseBuilderData {
             return;
         }
 
+        // Read confgured scope.
+        const lWindow: typeof globalThis = PwbConfiguration.configuration.scope.window;
+
         // Target is a normal element. Append source node. Fails when node can't have child nodes.
-        if (pTarget instanceof Element) {
+        if (pTarget instanceof lWindow.Element) {
             pTarget.appendChild(pSourceNode);
             return;
         }

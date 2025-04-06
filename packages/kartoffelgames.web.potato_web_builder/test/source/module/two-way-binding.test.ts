@@ -1,11 +1,22 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it, before } from '@std/testing/bdd';
+import { before, describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
+
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
 
 describe('TwoWayBinding', () => {
     before(() => {

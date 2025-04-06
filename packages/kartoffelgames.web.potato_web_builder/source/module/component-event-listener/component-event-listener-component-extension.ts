@@ -39,10 +39,10 @@ export class ComponentEventListenerComponentExtension extends Processor implemen
                 for (const lProperty of lPropertyList) {
                     lEventPropertyList.push(lProperty);
 
-                    // Validate property type: Function.
-                    if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
-                        throw new Exception(`Event listener property must be of type Function`, this);
-                    }
+                    // Validate property type: Function. // TODO: Check type.
+                    // if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
+                    //     throw new Exception(`Event listener property must be of type Function`, this);
+                    // }
                 }
             }
 

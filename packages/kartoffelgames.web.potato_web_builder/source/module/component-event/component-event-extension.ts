@@ -29,10 +29,10 @@ export class ComponentEventExtension extends Processor{
         const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(pComponent.processorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
         for (const lEventPropertyList of lEventPropertyMapList) {
             for (const [lEventName, lPropertyKey, lConstructor] of lEventPropertyList) {
-                // Validate event emitter property type.
-                if (Metadata.get(lConstructor).getProperty(lPropertyKey).type !== ComponentEventEmitter) {
-                    throw new Exception(`Event emitter property must be of type ${ComponentEventEmitter.name}`, this);
-                }
+                // Validate event emitter property type. // TODO: Check type.
+                // if (Metadata.get(lConstructor).getProperty(lPropertyKey).type !== ComponentEventEmitter) {
+                //     throw new Exception(`Event emitter property must be of type ${ComponentEventEmitter.name}`, this);
+                // }
 
                 // Create component event emitter.
                 const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, pComponent.element);

@@ -1,3 +1,4 @@
+// TODO: Mock with JSDOM
 class RequestAnimationFrameMockSession {
     private mCurrentList: Map<number, FrameRequestCallback> = new Map<number, FrameRequestCallback>();
     private mCurrentTimer: number | null = null;

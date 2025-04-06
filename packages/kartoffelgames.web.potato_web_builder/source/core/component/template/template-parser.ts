@@ -305,6 +305,7 @@ export class TemplateParser {
             return lExpression;
         });
 
+        // Attribute graph.
         const lXmlAttributeValueList = Graph.define(() => {
             type Result = {
                 data: Array<{
@@ -321,9 +322,7 @@ export class TemplateParser {
                     GraphNode.new<PwbTemplateToken>().required('text', PwbTemplateToken.XmlValue)
                 ])
             ).optional('data<-data', lSelfReference);
-        });
-
-        // Attribute graph.
+        }); 
         const lXmlAttribute = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('name', PwbTemplateToken.XmlIdentifier).optional('attributeValue',
                 GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.XmlAssignment).required(PwbTemplateToken.XmlExplicitValueIdentifier).optional('list<-data', lXmlAttributeValueList).required(PwbTemplateToken.XmlExplicitValueIdentifier)
@@ -347,7 +346,6 @@ export class TemplateParser {
                 values: lValues
             };
         });
-
         const lXmlAttributeList = Graph.define(() => {
             type Result = {
                 data: Array<AttributeInformation>;
@@ -357,6 +355,7 @@ export class TemplateParser {
             return GraphNode.new<PwbTemplateToken>().required('data[]', lXmlAttribute).optional('data<-data', lSelfReference);
         });
 
+        // Content data.
         const lXmlTextNodeValueList = Graph.define(() => {
             type Result = {
                 data: Array<{
@@ -375,8 +374,6 @@ export class TemplateParser {
                 ])
             ).optional('data<-data', lSelfReference);
         });
-
-        // Content data.
         const lXmlTextNode = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('list<-data', lXmlTextNodeValueList);
         }).converter((pData): PwbTemplateTextNode => {
@@ -441,13 +438,11 @@ export class TemplateParser {
             return lElement;
         });
 
+        // Instruction.
         const lInstructionNodeValueList = Graph.define(() => {
             const lSelfReference: Graph<PwbTemplateToken, any, { list: Array<string>; }> = lInstructionNodeValueList;
             return GraphNode.new<PwbTemplateToken>().required('list[]', PwbTemplateToken.InstructionInstructionValue).optional('list<-list', lSelfReference);
         });
-
-
-        // Instruction.
         const lInstructionNode = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>()
                 .required('instructionName', PwbTemplateToken.InstructionStart)
@@ -472,8 +467,9 @@ export class TemplateParser {
             return lInstruction;
         });
 
-        const lContent = Graph.define(() => {
-            const lSelfReference: Graph<PwbTemplateToken, any, { list: Array<PwbTemplateTextNode | PwbTemplateXmlNode | PwbTemplateInstructionNode | null>; }> = lContent;
+        // Child content data.
+        const lContentValueList = Graph.define(() => {
+            const lSelfReference: Graph<PwbTemplateToken, any, { list: Array<PwbTemplateTextNode | PwbTemplateXmlNode | PwbTemplateInstructionNode | null>; }> = lContentValueList;
             return GraphNode.new<PwbTemplateToken>().required('list[]', [
                 lXmlCommentNode,
                 lXmlElement,
@@ -481,10 +477,8 @@ export class TemplateParser {
                 lXmlTextNode,
             ]).optional('list<-list', lSelfReference);
         });
-
-        // Child content data.
         const lContentList = Graph.define(() => {
-            const lContentReference: Graph<PwbTemplateToken, any, { list: Array<BasePwbTemplateNode | null>; }> = lContent;
+            const lContentReference: Graph<PwbTemplateToken, any, { list: Array<BasePwbTemplateNode | null>; }> = lContentValueList;
 
             return GraphNode.new<PwbTemplateToken>().required('list<-list', lContentReference);
         }).converter((pData): Array<BasePwbTemplateNode> => {

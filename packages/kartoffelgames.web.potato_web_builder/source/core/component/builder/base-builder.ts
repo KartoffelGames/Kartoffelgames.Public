@@ -1,4 +1,5 @@
 
+import { PwbConfiguration } from "../../configuration/pwb-configuration.ts";
 import type { DataLevel } from '../../data/data-level.ts';
 import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
@@ -133,8 +134,11 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
             }
         }
 
+        // Get document of current scope.
+        const lDocument = PwbConfiguration.configuration.scope.document
+
         // Create new element .
-        return document.createElement(lTagname);
+        return lDocument.createElement(lTagname);
     }
 
     /**
@@ -145,7 +149,11 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * @returns text node with specified text.
      */
     protected createZoneEnabledText(pText: string): Text {
-        return document.createTextNode(pText);
+        // Get document of current scope.
+        const lDocument = PwbConfiguration.configuration.scope.document
+
+        // Create new text node.
+        return lDocument.createTextNode(pText);
     }
 
     /**

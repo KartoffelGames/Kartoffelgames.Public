@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import type { Component, ComponentProcessor } from './component.ts';
+import { PwbConfiguration } from "../configuration/pwb-configuration.ts";
 
 export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
@@ -64,8 +65,11 @@ export class ComponentRegister {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }
 
+        // Read global window scope.
+        const lWindow = PwbConfiguration.configuration.scope.window;
+
         // Get component constructor from custom element registry.
-        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = lWindow.customElements.get(lSelector);
         if (!lComponentConstructor) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }

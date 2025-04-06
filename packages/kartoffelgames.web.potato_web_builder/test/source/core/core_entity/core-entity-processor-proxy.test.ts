@@ -4,6 +4,18 @@ import { describe, it } from '@std/testing/bdd';
 import { type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../../../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import { PwbConfiguration } from "../../../../source/core/configuration/pwb-configuration.ts";
+
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
 
 describe('CoreEntityProcessorProxy', () => {
     it('Property: proxy', () => {

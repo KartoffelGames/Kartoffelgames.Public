@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
+import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
 import type { Processor } from '../core_entity/processor.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';
@@ -100,7 +100,10 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
-        const lStyleElement: Element = document.createElement('style');
+        // Read document scope from configuration.
+        const lDocument = PwbConfiguration.configuration.scope.document
+
+        const lStyleElement: Element = lDocument.createElement('style');
         lStyleElement.innerHTML = pStyle;
         this.mComponentElement.shadowRoot.prepend(lStyleElement);
     }

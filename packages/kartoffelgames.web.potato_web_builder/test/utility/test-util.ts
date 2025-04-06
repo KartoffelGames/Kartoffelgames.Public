@@ -1,6 +1,7 @@
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
+import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
+import { PwbConfiguration } from "../../source/core/configuration/pwb-configuration.ts";
 
 export class TestUtil {
     /**
@@ -14,8 +15,11 @@ export class TestUtil {
         // Get component.
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
+        // Read global document scope.
+        const lDocument = PwbConfiguration.configuration.scope.document;
+
         // Connect to a document to trigger updates.
-        document.body.appendChild(lComponent);
+        lDocument.body.appendChild(lComponent);
 
         // Wait for any update to happen.
         await TestUtil.waitForUpdate(lComponent);

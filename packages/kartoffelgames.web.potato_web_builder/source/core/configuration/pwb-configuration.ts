@@ -46,6 +46,12 @@ class PwbConfigurationSingleton {
             updating: {
                 frameTime: 100,
                 stackCap: 10
+            },
+
+            // Global scope.
+            scope: {
+                window: globalThis.window,
+                document: globalThis.document
             }
         };
     }
@@ -85,6 +91,12 @@ type ComponentDebugConfiguration = {
         frameTime: number;
         stackCap: number;
     };
+
+    // Global scope.
+    scope: {
+        window: typeof globalThis;
+        document: Document;
+    }
 };
 
 export enum PwbDebugLogLevel {

@@ -2,6 +2,7 @@ import { Dictionary, Exception, List } from '@kartoffelgames/core';
 import type { Component } from '../../component.ts';
 import type { ComponentModules } from '../../component-modules.ts';
 import { BaseBuilder } from '../base-builder.ts';
+import { PwbConfiguration } from "../../../configuration/pwb-configuration.ts";
 
 export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;
@@ -57,8 +58,11 @@ export abstract class BaseBuilderData {
         this.mChildComponents = new Dictionary<BuilderContent, Component>();
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
+        // Read document of current scope.
+        const lDocument = PwbConfiguration.configuration.scope.document
+
         // Create anchor of content. Anchors marks the beginning of all content nodes.
-        this.mContentAnchor = document.createComment(pAnchorName);
+        this.mContentAnchor = lDocument.createComment(pAnchorName);
 
         // Set starting boundary. Existing only of anchor.
         this.mContentBoundary = {

@@ -5,6 +5,7 @@ import type { IPwbExpressionModuleProcessorConstructor } from '../module/express
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
 import { ComponentRegister } from './component-register.ts';
 import { Component, type ComponentProcessorConstructor } from './component.ts';
+import { PwbConfiguration } from "../configuration/pwb-configuration.ts";
 
 /**
  * AtScript. PWB Component.
@@ -20,8 +21,11 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         // Register component constructor.
         ComponentRegister.registerConstructor(pComponentProcessorConstructor, pParameter.selector);
 
+        // Read scope.
+        const lExecutionScope: typeof globalThis = PwbConfiguration.configuration.scope.window
+
         // Create custom html element of parent type.
-        const lPwbComponentConstructor = class extends HTMLElement {
+        const lPwbComponentConstructor = class extends lExecutionScope.HTMLElement {
             private readonly mComponent: Component;
 
             /**
@@ -68,7 +72,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         };
 
         // Define current element as new custom html element.
-        globalThis.customElements.define(pParameter.selector, lPwbComponentConstructor);
+        lExecutionScope.customElements.define(pParameter.selector, lPwbComponentConstructor);
     };
 }
 

@@ -15,6 +15,17 @@ import { PwbExport } from '../../../../source/module/export/pwb-export.decorator
 import '../../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../../utility/test-util.ts';
 
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
+
 describe('HtmlComponent', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
@@ -258,7 +269,7 @@ describe('HtmlComponent', () => {
             template: '{{this.innerValue}}',
             updateScope: UpdateMode.Isolated
         })
-         
+
         class CapsuledTestComponent extends Processor implements IComponentOnUpdate {
             @PwbExport
             public innerValue: string = '';
@@ -540,7 +551,7 @@ describe('HtmlComponent', () => {
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = PwbConfiguration.configuration.scope.window.customElements.get(lSelector);
         let lComponent: HTMLElement | null = null;
         if (lComponentConstructor) {
             lComponent = new lComponentConstructor();

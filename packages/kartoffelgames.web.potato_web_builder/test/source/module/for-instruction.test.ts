@@ -7,6 +7,17 @@ import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts
 import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
+
 describe('ForInstruction', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;

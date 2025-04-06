@@ -9,6 +9,16 @@ import { DataLevel } from '../../../../source/core/data/data-level.ts';
 import '../../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../../utility/test-util.ts';
 
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
 
 describe('DataLevel', () => {
     let lComponent: Component;

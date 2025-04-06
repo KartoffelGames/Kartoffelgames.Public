@@ -7,8 +7,19 @@ import { Processor } from '../../../source/core/core_entity/processor.ts';
 import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
 
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const HTMLSlotElement: InjectionConstructor = <any>document.createElement('slot').constructor;
+const HTMLSlotElement: InjectionConstructor = (() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+
+    return PwbConfiguration.configuration.scope.document.createElement('slot').constructor as InjectionConstructor;
+})();
 
 describe('SlotInstruction', () => {
     before(() => {

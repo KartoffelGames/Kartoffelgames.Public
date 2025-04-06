@@ -5,9 +5,22 @@ import { PwbTemplateXmlNode } from '../../../source/core/component/template/node
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
-import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 import '../../utility/request-animation-frame-mock-session.ts';
 import { TestUtil } from '../../utility/test-util.ts';
+
+// @deno-types="npm:@types/jsdom"
+import { JSDOM } from 'npm:jsdom';
+
+// Setup global scope.
+(() => {
+    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>');
+
+    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
+    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
+})();
+
+// Import app after mock.
+import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 
 describe('PwbApp', () => {
     before(() => {
@@ -38,7 +51,7 @@ describe('PwbApp', () => {
                 selector: lSelector,
                 template: '<div/>'
             })
-             
+
             class TestComponent extends Processor { }
 
             // Process. Add component and wait for update.
@@ -135,7 +148,7 @@ describe('PwbApp', () => {
             selector: lSelector,
             template: '{{this.value}}'
         })
-         
+
         class TestComponent extends Processor {
             public value: string = '';
 

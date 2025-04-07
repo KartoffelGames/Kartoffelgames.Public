@@ -129,8 +129,8 @@ describe('HtmlComponent', () => {
         const lSecondChild: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[2];
 
         // Evaluation
-        expect(lFirstChild).toBeInstanceOf(HTMLElement);
-        expect(lSecondChild).toBeInstanceOf(HTMLElement);
+        expect(lFirstChild).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
+        expect(lSecondChild).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
         expect(lFirstChild).not.toBe(lSecondChild);
     });
 

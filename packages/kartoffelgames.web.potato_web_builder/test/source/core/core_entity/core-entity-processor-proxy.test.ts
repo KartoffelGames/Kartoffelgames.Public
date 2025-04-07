@@ -757,7 +757,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Process
-                lProxy.dispatchEvent(new MouseEvent('click'));
+                lProxy.dispatchEvent(new MOCK_WINDOW.MouseEvent('click'));
 
                 // Evaluation.
                 await lListenerWaiter;

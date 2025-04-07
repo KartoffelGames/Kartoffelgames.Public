@@ -480,7 +480,7 @@ export class TemplateParser {
         const lContentList = Graph.define(() => {
             const lContentReference: Graph<PwbTemplateToken, any, { list: Array<BasePwbTemplateNode | null>; }> = lContentValueList;
 
-            return GraphNode.new<PwbTemplateToken>().required('list<-list', lContentReference);
+            return GraphNode.new<PwbTemplateToken>().optional('list<-list', lContentReference);
         }).converter((pData): Array<BasePwbTemplateNode> => {
             const lContentList: Array<BasePwbTemplateNode> = new Array<BasePwbTemplateNode>();
 

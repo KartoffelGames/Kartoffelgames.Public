@@ -67,7 +67,6 @@ import './module/two_way_binding/two-way-binding-attribute-module.ts';
 
 // Import default extensions.
 import './module/component-event-listener/component-event-listener-component-extension.ts';
-import './module/component-event/component-event-extension.ts';
 import './module/export/export-extension.ts';
 import './module/pwb_app_injection/pwb-app-injection-extension.ts';
 

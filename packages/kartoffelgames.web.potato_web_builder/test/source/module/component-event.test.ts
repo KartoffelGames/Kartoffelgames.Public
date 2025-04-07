@@ -23,7 +23,7 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent(lEventName)
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -57,7 +57,7 @@ describe('ComponentEvent', () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class EventComponent extends Processor {
                 @PwbComponentEvent('custom-event')
-                private static readonly mEvent: ComponentEventEmitter<string>;
+                private static accessor mEvent: ComponentEventEmitter<string>;
             }
         };
 
@@ -72,7 +72,7 @@ describe('ComponentEvent', () => {
         // Process. Define parent class.
         class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
         }
 
         // Setup. Define component.
@@ -81,7 +81,7 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends ParentClass {
             @PwbComponentEvent('custom-event')
-            private readonly mOverridenEvent!: ComponentEventEmitter<string>;
+            private accessor mOverridenEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -113,7 +113,7 @@ describe('ComponentEvent', () => {
         // Process. Define parent class.
         class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -152,7 +152,7 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('click')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -184,7 +184,7 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<void>;
+            private accessor mEvent!: ComponentEventEmitter<void>;
 
             @PwbExport
             public callEvent(): void {
@@ -230,9 +230,9 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('custom-event-one')
-            private readonly mEventOne!: ComponentEventEmitter<string>;
+            private accessor mEventOne!: ComponentEventEmitter<string>;
             @PwbComponentEvent('custom-event-two')
-            private readonly mEventTwo!: ComponentEventEmitter<string>;
+            private accessor mEventTwo!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEventOne(): void {
@@ -269,29 +269,5 @@ describe('ComponentEvent', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lCustomOneValue).toBe(lEventValueOne);
         expect(lCustomTwoValue).toBe(lEventValueTwo);
-    });
-
-    it('-- Wrong emmiter type', async () => {
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-        })
-
-        class EventComponent extends Processor {
-            @PwbComponentEvent('custom-event')
-            public mEvent!: string; // Wrong type.
-        }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(EventComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).toBe('Event emitter property must be of type ComponentEventEmitter');
     });
 });

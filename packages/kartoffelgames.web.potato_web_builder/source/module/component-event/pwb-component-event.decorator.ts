@@ -1,28 +1,41 @@
 import { Exception } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { ComponentEventExtension } from './component-event-extension.ts';
-import type { ComponentProcessorConstructor } from '../../core/component/component.ts';
+import { ComponentRegister } from "../../core/component/component-register.ts";
+import type { Component, ComponentProcessor } from '../../core/component/component.ts';
+import { ComponentEventEmitter } from "./component-event-emitter.ts";
 
 /**
  * Define event for external access.
  * @param pEventName - Name of event.
  */
-export function PwbComponentEvent(pEventName: string): any {
-    return (pTarget: object, pPropertyKey: string, _pDescriptor: PropertyDescriptor): void => { // TODO: DECORATOR REWORK NEEDED.
-        // Usually Class Prototype. Globaly.
-        const lPrototype: object = pTarget;
-        const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;
-
-        // Check if real prototype.
-        if (typeof pTarget === 'function') {
-            throw new Exception('Event target is not for an instanced property.', PwbComponentEvent);
+export function PwbComponentEvent(pEventName: string) {
+    return <TEventEmitter extends ComponentEventEmitter<any>>(_: ClassAccessorDecoratorTarget<any, TEventEmitter>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TEventEmitter> => {
+        // Metadata is not allowed for statics.
+        if (pContext.static) {
+            throw new Exception('Event target is not for a static property.', PwbComponentEvent);
         }
 
-        // Get property list from constructor metadata.
-        const lEventProperties: Array<[string, string, ComponentProcessorConstructor]> = Metadata.get(lUserClassConstructor).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES) ?? Array<[string, string, ComponentProcessorConstructor]>();
-        lEventProperties.push([pEventName, pPropertyKey, lUserClassConstructor]);
+        // Create component event emitter.
+        let lEventEmitter: TEventEmitter | null = null;
 
-        // Set metadata.
-        Metadata.get(lUserClassConstructor).setMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES, lEventProperties);
+        // Define getter accessor that returns id child.
+        return {
+            get(this: ComponentProcessor) {
+                if (!lEventEmitter) {
+                    // Get component manager and exit if target is not a component.
+                    const lComponent: Component = (() => {
+                        try {
+                            return ComponentRegister.ofProcessor(this).component;
+                        } catch {
+                            throw new Exception('PwbComponentEvent target class it not a component.', this);
+                        }
+                    })();
+
+                    lEventEmitter = new ComponentEventEmitter(pEventName, lComponent.element) as TEventEmitter;
+                }
+
+                // Override property with created component event emmiter getter.
+                return lEventEmitter;
+            }
+        };
     };
 }

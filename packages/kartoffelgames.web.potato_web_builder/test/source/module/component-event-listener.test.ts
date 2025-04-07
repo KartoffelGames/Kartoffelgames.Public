@@ -84,7 +84,7 @@ describe('ComponentEventListener', () => {
         })
         class TestComponent extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mCustomEvent!: ComponentEventEmitter<string>;
+            private accessor mCustomEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent() {

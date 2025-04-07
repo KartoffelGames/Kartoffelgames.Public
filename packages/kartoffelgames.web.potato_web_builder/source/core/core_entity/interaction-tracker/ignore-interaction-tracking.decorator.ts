@@ -1,3 +1,4 @@
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
 
 /**
@@ -5,7 +6,8 @@ import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
  * 
  * @param pConstructor - Class.
  */
-export function IgnoreInteractionTracking(pConstructor: any): void {  // TODO: DECORATOR REWORK NEEDED.
-    CoreEntityProcessorProxy.ignoreClass(pConstructor);
+export function IgnoreInteractionTracking() {
+    return <TFunction extends Function>(pConstructor: TFunction): void => {
+        CoreEntityProcessorProxy.ignoreClass(pConstructor as unknown as InjectionConstructor<any>);
+    };
 }
-

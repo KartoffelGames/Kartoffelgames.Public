@@ -1,15 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
 import { ComponentRegister } from '../../core/component/component-register.ts';
 import type { Component, ComponentProcessor } from '../../core/component/component.ts';
+import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
-import { PwbConfiguration } from "../../index.ts";
 
 /**
  * AtScript. Id child 
  * @param pIdChildName - Name of id child.
  */
-export function PwbChild(pIdChildName: string): any {
-    return (_: any, pContext: ClassAccessorDecoratorContext) => {
+export function PwbChild(pIdChildName: string) {
+    return <TElement extends Element>(_: ClassAccessorDecoratorTarget<any, TElement>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TElement> => {
         // Check if real decorator on static property.
         if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbChild);
@@ -35,7 +35,7 @@ export function PwbChild(pIdChildName: string): any {
                 const lIdChild: any = lComponentRootValues.data.store[pIdChildName];
 
                 if (lIdChild instanceof lGlobalScope.Element) {
-                    return lIdChild;
+                    return lIdChild as TElement;
                 } else {
                     throw new Exception(`Can't find child "${pIdChildName}".`, this);
                 }

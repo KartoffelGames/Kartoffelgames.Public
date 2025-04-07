@@ -14,7 +14,7 @@ import { UpdateResheduleError } from './update-reshedule-error.ts';
  * 
  * @internal
  */
-@IgnoreInteractionTracking
+@IgnoreInteractionTracking()
 export class CoreEntityUpdater {
     private readonly mInteractionZone: InteractionZone;
     private readonly mLogLevel: PwbDebugLogLevel;

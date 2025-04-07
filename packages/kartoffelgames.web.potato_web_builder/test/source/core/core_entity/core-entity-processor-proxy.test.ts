@@ -885,7 +885,7 @@ describe('CoreEntityProcessorProxy', () => {
 
         it('-- Ignore IgnoreInteractionDetection decorator', () => {
             // Setup. Create Class with ignore decorator.
-            @IgnoreInteractionTracking
+            @IgnoreInteractionTracking()
             class IgnoreClass { }
 
             // Setup. Create class.

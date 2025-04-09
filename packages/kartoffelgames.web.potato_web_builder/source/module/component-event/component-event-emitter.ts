@@ -1,4 +1,4 @@
-import { InjectionConstructor } from "../../../../kartoffelgames.core.dependency_injection/source/index.ts";
+import { InjectionConstructor } from "@kartoffelgames/core-dependency-injection";
 import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 
 /**

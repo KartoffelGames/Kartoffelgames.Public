@@ -4,7 +4,7 @@ import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
-import { Injection } from "../../../../../kartoffelgames.core.dependency_injection/source/index.ts";
+import { Injection } from "@kartoffelgames/core-dependency-injection";
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';

@@ -11,7 +11,7 @@ import { ModuleDataLevel } from '../../../../source/core/data/module-data-level.
 import { AccessMode } from '../../../../source/core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
-import { Injection } from "../../../../../kartoffelgames.core.dependency_injection/source/index.ts";
+import { Injection } from "@kartoffelgames/core-dependency-injection";
 
 describe('Custom Module', () => {
     it('-- Set non existing temporary value of level procedure', async () => {

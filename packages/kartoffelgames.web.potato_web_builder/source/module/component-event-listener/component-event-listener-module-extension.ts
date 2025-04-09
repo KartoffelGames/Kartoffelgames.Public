@@ -30,26 +30,20 @@ export class ComponentEventListenerModuleExtension extends Processor implements 
         super();
 
         // Get event metadata.
-        const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
+        const lEventPropertyList: Array<[PropertyKey, string]> = new Array<[PropertyKey, string]>();
 
         let lClass: InjectionConstructor = pExtensionTargetModule.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
-            const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+            const lPropertyList: Array<[PropertyKey, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
             if (lPropertyList) {
                 // Merge all properies into event property list.
                 for (const lProperty of lPropertyList) {
                     lEventPropertyList.push(lProperty);
-
-                    // Validate property type: Function. // TODO: Check type.
-                    // if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
-                    //     throw new Exception(`Event listener property must be of type Function`, this);
-                    // }
                 }
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-
         } while (lClass = Object.getPrototypeOf(lClass));
 
         // Initialize lists.

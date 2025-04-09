@@ -1,28 +1,27 @@
 import { Exception } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { ConstructorMetadata, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
-import type { ComponentProcessorConstructor } from '../../core/component/component.ts';
 
 /**
  * Define event for external access.
  * @param pEventName - Name of event.
  */
 export function PwbComponentEventListener(pEventName: string): any {
-    return (pTarget: object, pPropertyKey: string, _pDescriptor: PropertyDescriptor): void => { // TODO: DECORATOR REWORK NEEDED.
-        // Usually Class Prototype. Globaly.
-        const lPrototype: object = pTarget;
-        const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;
-
-        // Check if real prototype.
-        if (typeof pTarget === 'function') {
-            throw new Exception('Event listener is only valid on instanced property', PwbComponentEventListener);
+    return (_: ((pEventValue: any) => any),  pContext: ClassMethodDecoratorContext): void => {
+        // Statics.
+        if (pContext.static) {
+            throw new Exception('Event target is not for a static property.', PwbComponentEventListener);
         }
 
+        // Read class metadata from decorator metadata object.
+        const lClassMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+
         // Get property list from constructor metadata.
-        const lEventPropertyList: Array<[string, string]> = Metadata.get(lUserClassConstructor).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES) ?? new Array<[string, string]>();
-        lEventPropertyList.push([pPropertyKey, pEventName]);
+        const lEventPropertyList: Array<[PropertyKey, string]> = lClassMetadata.getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES) ?? new Array<[PropertyKey, string]>();
+        lEventPropertyList.push([pContext.name, pEventName]);
 
         // Set metadata.
-        Metadata.get(lUserClassConstructor).setMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES, lEventPropertyList);
+        lClassMetadata.setMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES, lEventPropertyList);
     };
 }

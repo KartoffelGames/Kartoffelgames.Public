@@ -1,4 +1,5 @@
-import { ComponentEvent } from './component-event.ts';
+import { InjectionConstructor } from "../../../../kartoffelgames.core.dependency_injection/source/index.ts";
+import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 
 /**
  * Event emitter.
@@ -7,6 +8,7 @@ import { ComponentEvent } from './component-event.ts';
 export class ComponentEventEmitter<T> {
     private readonly mElement: HTMLElement;
     private readonly mEventName: string;
+    private mEventConstructor: InjectionConstructor<IComponentEvent<T>> | null;
 
     /**
      * Constructor.
@@ -17,6 +19,7 @@ export class ComponentEventEmitter<T> {
     constructor(pEventName: string, pHtmlElement: HTMLElement) {
         this.mEventName = pEventName;
         this.mElement = pHtmlElement;
+        this.mEventConstructor = null;
     }
 
     /**
@@ -24,8 +27,24 @@ export class ComponentEventEmitter<T> {
      * @param pEventArgs - Event arguments.
      */
     public dispatchEvent(pEventArgs: T): void {
+        // Check if event constructor is valid in the current configuration.
+        if (!(this.mEventConstructor?.prototype instanceof PwbConfiguration.configuration.scope.window.Event)) {
+            // Create new event constructor with the new scope.
+            this.mEventConstructor = class extends PwbConfiguration.configuration.scope.window.Event {
+                public readonly value: T;
+                constructor(pEventName: string, pValue: T) {
+                    super(pEventName);
+                    this.value = pValue;
+                }
+            };
+        }
+
         // Create and dispatch event.
-        const lEvent: ComponentEvent<T> = new ComponentEvent<T>(this.mEventName, pEventArgs);
+        const lEvent: IComponentEvent<T> = new this.mEventConstructor(this.mEventName, pEventArgs);
         this.mElement.dispatchEvent(lEvent);
     }
+}
+
+export interface IComponentEvent<T> extends Event {
+    readonly value: T;
 }

@@ -1,13 +1,12 @@
 // Import mock at start of file.
-import { TestUtil } from '../../utility/test-util.ts';
+import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
-import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
-import { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
+import type { ComponentEventEmitter, IComponentEvent } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
@@ -35,7 +34,7 @@ describe('ComponentEvent', () => {
         const lEventComponent: HTMLDivElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
+        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener(lEventName, (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -93,7 +92,7 @@ describe('ComponentEvent', () => {
         const lEventComponent: HTMLDivElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
+        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('custom-event', (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -132,7 +131,7 @@ describe('ComponentEvent', () => {
         lEventComponent.callEvent();
 
         // Setup. Wait for event
-        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
+        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('custom-event', (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -142,7 +141,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(ComponentEvent);
+        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
     });
 
     it('-- Override native events', async () => {
@@ -164,7 +163,7 @@ describe('ComponentEvent', () => {
         const lEventComponent: HTMLElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
+        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('click', (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -174,7 +173,7 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(ComponentEvent);
+        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
     });
 
     it('-- Nativ and custom event parallel', async () => {

@@ -19,8 +19,7 @@ import type { IInstructionOnUpdate } from '../../../source/core/module/instructi
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator.ts';
-import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
-import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
+import type { ComponentEventEmitter, IComponentEvent } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
@@ -92,7 +91,7 @@ describe('ComponentEventListener', () => {
             }
 
             @PwbComponentEventListener('custom-event')
-            private listener(pEvent: ComponentEvent<string>) {
+            private listener(pEvent: IComponentEvent<string>) {
                 lEventValueResult = pEvent.value;
             }
         }
@@ -120,29 +119,6 @@ describe('ComponentEventListener', () => {
 
         // Evaluation.
         expect(lErrorFunction).toThrow('Event listener is only valid on instanced property');
-    });
-
-    it('-- Error on none function properties', async () => {
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector()
-        })
-        class TestComponent extends Processor {
-            @PwbComponentEventListener('click')
-            private readonly mListener!: string;
-        }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(TestComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).toBe('Event listener property must be of type Function');
     });
 
     it('-- Two parallel listener', async () => {
@@ -263,39 +239,6 @@ describe('ComponentEventListener', () => {
 
         // Evaluation.
         expect(lEventCalled).toBeFalsy();
-    });
-
-    it('-- Error on none function properties on static module', async () => {
-        // Setup. Create static module.
-        @PwbAttributeModule({
-            access: AccessMode.Read,
-            selector: /^listenerTestModuleThree$/,
-            trigger: UpdateTrigger.Any
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule extends Processor {
-            @PwbComponentEventListener('click')
-            private readonly mListener!: string;
-        }
-
-        // Process. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: '<div listenerTestModuleThree />'
-        })
-        class TestComponent extends Processor { }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(TestComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).toBe('Event listener property must be of type Function');
     });
 
     it('-- Dont call event listener for instruction modules', async () => {

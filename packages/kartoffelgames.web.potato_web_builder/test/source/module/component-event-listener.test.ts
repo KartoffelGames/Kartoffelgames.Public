@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { TestUtil } from '../../utility/test-util.ts';
+import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -44,7 +44,7 @@ describe('ComponentEventListener', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(MouseEvent);
+        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.MouseEvent);
     });
 
     it('-- Native listener', async () => {
@@ -118,7 +118,7 @@ describe('ComponentEventListener', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).toThrow('Event listener is only valid on instanced property');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
 
     it('-- Two parallel listener', async () => {
@@ -202,7 +202,7 @@ describe('ComponentEventListener', () => {
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
-        lDivElement.dispatchEvent(new Event('click', { bubbles: false }));
+        lDivElement.dispatchEvent(new MOCK_WINDOW.Event('click', { bubbles: false }));
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
@@ -290,7 +290,7 @@ describe('ComponentEventListener', () => {
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation after inner click..
-        lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
+        lDivElement.dispatchEvent(new MOCK_WINDOW.Event('click', { bubbles: true }));
 
         // Evaluation after component click.
         expect(lEventCalled).toBeFalsy();

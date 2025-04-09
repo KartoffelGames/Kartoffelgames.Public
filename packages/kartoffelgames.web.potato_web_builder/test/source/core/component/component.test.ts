@@ -562,7 +562,7 @@ describe('HtmlComponent', () => {
         }
 
         // Evaluation.
-        expect(lComponent).toBeInstanceOf(HTMLElement);
+        expect(lComponent).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
     });
 
     it('-- Prevent construction of processor when not needed.', async () => {

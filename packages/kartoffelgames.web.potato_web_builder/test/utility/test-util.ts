@@ -1,26 +1,10 @@
 import { PwbConfiguration } from "../../source/core/configuration/pwb-configuration.ts";
-
-// @deno-types="npm:@types/jsdom"
-import { JSDOM, DOMWindow } from 'npm:jsdom';
-
-// Setup global scope.
-const MOCK_WINDOW: DOMWindow = (() => {
-    const lMockDom: JSDOM = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', { pretendToBeVisual: true });
-
-    // Define scope.
-    PwbConfiguration.configuration.scope.window = lMockDom.window as unknown as typeof globalThis;
-    PwbConfiguration.configuration.scope.document = lMockDom.window.document;
-
-    // Define update metrics.
-    PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-    PwbConfiguration.configuration.error.print = false;
-
-    return lMockDom.window;
-})();
-
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
+
+// Import test environment.
+import { MOCK_WINDOW as MockedWindow } from './test-dom-environment.ts';
 
 // Import default modules
 import '../../source/module/dynamic-content/dynamic-content-module.ts';
@@ -35,10 +19,10 @@ import '../../source/module/two_way_binding/two-way-binding-attribute-module.ts'
 // Import default extensions.
 import '../../source/module/component-event-listener/component-event-listener-component-extension.ts';
 import '../../source/module/export/export-extension.ts';
-//import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
+import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
 
-// Export mocked window after importing all stuff.
-export { MOCK_WINDOW };
+// Export dom window
+export const MOCK_WINDOW = MockedWindow;
 
 export class TestUtil {
     /**

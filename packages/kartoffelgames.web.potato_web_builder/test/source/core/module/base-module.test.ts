@@ -1,10 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { ModuleTargetNode } from '../../../../source/core/module/injection_reference/module-target-node.ts';
 import { ModuleTemplate } from '../../../../source/core/module/injection_reference/module-template.ts';
 
-describe('Custom Module', () => {
-    it('-- Try to construct ModuleTargetNode', async () => {
+Deno.test('BaseModule--Functionality: CustomModule - Try to construct ModuleTargetNode', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Create error function.
         const lErrorFunction = () => {
             new ModuleTargetNode();
@@ -13,8 +12,10 @@ describe('Custom Module', () => {
         // Evaluation.
         expect(lErrorFunction).toThrow('Reference should not be instanced.');
     });
+});
 
-    it('-- Try to construct ModuleTempate', async () => {
+Deno.test('BaseModule--Functionality: CustomModule - Try to construct ModuleTemplate', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Create error function.
         const lErrorFunction = () => {
             new ModuleTemplate();

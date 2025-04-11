@@ -3,12 +3,11 @@ import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-describe('EventAttribute', () => {
-    it('-- Basic click event', async () => {
+Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventComponentSelector: string = TestUtil.randomSelector();
 
@@ -38,8 +37,10 @@ describe('EventAttribute', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventValueResult).toBe('click');
     });
+});
 
-    it('-- Clear listener events on deconstruct', async () => {
+Deno.test('EventAttribute--Functionality: Clear listener events on deconstruct', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         let lClicked: boolean = false;
 

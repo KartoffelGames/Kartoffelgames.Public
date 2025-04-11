@@ -1,17 +1,16 @@
 // Import mock at start of file.
 import { TestUtil } from '../../utility/test-util.ts';
 
-// Funcitonal imports after mock.
+// Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator.ts';
 
-describe('PwbChild', () => {
-    it('-- Read id child', async () => {
+Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
+    await pContext.step('Read id child', async () => {
         // Setup. Values.
         const lIdName: string = 'IdChildId';
 
@@ -34,8 +33,10 @@ describe('PwbChild', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponentIdChild).toBe(lRealIdChild);
     });
+});
 
-    it('-- Forbidden static property use', () => {
+Deno.test('PwbChild--Functionality: Forbidden static property use', async (pContext) => {
+    await pContext.step('Forbidden static property use', () => {
         // Process.
         const lErrorFunction = () => {
             @PwbComponent({
@@ -51,8 +52,10 @@ describe('PwbChild', () => {
         // Evaluation.
         expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Read with wrong id child name', async () => {
+Deno.test('PwbChild--Functionality: Read with wrong id child name', async (pContext) => {
+    await pContext.step('Read with wrong id child name', async () => {
         // Setup.
         const lWrongName: string = 'WrongName';
 
@@ -76,8 +79,10 @@ describe('PwbChild', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lErrorFunction).toThrow(`Can't find child "${lWrongName}".`);
     });
+});
 
-    it('-- Child decorator on none Component object', () => {
+Deno.test('PwbChild--Functionality: Child decorator on non-Component object', async (pContext) => {
+    await pContext.step('Child decorator on non-Component object', () => {
         // Setup. Define class.
         class TestClass {
             @PwbChild('SomeName')
@@ -91,10 +96,12 @@ describe('PwbChild', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).toThrow('PwbChild target class it not a component.');
+        expect(lErrorFunction).toThrow('PwbChild target class is not a component.');
     });
+});
 
-    it('-- Read inherited id child', async () => {
+Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) => {
+    await pContext.step('Read inherited id child', async () => {
         // Setup. Values.
         const lIdName: string = 'IdChildId';
 

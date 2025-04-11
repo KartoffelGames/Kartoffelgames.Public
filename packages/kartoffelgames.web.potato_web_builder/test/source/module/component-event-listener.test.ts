@@ -3,7 +3,6 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Injection } from "@kartoffelgames/core-dependency-injection";
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
@@ -23,8 +22,8 @@ import type { ComponentEventEmitter, IComponentEvent } from '../../../source/mod
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('ComponentEventListener', () => {
-    it('-- Component click event', async () => {
+Deno.test('ComponentEventListener--Functionality: Component click event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component and wait for update.
         const lEventResult = await new Promise<MouseEvent>((pResolve) => {
             @PwbComponent({
@@ -46,8 +45,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.MouseEvent);
     });
+});
 
-    it('-- Native listener', async () => {
+Deno.test('ComponentEventListener--Functionality: Native listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -69,8 +70,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
     });
+});
 
-    it('-- Custom event listener', async () => {
+Deno.test('ComponentEventListener--Functionality: Custom event listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lEventValue: string = 'EVENT-VALUE';
 
@@ -103,8 +106,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventValueResult).toBe(lEventValue);
     });
+});
 
-    it('-- Error on static properties', async () => {
+Deno.test('ComponentEventListener--Functionality: Error on static properties', (pContext) => {
+    pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             @PwbComponent({
@@ -120,8 +125,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Two parallel listener', async () => {
+Deno.test('ComponentEventListener--Functionality: Two parallel listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventOneCalled: boolean = false;
         let lEventTwoCalled: boolean = false;
@@ -150,8 +157,10 @@ describe('ComponentEventListener', () => {
         expect(lEventOneCalled).toBeTruthy();
         expect(lEventTwoCalled).toBeTruthy();
     });
+});
 
-    it('-- Remove listener on deconstruct', async () => {
+Deno.test('ComponentEventListener--Functionality: Remove listener on deconstruct', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -174,8 +183,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventCalled).toBeFalsy();
     });
+});
 
-    it('-- Native listener on static module', async () => {
+Deno.test('ComponentEventListener--Functionality: Native listener on static module', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -207,8 +218,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
     });
+});
 
-    it('-- Remove module listener on deconstruct on static modules', async () => {
+Deno.test('ComponentEventListener--Functionality: Remove module listener on deconstruct on static modules', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -240,8 +253,10 @@ describe('ComponentEventListener', () => {
         // Evaluation.
         expect(lEventCalled).toBeFalsy();
     });
+});
 
-    it('-- Dont call event listener for instruction modules', async () => {
+Deno.test('ComponentEventListener--Functionality: Dont call event listener for instruction modules', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -295,8 +310,10 @@ describe('ComponentEventListener', () => {
         // Evaluation after component click.
         expect(lEventCalled).toBeFalsy();
     });
+});
 
-    it('-- Native listener inherited from parent', async () => {
+Deno.test('ComponentEventListener--Functionality: Native listener inherited from parent', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 

@@ -3,13 +3,12 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('MustacheExpression', () => {
-    it('Initial text value', async () => {
+Deno.test('MustacheExpression--Functionality: Initial text value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -34,8 +33,10 @@ describe('MustacheExpression', () => {
             }
         ], true);
     });
+});
 
-    it('Updated text value', async () => {
+Deno.test('MustacheExpression--Functionality: Updated text value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -63,8 +64,10 @@ describe('MustacheExpression', () => {
             }
         ], true);
     });
+});
 
-    it('Initial attribute value', async () => {
+Deno.test('MustacheExpression--Functionality: Initial attribute value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -91,8 +94,10 @@ describe('MustacheExpression', () => {
             }
         ], true);
     });
+});
 
-    it('Updated attribute value', async () => {
+Deno.test('MustacheExpression--Functionality: Updated attribute value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -122,8 +127,10 @@ describe('MustacheExpression', () => {
             }
         ], true);
     });
+});
 
-    it('Only self created values', async () => {
+Deno.test('MustacheExpression--Functionality: Only self-created values', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = new Array<string>(10).fill('a').join('');
 

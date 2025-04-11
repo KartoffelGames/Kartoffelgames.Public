@@ -1,15 +1,14 @@
 // Import mock at start of file.
 import { TestUtil } from '../../utility/test-util.ts';
 
-// Funcitonal imports after mock.
+// Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('OneWayBinding', () => {
-    it('-- Initial value', async () => {
+Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lInitialValue: string = 'INITIAL__VALUE';
 
@@ -32,8 +31,10 @@ describe('OneWayBinding', () => {
         // Evaluation.
         expect(lInputValue).toBe(lInitialValue);
     });
+});
 
-    it('-- Change component value', async () => {
+Deno.test('OneWayBinding--Functionality: Change component value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 
@@ -58,8 +59,10 @@ describe('OneWayBinding', () => {
         // Evaluation.
         expect(lViewValue).toBe(lNewValue);
     });
+});
 
-    it('Exchange value to child component', async () => {
+Deno.test('OneWayBinding--Functionality: Exchange value to child component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lValueOne: string = 'NEW__VALUE';
 
@@ -92,8 +95,10 @@ describe('OneWayBinding', () => {
         // Evaluation.
         expect(lExportOne).toBe(lValueOne);
     });
+});
 
-    it('Exchange two values to to same component ', async () => {
+Deno.test('OneWayBinding--Functionality: Exchange two values to the same component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lValueOne: string = 'NEW__VALUE';
         const lValueTwo: string = 'NEW__VALUE';

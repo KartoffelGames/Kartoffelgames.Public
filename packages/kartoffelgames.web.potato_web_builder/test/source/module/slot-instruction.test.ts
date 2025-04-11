@@ -3,12 +3,11 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-describe('SlotInstruction', () => {
-    it('-- Default slot', async () => {
+Deno.test('SlotInstruction--Functionality: Default slot', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -29,8 +28,10 @@ describe('SlotInstruction', () => {
         ], true);
         expect(lSlotName).toBeNull();
     });
+});
 
-    it('-- Named slot', async () => {
+Deno.test('SlotInstruction--Functionality: Named slot', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lSlotName: string = 'slotname';
 
@@ -55,8 +56,10 @@ describe('SlotInstruction', () => {
             }
         ], true);
     });
+});
 
-    it('-- Named slot after component update', async () => {
+Deno.test('SlotInstruction--Functionality: Named slot after component update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lSlotName: string = 'slotname';
 

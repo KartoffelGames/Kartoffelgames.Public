@@ -3,15 +3,14 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateTextNode } from '../../../source/core/component/template/nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-describe('DynamicContent', () => {
-    it('-- Initial', async () => {
+Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -42,8 +41,10 @@ describe('DynamicContent', () => {
             MOCK_WINDOW.HTMLDivElement
         ], true);
     });
+});
 
-    it('-- Keep content', async () => {
+Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lTextContent: string = 'Text content';
 
@@ -86,8 +87,10 @@ describe('DynamicContent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Wrong result type', async () => {
+Deno.test('DynamicContent--Functionality: Wrong result type', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),

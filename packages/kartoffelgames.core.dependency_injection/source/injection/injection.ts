@@ -63,7 +63,7 @@ export class Injection {
         // Find identifier for constructor and check if it is registered.
         const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor);
         if (!Injection.mInjectableConstructor.has(lConstructorIdentification)) {
-            throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
+            throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be built`, Injection);
         }
 
         // Get injection mode. Allways defaultsa to instanced, when force created.
@@ -210,7 +210,7 @@ export class Injection {
 
         // Throw exception when constructor is not registered.
         if (!lConstructor) {
-            throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
+            throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be built`, Injection);
         }
 
         // Create object.

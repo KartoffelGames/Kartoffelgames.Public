@@ -3,13 +3,12 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('Export', () => {
-    it('-- Default export get', async () => {
+Deno.test('Export--Functionality: Default export get', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -29,8 +28,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Default export set', async () => {
+Deno.test('Export--Functionality: Default export set', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -51,8 +52,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Two parallel exports get', async () => {
+Deno.test('Export--Functionality: Two parallel exports get', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValueOne: string = 'TEST-VALUE-ONE';
         const lTestValueTwo: string = 'TEST-VALUE-TWO';
@@ -77,8 +80,10 @@ describe('Export', () => {
         expect(lResultValueOne).toBe(lTestValueOne);
         expect(lResultValueTwo).toBe(lTestValueTwo);
     });
+});
 
-    it('-- Forbidden static usage', () => {
+Deno.test('Export--Functionality: Forbidden static usage', (pContext) => {
+    pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             // Setup. Define component.
@@ -95,8 +100,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Linked setAttribute', async () => {
+Deno.test('Export--Functionality: Linked setAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -119,8 +126,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Get unexported value with getAttribute', async () => {
+Deno.test('Export--Functionality: Get unexported value with getAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -136,8 +145,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBeNull();
     });
+});
 
-    it('-- Preserve original getAttribute and setAttribute', async () => {
+Deno.test('Export--Functionality: Preserve original getAttribute and setAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -158,8 +169,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Override native properties', async () => {
+Deno.test('Export--Functionality: Override native properties', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -179,8 +192,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Export parent class exported properties', async () => {
+Deno.test('Export--Functionality: Export parent class exported properties', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -203,8 +218,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Exported value with getAttribute', async () => {
+Deno.test('Export--Functionality: Exported value with getAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -224,8 +241,10 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
     });
+});
 
-    it('-- Set attribute values on export init', async () => {
+Deno.test('Export--Functionality: Set attribute values on export init', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Defined values.
         const lSelector: string = TestUtil.randomSelector();
         const lValue: string = 'UniqueValue:)';

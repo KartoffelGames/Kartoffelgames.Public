@@ -1,7 +1,7 @@
 // Import mock at start of file.
 import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
 
-// Funcitonal imports after mock.
+// Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
@@ -9,12 +9,12 @@ import { PwbGlobalResource } from '../../../../source/core/core_entity/interacti
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 
-describe('ExtensionModule', () => {
-    it('-- Call extension constructor on component restriction', async () => {
+Deno.test('PwbGlobalResource--Functionality: Call extension constructor on component restriction', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: number = 112233;
 
-        // Setup. Define gloabl resource.
+        // Setup. Define global resource.
         @PwbGlobalResource()
         class MyGlobalResource {
             private static mMyNumber: number = 11;
@@ -36,7 +36,7 @@ describe('ExtensionModule', () => {
         class TestComponentOne extends Processor {
         }
 
-        // Setup. Define First component.
+        // Setup. Define Second component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<div>{{MyGlobalResource.getNumber()}}</div>`
@@ -76,5 +76,4 @@ describe('ExtensionModule', () => {
             }
         ], true);
     });
-
 });

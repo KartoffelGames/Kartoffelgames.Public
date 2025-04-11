@@ -24,7 +24,7 @@ Deno.test('Injection.createObject()', async (pContext) => {
         };
 
         // Evaluation.
-        expect(lThrows).toThrow(`Constructor "${TestA.name}" is not registered for injection and can not be build`);
+        expect(lThrows).toThrow(`Constructor "${TestA.name}" is not registered for injection and can not be built`);
     });
 
     await pContext.step('Default without parameter', () => {
@@ -88,7 +88,7 @@ Deno.test('Injection.createObject()', async (pContext) => {
         };
 
         // Evaluation.
-        expect(lThrows).toThrow(`Constructor "${TestParameter.name}" is not registered for injection and can not be build`);
+        expect(lThrows).toThrow(`Constructor "${TestParameter.name}" is not registered for injection and can not be built`);
     });
 
     await pContext.step('Singleton without parameter', () => {

@@ -3,7 +3,6 @@ import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Injection } from "../../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts";
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
@@ -15,8 +14,8 @@ import type { IInstructionOnUpdate } from '../../../../source/core/module/instru
 import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
 
-describe('Custom Module', () => {
-    it('-- Same result, twice', async () => {
+Deno.test('PwbInstructionModule--Functionality: CustomModule - Same result, twice', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'multiresult',
@@ -68,8 +67,10 @@ describe('Custom Module', () => {
         // Evaluation.
         expect(lErrorMessage).toBe(`Can't add same template or values for multiple Elements.`);
     });
+});
 
-    it('-- Manupulator without update method', async () => {
+Deno.test('PwbInstructionModule--Functionality: CustomModule - Manipulator without update method', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'noupdatemethod',

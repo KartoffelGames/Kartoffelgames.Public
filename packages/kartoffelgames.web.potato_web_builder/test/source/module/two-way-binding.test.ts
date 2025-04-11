@@ -1,15 +1,14 @@
 // Import mock at start of file.
 import { TestUtil } from '../../utility/test-util.ts';
 
-// Funcitonal imports after mock.
+// Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('TwoWayBinding', () => {
-    it('-- Initial value', async () => {
+Deno.test('TwoWayBinding--Functionality: Initial value', async (pContext) => {
+    await pContext.step('Initial value', async () => {
         // Setup. Define values.
         const lInitialValue: string = 'INITIAL__VALUE';
 
@@ -32,8 +31,10 @@ describe('TwoWayBinding', () => {
         // Evaluation.
         expect(lInputValue).toBe(lInitialValue);
     });
+});
 
-    it('-- Change view value', async () => {
+Deno.test('TwoWayBinding--Functionality: Change view value', async (pContext) => {
+    await pContext.step('Change view value', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 
@@ -59,8 +60,10 @@ describe('TwoWayBinding', () => {
         // Evaluation.
         expect(lComponentValue).toBe(lNewValue);
     });
+});
 
-    it('-- Change component value', async () => {
+Deno.test('TwoWayBinding--Functionality: Change component value', async (pContext) => {
+    await pContext.step('Change component value', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 

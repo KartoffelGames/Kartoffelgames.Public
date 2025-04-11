@@ -3,15 +3,14 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import type { ComponentEventEmitter, IComponentEvent } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('ComponentEvent', () => {
-    it('-- Correct event value', async () => {
+Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
         const lEventName = 'custom-event';
@@ -46,8 +45,10 @@ describe('ComponentEvent', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventResult.value).toBe(lEventValue);
     });
+});
 
-    it('-- Forbidden static usage', () => {
+Deno.test('ComponentEvent--Functionality: Forbidden static usage', (pContext) => {
+    pContext.step('Default', () => {
         // Process. Define component.
         const lErrorFunction = () => {
             @PwbComponent({
@@ -63,8 +64,10 @@ describe('ComponentEvent', () => {
         // Evaluation.
         expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Inherited and overriden event-emitter event', async () => {
+Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
 
@@ -80,11 +83,11 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends ParentClass {
             @PwbComponentEvent('custom-event')
-            private accessor mOverridenEvent!: ComponentEventEmitter<string>;
+            private accessor mOverriddenEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
-                this.mOverridenEvent.dispatchEvent(lEventValue);
+                this.mOverriddenEvent.dispatchEvent(lEventValue);
             }
         }
 
@@ -104,8 +107,10 @@ describe('ComponentEvent', () => {
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventResult.value).toBe(lEventValue);
     });
+});
 
-    it('-- Inherited event-emitter event', async () => {
+Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
 
@@ -143,8 +148,10 @@ describe('ComponentEvent', () => {
         // Evaluation.
         expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
     });
+});
 
-    it('-- Override native events', async () => {
+Deno.test('ComponentEvent--Functionality: Override native events', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -175,8 +182,10 @@ describe('ComponentEvent', () => {
         // Evaluation.
         expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
     });
+});
 
-    it('-- Nativ and custom event parallel', async () => {
+Deno.test('ComponentEvent--Functionality: Native and custom event parallel', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -216,9 +225,10 @@ describe('ComponentEvent', () => {
         expect(lCustomCalled).toBeTruthy();
         expect(lNativeCalled).toBeTruthy();
     });
+});
 
-
-    it('-- Two parallel custom events correct values', async () => {
+Deno.test('ComponentEvent--Functionality: Two parallel custom events correct values', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValueOne: string = 'EVENT-VALUE-ONE';
         const lEventValueTwo: string = 'EVENT-VALUE-Two';

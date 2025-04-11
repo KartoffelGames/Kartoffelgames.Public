@@ -3,7 +3,6 @@ import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Injection } from "@kartoffelgames/core-dependency-injection";
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
@@ -18,8 +17,8 @@ import type { IExpressionOnUpdate } from '../../../../source/core/module/express
 import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 
-describe('HtmlComponent', () => {
-    it('-- Single element', async () => {
+Deno.test('PwbComponent--Functionality: Single element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -38,8 +37,10 @@ describe('HtmlComponent', () => {
             MOCK_WINDOW.HTMLDivElement
         ], true);
     });
+});
 
-    it('-- Sibling element', async () => {
+Deno.test('PwbComponent--Functionality: Sibling element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -59,8 +60,10 @@ describe('HtmlComponent', () => {
             MOCK_WINDOW.HTMLSpanElement
         ], true);
     });
+});
 
-    it('-- Child element', async () => {
+Deno.test('PwbComponent--Functionality: Child element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -82,15 +85,16 @@ describe('HtmlComponent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Ignore Comments', async () => {
+Deno.test('PwbComponent--Functionality: Ignore Comments', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: '<div><!-- Comment --></div>'
         })
         class TestComponent extends Processor { }
-
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -106,8 +110,10 @@ describe('HtmlComponent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Same component childs', async () => {
+Deno.test('PwbComponent--Functionality: Same component childs', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define child component.
         const lChildSelector: string = TestUtil.randomSelector();
         @PwbComponent({
@@ -133,8 +139,10 @@ describe('HtmlComponent', () => {
         expect(lSecondChild).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
         expect(lFirstChild).not.toBe(lSecondChild);
     });
+});
 
-    it('-- No template', async () => {
+Deno.test('PwbComponent--Functionality: No template', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -149,8 +157,10 @@ describe('HtmlComponent', () => {
             MOCK_WINDOW.Comment
         ], true);
     });
+});
 
-    it('-- Add local styles', async () => {
+Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
+    await pContext.step('Default', async () => {
         const lStyleContent: string = 'p {color: red;}';
 
         // Setup. Define component.
@@ -171,8 +181,10 @@ describe('HtmlComponent', () => {
         ], true);
         expect(lStyleElement.textContent).toBe(lStyleContent);
     });
+});
 
-    it('-- Manual update. Initial update', async () => {
+Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
 
@@ -199,8 +211,10 @@ describe('HtmlComponent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Manual update. User triggered update', async () => {
+Deno.test('PwbComponent--Functionality: Manual update. User triggered update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
         const lNewValue: string = 'New Value';
@@ -255,8 +269,10 @@ describe('HtmlComponent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Isolated update scope', async () => {
+Deno.test('PwbComponent--Functionality: Isolated update scope', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lIsolatedSelector: string = TestUtil.randomSelector();
 
@@ -312,8 +328,10 @@ describe('HtmlComponent', () => {
         expect(lDefaultUpdated, 'TestComponent').toBeFalsy();
         expect(lIsolatedUpdated, 'CapsuledTestComponent').toBeTruthy();
     });
+});
 
-    it('-- Custom expression module', async () => {
+Deno.test('PwbComponent--Functionality: Custom expression module', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
@@ -347,8 +365,10 @@ describe('HtmlComponent', () => {
             }
         ], true);
     });
+});
 
-    it('-- Create HTMLUnknownElement on unknown element', async () => {
+Deno.test('PwbComponent--Functionality: Create HTMLUnknownElement on unknown element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -367,8 +387,10 @@ describe('HtmlComponent', () => {
             MOCK_WINDOW.HTMLUnknownElement
         ], true);
     });
+});
 
-    it('-- Create HTMLElement on unknown component', async () => {
+Deno.test('PwbComponent--Functionality: Create HTMLElement on unknown component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -387,8 +409,10 @@ describe('HtmlComponent', () => {
             MOCK_WINDOW.HTMLElement
         ], true); // HTMLUnknownElement not creates in JSDOM.
     });
+});
 
-    it('-- Element reference', async () => {
+Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -415,8 +439,10 @@ describe('HtmlComponent', () => {
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent).toBe(lComponentReference);
     });
+});
 
-    it('-- User callbacks', async () => {
+Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lCallPosition = {
             onPwbInitialize: 1,
@@ -481,8 +507,10 @@ describe('HtmlComponent', () => {
             ]
         );
     });
+});
 
-    it('-- Deconstruct Manual', async () => {
+Deno.test('PwbComponent--Functionality: Deconstruct Manual', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Define component.
         let lWasDeconstructed: boolean = false;
         @PwbComponent({
@@ -503,8 +531,10 @@ describe('HtmlComponent', () => {
         // Evaluation.
         expect(lWasDeconstructed).toBeTruthy();
     });
+});
 
-    it('-- Loop detection', async () => {
+Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -542,8 +572,10 @@ describe('HtmlComponent', () => {
         // Evaluation.
         expect(lError).toBeInstanceOf(UpdateLoopError);
     });
+});
 
-    it('-- Creation without customElements register', async () => {
+Deno.test('PwbComponent--Functionality: Creation without customElements register', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
 
@@ -564,8 +596,10 @@ describe('HtmlComponent', () => {
         // Evaluation.
         expect(lComponent).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
     });
+});
 
-    it('-- Prevent construction of processor when not needed.', async () => {
+Deno.test('PwbComponent--Functionality: Prevent construction of processor when not needed.', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define flag.
         let lConstructionCalled: boolean = false;
 

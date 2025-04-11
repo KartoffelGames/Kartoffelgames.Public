@@ -1,1 +1,1 @@
-Deno.test('Custom Module', () => { });
+Deno.test('ExpressionModule--Functionality: CustomModule', () => { });

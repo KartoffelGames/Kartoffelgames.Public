@@ -1,10 +1,8 @@
-
 // Import mock at start of file.
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { ModuleDataLevel } from '../../../../source/core/data/module-data-level.ts';
@@ -13,8 +11,8 @@ import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.
 import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { Injection } from "@kartoffelgames/core-dependency-injection";
 
-describe('Custom Module', () => {
-    it('-- Set non existing temporary value of level procedure', async () => {
+Deno.test('PwbAttributeModule--Functionality: CustomModule - Set non existing temporary value of level procedure', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTemporaryValueName: string = 'notthere';
 

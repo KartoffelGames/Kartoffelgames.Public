@@ -3,13 +3,12 @@ import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-describe('IfInstruction', () => {
-    it('Initial false', async () => {
+Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;
 
@@ -33,8 +32,10 @@ describe('IfInstruction', () => {
             MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
+});
 
-    it('Initial true', async () => {
+Deno.test('IfInstruction--Functionality: Initial true', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = true;
 
@@ -60,8 +61,10 @@ describe('IfInstruction', () => {
             MOCK_WINDOW.HTMLDivElement
         ], true);
     });
+});
 
-    it('Updated false', async () => {
+Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;
 
@@ -88,8 +91,10 @@ describe('IfInstruction', () => {
             MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
+});
 
-    it('Updated true', async () => {
+Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = true;
 
@@ -118,8 +123,10 @@ describe('IfInstruction', () => {
             MOCK_WINDOW.HTMLDivElement
         ], true);
     });
+});
 
-    it('None boolean false value', async () => {
+Deno.test('IfInstruction--Functionality: None boolean false value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: any = null;
 
@@ -143,8 +150,10 @@ describe('IfInstruction', () => {
             MOCK_WINDOW.Comment, // - Manipulator Anchor
         ], true);
     });
+});
 
-    it('None boolean true value', async () => {
+Deno.test('IfInstruction--Functionality: None boolean true value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: any = new Object();
 

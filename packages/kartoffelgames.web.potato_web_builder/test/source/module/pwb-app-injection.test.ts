@@ -1,17 +1,16 @@
 // Import mock at start of file.
 import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
 
-// Funcitonal imports after mock.
+// Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { Injection } from "../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts";
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum.ts';
 import { PwbApp } from '../../../source/pwb-app/pwb-app.ts';
 
-describe('PwbAppInjection', () => {
-    it('-- PwbApp injection on global element', async () => {
+Deno.test('PwbAppInjection--Functionality: PwbApp injection on global element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lApp: PwbApp | null = null;
         const lSelector: string = TestUtil.randomSelector();
@@ -45,8 +44,10 @@ describe('PwbAppInjection', () => {
         // Evaluation.
         expect(lApp).toBeInstanceOf(PwbApp);
     });
+});
 
-    it('-- PwbApp injection on manual element', async () => {
+Deno.test('PwbAppInjection--Functionality: PwbApp injection on manual element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lCapsuledSelector: string = TestUtil.randomSelector();
         const lSelector: string = TestUtil.randomSelector();
@@ -94,8 +95,10 @@ describe('PwbAppInjection', () => {
         // Evaluation.
         expect(lApp).toBeInstanceOf(PwbApp);
     });
+});
 
-    it('-- Deep nested manual component', async () => {
+Deno.test('PwbAppInjection--Functionality: Deep nested manual component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
         const lChildSelector: string = TestUtil.randomSelector();
@@ -146,11 +149,11 @@ describe('PwbAppInjection', () => {
         const lComponent: HTMLElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
-        // Read cild component.
+        // Read child component.
         const lChildChildContent: HTMLElement = TestUtil.getComponentNode(lComponent, lChildSelector);
         TestUtil.manualUpdate(lChildChildContent);
 
-        // Read cild component.
+        // Read child component.
         const lChildChildChildContent: HTMLElement = TestUtil.getComponentNode(lChildChildContent, lChildChildSelector);
         TestUtil.forceProcessorCreation(lChildChildChildContent);
         await TestUtil.waitForUpdate(lChildChildChildContent);
@@ -158,8 +161,10 @@ describe('PwbAppInjection', () => {
         // Evaluation.
         expect(lApp).toBeInstanceOf(PwbApp);
     });
+});
 
-    it('-- Creation without PwbApp', async () => {
+Deno.test('PwbAppInjection--Functionality: Creation without PwbApp', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
 
@@ -191,10 +196,12 @@ describe('PwbAppInjection', () => {
         }
 
         // Evaluation.
-        expect(lMessage).toBe('Constructor "PwbApp" is not registered for injection and can not be build');
+        expect(lMessage).toBe('Constructor "PwbApp" is not registered for injection and can not be built');
     });
+});
 
-    it('-- Creation with isloated component', async () => {
+Deno.test('PwbAppInjection--Functionality: Creation with isolated component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         const lSelector: string = TestUtil.randomSelector();
 

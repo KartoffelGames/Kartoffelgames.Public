@@ -17,6 +17,9 @@ import type { Graph } from './graph/graph.ts';
  * @typeparam TParseResult - The result object the parser returns on success.
  */
 export class CodeParser<TTokenType extends string, TParseResult> {
+    public static readonly NODE_NULL_RESULT: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
+    public static readonly NODE_VALUE_LIST_END_MEET: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
+
     private mDebugMode: boolean;
     private readonly mLexer: Lexer<TTokenType>;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
@@ -156,7 +159,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         pParsingProcessState.processStack.push({ type: 'graph-parse', parameter: { graph: pRootGraph, linear: true }, state: 0 });
 
         // Process stack as long as something is stacked.
-        let lStackResult: unknown = undefined;
+        let lStackResult: unknown | CodeParserNodeNullResult = CodeParser.NODE_NULL_RESULT;
         while (pParsingProcessState.processStack.top) {
             lStackResult = this.processStack(pParsingProcessState, pParsingProcessState.processStack.top, lStackResult);
         }
@@ -177,7 +180,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} Throws an exception if an invalid state is encountered.
      */
-    private processChainedNodeParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeNextParse'], pStackResult: unknown): undefined | CodeParserErrorSymbol | object {
+    private processChainedNodeParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeNextParse'], pStackResult: unknown): CodeParserNodeNullResult | CodeParserErrorSymbol | object {
         switch (pCurrentProcess.state) {
             // State 0: Start node next parse.
             case 0: {
@@ -205,7 +208,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Start parsing next node.
                 pParsingProcessState.processStack.push({ type: 'node-parse', parameter: { node: lNextNode }, state: 0, values: {} });
 
-                return;
+                return CodeParser.NODE_NULL_RESULT;
             }
 
             // State 1: End node next parse.
@@ -245,7 +248,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} If an invalid graph parse state is encountered.
      */
-    private processGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['graphParse'], pStackResult: unknown): unknown {
+    private processGraphParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['graphParse'], pStackResult: unknown): unknown | CodeParserNodeNullResult {
         const lGraph: Graph<TTokenType> = pCurrentProcess.parameter.graph;
 
         switch (pCurrentProcess.state) {
@@ -279,7 +282,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 pParsingProcessState.processStack.push({ type: 'node-parse', parameter: { node: lGraph.node }, state: 0, values: {} });
 
                 // Proceed next stack item.
-                return;
+                return CodeParser.NODE_NULL_RESULT;
             }
 
             // State 1: End graph parse.
@@ -343,7 +346,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} If an invalid node parse state is encountered.
      */
-    private processNodeParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeParse'], pStackResult: unknown): unknown {
+    private processNodeParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeParse'], pStackResult: unknown): unknown | CodeParserNodeNullResult {
         const lNode: GraphNode<TTokenType> = pCurrentProcess.parameter.node;
 
         switch (pCurrentProcess.state) {
@@ -355,7 +358,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Proceed to next state.
                 pCurrentProcess.state++;
 
-                return;
+                return CodeParser.NODE_NULL_RESULT;
             }
 
             // State 1: Save node value parse result and proceed to parse next node.
@@ -381,7 +384,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Proceed to next state.
                 pCurrentProcess.state++;
 
-                return;
+                return CodeParser.NODE_NULL_RESULT;
             }
 
             // State 2: Save node next parse and return value.
@@ -424,21 +427,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {Exception} When an invalid node value parse state is encountered.
      */
-    private processNodeValueParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeValueParse'], pStackResult: unknown): unknown {
+    private processNodeValueParseProcess(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackMapping<TTokenType>['nodeValueParse'], pStackResult: unknown): unknown | CodeParserNodeNullResult {
         const lNode: GraphNode<TTokenType> = pCurrentProcess.parameter.node;
 
         switch (pCurrentProcess.state) {
             // State 0: Iterate over node values.
             case 0: {
                 // When the last process has returned a value, use the parse result when it is not a error value.
-                if (pStackResult && pStackResult !== CodeParserException.PARSER_ERROR) {
+                if (pStackResult !== CodeParser.NODE_NULL_RESULT && pStackResult !== CodeParserException.PARSER_ERROR) {
                     // Set parsed value to last stack result.
                     pCurrentProcess.values.parseResult = pStackResult;
 
                     // Proceed to next state.
                     pCurrentProcess.state++;
 
-                    return;
+                    return CodeParser.NODE_NULL_RESULT;
                 }
 
                 // Read current value index.
@@ -450,12 +453,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Check if node has any more values.
                 if (lValueIndex >= lNodeConnections.values.length) {
                     // Set parsed value to null.
-                    pCurrentProcess.values.parseResult = null;
+                    pCurrentProcess.values.parseResult = CodeParser.NODE_VALUE_LIST_END_MEET;
 
                     // Proceed to next state.
                     pCurrentProcess.state++;
 
-                    return;
+                    return CodeParser.NODE_NULL_RESULT;
                 }
 
                 // Increment value.
@@ -479,7 +482,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         }
 
                         // No token was found, try next value.
-                        return;
+                        return CodeParser.NODE_NULL_RESULT;
                     }
 
                     // Push possible parser error when token type does not match node value.
@@ -493,7 +496,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         }
 
                         // No token was found, try next value.
-                        return;
+                        return CodeParser.NODE_NULL_RESULT;
                     }
 
                     // Move cursor to next token.
@@ -510,7 +513,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Push parser process for graph value.
                     pParsingProcessState.processStack.push({ type: 'graph-parse', parameter: { graph: lNodeValue, linear: lNodeValueIsLinear }, state: 0 });
 
-                    return;
+                    return CodeParser.NODE_NULL_RESULT;
                 }
             }
 
@@ -524,7 +527,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Empty result when no node value was found and node is optional.
                 // Null means it has not found any fitting node value but meet the end of the node value parse.
-                if (lNodeResult === null && !lNodeConnections.required) {
+                if (lNodeResult === CodeParser.NODE_VALUE_LIST_END_MEET && !lNodeConnections.required) {
                     // Pop itself from stack.
                     pParsingProcessState.processStack.pop();
 
@@ -533,7 +536,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // When no result was added, node was required and should fail.
-                if (lNodeResult === null) {
+                if (lNodeResult === CodeParser.NODE_VALUE_LIST_END_MEET) {
                     // Pop itself from stack.
                     pParsingProcessState.processStack.pop();
 
@@ -570,7 +573,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      *
      * @throws {Exception} If an invalid state is encountered during processing.
      */
-    private processStack(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackItem<TTokenType>, pStackResult: unknown): unknown {
+    private processStack(pParsingProcessState: CodeParserProcessState<TTokenType>, pCurrentProcess: CodeParserProcessStackItem<TTokenType>, pStackResult: unknown): unknown | CodeParserNodeNullResult {
         // Process current process
         switch (pCurrentProcess.type) {
             case 'graph-parse': {
@@ -588,5 +591,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
     }
 }
+
+type CodeParserNodeNullResult = typeof CodeParser.NODE_NULL_RESULT;
 
 export type CodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;

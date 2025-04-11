@@ -725,6 +725,57 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             // Evaluation.
             expect(lFunction).not.toThrow();
         });
+
+        await pContext.step('Null as converter result', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+            const lCodeText: string = 'part';
+
+            // Setup. Define additive part.
+            const lIdentifierGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required('data', TokenType.Identifier);
+            }).converter(() => {
+                return null;
+            });
+
+            // Setup. Define graph part and set as root.
+            const lMainGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required('part', lIdentifierGraph);
+            });
+            lParser.setRootGraph(lMainGraph);
+
+            // Process. Convert code.
+            const lResult = lParser.parse(lCodeText);
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lResult).toHaveProperty('part');
+            expect(lResult.part).toBeNull();
+        });
+
+        await pContext.step('Undefined as converter result', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+            const lCodeText: string = 'part';
+
+            // Setup. Define additive part.
+            const lIdentifierGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required('data', TokenType.Identifier);
+            }).converter(() => {
+                return undefined;
+            });
+
+            // Setup. Define graph part and set as root.
+            const lMainGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required('part', lIdentifierGraph);
+            });
+            lParser.setRootGraph(lMainGraph);
+
+            // Process. Convert code.
+            const lResult = lParser.parse(lCodeText);
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lResult.part).toBeUndefined();
+        });
     });
 
     await pContext.step('Parse Graph Errors', async (pContext) => {

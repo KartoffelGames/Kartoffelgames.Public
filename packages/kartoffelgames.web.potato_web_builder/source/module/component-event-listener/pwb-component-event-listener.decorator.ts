@@ -17,7 +17,6 @@ export function PwbComponentEventListener(pEventName: string) {
         // Read class metadata from decorator metadata object.
         const lClassMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
-
         // Get property list from constructor metadata.
         const lEventPropertyList: Array<[PropertyKey, string]> = lClassMetadata.getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES) ?? new Array<[PropertyKey, string]>();
         lEventPropertyList.push([pContext.name, pEventName]);

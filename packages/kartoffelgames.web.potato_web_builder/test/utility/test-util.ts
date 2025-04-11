@@ -18,6 +18,7 @@ import '../../source/module/two_way_binding/two-way-binding-attribute-module.ts'
 
 // Import default extensions.
 import '../../source/module/component-event-listener/component-event-listener-component-extension.ts';
+import '../../source/module/component-event-listener/component-event-listener-module-extension.ts';
 import '../../source/module/export/export-extension.ts';
 import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
 

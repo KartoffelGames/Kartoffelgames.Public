@@ -213,7 +213,7 @@ Deno.test('ComponentEventListener--Functionality: Native listener on static modu
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
-        lDivElement.dispatchEvent(new MOCK_WINDOW.Event('click', { bubbles: false }));
+        lDivElement.dispatchEvent(new MOCK_WINDOW.MouseEvent('click', { bubbles: false }));
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();

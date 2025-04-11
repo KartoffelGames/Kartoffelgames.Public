@@ -192,7 +192,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: InteractionZone', async (pCo
 
             // Evaluation.
             expect(lResultValue).not.toBe(lValue);
-            expect(lResultValue).not.toBeDeepEqual(lValue);
+            expect(lResultValue).toBeDeepEqual(lValue);
         });
 
         await pContext.step('Function', () => {

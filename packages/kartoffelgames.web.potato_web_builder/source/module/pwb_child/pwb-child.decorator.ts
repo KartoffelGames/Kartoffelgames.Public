@@ -26,7 +26,7 @@ export function PwbChild(pIdChildName: string) {
                     try {
                         return ComponentRegister.ofProcessor(this).component;
                     } catch {
-                        throw new Exception('PwbChild target class it not a component.', this);
+                        throw new Exception('PwbChild target class is not a component.', this);
                     }
                 })();
 

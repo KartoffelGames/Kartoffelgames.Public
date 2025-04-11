@@ -41,8 +41,7 @@ export { AccessMode } from './core/enum/access-mode.enum.ts';
 
 // Default extensions.
 export { PwbComponentEventListener } from './module/component-event-listener/pwb-component-event-listener.decorator.ts';
-export { ComponentEventEmitter } from './module/component-event/component-event-emitter.ts';
-export { ComponentEvent } from './module/component-event/component-event.ts';
+export { ComponentEventEmitter, type IComponentEvent } from './module/component-event/component-event-emitter.ts';
 export { PwbComponentEvent } from './module/component-event/pwb-component-event.decorator.ts';
 export { PwbExport } from './module/export/pwb-export.decorator.ts';
 export { PwbChild } from './module/pwb_child/pwb-child.decorator.ts';
@@ -67,6 +66,7 @@ import './module/two_way_binding/two-way-binding-attribute-module.ts';
 
 // Import default extensions.
 import './module/component-event-listener/component-event-listener-component-extension.ts';
+import './module/component-event-listener/component-event-listener-module-extension.ts';
 import './module/export/export-extension.ts';
 import './module/pwb_app_injection/pwb-app-injection-extension.ts';
 

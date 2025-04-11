@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';

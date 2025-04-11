@@ -26,7 +26,7 @@ export function PwbComponentEvent(pEventName: string) {
                         try {
                             return ComponentRegister.ofProcessor(this).component;
                         } catch {
-                            throw new Exception('PwbComponentEvent target class it not a component.', this);
+                            throw new Exception('PwbComponentEvent target class is not a component.', this);
                         }
                     })();
 

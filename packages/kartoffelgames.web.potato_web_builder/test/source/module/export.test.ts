@@ -82,8 +82,8 @@ Deno.test('Export--Functionality: Two parallel exports get', async (pContext) =>
     });
 });
 
-Deno.test('Export--Functionality: Forbidden static usage', (pContext) => {
-    pContext.step('Default', () => {
+Deno.test('Export--Functionality: Forbidden static usage', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             // Setup. Define component.

@@ -108,8 +108,8 @@ Deno.test('ComponentEventListener--Functionality: Custom event listener', async 
     });
 });
 
-Deno.test('ComponentEventListener--Functionality: Error on static properties', (pContext) => {
-    pContext.step('Default', () => {
+Deno.test('ComponentEventListener--Functionality: Error on static properties', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             @PwbComponent({

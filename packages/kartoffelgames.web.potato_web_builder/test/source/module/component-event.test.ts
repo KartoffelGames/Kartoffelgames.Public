@@ -47,8 +47,8 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
     });
 });
 
-Deno.test('ComponentEvent--Functionality: Forbidden static usage', (pContext) => {
-    pContext.step('Default', () => {
+Deno.test('ComponentEvent--Functionality: Forbidden static usage', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process. Define component.
         const lErrorFunction = () => {
             @PwbComponent({

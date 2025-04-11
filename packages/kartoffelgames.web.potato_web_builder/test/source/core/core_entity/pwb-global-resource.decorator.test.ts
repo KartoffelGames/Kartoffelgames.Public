@@ -3,7 +3,6 @@ import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
 
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { describe, it } from '@std/testing/bdd';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';

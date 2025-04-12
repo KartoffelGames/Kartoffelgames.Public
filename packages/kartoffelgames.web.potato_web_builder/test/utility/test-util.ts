@@ -1,10 +1,5 @@
-import { PwbConfiguration } from "../../source/core/configuration/pwb-configuration.ts";
-import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { ComponentRegister } from '../../source/core/component/component-register.ts';
-import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
-
 // Import test environment.
-import  './test-dom-environment.ts';
+import './test-dom-environment.ts';
 
 // Import default modules
 import '../../source/module/dynamic-content/dynamic-content-module.ts';
@@ -21,6 +16,15 @@ import '../../source/module/component-event-listener/component-event-listener-co
 import '../../source/module/component-event-listener/component-event-listener-module-extension.ts';
 import '../../source/module/export/export-extension.ts';
 import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
+
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { ComponentRegister } from '../../source/core/component/component-register.ts';
+import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
+import { PwbConfiguration } from "../../source/core/configuration/pwb-configuration.ts";
+
+// Define update metrics.
+PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+PwbConfiguration.configuration.error.print = false;
 
 export class TestUtil {
     /**

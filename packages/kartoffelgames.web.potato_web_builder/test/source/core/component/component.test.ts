@@ -2,12 +2,11 @@
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
-import { expect } from '@kartoffelgames/core-test';
 import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration.ts';
 import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error.ts';

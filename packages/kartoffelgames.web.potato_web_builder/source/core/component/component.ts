@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
+import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
 import type { Processor } from '../core_entity/processor.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';

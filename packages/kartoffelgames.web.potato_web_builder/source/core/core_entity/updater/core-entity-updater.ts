@@ -1,5 +1,5 @@
 import { Stack } from '@kartoffelgames/core';
-import { InteractionEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { InteractionZoneEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration.ts';
 import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { type CoreEntityInteractionData, type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
@@ -176,7 +176,7 @@ export class CoreEntityUpdater {
      */
     public update(): boolean {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
+        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
 
         // Run synchron update.
         return this.runUpdateSynchron(lManualUpdateEvent);
@@ -187,7 +187,7 @@ export class CoreEntityUpdater {
      */
     public updateAsync(): void {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
+        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
 
         // Run synchron update.
         this.runUpdateAsynchron(lManualUpdateEvent, null);

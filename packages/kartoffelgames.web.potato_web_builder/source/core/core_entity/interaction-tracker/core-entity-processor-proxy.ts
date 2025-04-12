@@ -1,4 +1,4 @@
-import { InteractionEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
+import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/web-interaction-zone';
 import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 
 /**
@@ -8,20 +8,20 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
  * @internal
  */
 export class CoreEntityProcessorProxy<T extends object> {
-     
+
     private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
         lIgnoreList.add(CoreEntityProcessorProxy);
         lIgnoreList.add(InteractionZone as any as IgnoreableConstructor);
-        lIgnoreList.add(InteractionEvent);
+        lIgnoreList.add(InteractionZoneEvent);
 
         return lIgnoreList;
     })();
 
-     
+
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
-     
+
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**
@@ -330,5 +330,5 @@ export type CoreEntityInteractionData = {
     toString: () => string;
 };
 
-export type CoreEntityInteractionEvent = InteractionEvent<UpdateTrigger, CoreEntityInteractionData>;
+export type CoreEntityInteractionEvent = InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>;
 

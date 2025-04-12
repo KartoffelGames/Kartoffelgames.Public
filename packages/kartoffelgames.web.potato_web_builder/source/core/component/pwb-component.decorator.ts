@@ -1,20 +1,20 @@
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { Processor } from "../core_entity/processor.ts";
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
 import { ComponentRegister } from './component-register.ts';
-import { Component, type ComponentProcessorConstructor } from './component.ts';
-import { PwbConfiguration } from "../configuration/pwb-configuration.ts";
+import { Component } from './component.ts';
 
 /**
  * AtScript. PWB Component.
  * 
  * @param pParameter - Parameter defaults on creation.
  */
-export function PwbComponent(pParameter: HtmlComponentParameter): any {
+export function PwbComponent(pParameter: HtmlComponentParameter) {
     // Needs constructor without argument.
-    return (pComponentProcessorConstructor: ComponentProcessorConstructor, pContext: ClassDecoratorContext) => {
+    return (pComponentProcessorConstructor: typeof Processor, pContext: ClassDecoratorContext) => {
         // Set component processor constructor to be injectable.
         Injection.registerInjectable(pComponentProcessorConstructor, pContext.metadata, 'instanced');
 

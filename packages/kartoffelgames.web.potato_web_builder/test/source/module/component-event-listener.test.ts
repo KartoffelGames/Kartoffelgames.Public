@@ -305,8 +305,8 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
-        // Evaluation after inner click..
-        lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
+        // Evaluation after inner click.
+        lDivElement.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
         // Evaluation after component click.
         expect(lEventCalled).toBeFalsy();

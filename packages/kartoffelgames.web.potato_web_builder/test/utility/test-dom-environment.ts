@@ -1,5 +1,5 @@
 // @deno-types="npm:@types/jsdom"
-import { JSDOM, DOMWindow } from 'npm:jsdom';
+import { JSDOM } from 'npm:jsdom';
 
 const defaultHtml = '<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>';
 

@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
+import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
 import type { InteractionEvent } from '../source/zone/interaction-event.ts';
 import { InteractionZone } from '../source/zone/interaction-zone.ts';
 import { PromiseRejectionEvent } from './mock/error-event.ts';
-import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
 
 Deno.test('InteractionZone.current', async (pContext) => {
     await pContext.step('Available Zone', () => {
@@ -412,14 +412,18 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called', async () => {
             // Setup. Patched promise.
             const lScopeTarget = {
-                promise: class <T> extends Promise<T> { }
+                promise: class <T> extends Promise<T> { },
+                eventTarget: class extends EventTarget { }
             };
 
             // Process. Patch scope.
             InteractionZoneGlobalScope.enable({
                 target: lScopeTarget,
                 patches: {
-                    promise: 'promise'
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
                 }
             });
 
@@ -454,14 +458,18 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called with correct error', async () => {
             // Setup. Patched promise.
             const lScopeTarget = {
-                promise: class <T> extends Promise<T> { }
+                promise: class <T> extends Promise<T> { },
+                eventTarget: class extends EventTarget { }
             };
 
             // Process. Patch scope.
             InteractionZoneGlobalScope.enable({
                 target: lScopeTarget,
                 patches: {
-                    promise: 'promise'
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
                 }
             });
 
@@ -497,14 +505,18 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Parent Error listener called', async () => {
             // Setup. Patched promise.
             const lScopeTarget = {
-                promise: class <T> extends Promise<T> { }
+                promise: class <T> extends Promise<T> { },
+                eventTarget: class extends EventTarget { }
             };
 
             // Process. Patch scope.
             InteractionZoneGlobalScope.enable({
                 target: lScopeTarget,
                 patches: {
-                    promise: 'promise'
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
                 }
             });
 
@@ -539,14 +551,18 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Parent Error listener when default prevented', async () => {
             // Setup. Patched promise.
             const lScopeTarget = {
-                promise: class <T> extends Promise<T> { }
+                promise: class <T> extends Promise<T> { },
+                eventTarget: class extends EventTarget { }
             };
 
             // Process. Patch scope.
             InteractionZoneGlobalScope.enable({
                 target: lScopeTarget,
                 patches: {
-                    promise: 'promise'
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
                 }
             });
 
@@ -589,14 +605,18 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Error listener called outside zone', async () => {
             // Setup. Patched promise.
             const lScopeTarget = {
-                promise: class <T> extends Promise<T> { }
+                promise: class <T> extends Promise<T> { },
+                eventTarget: class extends EventTarget { }
             };
 
             // Process. Patch scope.
             InteractionZoneGlobalScope.enable({
                 target: lScopeTarget,
                 patches: {
-                    promise: 'promise'
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
                 }
             });
 

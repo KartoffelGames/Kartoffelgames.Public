@@ -18,15 +18,14 @@ export class InteractionZoneGlobalScope {
         // Create local patcher instance.
         const lPatcher: InteractionZoneGlobalScope = new InteractionZoneGlobalScope();
 
-        // Patch Promise
-        if (pTarget.patches.promise) {
-            const lPromiseName: string = pTarget.patches.promise;
+        // Requirement patches. 
+        {
+            // Patch promise.
+            const lPromiseName: string = pTarget.patches.requirements.promise;
             lGlobalScope[lPromiseName] = lPatcher.patchPromise(lGlobalScope[lPromiseName]);
-        }
 
-        // Patch EventTarget
-        if (pTarget.patches.eventTarget) {
-            const lEventTargetName: string = pTarget.patches.eventTarget;
+            // Patch event target.
+            const lEventTargetName: string = pTarget.patches.requirements.eventTarget;
             lGlobalScope[lEventTargetName] = lPatcher.patchEventTarget(lGlobalScope[lEventTargetName]);
         }
 
@@ -38,18 +37,28 @@ export class InteractionZoneGlobalScope {
             lGlobalScope[lFunctionName] = lPatcher.patchFunctionCallbacks(lGlobalScope[lFunctionName]);
         }
 
-        // Patch all classes.
-        for (const lClassName of pTarget.patches.classes ?? []) {
+        // Patch classes.
+        if(!pTarget.patches.classes) {
+            return true;
+        }
+
+        // Patch all class callbacks.
+        for (const lClassName of pTarget.patches.classes.callback ?? []) {
             let lClass: any = lGlobalScope[lClassName];
 
             // Patch class.
             lClass = lPatcher.patchClass(lClass);
 
-            // Patch properties.
-            lPatcher.patchOnEvents(lClass.prototype);
-
             // Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
             lGlobalScope[lClassName] = lClass;
+        }
+
+        // Patch all class on events.
+        for (const lClassName of pTarget.patches.classes.eventTargets ?? []) {
+            let lClass: any = lGlobalScope[lClassName];
+
+            // Patch properties.
+            lPatcher.patchOnEvents(lClass.prototype);
         }
 
         return true;
@@ -419,9 +428,14 @@ export class InteractionZoneGlobalScope {
 export type InteractionZoneGlobalScopeTarget = {
     target: object;
     patches: {
-        promise?: string;
-        eventTarget?: string;
-        classes?: Array<string>;
+        requirements: {
+            promise: string;
+            eventTarget: string;
+        };
+        classes?: {
+            callback?: Array<string>;
+            eventTargets?: Array<string>;
+        };
         functions?: Array<string>;
     };
 };

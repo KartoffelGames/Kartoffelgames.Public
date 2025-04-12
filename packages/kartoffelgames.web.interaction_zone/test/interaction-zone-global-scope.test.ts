@@ -6,12 +6,20 @@ import './mock/request-animation-frame-mock-session.ts';
 Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Global.
-        const lGlobalScope = {};
+        const lGlobalScope = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { }
+        };
 
         // Process. Its patched anyway.
         const lWasPatched = InteractionZoneGlobalScope.enable({
             target: lGlobalScope,
-            patches: {}
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Process. Get patched and original function.
@@ -23,16 +31,29 @@ Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
     });
     await pContext.step('Double patch', async () => {
         // Setup. Global.
-        const lGlobalScope = {};
+        const lGlobalScope = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { }
+        };
 
         // Process. Its patched anyway.
         const lWasPatchedOne = InteractionZoneGlobalScope.enable({
             target: lGlobalScope,
-            patches: {}
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
         const lWasPatchedTwo = InteractionZoneGlobalScope.enable({
             target: lGlobalScope,
-            patches: {}
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Process. Get patched and original function.
@@ -50,13 +71,23 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup. Global scope.
         const lOriginalEmptyClass = class { };
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: lOriginalEmptyClass
         };
 
         // Setup. Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Process.
@@ -70,6 +101,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Property constructor set value', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 a: number = 0;
                 constructor(pArgOne: number) {
@@ -81,7 +114,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup. Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup.
@@ -97,6 +138,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Property accessor set value', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 private mA: number;
 
@@ -114,7 +157,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup. Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup.
@@ -130,6 +181,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Property property set value', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 a: number = 0;
             }
@@ -138,7 +191,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup. Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup.
@@ -155,6 +216,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Constructor callback correct callback zone', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 public callback: () => void;
                 constructor(pArgOne: () => void) {
@@ -166,7 +229,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup. Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup. Zone.
@@ -190,6 +261,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Method callback correct callback zone', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 public callback: (() => number) | null = null;
                 public setCallback(pArgOne: () => number) {
@@ -201,7 +274,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup. Zone.
@@ -229,6 +310,8 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('Method callback correct result', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { },
             class: class {
                 public callback: (() => number) | null = null;
                 public setCallback(pArgOne: () => number) {
@@ -240,7 +323,15 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { classes: ['class'] }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    callback: ['class']
+                }
+            }
         });
 
         // Setup.
@@ -262,13 +353,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('AddEventListener correct listener zone', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -291,13 +388,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('Remove event listener', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -324,13 +427,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('Remove event listener wrong type', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -357,13 +466,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('AddEventListener with null as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -381,13 +496,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('RemoveEventListener with null as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -405,13 +526,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('RemoveEventListener with string as callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -429,13 +556,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('RemoveEventListener with unregistered callback', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -453,13 +586,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('AddEventListener correct zone in event handler object', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -486,13 +625,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('AddEventListener correct this context on event handler object call', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -518,13 +663,19 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
     await pContext.step('Remove event handler object', () => {
         // Setup. Global scope.
         const lPatchedGlobal = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: class extends EventTarget { }
         };
 
         // Setup.Patch classes of local global scope.
         InteractionZoneGlobalScope.enable({
             target: lPatchedGlobal,
-            patches: { eventTarget: 'eventTarget' }
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
         });
 
         // Setup.
@@ -559,6 +710,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Setup.
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any = null;
@@ -569,8 +721,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
 
@@ -593,6 +750,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Setup.
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any;
@@ -603,8 +761,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
         const lEventTarget = new lScopeTarget.onEventClass();
@@ -626,6 +789,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Setup.
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any;
@@ -636,8 +800,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
         const lEventTarget = new lScopeTarget.onEventClass();
@@ -659,6 +828,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         // Setup.
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any;
@@ -669,8 +839,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
         const lEventTarget = new lScopeTarget.onEventClass();
@@ -685,6 +860,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         const lValue: string = 'ValueOrSo';
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any;
@@ -695,8 +871,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
         const lEventTarget = new lScopeTarget.onEventClass();
@@ -714,6 +895,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         const lValue: () => void = () => { };
         const lCustomlEventTarget = class extends EventTarget { };
         const lScopeTarget = {
+            promise: class <T> extends Promise<T> { },
             eventTarget: lCustomlEventTarget,
             onEventClass: class extends lCustomlEventTarget {
                 public accessor oncustom: any;
@@ -724,8 +906,13 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                eventTarget: 'eventTarget',
-                classes: ['onEventClass']
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                },
+                classes: {
+                    eventTargets: ['onEventClass']
+                }
             }
         });
         const lEventTarget = new lScopeTarget.onEventClass();
@@ -743,6 +930,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise executor correct zone', async () => {
         // Setup. Patched promise.
         const lScopeTarget = {
+            eventTarget: class extends EventTarget { },
             promise: class <T> extends Promise<T> { }
         };
 
@@ -750,7 +938,10 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                promise: 'promise'
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
             }
         });
 
@@ -768,6 +959,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise then keep zone', async () => {
         // Setup. Patched promise.
         const lScopeTarget = {
+            eventTarget: class extends EventTarget { },
             promise: class <T> extends Promise<T> { }
         };
 
@@ -775,7 +967,10 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                promise: 'promise'
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
             }
         });
 
@@ -795,6 +990,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise catch keep zone', async () => {
         // Setup. Patched promise.
         const lScopeTarget = {
+            eventTarget: class extends EventTarget { },
             promise: class <T> extends Promise<T> { }
         };
 
@@ -802,7 +998,10 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                promise: 'promise'
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
             }
         });
 
@@ -822,6 +1021,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise then keep zone async execution', async () => {
         // Setup. Patched promise.
         const lScopeTarget = {
+            eventTarget: class extends EventTarget { },
             promise: class <T> extends Promise<T> { }
         };
 
@@ -829,7 +1029,10 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                promise: 'promise'
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
             }
         });
 
@@ -848,6 +1051,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
     await pContext.step('Promise catch keep zone async execution', async () => {
         // Setup. Patched promise.
         const lScopeTarget = {
+            eventTarget: class extends EventTarget { },
             promise: class <T> extends Promise<T> { }
         };
 
@@ -855,7 +1059,10 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         InteractionZoneGlobalScope.enable({
             target: lScopeTarget,
             patches: {
-                promise: 'promise'
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
             }
         });
 

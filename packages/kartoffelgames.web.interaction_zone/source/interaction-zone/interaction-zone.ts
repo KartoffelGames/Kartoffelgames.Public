@@ -174,13 +174,8 @@ export class InteractionZone {
             return undefined;
         }
 
-        // Skip parent search when no parent is available.
-        if (!this.mParent) {
-            return undefined;
-        }
-
-        // When the value was not found search in parent zones.
-        return this.mParent.attachment(pSymbol);
+        // When the value was not found search in parent zones. Parent is allways set and the root zone is isolated.
+        return this.mParent!.attachment(pSymbol);
     }
 
     /**

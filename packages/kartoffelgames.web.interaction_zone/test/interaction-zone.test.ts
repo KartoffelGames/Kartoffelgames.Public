@@ -1466,6 +1466,33 @@ Deno.test('InteractionZone.attachment()', async (pContext) => {
         expect(lResultChild).toBe(lChildValue);
         expect(lResultParent).toBe(lParentValue);
     });
+
+    await pContext.step('Value not found in any zone', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lKey: symbol = Symbol('NonExistentKey');
+
+        // Process.
+        const lResult: string | undefined = lZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBeUndefined();
+    });
+
+    await pContext.step('Value not found due to isolated child zone', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.current.create('ParentZone');
+        const lIsolatedChildZone: InteractionZone = lParentZone.create('IsolatedChildZone', { isolate: true });
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'ParentValue';
+
+        // Process.
+        lParentZone.attachment(lKey, lValue);
+        const lResult: string | undefined = lIsolatedChildZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBeUndefined();
+    });
 });
 
 enum TestTriggerEnum {

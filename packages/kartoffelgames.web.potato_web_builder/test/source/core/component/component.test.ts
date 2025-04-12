@@ -35,6 +35,9 @@ Deno.test('PwbComponent--Functionality: Single element', async (pContext) => {
             Comment,
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -58,6 +61,9 @@ Deno.test('PwbComponent--Functionality: Sibling element', async (pContext) => {
             HTMLDivElement,
             HTMLSpanElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -83,6 +89,9 @@ Deno.test('PwbComponent--Functionality: Child element', async (pContext) => {
                 childs: [HTMLSpanElement]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -108,6 +117,9 @@ Deno.test('PwbComponent--Functionality: Ignore Comments', async (pContext) => {
                 childs: []
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -137,6 +149,9 @@ Deno.test('PwbComponent--Functionality: Same component childs', async (pContext)
         expect(lFirstChild).toBeInstanceOf(HTMLElement);
         expect(lSecondChild).toBeInstanceOf(HTMLElement);
         expect(lFirstChild).not.toBe(lSecondChild);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -155,6 +170,9 @@ Deno.test('PwbComponent--Functionality: No template', async (pContext) => {
         expect(lComponent).toBeComponentStructure([
             Comment
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -179,6 +197,9 @@ Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
             Comment
         ], true);
         expect(lStyleElement.textContent).toBe(lStyleContent);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -209,6 +230,9 @@ Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (p
                 textContent: lInitialValue
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -267,6 +291,9 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
                 textContent: lNewValue
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -326,6 +353,10 @@ Deno.test('PwbComponent--Functionality: Isolated update scope', async (pContext)
         // Evaluation.
         expect(lDefaultUpdated, 'TestComponent').toBeFalsy();
         expect(lIsolatedUpdated, 'CapsuledTestComponent').toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lCapsuledContent);
     });
 });
 
@@ -363,6 +394,9 @@ Deno.test('PwbComponent--Functionality: Custom expression module', async (pConte
                 textContent: lExpressionValue
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -385,6 +419,9 @@ Deno.test('PwbComponent--Functionality: Create HTMLUnknownElement on unknown ele
             Comment,
             HTMLUnknownElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -407,6 +444,9 @@ Deno.test('PwbComponent--Functionality: Create HTMLElement on unknown component'
             Comment,
             HTMLElement
         ], true); // HTMLUnknownElement not creates in JSDOM.
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -437,6 +477,9 @@ Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent).toBe(lComponentReference);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -505,6 +548,9 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
                 lCallPosition.onPwbDeconstruct,
             ]
         );
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -529,6 +575,9 @@ Deno.test('PwbComponent--Functionality: Deconstruct Manual', async (pContext) =>
 
         // Evaluation.
         expect(lWasDeconstructed).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -586,14 +635,14 @@ Deno.test('PwbComponent--Functionality: Creation without customElements register
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
-        let lComponent: HTMLElement | null = null;
-        if (lComponentConstructor) {
-            lComponent = new lComponentConstructor();
-        }
+        const lComponentConstructor: CustomElementConstructor = window.customElements.get(lSelector)!;
+        const lComponent: HTMLElement = new lComponentConstructor();
 
         // Evaluation.
         expect(lComponent).toBeInstanceOf(HTMLElement);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -616,9 +665,12 @@ Deno.test('PwbComponent--Functionality: Prevent construction of processor when n
         }
 
         // Process. Create element.
-        await TestUtil.createComponent(TestComponent);
+        const lComponent = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
         expect(lConstructionCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

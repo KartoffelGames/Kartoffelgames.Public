@@ -27,6 +27,9 @@ Deno.test('Export--Functionality: Default export get', async (pContext) => {
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -51,6 +54,9 @@ Deno.test('Export--Functionality: Default export set', async (pContext) => {
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -79,6 +85,9 @@ Deno.test('Export--Functionality: Two parallel exports get', async (pContext) =>
         // Evaluation.
         expect(lResultValueOne).toBe(lTestValueOne);
         expect(lResultValueTwo).toBe(lTestValueTwo);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -125,6 +134,9 @@ Deno.test('Export--Functionality: Linked setAttribute', async (pContext) => {
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -144,6 +156,9 @@ Deno.test('Export--Functionality: Get unexported value with getAttribute', async
 
         // Evaluation.
         expect(lResultValue).toBeNull();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -168,6 +183,9 @@ Deno.test('Export--Functionality: Preserve original getAttribute and setAttribut
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -191,6 +209,9 @@ Deno.test('Export--Functionality: Override native properties', async (pContext) 
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -217,6 +238,9 @@ Deno.test('Export--Functionality: Export parent class exported properties', asyn
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -240,6 +264,9 @@ Deno.test('Export--Functionality: Exported value with getAttribute', async (pCon
 
         // Evaluation.
         expect(lResultValue).toBe(lTestValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -274,5 +301,8 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
 
         // Evaluation.
         expect(lExportedValue).toBe(lValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

@@ -27,6 +27,9 @@ Deno.test('SlotInstruction--Functionality: Default slot', async (pContext) => {
             HTMLSlotElement
         ], true);
         expect(lSlotName).toBeNull();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -55,6 +58,9 @@ Deno.test('SlotInstruction--Functionality: Named slot', async (pContext) => {
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -84,5 +90,8 @@ Deno.test('SlotInstruction--Functionality: Named slot after component update', a
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

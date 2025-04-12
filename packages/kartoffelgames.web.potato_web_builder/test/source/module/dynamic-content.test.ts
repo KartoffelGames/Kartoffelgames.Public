@@ -40,6 +40,9 @@ Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
             Comment, // -- Manipulator 1. Child Anchor
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -86,6 +89,9 @@ Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 

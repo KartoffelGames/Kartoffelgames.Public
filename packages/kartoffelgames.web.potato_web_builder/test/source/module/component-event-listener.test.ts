@@ -25,26 +25,28 @@ import type { ComponentEvent } from '../../../source/module/component-event/comp
 
 Deno.test('ComponentEventListener--Functionality: Component click event', async (pContext) => {
     await pContext.step('Default', async () => {
-        // Setup. Define component and wait for update.
-        const lEventResult = await new Promise<MouseEvent>((pResolve) => {
-            @PwbComponent({
-                selector: TestUtil.randomSelector(),
-            })
-            class TestComponent extends Processor {
-                @PwbComponentEventListener('click')
-                public handler(pEvent: MouseEvent): void {
-                    pResolve(pEvent);
-                }
-            }
+        // Process.
+        let lCalledEvent: Event | null = null;
 
-            // Process. Create element and click div.
-            TestUtil.createComponent(TestComponent).then((pComponent) => {
-                pComponent.click();
-            });
-        });
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+        })
+        class TestComponent extends Processor {
+            @PwbComponentEventListener('click')
+            public handler(pEvent: MouseEvent): void {
+                lCalledEvent = pEvent;
+            }
+        }
+
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.click();
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(MouseEvent);
+        expect(lCalledEvent).toBeInstanceOf(MouseEvent);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -70,6 +72,9 @@ Deno.test('ComponentEventListener--Functionality: Native listener', async (pCont
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -106,6 +111,9 @@ Deno.test('ComponentEventListener--Functionality: Custom event listener', async 
 
         // Evaluation.
         expect(lEventValueResult).toBe(lEventValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -157,6 +165,9 @@ Deno.test('ComponentEventListener--Functionality: Two parallel listener', async 
         // Evaluation.
         expect(lEventOneCalled).toBeTruthy();
         expect(lEventTwoCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -183,6 +194,9 @@ Deno.test('ComponentEventListener--Functionality: Remove listener on deconstruct
 
         // Evaluation.
         expect(lEventCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -218,6 +232,9 @@ Deno.test('ComponentEventListener--Functionality: Native listener on static modu
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -253,6 +270,9 @@ Deno.test('ComponentEventListener--Functionality: Remove module listener on deco
 
         // Evaluation.
         expect(lEventCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -310,6 +330,9 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
 
         // Evaluation after component click.
         expect(lEventCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -338,5 +361,8 @@ Deno.test('ComponentEventListener--Functionality: Native listener inherited from
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

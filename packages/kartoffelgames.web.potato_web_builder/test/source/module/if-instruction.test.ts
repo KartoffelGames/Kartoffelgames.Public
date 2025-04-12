@@ -31,6 +31,9 @@ Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -60,6 +63,9 @@ Deno.test('IfInstruction--Functionality: Initial true', async (pContext) => {
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -90,6 +96,9 @@ Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -122,6 +131,9 @@ Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -149,6 +161,9 @@ Deno.test('IfInstruction--Functionality: None boolean false value', async (pCont
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -178,5 +193,8 @@ Deno.test('IfInstruction--Functionality: None boolean true value', async (pConte
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

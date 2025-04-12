@@ -74,5 +74,9 @@ Deno.test('PwbGlobalResource--Functionality: Call extension constructor on compo
                 textContent: lTestValue.toString()
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponentOne);
+        await TestUtil.waitForUpdate(lComponentTwo);
     });
 });

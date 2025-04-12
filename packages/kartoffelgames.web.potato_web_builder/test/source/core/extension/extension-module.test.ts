@@ -34,10 +34,13 @@ Deno.test('PwbExtensionModule--Functionality: Call extension constructor on comp
         }
 
         // Process. Create and initialize element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
         expect(lExtensionCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -66,9 +69,12 @@ Deno.test('PwbExtensionModule--Functionality: Ignore extension without valid tar
         }
 
         // Process. Create and initialize element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
         expect(lExtensionCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

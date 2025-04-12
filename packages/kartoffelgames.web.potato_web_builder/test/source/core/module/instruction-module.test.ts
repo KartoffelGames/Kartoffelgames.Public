@@ -87,7 +87,10 @@ Deno.test('PwbInstructionModule--Functionality: CustomModule - Manipulator witho
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
 
         // Should be allowed. No errors.
     });

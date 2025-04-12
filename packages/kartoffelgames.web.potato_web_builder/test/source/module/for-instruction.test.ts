@@ -34,6 +34,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // -- Manipulator 3. Child Anchor
             HTMLDivElement, // 3. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Add value', async () => {
@@ -63,6 +66,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // -- Manipulator 2. Child Anchor
             HTMLDivElement, // 2. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Remove value', async () => {
@@ -90,6 +96,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // -- Manipulator 1. Child Anchor
             HTMLDivElement // 1. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Add middle value', async () => {
@@ -121,6 +130,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // -- Manipulator 3. Child Anchor
             HTMLDivElement // 3. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Remove middle value', async () => {
@@ -150,6 +162,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // -- Manipulator 2. Child Anchor
             HTMLDivElement // 2. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Correct index value', async () => {
@@ -182,6 +197,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 textContent: '1'
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Correct values', async () => {
@@ -212,6 +230,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Replace value', async () => {
@@ -245,6 +266,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('-- Empty on null', async () => {
@@ -268,6 +292,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -298,6 +325,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             Comment, // -- Manipulator 3. Child Anchor
             HTMLDivElement, // 3. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Add value', async () => {
@@ -327,6 +357,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             Comment, // -- Manipulator 2. Child Anchor
             HTMLDivElement, // 2. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Remove value', async () => {
@@ -354,6 +387,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             Comment, // -- Manipulator 1. Child Anchor
             HTMLDivElement // 1. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Remove middle value', async () => {
@@ -383,6 +419,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
             Comment, // -- Manipulator 2. Child Anchor
             HTMLDivElement // 2. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Replace value', async () => {
@@ -417,6 +456,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 textContent: lTextContent.toString()
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Correct index value', async () => {
@@ -449,6 +491,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 textContent: 'Two'
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Correct values', async () => {
@@ -479,6 +524,9 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 textContent: lTextContent.toString()
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -516,6 +564,9 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
             Comment, // -- Manipulator 3. Child Anchor
             HTMLDivElement, // 3. Element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Syntax', async (pContext) => {
@@ -575,6 +626,9 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
                     textContent: 'a'
                 }
             ], true);
+
+            // Wait for any update to finish to prevent timer leaks.
+            await TestUtil.waitForUpdate(lComponent);
         });
     });
 });
@@ -611,6 +665,9 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
                 textContent: (1 * 2).toString()
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('Item value', async () => {
@@ -646,6 +703,9 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
                 textContent: (1 * lList[1]).toString()
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -699,6 +759,9 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                 ]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('-- After native elements', async () => {
@@ -729,6 +792,9 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
             HTMLDivElement,
             HTMLDivElement, // Static element
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 
     await pContext.step('-- Inside native elements', async () => {
@@ -761,6 +827,9 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                 ]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -787,5 +856,8 @@ Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
 
         // Evaluation.
         expect(lComponent).toBeComponentStructure([], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

@@ -32,6 +32,9 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponentIdChild).toBe(lRealIdChild);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -78,6 +81,9 @@ Deno.test('PwbChild--Functionality: Read with wrong id child name', async (pCont
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lErrorFunction).toThrow(`Can't find child "${lWrongName}".`);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -126,5 +132,8 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponentIdChild).toBe(lRealIdChild);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

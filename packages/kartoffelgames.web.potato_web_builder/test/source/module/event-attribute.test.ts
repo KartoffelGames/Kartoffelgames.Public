@@ -36,6 +36,9 @@ Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) =
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventValueResult).toBe('click');
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -63,5 +66,8 @@ Deno.test('EventAttribute--Functionality: Clear listener events on deconstruct',
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lClicked).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

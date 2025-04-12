@@ -32,6 +32,9 @@ Deno.test('MustacheExpression--Functionality: Initial text value', async (pConte
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -63,6 +66,9 @@ Deno.test('MustacheExpression--Functionality: Updated text value', async (pConte
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -93,6 +99,9 @@ Deno.test('MustacheExpression--Functionality: Initial attribute value', async (p
                 ]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -126,6 +135,9 @@ Deno.test('MustacheExpression--Functionality: Updated attribute value', async (p
                 ]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -152,5 +164,8 @@ Deno.test('MustacheExpression--Functionality: Only self-created values', async (
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

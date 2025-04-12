@@ -45,6 +45,9 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventResult.value).toBe(lEventValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });
 
@@ -107,6 +110,9 @@ Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lEventResult.value).toBe(lEventValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });
 
@@ -148,6 +154,9 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
 
         // Evaluation.
         expect(lEventResult).toBeInstanceOf(Event);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });
 
@@ -182,6 +191,9 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
 
         // Evaluation.
         expect(lEventResult).toBeInstanceOf(Event);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });
 
@@ -225,6 +237,9 @@ Deno.test('ComponentEvent--Functionality: Native and custom event parallel', asy
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lCustomCalled).toBeTruthy();
         expect(lNativeCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });
 
@@ -279,5 +294,8 @@ Deno.test('ComponentEvent--Functionality: Two parallel custom events correct val
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lCustomOneValue).toBe(lEventValueOne);
         expect(lCustomTwoValue).toBe(lEventValueTwo);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });

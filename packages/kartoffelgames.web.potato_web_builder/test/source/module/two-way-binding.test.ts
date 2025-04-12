@@ -30,6 +30,9 @@ Deno.test('TwoWayBinding--Functionality: Initial value', async (pContext) => {
 
         // Evaluation.
         expect(lInputValue).toBe(lInitialValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -59,6 +62,9 @@ Deno.test('TwoWayBinding--Functionality: Change view value', async (pContext) =>
 
         // Evaluation.
         expect(lComponentValue).toBe(lNewValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -87,5 +93,8 @@ Deno.test('TwoWayBinding--Functionality: Change component value', async (pContex
 
         // Evaluation.
         expect(lViewValue).toBe(lNewValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

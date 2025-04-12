@@ -30,6 +30,9 @@ Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
 
         // Evaluation.
         expect(lInputValue).toBe(lInitialValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -58,6 +61,9 @@ Deno.test('OneWayBinding--Functionality: Change component value', async (pContex
 
         // Evaluation.
         expect(lViewValue).toBe(lNewValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 
@@ -94,6 +100,10 @@ Deno.test('OneWayBinding--Functionality: Exchange value to child component', asy
 
         // Evaluation.
         expect(lExportOne).toBe(lValueOne);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lChildComponent);
     });
 });
 
@@ -137,5 +147,9 @@ Deno.test('OneWayBinding--Functionality: Exchange two values to the same compone
         // Evaluation.
         expect(lExportOne).toBe(lValueOne);
         expect(lExportTwo).toBe(lValueTwo);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lChildComponent);
     });
 });

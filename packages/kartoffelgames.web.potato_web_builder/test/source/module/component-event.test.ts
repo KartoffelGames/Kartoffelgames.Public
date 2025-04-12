@@ -5,9 +5,10 @@ import { TestUtil } from '../../utility/test-util.ts';
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
-import type { ComponentEventEmitter, IComponentEvent } from '../../../source/module/component-event/component-event-emitter.ts';
+import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
+import { ComponentEvent } from "../../../source/module/component-event/component-event.ts";
 
 Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -33,7 +34,7 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
         const lEventComponent: HTMLDivElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
+        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener(lEventName, (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -95,7 +96,7 @@ Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter
         const lEventComponent: HTMLDivElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
+        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('custom-event', (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -136,7 +137,7 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
         lEventComponent.callEvent();
 
         // Setup. Wait for event
-        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
+        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('custom-event', (pEvent: any) => {
                 pResolve(pEvent);
             });
@@ -170,7 +171,7 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
         const lEventComponent: HTMLElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
 
         // Setup. Wait for "click" event
-        const lEventResult: IComponentEvent<string> = await new Promise<IComponentEvent<string>>((pResolve) => {
+        const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
             lEventComponent.addEventListener('click', (pEvent: any) => {
                 pResolve(pEvent);
             });

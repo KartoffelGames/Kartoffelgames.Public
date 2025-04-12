@@ -18,9 +18,10 @@ import type { IInstructionOnUpdate } from '../../../source/core/module/instructi
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator.ts';
-import type { ComponentEventEmitter, IComponentEvent } from '../../../source/module/component-event/component-event-emitter.ts';
+import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
+import { ComponentEvent } from "../../../source/module/component-event/component-event.ts";
 
 Deno.test('ComponentEventListener--Functionality: Component click event', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -94,7 +95,7 @@ Deno.test('ComponentEventListener--Functionality: Custom event listener', async 
             }
 
             @PwbComponentEventListener('custom-event')
-            private listener(pEvent: IComponentEvent<string>) {
+            private listener(pEvent: ComponentEvent<string>) {
                 lEventValueResult = pEvent.value;
             }
         }

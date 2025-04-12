@@ -20,7 +20,7 @@ import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
-import { PwbConfiguration } from "../../source/core/configuration/pwb-configuration.ts";
+import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration.ts';
 
 // Define update metrics.
 PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;

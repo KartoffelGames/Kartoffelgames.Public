@@ -1,10 +1,9 @@
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { ComponentRegister } from '../../core/component/component-register.ts';
-import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component.ts';
+import { Component, type ComponentProcessorConstructor, type IComponentOnConnect, type IComponentOnDisconnect } from '../../core/component/component.ts';
 import { PwbComponent } from '../../core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
-import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 import { Processor } from '../../core/core_entity/processor.ts';
 import { PwbExport } from '../../module/export/pwb-export.decorator.ts';
 

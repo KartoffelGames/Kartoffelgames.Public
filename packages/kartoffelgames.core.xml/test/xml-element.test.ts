@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { XmlAttribute } from '../source/attribute/xml-attribute.ts';
-import { BaseXmlNode } from "../source/node/base-xml-node.ts";
+import type { BaseXmlNode } from '../source/node/base-xml-node.ts';
 import { TextNode } from '../source/node/text-node.ts';
 import { XmlElement } from '../source/node/xml-element.ts';
 

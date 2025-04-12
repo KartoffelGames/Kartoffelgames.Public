@@ -1,12 +1,22 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InteractionZoneErrorAllocation } from './interaction-zone-error-allocation.ts';
 import { InteractionZoneEvent, type InteractionZoneEventTriggerType } from './interaction-zone-event.ts';
-import { InteractionZoneGlobalScope, type InteractionZoneGlobalScopeTarget } from "./interaction-zone-global-scope.ts";
+import { InteractionZoneGlobalScope, type InteractionZoneGlobalScopeTarget } from './interaction-zone-global-scope.ts';
 
 /**
  * Merges execution zone and proxy tracking.
  */
 export class InteractionZone {
+    // Needs to be isolated to prevent parent listener execution.
+    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
+
+    /**
+     * Current execution zone.
+     */
+    public static get current(): InteractionZone {
+        return InteractionZone.mCurrentZone;
+    }
+
     /**
      * Add global tracing error listener that can sends the error to the allocated {@link InteractionZone}
      * 
@@ -14,18 +24,18 @@ export class InteractionZone {
      */
     public static enableGlobalTracing(pTargetDefinition: InteractionZoneGlobalDefinition): boolean {
         // Patch global scope return immediately when already patched.
-        if(!InteractionZoneGlobalScope.enable(pTargetDefinition)) {
+        if (!InteractionZoneGlobalScope.enable(pTargetDefinition)) {
             return false;
         }
 
         // Skip global error handling when not enabled.
-        if(!pTargetDefinition.errorHandling) {
+        if (!pTargetDefinition.errorHandling) {
             return true;
         }
 
         // Try to read global scope events handler.
         const lTargetGlobalScope = pTargetDefinition.target;
-        if(!('addEventListener' in lTargetGlobalScope) || typeof lTargetGlobalScope.addEventListener !== 'function') {
+        if (!('addEventListener' in lTargetGlobalScope) || typeof lTargetGlobalScope.addEventListener !== 'function') {
             throw new Exception('Global scope does not support addEventListener', InteractionZone);
         }
 
@@ -58,16 +68,6 @@ export class InteractionZone {
         });
 
         return true;
-    }
-
-    // Needs to be isolated to prevent parent listener execution.
-    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
-
-    /**
-     * Current execution zone.
-     */
-    public static get current(): InteractionZone {
-        return InteractionZone.mCurrentZone;
     }
 
     /**
@@ -355,7 +355,7 @@ export class InteractionZone {
 
 export type InteractionZoneGlobalDefinition = InteractionZoneGlobalScopeTarget & {
     errorHandling?: boolean;
-}
+};
 export type InteractionListener<TTrigger extends number, TData extends object> = (pReason: InteractionZoneEvent<TTrigger, TData>) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 

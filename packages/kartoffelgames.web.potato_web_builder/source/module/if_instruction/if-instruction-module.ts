@@ -1,4 +1,4 @@
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
 import { Processor } from '../../core/core_entity/processor.ts';

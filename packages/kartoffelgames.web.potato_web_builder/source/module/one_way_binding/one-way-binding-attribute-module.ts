@@ -1,4 +1,4 @@
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Processor } from '../../core/core_entity/processor.ts';
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';

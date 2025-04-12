@@ -3,7 +3,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { Injection } from "../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts";
+import { Injection } from '../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum.ts';

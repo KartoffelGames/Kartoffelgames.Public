@@ -3,7 +3,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
@@ -21,7 +21,7 @@ import { PwbComponentEventListener } from '../../../source/module/component-even
 import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
-import { ComponentEvent } from "../../../source/module/component-event/component-event.ts";
+import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 
 Deno.test('ComponentEventListener--Functionality: Component click event', async (pContext) => {
     await pContext.step('Default', async () => {

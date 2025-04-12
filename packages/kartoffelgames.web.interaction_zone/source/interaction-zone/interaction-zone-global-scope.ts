@@ -55,7 +55,7 @@ export class InteractionZoneGlobalScope {
 
         // Patch all class on events.
         for (const lClassName of pTarget.patches.classes.eventTargets ?? []) {
-            let lClass: any = lGlobalScope[lClassName];
+            const lClass: any = lGlobalScope[lClassName];
 
             // Patch properties.
             lPatcher.patchOnEvents(lClass.prototype);

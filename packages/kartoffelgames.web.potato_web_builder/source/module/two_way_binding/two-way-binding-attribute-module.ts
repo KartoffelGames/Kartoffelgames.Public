@@ -1,13 +1,13 @@
 import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import { AttributeModule, type IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,

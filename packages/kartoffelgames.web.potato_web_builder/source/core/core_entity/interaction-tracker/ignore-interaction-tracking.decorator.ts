@@ -7,7 +7,7 @@ import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
  * @param pConstructor - Class.
  */
 export function IgnoreInteractionTracking() {
-    return <TFunction extends Function>(pConstructor: TFunction): void => {
-        CoreEntityProcessorProxy.ignoreClass(pConstructor as unknown as InjectionConstructor<any>);
+    return <TFunction extends InjectionConstructor>(pConstructor: TFunction): void => {
+        CoreEntityProcessorProxy.ignoreClass(pConstructor);
     };
 }

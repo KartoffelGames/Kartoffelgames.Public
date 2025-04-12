@@ -1,5 +1,4 @@
 
-import { PwbConfiguration } from "../../configuration/pwb-configuration.ts";
 import type { DataLevel } from '../../data/data-level.ts';
 import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';

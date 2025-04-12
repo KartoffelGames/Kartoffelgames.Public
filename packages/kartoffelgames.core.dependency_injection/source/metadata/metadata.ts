@@ -3,7 +3,7 @@ import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
 // Polyfill for Symbol.metadata for environments that do not support it.
-(<any>Symbol).metadata ??= Symbol("Symbol.metadata");
+(<any>Symbol).metadata ??= Symbol('Symbol.metadata');
 
 /**
  * Static.

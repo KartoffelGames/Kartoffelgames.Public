@@ -2,10 +2,10 @@
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
-import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { Processor } from '../../../../source/core/core_entity/processor.ts';
@@ -225,10 +225,10 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
             updateScope: UpdateMode.Manual
         })
         class TestComponent extends Processor {
-            private readonly mComponent: Component;
-
             @PwbExport
             public value: string = lInitialValue;
+
+            private readonly mComponent: Component;
 
             public constructor(pComponent = Injection.use(Component)) {
                 super();

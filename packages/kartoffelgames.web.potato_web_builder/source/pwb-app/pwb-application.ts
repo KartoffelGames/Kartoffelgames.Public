@@ -1,7 +1,7 @@
-import { InteractionZone } from "../../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone.ts";
-import { ComponentInformationData, ComponentRegister } from "../core/component/component-register.ts";
-import { Component, ComponentProcessorConstructor } from "../core/component/component.ts";
-import { PwbApplicationConfiguration } from "./pwb-application-configuration.ts";
+import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone.ts';
+import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
+import type { Component, ComponentProcessorConstructor } from '../core/component/component.ts';
+import { PwbApplicationConfiguration } from './pwb-application-configuration.ts';
 
 export class PwbApplication {
     /**
@@ -27,11 +27,11 @@ export class PwbApplication {
         }
     }
 
+    private readonly mConfiguration: PwbApplicationConfiguration;
+    private readonly mContent: Array<Component>;
     private readonly mElement: HTMLElement;
     private readonly mInteractionZone: InteractionZone;
-    private readonly mContent: Array<Component>;
-    private readonly mConfiguration: PwbApplicationConfiguration;
-
+    
     /**
      * Get application configuration.
      */

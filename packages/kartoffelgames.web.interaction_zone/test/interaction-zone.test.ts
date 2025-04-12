@@ -109,7 +109,7 @@ Deno.test('InteractionZone.enableGlobal()', async (pContext) => {
                 },
                 errorHandling: true
             });
-        }
+        };
 
         // Evaluation.
         expect(lErrorFunction).toThrow('Global scope does not support addEventListener');
@@ -324,8 +324,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -365,8 +365,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called with correct error', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -407,8 +407,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Parent Error listener called', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -449,8 +449,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Parent Error listener when default prevented', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -495,8 +495,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Error listener for errors outside zone', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -537,8 +537,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Error listener for errors without zone', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -573,8 +573,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Error listener for errors for errors that are none objects', () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -611,8 +611,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called', async () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -656,8 +656,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Error listener called with correct error', async () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -702,8 +702,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Parent Error listener called', async () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -747,8 +747,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Parent Error listener when default prevented', async () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -800,8 +800,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         await pContext.step('Ignore Error listener called outside zone', async () => {
             // Setup. Global.
             const lGlobalScope = new (class extends EventTarget {
-                public promise = class <T> extends Promise<T> { };
                 public eventTarget = class extends EventTarget { };
+                public promise = class <T> extends Promise<T> { };
             })();
             InteractionZone.enableGlobalTracing({
                 target: lGlobalScope,
@@ -868,8 +868,8 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
     await pContext.step('Double added listener', () => {
         // Setup. Global.
         const lGlobalScope = new (class extends EventTarget {
-            public promise = class <T> extends Promise<T> { };
             public eventTarget = class extends EventTarget { };
+            public promise = class <T> extends Promise<T> { };
         })();
         InteractionZone.enableGlobalTracing({
             target: lGlobalScope,

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { CodeParser, Graph, GraphNode, Lexer, LexerPattern, LexerPatternType } from '@kartoffelgames/core-parser';
+import { CodeParser, Graph, GraphNode, Lexer, type LexerPattern, type LexerPatternType } from '@kartoffelgames/core-parser';
 import type { BasePwbTemplateNode } from './nodes/base-pwb-template-node.ts';
 import { PwbTemplateInstructionNode } from './nodes/pwb-template-instruction-node.ts';
 import { PwbTemplateTextNode } from './nodes/pwb-template-text-node.ts';

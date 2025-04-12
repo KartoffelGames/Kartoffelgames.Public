@@ -1,5 +1,5 @@
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { Processor } from "../core_entity/processor.ts";
+import type { Processor } from '../core_entity/processor.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
@@ -14,7 +14,7 @@ import { Component } from './component.ts';
  */
 export function PwbComponent(pParameter: HtmlComponentParameter) {
     // Needs constructor without argument.
-    return (pComponentProcessorConstructor: typeof Processor, pContext: ClassDecoratorContext) => {
+    return (pComponentProcessorConstructor: typeof Processor, pContext: ClassDecoratorContext): void => {
         // Set component processor constructor to be injectable.
         Injection.registerInjectable(pComponentProcessorConstructor, pContext.metadata, 'instanced');
 

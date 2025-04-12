@@ -8,7 +8,7 @@ import { Processor } from '../../../source/core/core_entity/processor.ts';
 import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
-import { ComponentEvent } from "../../../source/module/component-event/component-event.ts";
+import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 
 Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext) => {
     await pContext.step('Default', async () => {

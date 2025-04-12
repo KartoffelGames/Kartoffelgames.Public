@@ -2,7 +2,7 @@ export class PwbApplicationConfiguration {
     /**
      * Get default application configuration.
      */
-    private static readonly default: PwbApplicationConfiguration = (() => {
+    public static readonly DEFAULT: PwbApplicationConfiguration = (() => {
         const lDefaultApplicationConfiguration: PwbApplicationConfiguration = new PwbApplicationConfiguration();
 
         // Set default configurations.
@@ -25,16 +25,16 @@ export class PwbApplicationConfiguration {
         return lDefaultApplicationConfiguration;
     })();
 
-    private readonly mSpashscreenConfiguration: PwbApplicationSplashscreenConfiguration;
-    private readonly mLoggingConfiguration: PwbApplicationLoggingConfiguration;
-    private readonly mUpdatingConfiguration: PwbApplicationUpdatingConfiguration;
     private readonly mErrorConfiguration: PwbApplicationErrorConfiguration;
+    private readonly mLoggingConfiguration: PwbApplicationLoggingConfiguration;
+    private readonly mSpashscreenConfiguration: PwbApplicationSplashscreenConfiguration;
+    private readonly mUpdatingConfiguration: PwbApplicationUpdatingConfiguration;
 
     /**
-     * Get application splashscreen configuration.
+     * Get application error configuration.
      */
-    public get splashscreen(): PwbApplicationSplashscreenConfiguration {
-        return this.mSpashscreenConfiguration;
+    public get error(): PwbApplicationErrorConfiguration {
+        return this.mErrorConfiguration;
     }
 
     /**
@@ -45,6 +45,13 @@ export class PwbApplicationConfiguration {
     }
 
     /**
+     * Get application splashscreen configuration.
+     */
+    public get splashscreen(): PwbApplicationSplashscreenConfiguration {
+        return this.mSpashscreenConfiguration;
+    }
+
+    /**
      * Get application updating configuration.
      */
     public get updating(): PwbApplicationUpdatingConfiguration {
@@ -52,38 +59,31 @@ export class PwbApplicationConfiguration {
     }
 
     /**
-     * Get application error configuration.
-     */
-    public get error(): PwbApplicationErrorConfiguration {
-        return this.mErrorConfiguration;
-    }
-
-    /**
      * Create a new application configuration.
      */
     public constructor() {
         this.mSpashscreenConfiguration = {
-            background: PwbApplicationConfiguration.default.mSpashscreenConfiguration.background,
-            content: PwbApplicationConfiguration.default.mSpashscreenConfiguration.content,
-            manual: PwbApplicationConfiguration.default.mSpashscreenConfiguration.manual,
-            animationTime: PwbApplicationConfiguration.default.mSpashscreenConfiguration.animationTime
+            background: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.background,
+            content: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.content,
+            manual: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.manual,
+            animationTime: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.animationTime
         };
 
         this.mErrorConfiguration = {
-            ignore: PwbApplicationConfiguration.default.mErrorConfiguration.ignore,
-            print: PwbApplicationConfiguration.default.mErrorConfiguration.print
+            ignore: PwbApplicationConfiguration.DEFAULT.mErrorConfiguration.ignore,
+            print: PwbApplicationConfiguration.DEFAULT.mErrorConfiguration.print
         };
 
         this.mLoggingConfiguration = {
-            filter: PwbApplicationConfiguration.default.mLoggingConfiguration.filter,
-            updatePerformance: PwbApplicationConfiguration.default.mLoggingConfiguration.updatePerformance,
-            updaterTrigger: PwbApplicationConfiguration.default.mLoggingConfiguration.updaterTrigger,
-            updateReshedule: PwbApplicationConfiguration.default.mLoggingConfiguration.updateReshedule,
+            filter: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.filter,
+            updatePerformance: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updatePerformance,
+            updaterTrigger: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updaterTrigger,
+            updateReshedule: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updateReshedule,
         };
 
         this.mUpdatingConfiguration = {
-            frameTime: PwbApplicationConfiguration.default.mUpdatingConfiguration.frameTime,
-            stackCap: PwbApplicationConfiguration.default.mUpdatingConfiguration.stackCap
+            frameTime: PwbApplicationConfiguration.DEFAULT.mUpdatingConfiguration.frameTime,
+            stackCap: PwbApplicationConfiguration.DEFAULT.mUpdatingConfiguration.stackCap
         };
     }
 }

@@ -1,4 +1,4 @@
-import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { Component } from '../../core/component/component.ts';
 import { Processor } from '../../core/core_entity/processor.ts';

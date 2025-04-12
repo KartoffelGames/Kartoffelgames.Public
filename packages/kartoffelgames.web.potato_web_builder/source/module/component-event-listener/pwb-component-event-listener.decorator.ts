@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { ConstructorMetadata, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { type ConstructorMetadata, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
 
 /**
@@ -7,7 +7,7 @@ import { ComponentEventListenerComponentExtension } from './component-event-list
  * @param pEventName - Name of event.
  */
 export function PwbComponentEventListener(pEventName: string) {
-    return <TEvent extends Event>(_: ((pEvent: TEvent) => any), pContext: ClassMethodDecoratorContext): void => {
+    return <TEvent extends Event>(_pTarget: ((pEvent: TEvent) => any), pContext: ClassMethodDecoratorContext): void => {
         // Statics.
         if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbComponentEventListener);

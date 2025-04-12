@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
-import { ComponentRegister } from "../../core/component/component-register.ts";
+import { ComponentRegister } from '../../core/component/component-register.ts';
 import type { Component, ComponentProcessor } from '../../core/component/component.ts';
-import { ComponentEventEmitter } from "./component-event-emitter.ts";
+import { ComponentEventEmitter } from './component-event-emitter.ts';
 
 /**
  * Define event for external access.
  * @param pEventName - Name of event.
  */
 export function PwbComponentEvent(pEventName: string) {
-    return <TEventEmitter extends ComponentEventEmitter<any>>(_: ClassAccessorDecoratorTarget<any, TEventEmitter>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TEventEmitter> => {
+    return <TEventEmitter extends ComponentEventEmitter<any>>(_pTarget: ClassAccessorDecoratorTarget<any, TEventEmitter>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TEventEmitter> => {
         // Metadata is not allowed for statics.
         if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbComponentEvent);

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { LexerException } from "../lexer/lexer-exception.ts";
+import { LexerException } from '../lexer/lexer-exception.ts';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import type { Lexer } from '../lexer/lexer.ts';
 import { CodeParserException, type CodeParserErrorSymbol } from './code-parser-exception.ts';

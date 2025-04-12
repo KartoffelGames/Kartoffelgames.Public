@@ -73,8 +73,8 @@ import './module/pwb_app_injection/pwb-app-injection-extension.ts';
 
 // Set debugger to global scope.
 import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';
-import { InteractionZoneGlobalScopeTarget } from "../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone-global-scope.ts";
-import { InteractionZone } from "../../kartoffelgames.web.interaction_zone/source/index.ts";
+import type { InteractionZoneGlobalScopeTarget } from '../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone-global-scope.ts';
+import { InteractionZone } from '../../kartoffelgames.web.interaction_zone/source/index.ts';
 globalThis['PotatoWebBuilder'] = {
     global: PwbConfiguration,
     logLevel: PwbDebugLogLevel
@@ -83,7 +83,7 @@ globalThis['PotatoWebBuilder'] = {
 /**
  * // TODO: Find a better way to initialize global scope.
  */
-const globalDefaultTarget = (pGlobalThis: typeof globalThis): InteractionZoneGlobalScopeTarget => {
+const gGlobalDefaultTarget = (pGlobalThis: typeof globalThis): InteractionZoneGlobalScopeTarget => {
     // Create default globalThis target.
     const lTarget = {
         target: pGlobalThis,
@@ -144,7 +144,7 @@ const globalDefaultTarget = (pGlobalThis: typeof globalThis): InteractionZoneGlo
 
     return lTarget;
 };
-InteractionZone.enableGlobalTracing(globalDefaultTarget(globalThis));
+InteractionZone.enableGlobalTracing(gGlobalDefaultTarget(globalThis));
 
 declare global {
     // eslint-disable-next-line no-var, @typescript-eslint/naming-convention

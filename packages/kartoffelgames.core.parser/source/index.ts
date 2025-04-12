@@ -1,5 +1,5 @@
 export { LexerException } from './lexer/lexer-exception.ts';
-export { LexerPattern, type LexerPatternType } from "./lexer/lexer-pattern.ts";
+export { LexerPattern, type LexerPatternType } from './lexer/lexer-pattern.ts';
 export { LexerToken } from './lexer/lexer-token.ts';
 export { Lexer, type LexerProgressTracker as LexerPatternProgressTracker } from './lexer/lexer.ts';
 export { CodeParserException } from './parser/code-parser-exception.ts';

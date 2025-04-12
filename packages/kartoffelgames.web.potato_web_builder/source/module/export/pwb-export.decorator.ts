@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ExportExtension } from './export-extension.ts';
-import { ConstructorMetadata } from "../../../../kartoffelgames.core.dependency_injection/source/metadata/constructor-metadata.ts";
+import type { ConstructorMetadata } from '../../../../kartoffelgames.core.dependency_injection/source/metadata/constructor-metadata.ts';
 
 /**
  * AtScript.
  * Export value to component element.
  */
-export function PwbExport(_: any, pContext: ClassMemberDecoratorContext): void {
+export function PwbExport(_pTarget: any, pContext: ClassMemberDecoratorContext): void {
     // Metadata is not allowed for statics.
     if (pContext.static) {
         throw new Exception('Event target is not for a static property.', PwbExport);

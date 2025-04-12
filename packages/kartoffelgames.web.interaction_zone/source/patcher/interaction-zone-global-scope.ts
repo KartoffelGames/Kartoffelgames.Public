@@ -4,66 +4,6 @@ import { InteractionZone } from '../zone/interaction-zone.ts';
 
 export class InteractionZoneGlobalScope {
     /**
-     * Default settings of the global scope of the runtime.
-     */
-    public static get globalDefaultTarget(): InteractionZoneGlobalScopeTarget {
-        // Create default globalThis target.
-        const lTarget = {
-            target: globalThis,
-            patches: {
-                promise: globalThis.Promise?.name,
-                eventTarget: globalThis.EventTarget?.name,
-                classes: new Array<string>(),
-                functions: new Array<string>()
-            }
-        } satisfies InteractionZoneGlobalScopeTarget;
-
-        // Add all asyncron functions.
-        const lAsyncFunctionNames: Array<string | undefined> = [
-            globalThis.requestAnimationFrame?.name,
-            globalThis.setInterval?.name,
-            globalThis.setTimeout?.name
-        ];
-        lTarget.patches.functions.push(...lAsyncFunctionNames.filter(pClass => !!pClass) as Array<string>);
-
-        // Add all global classes with events.
-        const lDomClassNames: Array<string | undefined> = [
-            globalThis.XMLHttpRequestEventTarget?.name,
-            globalThis.XMLHttpRequest?.name,
-            globalThis.Document?.name,
-            globalThis.SVGElement?.name,
-            globalThis.Element?.name,
-            globalThis.HTMLElement?.name,
-            globalThis.HTMLMediaElement?.name,
-            globalThis.HTMLFrameSetElement?.name,
-            globalThis.HTMLBodyElement?.name,
-            globalThis.HTMLFrameElement?.name,
-            globalThis.HTMLIFrameElement?.name,
-            globalThis.HTMLMarqueeElement?.name,
-            globalThis.Worker?.name,
-            globalThis.IDBRequest?.name,
-            globalThis.IDBOpenDBRequest?.name,
-            globalThis.IDBDatabase?.name,
-            globalThis.IDBTransaction?.name,
-            globalThis.WebSocket?.name,
-            globalThis.FileReader?.name,
-            globalThis.Notification?.name,
-            globalThis.RTCPeerConnection?.name
-        ];
-        lTarget.patches.classes.push(...lDomClassNames.filter(pClass => !!pClass) as Array<string>);
-
-        // Add all global classes with async callbacks.
-        const lObserverClassNames: Array<string | undefined> = [
-            globalThis.ResizeObserver?.name,
-            globalThis.MutationObserver?.name,
-            globalThis.IntersectionObserver?.name
-        ];
-        lTarget.patches.classes.push(...lObserverClassNames.filter(pClass => !!pClass) as Array<string>);
-
-        return lTarget;
-    }
-
-    /**
      * Enable zones in the global scope.
      */
     public static enable(pTarget: InteractionZoneGlobalScopeTarget): boolean {
@@ -108,7 +48,7 @@ export class InteractionZoneGlobalScope {
             // Patch properties.
             lPatcher.patchOnEvents(lClass.prototype);
 
-            // TODO: Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
+            // Patch all classes. Might need a little extra code to catch any none inheritanceable classes or so.
             lGlobalScope[lClassName] = lClass;
         }
 
@@ -476,7 +416,7 @@ export class InteractionZoneGlobalScope {
     }
 }
 
-type InteractionZoneGlobalScopeTarget = {
+export type InteractionZoneGlobalScopeTarget = {
     target: object;
     patches: {
         promise?: string;

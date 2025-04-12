@@ -1,70 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
-import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
-import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import { InteractionZone } from '../source/interaction-zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
-
-Deno.test('InteractionZoneGlobalScope.enable()', async (pContext) => {
-    await pContext.step('Default', async () => {
-        // Setup. Global.
-        const lGlobalScope = {
-            promise: class <T> extends Promise<T> { },
-            eventTarget: class extends EventTarget { }
-        };
-
-        // Process. Its patched anyway.
-        const lWasPatched = InteractionZoneGlobalScope.enable({
-            target: lGlobalScope,
-            patches: {
-                requirements: {
-                    promise: 'promise',
-                    eventTarget: 'eventTarget'
-                }
-            }
-        });
-
-        // Process. Get patched and original function.
-        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
-
-        // Evaluation.
-        expect(lPatched).toBeTruthy();
-        expect(lWasPatched).toBeTruthy();
-    });
-    await pContext.step('Double patch', async () => {
-        // Setup. Global.
-        const lGlobalScope = {
-            promise: class <T> extends Promise<T> { },
-            eventTarget: class extends EventTarget { }
-        };
-
-        // Process. Its patched anyway.
-        const lWasPatchedOne = InteractionZoneGlobalScope.enable({
-            target: lGlobalScope,
-            patches: {
-                requirements: {
-                    promise: 'promise',
-                    eventTarget: 'eventTarget'
-                }
-            }
-        });
-        const lWasPatchedTwo = InteractionZoneGlobalScope.enable({
-            target: lGlobalScope,
-            patches: {
-                requirements: {
-                    promise: 'promise',
-                    eventTarget: 'eventTarget'
-                }
-            }
-        });
-
-        // Process. Get patched and original function.
-        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
-
-        // Evaluation.
-        expect(lPatched).toBeTruthy();
-        expect(lWasPatchedOne).toBeTruthy();
-        expect(lWasPatchedTwo).toBeFalsy();
-    });
-});
 
 Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
     await pContext.step('PatchedClass instance of original', () => {
@@ -77,7 +13,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup. Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -112,7 +48,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup. Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -155,7 +91,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup. Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -189,7 +125,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup. Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -227,7 +163,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup. Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -272,7 +208,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -321,7 +257,7 @@ Deno.test('InteractionZoneGlobalScope.patchClass()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -358,7 +294,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -393,7 +329,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -432,7 +368,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -471,7 +407,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -501,7 +437,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -531,7 +467,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -561,7 +497,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -591,7 +527,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -630,7 +566,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -668,7 +604,7 @@ Deno.test('InteractionZoneGlobalScope.patchEventTarget()', async (pContext) => {
         };
 
         // Setup.Patch classes of local global scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lPatchedGlobal,
             patches: {
                 requirements: {
@@ -718,7 +654,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -758,7 +694,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -797,7 +733,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -836,7 +772,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -868,7 +804,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -903,7 +839,7 @@ Deno.test('InteractionZoneGlobalScope.patchOnEventProperties()', async (pContext
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -935,7 +871,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -964,7 +900,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -995,7 +931,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -1026,7 +962,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {
@@ -1056,7 +992,7 @@ Deno.test('InteractionZoneGlobalScope.patchPromise()', async (pContext) => {
         };
 
         // Process. Patch scope.
-        InteractionZoneGlobalScope.enable({
+        InteractionZone.enableGlobalTracing({
             target: lScopeTarget,
             patches: {
                 requirements: {

@@ -1,14 +1,14 @@
 import { expect } from '@kartoffelgames/core-test';
-import { InteractionEvent } from '../source/zone/interaction-event.ts';
-import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import { InteractionZoneEvent } from '../source/interaction-zone/interaction-zone-event.ts';
+import { InteractionZone } from '../source/interaction-zone/interaction-zone.ts';
 import './mock/request-animation-frame-mock-session.ts';
 
-Deno.test('InteractionEvent.data', async (pContext) => {
+Deno.test('InteractionZoneEvent.data', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lData = {};
-        const lReason: InteractionEvent<TestTriggerType, typeof lData> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, lData);
+        const lReason: InteractionZoneEvent<TestTriggerType, typeof lData> = new InteractionZoneEvent(TestTriggerType, TestTriggerType.Custom, lZone, lData);
 
         // Process
         const lResult = lReason.data;
@@ -18,11 +18,11 @@ Deno.test('InteractionEvent.data', async (pContext) => {
     });
 });
 
-Deno.test('InteractionEvent.origin', async (pContext) => {
+Deno.test('InteractionZoneEvent.origin', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
+        const lReason: InteractionZoneEvent<TestTriggerType, object> = new InteractionZoneEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
 
         // Process
         const lResult = lReason.origin;
@@ -32,14 +32,14 @@ Deno.test('InteractionEvent.origin', async (pContext) => {
     });
 });
 
-Deno.test('InteractionEvent.stacktrace', async (pContext) => {
+Deno.test('InteractionZoneEvent.stacktrace', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
 
         // Setup. Named function.
         function lMycoolname() {
-            return new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
+            return new InteractionZoneEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
         }
 
         // Process
@@ -51,12 +51,12 @@ Deno.test('InteractionEvent.stacktrace', async (pContext) => {
     });
 });
 
-Deno.test('InteractionEvent.trigger', async (pContext) => {
+Deno.test('InteractionZoneEvent.trigger', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionTrigger = TestTriggerType.CustomDifferent;
-        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, lInteractionTrigger, lZone, {});
+        const lReason: InteractionZoneEvent<TestTriggerType, object> = new InteractionZoneEvent(TestTriggerType, lInteractionTrigger, lZone, {});
 
         // Process
         const lResult = lReason.trigger;
@@ -66,12 +66,12 @@ Deno.test('InteractionEvent.trigger', async (pContext) => {
     });
 });
 
-Deno.test('InteractionEvent.type', async (pContext) => {
+Deno.test('InteractionZoneEvent.type', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionType = TestTriggerType;
-        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(lInteractionType, TestTriggerType.Custom, lZone, {});
+        const lReason: InteractionZoneEvent<TestTriggerType, object> = new InteractionZoneEvent(lInteractionType, TestTriggerType.Custom, lZone, {});
 
         // Process
         const lResult = lReason.type;
@@ -81,14 +81,14 @@ Deno.test('InteractionEvent.type', async (pContext) => {
     });
 });
 
-Deno.test('InteractionEvent.toString()', async (pContext) => {
+Deno.test('InteractionZoneEvent.toString()', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lInteractionType: typeof TestTriggerType = TestTriggerType;
         const lInteractionTrigger: TestTriggerType = TestTriggerType.Custom;
         const lData = { a: 1 };
-        const lReason: InteractionEvent<TestTriggerType, typeof lData> = new InteractionEvent(lInteractionType, lInteractionTrigger, lZone, lData);
+        const lReason: InteractionZoneEvent<TestTriggerType, typeof lData> = new InteractionZoneEvent(lInteractionType, lInteractionTrigger, lZone, lData);
 
         // Process
         const lResult: string = lReason.toString();

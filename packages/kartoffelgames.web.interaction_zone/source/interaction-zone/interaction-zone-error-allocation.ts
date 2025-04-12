@@ -3,10 +3,9 @@ import type { InteractionZone} from './interaction-zone.ts';
 /**
  * Allocates current error to its interaction zone.
  */
-export class ErrorAllocation {
+export class InteractionZoneErrorAllocation {
     private static readonly mAsyncronErrorZones: WeakMap<Promise<unknown>, InteractionZone> = new WeakMap<Promise<unknown>, InteractionZone>();
     private static readonly mSynchronErrorZones: WeakMap<object, InteractionZone> = new WeakMap<object, InteractionZone>();
-
 
     /**
      * Allocate error with interaction zone.
@@ -15,7 +14,7 @@ export class ErrorAllocation {
      * @param pZone - Zone of error.
      */
     public static allocateAsyncronError<T>(pPromise: Promise<T>, pZone: InteractionZone): void {
-        ErrorAllocation.mAsyncronErrorZones.set(pPromise, pZone);
+        InteractionZoneErrorAllocation.mAsyncronErrorZones.set(pPromise, pZone);
     }
 
     /**
@@ -29,7 +28,7 @@ export class ErrorAllocation {
         const lError: object = (typeof pError === 'object' && pError !== null) ? pError : new Error(pError);
 
         // Allocate error to stack.
-        ErrorAllocation.mSynchronErrorZones.set(lError, pZone);
+        InteractionZoneErrorAllocation.mSynchronErrorZones.set(lError, pZone);
 
         return lError;
     }
@@ -42,7 +41,7 @@ export class ErrorAllocation {
      * @returns interaction zone where the of {@link Promise} was created or undefined when the promise was constructed outside any zone.s 
      */
     public static getAsyncronErrorZone<T>(pPromise: Promise<T>): InteractionZone | undefined {
-        return ErrorAllocation.mAsyncronErrorZones.get(pPromise);
+        return InteractionZoneErrorAllocation.mAsyncronErrorZones.get(pPromise);
     }
 
     /**
@@ -51,6 +50,6 @@ export class ErrorAllocation {
      * @param pError - Error.
      */
     public static getSyncronErrorZone(pError: object): InteractionZone | undefined {
-        return ErrorAllocation.mSynchronErrorZones.get(pError);
+        return InteractionZoneErrorAllocation.mSynchronErrorZones.get(pError);
     }
 }

@@ -1,4 +1,2 @@
-/* istanbul ignore file */
-export { InteractionZoneGlobalScope, type InteractionZoneGlobalScopeTarget } from './patcher/interaction-zone-global-scope.ts';
-export { InteractionEvent } from './zone/interaction-event.ts';
-export { InteractionZone } from './zone/interaction-zone.ts';
+export { InteractionZoneEvent } from './interaction-zone/interaction-zone-event.ts';
+export { InteractionZone, type InteractionZoneGlobalDefinition } from './interaction-zone/interaction-zone.ts';

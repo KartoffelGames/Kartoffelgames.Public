@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
-import { InteractionZoneGlobalScope } from '../source/patcher/interaction-zone-global-scope.ts';
-import type { InteractionEvent } from '../source/zone/interaction-event.ts';
-import { InteractionZone } from '../source/zone/interaction-zone.ts';
+import type { InteractionZoneEvent } from '../source/interaction-zone/interaction-zone-event.ts';
+import { InteractionZone } from '../source/interaction-zone/interaction-zone.ts';
 import { PromiseRejectionEvent } from './mock/error-event.ts';
 
 Deno.test('InteractionZone.current', async (pContext) => {
@@ -29,6 +28,94 @@ Deno.test('InteractionZone.current', async (pContext) => {
         expect(lCurrentInteractionZone.name).toBe('Default');
     });
 });
+
+Deno.test('InteractionZone.enableGlobal()', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Global.
+        const lGlobalScope = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Process. Its patched anyway.
+        const lWasPatched = InteractionZone.enableGlobalTracing({
+            target: lGlobalScope,
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
+        });
+
+        // Process. Get patched and original function.
+        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
+
+        // Evaluation.
+        expect(lPatched).toBeTruthy();
+        expect(lWasPatched).toBeTruthy();
+    });
+    await pContext.step('Double patch', async () => {
+        // Setup. Global.
+        const lGlobalScope = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Process. Its patched anyway.
+        const lWasPatchedOne = InteractionZone.enableGlobalTracing({
+            target: lGlobalScope,
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
+        });
+        const lWasPatchedTwo = InteractionZone.enableGlobalTracing({
+            target: lGlobalScope,
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            }
+        });
+
+        // Process. Get patched and original function.
+        const lPatched: boolean = (<any>lGlobalScope).globalPatched;
+
+        // Evaluation.
+        expect(lPatched).toBeTruthy();
+        expect(lWasPatchedOne).toBeTruthy();
+        expect(lWasPatchedTwo).toBeFalsy();
+    });
+    await pContext.step('Patch error handling without event target', async () => {
+        // Setup. Global.
+        const lGlobalScope = {
+            promise: class <T> extends Promise<T> { },
+            eventTarget: class extends EventTarget { }
+        };
+
+        // Process. Get patched and original function.
+        const lErrorFunction = ()=> {
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+        }
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow('Global scope does not support addEventListener');
+    });
+});
+
 
 Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
     await pContext.step('Push calls listener', () => {
@@ -59,8 +146,8 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         const lInteractionType: typeof TestTriggerEnum = TestTriggerEnum;
 
         // Process. Add listener.
-        let lReasonResult: InteractionEvent<TestTriggerEnum> | null = null;
-        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionEvent<TestTriggerEnum>) => {
+        let lReasonResult: InteractionZoneEvent<TestTriggerEnum> | null = null;
+        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionZoneEvent<TestTriggerEnum>) => {
             lReasonResult = pReason;
         });
 
@@ -80,8 +167,8 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         const lInteractionType: typeof TestTriggerEnum = TestTriggerEnum;
 
         // Process. Add listener.
-        let lReasonResult: InteractionEvent<TestTriggerEnum> | null = null;
-        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionEvent<TestTriggerEnum>) => {
+        let lReasonResult: InteractionZoneEvent<TestTriggerEnum> | null = null;
+        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionZoneEvent<TestTriggerEnum>) => {
             lReasonResult = pReason;
         });
 
@@ -101,8 +188,8 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         const lInteractionType: typeof TestTriggerEnum = TestTriggerEnum;
 
         // Process. Add listener.
-        let lReasonResult: InteractionEvent<TestTriggerEnum> | null = null;
-        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionEvent<TestTriggerEnum>) => {
+        let lReasonResult: InteractionZoneEvent<TestTriggerEnum> | null = null;
+        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionZoneEvent<TestTriggerEnum>) => {
             lReasonResult = pReason;
         });
 
@@ -123,8 +210,8 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         const lInteractionData = { a: 1 };
 
         // Process. Add listener.
-        let lReasonResult: InteractionEvent<TestTriggerEnum> | null = null;
-        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionEvent<TestTriggerEnum>) => {
+        let lReasonResult: InteractionZoneEvent<TestTriggerEnum> | null = null;
+        lInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionZoneEvent<TestTriggerEnum>) => {
             lReasonResult = pReason;
         });
 
@@ -167,8 +254,8 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         const lInteractionType: typeof TestTriggerEnum = TestTriggerEnum;
 
         // Process. Add listener.
-        let lReasonResult: InteractionEvent<TestTriggerEnum> | null = null;
-        lParentInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionEvent<TestTriggerEnum>) => {
+        let lReasonResult: InteractionZoneEvent<TestTriggerEnum> | null = null;
+        lParentInteractionZone.addInteractionListener(lInteractionType, (pReason: InteractionZoneEvent<TestTriggerEnum>) => {
             lReasonResult = pReason;
         });
 
@@ -235,6 +322,22 @@ Deno.test('InteractionZone.parent', async (pContext) => {
 Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
     await pContext.step('Synchron', async (pContext) => {
         await pContext.step('Error listener called', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -250,7 +353,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                     throw new Error();
                 });
             } catch (pError) {
-                globalThis.dispatchEvent(new ErrorEvent('error', {
+                lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -260,6 +363,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Error listener called with correct error', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
             const lError: Error = new Error();
@@ -276,7 +395,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                     throw lError;
                 });
             } catch (pError) {
-                globalThis.dispatchEvent(new ErrorEvent('error', {
+                lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -286,6 +405,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Parent Error listener called', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -302,7 +437,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                     throw new Error();
                 });
             } catch (pError) {
-                globalThis.dispatchEvent(new ErrorEvent('error', {
+                lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -312,6 +447,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Parent Error listener when default prevented', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -332,7 +483,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                     throw new Error();
                 });
             } catch (pError) {
-                globalThis.dispatchEvent(new ErrorEvent('error', {
+                lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -342,6 +493,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Error listener for errors outside zone', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -358,7 +525,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                     throw new Error();
                 });
             } catch (pError) {
-                globalThis.dispatchEvent(new ErrorEvent('error', {
+                lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                     error: <Error>pError
                 }));
             }
@@ -368,6 +535,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Error listener for errors without zone', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -379,7 +562,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Throw error outside.
-            globalThis.dispatchEvent(new ErrorEvent('error', {
+            lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                 error: new Error()
             }));
 
@@ -388,6 +571,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Error listener for errors for errors that are none objects', () => {
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
+                patches: {
+                    requirements: {
+                        promise: 'promise',
+                        eventTarget: 'eventTarget'
+                    }
+                },
+                errorHandling: true
+            });
+
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
             const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -399,7 +598,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
             });
 
             // Process. Throw error outside.
-            globalThis.dispatchEvent(new ErrorEvent('error', {
+            lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                 error: 'None Object'
             }));
 
@@ -410,21 +609,20 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
     await pContext.step('Asynchron', async (pContext) => {
         await pContext.step('Error listener called', async () => {
-            // Setup. Patched promise.
-            const lScopeTarget = {
-                promise: class <T> extends Promise<T> { },
-                eventTarget: class extends EventTarget { }
-            };
-
-            // Process. Patch scope.
-            InteractionZoneGlobalScope.enable({
-                target: lScopeTarget,
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
                 patches: {
                     requirements: {
                         promise: 'promise',
                         eventTarget: 'eventTarget'
                     }
-                }
+                },
+                errorHandling: true
             });
 
             // Setup.
@@ -439,11 +637,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone.
             const lPromise: Promise<void> = lInteractionZone.execute(() => {
-                return new lScopeTarget.promise<void>(() => { });
+                return new lGlobalScope.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
-            globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+            lGlobalScope.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                 promise: <Promise<void>><any>lPromise,
                 reason: new Error()
             }));
@@ -456,21 +654,20 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Error listener called with correct error', async () => {
-            // Setup. Patched promise.
-            const lScopeTarget = {
-                promise: class <T> extends Promise<T> { },
-                eventTarget: class extends EventTarget { }
-            };
-
-            // Process. Patch scope.
-            InteractionZoneGlobalScope.enable({
-                target: lScopeTarget,
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
                 patches: {
                     requirements: {
                         promise: 'promise',
                         eventTarget: 'eventTarget'
                     }
-                }
+                },
+                errorHandling: true
             });
 
             // Setup.
@@ -486,11 +683,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone. 
             const lPromise: Promise<void> = lInteractionZone.execute(() => {
-                return new lScopeTarget.promise<void>(() => { });
+                return new lGlobalScope.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
-            globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+            lGlobalScope.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                 promise: <Promise<void>><any>lPromise,
                 reason: new Error()
             }));
@@ -503,21 +700,20 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Parent Error listener called', async () => {
-            // Setup. Patched promise.
-            const lScopeTarget = {
-                promise: class <T> extends Promise<T> { },
-                eventTarget: class extends EventTarget { }
-            };
-
-            // Process. Patch scope.
-            InteractionZoneGlobalScope.enable({
-                target: lScopeTarget,
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
                 patches: {
                     requirements: {
                         promise: 'promise',
                         eventTarget: 'eventTarget'
                     }
-                }
+                },
+                errorHandling: true
             });
 
             // Setup.
@@ -533,11 +729,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone. 
             const lPromise: Promise<void> = lChildInteractionZone.execute(() => {
-                return new lScopeTarget.promise<void>(() => { });
+                return new lGlobalScope.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
-            globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+            lGlobalScope.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                 promise: <Promise<void>><any>lPromise,
                 reason: new Error()
             }));
@@ -549,21 +745,20 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Parent Error listener when default prevented', async () => {
-            // Setup. Patched promise.
-            const lScopeTarget = {
-                promise: class <T> extends Promise<T> { },
-                eventTarget: class extends EventTarget { }
-            };
-
-            // Process. Patch scope.
-            InteractionZoneGlobalScope.enable({
-                target: lScopeTarget,
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
                 patches: {
                     requirements: {
                         promise: 'promise',
                         eventTarget: 'eventTarget'
                     }
-                }
+                },
+                errorHandling: true
             });
 
             // Setup.
@@ -586,11 +781,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone. 
             const lPromise: Promise<void> = lChildInteractionZone.execute(() => {
-                return new lScopeTarget.promise<void>(() => { });
+                return new lGlobalScope.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
-            globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+            lGlobalScope.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                 promise: <Promise<void>><any>lPromise,
                 reason: new Error()
             }));
@@ -603,21 +798,20 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
         });
 
         await pContext.step('Ignore Error listener called outside zone', async () => {
-            // Setup. Patched promise.
-            const lScopeTarget = {
-                promise: class <T> extends Promise<T> { },
-                eventTarget: class extends EventTarget { }
-            };
-
-            // Process. Patch scope.
-            InteractionZoneGlobalScope.enable({
-                target: lScopeTarget,
+            // Setup. Global.
+            const lGlobalScope = new (class extends EventTarget {
+                public promise = class <T> extends Promise<T> { };
+                public eventTarget = class extends EventTarget { };
+            })();
+            InteractionZone.enableGlobalTracing({
+                target: lGlobalScope,
                 patches: {
                     requirements: {
                         promise: 'promise',
                         eventTarget: 'eventTarget'
                     }
-                }
+                },
+                errorHandling: true
             });
 
             // Setup.
@@ -635,11 +829,11 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
 
             // Process. Create promise in zone. 
             const lPromise: Promise<void> = lCorrectInteractionZone.execute(() => {
-                return new lScopeTarget.promise<void>(() => { });
+                return new lGlobalScope.promise<void>(() => { });
             });
 
             // Process. "Throw" promise into global scope.
-            globalThis.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+            lGlobalScope.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
                 promise: <Promise<void>><any>lPromise,
                 reason: new Error()
             }));
@@ -672,6 +866,22 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
     });
 
     await pContext.step('Double added listener', () => {
+        // Setup. Global.
+        const lGlobalScope = new (class extends EventTarget {
+            public promise = class <T> extends Promise<T> { };
+            public eventTarget = class extends EventTarget { };
+        })();
+        InteractionZone.enableGlobalTracing({
+            target: lGlobalScope,
+            patches: {
+                requirements: {
+                    promise: 'promise',
+                    eventTarget: 'eventTarget'
+                }
+            },
+            errorHandling: true
+        });
+
         // Setup.
         const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -689,7 +899,7 @@ Deno.test('InteractionZone.addErrorListener()', async (pContext) => {
                 throw new Error();
             });
         } catch (pError) {
-            globalThis.dispatchEvent(new ErrorEvent('error', {
+            lGlobalScope.dispatchEvent(new ErrorEvent('error', {
                 error: <Error>pError
             }));
         }

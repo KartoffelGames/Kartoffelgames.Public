@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { ErrorAllocation } from '../zone/error-allocation.ts';
-import { InteractionZone } from '../zone/interaction-zone.ts';
+import { InteractionZoneErrorAllocation } from './interaction-zone-error-allocation.ts';
+import { InteractionZone } from './interaction-zone.ts';
 
 export class InteractionZoneGlobalScope {
     /**
@@ -414,7 +414,7 @@ export class InteractionZoneGlobalScope {
                 super(pExecutor);
 
                 // Set zone of promise.
-                ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);
+                InteractionZoneErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);
             }
         }
 

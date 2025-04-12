@@ -1,9 +1,9 @@
-import type { InteractionZone, } from './interaction-zone.ts';
+import type { InteractionZone } from './interaction-zone.ts';
 
 /**
  * Interaction event. Information of a pushed interaction.
  */
-export class InteractionEvent<TType extends number, TData extends object = object> {
+export class InteractionZoneEvent<TType extends number, TData extends object = object> {
     private readonly mData: TData;
     private readonly mInteractionTrigger: TType;
     private readonly mInteractionType: Enum<TType>;
@@ -54,7 +54,7 @@ export class InteractionEvent<TType extends number, TData extends object = objec
      * @param pOrigin - Zone where this event will be pushed first or is originated from.
      * @param pData - Optional user data.
      */
-    public constructor(pInteractionType: InteractionEventTriggerType<TType>, pInteractionTrigger: TType, pOrigin: InteractionZone, pData: TData) {
+    public constructor(pInteractionType: InteractionZoneEventTriggerType<TType>, pInteractionTrigger: TType, pOrigin: InteractionZone, pData: TData) {
         // User data.
         this.mInteractionType = pInteractionType as Enum<TType>;
         this.mInteractionTrigger = pInteractionTrigger;
@@ -77,4 +77,4 @@ export class InteractionEvent<TType extends number, TData extends object = objec
 
 type Enum<T> = { [key: string]: T; };
 
-export type InteractionEventTriggerType<T> = Enum<T | string>;
+export type InteractionZoneEventTriggerType<T> = Enum<T | string>;

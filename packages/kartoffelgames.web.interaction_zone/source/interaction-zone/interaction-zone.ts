@@ -1,15 +1,34 @@
-import { Dictionary } from '@kartoffelgames/core';
-import { ErrorAllocation } from './error-allocation.ts';
-import { InteractionEvent, type InteractionEventTriggerType } from './interaction-event.ts';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { InteractionZoneErrorAllocation } from './interaction-zone-error-allocation.ts';
+import { InteractionZoneEvent, type InteractionZoneEventTriggerType } from './interaction-zone-event.ts';
+import { InteractionZoneGlobalScope, type InteractionZoneGlobalScopeTarget } from "./interaction-zone-global-scope.ts";
 
 /**
  * Merges execution zone and proxy tracking.
  */
 export class InteractionZone {
     /**
-     * Add global error listener that can sends the error to the allocated {@link InteractionZone}
+     * Add global tracing error listener that can sends the error to the allocated {@link InteractionZone}
+     * 
+     * @param pTargetDefinition - Target scope definition.
      */
-    static {
+    public static enableGlobalTracing(pTargetDefinition: InteractionZoneGlobalDefinition): boolean {
+        // Patch global scope return immediately when already patched.
+        if(!InteractionZoneGlobalScope.enable(pTargetDefinition)) {
+            return false;
+        }
+
+        // Skip global error handling when not enabled.
+        if(!pTargetDefinition.errorHandling) {
+            return true;
+        }
+
+        // Try to read global scope events handler.
+        const lTargetGlobalScope = pTargetDefinition.target;
+        if(!('addEventListener' in lTargetGlobalScope) || typeof lTargetGlobalScope.addEventListener !== 'function') {
+            throw new Exception('Global scope does not support addEventListener', InteractionZone);
+        }
+
         // Catch global error, check if allocated zone is child of this interaction zone and report the error. 
         const lErrorHandler = (pErrorEvent: Event, pError: any, pInteractionZone?: InteractionZone | null) => {
             // Skip any error without allocated zone stack.
@@ -24,19 +43,21 @@ export class InteractionZone {
         };
 
         // Create and register error and rejection listener.
-        globalThis.addEventListener('error', (pEvent: ErrorEvent) => {
+        lTargetGlobalScope.addEventListener('error', (pEvent: ErrorEvent) => {
             // Skip none object errors.
             if (typeof pEvent.error !== 'object' || pEvent.error === null) {
                 return;
             }
 
             // Get syncron error allocation.
-            lErrorHandler(pEvent, pEvent.error, ErrorAllocation.getSyncronErrorZone(pEvent.error));
+            lErrorHandler(pEvent, pEvent.error, InteractionZoneErrorAllocation.getSyncronErrorZone(pEvent.error));
         });
-        globalThis.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
+        lTargetGlobalScope.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
             // Get zone of the promise where the unhandled rejection occurred
-            lErrorHandler(pEvent, pEvent.reason, ErrorAllocation.getAsyncronErrorZone(pEvent.promise));
+            lErrorHandler(pEvent, pEvent.reason, InteractionZoneErrorAllocation.getAsyncronErrorZone(pEvent.promise));
         });
+
+        return true;
     }
 
     // Needs to be isolated to prevent parent listener execution.
@@ -58,7 +79,7 @@ export class InteractionZone {
      * 
      * @returns false when any zone in the parent chain dont has trigger for {@link pTrigger} with {@link pType}
      */
-    public static pushInteraction<TTrigger extends number, TData extends object>(pType: InteractionEventTriggerType<TTrigger>, pTrigger: TTrigger, pData: TData): boolean {
+    public static pushInteraction<TTrigger extends number, TData extends object>(pType: InteractionZoneEventTriggerType<TTrigger>, pTrigger: TTrigger, pData: TData): boolean {
         // Optimization to prevent InteractionReason creation.
         // Validate trigger type with current zones trigger mapping.
         const lTriggerMap: number = this.mCurrentZone.mTriggerMapping.get(pType) ?? ~0;
@@ -67,18 +88,18 @@ export class InteractionZone {
         }
 
         // Create reason and save current zone as reason origin.
-        const lReason: InteractionEvent<TTrigger, TData> = new InteractionEvent(pType, pTrigger, this.mCurrentZone, pData);
+        const lReason: InteractionZoneEvent<TTrigger, TData> = new InteractionZoneEvent(pType, pTrigger, this.mCurrentZone, pData);
 
         // Start dispatch to current zone.
         return this.mCurrentZone.callInteractionListener(lReason);
     }
 
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
-    private readonly mInteractionListener: Dictionary<InteractionEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>;
+    private readonly mInteractionListener: Dictionary<InteractionZoneEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>;
     private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mTriggerMapping: Dictionary<InteractionEventTriggerType<unknown>, number>;
+    private readonly mTriggerMapping: Dictionary<InteractionZoneEventTriggerType<unknown>, number>;
 
     /**
      * Get interaction detection name.
@@ -113,8 +134,8 @@ export class InteractionZone {
         this.mName = pName;
 
         // Create Trigger and their listener list.
-        this.mTriggerMapping = new Dictionary<InteractionEventTriggerType<unknown>, number>();
-        this.mInteractionListener = new Dictionary<InteractionEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>();
+        this.mTriggerMapping = new Dictionary<InteractionZoneEventTriggerType<unknown>, number>();
+        this.mInteractionListener = new Dictionary<InteractionZoneEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>();
 
         // Save parent when not isolated.
         this.mParent = pParent;
@@ -147,7 +168,7 @@ export class InteractionZone {
      * 
      * @returns itself. 
      */
-    public addInteractionListener<TTrigger extends number, TData extends object>(pType: InteractionEventTriggerType<TTrigger>, pListener: InteractionListener<TTrigger, TData>): this {
+    public addInteractionListener<TTrigger extends number, TData extends object>(pType: InteractionZoneEventTriggerType<TTrigger>, pListener: InteractionListener<TTrigger, TData>): this {
         // Init interaction listener list when not already setup.
         if (!this.mInteractionListener.has(pType)) {
             this.mInteractionListener.set(pType, new Dictionary<InteractionListener<number, object>, InteractionZone>());
@@ -169,7 +190,7 @@ export class InteractionZone {
      * 
      * @returns itself. 
      */
-    public addTriggerRestriction<T extends number>(pType: InteractionEventTriggerType<T>, pAllowedTrigger: T): this {
+    public addTriggerRestriction<T extends number>(pType: InteractionZoneEventTriggerType<T>, pAllowedTrigger: T): this {
         // Add or override trigger bitmap.
         this.mTriggerMapping.set(pType, pAllowedTrigger);
 
@@ -208,7 +229,7 @@ export class InteractionZone {
         try {
             lResult = pFunction(...pArgs);
         } catch (pError) {
-            throw ErrorAllocation.allocateSyncronError(pError, InteractionZone.mCurrentZone);
+            throw InteractionZoneErrorAllocation.allocateSyncronError(pError, InteractionZone.mCurrentZone);
         } finally {
             // Reset to last zone.
             InteractionZone.mCurrentZone = lLastZone;
@@ -239,7 +260,7 @@ export class InteractionZone {
      * 
      * @returns itself.
      */
-    public removeInteractionListener(pType: InteractionEventTriggerType<unknown>, pListener?: InteractionListener<number, object>): this {
+    public removeInteractionListener(pType: InteractionZoneEventTriggerType<unknown>, pListener?: InteractionListener<number, object>): this {
         // Remove every listener of type.
         if (!pListener) {
             this.mInteractionListener.delete(pType);
@@ -299,7 +320,7 @@ export class InteractionZone {
      * 
      * @param pEvent - Interaction event.
      */
-    private callInteractionListener(pEvent: InteractionEvent<number, object>): boolean {
+    private callInteractionListener(pEvent: InteractionZoneEvent<number, object>): boolean {
         // Read trigger. None set trigger are allways wildcards.
         const lTriggerBitmap: number = this.mTriggerMapping.get(pEvent.type) ?? ~0;
 
@@ -332,7 +353,10 @@ export class InteractionZone {
     }
 }
 
-export type InteractionListener<TTrigger extends number, TData extends object> = (pReason: InteractionEvent<TTrigger, TData>) => void;
+export type InteractionZoneGlobalDefinition = InteractionZoneGlobalScopeTarget & {
+    errorHandling?: boolean;
+}
+export type InteractionListener<TTrigger extends number, TData extends object> = (pReason: InteractionZoneEvent<TTrigger, TData>) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type InteractionZoneConstructorSettings = {

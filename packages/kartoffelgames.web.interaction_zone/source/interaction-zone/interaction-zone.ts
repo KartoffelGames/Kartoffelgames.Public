@@ -94,6 +94,7 @@ export class InteractionZone {
         return this.mCurrentZone.callInteractionListener(lReason);
     }
 
+    private readonly mAttachments: WeakMap<symbol, any>;
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
     private readonly mInteractionListener: Dictionary<InteractionZoneEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>;
     private readonly mIsolated: boolean;
@@ -127,7 +128,8 @@ export class InteractionZone {
      * @param pSettings - Interaction zone settings.
      */
     private constructor(pName: string, pParent: InteractionZone | null, pIsolate: boolean) {
-        // Initialize error listener list
+        // Initialize lists
+        this.mAttachments = new WeakMap<symbol, any>();
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Set name of zone. Used only for debugging and labeling.
@@ -142,6 +144,43 @@ export class InteractionZone {
 
         // Save isolation state.
         this.mIsolated = pIsolate;
+    }
+
+    /**
+     * Get or set attachment value.
+     * Values are set to the current zone and when read, searched in any parent zone.
+     * Isolated zones breaks the parent chain.
+     * 
+     * @param pSymbol - Key of attachment.
+     * @param pValue - Value of attachment.
+     * 
+     * @returns the current value of the attachment or undefined when no value is set. 
+     */
+    public attachment(pSymbol: symbol, pValue?: any): any {
+        // Sets the value of the attachment when pValue is set.
+        if (typeof pValue !== 'undefined') {
+            this.mAttachments.set(pSymbol, pValue);
+            return pValue;
+        }
+
+        // Try to read the value of the attachment.
+        const lAttachmentValue: any = this.mAttachments.get(pSymbol);
+        if (typeof lAttachmentValue !== 'undefined') {
+            return lAttachmentValue;
+        }
+
+        // Skip parent search when isolated.
+        if (this.mIsolated) {
+            return undefined;
+        }
+
+        // Skip parent search when no parent is available.
+        if (!this.mParent) {
+            return undefined;
+        }
+
+        // When the value was not found search in parent zones.
+        return this.mParent.attachment(pSymbol);
     }
 
     /**

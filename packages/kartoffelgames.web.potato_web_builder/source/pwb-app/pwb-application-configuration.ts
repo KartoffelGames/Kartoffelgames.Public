@@ -114,13 +114,8 @@ export type PwbApplicationUpdatingConfiguration = {
 
 export enum PwbDebugLogLevel {
     None = 0,
-
     Component = 1,
     Module = 2,
     Extention = 4,
-
-    /**
-     * All.
-     */
     All = 7
 }

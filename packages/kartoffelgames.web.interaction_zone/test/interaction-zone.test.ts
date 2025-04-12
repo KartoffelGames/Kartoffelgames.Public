@@ -1386,6 +1386,88 @@ Deno.test('InteractionZone.removeInteractionListener()', async (pContext) => {
     });
 });
 
+Deno.test('InteractionZone.attachment()', async (pContext) => {
+    await pContext.step('Set and get attachment in the same zone', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'Value';
+
+        // Process.
+        lZone.attachment(lKey, lValue);
+        const lResult: string = lZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lValue);
+    });
+
+    await pContext.step('Get attachment from parent zone', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.current.create('ParentZone');
+        const lChildZone: InteractionZone = lParentZone.create('ChildZone');
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'ParentValue';
+
+        // Process.
+        lParentZone.attachment(lKey, lValue);
+        const lResult: string = lChildZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lValue);
+    });
+
+    await pContext.step('Isolated zone does not inherit attachment', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.current.create('ParentZone');
+        const lIsolatedZone: InteractionZone = lParentZone.create('IsolatedZone', { isolate: true });
+        const lKey: symbol = Symbol('Key');
+        const lValue: string = 'ParentValue';
+
+        // Process.
+        lParentZone.attachment(lKey, lValue);
+        const lResult: string | undefined = lIsolatedZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBeUndefined();
+    });
+
+    await pContext.step('Override attachment in child zone', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.current.create('ParentZone');
+        const lChildZone: InteractionZone = lParentZone.create('ChildZone');
+        const lKey: symbol = Symbol('Key');
+        const lParentValue: string = 'ParentValue';
+        const lChildValue: string = 'ChildValue';
+
+        // Process.
+        lParentZone.attachment(lKey, lParentValue);
+        lChildZone.attachment(lKey, lChildValue);
+        const lResult: string = lChildZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResult).toBe(lChildValue);
+    });
+
+    await pContext.step('Different attachment with same key in child and parent zone', () => {
+        // Setup.
+        const lParentZone: InteractionZone = InteractionZone.current.create('ParentZone');
+        const lChildZone: InteractionZone = lParentZone.create('ChildZone');
+        const lKey: symbol = Symbol('Key');
+        const lParentValue: string = 'ParentValue';
+        const lChildValue: string = 'ChildValue';
+
+        // Process.
+        lParentZone.attachment(lKey, lParentValue);
+        lChildZone.attachment(lKey, lChildValue);
+        const lResultChild: string = lChildZone.attachment(lKey);
+        const lResultParent: string = lParentZone.attachment(lKey);
+
+        // Evaluation.
+        expect(lResultChild).toBe(lChildValue);
+        expect(lResultParent).toBe(lParentValue);
+    });
+});
+
 enum TestTriggerEnum {
     Custom = 1,
     Custom2 = 2,

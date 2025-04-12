@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -24,15 +24,15 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 3. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
+            Comment, // -- Manipulator 3. Child Anchor
+            HTMLDivElement, // 3. Element
         ], true);
     });
 
@@ -55,13 +55,13 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
         ], true);
     });
 
@@ -84,11 +84,11 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement // 1. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement // 1. Element
         ], true);
     });
 
@@ -111,15 +111,15 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
-            MOCK_WINDOW.HTMLDivElement // 3. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
+            Comment, // -- Manipulator 3. Child Anchor
+            HTMLDivElement // 3. Element
         ], true);
     });
 
@@ -142,13 +142,13 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement // 2. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement // 2. Element
         ], true);
     });
 
@@ -168,17 +168,17 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: '0'
             },
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+            Comment, // -- Manipulator 2. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: '1'
             }
         ], true);
@@ -203,12 +203,12 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
@@ -236,12 +236,12 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
@@ -264,9 +264,9 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
         ], true);
     });
 });
@@ -288,15 +288,15 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 3. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
+            Comment, // -- Manipulator 3. Child Anchor
+            HTMLDivElement, // 3. Element
         ], true);
     });
 
@@ -319,13 +319,13 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
         ], true);
     });
 
@@ -348,11 +348,11 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement // 1. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement // 1. Element
         ], true);
     });
 
@@ -375,13 +375,13 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement // 2. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement // 2. Element
         ], true);
     });
 
@@ -408,12 +408,12 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent.toString()
             }
         ], true);
@@ -435,17 +435,17 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: 'One'
             },
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+            Comment, // -- Manipulator 2. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: 'Two'
             }
         ], true);
@@ -470,12 +470,12 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent.toString()
             }
         ], true);
@@ -506,15 +506,15 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 1. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 2. Element
-            MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
-            MOCK_WINDOW.HTMLDivElement, // 3. Element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement, // 1. Element
+            Comment, // -- Manipulator 2. Child Anchor
+            HTMLDivElement, // 2. Element
+            Comment, // -- Manipulator 3. Child Anchor
+            HTMLDivElement, // 3. Element
         ], true);
     });
 
@@ -556,22 +556,22 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
             // Evaluation.
-            expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-                MOCK_WINDOW.Comment, // Component Anchor
-                MOCK_WINDOW.Comment, // - Manipulator Anchor
-                MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+            expect(lComponent).toBeComponentStructure([
+                Comment, // Component Anchor
+                Comment, // - Manipulator Anchor
+                Comment, // -- Manipulator 1. Child Anchor
                 {
-                    node: MOCK_WINDOW.HTMLDivElement,
+                    node: HTMLDivElement,
                     textContent: 'a'
                 },
-                MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+                Comment, // -- Manipulator 2. Child Anchor
                 {
-                    node: MOCK_WINDOW.HTMLDivElement,
+                    node: HTMLDivElement,
                     textContent: 'a'
                 },
-                MOCK_WINDOW.Comment, // -- Manipulator 3. Child Anchor
+                Comment, // -- Manipulator 3. Child Anchor
                 {
-                    node: MOCK_WINDOW.HTMLDivElement,
+                    node: HTMLDivElement,
                     textContent: 'a'
                 }
             ], true);
@@ -597,17 +597,17 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: (0 * 2).toString()
             },
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+            Comment, // -- Manipulator 2. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: (1 * 2).toString()
             }
         ], true);
@@ -632,17 +632,17 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: (0 * lList[0]).toString()
             },
-            MOCK_WINDOW.Comment, // -- Manipulator 2. Child Anchor
+            Comment, // -- Manipulator 2. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: (1 * lList[1]).toString()
             }
         ], true);
@@ -675,27 +675,27 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Parent Anchor
-            MOCK_WINDOW.Comment, // Static
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Parent Anchor
+            Comment, // Static
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 childs: [
                     // First For element.
-                    MOCK_WINDOW.Comment, // Manipulator
-                    MOCK_WINDOW.Comment, // Static
-                    MOCK_WINDOW.HTMLDivElement,
+                    Comment, // Manipulator
+                    Comment, // Static
+                    HTMLDivElement,
                 ]
             },
-            MOCK_WINDOW.Comment, // Static
+            Comment, // Static
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 childs: [
                     // First For element.
-                    MOCK_WINDOW.Comment, // Manipulator
-                    MOCK_WINDOW.Comment, // Static
-                    MOCK_WINDOW.HTMLDivElement,
+                    Comment, // Manipulator
+                    Comment, // Static
+                    HTMLDivElement,
                 ]
             }
         ], true);
@@ -721,13 +721,13 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
 
         // Evaluation.
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.HTMLDivElement,
-            MOCK_WINDOW.Comment, // - Instruction Anchor
-            MOCK_WINDOW.Comment, // Static Anchor
-            MOCK_WINDOW.HTMLDivElement,
-            MOCK_WINDOW.HTMLDivElement, // Static element
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            HTMLDivElement,
+            Comment, // - Instruction Anchor
+            Comment, // Static Anchor
+            HTMLDivElement,
+            HTMLDivElement, // Static element
         ], true);
     });
 
@@ -750,14 +750,14 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 childs: [
-                    MOCK_WINDOW.Comment, // - Manipulator Parent Anchor
-                    MOCK_WINDOW.Comment, // Static
-                    MOCK_WINDOW.HTMLDivElement,
+                    Comment, // - Manipulator Parent Anchor
+                    Comment, // Static
+                    HTMLDivElement,
                 ]
             }
         ], true);
@@ -786,6 +786,6 @@ Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [], true);
+        expect(lComponent).toBeComponentStructure([], true);
     });
 });

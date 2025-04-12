@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
+import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -32,9 +32,9 @@ Deno.test('PwbComponent--Functionality: Single element', async (pContext) => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
-            MOCK_WINDOW.HTMLDivElement
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLDivElement
         ], true);
     });
 });
@@ -54,10 +54,10 @@ Deno.test('PwbComponent--Functionality: Sibling element', async (pContext) => {
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(3);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
-            MOCK_WINDOW.HTMLDivElement,
-            MOCK_WINDOW.HTMLSpanElement
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLDivElement,
+            HTMLSpanElement
         ], true);
     });
 });
@@ -77,11 +77,11 @@ Deno.test('PwbComponent--Functionality: Child element', async (pContext) => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
+        expect(lComponent).toBeComponentStructure([
+            Comment,
             {
-                node: MOCK_WINDOW.HTMLDivElement,
-                childs: [MOCK_WINDOW.HTMLSpanElement]
+                node: HTMLDivElement,
+                childs: [HTMLSpanElement]
             }
         ], true);
     });
@@ -102,10 +102,10 @@ Deno.test('PwbComponent--Functionality: Ignore Comments', async (pContext) => {
         // Evaluation
         // 2 => StaticAnchor, Div.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
+        expect(lComponent).toBeComponentStructure([
+            Comment,
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 childs: []
             }
         ], true);
@@ -135,8 +135,8 @@ Deno.test('PwbComponent--Functionality: Same component childs', async (pContext)
         const lSecondChild: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[2];
 
         // Evaluation
-        expect(lFirstChild).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
-        expect(lSecondChild).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
+        expect(lFirstChild).toBeInstanceOf(HTMLElement);
+        expect(lSecondChild).toBeInstanceOf(HTMLElement);
         expect(lFirstChild).not.toBe(lSecondChild);
     });
 });
@@ -153,8 +153,8 @@ Deno.test('PwbComponent--Functionality: No template', async (pContext) => {
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment
+        expect(lComponent).toBeComponentStructure([
+            Comment
         ], true);
     });
 });
@@ -175,9 +175,9 @@ Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
         const lStyleElement: HTMLStyleElement = <HTMLStyleElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[0];
 
         // Evaluation
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.HTMLStyleElement,
-            MOCK_WINDOW.Comment
+        expect(lComponent).toBeComponentStructure([
+            HTMLStyleElement,
+            Comment
         ], true);
         expect(lStyleElement.textContent).toBe(lStyleContent);
     });
@@ -203,10 +203,10 @@ Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (p
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
+        expect(lComponent).toBeComponentStructure([
+            Comment,
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lInitialValue
             }
         ], true);
@@ -248,10 +248,10 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
         lComponent.value = lNewValue;
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
+        expect(lComponent).toBeComponentStructure([
+            Comment,
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lInitialValue
             }
         ], true);
@@ -261,10 +261,10 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
+        expect(lComponent).toBeComponentStructure([
+            Comment,
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lNewValue
             }
         ], true);
@@ -357,10 +357,10 @@ Deno.test('PwbComponent--Functionality: Custom expression module', async (pConte
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lExpressionValue
             }
         ], true);
@@ -382,9 +382,9 @@ Deno.test('PwbComponent--Functionality: Create HTMLUnknownElement on unknown ele
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
-            MOCK_WINDOW.HTMLUnknownElement
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLUnknownElement
         ], true);
     });
 });
@@ -404,9 +404,9 @@ Deno.test('PwbComponent--Functionality: Create HTMLElement on unknown component'
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
         expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
-            MOCK_WINDOW.HTMLElement
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLElement
         ], true); // HTMLUnknownElement not creates in JSDOM.
     });
 });
@@ -587,14 +587,14 @@ Deno.test('PwbComponent--Functionality: Creation without customElements register
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = PwbConfiguration.configuration.scope.window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
         let lComponent: HTMLElement | null = null;
         if (lComponentConstructor) {
             lComponent = new lComponentConstructor();
         }
 
         // Evaluation.
-        expect(lComponent).toBeInstanceOf(MOCK_WINDOW.HTMLElement);
+        expect(lComponent).toBeInstanceOf(HTMLElement);
     });
 });
 

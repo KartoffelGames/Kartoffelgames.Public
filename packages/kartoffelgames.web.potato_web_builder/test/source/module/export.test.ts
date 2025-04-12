@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -262,8 +262,8 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
         }
 
         // Process. Set component with value in DOM and try to read it.
-        MOCK_WINDOW.document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
-        const lComponent: HTMLElement & TestComponent = MOCK_WINDOW.document.body.querySelector(lSelector)!;
+        document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
+        const lComponent: HTMLElement & TestComponent = document.body.querySelector(lSelector)!;
 
         // Process. Start a async task to let the mutation observer to it thing.
         lComponent.justSomethingThatStartsUpdate = 'RED or GREEN i dont know';

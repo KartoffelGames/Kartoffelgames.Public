@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -182,7 +182,7 @@ Deno.test('PwbAppInjection--Functionality: Creation without PwbApp', async (pCon
         }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>MOCK_WINDOW.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>window.customElements.get(lSelector);
 
         // Process.
         let lMessage: string | null = null;

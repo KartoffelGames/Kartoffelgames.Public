@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -67,9 +67,9 @@ Deno.test('PwbApp.addContent()', async (pContext) => {
         const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
 
         // Evaluation.
-        expect(lContent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment,
-            MOCK_WINDOW.HTMLDivElement
+        expect(lContent).toBeComponentStructure([
+            Comment,
+            HTMLDivElement
         ], true);
     });
 
@@ -90,7 +90,7 @@ Deno.test('PwbApp.addContent()', async (pContext) => {
 Deno.test('PwbApp.appendTo()', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.
-        const lDummyElement: HTMLDivElement = MOCK_WINDOW.document.createElement('div');
+        const lDummyElement: HTMLDivElement = document.createElement('div');
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
@@ -111,11 +111,11 @@ Deno.test('PwbApp.appendTo()', async (pContext) => {
         });
 
         // Process. Append and wait for splash screen remove
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
         await TestUtil.waitForUpdate(lApp.component);
 
         // Process
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
         await TestUtil.waitForUpdate(lApp.component);
     });
 });
@@ -144,7 +144,7 @@ Deno.test('PwbApp.addErrorListener()', async (pContext) => {
         // Setup. Init app.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ manual: true, animationTime: 0 });
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
 
         // Process. Log error.
         let lErrorMessageResult: string | null = null;
@@ -177,7 +177,7 @@ Deno.test('PwbApp.addStyle()', async (pContext) => {
 
         // Setup. Init app.
         const lApp: PwbApp = new PwbApp();
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
 
         // Process.
         lApp.addStyle(lStyleContent);
@@ -186,7 +186,7 @@ Deno.test('PwbApp.addStyle()', async (pContext) => {
         const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
         // Evaluation.
-        expect(lContent instanceof MOCK_WINDOW.HTMLStyleElement).toBeTruthy();
+        expect(lContent instanceof HTMLStyleElement).toBeTruthy();
         expect(lContent.textContent).toBe(lStyleContent);
     });
 
@@ -197,7 +197,7 @@ Deno.test('PwbApp.addStyle()', async (pContext) => {
         // Setup. Init app.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ animationTime: 0 });
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
 
         // Process. Add style and wait.
         lApp.addStyle(lStyleContent);
@@ -207,7 +207,7 @@ Deno.test('PwbApp.addStyle()', async (pContext) => {
         const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
         // Evaluation.
-        expect(lContent instanceof MOCK_WINDOW.HTMLStyleElement).toBeTruthy();
+        expect(lContent instanceof HTMLStyleElement).toBeTruthy();
         expect(lContent.textContent).toBe(lStyleContent);
     });
 });
@@ -217,7 +217,7 @@ Deno.test('PwbApp.removeSplashScreen()', async (pContext) => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ animationTime: 0 });
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
 
         // Process
         await lApp.removeSplashScreen();
@@ -269,7 +269,7 @@ Deno.test('PwbApp.setSplashScreen()', async (pContext) => {
 
         // Setup. Create app.
         const lApp: PwbApp = new PwbApp();
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
 
         // Process. Create splash screen.
         lApp.setSplashScreen({
@@ -298,7 +298,7 @@ Deno.test('PwbApp.setSplashScreen()', async (pContext) => {
         });
 
         // Process. Append and wait for splash screen remove
-        lApp.appendTo(MOCK_WINDOW.document.body);
+        lApp.appendTo(document.body);
         const lBeforeRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
         // Process

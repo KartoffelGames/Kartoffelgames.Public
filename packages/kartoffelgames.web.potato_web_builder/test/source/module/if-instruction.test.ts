@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -27,9 +27,9 @@ Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
         ], true);
     });
 });
@@ -54,11 +54,11 @@ Deno.test('IfInstruction--Functionality: Initial true', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
-            MOCK_WINDOW.HTMLDivElement
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator Child Anchor
+            HTMLDivElement
         ], true);
     });
 });
@@ -86,9 +86,9 @@ Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
         ], true);
     });
 });
@@ -116,11 +116,11 @@ Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
-            MOCK_WINDOW.HTMLDivElement
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator Child Anchor
+            HTMLDivElement
         ], true);
     });
 });
@@ -145,9 +145,9 @@ Deno.test('IfInstruction--Functionality: None boolean false value', async (pCont
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
         ], true);
     });
 });
@@ -172,11 +172,11 @@ Deno.test('IfInstruction--Functionality: None boolean true value', async (pConte
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator Child Anchor
-            MOCK_WINDOW.HTMLDivElement
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator Child Anchor
+            HTMLDivElement
         ], true);
     });
 });

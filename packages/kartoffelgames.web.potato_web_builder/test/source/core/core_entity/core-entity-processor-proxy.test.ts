@@ -7,7 +7,6 @@ import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../../../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator.ts';
 import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
-import { MOCK_WINDOW } from "../../../utility/test-util.ts";
 
 Deno.test('CoreEntityProcessorProxy.proxyProperty', async (pContext) => {
     await pContext.step('Default', () => {
@@ -747,7 +746,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
 
         await pContext.step('Native events', async () => {
             // Setup.
-            const lProxy: HTMLDivElement = new CoreEntityProcessorProxy(MOCK_WINDOW.document.createElement('div')).proxy;
+            const lProxy: HTMLDivElement = new CoreEntityProcessorProxy(document.createElement('div')).proxy;
 
             // Setup. InteractionZone.
             const lListenerWaiter = new Promise<void>((pResolve) => {
@@ -757,7 +756,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
             });
 
             // Process
-            lProxy.dispatchEvent(new MOCK_WINDOW.MouseEvent('click'));
+            lProxy.dispatchEvent(new MouseEvent('click'));
 
             // Evaluation.
             await lListenerWaiter;
@@ -784,7 +783,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
 
         await pContext.step('Native events - Check without proxy', async () => {
             // Setup.
-            const lProxy: HTMLDivElement = MOCK_WINDOW.document.createElement('div');
+            const lProxy: HTMLDivElement = document.createElement('div');
 
             // Setup. InteractionZone.
             const lListenerWaiter = new Promise<void>((pResolve) => {

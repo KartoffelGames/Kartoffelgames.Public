@@ -345,11 +345,8 @@ export class CoreEntityUpdater {
             this.mUpdateStates.async.sheduledTaskIsResheduled = true;
         }
 
-        // Read global scope.
-        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window
-
         // Shedule task on next render frame.
-        lGlobalScope.requestAnimationFrame(() => {
+        globalThis.requestAnimationFrame(() => {
             if (pResheduledCycle) {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
                 CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lCycleUpdate);

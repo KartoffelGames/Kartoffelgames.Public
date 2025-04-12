@@ -98,11 +98,8 @@ export class ExportExtension extends Processor {
     private patchHtmlAttributes(pExportedAttributes: Set<string>): void {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
-        // Read global scope.
-        const lGlobalScope = PwbConfiguration.configuration.scope.window
-
         // Init mutation observerm observing attribute changes.
-        const lMutationObserver: MutationObserver = new lGlobalScope.MutationObserver((pMutationList) => {
+        const lMutationObserver: MutationObserver = new MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
                 const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);

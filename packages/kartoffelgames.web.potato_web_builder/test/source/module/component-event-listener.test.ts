@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -43,7 +43,7 @@ Deno.test('ComponentEventListener--Functionality: Component click event', async 
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.MouseEvent);
+        expect(lEventResult).toBeInstanceOf(MouseEvent);
     });
 });
 
@@ -213,7 +213,7 @@ Deno.test('ComponentEventListener--Functionality: Native listener on static modu
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
-        lDivElement.dispatchEvent(new MOCK_WINDOW.MouseEvent('click', { bubbles: false }));
+        lDivElement.dispatchEvent(new MouseEvent('click', { bubbles: false }));
 
         // Evaluation.
         expect(lEventCalled).toBeTruthy();
@@ -305,7 +305,7 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation after inner click..
-        lDivElement.dispatchEvent(new MOCK_WINDOW.Event('click', { bubbles: true }));
+        lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
 
         // Evaluation after component click.
         expect(lEventCalled).toBeFalsy();

@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -25,10 +25,10 @@ Deno.test('MustacheExpression--Functionality: Initial text value', async (pConte
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
@@ -56,10 +56,10 @@ Deno.test('MustacheExpression--Functionality: Updated text value', async (pConte
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
@@ -84,10 +84,10 @@ Deno.test('MustacheExpression--Functionality: Initial attribute value', async (p
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 attributes: [
                     { name: 'attr', value: lTextContent }
                 ]
@@ -117,10 +117,10 @@ Deno.test('MustacheExpression--Functionality: Updated attribute value', async (p
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 attributes: [
                     { name: 'attr', value: lTextContent }
                 ]
@@ -145,10 +145,10 @@ Deno.test('MustacheExpression--Functionality: Only self-created values', async (
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);

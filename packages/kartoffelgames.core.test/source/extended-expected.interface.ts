@@ -24,7 +24,7 @@ export interface ExtendedExpected<TIsAsync = false> extends Expected<TIsAsync> {
      * @param pStructure - Expected structure.
      * @param pUseShadowRoot - Use shadow root or threat it as a closed element.
      */
-    toBeComponentStructure: (pGlobalContext: object, pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
+    toBeComponentStructure: (pStructure: ComponentStructure, pUseShadowRoot: boolean) => unknown;
 
     // NOTE: You also need to overrides the following typings to allow modifiers to correctly infer typing
     not: TIsAsync extends true ? Async<ExtendedExpected<true>> : ExtendedExpected<false>;

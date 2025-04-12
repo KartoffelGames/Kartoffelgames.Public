@@ -15,9 +15,6 @@ export function PwbChild(pIdChildName: string) {
             throw new Exception('Event target is not for a static property.', PwbChild);
         }
 
-        // Read global scope.
-        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window;
-
         // Define getter accessor that returns id child.
         return {
             get(this: ComponentProcessor) {
@@ -34,7 +31,7 @@ export function PwbChild(pIdChildName: string) {
                 const lComponentRootValues: ComponentDataLevel = lComponent.getProcessorAttribute(ComponentDataLevel)!;
                 const lIdChild: any = lComponentRootValues.data.store[pIdChildName];
 
-                if (lIdChild instanceof lGlobalScope.Element) {
+                if (lIdChild instanceof Element) {
                     return lIdChild as TElement;
                 } else {
                     throw new Exception(`Can't find child "${pIdChildName}".`, this);

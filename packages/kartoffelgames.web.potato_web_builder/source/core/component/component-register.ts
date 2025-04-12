@@ -65,11 +65,8 @@ export class ComponentRegister {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }
 
-        // Read global window scope.
-        const lWindow = PwbConfiguration.configuration.scope.window;
-
         // Get component constructor from custom element registry.
-        const lComponentConstructor: CustomElementConstructor | undefined = lWindow.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
         if (!lComponentConstructor) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }

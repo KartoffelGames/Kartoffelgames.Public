@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -34,11 +34,11 @@ Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
-            MOCK_WINDOW.HTMLDivElement
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            HTMLDivElement
         ], true);
     });
 });
@@ -77,12 +77,12 @@ Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
-            MOCK_WINDOW.Comment, // - Manipulator Anchor
-            MOCK_WINDOW.Comment, // -- Manipulator 1. Child Anchor
+        expect(lComponent).toBeComponentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);

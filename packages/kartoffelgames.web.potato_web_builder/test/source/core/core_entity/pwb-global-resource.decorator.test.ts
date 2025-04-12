@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../../utility/test-util.ts';
+import { TestUtil } from '../../../utility/test-util.ts';
 
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -60,17 +60,17 @@ Deno.test('PwbGlobalResource--Functionality: Call extension constructor on compo
 
         // Evaluation.
         expect(MyGlobalResource.getNumber()).toBe(lTestValue);
-        expect(lComponentOne, 'Component One').toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponentOne, 'Component One').toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);
-        expect(lComponentTwo, 'Component Two').toBeComponentStructure(MOCK_WINDOW, [
-            MOCK_WINDOW.Comment, // Component Anchor
+        expect(lComponentTwo, 'Component Two').toBeComponentStructure([
+            Comment, // Component Anchor
             {
-                node: MOCK_WINDOW.HTMLDivElement,
+                node: HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);

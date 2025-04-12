@@ -1,5 +1,5 @@
 // Import mock at start of file.
-import { MOCK_WINDOW, TestUtil } from '../../utility/test-util.ts';
+import { TestUtil } from '../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
@@ -146,7 +146,7 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
+        expect(lEventResult).toBeInstanceOf(Event);
     });
 });
 
@@ -180,7 +180,7 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(MOCK_WINDOW.Event);
+        expect(lEventResult).toBeInstanceOf(Event);
     });
 });
 

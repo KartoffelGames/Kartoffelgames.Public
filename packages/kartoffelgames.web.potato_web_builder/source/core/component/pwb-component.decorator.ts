@@ -21,11 +21,8 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         // Register component constructor.
         ComponentRegister.registerConstructor(pComponentProcessorConstructor, pParameter.selector);
 
-        // Read scope.
-        const lExecutionScope: typeof globalThis = PwbConfiguration.configuration.scope.window
-
         // Create custom html element of parent type.
-        const lPwbComponentConstructor = class extends lExecutionScope.HTMLElement {
+        const lPwbComponentConstructor = class extends HTMLElement {
             private readonly mComponent: Component;
 
             /**
@@ -72,7 +69,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         };
 
         // Define current element as new custom html element.
-        lExecutionScope.customElements.define(pParameter.selector, lPwbComponentConstructor);
+        globalThis.customElements.define(pParameter.selector, lPwbComponentConstructor);
     };
 }
 

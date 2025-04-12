@@ -1,5 +1,4 @@
 import { InjectionConstructor } from "@kartoffelgames/core-dependency-injection";
-import { PwbConfiguration } from "../../core/configuration/pwb-configuration.ts";
 
 /**
  * Event emitter.
@@ -26,11 +25,11 @@ export class ComponentEventEmitter<T> {
      * Call all event listener with event arguments.
      * @param pEventArgs - Event arguments.
      */
-    public dispatchEvent(pEventArgs: T): void {
+    public dispatchEvent(pEventArgs: T): void { // TODO: Reset this
         // Check if event constructor is valid in the current configuration.
-        if (!(this.mEventConstructor?.prototype instanceof PwbConfiguration.configuration.scope.window.Event)) {
+        if (!(this.mEventConstructor?.prototype instanceof Event)) {
             // Create new event constructor with the new scope.
-            this.mEventConstructor = class extends PwbConfiguration.configuration.scope.window.Event {
+            this.mEventConstructor = class extends Event {
                 public readonly value: T;
                 constructor(pEventName: string, pValue: T) {
                     super(pEventName);

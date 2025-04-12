@@ -100,10 +100,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
-        // Read document scope from configuration.
-        const lDocument = PwbConfiguration.configuration.scope.document
-
-        const lStyleElement: Element = lDocument.createElement('style');
+        const lStyleElement: Element = document.createElement('style');
         lStyleElement.innerHTML = pStyle;
         this.mComponentElement.shadowRoot.prepend(lStyleElement);
     }

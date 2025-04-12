@@ -4,7 +4,7 @@ import { ComponentRegister } from '../../source/core/component/component-registe
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
 
 // Import test environment.
-import { MOCK_WINDOW as MockedWindow } from './test-dom-environment.ts';
+import  './test-dom-environment.ts';
 
 // Import default modules
 import '../../source/module/dynamic-content/dynamic-content-module.ts';
@@ -22,9 +22,6 @@ import '../../source/module/component-event-listener/component-event-listener-mo
 import '../../source/module/export/export-extension.ts';
 import '../../source/module/pwb_app_injection/pwb-app-injection-extension.ts';
 
-// Export dom window
-export const MOCK_WINDOW = MockedWindow;
-
 export class TestUtil {
     /**
      * Create component from selector.
@@ -37,11 +34,8 @@ export class TestUtil {
         // Get component.
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
-        // Read global document scope.
-        const lDocument = PwbConfiguration.configuration.scope.document;
-
         // Connect to a document to trigger updates.
-        lDocument.body.appendChild(lComponent);
+        document.body.appendChild(lComponent);
 
         // Wait for any update to happen.
         await TestUtil.waitForUpdate(lComponent);

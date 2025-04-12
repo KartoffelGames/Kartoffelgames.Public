@@ -58,11 +58,8 @@ export abstract class BaseBuilderData {
         this.mChildComponents = new Dictionary<BuilderContent, Component>();
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
-        // Read document of current scope.
-        const lDocument = PwbConfiguration.configuration.scope.document
-
         // Create anchor of content. Anchors marks the beginning of all content nodes.
-        this.mContentAnchor = lDocument.createComment(pAnchorName);
+        this.mContentAnchor = document.createComment(pAnchorName);
 
         // Set starting boundary. Existing only of anchor.
         this.mContentBoundary = {
@@ -321,11 +318,8 @@ export abstract class BaseBuilderData {
             return;
         }
 
-        // Read confgured scope.
-        const lWindow: typeof globalThis = PwbConfiguration.configuration.scope.window;
-
         // Target is a normal element. Append source node. Fails when node can't have child nodes.
-        if (pTarget instanceof lWindow.Element) {
+        if (pTarget instanceof Element) {
             pTarget.appendChild(pSourceNode);
             return;
         }

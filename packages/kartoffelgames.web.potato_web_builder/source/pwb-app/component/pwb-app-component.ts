@@ -157,11 +157,8 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      * @returns promise that resolved when the splacescreen remove animation finishes.
      */
     @PwbExport async removeSplashScreen(): Promise<void> {
-        // Read global scope.
-        const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window;
-
         // Wait for the next frame to give the splashscreen at least one frame time to set the default styles before applying transitions.
-        lGlobalScope.requestAnimationFrame(() => {
+        globalThis.requestAnimationFrame(() => {
             this.splashscreenState.hide = true;
         });
 

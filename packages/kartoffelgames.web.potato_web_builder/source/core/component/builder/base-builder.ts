@@ -124,11 +124,8 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
 
         // On custom element
         if (lTagname.includes('-')) {
-            // Read global scope.
-            const lGlobalScope: typeof globalThis = PwbConfiguration.configuration.scope.window;
-
             // Get custom element.
-            const lCustomElement: any = lGlobalScope.customElements.get(lTagname);
+            const lCustomElement: any = globalThis.customElements.get(lTagname);
 
             // Create custom element.
             if (typeof lCustomElement !== 'undefined') {
@@ -137,11 +134,8 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
             }
         }
 
-        // Get document of current scope.
-        const lDocument: Document = PwbConfiguration.configuration.scope.document;
-
         // Create new element .
-        return lDocument.createElement(lTagname);
+        return document.createElement(lTagname);
     }
 
     /**
@@ -152,11 +146,8 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * @returns text node with specified text.
      */
     protected createZoneEnabledText(pText: string): Text {
-        // Get document of current scope.
-        const lDocument = PwbConfiguration.configuration.scope.document;
-
         // Create new text node.
-        return lDocument.createTextNode(pText);
+        return document.createTextNode(pText);
     }
 
     /**

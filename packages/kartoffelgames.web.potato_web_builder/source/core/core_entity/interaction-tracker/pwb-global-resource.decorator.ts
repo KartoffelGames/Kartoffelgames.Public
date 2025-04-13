@@ -7,8 +7,7 @@ import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
  * Enables tracking of global static resources.
  */
 export function PwbGlobalResource() {
-    return <TFunction extends InjectionConstructor>(pProcessorConstructor: TFunction): TFunction => {
-
+    return <TFunction extends InjectionConstructor>(pProcessorConstructor: TFunction, _pContext: ClassDecoratorContext): TFunction => {
         const lStaticProxy: TFunction = new CoreEntityProcessorProxy(pProcessorConstructor).proxy;
 
         // Export static class to global scope.

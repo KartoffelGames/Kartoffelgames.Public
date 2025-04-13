@@ -19,11 +19,11 @@ Deno.test('PwbGlobalResource--Functionality: Call extension constructor on compo
             private static mMyNumber: number = 11;
 
             public static getNumber(): number {
-                return MyGlobalResource.mMyNumber;
+                return this.mMyNumber;
             }
 
             public static setNumber(pValue: number): void {
-                MyGlobalResource.mMyNumber = pValue;
+                this.mMyNumber = pValue;
             }
         }
 

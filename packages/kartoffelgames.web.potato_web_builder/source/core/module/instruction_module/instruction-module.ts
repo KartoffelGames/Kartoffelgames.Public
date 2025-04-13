@@ -21,6 +21,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      */
     public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
             parent: pParameter.parent,
             trigger: pParameter.trigger,

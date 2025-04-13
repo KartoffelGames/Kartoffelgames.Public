@@ -1,8 +1,4 @@
-
-// TODO: Rename it to configuration context? Make it available as a zone attachment.
-// TODO: When no attachment is set, read the default configuration from the application context.
-// TODO: Pass it through the context to the updater and than delete the pwb configuration global object.
-// TODO: Dont forget to set the default configuration changes in the test util.
+import { PwbApplicationDebugLoggingType } from './pwb-application-debug-logging-type.enum.ts';
 
 export class PwbApplicationConfiguration {
     /**
@@ -20,7 +16,7 @@ export class PwbApplicationConfiguration {
         lDefaultApplicationConfiguration.mErrorConfiguration.ignore = false;
         lDefaultApplicationConfiguration.mErrorConfiguration.print = true;
 
-        lDefaultApplicationConfiguration.mLoggingConfiguration.filter = PwbDebugLogLevel.All;
+        lDefaultApplicationConfiguration.mLoggingConfiguration.filter = PwbApplicationDebugLoggingType.All;
         lDefaultApplicationConfiguration.mLoggingConfiguration.updatePerformance = false;
         lDefaultApplicationConfiguration.mLoggingConfiguration.updaterTrigger = false;
         lDefaultApplicationConfiguration.mLoggingConfiguration.updateReshedule = false;
@@ -92,6 +88,20 @@ export class PwbApplicationConfiguration {
             stackCap: PwbApplicationConfiguration.DEFAULT?.mUpdatingConfiguration.stackCap
         };
     }
+
+    /**
+     * Print debug information.
+     * 
+     * @param pArguments - Print arguments.
+     */
+    public print(pLogLevel: PwbApplicationDebugLoggingType, ...pArguments: Array<any>): void {
+        if ((pLogLevel & this.mLoggingConfiguration.filter) === 0) {
+            return;
+        }
+
+        // eslint-disable-next-line no-console
+        console.log(...pArguments);
+    }
 }
 
 export type PwbApplicationSplashscreenConfiguration = {
@@ -107,7 +117,7 @@ export type PwbApplicationErrorConfiguration = {
 };
 
 export type PwbApplicationLoggingConfiguration = {
-    filter: PwbDebugLogLevel;
+    filter: PwbApplicationDebugLoggingType;
     updatePerformance: boolean;
     updaterTrigger: boolean;
     updateReshedule: boolean;
@@ -118,10 +128,3 @@ export type PwbApplicationUpdatingConfiguration = {
     stackCap: number;
 };
 
-export enum PwbDebugLogLevel {
-    None = 0,
-    Component = 1,
-    Module = 2,
-    Extention = 4,
-    All = 7
-}

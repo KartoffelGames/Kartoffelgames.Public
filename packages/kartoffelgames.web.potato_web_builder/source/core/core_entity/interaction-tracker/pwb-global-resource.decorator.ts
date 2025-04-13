@@ -1,7 +1,6 @@
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
 
-
 /**
  * AtScript. PWB global resource.
  * Enables tracking of global static resources.

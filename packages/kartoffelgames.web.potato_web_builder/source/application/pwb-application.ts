@@ -1,10 +1,12 @@
 import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone.ts';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
 import type { Component } from '../core/component/component.ts';
-import { Processor } from "../core/core_entity/processor.ts";
+import type { Processor } from '../core/core_entity/processor.ts';
 import { PwbApplicationConfiguration } from './pwb-application-configuration.ts';
 
 export class PwbApplication {
+    public static readonly CONFIGURATION_ATTACHMENT: symbol = Symbol('PwbApplicationConfigurationAttachment');
+
     /**
      * Create a new applications.
      * 
@@ -47,8 +49,9 @@ export class PwbApplication {
      * @param pName - Application name. 
      */
     private constructor(pName: string, pConfiguration: PwbApplicationConfiguration) {
-        // Read interaction zone of app component.
+        // Create interaction zone of app component and attach the configuration to it.
         this.mInteractionZone = InteractionZone.current.create(`App-${pName}`, { isolate: true });
+        this.mInteractionZone.attachment(PwbApplication.CONFIGURATION_ATTACHMENT, pConfiguration);
 
         // Create new application configuration.
         this.mConfiguration = pConfiguration;

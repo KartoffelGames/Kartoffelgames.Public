@@ -1,4 +1,5 @@
 
+import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 import type { DataLevel } from '../../data/data-level.ts';
 import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
@@ -10,6 +11,7 @@ import type { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
  * @internal
  */
 export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
+    private readonly mApplicationContext: PwbApplicationConfiguration;
     private readonly mComponentValues: DataLevel;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
@@ -19,6 +21,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      */
     public get anchor(): ChildNode {
         return this.mContent.contentAnchor;
+    }
+
+    /**
+     * Get application context.
+     */
+    public get applicationContext(): PwbApplicationConfiguration {
+        return this.mApplicationContext;
     }
 
     /**
@@ -52,10 +61,15 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Constructor.
      * 
+     * @param pApplicationContext - Application context.
      * @param pTemplate - Builder template.
      * @param pDataLevel - Data level of a this builder.
+     * @param pContent - Content of this builder.
      */
-    public constructor(pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
+    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
+        // Set application context.
+        this.mApplicationContext = pApplicationContext;
+
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.

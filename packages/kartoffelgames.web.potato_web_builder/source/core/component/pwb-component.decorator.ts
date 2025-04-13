@@ -1,5 +1,7 @@
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { InteractionZone, InteractionZoneGlobalDefinition } from "@kartoffelgames/web-interaction-zone";
+import { InteractionZone, type InteractionZoneGlobalDefinition } from '@kartoffelgames/web-interaction-zone';
+import { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
+import { PwbApplication } from '../../index.ts';
 import type { Processor } from '../core_entity/processor.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
@@ -36,8 +38,16 @@ export function PwbComponent(pParameter: HtmlComponentParameter) {
             public constructor() {
                 super();
 
+                // Read the application configuration context from current interaction zone.
+                let lApplicationContext: PwbApplicationConfiguration | undefined = InteractionZone.current.attachment(PwbApplication.CONFIGURATION_ATTACHMENT);
+                if (!lApplicationContext) {
+                    // If no context is found, use the default application context.
+                    lApplicationContext = PwbApplicationConfiguration.DEFAULT;
+                }
+
                 // Create new component.
                 this.mComponent = new Component({
+                    applicationContext: lApplicationContext,
                     processorConstructor: pComponentProcessorConstructor,
                     templateString: pParameter.template ?? null,
                     expressionModule: pParameter.expressionmodule,

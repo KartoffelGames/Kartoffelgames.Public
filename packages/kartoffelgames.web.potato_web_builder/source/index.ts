@@ -1,10 +1,9 @@
 // Application
-export { PwbApplication } from "./application/pwb-application.ts";
+export { PwbApplication } from './application/pwb-application.ts';
 
 // Component
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';
 export { PwbComponent } from './core/component/pwb-component.decorator.ts';
-export { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';
 export { PwbGlobalResource } from './core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
 export { Processor } from './core/core_entity/processor.ts';
 
@@ -68,18 +67,3 @@ import './module/two_way_binding/two-way-binding-attribute-module.ts';
 import './module/component-event-listener/component-event-listener-component-extension.ts';
 import './module/component-event-listener/component-event-listener-module-extension.ts';
 import './module/export/export-extension.ts';
-
-// Set debugger to global scope.
-import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';
-globalThis['PotatoWebBuilder'] = {
-    global: PwbConfiguration,
-    logLevel: PwbDebugLogLevel
-};
-
-declare global {
-    // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
-    var PotatoWebBuilder: {
-        global: typeof PwbConfiguration,
-        logLevel: typeof PwbDebugLogLevel;
-    };
-}

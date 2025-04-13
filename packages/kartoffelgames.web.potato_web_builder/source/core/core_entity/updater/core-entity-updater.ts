@@ -1,6 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
-import { InteractionZoneEvent, InteractionZone } from '@kartoffelgames/web-interaction-zone';
-import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration.ts';
+import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/web-interaction-zone';
+import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
+import { PwbApplicationDebugLoggingType } from '../../../application/pwb-application-debug-logging-type.enum.ts';
 import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { type CoreEntityInteractionData, type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
 import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator.ts';
@@ -16,19 +17,13 @@ import { UpdateResheduleError } from './update-reshedule-error.ts';
  */
 @IgnoreInteractionTracking()
 export class CoreEntityUpdater {
+    private readonly mApplicationContext: PwbApplicationConfiguration;
     private readonly mInteractionZone: InteractionZone;
-    private readonly mLogLevel: PwbDebugLogLevel;
+    private readonly mLoggingType: PwbApplicationDebugLoggingType;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
-
-    /**
-     * Log level of updater.
-     */
-    protected get logLevel(): PwbDebugLogLevel {
-        return this.mLogLevel;
-    }
 
     /**
      * Updater zone.
@@ -48,7 +43,8 @@ export class CoreEntityUpdater {
 
         // Init updater settings.
         this.mUpdateFunction = pParameter.onUpdate;
-        this.mLogLevel = pParameter.debugLevel;
+        this.mApplicationContext = pParameter.applicationContext;
+        this.mLoggingType = pParameter.loggingType;
 
         // Read parent zone from parent updater, when not set, use current zone.
         const lParentInteractionZone: InteractionZone = pParameter.parent?.mInteractionZone ?? InteractionZone.current;
@@ -204,7 +200,7 @@ export class CoreEntityUpdater {
      */
     private executeTaskChain(pUpdateTask: CoreEntityInteractionEvent, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Stack<CoreEntityInteractionEvent>): boolean {
         // Throw if too many calles were chained.
-        if (pStack.size > PwbConfiguration.configuration.updating.stackCap) {
+        if (pStack.size > this.mApplicationContext.updating.stackCap) {
             throw new UpdateLoopError('Call loop detected', pStack.toArray());
         }
 
@@ -212,7 +208,7 @@ export class CoreEntityUpdater {
         const lStartPerformance = performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > PwbConfiguration.configuration.updating.frameTime) {
+        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > this.mApplicationContext.updating.frameTime) {
             throw new UpdateResheduleError();
         }
 
@@ -225,10 +221,10 @@ export class CoreEntityUpdater {
         }) || pUpdateState;
 
         // Log performance time.
-        if (PwbConfiguration.configuration.log.updatePerformance) {
+        if (this.mApplicationContext.logging.updatePerformance) {
             const lCurrentTimestamp: number = performance.now();
 
-            PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
+            this.mApplicationContext.print(this.mLoggingType, 'Update performance:', this.mInteractionZone.name,
                 '\n\t', 'Cycle:', lCurrentTimestamp - pUpdateCycle.timeStamp, 'ms',
                 '\n\t', 'Runner:', lCurrentTimestamp - pUpdateCycle.runner.timestamp, 'ms',
                 '\n\t', '  ', 'Id:', pUpdateCycle.runner.id.toString(),
@@ -311,8 +307,8 @@ export class CoreEntityUpdater {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
                     // Logable reshedules.
-                    if (PwbConfiguration.configuration.log.updateReshedule) {
-                        PwbConfiguration.print(this.mLogLevel, 'Reshedule:', this.mInteractionZone.name,
+                    if (this.mApplicationContext.logging.updateReshedule) {
+                        this.mApplicationContext.print(this.mLoggingType, 'Reshedule:', this.mInteractionZone.name,
                             '\n\t', 'Cycle Performance', performance.now() - pRunningCycle.timeStamp,
                             '\n\t', 'Runner Id:', pRunningCycle.runner.id.toString(),
                         );
@@ -369,8 +365,8 @@ export class CoreEntityUpdater {
      */
     private runUpdateSynchron(pUpdateTask: CoreEntityInteractionEvent): boolean {
         // Log update trigger time.
-        if (PwbConfiguration.configuration.log.updaterTrigger) {
-            PwbConfiguration.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
+        if (this.mApplicationContext.logging.updaterTrigger) {
+            this.mApplicationContext.print(this.mLoggingType, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Chained:', this.mUpdateStates.sync.running,
                 '\n\t', 'Omitted:', !!this.mUpdateStates.cycle.chainedTask
@@ -424,14 +420,14 @@ export class CoreEntityUpdater {
             let lError: any = pError;
 
             // Print any error.
-            if (pError && PwbConfiguration.configuration.error.print) {
-                PwbConfiguration.print(PwbDebugLogLevel.All, pError);
+            if (pError && this.mApplicationContext.error.print) {
+                this.mApplicationContext.print(PwbApplicationDebugLoggingType.All, pError);
             }
 
             // Handle errors.
-            if (PwbConfiguration.configuration.error.ignore) {
+            if (this.mApplicationContext.error.ignore) {
                 // Print error.
-                PwbConfiguration.print(this.mLogLevel, pError);
+                this.mApplicationContext.print(this.mLoggingType, pError);
 
                 // But remove it.
                 lError = null;
@@ -478,14 +474,19 @@ type UpdateInformation = {
 type UpdateListener = (pReason: CoreEntityInteractionEvent) => boolean;
 type BaseCoreEntityUpdateZoneConstructorParameter = {
     /**
+     * General application configuration.
+     */
+    applicationContext: PwbApplicationConfiguration;
+
+    /**
      * Debug label.
      */
     label: string;
 
     /**
-     * Debug level for this entity.
+     * Debug message type for this entity.
      */
-    debugLevel: PwbDebugLogLevel;
+    loggingType: PwbApplicationDebugLoggingType;
 
     /**
      * Isolate trigger and dont send them to parent zones.

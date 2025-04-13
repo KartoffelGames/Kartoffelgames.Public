@@ -16,14 +16,14 @@ import '../../source/module/component-event-listener/component-event-listener-co
 import '../../source/module/component-event-listener/component-event-listener-module-extension.ts';
 import '../../source/module/export/export-extension.ts';
 
+import { PwbApplicationConfiguration } from '../../source/application/pwb-application-configuration.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
-import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration.ts';
-import { Processor } from "../../source/core/core_entity/processor.ts";
+import type { Processor } from '../../source/core/core_entity/processor.ts';
 
 // Define update metrics.
-PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-PwbConfiguration.configuration.error.print = false;
+PwbApplicationConfiguration.DEFAULT.updating.frameTime = Number.MAX_SAFE_INTEGER;
+PwbApplicationConfiguration.DEFAULT.error.print = false;
 
 export class TestUtil {
     /**

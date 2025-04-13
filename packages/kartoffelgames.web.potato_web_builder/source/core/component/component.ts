@@ -1,5 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration.ts';
+import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
+import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
 import type { Processor } from '../core_entity/processor.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';
@@ -46,8 +47,9 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.processorConstructor,
-            debugLevel: PwbDebugLogLevel.Component,
+            loggingType: PwbApplicationDebugLoggingType.Component,
             trigger: UpdateTrigger.Any,
             isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0,
             trackConstructorChanges: true
@@ -81,7 +83,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(this.applicationContext, lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
@@ -167,6 +169,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 }
 
 type ComponentConstructorParameter = {
+    /**
+     * General application configuration.
+     */
+    applicationContext: PwbApplicationConfiguration;
+
     /**
      * Component processor constructor.
      */

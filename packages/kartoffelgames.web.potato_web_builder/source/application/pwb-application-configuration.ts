@@ -1,3 +1,9 @@
+
+// TODO: Rename it to configuration context? Make it available as a zone attachment.
+// TODO: When no attachment is set, read the default configuration from the application context.
+// TODO: Pass it through the context to the updater and than delete the pwb configuration global object.
+// TODO: Dont forget to set the default configuration changes in the test util.
+
 export class PwbApplicationConfiguration {
     /**
      * Get default application configuration.

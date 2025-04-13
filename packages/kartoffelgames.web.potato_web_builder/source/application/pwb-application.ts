@@ -115,6 +115,8 @@ export class PwbApplication {
      * @param pElement - Element.
      */
     public appendTo(pElement: Element): void {
+        // TODO: Add splashscreen support.
+
         //this.splashscreenState.hide = false;
         //this.splashscreenState.append = true;
 
@@ -141,6 +143,8 @@ export class PwbApplication {
      * @returns Promise that resolves when the splacescreen is completly removed.
      */
     public async removeSplashScreen(): Promise<void> {
+        // TODO: Add splashscreen remove support.
+
         //    // Wait for the next frame to give the splashscreen at least one frame time to set the default styles before applying transitions.
         //    globalThis.requestAnimationFrame(() => {
         //        this.splashscreenState.hide = true;

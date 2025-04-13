@@ -71,78 +71,10 @@ import './module/export/export-extension.ts';
 
 // Set debugger to global scope.
 import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';
-import type { InteractionZoneGlobalScopeTarget } from '../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone-global-scope.ts';
-import { InteractionZone } from '../../kartoffelgames.web.interaction_zone/source/index.ts';
 globalThis['PotatoWebBuilder'] = {
     global: PwbConfiguration,
     logLevel: PwbDebugLogLevel
 };
-
-/**
- * // TODO: Find a better way to initialize global scope.
- */
-const gGlobalDefaultTarget = (pGlobalThis: typeof globalThis): InteractionZoneGlobalScopeTarget => {
-    // Create default globalThis target.
-    const lTarget = {
-        target: pGlobalThis,
-        patches: {
-            requirements: {
-                promise: pGlobalThis.Promise?.name,
-                eventTarget: pGlobalThis.EventTarget?.name,
-            },
-            classes: {
-                eventTargets: new Array<string>(),
-                callback: new Array<string>()
-            },
-            functions: new Array<string>()
-        }
-    } satisfies InteractionZoneGlobalScopeTarget;
-
-    // Add all asyncron functions.
-    const lAsyncFunctionNames: Array<string | undefined> = [
-        pGlobalThis.requestAnimationFrame?.name,
-        pGlobalThis.setInterval?.name,
-        pGlobalThis.setTimeout?.name
-    ];
-    lTarget.patches.functions.push(...lAsyncFunctionNames.filter(pClass => !!pClass) as Array<string>);
-
-    // Add all global classes with events.
-    const lDomClassNames: Array<string | undefined> = [
-        pGlobalThis.XMLHttpRequestEventTarget?.name,
-        pGlobalThis.XMLHttpRequest?.name,
-        pGlobalThis.Document?.name,
-        pGlobalThis.SVGElement?.name,
-        pGlobalThis.Element?.name,
-        pGlobalThis.HTMLElement?.name,
-        pGlobalThis.HTMLMediaElement?.name,
-        pGlobalThis.HTMLFrameSetElement?.name,
-        pGlobalThis.HTMLBodyElement?.name,
-        pGlobalThis.HTMLFrameElement?.name,
-        pGlobalThis.HTMLIFrameElement?.name,
-        pGlobalThis.HTMLMarqueeElement?.name,
-        pGlobalThis.Worker?.name,
-        pGlobalThis.IDBRequest?.name,
-        pGlobalThis.IDBOpenDBRequest?.name,
-        pGlobalThis.IDBDatabase?.name,
-        pGlobalThis.IDBTransaction?.name,
-        pGlobalThis.WebSocket?.name,
-        pGlobalThis.FileReader?.name,
-        pGlobalThis.Notification?.name,
-        pGlobalThis.RTCPeerConnection?.name
-    ];
-    lTarget.patches.classes.eventTargets.push(...lDomClassNames.filter(pClass => !!pClass) as Array<string>);
-
-    // Add all global classes with async callbacks.
-    const lObserverClassNames: Array<string | undefined> = [
-        pGlobalThis.ResizeObserver?.name,
-        pGlobalThis.MutationObserver?.name,
-        pGlobalThis.IntersectionObserver?.name
-    ];
-    lTarget.patches.classes.callback.push(...lObserverClassNames.filter(pClass => !!pClass) as Array<string>);
-
-    return lTarget;
-};
-InteractionZone.enableGlobalTracing(gGlobalDefaultTarget(globalThis));
 
 declare global {
     // eslint-disable-next-line no-var, @typescript-eslint/naming-convention

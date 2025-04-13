@@ -1,4 +1,5 @@
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { InteractionZone, InteractionZoneGlobalDefinition } from "@kartoffelgames/web-interaction-zone";
 import type { Processor } from '../core_entity/processor.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
@@ -13,6 +14,9 @@ import { Component } from './component.ts';
  * @param pParameter - Parameter defaults on creation.
  */
 export function PwbComponent(pParameter: HtmlComponentParameter) {
+    // Enable global tracing for the current context.
+    InteractionZone.enableGlobalTracing(gGatherGlobalTracingTarget(globalThis));
+
     // Needs constructor without argument.
     return (pComponentProcessorConstructor: typeof Processor, pContext: ClassDecoratorContext): void => {
         // Set component processor constructor to be injectable.
@@ -72,6 +76,76 @@ export function PwbComponent(pParameter: HtmlComponentParameter) {
         globalThis.customElements.define(pParameter.selector, lPwbComponentConstructor);
     };
 }
+
+/**
+ * Default target for global interaction zone tracing.
+ * 
+ * @param pGlobalThis - Global this object.
+ * 
+ * @returns Target definition for a global interaction zone tracing. 
+ */
+const gGatherGlobalTracingTarget = (pGlobalThis: typeof globalThis): InteractionZoneGlobalDefinition => {
+    // Create default globalThis target.
+    const lTarget = {
+        target: pGlobalThis,
+        patches: {
+            requirements: {
+                promise: pGlobalThis.Promise?.name,
+                eventTarget: pGlobalThis.EventTarget?.name,
+            },
+            classes: {
+                eventTargets: new Array<string>(),
+                callback: new Array<string>()
+            },
+            functions: new Array<string>()
+        },
+        errorHandling: true
+    } satisfies InteractionZoneGlobalDefinition;
+
+    // Add all asyncron functions.
+    const lAsyncFunctionNames: Array<string | undefined> = [
+        pGlobalThis.requestAnimationFrame?.name,
+        pGlobalThis.setInterval?.name,
+        pGlobalThis.setTimeout?.name
+    ];
+    lTarget.patches.functions.push(...lAsyncFunctionNames.filter(pClass => !!pClass) as Array<string>);
+
+    // Add all global classes with events.
+    const lDomClassNames: Array<string | undefined> = [
+        pGlobalThis.XMLHttpRequestEventTarget?.name,
+        pGlobalThis.XMLHttpRequest?.name,
+        pGlobalThis.Document?.name,
+        pGlobalThis.SVGElement?.name,
+        pGlobalThis.Element?.name,
+        pGlobalThis.HTMLElement?.name,
+        pGlobalThis.HTMLMediaElement?.name,
+        pGlobalThis.HTMLFrameSetElement?.name,
+        pGlobalThis.HTMLBodyElement?.name,
+        pGlobalThis.HTMLFrameElement?.name,
+        pGlobalThis.HTMLIFrameElement?.name,
+        pGlobalThis.HTMLMarqueeElement?.name,
+        pGlobalThis.Worker?.name,
+        pGlobalThis.IDBRequest?.name,
+        pGlobalThis.IDBOpenDBRequest?.name,
+        pGlobalThis.IDBDatabase?.name,
+        pGlobalThis.IDBTransaction?.name,
+        pGlobalThis.WebSocket?.name,
+        pGlobalThis.FileReader?.name,
+        pGlobalThis.Notification?.name,
+        pGlobalThis.RTCPeerConnection?.name
+    ];
+    lTarget.patches.classes.eventTargets.push(...lDomClassNames.filter(pClass => !!pClass) as Array<string>);
+
+    // Add all global classes with async callbacks.
+    const lObserverClassNames: Array<string | undefined> = [
+        pGlobalThis.ResizeObserver?.name,
+        pGlobalThis.MutationObserver?.name,
+        pGlobalThis.IntersectionObserver?.name
+    ];
+    lTarget.patches.classes.callback.push(...lObserverClassNames.filter(pClass => !!pClass) as Array<string>);
+
+    return lTarget;
+};
 
 /**
  * Html component parameter.

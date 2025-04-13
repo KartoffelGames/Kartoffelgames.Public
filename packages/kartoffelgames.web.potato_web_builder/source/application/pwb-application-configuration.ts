@@ -69,27 +69,27 @@ export class PwbApplicationConfiguration {
      */
     public constructor() {
         this.mSpashscreenConfiguration = {
-            background: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.background,
-            content: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.content,
-            manual: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.manual,
-            animationTime: PwbApplicationConfiguration.DEFAULT.mSpashscreenConfiguration.animationTime
+            background: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.background,
+            content: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.content,
+            manual: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.manual,
+            animationTime: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.animationTime
         };
 
         this.mErrorConfiguration = {
-            ignore: PwbApplicationConfiguration.DEFAULT.mErrorConfiguration.ignore,
-            print: PwbApplicationConfiguration.DEFAULT.mErrorConfiguration.print
+            ignore: PwbApplicationConfiguration.DEFAULT?.mErrorConfiguration.ignore,
+            print: PwbApplicationConfiguration.DEFAULT?.mErrorConfiguration.print
         };
 
         this.mLoggingConfiguration = {
-            filter: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.filter,
-            updatePerformance: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updatePerformance,
-            updaterTrigger: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updaterTrigger,
-            updateReshedule: PwbApplicationConfiguration.DEFAULT.mLoggingConfiguration.updateReshedule,
+            filter: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.filter,
+            updatePerformance: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.updatePerformance,
+            updaterTrigger: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.updaterTrigger,
+            updateReshedule: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.updateReshedule,
         };
 
         this.mUpdatingConfiguration = {
-            frameTime: PwbApplicationConfiguration.DEFAULT.mUpdatingConfiguration.frameTime,
-            stackCap: PwbApplicationConfiguration.DEFAULT.mUpdatingConfiguration.stackCap
+            frameTime: PwbApplicationConfiguration.DEFAULT?.mUpdatingConfiguration.frameTime,
+            stackCap: PwbApplicationConfiguration.DEFAULT?.mUpdatingConfiguration.stackCap
         };
     }
 }

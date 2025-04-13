@@ -1,4 +1,5 @@
-/* istanbul ignore file */
+// Application
+export { PwbApplication } from "./application/pwb-application.ts";
 
 // Component
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';
@@ -35,7 +36,6 @@ export { PwbExpressionModule } from './core/module/expression_module/pwb-express
 export type { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module.ts';
 export { InstructionResult } from './core/module/instruction_module/instruction-result.ts';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator.ts';
-
 export { AccessMode } from './core/enum/access-mode.enum.ts';
 
 // Default extensions.

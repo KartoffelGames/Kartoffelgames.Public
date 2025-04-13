@@ -1,6 +1,7 @@
 import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone.ts';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
-import type { Component, ComponentProcessorConstructor } from '../core/component/component.ts';
+import type { Component } from '../core/component/component.ts';
+import { Processor } from "../core/core_entity/processor.ts";
 import { PwbApplicationConfiguration } from './pwb-application-configuration.ts';
 
 export class PwbApplication {
@@ -31,7 +32,7 @@ export class PwbApplication {
     private readonly mContent: Array<Component>;
     private readonly mElement: HTMLElement;
     private readonly mInteractionZone: InteractionZone;
-    
+
     /**
      * Get application configuration.
      */
@@ -66,18 +67,21 @@ export class PwbApplication {
      * 
      * @param pContentConstructor - Content constructor.
      */
-    public addContent(pContentConstructor: ComponentProcessorConstructor): void {
+    public addContent(pContentConstructor: typeof Processor): void {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pContentConstructor).elementConstructor;
 
-        // Read component manager from component element.
-        const lComponentInformation: ComponentInformationData = ComponentRegister.ofElement(new lComponentConstructor());
+        // Create component inside applications interaction zone.
+        this.mInteractionZone.execute(() => {
+            // Read component manager from component element.
+            const lComponentInformation: ComponentInformationData = ComponentRegister.ofElement(new lComponentConstructor());
 
-        // Add component to content list.
-        this.mContent.push(lComponentInformation.component);
+            // Add component to content list.
+            this.mContent.push(lComponentInformation.component);
 
-        // Append component to shadow root.
-        this.mElement.shadowRoot!.appendChild(lComponentInformation.element);
+            // Append component to shadow root.
+            this.mElement.shadowRoot!.appendChild(lComponentInformation.element);
+        });
     }
 
     /**
@@ -109,60 +113,13 @@ export class PwbApplication {
     }
 
     /**
-     * Append this app to an element.
-     * Triggers the automatic splashscreen removal when not set to manual mode.
+     * Appends this application to an element.
      * 
      * @param pElement - Element.
      */
     public appendTo(pElement: Element): void {
-        // TODO: Add splashscreen support.
-
-        //this.splashscreenState.hide = false;
-        //this.splashscreenState.append = true;
-
         // Append app element to specified element.
         pElement.appendChild(this.mElement);
-
-        //    // Skip any automatic handling when manual is set up.
-        //    if (this.splashscreenConfig.manual) {
-        //        return;
-        //    }
-        //
-        //    // Start asynchron update.
-        //    this.mComponent.updateAsync();
-        //
-        //    // Remove splashscreen when any component was updated.
-        //    this.mComponent.waitForUpdate().then(() => {
-        //        this.removeSplashScreen();
-        //    });
-    }
-
-    /**
-     * Remove splash screen.
-     * 
-     * @returns Promise that resolves when the splacescreen is completly removed.
-     */
-    public async removeSplashScreen(): Promise<void> {
-        // TODO: Add splashscreen remove support.
-
-        //    // Wait for the next frame to give the splashscreen at least one frame time to set the default styles before applying transitions.
-        //    globalThis.requestAnimationFrame(() => {
-        //        this.splashscreenState.hide = true;
-        //    });
-        //
-        //    // Remove splashscreen after transition.
-        //    return new Promise<void>((pResolve) => {
-        //        // Wait for transition to end.
-        //        setTimeout(() => {
-        //            // Remove 
-        //            //this.splashscreenState.append = false;
-        //
-        //            // Resolve promise after remove and update.
-        //            this.mComponent.waitForUpdate().then(() => {
-        //                pResolve();
-        //            });
-        //        }, this.splashscreenConfig.animationTime);
-        //    });
     }
 }
 

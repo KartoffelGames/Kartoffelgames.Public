@@ -16,10 +16,10 @@ import '../../source/module/component-event-listener/component-event-listener-co
 import '../../source/module/component-event-listener/component-event-listener-module-extension.ts';
 import '../../source/module/export/export-extension.ts';
 
-import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
 import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration.ts';
+import { Processor } from "../../source/core/core_entity/processor.ts";
 
 // Define update metrics.
 PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
@@ -30,7 +30,7 @@ export class TestUtil {
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: InjectionConstructor): Promise<HTMLElement> {
+    public static async createComponent(pClass: typeof Processor): Promise<HTMLElement> {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 

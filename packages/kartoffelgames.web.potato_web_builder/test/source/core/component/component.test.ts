@@ -586,39 +586,65 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div>{{this.innerValue}}</div>'
+            template: `
+            <div>
+                {{this.innerValue}}
+            </div>`
         })
         class TestComponent extends Processor implements IComponentOnUpdate {
             public innerValue: number = 1;
-
+            
+            private mEnabled: boolean = false;
             private readonly mComponent: Component;
+
             public constructor(pComponent = Injection.use(Component)) {
                 super();
 
                 this.mComponent = pComponent;
+                this.innerValue = 1;
+                this.mEnabled = false;
             }
 
-            public onUpdate(): void {
-                // Trigger update again after update.
-                this.triggerUpdate();
-            }
-
-            private triggerUpdate(): void {
+            @PwbExport
+            public enable(): void {
+                this.mEnabled = true;
                 this.innerValue++;
                 this.mComponent.update();
             }
+
+            @PwbExport
+            public disable(): void {
+                this.mEnabled = false;
+            }
+
+            public onUpdate(): void {
+                if (this.mEnabled) {
+                    this.innerValue++;
+                    this.mComponent.update();
+                }
+            }
         }
+
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Process. Create element.
         let lError: any;
         try {
-            await <any>TestUtil.createComponent(TestComponent);
+            // Enable loop.
+            lComponent.enable();
+            await TestUtil.waitForUpdate(lComponent);
         } catch (e) {
             lError = e;
         }
 
+        // Disable loop.
+        lComponent.disable();
+
         // Evaluation.
         expect(lError).toBeInstanceOf(UpdateLoopError);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });
 

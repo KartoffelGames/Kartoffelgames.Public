@@ -164,11 +164,6 @@ export class CoreEntityProcessorProxy<T extends object> {
      */
     private createProxyObject(pTarget: T): T {
         const lDetectUntrackableFunction = (pCallableTarget: CallableObject): boolean => {
-            // Skip proxy execute and use original this context on native code.
-            if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(pCallableTarget))) {
-                return true;
-            }
-
             // Special case for event targets.
             if ((<any>EventTarget.prototype)[pCallableTarget.name] === pCallableTarget) {
                 return true;

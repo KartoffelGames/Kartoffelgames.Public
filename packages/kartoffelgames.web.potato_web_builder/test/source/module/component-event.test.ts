@@ -8,7 +8,7 @@ import { Processor } from '../../../source/core/core_entity/processor.ts';
 import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
-import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
+import { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 
 Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -153,7 +153,7 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(Event);
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lEventComponent);
@@ -190,7 +190,7 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
         });
 
         // Evaluation.
-        expect(lEventResult).toBeInstanceOf(Event);
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lEventComponent);

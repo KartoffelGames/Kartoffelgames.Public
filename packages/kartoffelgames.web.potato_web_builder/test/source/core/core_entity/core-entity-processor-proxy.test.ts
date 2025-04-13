@@ -660,12 +660,12 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
         await pContext.step('Push set', () => {
             // Setup.
             const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.UntrackableFunctionCall);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             let lResponseType: UpdateTrigger = UpdateTrigger.None;
             lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
-                if (pChangeReason.data.source === lProxy.push) {
+                if (pChangeReason.data.source === lProxy) {
                     lResponseType |= pChangeReason.trigger;
                 }
             });
@@ -676,7 +676,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
             });
 
             // Evaluation.
-            expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
     });
 
@@ -804,9 +804,18 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
 Deno.test('Functionality: ComponentInteractionEvent.source', async (pContext) => {
     await pContext.step('Function sync calls', () => {
         // Setup. Trick into detecting native.
-        const lFunction: (pValue: string) => string = (pValue: string) => { return '{ [native code]' + pValue; };
-        const lProxy: (pValue: string) => string = new CoreEntityProcessorProxy(lFunction).proxy;
-        const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
+        const lObject = {
+            myFunction: function (pValue: string) {
+                if(this !== lObject) {
+                    throw new TypeError('Something irrelevant.');
+                }
+
+                return pValue;
+            }
+        }
+
+        const lProxy = new CoreEntityProcessorProxy(lObject).proxy;
+        const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.UntrackableFunctionCall);
 
         // Setup. InteractionZone.
         let lChangedSource: any = undefined;
@@ -816,11 +825,11 @@ Deno.test('Functionality: ComponentInteractionEvent.source', async (pContext) =>
 
         // Process
         lInteractionZone.execute(() => {
-            lProxy('');
+            lProxy.myFunction('');
         });
 
         // Evaluation.
-        expect(lChangedSource).toBe(lProxy);
+        expect(lChangedSource).toBe(lProxy.myFunction);
     });
 
     await pContext.step('Set property ', () => {

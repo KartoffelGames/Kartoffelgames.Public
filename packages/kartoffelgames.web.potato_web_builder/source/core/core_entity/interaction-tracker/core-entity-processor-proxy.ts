@@ -193,8 +193,6 @@ export class CoreEntityProcessorProxy<T extends object> {
      * @param pTarget - Target object.
      */
     private createProxyObject(pTarget: T): T {
-        // TODO: Create a mapping of any untraceable functions of special objects that emit a defined update trigger.
-
         // Function to call with original object.
         const lCallWithOriginalThisContext = (pCallableTarget: CallableObject, pThisArgument: any, pArgumentsList: Array<any>): any => {
             const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);

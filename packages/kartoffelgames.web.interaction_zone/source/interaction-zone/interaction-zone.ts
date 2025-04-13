@@ -94,7 +94,7 @@ export class InteractionZone {
         return this.mCurrentZone.callInteractionListener(lReason);
     }
 
-    private readonly mAttachments: WeakMap<symbol, any>;
+    private readonly mAttachments: Map<symbol, any>;
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
     private readonly mInteractionListener: Dictionary<InteractionZoneEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>;
     private readonly mIsolated: boolean;
@@ -129,7 +129,7 @@ export class InteractionZone {
      */
     private constructor(pName: string, pParent: InteractionZone | null, pIsolate: boolean) {
         // Initialize lists
-        this.mAttachments = new WeakMap<symbol, any>();
+        this.mAttachments = new Map<symbol, any>();
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Set name of zone. Used only for debugging and labeling.

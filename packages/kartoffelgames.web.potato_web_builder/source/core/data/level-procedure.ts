@@ -54,33 +54,34 @@ export class LevelProcedure<T> {
 
     /**
      * Creates a function that returns the expression result value.
-     * @param _pExpression - Expression to execute.
-     * @param _pReferenceNameList - Names of variables that are not properties from user class object.
-     * @param _pReferencedValues - Current component values.
-     * @param _pExtenedValue - Extended data that are only exist for this execution.
+     * @param pExpression - Expression to execute.
+     * @param pExtenedValue - Extended data that are only exist for this execution.
      * @returns 
      */
-    private createEvaluationFunktion(_pExpression: string, _pExtenedValue: Dictionary<string, any>): () => any {
+    private createEvaluationFunktion(pExpression: string, pExtenedValue: Dictionary<string, any>): () => any {
         let lString: string;
 
-        // Starting function
-        lString = '(function() {return function () {';
+        // Generate random name for internal extended value variable name.
+        const lExtendedValuesVariableName: string = `__${Math.random().toString(36).substring(2)}`;
+
+        // Starting function. Must be a function to be able to bind a different "this" context.
+        lString = 'return function () {';
 
         // Add all extending value variables.
-        if (_pExtenedValue.size > 0) {
-            for (const lReferenceName of _pExtenedValue.keys()) {
-                lString += `const ${lReferenceName} = _pExtenedValue.get('${lReferenceName}');`;
+        if (pExtenedValue.size > 0) {
+            for (const lReferenceName of pExtenedValue.keys()) {
+                lString += `const ${lReferenceName} = ${lExtendedValuesVariableName}.get('${lReferenceName}');`;
             }
         }
 
         // Add result from path.
-        lString += `return ${_pExpression};`;
+        lString += `return ${pExpression};`;
 
         // Ending function
-        lString += '}})();';
+        lString += '};';
 
         // Return evaluated function.
-        return eval(lString);
+        return (new Function(lExtendedValuesVariableName, lString))(pExtenedValue);
     }
 }
 

@@ -341,7 +341,7 @@ Deno.test('CoreEntityProcessorProxy--Functionality: InteractionZone', async (pCo
             });
 
             // Evaluation.
-            expect(lPropertyChanged).toBeFalsy();
+            expect(lPropertyChanged).toBeTruthy();
         });
     });
 
@@ -612,26 +612,53 @@ Deno.test('CoreEntityProcessorProxy--Functionality: ComponentInteractionType', a
 });
 
 Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (pContext) => {
-    await pContext.step('Map', () => {
-        // Setup.
-        const lProxy: Map<string, string> = new CoreEntityProcessorProxy(new Map()).proxy;
-        const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.UntrackableFunctionCall);
+    await pContext.step('Map', async (pContext) => {
+        await pContext.step('Set', () => {
+            // Setup.
+            const lProxy: Map<string, string> = new CoreEntityProcessorProxy(new Map()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
-        // Setup. InteractionZone.
-        let lResponseType: UpdateTrigger = UpdateTrigger.None;
-        lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
-            if (pChangeReason.data.source === lProxy.set) {
-                lResponseType |= pChangeReason.trigger;
-            }
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.set('', '');
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
 
-        // Process
-        lInteractionZone.execute(() => {
-            lProxy.set('', '');
-        });
+        await pContext.step('delete', () => {
+            // Setup.
+            const lProxy: Map<string, string> = new CoreEntityProcessorProxy(new Map()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
-        // Evaluation.
-        expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
+            // Setup. Populate map.
+            lProxy.set('1', '2');
+
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.delete('1');
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
+        });
     });
 
     await pContext.step('Array', async (pContext) => {
@@ -678,28 +705,130 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
             // Evaluation.
             expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
+
+        await pContext.step('Pop delete and add', () => {
+            // Setup.
+            const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
+
+            // Setup. Populate array.
+            lProxy.push('1', '2', '3');
+
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.pop();
+            });
+
+            // Evaluation. // Deletes and sets length (PropertySet).
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete | UpdateTrigger.PropertySet);
+        });
+
+        await pContext.step('Splice - delete.', () => {
+            // Setup.
+            const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
+
+            // Setup. Populate array.
+            lProxy.push('1', '2', '3');
+
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.splice(1, 1);
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
+        });
+
+        await pContext.step('Splice - delete and add.', () => {
+            // Setup.
+            const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
+
+            // Setup. Populate array.
+            lProxy.push('1', '2', '3');
+
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.splice(1, 1, '22');
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
+        });
     });
 
-    await pContext.step('Set', () => {
-        // Setup.
-        const lProxy: Set<string> = new CoreEntityProcessorProxy(new Set<string>()).proxy;
-        const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.UntrackableFunctionCall);
+    await pContext.step('Set', async (pContext) => {
+        await pContext.step('add', () => {
+            // Setup.
+            const lProxy: Set<string> = new CoreEntityProcessorProxy(new Set<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
-        // Setup. InteractionZone.
-        let lResponseType: UpdateTrigger = UpdateTrigger.None;
-        lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
-            if (pChangeReason.data.source === lProxy.add) {
-                lResponseType |= pChangeReason.trigger;
-            }
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.add('');
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertySet);
         });
 
-        // Process
-        lInteractionZone.execute(() => {
-            lProxy.add('');
-        });
+        await pContext.step('delete', () => {
+            // Setup.
+            const lProxy: Set<string> = new CoreEntityProcessorProxy(new Set<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
-        // Evaluation.
-        expect(lResponseType).toBe(UpdateTrigger.UntrackableFunctionCall);
+            // Setup. Populate set.
+            lProxy.add('1');
+
+            // Setup. InteractionZone.
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
+                if (pChangeReason.data.source === lProxy) {
+                    lResponseType |= pChangeReason.trigger;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.delete('1');
+            });
+
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
+        });
     });
 
     await pContext.step('TypedArray', () => {
@@ -806,13 +935,13 @@ Deno.test('Functionality: ComponentInteractionEvent.source', async (pContext) =>
         // Setup. Trick into detecting native.
         const lObject = {
             myFunction: function (pValue: string) {
-                if(this !== lObject) {
+                if (this !== lObject) {
                     throw new TypeError('Something irrelevant.');
                 }
 
                 return pValue;
             }
-        }
+        };
 
         const lProxy = new CoreEntityProcessorProxy(lObject).proxy;
         const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.UntrackableFunctionCall);

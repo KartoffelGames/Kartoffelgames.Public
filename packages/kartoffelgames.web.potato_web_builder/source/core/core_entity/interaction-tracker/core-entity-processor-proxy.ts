@@ -8,7 +8,9 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
  * @internal
  */
 export class CoreEntityProcessorProxy<T extends object> {
-
+    /**
+     * List of ignored classes. Those classes will not be tracked or altered.
+     */
     private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
@@ -19,6 +21,34 @@ export class CoreEntityProcessorProxy<T extends object> {
         return lIgnoreList;
     })();
 
+    /**
+     * List of untraceable functions. Those functions can not be tracked but report a special interaction type.
+     */
+    private static readonly UNTRACEABLE_FUNCTION_UPDATE_TRIGGER: WeakMap<Function, UpdateTrigger> = (() => {
+        // Array
+        const lUntraceableFunctionList = new WeakMap<Function, UpdateTrigger>();
+        lUntraceableFunctionList.set(Array.prototype.fill, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.pop, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Array.prototype.push, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.shift, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Array.prototype.unshift, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.splice, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.reverse, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.sort, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.concat, UpdateTrigger.PropertySet);
+
+        // Map
+        lUntraceableFunctionList.set(Map.prototype.clear, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Map.prototype.delete, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Map.prototype.set, UpdateTrigger.PropertySet);
+
+        // Set
+        lUntraceableFunctionList.set(Set.prototype.clear, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Set.prototype.delete, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Set.prototype.add, UpdateTrigger.PropertySet);
+
+        return lUntraceableFunctionList;
+    })();
 
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
 
@@ -163,13 +193,24 @@ export class CoreEntityProcessorProxy<T extends object> {
      * @param pTarget - Target object.
      */
     private createProxyObject(pTarget: T): T {
-        const lDetectUntrackableFunction = (pCallableTarget: CallableObject): boolean => {
-            // Special case for event targets.
-            if ((<any>EventTarget.prototype)[pCallableTarget.name] === pCallableTarget) {
-                return true;
-            }
+        // TODO: Create a mapping of any untraceable functions of special objects that emit a defined update trigger.
 
-            return false;
+        // Function to call with original object.
+        const lCallWithOriginalThisContext = (pCallableTarget: CallableObject, pThisArgument: any, pArgumentsList: Array<any>): any => {
+            const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
+            try {
+                // Call and convert potential object to a linked proxy.
+                const lResult = pCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
+                return this.convertToProxy(lResult);
+            } finally {
+                // Dispatch special InteractionResponseType.UntrackableFunctionCall.
+                if (!CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(pCallableTarget)) {
+                    this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
+                } else {
+                    // Dispatch mapped UpdateTrigger for some untraceable functions. 
+                    this.dispatch(CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!, pThisArgument);
+                }
+            }
         };
 
         // Create proxy handler.
@@ -185,26 +226,8 @@ export class CoreEntityProcessorProxy<T extends object> {
                 // On object touch. Add current zone to attached zone.
                 this.addListenerZone(InteractionZone.current);
 
+                // Type convert to callable object.
                 const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
-
-                // Function to call with original object.
-                const lCallWithOriginalThisContext = (): any => {
-                    const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
-
-                    try {
-                        // Call and convert potential object to a linked proxy.
-                        const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
-                        return this.convertToProxy(lResult);
-                    } finally {
-                        // Dispatch special InteractionResponseType.NativeFunctionCall.
-                        this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
-                    }
-                };
-
-                // Skip proxy execute and use original this context on native code.
-                if (lDetectUntrackableFunction(lCallableTarget)) {
-                    return lCallWithOriginalThisContext();
-                }
 
                 // Only on non native calls, try to use proxied this context.
                 try {
@@ -218,7 +241,7 @@ export class CoreEntityProcessorProxy<T extends object> {
                     }
 
                     // Read original object.
-                    return lCallWithOriginalThisContext();
+                    return lCallWithOriginalThisContext(lCallableTarget, pThisArgument, pArgumentsList);
                 }
             },
 

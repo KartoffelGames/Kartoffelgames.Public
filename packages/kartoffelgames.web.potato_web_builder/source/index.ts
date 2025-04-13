@@ -6,7 +6,6 @@ export { PwbComponent } from './core/component/pwb-component.decorator.ts';
 export { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';
 export { PwbGlobalResource } from './core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
 export { Processor } from './core/core_entity/processor.ts';
-export { PwbApp } from './pwb-app/pwb-app.ts';
 
 // Module Injections
 export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level.ts';
@@ -69,7 +68,6 @@ import './module/two_way_binding/two-way-binding-attribute-module.ts';
 import './module/component-event-listener/component-event-listener-component-extension.ts';
 import './module/component-event-listener/component-event-listener-module-extension.ts';
 import './module/export/export-extension.ts';
-import './module/pwb_app_injection/pwb-app-injection-extension.ts';
 
 // Set debugger to global scope.
 import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration.ts';

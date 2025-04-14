@@ -1,27 +1,11 @@
-import { Dictionary, Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
+import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
 import { type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 
 /**
  * Singleton. Table layout and settings.
  */
 export class WebDatabaseTableLayout {
-    private static mInstance: WebDatabaseTableLayout;
-
-    private readonly mTableConfigs!: Dictionary<TableType, TableLayoutConfig>;
-
-    /**
-     * Constructor.
-     */
-    public constructor() {
-        if (WebDatabaseTableLayout.mInstance) {
-            return WebDatabaseTableLayout.mInstance;
-        }
-
-        WebDatabaseTableLayout.mInstance = this;
-
-        // Init lists.
-        this.mTableConfigs = new Dictionary<TableType, TableLayoutConfig>();
-    }
+    public static readonly METADATA_KEY: symbol = Symbol('WebDatabaseTableLayoutMetadataKey');
 
     /**
      * Get table configuration of type.
@@ -30,46 +14,57 @@ export class WebDatabaseTableLayout {
      * 
      * @returns table type config. 
      */
-    public configOf(pType: TableType): TableLayoutConfig {
+    public static configOf(pType: TableType): WebDatabaseTableLayout {
+        // Read table config from metadata.
+        const lTableLayout: WebDatabaseTableLayout | null = Metadata.get(pType).getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+
         // Table type is not initialized.
-        if (!this.mTableConfigs.has(pType)) {
+        if (!lTableLayout) {
             throw new Exception('Table type not defined.', this);
         }
 
-        const lTableConfiguration: TableLayoutConfig = this.mTableConfigs.get(pType)!;
+        return lTableLayout;
+    }
 
-        // Validate idenitiy. Must happend after decoration so all metadata of the table has been loaded.
-        // Validate only when identity was user configurated.
-        if (lTableConfiguration.identity.configurated) {
-            // Type must be string or number.
-            const lPropertyType: InjectionConstructor | null = Metadata.get(pType).getProperty(lTableConfiguration.identity.key).type;
-            if (lPropertyType === null || lPropertyType !== String && lPropertyType !== Number) {
-                throw new Exception('Identity property must be a number or string type', this);
-            }
+    private readonly mIdentity: TableLayoutIdentity;
+    private readonly mIndices: Map<string, TableLayoutIndex>;
 
-            // Auto incrementing identity must be a number.
-            if (lTableConfiguration.identity.key && lPropertyType !== Number) {
-                throw new Exception('Identity property with auto increment must be a number type', this);
-            }
-        }
+    /**
+     * Get all indices of the table type.
+     */
+    public get identity(): TableLayoutIdentity {
+        return this.mIdentity;
+    }
 
-        // Validate all indices.
-        for (const lIndex of lTableConfiguration.indices.values()) {
-            for (const lIndexKey of lIndex.keys) {
-                // Type must be string or number.
-                const lPropertyType: InjectionConstructor | null = Metadata.get(pType).getProperty(lIndexKey).type;
-                if (lPropertyType === null) {
-                    throw new Exception('Index property must have a type', this);
-                }
+    /**
+     * Get all indices of the table type.
+     */
+    public get indices(): Array<string> { 
+        return Array.from(this.mIndices.keys());
+    }
 
-                // Disable multientry when any key is not a array.
-                if (lPropertyType !== Array) {
-                    lIndex.options.multiEntity = false;
-                }
-            }
-        }
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        // Set default "hidden" identity setting. 
+        this.mIdentity = {
+            key: '__ID__',
+            autoIncrement: true,
+            configurated: false
+        };
+        this.mIndices = new Map<string, TableLayoutIndex>();
+    }
 
-        return lTableConfiguration;
+    /**
+     * Get table type index by name.
+     * 
+     * @param pName - Index name.
+     * 
+     * @returns Table type index or undefined when not found.
+     */
+    public index(pName: string): TableLayoutIndex | undefined {
+        return this.mIndices.get(pName);
     }
 
     /**
@@ -81,63 +76,51 @@ export class WebDatabaseTableLayout {
      * 
      * @throws {@link Exception} - When a identitfier for this type is already set.
      */
-    public setTableIdentity(pType: TableType, pKey: string, pAutoIncrement: boolean): void {
-        // Initialize table type.
-        this.initializeTableType(pType);
-
+    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
         // Read table config and restrict to one identity.
-        const lTableConfig: TableLayoutConfig = this.mTableConfigs.get(pType)!;
-        if (lTableConfig.identity.configurated) {
+        if (this.mIdentity.configurated) {
             throw new Exception(`A table type can only have one identifier.`, this);
         }
 
         // Set table type identity.
-        lTableConfig.identity = {
-            key: pKey,
-            autoIncrement: pAutoIncrement,
-            configurated: true
-        };
+        this.mIdentity.key = pKey;
+        this.mIdentity.autoIncrement = pAutoIncrement;
+        this.mIdentity.configurated = true;
     }
 
     /**
      * Set table type identity.
      * 
      * @param pType - Table type.
-     * @param pKey - Key of identity.
-     * @param pName - Index name.
+     * @param pPropertyKey - Property key of identity.
+     * @param pIndexName - Index name.
      * @param pIsArray - Property is key.
      * @param pIsUnique - Index should be unique.
      */
-    public setTableIndex(pType: TableType, pKey: string, pName: string, pIsUnique: boolean): void {
-        // Initialize table type.
-        this.initializeTableType(pType);
-
-        // Read table config.
-        const lTableConfig: TableLayoutConfig = this.mTableConfigs.get(pType)!;
-
+    public setTableIndex(pPropertyKey: string, pIndexName: string, pIsUnique: boolean, pMultiEnty: boolean): void {
         // Initialize index.
-        let lIndexConfig: TableLayoutConfigIndex | undefined = lTableConfig.indices.get(pName);
+        let lIndexConfig: TableLayoutIndex | undefined = this.mIndices.get(pIndexName);
         if (!lIndexConfig) {
             // Set default configuration where anything is enabled.
             lIndexConfig = {
-                name: pName,
+                name: pIndexName,
                 keys: new Array<string>(),
                 options: {
                     unique: true,
-                    multiEntity: true
+                    multiEntity: pMultiEnty
                 }
             };
 
             // Link index to table config.
-            lTableConfig.indices.set(pName, lIndexConfig);
+            this.mIndices.set(pIndexName, lIndexConfig);
         }
 
         // Add key to index.
-        lIndexConfig.keys.push(pKey);
+        lIndexConfig.keys.push(pPropertyKey);
 
-        // Disable multientiy when key is not a array or more than one key is set for the same index.
-        if (lIndexConfig.keys.length > 1) {
-            lIndexConfig.options.multiEntity = false;
+        // Disable multientity when key is not a array or more than one key is set for the same index.
+        if (lIndexConfig.keys.length > 1 && pMultiEnty) {
+            throw new Exception(`Multientity index can only have one key.`, this);
         }
 
         // Index is not unique when one index is not unique.
@@ -145,48 +128,24 @@ export class WebDatabaseTableLayout {
             lIndexConfig.options.unique = false;
         }
     }
-
-    /**
-     * Initialize table type.
-     * Does nothing when the type is allready initialized.
-     * 
-     * @param pType - Table type.
-     */
-    private initializeTableType(pType: TableType): void {
-        // Table type is allready initialized.
-        if (this.mTableConfigs.has(pType)) {
-            return;
-        }
-
-        // Add type reference.
-        this.mTableConfigs.set(pType, {
-            // Set default identity key.
-            identity: {
-                key: '__ID__',
-                autoIncrement: true,
-                configurated: false
-            },
-            indices: new Dictionary<string, TableLayoutConfigIndex>()
-        });
-    }
 }
 
-export type TableLayoutConfigIndex = {
+export type TableLayoutIndex = {
     name: string;
     keys: Array<string>;
     options: {
         unique: boolean;
-        multiEntity: boolean; // Set when single key is an array.
+        /**
+         * Set when single key is an array.
+         */
+        multiEntity: boolean;
     };
 };
 
-export type TableLayoutConfig = {
-    identity: {
-        key: string;
-        autoIncrement: boolean;
-        configurated: boolean;
-    },
-    indices: Dictionary<string, TableLayoutConfigIndex>;
+export type TableLayoutIdentity = {
+    key: string;
+    autoIncrement: boolean;
+    configurated: boolean;
 };
 
 export type TableType = IVoidParameterConstructor<object>;

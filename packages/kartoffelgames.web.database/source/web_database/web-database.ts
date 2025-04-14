@@ -1,13 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { type TableLayoutConfig, type TableLayoutConfigIndex, type TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
+import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './layout/web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
 export class WebDatabase {
-    private static readonly ANONYMOUS_IDENTITIY_KEY: string = '__id__';
-
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableLayouts: WebDatabaseTableLayout;
     private readonly mTableTypes: Dictionary<string, TableType>;
 
     /**
@@ -19,7 +16,6 @@ export class WebDatabase {
     public constructor(pName: string, pTables: Array<TableType>) {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
-        this.mTableLayouts = new WebDatabaseTableLayout();
 
         this.mTableTypes = new Dictionary<string, TableType>();
         for (const lTableType of pTables) {
@@ -126,14 +122,14 @@ export class WebDatabase {
                         }
 
                         // Read table configuration.
-                        const lTableConfiguration: TableLayoutConfig = this.mTableLayouts.configOf(this.mTableTypes.get(lTableName)!);
+                        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
 
                         // Open database table.
                         const lTable: IDBObjectStore = lReadTransaction.objectStore(lTableName);
 
                         // Validate correct identity, update table when it differs.
-                        const lConfiguratedKeyPath: string = lTableConfiguration.identity.key;
-                        const lConfiguratedAutoIncrement: boolean = lTableConfiguration.identity.autoIncrement;
+                        const lConfiguratedKeyPath: string = lTableLayout.identity.key;
+                        const lConfiguratedAutoIncrement: boolean = lTableLayout.identity.autoIncrement;
                         if (lTable.keyPath !== lConfiguratedKeyPath || lTable.autoIncrement !== lConfiguratedAutoIncrement) {
                             lDatabaseUpdate.tableUpdates.push({
                                 name: lTableName,
@@ -148,7 +144,7 @@ export class WebDatabase {
 
                         // Read current tables indeces and tables indecies that should be created.
                         const lCurrentTableIndices: Set<string> = new Set<string>(Array.from(lTable.indexNames));
-                        const lUncreatedTableIndices: Set<string> = new Set<string>(Array.from(lTableConfiguration.indices.keys()));
+                        const lUncreatedTableIndices: Set<string> = new Set<string>(lTableLayout.indices);
 
                         const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
                         for (const lIndexName of lCurrentTableIndices) {
@@ -163,7 +159,7 @@ export class WebDatabase {
 
                             // Read current index
                             const lCurrentIndex: IDBIndex = lTable.index(lIndexName);
-                            const lIndexConfiguration: TableLayoutConfigIndex = lTableConfiguration.indices.get(lIndexName)!;
+                            const lIndexConfiguration: TableLayoutIndex = lTableLayout.index(lIndexName)!;
 
                             // Read index keys.
                             const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(',') : lCurrentIndex.keyPath;
@@ -205,11 +201,11 @@ export class WebDatabase {
                 // Create all remaining tables.
                 for (const lTableName of lUncreatedTableNames) {
                     // Read table and index configuration.
-                    const lTableConfiguration: TableLayoutConfig = this.mTableLayouts.configOf(this.mTableTypes.get(lTableName)!);
+                    const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
 
                     // Add all indices to the index update list.
                     const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
-                    for (const lIndexName of lTableConfiguration.indices.keys()) {
+                    for (const lIndexName of lTableLayout.indices) {
                         lIndexUpdates.push({
                             name: lIndexName,
                             action: 'create',
@@ -261,7 +257,7 @@ export class WebDatabase {
 
                     // Read table configuration.
                     const lTableType: TableType = this.mTableTypes.get(lTableUpdate.name)!;
-                    const lTableConfiguration = this.mTableLayouts.configOf(lTableType);
+                    const lTableConfiguration = WebDatabaseTableLayout.configOf(lTableType);
 
                     // Create table with correct identity.
                     if (lTableUpdate.action === 'create') {
@@ -289,7 +285,7 @@ export class WebDatabase {
                             }
 
                             // Read index configuration.
-                            const lIndexConfiguration: TableLayoutConfigIndex = lTableConfiguration.indices.get(lIndexUpdate.name)!;
+                            const lIndexConfiguration: TableLayoutIndex = lTableConfiguration.index(lIndexUpdate.name)!;
 
                             // Read single keys as string, so multientries are recognized as single key.
                             const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];

@@ -1,12 +1,11 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { type TableLayoutConfig, type TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
+import { type TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
 import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
 export class WebDatabaseTable<TTableType extends TableType> {
-    private readonly mTableLayout: WebDatabaseTableLayout;
     private readonly mTableType: TTableType;
     private readonly mTransaction: WebDatabaseTransaction<TableType>;
 
@@ -33,7 +32,6 @@ export class WebDatabaseTable<TTableType extends TableType> {
     public constructor(pType: TTableType, pTransaction: WebDatabaseTransaction<TableType>) {
         this.mTableType = pType;
         this.mTransaction = pTransaction;
-        this.mTableLayout = new WebDatabaseTableLayout();
     }
 
     /**
@@ -43,7 +41,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
 
-        // Clear data data.
+        // Clear data.
         const lRequest: IDBRequest<undefined> = lTable.clear();
 
         // Wait for completion.
@@ -100,7 +98,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         }
 
         // Get identity value from data.
-        const lTableLayout: TableLayoutConfig = this.mTableLayout.configOf(this.mTableType);
+        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
         const lIdentityProperty: string = lTableLayout.identity.key;
         const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
@@ -194,7 +192,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
             // Resolve on success.
             lRequest.addEventListener('success', (pEvent) => {
                 // Get table layout.
-                const lTableLayout: TableLayoutConfig = this.mTableLayout.configOf(this.mTableType);
+                const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
 
                 // Read event target like a shithead.
                 const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;

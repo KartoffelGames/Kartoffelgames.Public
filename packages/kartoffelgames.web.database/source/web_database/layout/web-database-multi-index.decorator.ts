@@ -5,19 +5,18 @@ import { WebDatabaseTableLayout } from './web-database-table-layout.ts';
 /**
  * AtScript.
  * 
- * Add index to table type.
- * Indices with the same names are grouped.
+ * Add multi index to table type.
  */
-export function WebDatabaseIndex(pUnique: boolean = false, pName?: string) {
-    return function (_: any, pContext: ClassAccessorDecoratorContext): void {
+export function WebDatabaseMultiIndex(pUnique: boolean = false, pName?: string) {
+    return <TType extends Array<any>>(_pTarget: ClassAccessorDecoratorTarget<any, TType>, pContext: ClassAccessorDecoratorContext): void => {
         // Decorator can not be used on static propertys.
         if (pContext.static) {
-            throw new Exception('Index property can not be a static property.', WebDatabaseIndex);
+            throw new Exception('Index property can not be a static property.', WebDatabaseMultiIndex);
         }
 
         // Decorator can only be attached to string named properties.
         if (typeof pContext.name !== 'string') {
-            throw new Exception('Index name must be a string.', WebDatabaseIndex);
+            throw new Exception('Index name must be a string.', WebDatabaseMultiIndex);
         }
 
         // Default the index name to the property key.
@@ -33,7 +32,7 @@ export function WebDatabaseIndex(pUnique: boolean = false, pName?: string) {
         }
 
         // Add table type index to layout.
-        lTableLayout.setTableIndex(pContext.name, lIndexName, pUnique, false);
+        lTableLayout.setTableIndex(pContext.name, lIndexName, pUnique, true);
 
         // Set the table layout to the metadata.
         lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);

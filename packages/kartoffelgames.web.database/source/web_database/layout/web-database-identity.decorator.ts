@@ -1,28 +1,38 @@
 import { Exception } from '@kartoffelgames/core';
-import { Injector } from '@kartoffelgames/core-dependency-injection';
+import { Metadata } from "@kartoffelgames/core-dependency-injection";
 import { WebDatabaseTableLayout, type TableType } from './web-database-table-layout.ts';
-
-// Needed for type metadata.
-Injector.Initialize();
 
 /**
  * AtScript.
+ * 
  * Add identity to table type.
+ * Auto incremented identity is only supported for number types.
  */
-export function WebDatabaseIdentity(pAutoIncrement: boolean) {
-    return function (pTarget: object, pPropertyKey: string): void {
-        // Usually Class Prototype. Globaly.
-        const lPrototype: object = pTarget;
-        const lTableType: TableType = <any>lPrototype.constructor;
-
+export function WebDatabaseIdentity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement) {
+    return (_pTarget: ClassAccessorDecoratorTarget<any, TAutoIncrement extends true ? number : any>, pContext: ClassAccessorDecoratorContext): void => {
         // Decorator can not be used on static propertys.
-        if (typeof pTarget === 'function') {
+        if (pContext.static) {
             throw new Exception('Identity property can not be a static property.', WebDatabaseIdentity);
         }
 
-        const lTableLayout: WebDatabaseTableLayout = new WebDatabaseTableLayout();
+        // Decorator can only be attached to string named properties.
+        if (typeof pContext.name !== 'string') {
+            throw new Exception('Identity name must be a string.', WebDatabaseIdentity);
+        }
 
-        // Add table type identity to layout.
-        lTableLayout.setTableIdentity(lTableType, pPropertyKey, pAutoIncrement);
+        // Read metadata from metadata...
+        const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+        // Try to read table layout from metadata.
+        let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+        if (!lTableLayout) {
+            lTableLayout = new WebDatabaseTableLayout();
+        }
+
+        // Add table type index to layout.
+        lTableLayout.setTableIdentity(pContext.name, pAutoIncrement);
+
+        // Set the table layout to the metadata.
+        lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
     };
 }

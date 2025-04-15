@@ -1,8 +1,104 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './layout/web-database-table-layout.ts';
+import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
+import { Metadata } from "../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts";
 
 export class WebDatabase {
+    /**
+     * Set propery as table field.
+     * 
+     * @param pIndexName - Index name.
+     * @param pUnique - Index should be unique.
+     * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
+     */
+    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false) {
+        return function (_: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
+            // Decorator can not be used on static propertys.
+            if (pContext.static) {
+                throw new Exception('Index property can not be a static property.', WebDatabase);
+            }
+
+            // Decorator can only be attached to string named properties.
+            if (typeof pContext.name !== 'string') {
+                throw new Exception('Index name must be a string.', WebDatabase);
+            }
+
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Add table type index to layout.
+            lTableLayout.setTableField(pContext.name, pIndexName, pUnique, pMultiEntry);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
+
+    /**
+     * Add identity to table type.
+     * Auto incremented identity is only supported for number types.
+     * 
+     * @param pAutoIncrement - Auto incremented identity.
+     */
+    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement) {
+        return (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, TAutoIncrement extends true ? number : any>): void => {
+            // Decorator can not be used on static propertys.
+            if (pContext.static) {
+                throw new Exception('Identity property can not be a static property.', WebDatabase);
+            }
+
+            // Decorator can only be attached to string named properties.
+            if (typeof pContext.name !== 'string') {
+                throw new Exception('Identity name must be a string.', WebDatabase);
+            }
+
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Add table type index to layout.
+            lTableLayout.setTableIdentity(pContext.name, pAutoIncrement);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
+
+    /**
+     * Decorator for the database table.
+     * 
+     * @param pTableName - Table name.
+     */
+    public static table(pTableName: string) {
+        return function (_pClassTarget: any, pContext: ClassDecoratorContext): void {
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Set table name.
+            lTableLayout.setTableName(pTableName);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
+
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
     private readonly mTableTypes: Dictionary<string, TableType>;
@@ -375,3 +471,5 @@ type DatabaseUpdate = {
     updateNeeded: boolean;
     tableUpdates: Array<TableUpdate>;
 };
+
+type WebDatabaseFieldDecoratorContext<TThis, TValue> = ClassGetterDecoratorContext<TThis, TValue> | ClassSetterDecoratorContext<TThis, TValue> | ClassFieldDecoratorContext<TThis, TValue> | ClassAccessorDecoratorContext<TThis, TValue>;

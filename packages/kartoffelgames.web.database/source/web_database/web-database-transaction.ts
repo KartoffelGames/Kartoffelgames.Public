@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import type { TableType } from './layout/web-database-table-layout.ts';
+import type { TableType } from './web-database-table-layout.ts';
 import type { WebDatabase } from './web-database.ts';
 import { WebDatabaseTable } from './web-database-table.ts';
 

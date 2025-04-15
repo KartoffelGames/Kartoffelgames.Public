@@ -121,6 +121,9 @@ export class WebDatabaseTableLayout {
             key: pKey,
             autoIncrement: pAutoIncrement,
         };
+
+        // Add property key to field list.
+        this.mFields.add(pKey);
     }
 
     /**
@@ -132,7 +135,15 @@ export class WebDatabaseTableLayout {
      * @param pIsArray - Property is key.
      * @param pIsUnique - Index should be unique.
      */
-    public setTableIndex(pPropertyKey: string, pIndexName: string, pIsUnique: boolean, pMultiEnty: boolean): void {
+    public setTableField(pPropertyKey: string, pIndexName?: string, pIsUnique: boolean = false, pMultiEnty: boolean = false): void {
+        // add property key to field list.
+        this.mFields.add(pPropertyKey);
+
+        // Skip index creation when no index name is set.
+        if (!pIndexName) {
+            return;
+        }
+
         // Initialize index.
         let lIndexConfig: TableLayoutIndex | undefined = this.mIndices.get(pIndexName);
         if (!lIndexConfig) {

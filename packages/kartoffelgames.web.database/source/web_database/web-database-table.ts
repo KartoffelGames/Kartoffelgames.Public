@@ -1,6 +1,6 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { type TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
+import { type TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
 import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';

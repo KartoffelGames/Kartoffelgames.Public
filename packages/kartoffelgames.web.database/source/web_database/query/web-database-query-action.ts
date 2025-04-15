@@ -1,4 +1,4 @@
-import type { TableType } from '../layout/web-database-table-layout.ts';
+import type { TableType } from '../web-database-table-layout.ts';
 import type { WebDatabaseQuery } from './web-database-query.ts';
 
 export class WebDatabaseQueryAction<TTableType extends TableType> {

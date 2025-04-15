@@ -73,7 +73,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         // Not neet to filter or merge.
         if (lQueryBlockList.length === 1 && lQueryBlockList[0].length === 1) {
             // Read and convert single block.
-            return this.convertDataToTableType(await this.readQuery(lQueryBlockList[0][0]));
+            return this.mTable.parseToType(await this.readQuery(lQueryBlockList[0][0]));
         }
 
         // Special solution for single block queries.
@@ -82,7 +82,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
             const lQueryResult: Dictionary<string | number, any> = await this.readQueryBlock(lQueryBlockList[0]);
 
             // Read and convert single block.
-            return this.convertDataToTableType(lQueryResult.values());
+            return this.mTable.parseToType(lQueryResult.values());
         }
 
         // Read all query blocks.
@@ -116,7 +116,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
 
         // Convert merged block.
-        return this.convertDataToTableType(lGreatestResultSet.values());
+        return this.mTable.parseToType(lGreatestResultSet.values());
     }
 
     /**
@@ -143,29 +143,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         });
     }
 
-    /**
-     * Convert all data items into table type objects.
-     * 
-     * @param pData - Data objects.
-     * 
-     * @returns converted data list. 
-     */
-    private convertDataToTableType(pData: Iterable<any>): Array<InstanceType<TTableType>> {
-        const lResultList: Array<InstanceType<TTableType>> = new Array<InstanceType<TTableType>>();
 
-        // Convert each item into type.
-        for (const lSourceObject of pData) {
-            const lTargetObject: InstanceType<TTableType> = new this.mTable.tableType() as InstanceType<TTableType>;
-
-            for (const lKey of Object.keys(lSourceObject)) {
-                (<any>lTargetObject)[lKey] = lSourceObject[lKey];
-            }
-
-            lResultList.push(lTargetObject);
-        }
-
-        return lResultList;
-    }
 
     /**
      * Read data from table filtered by query.

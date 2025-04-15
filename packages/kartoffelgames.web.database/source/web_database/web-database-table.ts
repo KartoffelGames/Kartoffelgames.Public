@@ -1,13 +1,14 @@
 
 import { Exception } from '@kartoffelgames/core';
 import { type TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout.ts';
-import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
+import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
 export class WebDatabaseTable<TTableType extends TableType> {
     private readonly mTableType: TTableType;
     private readonly mTransaction: WebDatabaseTransaction<TableType>;
+    private readonly mTableLayout: WebDatabaseTableLayout;
 
     /**
      * Get table type.
@@ -32,6 +33,9 @@ export class WebDatabaseTable<TTableType extends TableType> {
     public constructor(pType: TTableType, pTransaction: WebDatabaseTransaction<TableType>) {
         this.mTableType = pType;
         this.mTransaction = pTransaction;
+
+        // Get table layout.
+        this.mTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
     }
 
     /**
@@ -98,8 +102,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         }
 
         // Get identity value from data.
-        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
-        const lIdentityProperty: string = lTableLayout.identity.key;
+        const lIdentityProperty: string = this.mTableLayout.identity.key;
         const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
         // Get table connection.
@@ -147,22 +150,13 @@ export class WebDatabaseTable<TTableType extends TableType> {
                 const lTarget: IDBRequest<Array<any>> = pEvent.target as IDBRequest<Array<any>>;
 
                 // Convert each item into type.
-                const lResult: Array<InstanceType<TTableType>> = lTarget.result.map((pSourceObject: any) => {
-                    const lTargetObject: InstanceType<TTableType> = new this.mTableType() as InstanceType<TTableType>;
-
-                    for (const lKey of Object.keys(pSourceObject)) {
-                        (<any>lTargetObject)[lKey] = pSourceObject[lKey];
-                    }
-
-                    return lTargetObject;
-                });
+                const lResult: Array<InstanceType<TTableType>> = this.parseToType(lTarget.result);
 
                 // Resolve converted data.
                 pResolve(lResult);
             });
         });
     }
-
 
     /**
      * Put data.
@@ -179,7 +173,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
 
         // Put data.
-        const lRequest: IDBRequest<IDBValidKey> = lTable.put(pData);
+        const lRequest: IDBRequest<IDBValidKey> = lTable.put(JSON.parse(JSON.stringify(pData, this.mTableLayout.fields)));
 
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
@@ -191,14 +185,11 @@ export class WebDatabaseTable<TTableType extends TableType> {
 
             // Resolve on success.
             lRequest.addEventListener('success', (pEvent) => {
-                // Get table layout.
-                const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
-
                 // Read event target like a shithead.
                 const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
 
                 // Update object with the new identity when any identity is specified.
-                const lIdentityProperty: string = lTableLayout.identity.key;
+                const lIdentityProperty: string = this.mTableLayout.identity.key;
                 (<any>pData)[lIdentityProperty] = lTarget.result;
 
                 pResolve();
@@ -215,5 +206,29 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public where(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
         return new WebDatabaseQuery<TTableType>(this).and(pIndexOrPropertyName);
+    }
+
+    /**
+     * Convert all data items into table type objects.
+     * 
+     * @param pData - Data objects.
+     * 
+     * @returns converted data list. 
+     */
+    public parseToType(pData: Iterable<Record<string, any>>): Array<InstanceType<TTableType>> {
+        const lResultList: Array<InstanceType<TTableType>> = new Array<InstanceType<TTableType>>();
+
+        // Convert each item into type.
+        for (const lSourceObject of pData) {
+            const lTargetObject: InstanceType<TTableType> = new this.mTableType() as InstanceType<TTableType>;
+
+            for (const lKey of this.mTableLayout.fields) {
+                (<any>lTargetObject)[lKey] = lSourceObject[lKey];
+            }
+
+            lResultList.push(lTargetObject);
+        }
+
+        return lResultList;
     }
 }

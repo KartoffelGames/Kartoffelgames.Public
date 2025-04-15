@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { Metadata } from "@kartoffelgames/core-dependency-injection";
-import { WebDatabaseTableLayout, type TableType } from './web-database-table-layout.ts';
+import { WebDatabaseTableLayout } from './web-database-table-layout.ts';
 
 /**
  * AtScript.

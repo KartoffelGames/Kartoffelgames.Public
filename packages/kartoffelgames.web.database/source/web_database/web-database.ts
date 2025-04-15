@@ -136,6 +136,8 @@ export class WebDatabase {
                                 action: 'delete',
                                 indices: []
                             });
+
+                            // Continue without deleting it from the uncreated table list, so it can be created again with the correct identity.
                             continue;
                         }
 
@@ -161,16 +163,21 @@ export class WebDatabase {
                             const lCurrentIndex: IDBIndex = lTable.index(lIndexName);
                             const lIndexConfiguration: TableLayoutIndex = lTableLayout.index(lIndexName)!;
 
-                            // Read index keys.
+                            // Read index keys. A Compound index is already checked by creating index key.
                             const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(',') : lCurrentIndex.keyPath;
                             const lConfiguratedIndexKey: string = lIndexConfiguration.keys.join(',');
 
+                            // Configurated entry is a multi entry index.
+                            const lConfiguratedIsMultiEntry: boolean = lIndexConfiguration.type === 'multiEntryIndex';
+
                             // Validate same index configuration. Delete the current index when it differs.
-                            if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lIndexConfiguration.options.multiEntity || lCurrentIndex.unique !== lIndexConfiguration.options.unique) {
+                            if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lConfiguratedIsMultiEntry || lCurrentIndex.unique !== lIndexConfiguration.unique) {
                                 lIndexUpdates.push({
                                     name: lIndexName,
                                     action: 'delete',
                                 });
+
+                                // Continue without deleting it from the uncreated index list, so it can be created again with the correct configuration.
                                 continue;
                             }
 
@@ -293,8 +300,8 @@ export class WebDatabase {
                             // Index create action.
                             if (lIndexUpdate.action === 'create') {
                                 lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
-                                    unique: lIndexConfiguration.options.unique,
-                                    multiEntry: lIndexConfiguration.options.multiEntity
+                                    unique: lIndexConfiguration.unique,
+                                    multiEntry: lIndexConfiguration.type === 'multiEntryIndex'
                                 });
                                 continue;
                             }

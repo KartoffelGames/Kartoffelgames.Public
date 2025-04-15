@@ -172,7 +172,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
 
-        // Put data.
+        // Put data. // TODO: Try to add a dublicate key of a unique index.
         const lRequest: IDBRequest<IDBValidKey> = lTable.put(JSON.parse(JSON.stringify(pData, this.mTableLayout.fields)));
 
         // Wait for completion.

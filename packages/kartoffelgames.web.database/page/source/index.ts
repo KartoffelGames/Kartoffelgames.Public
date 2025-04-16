@@ -14,7 +14,7 @@ class TestTableOne {
     @WebDatabase.field('price')
     public price?: number;
 
-    @WebDatabase.field('type', false, true)
+    @WebDatabase.field('types', false, true)
     public types?: Array<number>;
 
     @WebDatabase.field()

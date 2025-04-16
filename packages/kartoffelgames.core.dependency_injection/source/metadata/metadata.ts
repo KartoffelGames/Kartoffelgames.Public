@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core';
+import { Dictionary, type ClassDecorator } from '@kartoffelgames/core';
 import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
@@ -21,7 +21,7 @@ export class Metadata {
      * @param pMetadataKey - Key of metadata.
      * @param pMetadataValue - Value of metadata.
      */
-    public static add<TThis extends object, TValue = any>(pMetadataKey: string, pMetadataValue: TValue) {
+    public static add<TThis extends object, TValue = any>(pMetadataKey: string, pMetadataValue: TValue): ((_pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>) => void) {
         return (_pOriginalTarget: any, pContext: AllClassDecoratorContext<InjectionConstructor<TThis>>): void => {
             // Get metadata object for constructor.
             const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
@@ -95,7 +95,7 @@ export class Metadata {
      * @param _pOriginalTarget - Unused. original decorator target.
      * @param pContext - Decorator context
      */
-    public static init() {
+    public static init(): ClassDecorator<any, void> {
         return (_pOriginalTarget: any, pContext: ClassDecoratorContext): void => {
             Metadata.forInternalDecorator(pContext.metadata);
         };

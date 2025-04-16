@@ -1,7 +1,7 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { ClassDecorator, ClassFieldDecorator, Dictionary, Exception } from '@kartoffelgames/core';
+import { Metadata } from "../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts";
 import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
-import { Metadata } from "../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts";
 
 export class WebDatabase {
     /**
@@ -11,7 +11,7 @@ export class WebDatabase {
      * @param pUnique - Index should be unique.
      * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
      */
-    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false) {
+    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false): ClassFieldDecorator<any, any> {
         return function (_: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
             // Decorator can not be used on static propertys.
             if (pContext.static) {
@@ -46,7 +46,7 @@ export class WebDatabase {
      * 
      * @param pAutoIncrement - Auto incremented identity.
      */
-    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement) {
+    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement): ClassFieldDecorator<any, TAutoIncrement extends true ? number : any> {
         return (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, TAutoIncrement extends true ? number : any>): void => {
             // Decorator can not be used on static propertys.
             if (pContext.static) {
@@ -80,7 +80,7 @@ export class WebDatabase {
      * 
      * @param pTableName - Table name.
      */
-    public static table(pTableName: string) {
+    public static table(pTableName: string): ClassDecorator<TableType, void> {
         return function (_pClassTarget: any, pContext: ClassDecoratorContext): void {
             // Read metadata from metadata...
             const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);

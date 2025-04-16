@@ -9,13 +9,14 @@ import type { IPwbExpressionModuleProcessorConstructor } from '../module/express
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
 import { ComponentRegister } from './component-register.ts';
 import { Component } from './component.ts';
+import { ClassDecorator } from '@kartoffelgames/core';
 
 /**
  * AtScript. PWB Component.
  * 
  * @param pParameter - Parameter defaults on creation.
  */
-export function PwbComponent(pParameter: HtmlComponentParameter) {
+export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator<typeof Processor, void> {
     // Enable global tracing for the current context.
     InteractionZone.enableGlobalTracing(gGatherGlobalTracingTarget(globalThis));
 

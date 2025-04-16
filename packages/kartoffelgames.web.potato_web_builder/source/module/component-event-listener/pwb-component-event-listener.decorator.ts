@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { ClassMethodDecorator, Exception } from '@kartoffelgames/core';
 import { type ConstructorMetadata, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
 
@@ -6,8 +6,8 @@ import { ComponentEventListenerComponentExtension } from './component-event-list
  * Define event for external access.
  * @param pEventName - Name of event.
  */
-export function PwbComponentEventListener(pEventName: string) {
-    return <TEvent extends Event>(_pTarget: ((pEvent: TEvent) => any), pContext: ClassMethodDecoratorContext): void => {
+export function PwbComponentEventListener<TEvent extends Event>(pEventName: string): ClassMethodDecorator<any, EventListener<TEvent>> {
+    return (_pTarget: EventListener<TEvent>, pContext: ClassMethodDecoratorContext): void => {
         // Statics.
         if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbComponentEventListener);
@@ -24,3 +24,5 @@ export function PwbComponentEventListener(pEventName: string) {
         lClassMetadata.setMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES, lEventPropertyList);
     };
 }
+
+type EventListener<TEvent extends Event> = (pEvent: TEvent) => any;

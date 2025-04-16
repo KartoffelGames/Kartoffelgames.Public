@@ -1,3 +1,4 @@
+import { ClassDecorator } from '@kartoffelgames/core';
 import type { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
 import { StatefullSerializeableClasses } from '../statefull-serializeable-classes.ts';
 
@@ -7,7 +8,7 @@ import { StatefullSerializeableClasses } from '../statefull-serializeable-classe
  * All child types present as properties must be marked too.
  * @param pGuid - Global unique id.
  */
-export function StatefullSerializeable(pGuid: SerializeableGuid) {
+export function StatefullSerializeable(pGuid: SerializeableGuid): ClassDecorator<SerializeableConstructor, SerializeableConstructor> {
     return function (pConstructor: SerializeableConstructor): any {
         const lObjectToConstructorParameter: WeakMap<object, Array<any>> = new WeakMap<object, Array<any>>();
 

@@ -11,4 +11,4 @@ import type { ExtendedExpected } from './extended-expected.interface.ts';
 
 // Export new expect function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const expect = originalExpect<ExtendedExpected>;
+export const expect: ((value: unknown, customMessage?: string) =>  ExtendedExpected) = originalExpect<ExtendedExpected>;

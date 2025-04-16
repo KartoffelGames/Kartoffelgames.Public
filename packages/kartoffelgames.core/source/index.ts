@@ -28,7 +28,10 @@ export {
     type Readonly, type Writeable,
 
     // Decorator types.
-    type ClassDecorator
+    type ClassDecorator,
+    type ClassAccessorDecorator,
+    type ClassMethodDecorator,
+    type ClassFieldDecorator,
 } from './types.ts';
 
 // Algorythms

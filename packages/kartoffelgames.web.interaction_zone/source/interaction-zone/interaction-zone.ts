@@ -147,38 +147,6 @@ export class InteractionZone {
     }
 
     /**
-     * Get or set attachment value.
-     * Values are set to the current zone and when read, searched in any parent zone.
-     * Isolated zones breaks the parent chain.
-     * 
-     * @param pSymbol - Key of attachment.
-     * @param pValue - Value of attachment.
-     * 
-     * @returns the current value of the attachment or undefined when no value is set. 
-     */
-    public attachment(pSymbol: symbol, pValue?: any): any {
-        // Sets the value of the attachment when pValue is set.
-        if (typeof pValue !== 'undefined') {
-            this.mAttachments.set(pSymbol, pValue);
-            return pValue;
-        }
-
-        // Try to read the value of the attachment.
-        const lAttachmentValue: any = this.mAttachments.get(pSymbol);
-        if (typeof lAttachmentValue !== 'undefined') {
-            return lAttachmentValue;
-        }
-
-        // Skip parent search when isolated.
-        if (this.mIsolated) {
-            return undefined;
-        }
-
-        // When the value was not found search in parent zones. Parent is allways set and the root zone is isolated.
-        return this.mParent!.attachment(pSymbol);
-    }
-
-    /**
      * Add listener for error events.
      * Prevent error bubble and defaults like print on console when {@link pListener} return the actual value false.
      * Ignores adding the same listener multiple times.
@@ -230,6 +198,38 @@ export class InteractionZone {
 
         // Chainable.
         return this;
+    }
+
+    /**
+     * Get or set attachment value.
+     * Values are set to the current zone and when read, searched in any parent zone.
+     * Isolated zones breaks the parent chain.
+     * 
+     * @param pSymbol - Key of attachment.
+     * @param pValue - Value of attachment.
+     * 
+     * @returns the current value of the attachment or undefined when no value is set. 
+     */
+    public attachment(pSymbol: symbol, pValue?: any): any {
+        // Sets the value of the attachment when pValue is set.
+        if (typeof pValue !== 'undefined') {
+            this.mAttachments.set(pSymbol, pValue);
+            return pValue;
+        }
+
+        // Try to read the value of the attachment.
+        const lAttachmentValue: any = this.mAttachments.get(pSymbol);
+        if (typeof lAttachmentValue !== 'undefined') {
+            return lAttachmentValue;
+        }
+
+        // Skip parent search when isolated.
+        if (this.mIsolated) {
+            return undefined;
+        }
+
+        // When the value was not found search in parent zones. Parent is allways set and the root zone is isolated.
+        return this.mParent!.attachment(pSymbol);
     }
 
     /**

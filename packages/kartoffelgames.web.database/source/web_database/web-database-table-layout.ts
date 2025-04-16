@@ -26,10 +26,10 @@ export class WebDatabaseTableLayout {
         return lTableLayout;
     }
 
-    private mTableName: string | null;
     private readonly mFields: Set<string>;
     private mIdentity: TableLayoutIdentity | null;
     private readonly mIndices: Map<string, TableLayoutIndex>;
+    private mTableName: string | null;
 
     /**
      * Get table field names.
@@ -105,31 +105,6 @@ export class WebDatabaseTableLayout {
      * Set table type identity.
      * 
      * @param pType - Table type.
-     * @param pKey - Key of identity.
-     * @param pAutoIncrement - Autoincrement identity.
-     * 
-     * @throws {@link Exception} - When a identitfier for this type is already set.
-     */
-    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
-        // Read table config and restrict to one identity.
-        if (this.mIdentity) {
-            throw new Exception(`A table type can only have one identifier.`, this);
-        }
-
-        // Set table type identity.
-        this.mIdentity = {
-            key: pKey,
-            autoIncrement: pAutoIncrement,
-        };
-
-        // Add property key to field list.
-        this.mFields.add(pKey);
-    }
-
-    /**
-     * Set table type identity.
-     * 
-     * @param pType - Table type.
      * @param pPropertyKey - Property key of identity.
      * @param pIndexName - Index name.
      * @param pIsArray - Property is key.
@@ -176,6 +151,31 @@ export class WebDatabaseTableLayout {
         if (!pIsUnique) {
             lIndexConfig.unique = false;
         }
+    }
+
+    /**
+     * Set table type identity.
+     * 
+     * @param pType - Table type.
+     * @param pKey - Key of identity.
+     * @param pAutoIncrement - Autoincrement identity.
+     * 
+     * @throws {@link Exception} - When a identitfier for this type is already set.
+     */
+    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
+        // Read table config and restrict to one identity.
+        if (this.mIdentity) {
+            throw new Exception(`A table type can only have one identifier.`, this);
+        }
+
+        // Set table type identity.
+        this.mIdentity = {
+            key: pKey,
+            autoIncrement: pAutoIncrement,
+        };
+
+        // Add property key to field list.
+        this.mFields.add(pKey);
     }
 
     /**

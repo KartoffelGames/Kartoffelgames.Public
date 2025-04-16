@@ -9,7 +9,7 @@ import type { IPwbExpressionModuleProcessorConstructor } from '../module/express
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';
 import { ComponentRegister } from './component-register.ts';
 import { Component } from './component.ts';
-import { ClassDecorator } from '@kartoffelgames/core';
+import type { ClassDecorator } from '@kartoffelgames/core';
 
 /**
  * AtScript. PWB Component.

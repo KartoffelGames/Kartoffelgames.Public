@@ -82,7 +82,7 @@ export default typescriptlint.config(
                 }
             ],
             "@typescript-eslint/no-wrapper-object-types": "warn",
-            "@typescript-eslint/no-unsafe-function-type": "warn",
+            "@typescript-eslint/no-unsafe-function-type": "off",
             "@typescript-eslint/consistent-type-imports": [
                 "error",
                 {

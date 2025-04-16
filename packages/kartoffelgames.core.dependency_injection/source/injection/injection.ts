@@ -1,4 +1,4 @@
-import { ClassDecorator, Dictionary, Exception } from '@kartoffelgames/core';
+import { type ClassDecorator, Dictionary, Exception } from '@kartoffelgames/core';
 import type { ConstructorMetadata } from '../metadata/constructor-metadata.ts';
 import { Metadata } from '../metadata/metadata.ts';
 import type { InjectionConstructor } from '../type.ts';

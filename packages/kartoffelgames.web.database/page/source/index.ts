@@ -11,14 +11,14 @@ class TestTableOne {
     @WebDatabase.field('name', true)
     public name?: string;
 
+    @WebDatabase.field()
+    public notIndexed?: string;
+
     @WebDatabase.field('price')
     public price?: number;
 
     @WebDatabase.field('types', false, true)
     public types?: Array<number>;
-
-    @WebDatabase.field()
-    public notIndexed?: string;
 
     public whatMyId(): number {
         return this.id!;

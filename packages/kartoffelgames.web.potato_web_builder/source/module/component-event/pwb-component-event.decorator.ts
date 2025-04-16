@@ -1,4 +1,4 @@
-import { ClassAccessorDecorator, Exception } from '@kartoffelgames/core';
+import { type ClassAccessorDecorator, Exception } from '@kartoffelgames/core';
 import { ComponentRegister } from '../../core/component/component-register.ts';
 import type { Component, ComponentProcessor } from '../../core/component/component.ts';
 import { ComponentEventEmitter } from './component-event-emitter.ts';

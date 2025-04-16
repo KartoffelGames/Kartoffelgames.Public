@@ -594,8 +594,8 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
         class TestComponent extends Processor implements IComponentOnUpdate {
             public innerValue: number = 1;
             
-            private mEnabled: boolean = false;
             private readonly mComponent: Component;
+            private mEnabled: boolean = false;
 
             public constructor(pComponent = Injection.use(Component)) {
                 super();
@@ -606,15 +606,15 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
             }
 
             @PwbExport
+            public disable(): void {
+                this.mEnabled = false;
+            }
+
+            @PwbExport
             public enable(): void {
                 this.mEnabled = true;
                 this.innerValue++;
                 this.mComponent.update();
-            }
-
-            @PwbExport
-            public disable(): void {
-                this.mEnabled = false;
             }
 
             public onUpdate(): void {

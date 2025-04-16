@@ -6,9 +6,9 @@ import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
 export class WebDatabaseTable<TTableType extends TableType> {
+    private readonly mTableLayout: WebDatabaseTableLayout;
     private readonly mTableType: TTableType;
     private readonly mTransaction: WebDatabaseTransaction<TableType>;
-    private readonly mTableLayout: WebDatabaseTableLayout;
 
     /**
      * Get table type.
@@ -159,6 +159,30 @@ export class WebDatabaseTable<TTableType extends TableType> {
     }
 
     /**
+     * Convert all data items into table type objects.
+     * 
+     * @param pData - Data objects.
+     * 
+     * @returns converted data list. 
+     */
+    public parseToType(pData: Iterable<Record<string, any>>): Array<InstanceType<TTableType>> {
+        const lResultList: Array<InstanceType<TTableType>> = new Array<InstanceType<TTableType>>();
+
+        // Convert each item into type.
+        for (const lSourceObject of pData) {
+            const lTargetObject: InstanceType<TTableType> = new this.mTableType() as InstanceType<TTableType>;
+
+            for (const lKey of this.mTableLayout.fields) {
+                (<any>lTargetObject)[lKey] = lSourceObject[lKey];
+            }
+
+            lResultList.push(lTargetObject);
+        }
+
+        return lResultList;
+    }
+
+    /**
      * Put data.
      * 
      * @param pData - Data. Must be an instance of the table type.
@@ -208,29 +232,5 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public where(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
         return new WebDatabaseQuery<TTableType>(this).and(pIndexOrPropertyName);
-    }
-
-    /**
-     * Convert all data items into table type objects.
-     * 
-     * @param pData - Data objects.
-     * 
-     * @returns converted data list. 
-     */
-    public parseToType(pData: Iterable<Record<string, any>>): Array<InstanceType<TTableType>> {
-        const lResultList: Array<InstanceType<TTableType>> = new Array<InstanceType<TTableType>>();
-
-        // Convert each item into type.
-        for (const lSourceObject of pData) {
-            const lTargetObject: InstanceType<TTableType> = new this.mTableType() as InstanceType<TTableType>;
-
-            for (const lKey of this.mTableLayout.fields) {
-                (<any>lTargetObject)[lKey] = lSourceObject[lKey];
-            }
-
-            lResultList.push(lTargetObject);
-        }
-
-        return lResultList;
     }
 }

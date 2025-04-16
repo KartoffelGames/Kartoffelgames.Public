@@ -1,4 +1,4 @@
-import { ClassMethodDecorator, Exception } from '@kartoffelgames/core';
+import { type ClassMethodDecorator, Exception } from '@kartoffelgames/core';
 import { type ConstructorMetadata, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
 

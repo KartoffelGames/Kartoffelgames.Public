@@ -1,5 +1,5 @@
-import { ClassDecorator, ClassFieldDecorator, Dictionary, Exception } from '@kartoffelgames/core';
-import { Metadata } from "../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts";
+import { type ClassDecorator, type ClassFieldDecorator, Dictionary, Exception } from '@kartoffelgames/core';
+import { Metadata } from '../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts';
 import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
@@ -12,7 +12,7 @@ export class WebDatabase {
      * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
      */
     public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false): ClassFieldDecorator<any, any> {
-        return function (_: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
+        return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
             // Decorator can not be used on static propertys.
             if (pContext.static) {
                 throw new Exception('Index property can not be a static property.', WebDatabase);

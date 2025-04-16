@@ -22,6 +22,16 @@ export class CoreEntityProcessorProxy<T extends object> {
     })();
 
     /**
+     * Map of original object to proxy wrapper object.
+     */
+    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
+
+    /**
+     * Map of proxy object to original object.
+     */
+    private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
+
+    /**
      * List of untraceable functions. Those functions can not be tracked but report a special interaction type.
      */
     private static readonly UNTRACEABLE_FUNCTION_UPDATE_TRIGGER: WeakMap<Function, UpdateTrigger> = (() => {
@@ -49,10 +59,6 @@ export class CoreEntityProcessorProxy<T extends object> {
 
         return lUntraceableFunctionList;
     })();
-
-    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
-
-    private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**
      * Create CoreEntityInteractionData for interaction events.

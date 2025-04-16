@@ -1,4 +1,4 @@
-import { ClassDecorator } from '@kartoffelgames/core';
+import type { ClassDecorator } from '@kartoffelgames/core';
 import type { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
 import { StatefullSerializeableClasses } from '../statefull-serializeable-classes.ts';
 

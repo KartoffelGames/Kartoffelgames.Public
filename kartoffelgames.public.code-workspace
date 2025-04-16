@@ -21,6 +21,10 @@
             "path": "./packages/kartoffelgames.web.interaction_zone"
         },
         {
+            "name": "KartoffelGames.Worker.Track_Player",
+            "path": "./packages/kartoffelgames.worker.track_player"
+        },
+        {
             "name": "KartoffelGames.Web.Potato_Web_Builder",
             "path": "./packages/kartoffelgames.web.potato_web_builder"
         },

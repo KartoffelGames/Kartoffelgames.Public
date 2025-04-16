@@ -9,11 +9,12 @@
         "./packages/kartoffelgames.web.database",
         "./packages/kartoffelgames.web.interaction_zone",
         "./packages/kartoffelgames.web.potato_web_builder",
-        "./packages/kartoffelgames.core.test"
+        "./packages/kartoffelgames.core.test",
+        "./packages/kartoffelgames.worker.track_player"
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",
-        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@3.2.1"
+        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@3.2.2"
     },
     "license": "LGPL-3.0-only",
     "imports": {},

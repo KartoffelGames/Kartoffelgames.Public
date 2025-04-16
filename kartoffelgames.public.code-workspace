@@ -37,10 +37,6 @@
             "path": "packages\\kartoffelgames.web.database"
         },
         {
-            "name": "Kartoffelgames.Web.Game_Input",
-            "path": "packages\\kartoffelgames.web.game_input"
-        },
-        {
             "name": "_ROOT",
             "path": "."
         }

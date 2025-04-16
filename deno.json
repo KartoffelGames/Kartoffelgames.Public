@@ -1,5 +1,5 @@
 {
-    "version": "0.2.1",
+    "version": "1.0.0",
     "workspace": [
         "./packages/kartoffelgames.core",
         "./packages/kartoffelgames.core.dependency_injection",

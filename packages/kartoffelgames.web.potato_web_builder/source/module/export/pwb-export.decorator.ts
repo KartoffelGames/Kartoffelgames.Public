@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
+import type { ConstructorMetadata } from '@kartoffelgames/core-dependency-injection';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
 import { ExportExtension } from './export-extension.ts';
-import type { ConstructorMetadata } from '../../../../kartoffelgames.core.dependency_injection/source/metadata/constructor-metadata.ts';
 
 /**
  * AtScript.

@@ -1,5 +1,5 @@
+import type { ClassDecorator } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { ClassDecorator } from '../../../../../kartoffelgames.core/source/index.ts';
 import { CoreEntityProcessorProxy } from './core-entity-processor-proxy.ts';
 
 /**

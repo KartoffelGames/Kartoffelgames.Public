@@ -2,8 +2,8 @@
 import { TestUtil } from '../../../utility/test-util.ts';
 
 // Funcitonal imports after mock.
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { expect } from '@kartoffelgames/core-test';
-import { Injection } from '../../../../../kartoffelgames.core.dependency_injection/source/injection/injection.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';

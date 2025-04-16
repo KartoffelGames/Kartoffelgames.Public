@@ -1,19 +1,14 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('OneWayBinding', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Functional imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-    it('-- Initial value', async () => {
+Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lInitialValue: string = 'INITIAL__VALUE';
 
@@ -34,10 +29,15 @@ describe('OneWayBinding', () => {
         const lInputValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lInputValue).to.equal(lInitialValue);
-    });
+        expect(lInputValue).toBe(lInitialValue);
 
-    it('-- Change component value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('OneWayBinding--Functionality: Change component value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 
@@ -60,10 +60,15 @@ describe('OneWayBinding', () => {
         const lViewValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lViewValue).to.equal(lNewValue);
-    });
+        expect(lViewValue).toBe(lNewValue);
 
-    it('Exchange value to child component', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('OneWayBinding--Functionality: Exchange value to child component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lValueOne: string = 'NEW__VALUE';
 
@@ -94,10 +99,16 @@ describe('OneWayBinding', () => {
         const lExportOne: string = lChildComponent.valueOne;
 
         // Evaluation.
-        expect(lExportOne).to.equal(lValueOne);
-    });
+        expect(lExportOne).toBe(lValueOne);
 
-    it('Exchange two values to to same component ', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lChildComponent);
+    });
+});
+
+Deno.test('OneWayBinding--Functionality: Exchange two values to the same component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define values.
         const lValueOne: string = 'NEW__VALUE';
         const lValueTwo: string = 'NEW__VALUE';
@@ -134,7 +145,11 @@ describe('OneWayBinding', () => {
         const lExportTwo: string = lChildComponent.valueTwo;
 
         // Evaluation.
-        expect(lExportOne).to.equal(lValueOne);
-        expect(lExportTwo).to.equal(lValueTwo);
+        expect(lExportOne).toBe(lValueOne);
+        expect(lExportTwo).toBe(lValueTwo);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lChildComponent);
     });
 });

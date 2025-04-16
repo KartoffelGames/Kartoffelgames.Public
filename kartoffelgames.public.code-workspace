@@ -29,12 +29,12 @@
             "path": "packages\\kartoffelgames.core.parser"
         },
         {
-            "name": "Kartoffelgames.Web.Database",
-            "path": "packages\\kartoffelgames.web.database"
+            "name": "Kartoffelgames.Core.Test",
+            "path": "./packages\\kartoffelgames.core.test"
         },
         {
-            "name": "Kartoffelgames.Web.Game_Input",
-            "path": "packages\\kartoffelgames.web.game_input"
+            "name": "Kartoffelgames.Web.Database",
+            "path": "packages\\kartoffelgames.web.database"
         },
         {
             "name": "_ROOT",
@@ -42,15 +42,6 @@
         }
     ],
     "settings": {
-        "files.exclude": {
-            "**/.nyc_output": true,
-            "**/.turbo": true,
-            "**/*.tsbuildinfo": true,
-            "**/coverage": true,
-            "**/dist": true,
-            "**/node_modules": true
-        },
-        "javascript.format.semicolons": "insert",
-        "typescript.tsdk": "node_modules\\typescript\\lib"
+        "javascript.format.semicolons": "insert"
     }
 }

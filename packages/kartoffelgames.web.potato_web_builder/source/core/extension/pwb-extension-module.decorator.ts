@@ -1,8 +1,8 @@
-import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
-import { CoreEntityRegister } from '../core_entity/core-entity-register';
-import { AccessMode } from '../enum/access-mode.enum';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { ExtensionModule, ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor } from './extension-module';
+import { type InjectionConstructor, Injection } from '@kartoffelgames/core-dependency-injection';
+import { CoreEntityRegister } from '../core_entity/core-entity-register.ts';
+import type { AccessMode } from '../enum/access-mode.enum.ts';
+import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { ExtensionModule, type ExtensionModuleConfiguration, type IPwbExtensionModuleProcessorConstructor } from './extension-module.ts';
 
 /**
  * AtScript. PWB component extension module.
@@ -10,10 +10,10 @@ import { ExtensionModule, ExtensionModuleConfiguration, IPwbExtensionModuleProce
  * @param pSettings - Extension settings.
  */
 export function PwbExtensionModule(pSettings: ExtensionSettings): any {
-    return (pExtensionProcessorConstructor: IPwbExtensionModuleProcessorConstructor) => {
+    return (pExtensionProcessorConstructor: IPwbExtensionModuleProcessorConstructor, pContext: ClassDecoratorContext) => {
 
         // Set processor to be injectable
-        Injector.Injectable(pExtensionProcessorConstructor);
+        Injection.registerInjectable(pExtensionProcessorConstructor, pContext.metadata, 'instanced');
 
         // Register module.
         CoreEntityRegister.register<ExtensionModuleConfiguration>(ExtensionModule, pExtensionProcessorConstructor, {

@@ -1,13 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type';
-import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes';
-import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type';
-
-// istanbul ignore next
-// Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
-if (!globalThis.crypto) { // No Cryto should be nodeJS.
-    globalThis.crypto = eval('require')('crypto');
-}
+import type { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import { StatefullSerializeableClasses, type StatefullSerializerInitializationParameter } from './statefull-serializeable-classes.ts';
+import type { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type.ts';
 
 export class StatefullSerializer {
     /**
@@ -61,10 +55,11 @@ export class StatefullSerializer {
 
         // Objects with constructors.
         const lClassConstructor: SerializeableConstructor = <SerializeableConstructor>pObject.constructor;
-        const lClassId: SerializeableGuid = StatefullSerializeableClasses.getClassId(lClassConstructor);
+        const lStatefullSerializeableClasses = new StatefullSerializeableClasses();
+        const lClassId: SerializeableGuid = lStatefullSerializeableClasses.getClassId(lClassConstructor);
 
         // Read constructor parameter.
-        const lInitializationObject: StatefullSerializerInitializationParameter = StatefullSerializeableClasses.getObjectConstructionParameter(pObject);
+        const lInitializationObject: StatefullSerializerInitializationParameter = lStatefullSerializeableClasses.getObjectConstructionParameter(pObject);
 
         // Build initialization parameter.
         const lInitializationParameter: Array<ObjectifiedValue> | undefined = lInitializationObject.parameter?.map(pValue => {

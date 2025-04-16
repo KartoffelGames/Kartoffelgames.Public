@@ -1,5 +1,6 @@
-import { SerializeableConstructor, SerializeableGuid } from '../../type';
-import { StatefullSerializeableClasses } from '../statefull-serializeable-classes';
+import type { ClassDecorator } from '@kartoffelgames/core';
+import type { SerializeableConstructor, SerializeableGuid } from '../../type.ts';
+import { StatefullSerializeableClasses } from '../statefull-serializeable-classes.ts';
 
 /**
  * AtScript.
@@ -7,7 +8,7 @@ import { StatefullSerializeableClasses } from '../statefull-serializeable-classe
  * All child types present as properties must be marked too.
  * @param pGuid - Global unique id.
  */
-export function StatefullSerializeable(pGuid: SerializeableGuid) {
+export function StatefullSerializeable(pGuid: SerializeableGuid): ClassDecorator<SerializeableConstructor, SerializeableConstructor> {
     return function (pConstructor: SerializeableConstructor): any {
         const lObjectToConstructorParameter: WeakMap<object, Array<any>> = new WeakMap<object, Array<any>>();
 
@@ -22,7 +23,7 @@ export function StatefullSerializeable(pGuid: SerializeableGuid) {
         };
 
         // Map serializable class.
-        StatefullSerializeableClasses.registerClass(lParameterProxyConstructor, pGuid, (pObject: object) => {
+        new StatefullSerializeableClasses().registerClass(lParameterProxyConstructor, pGuid, (pObject: object) => {
             return {
                 parameter: <Array<any>>lObjectToConstructorParameter.get(pObject),
                 requiredValues: []

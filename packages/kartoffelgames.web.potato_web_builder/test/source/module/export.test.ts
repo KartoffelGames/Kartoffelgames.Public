@@ -1,21 +1,14 @@
-import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
-import { ExportExtension } from '../../../source/module/export/export-extension';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('Export', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-    it('-- Default export get', async () => {
+Deno.test('Export--Functionality: Default export get', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -33,10 +26,15 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Default export set', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Default export set', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -55,10 +53,15 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Two parallel exports get', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Two parallel exports get', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValueOne: string = 'TEST-VALUE-ONE';
         const lTestValueTwo: string = 'TEST-VALUE-TWO';
@@ -80,11 +83,16 @@ describe('Export', () => {
         const lResultValueTwo: string = lComponent.valueTwo;
 
         // Evaluation.
-        expect(lResultValueOne).to.equal(lTestValueOne);
-        expect(lResultValueTwo).to.equal(lTestValueTwo);
-    });
+        expect(lResultValueOne).toBe(lTestValueOne);
+        expect(lResultValueTwo).toBe(lTestValueTwo);
 
-    it('-- Forbidden static usage', () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Forbidden static usage', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             // Setup. Define component.
@@ -99,10 +107,12 @@ describe('Export', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event target is not for a static property.');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Linked setAttribute', async () => {
+Deno.test('Export--Functionality: Linked setAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -123,11 +133,16 @@ describe('Export', () => {
         const lResultValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Get unexported value with getAttribute', async () => {
-         // Setup. Define component.
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Get unexported value with getAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
@@ -140,10 +155,15 @@ describe('Export', () => {
         const lResultValue: string | null = lComponent.getAttribute('value');
 
         // Evaluation.
-        expect(lResultValue).to.be.null;
-    });
+        expect(lResultValue).toBeNull();
 
-    it('-- Preserve original getAttribute and setAttribute', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Preserve original getAttribute and setAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -151,9 +171,9 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor { 
+        class TestComponent extends Processor {
             @PwbExport
-            public value: string = ''
+            public value: string = '';
         }
 
         // Process. Create element and click div.
@@ -162,10 +182,15 @@ describe('Export', () => {
         const lResultValue: string | null = lComponent.getAttribute('htmlvalue');
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Override native properties', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Override native properties', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -183,10 +208,15 @@ describe('Export', () => {
         const lResultValue: string = lComponent.children;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Export parent class exported properties', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Export parent class exported properties', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -207,10 +237,15 @@ describe('Export', () => {
         const lResultValue: string = lComponent.children;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Exported value with getAttribute', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Exported value with getAttribute', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: string = 'TEST-VALUE';
 
@@ -228,10 +263,15 @@ describe('Export', () => {
         const lResultValue: string = lComponent.getAttribute('value')!;
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
-    });
+        expect(lResultValue).toBe(lTestValue);
 
-    it('-- Set attribute values on export init', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('Export--Functionality: Set attribute values on export init', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Defined values.
         const lSelector: string = TestUtil.randomSelector();
         const lValue: string = 'UniqueValue:)';
@@ -250,7 +290,7 @@ describe('Export', () => {
 
         // Process. Set component with value in DOM and try to read it.
         document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
-        const lComponent: HTMLElement & TestComponent = <any>document.body.querySelector(lSelector);
+        const lComponent: HTMLElement & TestComponent = document.body.querySelector(lSelector)!;
 
         // Process. Start a async task to let the mutation observer to it thing.
         lComponent.justSomethingThatStartsUpdate = 'RED or GREEN i dont know';
@@ -260,6 +300,9 @@ describe('Export', () => {
         const lExportedValue: string = lComponent.value;
 
         // Evaluation.
-        expect(lExportedValue).to.equal(lValue);
+        expect(lExportedValue).toBe(lValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

@@ -1,5 +1,5 @@
-import { BasePwbTemplateNode } from './base-pwb-template-node';
-import { PwbTemplateExpression } from './values/pwb-template-expression';
+import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { PwbTemplateExpression } from './values/pwb-template-expression.ts';
 
 /**
  * Pwb template node only containing text.

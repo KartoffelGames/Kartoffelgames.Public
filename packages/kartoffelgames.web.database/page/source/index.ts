@@ -1,31 +1,33 @@
 /* eslint-disable no-console */
-import { WebDatabaseIdentity } from '../../source/web_database/layout/web-database-identity.decorator';
-import { WebDatabaseIndex } from '../../source/web_database/layout/web-database-index.decorator';
-import { WebDatabase } from '../../source/web_database/web-database';
-import { WebDatabaseTable } from '../../source/web_database/web-database-table';
 
+import type { WebDatabaseTable } from '../../source/web_database/web-database-table.ts';
+import { WebDatabase } from '../../source/web_database/web-database.ts';
+
+@WebDatabase.table('TestTableOne')
 class TestTableOne {
-    @WebDatabaseIdentity(true)
-    public id?: number;
+    @WebDatabase.identity(true)
+    public id!: number;
 
-    @WebDatabaseIndex(true)
+    @WebDatabase.field('name', true)
     public name?: string;
 
-    @WebDatabaseIndex()
+    @WebDatabase.field()
+    public notIndexed?: string;
+
+    @WebDatabase.field('price')
     public price?: number;
 
-    @WebDatabaseIndex()
+    @WebDatabase.field('types', false, true)
     public types?: Array<number>;
-
-    public notIndexed?: string;
 
     public whatMyId(): number {
         return this.id!;
     }
 }
 
+@WebDatabase.table('TestTableTwo')
 class TestTableTwo {
-    @WebDatabaseIndex(true)
+    @WebDatabase.field('nameThing', true)
     public nameThing?: string;
 }
 

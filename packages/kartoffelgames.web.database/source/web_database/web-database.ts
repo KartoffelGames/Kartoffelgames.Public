@@ -1,13 +1,106 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
-import { TableLayoutConfig, TableLayoutConfigIndex, TableType, WebDatabaseTableLayout } from './layout/web-database-table-layout';
-import { WebDatabaseTransaction, WebDbTransactionMode } from './web-database-transaction';
+import { type ClassDecorator, type ClassFieldDecorator, Dictionary, Exception } from '@kartoffelgames/core';
+import { Metadata } from '../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts';
+import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
+import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
 export class WebDatabase {
-    private static readonly ANONYMOUS_IDENTITIY_KEY: string = '__id__';
+    /**
+     * Set propery as table field.
+     * 
+     * @param pIndexName - Index name.
+     * @param pUnique - Index should be unique.
+     * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
+     */
+    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false): ClassFieldDecorator<any, any> {
+        return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
+            // Decorator can not be used on static propertys.
+            if (pContext.static) {
+                throw new Exception('Index property can not be a static property.', WebDatabase);
+            }
+
+            // Decorator can only be attached to string named properties.
+            if (typeof pContext.name !== 'string') {
+                throw new Exception('Index name must be a string.', WebDatabase);
+            }
+
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Add table type index to layout.
+            lTableLayout.setTableField(pContext.name, pIndexName, pUnique, pMultiEntry);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
+
+    /**
+     * Add identity to table type.
+     * Auto incremented identity is only supported for number types.
+     * 
+     * @param pAutoIncrement - Auto incremented identity.
+     */
+    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement): ClassFieldDecorator<any, TAutoIncrement extends true ? number : any> {
+        return (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, TAutoIncrement extends true ? number : any>): void => {
+            // Decorator can not be used on static propertys.
+            if (pContext.static) {
+                throw new Exception('Identity property can not be a static property.', WebDatabase);
+            }
+
+            // Decorator can only be attached to string named properties.
+            if (typeof pContext.name !== 'string') {
+                throw new Exception('Identity name must be a string.', WebDatabase);
+            }
+
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Add table type index to layout.
+            lTableLayout.setTableIdentity(pContext.name, pAutoIncrement);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
+
+    /**
+     * Decorator for the database table.
+     * 
+     * @param pTableName - Table name.
+     */
+    public static table(pTableName: string): ClassDecorator<TableType, void> {
+        return function (_pClassTarget: any, pContext: ClassDecoratorContext): void {
+            // Read metadata from metadata...
+            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
+            // Try to read table layout from metadata.
+            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+            if (!lTableLayout) {
+                lTableLayout = new WebDatabaseTableLayout();
+            }
+
+            // Set table name.
+            lTableLayout.setTableName(pTableName);
+
+            // Set the table layout to the metadata.
+            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
+        };
+    }
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableLayouts: WebDatabaseTableLayout;
     private readonly mTableTypes: Dictionary<string, TableType>;
 
     /**
@@ -19,7 +112,6 @@ export class WebDatabase {
     public constructor(pName: string, pTables: Array<TableType>) {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
-        this.mTableLayouts = new WebDatabaseTableLayout();
 
         this.mTableTypes = new Dictionary<string, TableType>();
         for (const lTableType of pTables) {
@@ -45,7 +137,7 @@ export class WebDatabase {
      * Delete database and resolve on success.
      */
     public async delete(): Promise<void> {
-        const lDeleteRequest: IDBOpenDBRequest = window.indexedDB.deleteDatabase(this.mDatabaseName);
+        const lDeleteRequest: IDBOpenDBRequest = globalThis.indexedDB.deleteDatabase(this.mDatabaseName);
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
             lDeleteRequest.addEventListener('error', (pEvent) => {
@@ -81,7 +173,7 @@ export class WebDatabase {
             };
 
             // Open database with current version.
-            const lOpenRequest: IDBOpenDBRequest = window.indexedDB.open(this.mDatabaseName);
+            const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName);
 
             // Set defaults when no database exists.
             lOpenRequest.addEventListener('upgradeneeded', () => {
@@ -126,20 +218,22 @@ export class WebDatabase {
                         }
 
                         // Read table configuration.
-                        const lTableConfiguration: TableLayoutConfig = this.mTableLayouts.configOf(this.mTableTypes.get(lTableName)!);
+                        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
 
                         // Open database table.
                         const lTable: IDBObjectStore = lReadTransaction.objectStore(lTableName);
 
                         // Validate correct identity, update table when it differs.
-                        const lConfiguratedKeyPath: string = lTableConfiguration.identity.key;
-                        const lConfiguratedAutoIncrement: boolean = lTableConfiguration.identity.autoIncrement;
+                        const lConfiguratedKeyPath: string = lTableLayout.identity.key;
+                        const lConfiguratedAutoIncrement: boolean = lTableLayout.identity.autoIncrement;
                         if (lTable.keyPath !== lConfiguratedKeyPath || lTable.autoIncrement !== lConfiguratedAutoIncrement) {
                             lDatabaseUpdate.tableUpdates.push({
                                 name: lTableName,
                                 action: 'delete',
                                 indices: []
                             });
+
+                            // Continue without deleting it from the uncreated table list, so it can be created again with the correct identity.
                             continue;
                         }
 
@@ -148,7 +242,7 @@ export class WebDatabase {
 
                         // Read current tables indeces and tables indecies that should be created.
                         const lCurrentTableIndices: Set<string> = new Set<string>(Array.from(lTable.indexNames));
-                        const lUncreatedTableIndices: Set<string> = new Set<string>(Array.from(lTableConfiguration.indices.keys()));
+                        const lUncreatedTableIndices: Set<string> = new Set<string>(lTableLayout.indices);
 
                         const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
                         for (const lIndexName of lCurrentTableIndices) {
@@ -163,18 +257,23 @@ export class WebDatabase {
 
                             // Read current index
                             const lCurrentIndex: IDBIndex = lTable.index(lIndexName);
-                            const lIndexConfiguration: TableLayoutConfigIndex = lTableConfiguration.indices.get(lIndexName)!;
+                            const lIndexConfiguration: TableLayoutIndex = lTableLayout.index(lIndexName)!;
 
-                            // Read index keys.
+                            // Read index keys. A Compound index is already checked by creating index key.
                             const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(',') : lCurrentIndex.keyPath;
                             const lConfiguratedIndexKey: string = lIndexConfiguration.keys.join(',');
 
+                            // Configurated entry is a multi entry index.
+                            const lConfiguratedIsMultiEntry: boolean = lIndexConfiguration.type === 'multiEntryIndex';
+
                             // Validate same index configuration. Delete the current index when it differs.
-                            if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lIndexConfiguration.options.multiEntity || lCurrentIndex.unique !== lIndexConfiguration.options.unique) {
+                            if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lConfiguratedIsMultiEntry || lCurrentIndex.unique !== lIndexConfiguration.unique) {
                                 lIndexUpdates.push({
                                     name: lIndexName,
                                     action: 'delete',
                                 });
+
+                                // Continue without deleting it from the uncreated index list, so it can be created again with the correct configuration.
                                 continue;
                             }
 
@@ -205,11 +304,11 @@ export class WebDatabase {
                 // Create all remaining tables.
                 for (const lTableName of lUncreatedTableNames) {
                     // Read table and index configuration.
-                    const lTableConfiguration: TableLayoutConfig = this.mTableLayouts.configOf(this.mTableTypes.get(lTableName)!);
+                    const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
 
                     // Add all indices to the index update list.
                     const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
-                    for (const lIndexName of lTableConfiguration.indices.keys()) {
+                    for (const lIndexName of lTableLayout.indices) {
                         lIndexUpdates.push({
                             name: lIndexName,
                             action: 'create',
@@ -244,7 +343,7 @@ export class WebDatabase {
         const lDatabaseVersion: number = (lDatabaseUpdate.updateNeeded) ? lDatabaseUpdate.version + 1 : lDatabaseUpdate.version;
 
         // Open database request.
-        const lOpenRequest: IDBOpenDBRequest = window.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
+        const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
         return new Promise<IDBDatabase>((pResolve, pReject) => {
             // Init tables on upgradeneeded.
             lOpenRequest.addEventListener('upgradeneeded', (pEvent) => {
@@ -261,7 +360,7 @@ export class WebDatabase {
 
                     // Read table configuration.
                     const lTableType: TableType = this.mTableTypes.get(lTableUpdate.name)!;
-                    const lTableConfiguration = this.mTableLayouts.configOf(lTableType);
+                    const lTableConfiguration = WebDatabaseTableLayout.configOf(lTableType);
 
                     // Create table with correct identity.
                     if (lTableUpdate.action === 'create') {
@@ -289,7 +388,7 @@ export class WebDatabase {
                             }
 
                             // Read index configuration.
-                            const lIndexConfiguration: TableLayoutConfigIndex = lTableConfiguration.indices.get(lIndexUpdate.name)!;
+                            const lIndexConfiguration: TableLayoutIndex = lTableConfiguration.index(lIndexUpdate.name)!;
 
                             // Read single keys as string, so multientries are recognized as single key.
                             const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
@@ -297,8 +396,8 @@ export class WebDatabase {
                             // Index create action.
                             if (lIndexUpdate.action === 'create') {
                                 lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
-                                    unique: lIndexConfiguration.options.unique,
-                                    multiEntry: lIndexConfiguration.options.multiEntity
+                                    unique: lIndexConfiguration.unique,
+                                    multiEntry: lIndexConfiguration.type === 'multiEntryIndex'
                                 });
                                 continue;
                             }
@@ -326,7 +425,6 @@ export class WebDatabase {
                 pResolve(this.mDatabaseConnection);
             });
         });
-
     }
 
     /**
@@ -372,3 +470,5 @@ type DatabaseUpdate = {
     updateNeeded: boolean;
     tableUpdates: Array<TableUpdate>;
 };
+
+type WebDatabaseFieldDecoratorContext<TThis, TValue> = ClassGetterDecoratorContext<TThis, TValue> | ClassSetterDecoratorContext<TThis, TValue> | ClassFieldDecoratorContext<TThis, TValue> | ClassAccessorDecoratorContext<TThis, TValue>;

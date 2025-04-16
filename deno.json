@@ -1,0 +1,72 @@
+{
+    "version": "0.2.1",
+    "workspace": [
+        "./packages/kartoffelgames.core",
+        "./packages/kartoffelgames.core.dependency_injection",
+        "./packages/kartoffelgames.core.parser",
+        "./packages/kartoffelgames.core.serializer",
+        "./packages/kartoffelgames.core.xml",
+        "./packages/kartoffelgames.web.database",
+        "./packages/kartoffelgames.web.interaction_zone",
+        "./packages/kartoffelgames.web.potato_web_builder",
+        "./packages/kartoffelgames.core.test"
+    ],
+    "tasks": {
+        "lint": "deno run -A npm:eslint --config eslint.config.js",
+        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@3.2.1"
+    },
+    "license": "LGPL-3.0-only",
+    "imports": {},
+    "lock": false,
+    "compilerOptions": {
+        "allowUnreachableCode": false,
+        "exactOptionalPropertyTypes": true,
+        "lib": [
+            "ES2021",
+            "DOM",
+            "deno.ns"
+        ],
+        "types": [
+            "./bundle-environment/bundle-module-declaration.d.ts"
+        ],
+        "noImplicitAny": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUnusedParameters": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "useUnknownInCatchVariables": true
+    },
+    "fmt": {
+        "useTabs": false,
+        "indent-width": 4,
+        "line-width": 9999,
+        "semiColons": true,
+        "singleQuote": true
+    },
+    "lint": {
+        "exclude": [
+            "**/*"
+        ]
+    },
+    "kg": {
+        "root": true,
+        "cli": [
+            "jsr:@kartoffelgames/environment-command-help@3.2.2",
+            "jsr:@kartoffelgames/environment-command-sync@3.2.2",
+            "jsr:@kartoffelgames/environment-command-create@3.2.2",
+            "jsr:@kartoffelgames/environment-blueprint@3.2.2",
+            "jsr:@kartoffelgames/environment-command-bundle@3.2.2",
+            "jsr:@kartoffelgames/environment-command-scratchpad@3.2.2",
+            "jsr:@kartoffelgames/environment-command-page@3.2.2",
+            "jsr:@kartoffelgames/environment-command-test@3.2.2",
+            "jsr:@kartoffelgames/environment-command-bump@3.2.2",
+            "jsr:@kartoffelgames/environment-command-transform@3.2.2"
+        ],
+        "packages": "./packages"
+    }
+}

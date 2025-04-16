@@ -1,7 +1,3 @@
-/* istanbul ignore file */
-
-
-
 /**
  * Library for data container and easier data access.
  *
@@ -12,22 +8,31 @@
  */
 
 // Container.
-export { Dictionary } from './data_container/dictionary';
-export { List } from './data_container/list';
-export { Exception } from './exception/exception';
-export { Stack } from './data_container/stack';
+export { Dictionary } from './data_container/dictionary.ts';
+export { List } from './data_container/list.ts';
+export { Stack } from './data_container/stack.ts';
+export { Exception } from './exception/exception.ts';
+export { LinkedList } from './data_container/linked-list.ts';
 
 // Handler.
-export { EnumUtil } from './util/enum-util';
-export { TypeUtil } from './util/type-util';
+export { EnumUtil } from './util/enum-util.ts';
+export { TypeUtil } from './util/type-util.ts';
 
 // Interfaces.
-export { IVoidParameterConstructor } from './interface/i-constructor';
-export { ICloneable } from './interface/i-cloneable';
-export { IDeconstructable } from './interface/i-deconstructable';
+export { type ICloneable } from './interface/i-cloneable.ts';
+export { type IVoidParameterConstructor } from './interface/i-constructor.ts';
+export { type IDeconstructable } from './interface/i-deconstructable.ts';
 
 // Support types.
-export { Writeable, Readonly } from './types';
+export { 
+    type Readonly, type Writeable,
+
+    // Decorator types.
+    type ClassDecorator,
+    type ClassAccessorDecorator,
+    type ClassMethodDecorator,
+    type ClassFieldDecorator,
+} from './types.ts';
 
 // Algorythms
-export { ChangeState, MyersDiff, HistoryItem } from './algorithm/myers-diff';
+export { ChangeState, MyersDiff, type HistoryItem } from './algorithm/myers-diff.ts';

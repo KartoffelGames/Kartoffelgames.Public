@@ -1,22 +1,13 @@
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const HTMLSlotElement: InjectionConstructor = <any>document.createElement('slot').constructor;
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-describe('SlotInstruction', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
-
-    it('-- Default slot', async () => {
+Deno.test('SlotInstruction--Functionality: Default slot', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -29,16 +20,21 @@ describe('SlotInstruction', () => {
         const lSlotName: string | null = TestUtil.getComponentNode<HTMLSlotElement>(lComponent, 'slot').getAttribute('name');
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor
             HTMLSlotElement
         ], true);
-        expect(lSlotName).to.be.null;
-    });
+        expect(lSlotName).toBeNull();
 
-    it('-- Named slot', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('SlotInstruction--Functionality: Named slot', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lSlotName: string = 'slotname';
 
@@ -53,7 +49,7 @@ describe('SlotInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor
@@ -62,9 +58,14 @@ describe('SlotInstruction', () => {
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
-    });
 
-    it('-- Named slot after component update', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('SlotInstruction--Functionality: Named slot after component update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lSlotName: string = 'slotname';
 
@@ -80,7 +81,7 @@ describe('SlotInstruction', () => {
         TestUtil.manualUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // Instruction Anchor
             Comment, // Static Anchor
@@ -89,5 +90,8 @@ describe('SlotInstruction', () => {
                 attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

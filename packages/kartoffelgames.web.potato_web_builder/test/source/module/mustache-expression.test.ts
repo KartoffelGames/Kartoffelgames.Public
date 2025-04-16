@@ -1,19 +1,14 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('MustacheExpression', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-    it('Initial text value', async () => {
+Deno.test('MustacheExpression--Functionality: Initial text value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -30,16 +25,21 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
-    });
 
-    it('Updated text value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('MustacheExpression--Functionality: Updated text value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -59,16 +59,21 @@ describe('MustacheExpression', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
-    });
 
-    it('Initial attribute value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('MustacheExpression--Functionality: Initial attribute value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -85,7 +90,7 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -94,9 +99,14 @@ describe('MustacheExpression', () => {
                 ]
             }
         ], true);
-    });
 
-    it('Updated attribute value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('MustacheExpression--Functionality: Updated attribute value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = 'TEXT CONTENT.';
 
@@ -116,7 +126,7 @@ describe('MustacheExpression', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
@@ -125,9 +135,14 @@ describe('MustacheExpression', () => {
                 ]
             }
         ], true);
-    });
 
-    it('Only self created values', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('MustacheExpression--Functionality: Only self-created values', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Text content.
         const lTextContent: string = new Array<string>(10).fill('a').join('');
 
@@ -142,12 +157,15 @@ describe('MustacheExpression', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTextContent
             }
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

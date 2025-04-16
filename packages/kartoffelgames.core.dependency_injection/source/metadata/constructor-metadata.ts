@@ -1,31 +1,66 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { InjectionConstructor } from '../type';
-import { PropertyMetadata } from './property-metadata';
-import { BaseMetadata } from './base-metadata';
+import { BaseMetadata, type MetadataKey } from './base-metadata.ts';
+import { PropertyMetadata } from './property-metadata.ts';
 
 /**
  * Constructor metadata.
  */
 export class ConstructorMetadata extends BaseMetadata {
-    private readonly mPropertyMetadata: Dictionary<string | symbol, PropertyMetadata>;
+    private static readonly mPrivateMetadataKey: symbol = Symbol('Metadata');
 
-    /**
-     * Get parameter type information.
-     */
-    public get parameterTypes(): Array<InjectionConstructor> | null {
-        return this.getMetadata<Array<InjectionConstructor>>('design:paramtypes');
-    }
+    private readonly mDecoratorMetadataObject: DecoratorMetadataObject;
+    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
 
     /**
      * Constructor.
      * Initialize lists.
      * 
-     * @param pConstructor - Constructor where all metadata should be attached.
+     * @param pDecoratorMetadataObject - Constructor where all metadata should be attached.
      */
-    public constructor(pConstructor: InjectionConstructor) {
-        super(pConstructor, null);
+    public constructor(pDecoratorMetadataObject: DecoratorMetadataObject) {
+        super();
 
-        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
+        this.mDecoratorMetadataObject = pDecoratorMetadataObject;
+        this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
+
+        // Attach constructor metadata to decorator metadata object.
+        pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = this;
+    }
+
+    /**
+     * Get metadata of constructor.
+     * Searches for metadata in inheritance chain.
+     * 
+     * @param pMetadataKey - Metadata key.
+     * 
+     * @typeParam T - Expected type of metadata value. 
+     * 
+     * @returns set metadata or null when no metadata was attached.
+     */
+    public getInheritedMetadata<T>(pMetadataKey: MetadataKey): Array<T> {
+        const lInheritedMetadata: Array<T> = new Array<T>();
+
+        // Read starting decorator metadata. At this point it should have a metadata object.
+        let lDecoratorMetadataObject: DecoratorMetadataObject | null = this.mDecoratorMetadataObject;
+        do {
+            // Check if metadata is set on this constructor.
+            if (Object.hasOwn(lDecoratorMetadataObject, ConstructorMetadata.mPrivateMetadataKey)) {
+                // Get metadata from constructor.
+                const lConstructorMetadata: ConstructorMetadata = lDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] as ConstructorMetadata;
+
+                // Check if metadata is set.
+                const lMetadataValue: T | null = lConstructorMetadata.getMetadata(pMetadataKey);
+                if (lMetadataValue !== null) {
+                    lInheritedMetadata.push(lMetadataValue);
+                }
+            }
+
+            // Read next metadata object.
+            lDecoratorMetadataObject = Object.getPrototypeOf(lDecoratorMetadataObject);
+        } while (lDecoratorMetadataObject !== null);
+
+        // Reverse array to send data order from Parent to Child.
+        return lInheritedMetadata.reverse();
     }
 
     /**
@@ -34,10 +69,10 @@ export class ConstructorMetadata extends BaseMetadata {
      * 
      * @param pPropertyKey - Key of property.
      */
-    public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
+    public getProperty(pPropertyKey: PropertyKey): PropertyMetadata {
         // Create new property mapping when no mapping is found.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
-            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor, pPropertyKey));
+            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata());
         }
 
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);

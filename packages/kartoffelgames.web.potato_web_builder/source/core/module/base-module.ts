@@ -1,20 +1,22 @@
-import { IDeconstructable } from '@kartoffelgames/core';
-import { DataLevel } from '../data/data-level';
-import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
-import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
-import { ModuleDataLevel } from '../data/module-data-level';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
-import { Processor } from '../core_entity/processor';
+import type { IDeconstructable } from '@kartoffelgames/core';
+import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
+import { CoreEntityExtendable, type CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable.ts';
+import type { CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
+import type { Processor } from '../core_entity/processor.ts';
+import type { DataLevel } from '../data/data-level.ts';
+import { ModuleDataLevel } from '../data/module-data-level.ts';
 
 export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityExtendable<TModuleProcessor> implements IDeconstructable {
     /**
      * Constructor.
+     * 
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseModuleConstructorParameter<TModuleProcessor>) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
-            debugLevel: PwbDebugLogLevel.Module,
+            loggingType: PwbApplicationDebugLoggingType.Module,
             parent: pParameter.parent,
             isolate: false,
             trigger: pParameter.trigger,
@@ -26,7 +28,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 
         this.addSetupHook(() => {
             // Forces auto create on setup.
-            this.processor;
+            const _ = this.processor;
         });
     }
 
@@ -41,7 +43,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
     }
 }
 
-export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'trackConstructorChanges'>, 'debugLevel'>, 'isolateInteraction'> & {
+export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'trackConstructorChanges'>, 'loggingType'>, 'isolateInteraction'> & {
     values: DataLevel;
 };
 

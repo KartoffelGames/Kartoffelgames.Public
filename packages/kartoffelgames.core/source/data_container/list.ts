@@ -1,4 +1,4 @@
-import { ICloneable } from '../interface/i-cloneable';
+import type { ICloneable } from '../interface/i-cloneable.ts';
 
 /**
  * Wrapper for {@link Array}.

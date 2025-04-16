@@ -1,19 +1,16 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { AccessMode } from '../../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
-import { PwbExtensionModule } from '../../../../source/core/extension/pwb-extension-module.decorator';
-import { TestUtil } from '../../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
 
-describe('ExtensionModule', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { AccessMode } from '../../../../source/core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import { PwbExtensionModule } from '../../../../source/core/extension/pwb-extension-module.decorator.ts';
 
-    it('-- Call extension constructor on component restriction', async () => {
+Deno.test('PwbExtensionModule--Functionality: Call extension constructor on component restriction', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Define component.   
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -37,13 +34,18 @@ describe('ExtensionModule', () => {
         }
 
         // Process. Create and initialize element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lExtensionCalled).to.be.true;
-    });
+        expect(lExtensionCalled).toBeTruthy();
 
-    it('-- Ignore extension without valid target restriction', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbExtensionModule--Functionality: Ignore extension without valid target restriction', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Define component.   
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -67,9 +69,12 @@ describe('ExtensionModule', () => {
         }
 
         // Process. Create and initialize element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lExtensionCalled).to.be.false;
+        expect(lExtensionCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

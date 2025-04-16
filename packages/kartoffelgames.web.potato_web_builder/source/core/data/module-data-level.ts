@@ -1,5 +1,5 @@
-import { DataLevel } from './data-level';
-import { LevelProcedure } from './level-procedure';
+import type { DataLevel } from './data-level.ts';
+import { LevelProcedure } from './level-procedure.ts';
 
 /**
  * Module data level.

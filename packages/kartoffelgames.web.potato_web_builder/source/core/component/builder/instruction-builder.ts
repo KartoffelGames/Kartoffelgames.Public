@@ -1,12 +1,13 @@
-import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
-import { InstructionModule } from '../../module/instruction_module/instruction-module';
-import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
-import { DataLevel } from '../../data/data-level';
-import { ComponentModules } from '../component-modules';
-import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { BaseBuilder } from './base-builder';
-import { InstructionBuilderData } from './data/instruction-builder-data';
-import { StaticBuilder } from './static-builder';
+import { ChangeState, type HistoryItem, MyersDiff } from '@kartoffelgames/core';
+import type { DataLevel } from '../../data/data-level.ts';
+import type { InstructionModule } from '../../module/instruction_module/instruction-module.ts';
+import type { InstructionResultElement } from '../../module/instruction_module/instruction-result.ts';
+import type { ComponentModules } from '../component-modules.ts';
+import type { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
+import { BaseBuilder } from './base-builder.ts';
+import { InstructionBuilderData } from './data/instruction-builder-data.ts';
+import { StaticBuilder } from './static-builder.ts';
+import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 
 /**
  * Instruction builder. Only builds and handles instruction templates.
@@ -18,12 +19,13 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     /**
      * Constructor.
      * 
+     * @param pApplicationContext - Application context.
      * @param pTemplate - Instruction template.
      * @param pModules - Modules of component scope.
      * @param pParentDataLevel - Data level of parent builder.
      */
-    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentDataLevel: DataLevel) {
-        super(pTemplate, pParentDataLevel, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
+    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentDataLevel: DataLevel) {
+        super(pApplicationContext, pTemplate, pParentDataLevel, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**
@@ -33,7 +35,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         // Create instruction module if is does not exist.
         if (!this.content.instructionModule) {
             // Create and link instruction module.
-            const lInstructionModule: InstructionModule = this.content.modules.createInstructionModule(this.template, this.values);
+            const lInstructionModule: InstructionModule = this.content.modules.createInstructionModule(this.applicationContext, this.template, this.values);
             this.content.instructionModule = lInstructionModule;
         }
 
@@ -62,7 +64,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(this.applicationContext, pNewContent.template, this.content.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {
@@ -95,6 +97,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         let lCurrentNewItemIndex: number = 0;
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let lIndex: number = 0; lIndex < lDifferenceList.length; lIndex++) {
             const lHistoryItem = lDifferenceList[lIndex];
             // Update, Remove or do nothing with static builder depended on change state.

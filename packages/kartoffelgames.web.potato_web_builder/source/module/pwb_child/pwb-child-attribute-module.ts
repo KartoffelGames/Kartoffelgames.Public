@@ -1,11 +1,12 @@
-import { Processor } from '../../core/core_entity/processor';
-import { ComponentDataLevel } from '../../core/data/component-data-level';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.
@@ -23,7 +24,7 @@ export class PwbChildAttributeModule extends Processor {
      * @param pModuleAttribute - Module attribute.
      * @param pComponentScopeValue - Root values of component.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pAttributeModule: AttributeModule, pModuleAttribute: ModuleAttribute, pComponentScopeValue: ComponentDataLevel) {
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pAttributeModule = Injection.use(AttributeModule), pModuleAttribute = Injection.use(ModuleAttribute), pComponentScopeValue = Injection.use(ComponentDataLevel)) {
         super();
 
         const lTarget: Node = pTargetNode;

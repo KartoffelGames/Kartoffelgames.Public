@@ -1,12 +1,14 @@
-import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
-import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntityUpdater } from './updater/core-entity-updater';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
-import { Processor } from './processor';
-import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
+import { Dictionary, Exception, type IDeconstructable, Stack } from '@kartoffelgames/core';
+import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
+import type { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
+import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy.ts';
+import { Processor } from './processor.ts';
+import { CoreEntityUpdater } from './updater/core-entity-updater.ts';
 
 export abstract class CoreEntity<TProcessor extends Processor = Processor> implements IDeconstructable {
+    private readonly mApplicationContext: PwbApplicationConfiguration;
     private readonly mHooks: CoreEntityHooks<TProcessor>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mIsLocked: boolean;
@@ -15,6 +17,14 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
     private readonly mTrackChanges: boolean;
     private readonly mUpdater: CoreEntityUpdater;
+
+    /**
+     * Get application context.
+     */
+    public get applicationContext(): PwbApplicationConfiguration {
+        return this.mApplicationContext;
+    }
+
 
     /**
      * If processor is created or not.
@@ -61,6 +71,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
             throw new Exception(`Constructor "${pParameter.constructor.name}" does not extend`, this);
         }
 
+        this.mApplicationContext = pParameter.applicationContext;
         this.mProcessorConstructor = pParameter.constructor;
 
         // Set empty defaults.
@@ -85,14 +96,15 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
 
         // Create new updater for every component entity.
         this.mUpdater = new CoreEntityUpdater({
+            applicationContext: pParameter.applicationContext,
             label: pParameter.constructor.name,
-            debugLevel: pParameter.debugLevel,
+            loggingType: pParameter.loggingType,
             isolate: !!pParameter.isolate,
             trigger: pParameter.trigger,
             parent: pParameter.parent?.mUpdater,
             onUpdate: () => {
                 // Prevent updates as long as it is not setup.
-                if(!this.mIsSetup) {
+                if (!this.mIsSetup) {
                     return false;
                 }
 
@@ -220,7 +232,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
      * 
      * @returns Promise that resolves after update.
      */
-    public async waitForUpdate(): Promise<boolean>{
+    public async waitForUpdate(): Promise<boolean> {
         return this.mUpdater.resolveAfterUpdate();
     }
 
@@ -317,14 +329,19 @@ type PropertyFunctionParameter<TProcessor extends object, TProperty extends keyo
  */
 export type CoreEntityConstructorParameter<TProcessor extends Processor> = {
     /**
+     * General application configuration.
+     */
+    applicationContext: PwbApplicationConfiguration;
+
+    /**
      * Processor constructor.
      */
     constructor: CoreEntityProcessorConstructor<TProcessor>;
 
     /**
-     * Debug level for this entity.
+     * Debug message type for this entity.
      */
-    debugLevel: PwbDebugLogLevel;
+    loggingType: PwbApplicationDebugLoggingType;
 
     /**
      * Trigger that can be send to this and parent zones.

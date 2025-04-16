@@ -1,4 +1,4 @@
-import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
+import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy.ts';
 
 /**
  * Core processor for all modules, extentions and components.

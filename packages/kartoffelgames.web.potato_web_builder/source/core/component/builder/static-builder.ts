@@ -1,18 +1,19 @@
-import { AttributeModule } from '../../module/attribute_module/attribute-module';
-import { ExpressionModule } from '../../module/expression_module/expression-module';
-import { DataLevel } from '../../data/data-level';
-import { ComponentModules } from '../component-modules';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplate } from '../template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
-import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
-import { BaseBuilder } from './base-builder';
-import { BuilderContent } from './data/base-builder-data';
-import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
-import { InstructionBuilder } from './instruction-builder';
+import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
+import { DataLevel } from '../../data/data-level.ts';
+import type { AttributeModule } from '../../module/attribute_module/attribute-module.ts';
+import type { ExpressionModule } from '../../module/expression_module/expression-module.ts';
+import type { ComponentModules } from '../component-modules.ts';
+import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
+import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node.ts';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
+import { PwbTemplate } from '../template/nodes/pwb-template.ts';
+import type { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute.ts';
+import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression.ts';
+import { BaseBuilder } from './base-builder.ts';
+import type { BuilderContent } from './data/base-builder-data.ts';
+import { StaticBuilderData, type StaticBuilderLinkedAttributeData } from './data/static-builder-data.ts';
+import { InstructionBuilder } from './instruction-builder.ts';
 
 /**
  * Static builder. Handles any type of pwb template but creates new {@link InstructionBuilder} for every instruction node.
@@ -25,13 +26,14 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     /**
      * Constructor.
      * 
+     * @param pApplicationContext - Application context.
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
      * @param pParentDataLevel - Data of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
-        super(pTemplate, pParentDataLevel, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
+    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
+        super(pApplicationContext, pTemplate, pParentDataLevel, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -50,6 +52,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // Update attribute modules.
         let lAttributeModuleUpdated: boolean = false;
         const lLinkedAttributeModules = this.content.linkedAttributeModules;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let lIndex: number = 0; lIndex < lLinkedAttributeModules.length; lIndex++) {
             const lModule: AttributeModule = lLinkedAttributeModules[lIndex];
 
@@ -60,6 +63,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // List with all expression that are updated and linked with any attribute.
         let lExpressionModuleUpdated: boolean = false;
         const lLinkedExpressionModules = this.content.linkedExpressionModules;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let lIndex: number = 0; lIndex < lLinkedExpressionModules.length; lIndex++) {
             const lExpressionModule: ExpressionModule = lLinkedExpressionModules[lIndex];
 
@@ -99,7 +103,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, new DataLevel(this.values));
+        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(this.applicationContext, pMultiplicatorTemplate, this.content.modules, new DataLevel(this.values));
         this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 
@@ -118,7 +122,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lAttributeTemplate of pElementTemplate.attributes) {
 
             // Read static module.
-            const lStaticModule: AttributeModule | null = this.content.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
+            const lStaticModule: AttributeModule | null = this.content.modules.createAttributeModule(this.applicationContext, lAttributeTemplate, lHtmlNode, this.values);
             if (lStaticModule) {
                 // Link modules.
                 this.content.linkAttributeModule(lStaticModule);
@@ -142,7 +146,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                     }
 
                     // Create expression module for attribute expression value and link it to builder.
-                    const lAttributeExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(lValue, lAttributeTextNode, this.values);
+                    const lAttributeExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(this.applicationContext, lValue, lAttributeTextNode, this.values);
                     this.content.linkExpressionModule(lAttributeExpressionModule);
 
                     // Link expression to attribute.
@@ -209,7 +213,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             this.content.insert(lExpressionTextNode, 'BottomOf', pParentContent);
 
             // Create expression module and link it to builder.
-            const lExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(lValue, lExpressionTextNode, this.values);
+            const lExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(this.applicationContext, lValue, lExpressionTextNode, this.values);
             this.content.linkExpressionModule(lExpressionModule);
         }
     }

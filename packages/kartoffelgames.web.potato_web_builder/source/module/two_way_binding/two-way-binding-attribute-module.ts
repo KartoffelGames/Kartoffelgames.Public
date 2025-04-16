@@ -1,12 +1,13 @@
-import { Processor } from '../../core/core_entity/processor';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { AttributeModule, type IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -22,12 +23,13 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
 
     /**
      * Constructor.
+     * 
      * @param pTargetNode - Target element.
      * @param pModuleValues - Data level of module.
      * @param pModuleAttribute - Module attribute.
      * @param pAttributeModule - Attribute module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleDataLevel, pModuleAttribute: ModuleAttribute, pAttributeModule: AttributeModule) {
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute), pAttributeModule = Injection.use(AttributeModule)) {
         super();
         
         this.mTargetNode = pTargetNode;

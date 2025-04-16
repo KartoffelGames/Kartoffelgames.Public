@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { TableType } from './layout/web-database-table-layout';
-import { WebDatabase } from './web-database';
-import { WebDatabaseTable } from './web-database-table';
+import type { TableType } from './web-database-table-layout.ts';
+import type { WebDatabase } from './web-database.ts';
+import { WebDatabaseTable } from './web-database-table.ts';
 
 export class WebDatabaseTransaction<TTables extends TableType> {
     private readonly mDatabase: WebDatabase;

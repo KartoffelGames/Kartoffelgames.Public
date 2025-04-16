@@ -1,58 +1,57 @@
-import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { DataLevel } from '../../../source/core/data/data-level';
-import { ModuleDataLevel } from '../../../source/core/data/module-data-level';
-import { AccessMode } from '../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
-import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template';
-import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
-import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
-import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
-import { ComponentEvent } from '../../../source/module/component-event/component-event';
-import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
-import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import { TestUtil } from '../../utility/test-util';
-import '../../utility/chai-helper';
-import '../../utility/request-animation-frame-mock-session';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('ComponentEventListener', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
+import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { DataLevel } from '../../../source/core/data/data-level.ts';
+import { ModuleDataLevel } from '../../../source/core/data/module-data-level.ts';
+import { AccessMode } from '../../../source/core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum.ts';
+import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template.ts';
+import type { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module.ts';
+import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result.ts';
+import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
+import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator.ts';
+import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
+import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
+import type { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 
-    it('-- Component click event', async () => {
-        // Setup. Define component and wait for update.
-        const lEventResult = await new Promise<MouseEvent>((pResolve) => {
-            @PwbComponent({
-                selector: TestUtil.randomSelector(),
-            })
-            class TestComponent extends Processor {
-                @PwbComponentEventListener('click')
-                public handler(pEvent: MouseEvent): void {
-                    pResolve(pEvent);
-                }
+Deno.test('ComponentEventListener--Functionality: Component click event', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Process.
+        let lCalledEvent: Event | null = null;
+
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+        })
+        class TestComponent extends Processor {
+            @PwbComponentEventListener('click')
+            public handler(pEvent: MouseEvent): void {
+                lCalledEvent = pEvent;
             }
+        }
 
-            // Process. Create element and click div.
-            TestUtil.createComponent(TestComponent).then((pComponent) => {
-                pComponent.click();
-            });
-        });
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.click();
 
         // Evaluation.
-        expect(lEventResult).to.instanceOf(MouseEvent);
-    });
+        expect(lCalledEvent).toBeInstanceOf(MouseEvent);
 
-    it('-- Native listener', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Native listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -72,10 +71,15 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
-    });
+        expect(lEventCalled).toBeTruthy();
 
-    it('-- Custom event listener', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Custom event listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lEventValue: string = 'EVENT-VALUE';
 
@@ -88,7 +92,7 @@ describe('ComponentEventListener', () => {
         })
         class TestComponent extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mCustomEvent!: ComponentEventEmitter<string>;
+            private accessor mCustomEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent() {
@@ -106,10 +110,15 @@ describe('ComponentEventListener', () => {
         lComponent.callEvent();
 
         // Evaluation.
-        expect(lEventValueResult).to.equal(lEventValue);
-    });
+        expect(lEventValueResult).toBe(lEventValue);
 
-    it('-- Error on static properties', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Error on static properties', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process.
         const lErrorFunction = () => {
             @PwbComponent({
@@ -123,33 +132,12 @@ describe('ComponentEventListener', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event listener is only valid on instanced property');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Error on none function properties', async () => {
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector()
-        })
-        class TestComponent extends Processor {
-            @PwbComponentEventListener('click')
-            private readonly mListener!: string;
-        }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(TestComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).to.equal('Event listener property must be of type Function');
-    });
-
-    it('-- Two parallel listener', async () => {
+Deno.test('ComponentEventListener--Functionality: Two parallel listener', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventOneCalled: boolean = false;
         let lEventTwoCalled: boolean = false;
@@ -175,11 +163,16 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventOneCalled).to.be.true;
-        expect(lEventTwoCalled).to.be.true;
-    });
+        expect(lEventOneCalled).toBeTruthy();
+        expect(lEventTwoCalled).toBeTruthy();
 
-    it('-- Remove listener on deconstruct', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Remove listener on deconstruct', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -200,10 +193,15 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.false;
-    });
+        expect(lEventCalled).toBeFalsy();
 
-    it('-- Native listener on static module', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Native listener on static module', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -230,13 +228,18 @@ describe('ComponentEventListener', () => {
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
-        lDivElement.dispatchEvent(new Event('click', { bubbles: false }));
+        lDivElement.dispatchEvent(new MouseEvent('click', { bubbles: false }));
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
-    });
+        expect(lEventCalled).toBeTruthy();
 
-    it('-- Remove module listener on deconstruct on static modules', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Remove module listener on deconstruct on static modules', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -266,43 +269,15 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.false;
+        expect(lEventCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
+});
 
-    it('-- Error on none function properties on static module', async () => {
-        // Setup. Create static module.
-        @PwbAttributeModule({
-            access: AccessMode.Read,
-            selector: /^listenerTestModuleThree$/,
-            trigger: UpdateTrigger.Any
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule extends Processor {
-            @PwbComponentEventListener('click')
-            private readonly mListener!: string;
-        }
-
-        // Process. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: '<div listenerTestModuleThree />'
-        })
-        class TestComponent extends Processor { }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(TestComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).to.equal('Event listener property must be of type Function');
-    });
-
-    it('-- Dont call event listener for instruction modules', async () => {
+Deno.test('ComponentEventListener--Functionality: Dont call event listener for instruction modules', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -312,8 +287,14 @@ describe('ComponentEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule extends Processor implements IInstructionOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleDataLevel) {
+            private readonly mTemplate: ModuleTemplate;
+            private readonly mValue: ModuleDataLevel;
+
+            public constructor(pTemplate = Injection.use(ModuleTemplate), pValue = Injection.use(ModuleDataLevel)) {
                 super();
+
+                this.mTemplate = pTemplate;
+                this.mValue = pValue;
             }
 
             onUpdate(): InstructionResult | null {
@@ -344,14 +325,19 @@ describe('ComponentEventListener', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
-        // Evaluation after inner click..
-        lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
+        // Evaluation after inner click.
+        lDivElement.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
         // Evaluation after component click.
-        expect(lEventCalled).to.be.false;
-    });
+        expect(lEventCalled).toBeFalsy();
 
-    it('-- Native listener inherited from parent', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('ComponentEventListener--Functionality: Native listener inherited from parent', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -374,6 +360,9 @@ describe('ComponentEventListener', () => {
         lComponent.click();
 
         // Evaluation.
-        expect(lEventCalled).to.be.true;
+        expect(lEventCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

@@ -1,32 +1,29 @@
-import { expect } from 'chai';
-import { PwbExport } from '../../../../source';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { TestUtil } from '../../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
 
-describe('ExtensionModule', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Functional imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { PwbGlobalResource } from '../../../../source/core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 
-    it('-- Call extension constructor on component restriction', async () => {
+Deno.test('PwbGlobalResource--Functionality: Call extension constructor on component restriction', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTestValue: number = 112233;
 
-        // Setup. Define gloabl resource.
+        // Setup. Define global resource.
         @PwbGlobalResource()
         class MyGlobalResource {
             private static mMyNumber: number = 11;
 
             public static getNumber(): number {
-                return MyGlobalResource.mMyNumber;
+                return this.mMyNumber;
             }
 
             public static setNumber(pValue: number): void {
-                MyGlobalResource.mMyNumber = pValue;
+                this.mMyNumber = pValue;
             }
         }
 
@@ -38,7 +35,7 @@ describe('ExtensionModule', () => {
         class TestComponentOne extends Processor {
         }
 
-        // Setup. Define First component.
+        // Setup. Define Second component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<div>{{MyGlobalResource.getNumber()}}</div>`
@@ -62,21 +59,24 @@ describe('ExtensionModule', () => {
         await TestUtil.waitForUpdate(lComponentTwo);
 
         // Evaluation.
-        expect(MyGlobalResource.getNumber()).to.equal(lTestValue);
-        expect(lComponentOne, 'Component One').to.have.componentStructure([
+        expect(MyGlobalResource.getNumber()).toBe(lTestValue);
+        expect(lComponentOne, 'Component One').toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);
-        expect(lComponentTwo, 'Component Two').to.have.componentStructure([
+        expect(lComponentTwo, 'Component Two').toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lTestValue.toString()
             }
         ], true);
-    });
 
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponentOne);
+        await TestUtil.waitForUpdate(lComponentTwo);
+    });
 });

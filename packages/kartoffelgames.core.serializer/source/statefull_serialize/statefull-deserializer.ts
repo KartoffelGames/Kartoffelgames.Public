@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { SerializeableConstructor, SerializeableGuid } from '../type';
-import { StatefullSerializeableClasses } from './statefull-serializeable-classes';
-import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type';
+import type { SerializeableConstructor, SerializeableGuid } from '../type.ts';
+import { StatefullSerializeableClasses } from './statefull-serializeable-classes.ts';
+import type { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type.ts';
 
 export class StatefullDeserializer {
     /**
@@ -81,7 +81,7 @@ export class StatefullDeserializer {
                 const lConstructionParameterList = lClassObject['&initialisation']['parameter'].map(pValue => this.deobjectifyUnknown(pValue, pObjectIds));
 
                 // Get class constructor.
-                const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.getClass(lClassId);
+                const lConstructor: SerializeableConstructor = new StatefullSerializeableClasses().getClass(lClassId);
 
                 // Build class and register object id.
                 const lClass = new lConstructor(...lConstructionParameterList);

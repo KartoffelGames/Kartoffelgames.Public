@@ -1,28 +1,28 @@
-import { Exception } from '@kartoffelgames/core';
-import { Component, ComponentProcessor } from '../../core/component/component';
-import { ComponentRegister } from '../../core/component/component-register';
-import { ComponentDataLevel } from '../../core/data/component-data-level';
+import { type ClassAccessorDecorator, Exception } from '@kartoffelgames/core';
+import { ComponentRegister } from '../../core/component/component-register.ts';
+import type { Component, ComponentProcessor } from '../../core/component/component.ts';
+import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
 
 /**
  * AtScript. Id child 
  * @param pIdChildName - Name of id child.
  */
-export function PwbChild(pIdChildName: string): any {
-    return (pTarget: object, pPropertyKey: string) => {
+export function PwbChild<TElement extends Element>(pIdChildName: string): ClassAccessorDecorator<any, TElement> {
+    return (_pTarget: ClassAccessorDecoratorTarget<any, TElement>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TElement> => {
         // Check if real decorator on static property.
-        if (typeof pTarget === 'function') {
+        if (pContext.static) {
             throw new Exception('Event target is not for a static property.', PwbChild);
         }
 
         // Define getter accessor that returns id child.
-        Object.defineProperty(pTarget, pPropertyKey, {
+        return {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
                 const lComponent: Component = (() => {
                     try {
                         return ComponentRegister.ofProcessor(this).component;
-                    } catch (_err) {
-                        throw new Exception('PwbChild target class it not a component.', this);
+                    } catch {
+                        throw new Exception('PwbChild target class is not a component.', this);
                     }
                 })();
 
@@ -31,11 +31,11 @@ export function PwbChild(pIdChildName: string): any {
                 const lIdChild: any = lComponentRootValues.data.store[pIdChildName];
 
                 if (lIdChild instanceof Element) {
-                    return lIdChild;
+                    return lIdChild as TElement;
                 } else {
                     throw new Exception(`Can't find child "${pIdChildName}".`, this);
                 }
             }
-        });
+        };
     };
 }

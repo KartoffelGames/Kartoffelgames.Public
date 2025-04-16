@@ -1,12 +1,10 @@
-/* istanbul ignore file */
+
 
 // Injection
-export { Injector } from './injector';
-export { Injection } from './injection/injection';
-export { InjectionConstructor } from './type';
+export { Injection } from './injection/injection.ts';
+export { type InjectionConstructor, type InjectionInstance } from './type.ts';
 
 // Metadata
-export { Metadata } from './metadata/metadata';
-
-// Decoration
-export { DecorationReplacementHistory as DecorationHistory } from './decoration-history/decoration-history';
+export { Metadata } from './metadata/metadata.ts';
+export { ConstructorMetadata } from './metadata/constructor-metadata.ts';
+export { PropertyMetadata } from './metadata/property-metadata.ts';

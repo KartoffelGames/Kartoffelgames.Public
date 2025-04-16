@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
-import { Processor } from './processor';
+import { CoreEntity, type CoreEntityProcessorConstructor } from './core-entity.ts';
+import type { Processor } from './processor.ts';
 
 /**
  * Createable core entity register. 

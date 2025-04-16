@@ -1,12 +1,13 @@
-import { Processor } from '../../core/core_entity/processor';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Processor } from '../../core/core_entity/processor.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import type { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
 
 @PwbAttributeModule({
     access: AccessMode.Write,
@@ -24,9 +25,9 @@ export class EventAttributeModule extends Processor implements IAttributeOnDecon
      * @param pModuleData - Module data.
      * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleData: ModuleDataLevel, pModuleAttribute: ModuleAttribute) {
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleData = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
         super();
-        
+
         this.mTarget = pTargetNode;
         this.mEventName = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 

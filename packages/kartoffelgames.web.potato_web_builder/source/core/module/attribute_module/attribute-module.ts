@@ -1,10 +1,10 @@
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
-import { ModuleTemplate } from '../injection_reference/module-template';
-import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
-import { ModuleAttribute } from '../injection_reference/module-attribute';
-import { ModuleTargetNode } from '../injection_reference/module-target-node';
+import type { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute.ts';
+import type { AccessMode } from '../../enum/access-mode.enum.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
+import { ModuleAttribute } from '../injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../injection_reference/module-target-node.ts';
+import { ModuleTemplate } from '../injection_reference/module-template.ts';
 
 export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
@@ -22,6 +22,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      */
     public constructor(pParameter: AttributeModuleConstructorParameter) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
             parent: pParameter.parent,
             trigger: pParameter.trigger,

@@ -1,4 +1,8 @@
-export class ComponentEvent<T> extends Event {
+/**
+ * Coponent event.
+ */
+// Must be extended from window.Event to be compatible with the mocked test event system.
+export class ComponentEvent<T> extends window.Event {
     private readonly mValue: T;
 
     /**

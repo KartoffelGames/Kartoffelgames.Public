@@ -1,23 +1,17 @@
-import { Exception } from '@kartoffelgames/core';
-import { expect } from 'chai';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { TestUtil } from '../../utility/test-util';
-import '../../utility/chai-helper';
-import '../../utility/request-animation-frame-mock-session';
-import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
-import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import { ComponentEvent } from '../../../source/module/component-event/component-event';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('ComponentEvent', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
+import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
+import { ComponentEvent } from '../../../source/module/component-event/component-event.ts';
 
-    it('-- Correct event value', async () => {
+Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
         const lEventName = 'custom-event';
@@ -28,7 +22,7 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent(lEventName)
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -50,10 +44,15 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventResult.value).to.equal(lEventValue);
-    });
+        expect(lEventResult.value).toBe(lEventValue);
 
-    it('-- Forbidden static usage', () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
+    });
+});
+
+Deno.test('ComponentEvent--Functionality: Forbidden static usage', async (pContext) => {
+    await pContext.step('Default', () => {
         // Process. Define component.
         const lErrorFunction = () => {
             @PwbComponent({
@@ -62,22 +61,24 @@ describe('ComponentEvent', () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class EventComponent extends Processor {
                 @PwbComponentEvent('custom-event')
-                private static readonly mEvent: ComponentEventEmitter<string>;
+                private static accessor mEvent: ComponentEventEmitter<string>;
             }
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Event target is not for an instanced property.');
+        expect(lErrorFunction).toThrow('Event target is not for a static property.');
     });
+});
 
-    it('-- Inherited and overriden event-emitter event', async () => {
+Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
         class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
         }
 
         // Setup. Define component.
@@ -86,11 +87,11 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends ParentClass {
             @PwbComponentEvent('custom-event')
-            private readonly mOverridenEvent!: ComponentEventEmitter<string>;
+            private accessor mOverriddenEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
-                this.mOverridenEvent.dispatchEvent(lEventValue);
+                this.mOverriddenEvent.dispatchEvent(lEventValue);
             }
         }
 
@@ -108,17 +109,22 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventResult.value).to.equal(lEventValue);
-    });
+        expect(lEventResult.value).toBe(lEventValue);
 
-    it('-- Inherited event-emitter event', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
+    });
+});
+
+Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
         class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -147,17 +153,22 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).to.be.instanceOf(ComponentEvent);
-    });
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
 
-    it('-- Override native events', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
+    });
+});
+
+Deno.test('ComponentEvent--Functionality: Override native events', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('click')
-            private readonly mEvent!: ComponentEventEmitter<string>;
+            private accessor mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEvent(): void {
@@ -179,17 +190,22 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation.
-        expect(lEventResult).to.be.instanceOf(ComponentEvent);
-    });
+        expect(lEventResult).toBeInstanceOf(ComponentEvent);
 
-    it('-- Nativ and custom event parallel', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
+    });
+});
+
+Deno.test('ComponentEvent--Functionality: Native and custom event parallel', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('custom-event')
-            private readonly mEvent!: ComponentEventEmitter<void>;
+            private accessor mEvent!: ComponentEventEmitter<void>;
 
             @PwbExport
             public callEvent(): void {
@@ -219,12 +235,16 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lCustomCalled).to.be.true;
-        expect(lNativeCalled).to.be.true;
+        expect(lCustomCalled).toBeTruthy();
+        expect(lNativeCalled).toBeTruthy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
+});
 
-
-    it('-- Two parallel custom events correct values', async () => {
+Deno.test('ComponentEvent--Functionality: Two parallel custom events correct values', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventValueOne: string = 'EVENT-VALUE-ONE';
         const lEventValueTwo: string = 'EVENT-VALUE-Two';
@@ -235,9 +255,9 @@ describe('ComponentEvent', () => {
         })
         class EventComponent extends Processor {
             @PwbComponentEvent('custom-event-one')
-            private readonly mEventOne!: ComponentEventEmitter<string>;
+            private accessor mEventOne!: ComponentEventEmitter<string>;
             @PwbComponentEvent('custom-event-two')
-            private readonly mEventTwo!: ComponentEventEmitter<string>;
+            private accessor mEventTwo!: ComponentEventEmitter<string>;
 
             @PwbExport
             public callEventOne(): void {
@@ -272,31 +292,10 @@ describe('ComponentEvent', () => {
         });
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lCustomOneValue).to.equal(lEventValueOne);
-        expect(lCustomTwoValue).to.equal(lEventValueTwo);
-    });
+        expect(lCustomOneValue).toBe(lEventValueOne);
+        expect(lCustomTwoValue).toBe(lEventValueTwo);
 
-    it('-- Wrong emmiter type', async () => {
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class EventComponent extends Processor {
-            @PwbComponentEvent('custom-event')
-            public mEvent!: string; // Wrong type.
-        }
-
-        // Setup. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(EventComponent);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
-
-        // Evaluation.
-        expect(lErrorMessage).to.equal('Event emitter property must be of type ComponentEventEmitter');
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponent);
     });
 });

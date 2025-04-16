@@ -1,5 +1,5 @@
-import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/web-interaction-zone';
+import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -8,21 +8,57 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
  * @internal
  */
 export class CoreEntityProcessorProxy<T extends object> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /**
+     * List of ignored classes. Those classes will not be tracked or altered.
+     */
     private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
         lIgnoreList.add(CoreEntityProcessorProxy);
         lIgnoreList.add(InteractionZone as any as IgnoreableConstructor);
-        lIgnoreList.add(InteractionEvent);
+        lIgnoreList.add(InteractionZoneEvent);
 
         return lIgnoreList;
     })();
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /**
+     * Map of original object to proxy wrapper object.
+     */
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
+    /**
+     * Map of proxy object to original object.
+     */
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
+
+    /**
+     * List of untraceable functions. Those functions can not be tracked but report a special interaction type.
+     */
+    private static readonly UNTRACEABLE_FUNCTION_UPDATE_TRIGGER: WeakMap<Function, UpdateTrigger> = (() => {
+        // Array
+        const lUntraceableFunctionList = new WeakMap<Function, UpdateTrigger>();
+        lUntraceableFunctionList.set(Array.prototype.fill, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.pop, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Array.prototype.push, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.shift, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Array.prototype.unshift, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.splice, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.reverse, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.sort, UpdateTrigger.PropertySet);
+        lUntraceableFunctionList.set(Array.prototype.concat, UpdateTrigger.PropertySet);
+
+        // Map
+        lUntraceableFunctionList.set(Map.prototype.clear, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Map.prototype.delete, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Map.prototype.set, UpdateTrigger.PropertySet);
+
+        // Set
+        lUntraceableFunctionList.set(Set.prototype.clear, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Set.prototype.delete, UpdateTrigger.PropertyDelete);
+        lUntraceableFunctionList.set(Set.prototype.add, UpdateTrigger.PropertySet);
+
+        return lUntraceableFunctionList;
+    })();
 
     /**
      * Create CoreEntityInteractionData for interaction events.
@@ -163,18 +199,22 @@ export class CoreEntityProcessorProxy<T extends object> {
      * @param pTarget - Target object.
      */
     private createProxyObject(pTarget: T): T {
-        const lDetectUntrackableFunction = (pCallableTarget: CallableObject): boolean => {
-            // Skip proxy execute and use original this context on native code.
-            if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(pCallableTarget))) {
-                return true;
+        // Function to call with original object.
+        const lCallWithOriginalThisContext = (pCallableTarget: CallableObject, pThisArgument: any, pArgumentsList: Array<any>): any => {
+            const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
+            try {
+                // Call and convert potential object to a linked proxy.
+                const lResult = pCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
+                return this.convertToProxy(lResult);
+            } finally {
+                // Dispatch special InteractionResponseType.UntrackableFunctionCall.
+                if (!CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(pCallableTarget)) {
+                    this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
+                } else {
+                    // Dispatch mapped UpdateTrigger for some untraceable functions. 
+                    this.dispatch(CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!, pThisArgument);
+                }
             }
-
-            // Special case for event targets.
-            if ((<any>EventTarget.prototype)[pCallableTarget.name] === pCallableTarget) {
-                return true;
-            }
-
-            return false;
         };
 
         // Create proxy handler.
@@ -190,26 +230,8 @@ export class CoreEntityProcessorProxy<T extends object> {
                 // On object touch. Add current zone to attached zone.
                 this.addListenerZone(InteractionZone.current);
 
+                // Type convert to callable object.
                 const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
-
-                // Function to call with original object.
-                const lCallWithOriginalThisContext = (): any => {
-                    const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
-
-                    try {
-                        // Call and convert potential object to a linked proxy.
-                        const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
-                        return this.convertToProxy(lResult);
-                    } finally {
-                        // Dispatch special InteractionResponseType.NativeFunctionCall.
-                        this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
-                    }
-                };
-
-                // Skip proxy execute and use original this context on native code.
-                if (lDetectUntrackableFunction(lCallableTarget)) {
-                    return lCallWithOriginalThisContext();
-                }
 
                 // Only on non native calls, try to use proxied this context.
                 try {
@@ -223,7 +245,7 @@ export class CoreEntityProcessorProxy<T extends object> {
                     }
 
                     // Read original object.
-                    return lCallWithOriginalThisContext();
+                    return lCallWithOriginalThisContext(lCallableTarget, pThisArgument, pArgumentsList);
                 }
             },
 
@@ -322,7 +344,7 @@ export class CoreEntityProcessorProxy<T extends object> {
 }
 
 type CallableObject = (...args: Array<any>) => any;
-type IgnoreableConstructor = new (...pParameter: Array<any>) => {};
+type IgnoreableConstructor = new (...pParameter: Array<any>) => object;
 
 export type CoreEntityInteractionData = {
     source: object,
@@ -330,5 +352,5 @@ export type CoreEntityInteractionData = {
     toString: () => string;
 };
 
-export type CoreEntityInteractionEvent = InteractionEvent<UpdateTrigger, CoreEntityInteractionData>;
+export type CoreEntityInteractionEvent = InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>;
 

@@ -1,5 +1,5 @@
-import { type ClassDecorator, type ClassFieldDecorator, Dictionary, Exception } from '@kartoffelgames/core';
-import { Metadata } from '../../../kartoffelgames.core.dependency_injection/source/metadata/metadata.ts';
+import { Dictionary, Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
 import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 

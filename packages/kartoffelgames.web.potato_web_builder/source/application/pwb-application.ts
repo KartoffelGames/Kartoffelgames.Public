@@ -1,4 +1,4 @@
-import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/interaction-zone/interaction-zone.ts';
+import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
 import type { Component } from '../core/component/component.ts';
 import type { Processor } from '../core/core_entity/processor.ts';

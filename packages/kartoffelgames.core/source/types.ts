@@ -17,3 +17,6 @@ export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
  * @public
  */
 export type Readonly<T> = { +readonly [P in keyof T]: T[P] };
+
+// Decorator types.
+export type ClassDecorator<TClass extends Function, TResult extends Function | any> = (pOriginalClass: TClass, pContext: ClassDecoratorContext) => TResult;

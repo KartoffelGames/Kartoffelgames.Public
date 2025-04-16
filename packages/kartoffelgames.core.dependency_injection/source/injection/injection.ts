@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { ClassDecorator, Dictionary, Exception } from '@kartoffelgames/core';
 import type { ConstructorMetadata } from '../metadata/constructor-metadata.ts';
 import { Metadata } from '../metadata/metadata.ts';
 import type { InjectionConstructor } from '../type.ts';
@@ -118,7 +118,7 @@ export class Injection {
      * 
      * @param pMode - Injection mode.
      */
-    public static injectable(pMode: InjectMode = 'instanced') {
+    public static injectable(pMode: InjectMode = 'instanced'): ClassDecorator<InjectionConstructor, void> {
         return (pOriginalClass: InjectionConstructor, pContext: ClassDecoratorContext): void => {
             Injection.registerInjectable(pOriginalClass, pContext.metadata, pMode);
         };

@@ -8,6 +8,5 @@ node_modules
 scratchpad
 debug.log
 /packages/**/library
-node
 package.json
 package-lock.json

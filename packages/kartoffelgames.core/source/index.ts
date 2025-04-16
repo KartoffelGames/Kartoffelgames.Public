@@ -24,7 +24,12 @@ export { type IVoidParameterConstructor } from './interface/i-constructor.ts';
 export { type IDeconstructable } from './interface/i-deconstructable.ts';
 
 // Support types.
-export { type Readonly, type Writeable } from './types.ts';
+export { 
+    type Readonly, type Writeable,
+
+    // Decorator types.
+    type ClassDecorator
+} from './types.ts';
 
 // Algorythms
 export { ChangeState, MyersDiff, type HistoryItem } from './algorithm/myers-diff.ts';

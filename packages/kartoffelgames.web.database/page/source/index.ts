@@ -1,22 +1,23 @@
 /* eslint-disable no-console */
-import { WebDatabaseIdentity } from '../../source/web_database/layout/web-database-identity.decorator.ts';
-import { WebDatabaseIndex } from '../../source/web_database/layout/web-database-index.decorator.ts';
-import { WebDatabase } from '../../source/web_database/web-database.ts';
+
 import type { WebDatabaseTable } from '../../source/web_database/web-database-table.ts';
+import { WebDatabase } from '../../source/web_database/web-database.ts';
 
+@WebDatabase.table('TestTableOne')
 class TestTableOne {
-    @WebDatabaseIdentity(true)
-    public id?: number;
+    @WebDatabase.identity(true)
+    public id!: number;
 
-    @WebDatabaseIndex(true)
+    @WebDatabase.field('name', true)
     public name?: string;
 
-    @WebDatabaseIndex()
+    @WebDatabase.field('price')
     public price?: number;
 
-    @WebDatabaseIndex()
+    @WebDatabase.field('type', false, true)
     public types?: Array<number>;
 
+    @WebDatabase.field()
     public notIndexed?: string;
 
     public whatMyId(): number {
@@ -24,8 +25,9 @@ class TestTableOne {
     }
 }
 
+@WebDatabase.table('TestTableTwo')
 class TestTableTwo {
-    @WebDatabaseIndex(true)
+    @WebDatabase.field('nameThing', true)
     public nameThing?: string;
 }
 

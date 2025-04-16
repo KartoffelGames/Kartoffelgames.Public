@@ -395,7 +395,6 @@ export class WebDatabase {
 
                             // Index create action.
                             if (lIndexUpdate.action === 'create') {
-                                // TODO: Can a try catch be used to find better error message? (Ununique rows tried to create unique index)
                                 lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
                                     unique: lIndexConfiguration.unique,
                                     multiEntry: lIndexConfiguration.type === 'multiEntryIndex'

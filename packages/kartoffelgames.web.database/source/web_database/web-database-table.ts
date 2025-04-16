@@ -172,7 +172,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
 
-        // Put data. // TODO: Try to add a dublicate key of a unique index.
+        // Put data.
         const lRequest: IDBRequest<IDBValidKey> = lTable.put(JSON.parse(JSON.stringify(pData, this.mTableLayout.fields)));
 
         // Wait for completion.
@@ -181,6 +181,8 @@ export class WebDatabaseTable<TTableType extends TableType> {
             lRequest.addEventListener('error', (pEvent) => {
                 const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
                 pReject(new Exception(`Error put data.` + lTarget.error, this));
+
+                
             });
 
             // Resolve on success.

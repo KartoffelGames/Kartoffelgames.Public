@@ -56,7 +56,7 @@ export class WebDatabaseTableLayout {
         if (!this.mIdentity) {
             return {
                 key: '__ID__',
-                autoIncrement: false
+                autoIncrement: true
             };
         }
 

@@ -1,8 +1,8 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { PlayerChannelSettings } from '../../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../../player/global_settings/player-global-settings';
-import { ArpeggioEffect } from '../../effect_definition/pitch/arpeggio-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { PlayerChannelSettings } from '../../../player/player-channel-settings.ts';
+import { PlayerGlobalSettings } from '../../../player/global_settings/player-global-settings.ts';
+import { ArpeggioEffect } from '../../effect_definition/pitch/arpeggio-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>{
     private mSampleCounter: number;

@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { DelayPatternEffect } from '../../effect_definition/pattern/delay-pattern-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { DelayPatternEffect } from '../../effect_definition/pattern/delay-pattern-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class DelayPatternEffectProcessor extends BaseEffectProcessor<DelayPatternEffect>{
     private mOriginalDivisionLength: number = 0;

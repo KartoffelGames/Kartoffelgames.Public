@@ -1,5 +1,5 @@
-import { WaveformTarget } from '../../../enum/waveform-target.enum';
-import { Waveform } from '../../../enum/waveform.enum';
+import { WaveformTarget } from '../../../enum/waveform-target.enum.ts';
+import { Waveform } from '../../../enum/waveform.enum.ts';
 
 export class WaveSettings {
     private readonly mWaveformSetting: WaveformSettings;

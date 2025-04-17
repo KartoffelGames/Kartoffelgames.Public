@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetVolumeEffect } from '../../effect_definition/volume/set-volume-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetVolumeEffect } from '../../effect_definition/volume/set-volume-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetVolumeEffectProcessor extends BaseEffectProcessor<SetVolumeEffect>{
     /**

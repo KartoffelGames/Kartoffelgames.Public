@@ -1,4 +1,4 @@
-import { EffectParseHistory } from './effect-parse-history';
+import { EffectParseHistory } from './effect-parse-history.ts';
 
 export class EffectParseEvent {
     private mIgnorePitch: boolean;

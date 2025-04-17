@@ -1,7 +1,7 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { WaveformTarget } from '../../../enum/waveform-target.enum';
-import { Waveform } from '../../../enum/waveform.enum';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { WaveformTarget } from '../../../enum/waveform-target.enum.ts';
+import { Waveform } from '../../../enum/waveform.enum.ts';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Set effects waveform effect.

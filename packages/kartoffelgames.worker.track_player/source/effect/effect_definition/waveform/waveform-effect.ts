@@ -1,6 +1,6 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { WaveformTarget } from '../../../enum/waveform-target.enum';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { WaveformTarget } from '../../../enum/waveform-target.enum.ts';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Devision waveform effect.

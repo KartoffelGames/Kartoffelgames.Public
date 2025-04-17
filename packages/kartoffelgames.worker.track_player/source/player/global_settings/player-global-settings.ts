@@ -1,10 +1,10 @@
-import { GenericModule } from '../../generic_module/generic-module';
-import { CursorSettings } from './settings/cursor-settings';
-import { JumpSettings } from './settings/jump-settings';
-import { LengthSettings } from './settings/length-settings';
-import { DelaySettings } from './settings/delay-settings';
-import { SpeedSettings } from './settings/speed-settings';
-import { WaveSettings } from './settings/wave-settings';
+import { GenericModule } from '../../generic_module/generic-module.ts';
+import { CursorSettings } from './settings/cursor-settings.ts';
+import { JumpSettings } from './settings/jump-settings.ts';
+import { LengthSettings } from './settings/length-settings.ts';
+import { DelaySettings } from './settings/delay-settings.ts';
+import { SpeedSettings } from './settings/speed-settings.ts';
+import { WaveSettings } from './settings/wave-settings.ts';
 
 export class PlayerGlobalSettings {
     private readonly mCursorSetting: CursorSettings;

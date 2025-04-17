@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetFinetuneEffect } from '../../effect_definition/pitch/set-finetune-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetFinetuneEffect } from '../../effect_definition/pitch/set-finetune-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetFinetuneEffectProcessor extends BaseEffectProcessor<SetFinetuneEffect>{
     /**

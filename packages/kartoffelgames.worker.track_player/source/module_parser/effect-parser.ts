@@ -1,7 +1,7 @@
-import { Exception, List } from '@kartoffelgames/core.data';
-import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
-import { EffectParseEvent } from './effect-parse-event';
-import { EffectParseHistory } from './effect-parse-history';
+import { Exception, List } from '@kartoffelgames/core';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect.ts';
+import { EffectParseEvent } from './effect-parse-event.ts';
+import { EffectParseHistory } from './effect-parse-history.ts';
 
 export class EffectParser {
     private readonly mEffectHandler: List<EffectHandlerSetting>;

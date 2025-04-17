@@ -1,6 +1,6 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { PatternList } from './pattern/pattern-list';
-import { SampleList } from './sample/sample-list';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { PatternList } from './pattern/pattern-list.ts';
+import { SampleList } from './sample/sample-list.ts';
 
 @StatefullSerializeable('5fab5714-ec6e-4057-82df-1749054035c6')
 export class GenericModule {

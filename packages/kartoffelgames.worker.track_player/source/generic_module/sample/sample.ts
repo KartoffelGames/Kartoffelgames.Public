@@ -1,5 +1,5 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
+import { Exception } from '@kartoffelgames/core';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
 
 /**
  * Sample information.

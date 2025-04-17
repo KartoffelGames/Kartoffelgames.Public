@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetWaveformEffect } from '../../effect_definition/waveform/set-waveform-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetWaveformEffect } from '../../effect_definition/waveform/set-waveform-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetWaveformEffectProcessor extends BaseEffectProcessor<SetWaveformEffect>{
     /**

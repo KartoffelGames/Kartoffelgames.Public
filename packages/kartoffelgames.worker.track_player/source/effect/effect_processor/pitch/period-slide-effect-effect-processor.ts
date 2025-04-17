@@ -1,8 +1,8 @@
-import { Direction } from '../../../enum/direction.enum';
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { Pitch } from '../../../enum/pitch.enum';
-import { PeriodSlideEffect } from '../../effect_definition/pitch/period-slide-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { Direction } from '../../../enum/direction.enum.ts';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { Pitch } from '../../../enum/pitch.enum.ts';
+import { PeriodSlideEffect } from '../../effect_definition/pitch/period-slide-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class PeriodSlideEffectProcessor extends BaseEffectProcessor<PeriodSlideEffect>{
     /**

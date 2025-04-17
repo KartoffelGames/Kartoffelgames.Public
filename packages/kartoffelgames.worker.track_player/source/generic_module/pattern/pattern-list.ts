@@ -1,6 +1,6 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { Pattern } from './pattern';
+import { Exception } from '@kartoffelgames/core';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { Pattern } from './pattern.ts';
 
 /**
  * Complete pattern data.

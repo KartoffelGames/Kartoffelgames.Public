@@ -1,7 +1,7 @@
-import { GenericModule } from '../../../generic_module/generic-module';
-import { Division } from '../../../generic_module/pattern/division';
-import { Pattern } from '../../../generic_module/pattern/pattern';
-import { SpeedSettings } from './speed-settings';
+import { GenericModule } from '../../../generic_module/generic-module.ts';
+import { Division } from '../../../generic_module/pattern/division.ts';
+import { Pattern } from '../../../generic_module/pattern/pattern.ts';
+import { SpeedSettings } from './speed-settings.ts';
 
 export class LengthSettings {
     private readonly mGenericModule: GenericModule;

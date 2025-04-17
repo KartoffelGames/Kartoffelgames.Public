@@ -1,5 +1,5 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Sample offset effect.

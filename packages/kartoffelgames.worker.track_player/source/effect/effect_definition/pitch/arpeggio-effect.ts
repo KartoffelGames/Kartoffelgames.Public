@@ -1,6 +1,6 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { Pitch } from '../../../enum/pitch.enum';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { Pitch } from '../../../enum/pitch.enum.ts';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Devision arpeggio effect.

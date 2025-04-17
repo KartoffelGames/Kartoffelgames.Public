@@ -1,8 +1,8 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { WaveformTarget } from '../../../enum/waveform-target.enum';
-import { Waveform } from '../../../enum/waveform.enum';
-import { WaveformEffect } from '../../effect_definition/waveform/waveform-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { WaveformTarget } from '../../../enum/waveform-target.enum.ts';
+import { Waveform } from '../../../enum/waveform.enum.ts';
+import { WaveformEffect } from '../../effect_definition/waveform/waveform-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class WaveformEffectProcessor extends BaseEffectProcessor<WaveformEffect>{
     private mInitialValue: number = 0;

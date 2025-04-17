@@ -1,4 +1,4 @@
-import { CursorSettings } from './cursor-settings';
+import { CursorSettings } from './cursor-settings.ts';
 
 export class JumpSettings {
     private readonly mCursor: CursorSettings;

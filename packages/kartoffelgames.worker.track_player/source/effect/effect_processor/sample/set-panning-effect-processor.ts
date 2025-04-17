@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetPanningEffect } from '../../effect_definition/sample/set-panning-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetPanningEffect } from '../../effect_definition/sample/set-panning-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetPanningEffectProcessor extends BaseEffectProcessor<SetPanningEffect>{
     /**

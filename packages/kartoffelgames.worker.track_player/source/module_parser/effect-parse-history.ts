@@ -1,5 +1,5 @@
-import { Dictionary } from '@kartoffelgames/core.data';
-import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
+import { Dictionary } from '@kartoffelgames/core';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect.ts';
 
 export class EffectParseHistory {
     private readonly mLastEffectType: Dictionary<EffectConstructor<any>, IGenericEffect>;

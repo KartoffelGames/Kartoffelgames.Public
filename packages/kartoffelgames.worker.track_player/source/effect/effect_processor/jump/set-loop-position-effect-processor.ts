@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetLoopPositionEffectEffect } from '../../effect_definition/jump/set-loop-position-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetLoopPositionEffectEffect } from '../../effect_definition/jump/set-loop-position-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetLoopPositionEffectProcessor extends BaseEffectProcessor<SetLoopPositionEffectEffect>{
     /**

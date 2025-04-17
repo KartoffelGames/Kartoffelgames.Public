@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { RetriggerSampleEffect } from '../../effect_definition/sample/retrigger-sample-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { RetriggerSampleEffect } from '../../effect_definition/sample/retrigger-sample-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class RetriggerSampleEffectProcessor extends BaseEffectProcessor<RetriggerSampleEffect>{
     /**

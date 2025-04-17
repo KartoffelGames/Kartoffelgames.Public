@@ -1,6 +1,6 @@
 
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { IGenericEffect } from '../../effect/effect_definition/i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { IGenericEffect } from '../../effect/effect_definition/i-generic-effect.ts';
 
 @StatefullSerializeable('3fd4b733-df66-4499-819a-78002d25b649')
 export class DivisionChannel {

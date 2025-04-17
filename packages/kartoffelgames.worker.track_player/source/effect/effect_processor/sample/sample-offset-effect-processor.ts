@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SampleOffsetEffect } from '../../effect_definition/sample/sample-offset-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SampleOffsetEffect } from '../../effect_definition/sample/sample-offset-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SampleOffsetEffectProcessor extends BaseEffectProcessor<SampleOffsetEffect>{
     /**

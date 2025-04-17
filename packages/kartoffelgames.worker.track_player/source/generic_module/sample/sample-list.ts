@@ -1,6 +1,6 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { Sample } from './sample';
+import { Exception } from '@kartoffelgames/core';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { Sample } from './sample.ts';
 
 @StatefullSerializeable('930859f4-3833-4989-88d4-9b7a8f2d0bf7')
 export class SampleList {

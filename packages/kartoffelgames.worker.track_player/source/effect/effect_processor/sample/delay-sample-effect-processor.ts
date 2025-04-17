@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { DelaySampleEffect } from '../../effect_definition/sample/delay-sample-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { DelaySampleEffect } from '../../effect_definition/sample/delay-sample-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class DelaySampleEffectProcessor extends BaseEffectProcessor<DelaySampleEffect>{
     /**

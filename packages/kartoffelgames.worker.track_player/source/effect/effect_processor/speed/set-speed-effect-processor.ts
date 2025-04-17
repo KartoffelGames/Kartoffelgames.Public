@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetSpeedEffect } from '../../effect_definition/speed/set-speed-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetSpeedEffect } from '../../effect_definition/speed/set-speed-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetSpeedEffectProcessor extends BaseEffectProcessor<SetSpeedEffect>{
     /**

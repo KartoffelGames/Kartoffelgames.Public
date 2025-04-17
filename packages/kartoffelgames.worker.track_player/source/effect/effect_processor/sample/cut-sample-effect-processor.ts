@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { CutSampleEffect } from '../../effect_definition/sample/cut-sample-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { CutSampleEffect } from '../../effect_definition/sample/cut-sample-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class CutSampleEffectProcessor extends BaseEffectProcessor<CutSampleEffect>{
     /**

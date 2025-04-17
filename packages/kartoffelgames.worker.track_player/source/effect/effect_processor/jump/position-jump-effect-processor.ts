@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { PositionJumpEffect } from '../../effect_definition/jump/position-jump-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { PositionJumpEffect } from '../../effect_definition/jump/position-jump-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class PositionJumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>{
     /**

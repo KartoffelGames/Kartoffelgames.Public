@@ -1,6 +1,6 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { Direction } from '../../../enum/direction.enum';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { Direction } from '../../../enum/direction.enum.ts';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Sample volume slide effect.

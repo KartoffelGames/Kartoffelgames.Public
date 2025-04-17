@@ -17,6 +17,7 @@ export { LinkedList } from './data_container/linked-list.ts';
 // Handler.
 export { EnumUtil } from './util/enum-util.ts';
 export { TypeUtil } from './util/type-util.ts';
+export { ByteUtil } from './util/byte-util.ts';
 
 // Interfaces.
 export { type ICloneable } from './interface/i-cloneable.ts';
@@ -24,7 +25,7 @@ export { type IVoidParameterConstructor } from './interface/i-constructor.ts';
 export { type IDeconstructable } from './interface/i-deconstructable.ts';
 
 // Support types.
-export { 
+export {
     type Readonly, type Writeable,
 
     // Decorator types.

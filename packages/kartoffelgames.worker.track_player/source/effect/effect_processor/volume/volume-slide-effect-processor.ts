@@ -1,7 +1,7 @@
-import { Direction } from '../../../enum/direction.enum';
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { VolumeSlideEffect } from '../../effect_definition/volume/volume-slide-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { Direction } from '../../../enum/direction.enum.ts';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { VolumeSlideEffect } from '../../effect_definition/volume/volume-slide-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class VolumeSlideEffectProcessor extends BaseEffectProcessor<VolumeSlideEffect>{
     /**

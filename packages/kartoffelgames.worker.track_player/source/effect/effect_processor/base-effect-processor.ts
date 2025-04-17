@@ -1,7 +1,7 @@
-import { EffectPriority } from '../../enum/effect-priority.enum';
-import { PlayerChannelSettings } from '../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../player/global_settings/player-global-settings';
-import { IGenericEffect } from '../effect_definition/i-generic-effect';
+import { EffectPriority } from '../../enum/effect-priority.enum.ts';
+import { PlayerChannelSettings } from '../../player/player-channel-settings.ts';
+import { PlayerGlobalSettings } from '../../player/global_settings/player-global-settings.ts';
+import { IGenericEffect } from '../effect_definition/i-generic-effect.ts';
 
 export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     private readonly mEffect: TEffect;

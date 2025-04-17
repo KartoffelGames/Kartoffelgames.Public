@@ -1,7 +1,7 @@
-import { ByteUtil } from '@kartoffelgames/core.data';
-import { BaseModuleParser, ModuleParseOptions, SampleHead } from '../base-module-parser';
-import { ChannelValue } from '../effect-parser';
-import { ModEffectParser } from './mod-effect-parser';
+import { ByteUtil } from '@kartoffelgames/core';
+import { BaseModuleParser, ModuleParseOptions, SampleHead } from '../base-module-parser.ts';
+import { ChannelValue } from '../effect-parser.ts';
+import { ModEffectParser } from './mod-effect-parser.ts';
 
 export class ModParser extends BaseModuleParser {
     private static readonly NAME_BYTE_LENGTH: number = 20;

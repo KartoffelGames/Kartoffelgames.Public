@@ -1,12 +1,12 @@
-import { GenericModule } from '../generic_module/generic-module';
-import { PlayerChannel } from './player-channel';
-import { CursorChange, CursorSettings } from './global_settings/settings/cursor-settings';
-import { JumpSettings } from './global_settings/settings/jump-settings';
-import { LengthSettings } from './global_settings/settings/length-settings';
-import { DelaySettings } from './global_settings/settings/delay-settings';
-import { SpeedSettings } from './global_settings/settings/speed-settings';
-import { WaveSettings } from './global_settings/settings/wave-settings';
-import { PlayerGlobalSettings } from './global_settings/player-global-settings';
+import { GenericModule } from '../generic_module/generic-module.ts';
+import { PlayerChannel } from './player-channel.ts';
+import { CursorChange, CursorSettings } from './global_settings/settings/cursor-settings.ts';
+import { JumpSettings } from './global_settings/settings/jump-settings.ts';
+import { LengthSettings } from './global_settings/settings/length-settings.ts';
+import { DelaySettings } from './global_settings/settings/delay-settings.ts';
+import { SpeedSettings } from './global_settings/settings/speed-settings.ts';
+import { WaveSettings } from './global_settings/settings/wave-settings.ts';
+import { PlayerGlobalSettings } from './global_settings/player-global-settings.ts';
 
 export class Player {
     private readonly mChannelList: Array<PlayerChannel>;

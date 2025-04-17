@@ -1,7 +1,7 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { Sample } from '../../../generic_module/sample/sample';
-import { SetSampleEffect } from '../../effect_definition/sample/set-sample-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { Sample } from '../../../generic_module/sample/sample.ts';
+import { SetSampleEffect } from '../../effect_definition/sample/set-sample-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetSampleEffectProcessor extends BaseEffectProcessor<SetSampleEffect>{
     /**

@@ -1,6 +1,6 @@
-import { Pitch } from '../enum/pitch.enum';
-import { WaveformTarget } from '../enum/waveform-target.enum';
-import { Sample } from '../generic_module/sample/sample';
+import { Pitch } from '../enum/pitch.enum.ts';
+import { WaveformTarget } from '../enum/waveform-target.enum.ts';
+import { Sample } from '../generic_module/sample/sample.ts';
 
 // TODO: Retructurize.
 export class PlayerChannelSettings {

@@ -1,6 +1,6 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { DivisionChannel } from './division-channel';
+import { Exception } from '@kartoffelgames/core';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { DivisionChannel } from './division-channel.ts';
 
 @StatefullSerializeable('dc682441-633d-496f-b8a2-6654b27389e3')
 export class Division {

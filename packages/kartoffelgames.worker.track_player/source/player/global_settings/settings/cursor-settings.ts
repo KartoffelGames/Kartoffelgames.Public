@@ -1,4 +1,4 @@
-import { LengthSettings } from './length-settings';
+import { LengthSettings } from './length-settings.ts';
 
 export class CursorSettings {
     private mAudioSampleCursor: number;

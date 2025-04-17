@@ -1,7 +1,7 @@
-import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
-import { Direction } from '../../../enum/direction.enum';
-import { Pitch } from '../../../enum/pitch.enum';
-import { IGenericEffect } from '../i-generic-effect';
+import { StatefullSerializeable } from '@kartoffelgames/core-serializer';
+import { Direction } from '../../../enum/direction.enum.ts';
+import { Pitch } from '../../../enum/pitch.enum.ts';
+import { IGenericEffect } from '../i-generic-effect.ts';
 
 /**
  * Devision period slide effect.

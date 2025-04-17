@@ -1,12 +1,12 @@
-import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
-import { GenericModule } from '../generic_module/generic-module';
-import { Division } from '../generic_module/pattern/division';
-import { DivisionChannel } from '../generic_module/pattern/division-channel';
-import { Pattern } from '../generic_module/pattern/pattern';
-import { Sample } from '../generic_module/sample/sample';
-import { EffectParser, ChannelValue } from './effect-parser';
-import { ByteUtil, Dictionary } from '@kartoffelgames/core.data';
-import { EffectParseHistory } from './effect-parse-history';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect.ts';
+import { GenericModule } from '../generic_module/generic-module.ts';
+import { Division } from '../generic_module/pattern/division.ts';
+import { DivisionChannel } from '../generic_module/pattern/division-channel.ts';
+import { Pattern } from '../generic_module/pattern/pattern.ts';
+import { Sample } from '../generic_module/sample/sample.ts';
+import { EffectParser, ChannelValue } from './effect-parser.ts';
+import { ByteUtil, Dictionary } from '@kartoffelgames/core';
+import { EffectParseHistory } from './effect-parse-history.ts';
 
 export abstract class BaseModuleParser {
     private readonly mData: Uint8Array;

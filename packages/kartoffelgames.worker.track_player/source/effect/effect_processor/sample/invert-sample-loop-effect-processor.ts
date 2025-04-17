@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { InvertSampleLoopEffect } from '../../effect_definition/sample/invert-sample-loop-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { InvertSampleLoopEffect } from '../../effect_definition/sample/invert-sample-loop-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class InvertSampleLoopEffectProcessor extends BaseEffectProcessor<InvertSampleLoopEffect>{
     /**

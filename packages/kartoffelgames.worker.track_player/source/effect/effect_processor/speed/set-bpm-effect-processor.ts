@@ -1,6 +1,6 @@
-import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetBeatsPerMinuteEffect } from '../../effect_definition/speed/set-bpm-effect';
-import { BaseEffectProcessor } from '../base-effect-processor';
+import { EffectPriority } from '../../../enum/effect-priority.enum.ts';
+import { SetBeatsPerMinuteEffect } from '../../effect_definition/speed/set-bpm-effect.ts';
+import { BaseEffectProcessor } from '../base-effect-processor.ts';
 
 export class SetBeatsPerMinuteEffectProcessor extends BaseEffectProcessor<SetBeatsPerMinuteEffect>{
     /**

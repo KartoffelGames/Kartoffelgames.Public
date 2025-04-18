@@ -1,1 +1,1 @@
-export { TrackPlayerProcessor } from './track-player-processor.ts';
+import './track-player-processor.ts';

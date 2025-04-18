@@ -22,7 +22,7 @@
             "package-blueprint": "kg-main",
             "bundle": {
                 "enabled": true,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
+                "bundleSettingsFile": "./bundle-environment/bundle-settings.ts"
             },
             "scratchpad": {
                 "mainBundleRequired": true,

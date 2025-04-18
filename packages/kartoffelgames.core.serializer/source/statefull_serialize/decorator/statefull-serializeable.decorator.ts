@@ -8,8 +8,8 @@ import { StatefullSerializeableClasses } from '../statefull-serializeable-classe
  * All child types present as properties must be marked too.
  * @param pGuid - Global unique id.
  */
-export function StatefullSerializeable(pGuid: SerializeableGuid): ClassDecorator<SerializeableConstructor, SerializeableConstructor> {
-    return function (pConstructor: SerializeableConstructor): any {
+export function StatefullSerializeable<TClass extends SerializeableConstructor>(pGuid: SerializeableGuid): ClassDecorator<TClass, TClass> {
+    return function (pConstructor: TClass): TClass {
         const lObjectToConstructorParameter: WeakMap<object, Array<any>> = new WeakMap<object, Array<any>>();
 
         // Extends original constructor that maps any parameter of constructed objects.

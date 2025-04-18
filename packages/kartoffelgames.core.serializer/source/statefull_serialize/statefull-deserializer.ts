@@ -16,8 +16,9 @@ export class StatefullDeserializer {
     /**
      * Deserialize serialized string.
      * @param pString - Serialized string.
+     * @param _pConstructor - Constructor of the class. Needed that the type gets imported and the constructor gets registered.
      */
-    public deserialize<T>(pString: string): T {
+    public deserialize<T>(pString: string, _pConstructor: new (...pArgs: Array<any>) => T): T {
         const lObjectifiedValue: any = JSON.parse(pString);
         return this.deobjectify<T>(lObjectifiedValue);
     }

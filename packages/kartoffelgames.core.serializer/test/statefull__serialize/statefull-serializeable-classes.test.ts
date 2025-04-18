@@ -29,7 +29,7 @@ Deno.test('StatefullSerializeableClasses.getClass()', async (pContext) => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).toThrow('ClassId is not registered.');
+        expect(lErrorFunction).toThrow(`ClassId "${lClassId}" is not registered.`);
     });
 });
 

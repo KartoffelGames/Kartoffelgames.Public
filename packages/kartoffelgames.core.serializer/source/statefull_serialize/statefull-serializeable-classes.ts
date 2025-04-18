@@ -118,8 +118,6 @@ export class StatefullSerializeableClasses {
      * @param pGuid - Guid assigned to set constructor.
      */
     public registerClass(pConstructor: SerializeableConstructor, pGuid: SerializeableGuid, pParameterRetrieve: ParameterRetrieveCallback): void {
-        console.log(pGuid);
-
         this.mGuidToConstructorMap.add(pGuid, pConstructor);
         this.mConstructorToGuidMap.add(pConstructor, pGuid);
         this.mConstructionParameterRetriever.add(pGuid, pParameterRetrieve);

@@ -283,7 +283,7 @@ Deno.test('StatefullDeserializer.deobjectify()', async (pContext) => {
             const lObjectifiedValue: ObjectifiedValue = new StatefullSerializer().objectify(lTestObject);
 
             // Process.
-            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
+            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue, TestClass);
 
             // Evaluation.
             expect(lResult).toBeDeepEqual(lTestObject);
@@ -321,7 +321,7 @@ Deno.test('StatefullDeserializer.deobjectify()', async (pContext) => {
             const lObjectifiedValue: ObjectifiedValue = new StatefullSerializer().objectify(lTestObject);
 
             // Process.
-            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
+            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue, TestClass);
 
             // Evaluation.
             expect(lResult).toBeDeepEqual(lTestObject);
@@ -354,7 +354,7 @@ Deno.test('StatefullDeserializer.deobjectify()', async (pContext) => {
             const lObjectifiedValue: ObjectifiedValue = new StatefullSerializer().objectify(lTestObject);
 
             // Process.
-            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
+            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue, TestClass);
 
             // Evaluation.
             expect((<any>lResult).requiredValue).toBe(lRequiredValue);
@@ -390,7 +390,7 @@ Deno.test('StatefullDeserializer.deobjectify()', async (pContext) => {
             const lObjectifiedValue: ObjectifiedValue = new StatefullSerializer().objectify(lTestObject);
 
             // Process.
-            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
+            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue, TestClass);
 
             // Evaluation.
             expect(lResult[lInnerPropertyName]).toBe(lRequiredValue);
@@ -428,7 +428,7 @@ Deno.test('StatefullDeserializer.deobjectify()', async (pContext) => {
             const lObjectifiedValue: ObjectifiedValue = new StatefullSerializer().objectify(lTestObject);
 
             // Process.
-            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue);
+            const lResult: TestClass = lDeserializer.deobjectify(lObjectifiedValue, TestClass);
 
             // Evaluation.
             expect(lResult[lInnerPropertyNameOne]).toBe(lRequiredValueList[0]);
@@ -441,11 +441,11 @@ Deno.test('StatefullDeserializer.deserialize()', async (pContext) => {
     await pContext.step('Default', () => {
         // Setup.
         const lDeserializer: StatefullDeserializer = new StatefullDeserializer();
-        const lValue: number = 241;
+        const lValue: Number = 241;
         const lSerializedValue: string = new StatefullSerializer().serialize(lValue);
 
         // Process.
-        const lResult: number = lDeserializer.deserialize(lSerializedValue);
+        const lResult: Number = lDeserializer.deserialize(lSerializedValue);
 
         // Evaluation.
         expect(lResult).toBe(lValue);

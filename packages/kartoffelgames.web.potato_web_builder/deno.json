@@ -26,12 +26,14 @@
             },
             "scratchpad": {
                 "mainBundleRequired": false,
-                "port": 8088
+                "port": 8088,
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "page": {
                 "enabled": false,
                 "mainBundleRequired": false,
-                "port": 8088
+                "port": 8088,
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "test": {
                 "directory": "./test",

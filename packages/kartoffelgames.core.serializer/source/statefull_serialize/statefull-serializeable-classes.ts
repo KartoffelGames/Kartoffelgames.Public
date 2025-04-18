@@ -78,7 +78,7 @@ export class StatefullSerializeableClasses {
 
         // Catch not registered constructors.
         if (!lGuid) {
-            throw new Exception('ClassId is not registered.', this);
+            throw new Exception(`ClassId "${pId}" is not registered.`, this);
         }
 
         return lGuid;
@@ -118,6 +118,8 @@ export class StatefullSerializeableClasses {
      * @param pGuid - Guid assigned to set constructor.
      */
     public registerClass(pConstructor: SerializeableConstructor, pGuid: SerializeableGuid, pParameterRetrieve: ParameterRetrieveCallback): void {
+        console.log(pGuid);
+
         this.mGuidToConstructorMap.add(pGuid, pConstructor);
         this.mConstructorToGuidMap.add(pConstructor, pGuid);
         this.mConstructionParameterRetriever.add(pGuid, pParameterRetrieve);

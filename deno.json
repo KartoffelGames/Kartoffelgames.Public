@@ -14,7 +14,7 @@
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",
-        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@4.0.1"
+        "kg": "deno run -A jsr:@kartoffelgames/environment-cli@4.1.1"
     },
     "license": "LGPL-3.0-only",
     "imports": {},
@@ -57,16 +57,16 @@
     "kg": {
         "root": true,
         "cli": [
-            "jsr:@kartoffelgames/environment-command-help@4.0.1",
-            "jsr:@kartoffelgames/environment-command-sync@4.0.1",
-            "jsr:@kartoffelgames/environment-command-create@4.0.1",
-            "jsr:@kartoffelgames/environment-blueprint@4.0.1",
-            "jsr:@kartoffelgames/environment-command-bundle@4.0.1",
-            "jsr:@kartoffelgames/environment-command-scratchpad@4.0.1",
-            "jsr:@kartoffelgames/environment-command-page@4.0.1",
-            "jsr:@kartoffelgames/environment-command-test@4.0.1",
-            "jsr:@kartoffelgames/environment-command-bump@4.0.1",
-            "jsr:@kartoffelgames/environment-command-transform@4.0.1"
+            "jsr:@kartoffelgames/environment-command-help@4.1.1",
+            "jsr:@kartoffelgames/environment-command-sync@4.1.1",
+            "jsr:@kartoffelgames/environment-command-create@4.1.1",
+            "jsr:@kartoffelgames/environment-blueprint@4.1.1",
+            "jsr:@kartoffelgames/environment-command-bundle@4.1.1",
+            "jsr:@kartoffelgames/environment-command-scratchpad@4.1.1",
+            "jsr:@kartoffelgames/environment-command-page@4.1.1",
+            "jsr:@kartoffelgames/environment-command-test@4.1.1",
+            "jsr:@kartoffelgames/environment-command-bump@4.1.1",
+            "jsr:@kartoffelgames/environment-command-transform@4.1.1"
         ],
         "packages": "./packages"
     }

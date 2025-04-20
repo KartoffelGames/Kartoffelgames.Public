@@ -1,11 +1,9 @@
 import { StatefullDeserializer } from '@kartoffelgames/core-serializer';
 import { GenericModule } from './generic_module/generic-module.ts';
 import { Player } from './player/player.ts';
-import { ModuleFile } from "./module-file.ts";
 
 export class TrackPlayerProcessor extends AudioWorkletProcessor {
-    private mFile: ModuleFile | null;
-    private mPlayer: Player;
+    private mPlayer: Player | null;
 
     /**
      * Constructor.
@@ -15,10 +13,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         super();
 
         // Set module as unloaded.
-        this.mFile = null;
-
-        // Create player instance.
-        this.mPlayer = new Player(this.mFile!); // TODO: Dynamicly load module file.
+        this.mPlayer = null;
 
         // Set port listener for receiving messages.
         this.port.addEventListener('message', (pEvent: MessageEvent) => {
@@ -47,36 +42,34 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * @param pParameters - Processor parameter.
      */
     public override process(_pInputs: Array<Array<Float32Array>>, pOutputs: Array<Array<Float32Array>>, _pParameters: Record<string, Float32Array>): boolean {
-        if (this.mFile === null) {
-            return true;
-        }
+        if (this.mPlayer !== null) {
+            // Get block length and mix this block.
+            const lAudioBlockLength = pOutputs[0][0].length;
+            const lModuleChannelList: [Float32Array, Float32Array] | null = this.mPlayer.nextBlock(lAudioBlockLength);
+            if (lModuleChannelList === null) {
+                // Exit and set disposeable if no output is generated.
+                return false;
+            }
 
-        // Get block length and mix this block.
-        const lAudioBlockLength = pOutputs[0][0].length;
-        const lModuleChannelList: [Float32Array, Float32Array] | null = this.mPlayer.next(sampleRate, lAudioBlockLength);
-        if (lModuleChannelList === null) {
-            // Exit and set disposeable if no output is generated.
-            return false;
-        }
+            /*
+             * Processor can has multiple outputs with multiple channels.
+             * Multiple outputs contains the same data.
+             * Channels are divided between left an right in order [L R L R...]
+             */
 
-        /*
-         * Processor can has multiple outputs with multiple channels.
-         * Multiple outputs contains the same data.
-         * Channels are divided between left an right in order [L R L R...]
-         */
+            // For each outout.
+            for (const lOutput of pOutputs) {
+                // Dublicate data for each output.
+                for (let lChannelIndex: number = 0; lChannelIndex < lOutput.length; lChannelIndex++) {
+                    // Get output channel
+                    const lOutputChannel: Float32Array = lOutput[lChannelIndex];
+                    // Even channels are right channel data (1) and uneven are left data (0).
+                    const lChannelData: Float32Array = lModuleChannelList[1 - (lChannelIndex % 2)];
 
-        // For each outout.
-        for (const lOutput of pOutputs) {
-            // Dublicate data for each output.
-            for (let lChannelIndex: number = 0; lChannelIndex < lOutput.length; lChannelIndex++) {
-                // Get output channel
-                const lOutputChannel: Float32Array = lOutput[lChannelIndex];
-                // Even channels are right channel data (1) and uneven are left data (0).
-                const lChannelData: Float32Array = lModuleChannelList[1 - (lChannelIndex % 2)];
-
-                // Copy channel data to output.
-                for (let lSampleIndex: number = 0; lSampleIndex < lChannelData.length; lSampleIndex++) {
-                    lOutputChannel[lSampleIndex] = lChannelData[lSampleIndex];
+                    // Copy channel data to output.
+                    for (let lSampleIndex: number = 0; lSampleIndex < lChannelData.length; lSampleIndex++) {
+                        lOutputChannel[lSampleIndex] = lChannelData[lSampleIndex];
+                    }
                 }
             }
         }
@@ -90,15 +83,11 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * @param pMessageData - Message data.
      */
     private readMessage(pMessageType: string, pMessageData: any): void {
-
         switch (pMessageType) {
             case 'load': {
-                const lData: ArrayBuffer | SharedArrayBuffer = pMessageData;
-                this.mFile = new ModuleFile(lData);
-
-                // TODO: Make it work with any array buffer type.
-                // Update buffer on none shared.
-
+                const lModule: GenericModule = new StatefullDeserializer().deserialize(pMessageData, GenericModule);
+                this.mPlayer = new Player(lModule, sampleRate);
+                console.log(lModule);
                 break;
             }
         }

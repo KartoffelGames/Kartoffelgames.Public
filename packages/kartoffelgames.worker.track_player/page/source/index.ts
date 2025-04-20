@@ -1,4 +1,4 @@
-import { StatefullSerializer } from "../../../kartoffelgames.core.serializer/source/index.ts";
+/*import { StatefullSerializer } from "../../../kartoffelgames.core.serializer/source/index.ts";
 import { GenericModule } from "../../source/generic_module/generic-module.ts";
 import { ModParser } from "../../source/module_parser/mod_parser/mod-parser.ts";
 
@@ -33,4 +33,4 @@ import { ModParser } from "../../source/module_parser/mod_parser/mod-parser.ts";
         // Play the mod file when the user clicks on the page.
         lOscilatorNode.start();
     });
-})();
+})();*/

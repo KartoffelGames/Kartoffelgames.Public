@@ -1,7 +1,5 @@
-import { StatefullDeserializer } from '@kartoffelgames/core-serializer';
-import { GenericModule } from './generic_module/generic-module.ts';
+import { ModuleFile } from "./module/module-file.ts";
 import { Player } from './player/player.ts';
-import { ModuleFile } from "./module-file.ts";
 
 export class TrackPlayerProcessor extends AudioWorkletProcessor {
     private mFile: ModuleFile | null;
@@ -90,14 +88,11 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * @param pMessageData - Message data.
      */
     private readMessage(pMessageType: string, pMessageData: any): void {
-
+        // Process message depending on type.
         switch (pMessageType) {
             case 'load': {
-                const lData: ArrayBuffer | SharedArrayBuffer = pMessageData;
+                const lData: SharedArrayBuffer = pMessageData;
                 this.mFile = new ModuleFile(lData);
-
-                // TODO: Make it work with any array buffer type.
-                // Update buffer on none shared.
 
                 break;
             }

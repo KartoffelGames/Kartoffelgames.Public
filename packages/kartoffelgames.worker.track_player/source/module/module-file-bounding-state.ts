@@ -19,3 +19,7 @@ export class ModuleFileBoundingState {
     };
 
 }
+
+type ModuleFileBoundingStateHeader = {
+    nameLength: number;
+}

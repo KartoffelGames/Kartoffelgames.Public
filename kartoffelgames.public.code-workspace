@@ -46,6 +46,12 @@
         }
     ],
     "settings": {
-        "javascript.format.semicolons": "insert"
+        "javascript.format.semicolons": "insert",
+        "github.copilot.enable": {
+            "*": true,
+            "plaintext": false,
+            "markdown": true,
+            "scminput": false
+        }
     }
 }

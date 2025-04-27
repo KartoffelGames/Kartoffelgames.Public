@@ -10,9 +10,10 @@
 | 0x0007     | 2                     | Big end word     | Global volume 0 -> 255                  |
 | 0x0009     | 2                     | Big end word     | Initial BPM                             |
 | 0x000b     | 1                     | Byte             | Pattern channel count                   |
-| 0x000c     | 5                     | Char             | File version "KGT01"                    |
-| 0x0010     | 1 x Channel count     | Byte             | Initial volume for each channel         |
-| 0x0011 ... | 1 x Count of orders   | Big end word     | Pattern order list                      |
+| 0x000c     | 1                     | Byte             | Pattern row count                   |
+| 0x000d     | 5                     | Char             | File version "KGT01"                    |
+| 0x0011     | 1 x Channel count     | Byte             | Initial volume for each channel         |
+| 0x0012 ... | 1 x Count of orders   | Big end word     | Pattern order list                      |
 
 **Volume**: 0 -> 255. This is the volume of the whole song. Any instrument will be adjusted by it. 0 = no sound, 255 = full volume.\
 
@@ -117,3 +118,8 @@ Fade applied when:\
 ## Pattern layout
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
+| 0x0000     | 1                     | Byte             | Pattern length in bytes                                                     |
+
+// TODO: 
+Maybe when Byte 0 => Empty row. Else note starting at 1 => C-0. 7 Bit note 1 - 127. 
+8th Bit flag to indicate if the cell has effects. When => Next byte indicate effect count of cell Followed by effect bytes.

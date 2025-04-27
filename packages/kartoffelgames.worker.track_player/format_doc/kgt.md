@@ -67,10 +67,10 @@
 | 0x001a     | 1                     | Byte             | Volume of the instrument.                                                   |
 | 0x001b     | 1                     | Byte             | Volume fadeout rate. Percentage *integer* starting volume is decreased.     |
 | 0x001c     | 240                   | Byte-Pair        | Note-Sample/Keyboard Table as note-sample byte pairs (Note, SampleNumber).  |
-|            |                       |                  | Notes range from C-0 to B-9 (120 octaves)                                   |
+|            |                       |                  | Notes range from C-0 to B-9 (120 semitones)                                 |
 |            |                       |                  | Samples are specified by number not index. 0 = No sample                    |
-| 0x010c     | 3 x Variable          | -                | [Instrument envelope layouts](#envelope-layout) x 3                            |
-
+| 0x010c     | 3 x Variable          | -                | [Instrument envelope layouts](#envelope-layout) x 3                         |
+|            |                       |                  | First volume, second for panning, third for pitch.                          |
 
 **New note action (NNA)**: This is the action that will be taken when a new note is played while the current still played.
 The default is to cut the old note.\
@@ -95,3 +95,25 @@ Fade applied when:\
     *3*. Volume envelope end is reached\
 
 ## Envelope layout
+
+| Offset     | Length                | Format           | Description                                                                 |
+| ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
+| 0x0000     | 1                     | Bitmask          | Flags:     Bit 0. On = Use envelope                                         |
+|            |                       |                  |            Bit 1. On = Use loop                                             |
+|            |                       |                  |            Bit 2. On = Use sustain loop                                     |
+| 0x0001     | 1                     | Byte             | Number of node points.                                                      |
+| 0x0002     | 1                     | Byte             | Loop start node.                                                            |
+| 0x0003     | 1                     | Byte             | Loop length in nodes.                                                       |
+| 0x0004     | 1                     | Byte             | Sustain loop start node.                                                    |
+| 0x0005     | 1                     | Byte             | Sustain loop length in nodes.                                               |
+| 0x0006     | 3 x number of nodes.  | Byte, Long       | Nodes paires as value-position-tubles First byte is the value.              |
+|            |                       |                  | Second long the position in milisecond.                                     |
+|            |                       |                  | Values by type:                                                             |
+|            |                       |                  |     * Volume envelopes - 0 = no sound, 255 = full volume.                   |
+|            |                       |                  |     * Panning envelopes - -128 to +127 where 0 = center.                    |
+|            |                       |                  |     * Pitch envelopes - -128 to +127 where each represents a half semitone  |
+
+
+## Pattern layout
+| Offset     | Length                | Format           | Description                                                                 |
+| ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |

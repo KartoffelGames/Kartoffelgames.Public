@@ -1,3 +1,11 @@
+# KGT-File format
+ * Data Layouts
+    * [Header layout](#header-layout)
+    * [Sample layout](#sample-layout)
+    * [Instrument layout](#instrument-layout)
+    * [Envelope layout](#envelope-layout)
+    * [Pattern layout](#pattern-layout)
+
 ## Header layout
 
 | Offset     | Length                | Format           | Description                             |
@@ -74,7 +82,7 @@
 |            |                       |                  | First volume, second for panning, third for pitch.                          |
 
 **New note action (NNA)**: This is the action that will be taken when a new note is played while the current still played.
-The default is to cut the old note.\
+The default is to cut the old note.
    * **Note Cut**: The old note is instantly cut off and replaced by the new note.
    * **Continue**: The old note continues to play. This is mostly useful with short one-shot samples such as percussion instruments.
                    When using this option together with looped samples, they will loop indefinitely.
@@ -114,12 +122,60 @@ Fade applied when:\
 |            |                       |                  |     * Panning envelopes - -128 to +127 where 0 = center.                    |
 |            |                       |                  |     * Pitch envelopes - -128 to +127 where each represents a half semitone  |
 
-
 ## Pattern layout
+
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
-| 0x0000     | 1                     | Byte             | Pattern length in bytes                                                     |
+| 0x0000     | Yes                   | Byte             | Raw pattern data                                                            |
 
-// TODO: 
-Maybe when Byte 0 => Empty row. Else note starting at 1 => C-0. 7 Bit note 1 - 127. 
-8th Bit flag to indicate if the cell has effects. When => Next byte indicate effect count of cell Followed by effect bytes.
+The pattern data is read column by column and not row by row. Data can either be a definition byte, a note byte or a effect byte.\
+The data block starts with a definition byte indicating the next comming data.
+
+**Definition bytes** the following variations are possible:
+ * 0xxx xxxx - Where the tailing 7 bits are the number of cells that are left blank.
+ * 100x yyyy - Signals a occupied cell. The tailing 4 bits (y) are the number of effects of this cell.
+		       The x bit specifies if the next block contains any Instrument and pitch or just effects.
+ 
+**Effects** are specified as two Bytes. A effect type byte and a effect parameter byte.
+
+**Notes** are also specified as two bytes. The first byte is the instrument index and the second byte is the note itself starting from 0 => A-1.
+
+As an example, the following 16 row pattern data with a single channel:
+```
+1001 0001 : 0x91 => Definition byte, Next: 1 effect with instrument and pitch.
+0000 0001 : 0x01 => Instrument Index 1.
+0000 0005 : 0x05 => Pitch F-1.
+0000 1010 : 0x0A => Effect 10.
+0101 1111 : 0x5F => Effect parameter 95.
+0000 0101 : 0x05 => Definition byte, Next: 5 cells are empty.
+1000 0002 : 0x91 => Definition byte, Next: 2 effects without instrument and pitch.
+0000 1011 : 0x0A => Effect 11.
+0101 1111 : 0x5F => Effect parameter 95.
+0000 0011 : 0x03 => Effect 3.
+0100 1000 : 0x48 => Effect parameter 72.
+1001 0000 : 0x50 => Definition byte, Next: 0 effects with instrument and pitch.
+0000 1001 : 0x09 => Instrument Index 9.
+0000 1001 : 0x09 => Pitch G#-1.
+0000 1000 : 0x08 => Definition byte, Next: 8 cells are empty.
+```
+
+Results in pattern data:
+
+| Position | Instrument Index | Note | Effects   |
+| -------- | ---------------- | ---- | --------- |
+| 0x00     | 1                | F-1  | 1 Effect  |
+| 0x01     | (Empty)          | -    | -         |
+| 0x02     | (Empty)          | -    | -         |
+| 0x03     | (Empty)          | -    | -         |
+| 0x04     | (Empty)          | -    | -         |
+| 0x05     | (Empty)          | -    | -         |
+| 0x06     | -                | -    | 2 Effect  |
+| 0x07     | 9                | G#-1 | -         |
+| 0x08     | (Empty)          | -    | -         |
+| 0x09     | (Empty)          | -    | -         |
+| 0x0A     | (Empty)          | -    | -         |
+| 0x0B     | (Empty)          | -    | -         |
+| 0x0C     | (Empty)          | -    | -         |
+| 0x0D     | (Empty)          | -    | -         |
+| 0x0E     | (Empty)          | -    | -         |
+| 0x0F     | (Empty)          | -    | -         |

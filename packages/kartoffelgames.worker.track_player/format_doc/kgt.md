@@ -1,12 +1,18 @@
 # KGT-File format
- * Data Layouts
+ * [File layout](#file-layout)
     * [Header layout](#header-layout)
     * [Sample layout](#sample-layout)
     * [Instrument layout](#instrument-layout)
     * [Envelope layout](#envelope-layout)
     * [Pattern layout](#pattern-layout)
+    * [Sample data layout](#sample-data-layout)
+    * [Complete file layout](#complete-file-layout)
+ * [Effects](#effects)
+    * [Set volume](#set-volume)
 
-## Header layout
+## File layout
+
+### Header layout
 
 | Offset     | Length                | Format           | Description                             |
 | ---------- | --------------------- | ---------------- | --------------------------------------- |
@@ -27,7 +33,7 @@
 
 **Pattern oder list**: List of pattern indices. The order the patterns are played in the song. Pattern can be present multiple times in the list.\
 
-## Sample layout
+### Sample layout
 
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
@@ -49,7 +55,7 @@
 
 **Substain loop**: They are always considered before normal loops, so if the sustain loop is placed beyond the normal loop, the normal loop is ignored at first. As soon as the sustain loop is exited by a off NNA, playback is resumed in the normal loop. 
 
-## Instrument layout
+### Instrument layout
 
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
@@ -103,7 +109,7 @@ Fade applied when:\
     *2*. Note off NNA is selected with no volume envelope loop.\
     *3*. Volume envelope end is reached\
 
-## Envelope layout
+### Envelope layout
 
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
@@ -122,7 +128,7 @@ Fade applied when:\
 |            |                       |                  |     * Panning envelopes - -128 to +127 where 0 = center.                    |
 |            |                       |                  |     * Pitch envelopes - -128 to +127 where each represents a half semitone  |
 
-## Pattern layout
+### Pattern layout
 
 | Offset     | Length                | Format           | Description                                                                 |
 | ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
@@ -132,9 +138,9 @@ The pattern data is read column by column and not row by row. Data can either be
 The data block starts with a definition byte indicating the next comming data.
 
 **Definition bytes** the following variations are possible:
- * 0xxx xxxx - Where the tailing 7 bits are the number of cells that are left blank.
- * 100x yyyy - Signals a occupied cell. The tailing 4 bits (y) are the number of effects of this cell.
-		       The x bit specifies if the next block contains any Instrument and pitch or just effects.
+ * `0xxx xxxx` - Where the tailing 7 bits are the number of cells that are left blank.
+ * `100x yyyy` - Signals a occupied cell. The tailing 4 bits (y) are the number of effects of this cell.
+		         The x bit specifies if the next block contains any Instrument and pitch or just effects.
  
 **Effects** are specified as two Bytes. A effect type byte and a effect parameter byte.
 
@@ -179,3 +185,25 @@ Results in pattern data:
 | 0x0D     | (Empty)          | -    | -         |
 | 0x0E     | (Empty)          | -    | -         |
 | 0x0F     | (Empty)          | -    | -         |
+
+### Sample data layout
+
+| Offset     | Length                | Format           | Description                                                                 |
+| ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
+| 0x0000     | Yes                   | Byte             | Compressed single channel data                                              |
+
+Sample data is compressed as a mono mp3 8-bit data block. The length is specified in the file header.
+
+### Complete file layout
+| Offset     | Length                | Format           | Description                                                                 |
+| ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
+
+// TODO: Complete file layout
+
+
+# Effects
+
+// TODO: A list of effects and their parameters.
+s
+## Set volume
+Type `0x0F` - Parameter `xxxx xxxx` Set bla bla bla // TODO: Complete this section

@@ -1,44 +1,44 @@
 {
     "folders": [
         {
-            "name": "KartoffelGames.Core",
+            "name": "Kartoffelgames.Core",
             "path": "./packages/kartoffelgames.core"
         },
         {
-            "name": "KartoffelGames.Core.Dependency_Injection",
+            "name": "Kartoffelgames.Core.Dependency_Injection",
             "path": "./packages/kartoffelgames.core.dependency_injection"
-        },
-        {
-            "name": "KartoffelGames.Core.Serializer",
-            "path": "./packages/kartoffelgames.core.serializer"
-        },
-        {
-            "name": "KartoffelGames.Core.Xml",
-            "path": "./packages/kartoffelgames.core.xml"
-        },
-        {
-            "name": "KartoffelGames.Web.Interaction_Zone",
-            "path": "./packages/kartoffelgames.web.interaction_zone"
-        },
-        {
-            "name": "KartoffelGames.Worker.Track_Player",
-            "path": "./packages/kartoffelgames.worker.track_player"
-        },
-        {
-            "name": "KartoffelGames.Web.Potato_Web_Builder",
-            "path": "./packages/kartoffelgames.web.potato_web_builder"
         },
         {
             "name": "Kartoffelgames.Core.Parser",
             "path": "packages\\kartoffelgames.core.parser"
         },
         {
+            "name": "Kartoffelgames.Core.Serializer",
+            "path": "./packages/kartoffelgames.core.serializer"
+        },
+        {
             "name": "Kartoffelgames.Core.Test",
             "path": "./packages\\kartoffelgames.core.test"
         },
         {
+            "name": "Kartoffelgames.Core.Xml",
+            "path": "./packages/kartoffelgames.core.xml"
+        },
+        {
             "name": "Kartoffelgames.Web.Database",
             "path": "packages\\kartoffelgames.web.database"
+        },
+        {
+            "name": "Kartoffelgames.Web.Interaction_Zone",
+            "path": "./packages/kartoffelgames.web.interaction_zone"
+        },
+        {
+            "name": "Kartoffelgames.Web.Potato_Web_Builder",
+            "path": "./packages/kartoffelgames.web.potato_web_builder"
+        },
+        {
+            "name": "Kartoffelgames.Worker.Track_Player",
+            "path": "./packages/kartoffelgames.worker.track_player"
         },
         {
             "name": "_ROOT",
@@ -48,7 +48,7 @@
     "settings": {
         "javascript.format.semicolons": "insert",
         "github.copilot.enable": {
-            "*": true,
+            "*": false,
             "plaintext": false,
             "markdown": true,
             "scminput": false

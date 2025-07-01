@@ -53,6 +53,8 @@ export class ByteUtil {
      * @param pSigned - If result should be signed.
      */
     public static byteToWorld(pHightByte: number, pLowByte: number, pSigned: boolean = false): number {
+        // TODO: Same as new DataView(new Uint8Array([123,5]).buffer).getUint16(0)
+
         let lWord: number = ((pHightByte << 8) + pLowByte) & 0xffff;
 
         // Sign word.

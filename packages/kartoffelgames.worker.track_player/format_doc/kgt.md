@@ -195,15 +195,52 @@ Results in pattern data:
 Sample data is compressed as a mono mp3 8-bit data block. The length is specified in the file header.
 
 ### Complete file layout
-| Offset     | Length                | Format           | Description                                                                 |
-| ---------- | --------------------- | ---------------- | --------------------------------------------------------------------------- |
+The complete file layout follows the following order and structure.
 
-// TODO: Complete file layout
-
+| Format             | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| Header             | [Header layout](#header-layout)                                             |
+| Sample-Header-List | [Sample layout](#sample-layout) x Count of Samples.                         |
+| Instrument-List    | [Instrument layout](#instrument-layout) x Count of Instruments.             |
+| Pattern            | [Pattern layout](#pattern-layout)                                           |
+| Sample-Data        | [Sample data layout](#sample-data-layout) x Count of Samples.               |
 
 # Effects
+
+
 
 // TODO: A list of effects and their parameters.
 s
 ## Set volume
 Type `0x0F` - Parameter `xxxx xxxx` Set bla bla bla // TODO: Complete this section
+
+
+0   Arpeggio                             xxxxxxxx  yyyyyyyy
+1   Slide Up                             xxxxyyyy
+2   Slide Down                           xxxxyyyy
+3   Slide to note                        xxxxyyyy
+4   Vibrato                              xxxxxxxx  yyyyyyyy
+7   Tremolo                              xxxxxxxx  yyyyyyyy
+8   Set Panning Position                 xxxxyyyy
+9   Set SampleOffset                     xxxxyyyy
+A   VolumeSlide                          xxxxxxxx  yyyyyyyy
+B   Position Jump                        xxxxyyyy
+C   Set Volume                           xxxxyyyy
+D   Jump To                              xxxxxxxx  yyyyyyyy
+
+E1  FineSlide Up                         xxxxyyyy
+E2  FineSlide Down                       xxxxyyyy
+E4  Set Vibrato Waveform                 xxxxyyyy
+E5  Set FineTune                         xxxxyyyy
+E6  Set/Jump to Loop                     xxxxxxxx  yyyyyyyy
+E7  Set Tremolo Waveform                 xxxxyyyy
+E9  Retrigger Note                       xxxxyyyy
+EA  Fine VolumeSlide Up                  xxxxyyyy
+EB  Fine VolumeSlide Down                xxxxyyyy
+EC  NoteCut                              xxxxyyyy
+ED  NoteDelay                            xxxxyyyy
+EE  PatternDelay                         xxxxyyyy
+
+F   Set Speed                            xxxxyyyy
+
+

@@ -8,14 +8,41 @@ export class ModConverter {
 
 
     public convert(pModFile: ArrayBuffer): ArrayBuffer {
+        const lSamples = this.readSamples(pModFile);
+
+        const lModFile: ModFile = {
+            samples: lSamples,
+            patternOrderList: this.readPatternOrder(pModFile, lSamples.length)
+        };
+
         // TODO:
         return pModFile;
+    }
+
+    private readPatternOrder(pModFile: ArrayBuffer, pSampleCount: number): Array<number> {
+        // Read data as byte.
+        const lByteData: Uint8Array = new Uint8Array(pModFile);
+
+        // Get pattern order length.
+        const lSampleOrderLengthOffset = ModConverter.NAME_BYTE_LENGTH + (pSampleCount * ModConverter.SAMPLE_HEADER_BYTE_LENGTH);
+        const lSongPositionCount: number = lByteData[lSampleOrderLengthOffset];
+
+        // Get offset to song Positions. Name + sample header + order length + "RestartPosition"
+        const lSongPositionOffset = ModConverter.NAME_BYTE_LENGTH + (pSampleCount * ModConverter.SAMPLE_HEADER_BYTE_LENGTH) + 1 + 1;
+
+        // Read complete song position as uint8 data.
+        const lSongPositionData: Uint8Array = lByteData.slice(
+            lSongPositionOffset,
+            lSongPositionOffset + lSongPositionCount
+        );
+
+        return Array.from(lSongPositionData);
     }
 
     private readSamples(pModFile: ArrayBuffer): Array<ModFileSample> {
         // When no module extension is set, its a legacy module with only 15 samples. 
         const lModuleExtension: string = this.getExtensionName(pModFile);
-        const lSampleCount: number = lModuleExtension === '' ?  15 : 31;
+        const lSampleCount: number = lModuleExtension === '' ? 15 : 31;
 
         // Read channel and pattern count to calculate the sample data offset.
         const lChannelCount: number = this.getChannelCount(lModuleExtension);
@@ -51,7 +78,7 @@ export class ModConverter {
             lSampleHeadList.push({
                 ...lSampleHead,
                 body: this.convertSampleBody(lSampleBodyBuffer)
-            })
+            });
 
             // Move position cursor.
             lSampleHeadDataOffset += ModConverter.SAMPLE_HEADER_BYTE_LENGTH;
@@ -185,7 +212,92 @@ export class ModConverter {
         // Index to count.
         return lHighestPatternIndex + 1;
     }
+
+    /**
+     * Parse channel from raw data.
+     * @param pChannelData - Single channel data.
+     */
+    private parseChannel(pChannelData: Uint8Array): ModFilePatternDivisionChannel {
+        // Get 32bit and concat all bits into one number: wwww xxxxxxxxxxxx yyyy zzzzzzzzzzzz = Length 32bit. 
+        const lBufferNumber: bigint = ByteUtil.concatBytes(pChannelData);
+
+        // wwww yyyy (8 bits ) - sample number, not index.
+        const lSampleNumber: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [0, 1, 2, 3, 16, 17, 18, 19]));
+
+        // xxxx xxxx xxxx (12 bits) - sample period
+        const lSamplePeriod: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
+
+        // zzzz zzzz zzzz (12 bits) - sample effect
+        const lSampleEffect: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]));
+
+        // Return single channel value. 
+        return {
+            effect: lSampleEffect,
+            pitch: lSamplePeriod,
+            sample: lSampleNumber
+        };
+    }
+
+    private parsePatterns(pModFile: ArrayBuffer, pPatternOrderList: Array<number>, pSampleCount: number): Array<ModFilePattern> {
+        // View data as a byte array.
+        const lByteData: Uint8Array = new Uint8Array(pModFile);
+
+        // Get pattern count from highest song position pattern index.
+        const lPatternCount: number = Math.max(...pPatternOrderList) + 1;
+
+        // Read channel count.
+        const lModuleExtension: string = this.getExtensionName(pModFile);
+        const lChannelCount: number = this.getChannelCount(lModuleExtension);
+
+        // Calculate starting offset of first pattern division.
+        let lPatternPosition: number = ModConverter.NAME_BYTE_LENGTH + (ModConverter.SAMPLE_HEADER_BYTE_LENGTH * pSampleCount);
+        lPatternPosition += 130 + ((pSampleCount === 31) ? 4 : 0);  // Pattern count, pattern order and optional module extension.
+
+        // Parse pattern.
+        const lPatternList: Array<ModFilePattern> = new Array<ModFilePattern>();
+        for (let lPatternIndex: number = 0; lPatternIndex < lPatternCount; lPatternIndex++) {
+            // Create new pattern.
+            const lPattern: ModFilePattern = {
+                divisions: new Array<ModFilePatternDivision>()
+            };
+
+            // Postbone add the empty pattern to pattern result list.
+            lPatternList.push(lPattern);
+
+            // Parse division.
+            for (let lDivisionIndex: number = 0; lDivisionIndex < 64; lDivisionIndex++) {
+                // Create emtpy pattern division.
+                const lDivision: ModFilePatternDivision = {
+                    channels: new Array<ModFilePatternDivisionChannel>()
+                };
+
+                // Postbone add the empty division to pattern.
+                lPattern.divisions.push(lDivision);
+
+                // Parse division channel.
+                for (let lChannelIndex: number = 0; lChannelIndex < lChannelCount; lChannelIndex++) {
+                    // For MOD files:
+                    // Get 32bit and concat all bits into one number: wwww xxxxxxxxxxxx yyyy zzzzzzzzzzzz = Length 32bit. 
+                    const lDivisionBuffer: Uint8Array = ByteUtil.readBytes(lByteData, lPatternPosition, 4);
+                    const lDivisionChannel: ModFilePatternDivisionChannel = this.parseChannel(lDivisionBuffer);
+
+                    // Add channel to division.
+                    lDivision.channels.push(lDivisionChannel);
+
+                    // Something the pattern possition by 32bit.
+                    lPatternPosition += 4;
+                }
+            }
+        }
+
+        return lPatternList;
+    }
 }
+
+export type ModFile = {
+    samples: Array<ModFileSample>;
+    patternOrderList: Array<number>;
+};
 
 export type ModFileSample = {
     name: string;
@@ -195,4 +307,23 @@ export type ModFileSample = {
     repeatLength: number;
     bodyLength: number;
     body: Float32Array;
+};
+
+export type ModFilePatternDivisionChannelEffect = {
+    type: number;
+    paramters: [];
+};
+
+export type ModFilePatternDivisionChannel = {
+    effect: ModFilePatternDivisionChannelEffect | null;
+    pitch: number;
+    sample: number;
+};
+
+export type ModFilePatternDivision = {
+    channels: Array<ModFilePatternDivisionChannel>;
+};
+
+export type ModFilePattern = {
+    divisions: Array<ModFilePatternDivision>;
 };

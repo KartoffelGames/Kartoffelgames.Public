@@ -139,7 +139,7 @@ export class WebDatabaseTableLayout {
 
         // Disable multientity when key is not a array or more than one key is set for the same index.
         if (lIndexConfig.keys.length > 1 && lIndexConfig.type === 'multiEntryIndex') {
-            throw new Exception(`Multientity index can only have one key.`, this);
+            throw new Exception(`Multientity index can only have one property.`, this);
         }
 
         // Upgrade index type when more than one key is set.

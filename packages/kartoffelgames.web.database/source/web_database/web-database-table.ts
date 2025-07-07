@@ -196,8 +196,15 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
 
+        // Cleanup data to use only the fields defined in the table layout.
+        const lCleanedData: Record<string, any> = {};
+        for (const lField of this.mTableLayout.fields) {
+            // Copy only the fields defined in the table layout.
+            lCleanedData[lField] = (<any>pData)[lField];
+        }
+
         // Put data.
-        const lRequest: IDBRequest<IDBValidKey> = lTable.put(JSON.parse(JSON.stringify(pData, this.mTableLayout.fields)));
+        const lRequest: IDBRequest<IDBValidKey> = lTable.put(lCleanedData);
 
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {

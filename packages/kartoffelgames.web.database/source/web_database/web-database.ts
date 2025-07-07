@@ -433,7 +433,7 @@ export class WebDatabase {
      * @param pTables - Tabes for this transaction.
      * @param pAction - Action withing this transaction.
      */
-    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => void): Promise<void> {
+    public async transaction<TTables extends TableType, TResult>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => TResult): Promise<TResult> {
         // Tables should exists.
         for (const lTableType of pTables) {
             if (!this.mTableTypes.has(lTableType.name)) {
@@ -447,10 +447,13 @@ export class WebDatabase {
 
         // Call action within the transaction.
         // eslint-disable-next-line @typescript-eslint/await-thenable
-        await pAction(lTransaction);
+        const lResult: TResult = await pAction(lTransaction);
 
         // Commit transaction.
         lTransaction.commit();
+
+        // Return result.
+        return lResult;
     }
 }
 

@@ -2,32 +2,7 @@ import 'npm:fake-indexeddb/auto';
 import { expect } from '@kartoffelgames/core-test';
 import { WebDatabase, WebDatabaseTable } from '../source/index.ts';
 
-// Test table class
-@WebDatabase.table('TestTable')
-class TestTable {
-    @WebDatabase.identity(true)
-    public identity!: number;
-
-    @WebDatabase.field('name', true)
-    public name!: string;
-
-    @WebDatabase.field('multi', true, true)
-    public multi!: Array<string>;
-
-    @WebDatabase.field()
-    public someValue!: string;
-}
-
-@WebDatabase.table('SimpleTable')
-class SimpleTable {
-    @WebDatabase.identity(false)
-    public id!: string;
-
-    @WebDatabase.field()
-    public data!: string;
-}
-
-Deno.test('WebDatabase.constructor', async (pContext) => {
+Deno.test('WebDatabase.open', async (pContext) => {
     await pContext.step('Table - Identity-Autoincrement', async () => {
         // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -430,5 +405,373 @@ Deno.test('WebDatabase.constructor', async (pContext) => {
 
         //Evaluation.
         expect(lFailFunction).toThrow('Multientity index can only have one property.');
+    });
+
+    await pContext.step('Table - Read name by table name', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableName: string = 'CustomTableName';
+
+        // Setup. Table
+        @WebDatabase.table(lTableName)
+        class TestTable {
+        }
+
+        // Process.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Evaluation. 
+        const lIndexDb: IDBDatabase = await lWebDatabase.open();
+        expect(lIndexDb.name).toEqual(lDatabaseName);
+        expect(lIndexDb.objectStoreNames).toHaveLength(1);
+        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+
+        // Evaluation. Validate table layout.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lWebDbTransaction: IDBTransaction = pTransaction.transaction;
+
+            // Validate object store.
+            const lTestTableObjectStore: IDBObjectStore = lWebDbTransaction.objectStore(TestTable.name);
+            expect(lTestTableObjectStore.name).toEqual(lTableName);
+        });
+    });
+});
+
+Deno.test('WebDatabase.table', async (pContext) => {
+    await pContext.step('Valid table name', () => {
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('ValidTable')
+            class TestTable {
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Empty table name', () => {
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('')
+            class TestTable {
+            }
+        };
+
+        // Evaluation - should not throw an error (empty string is a valid string)
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Special characters in table name', () => {
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('Test-Table_123$')
+            class TestTable {
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+});
+
+Deno.test('WebDatabase.identity', async (pContext) => {
+    await pContext.step('Valid identity with autoIncrement true', () => {
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.identity(true)
+                public id!: number;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid identity with autoIncrement false', () => {
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.identity(false)
+                public id!: string;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Error: identity on static property', () => {
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.identity(true)
+                static id: number;
+            }
+        };
+
+        // Evaluation - should throw an error about static properties
+        expect(decoratorFunction).toThrow('Identity property can not be a static property.');
+    });
+
+    await pContext.step('Error: identity with symbol property name', () => {
+        // Process
+        const decoratorFunction = () => {
+            const symbolProp = Symbol('id');
+            class TestTable {
+                @WebDatabase.identity(true)
+                [symbolProp]!: number;
+            }
+        };
+
+        // Evaluation - should throw an error about non-string property name
+        expect(decoratorFunction).toThrow('Identity name must be a string.');
+    });
+
+    await pContext.step('Error: identity with number property name', () => {
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.identity(true)
+                [123]!: number;
+            }
+        };
+
+        // Evaluation - should throw an error about non-string property name
+        expect(decoratorFunction).toThrow('Identity name must be a string.');
+    });
+
+    await pContext.step('Error: multiple identity decorators on same class', () => {
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('MultipleIdentityTable')
+            class TestTable {
+                @WebDatabase.identity(true)
+                public id1!: number;
+
+                @WebDatabase.identity(false)
+                public id2!: string;
+            }
+
+            // Create database instance to trigger validation
+            new WebDatabase('test-db', [TestTable]);
+        };
+
+        // Evaluation - should throw an error about multiple identities
+        expect(decoratorFunction).toThrow('A table type can only have one identifier.');
+    });
+});
+
+Deno.test('WebDatabase.field', async (pContext) => {
+    await pContext.step('Valid field with default parameters', () => {
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field()
+                public name!: string;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid field with index name', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'nameIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                public name!: string;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid field with unique index', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'nameIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName, true)
+                public name!: string;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid field with multiEntry index', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'tagsIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName, false, true)
+                public tags!: Array<string>;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid field with unique and multiEntry index', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'uniqueTagsIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName, true, true)
+                public uniqueTags!: Array<string>;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid field with empty string index name', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = '';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                public name!: string;
+            }
+        };
+
+        // Evaluation - should not throw an error
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Valid compound index with same index name', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'fullNameIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('CompoundIndexTable')
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                public firstName!: string;
+
+                @WebDatabase.field(lIndexName)
+                public lastName!: string;
+            }
+
+            // Create database instance to ensure it works
+            new WebDatabase('test-db', [TestTable]);
+        };
+
+        // Evaluation - should not throw an error for valid compound index
+        expect(decoratorFunction).not.toThrow();
+    });
+
+    await pContext.step('Error: field on static property', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'nameIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                static name: string;
+            }
+        };
+
+        // Evaluation - should throw an error about static properties
+        expect(decoratorFunction).toThrow('Index property can not be a static property.');
+    });
+
+    await pContext.step('Error: field with symbol property name', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'nameIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            const symbolProp = Symbol('name');
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                [symbolProp]!: string;
+            }
+        };
+
+        // Evaluation - should throw an error about non-string property name
+        expect(decoratorFunction).toThrow('Index name must be a string.');
+    });
+
+    await pContext.step('Error: field with number property name', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'indexName';
+
+        // Process
+        const decoratorFunction = () => {
+            class TestTable {
+                @WebDatabase.field(lIndexName)
+                [456]!: string;
+            }
+        };
+
+        // Evaluation - should throw an error about non-string property name
+        expect(decoratorFunction).toThrow('Index name must be a string.');
+    });
+
+    await pContext.step('Error: compound index with multiEntry', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'compoundMultiIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('CompoundMultiEntryTable')
+            class TestTable {
+                @WebDatabase.field(lIndexName, false, true)
+                public field1!: Array<string>;
+
+                @WebDatabase.field(lIndexName, false, false)
+                public field2!: string;
+            }
+
+            // Create an instance to ensure decorators are applied and validation occurs
+            new WebDatabase('test-db', [TestTable]);
+        };
+
+        // Evaluation - should throw an error about multientity index
+        expect(decoratorFunction).toThrow('Multientity index can only have one property.');
+    });
+
+    await pContext.step('Error: mixed unique settings in compound index', () => {
+        // Setup. Index name for the test
+        const lIndexName: string = 'mixedIndex';
+
+        // Process
+        const decoratorFunction = () => {
+            @WebDatabase.table('MixedUniqueTable')
+            class TestTable {
+                @WebDatabase.field(lIndexName, true)
+                public field1!: string;
+
+                @WebDatabase.field(lIndexName, false)
+                public field2!: string;
+            }
+
+            // Create database instance to trigger validation
+            new WebDatabase('test-db', [TestTable]);
+        };
+
+        // Evaluation - should throw an error about inconsistent unique settings
+        expect(decoratorFunction).toThrow(`Multi key index "${lIndexName}" cant have mixed unique settings.`);
     });
 });

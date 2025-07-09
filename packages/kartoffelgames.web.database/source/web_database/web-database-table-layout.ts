@@ -126,7 +126,7 @@ export class WebDatabaseTableLayout {
             lIndexConfig = {
                 name: pIndexName,
                 keys: new Array<string>() as [string],
-                unique: true,
+                unique: pIsUnique,
                 type: pMultiEnty ? 'multiEntryIndex' : 'index',
             };
 
@@ -148,8 +148,8 @@ export class WebDatabaseTableLayout {
         }
 
         // Index is not unique when one index is not unique.
-        if (!pIsUnique) {
-            lIndexConfig.unique = false;
+        if (lIndexConfig.unique !== pIsUnique) {
+            throw new Exception(`Multi key index "${pIndexName}" cant have mixed unique settings.`, this);
         }
     }
 

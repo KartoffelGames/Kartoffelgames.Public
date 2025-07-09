@@ -48,14 +48,15 @@ export class WebDatabaseTransaction<TTables extends TableType> {
     /**
      * Open the transaction.
      */
-    public async open(): Promise<void> {
+    public async open(): Promise<IDBTransaction> {
+        // Transaction is already open.
         if (this.mState) {
-            return;
+            return this.mState;
         }
 
         const lDatabaseConnection: IDBDatabase = await this.mDatabase.open();
 
-        // Convert types into names.
+        // Convert types into names. // TODO: Use table layout to get names.
         const lTableNames: Array<string> = Array.from(this.mTableTypes).map((pTableType: TTables) => {
             return pTableType.name;
         });
@@ -65,6 +66,8 @@ export class WebDatabaseTransaction<TTables extends TableType> {
             // Clear state on complete.
             this.mState = null;
         });
+
+        return this.mState;
     }
 
     /**

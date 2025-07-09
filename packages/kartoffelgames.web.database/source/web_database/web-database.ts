@@ -137,6 +137,9 @@ export class WebDatabase {
      * Delete database and resolve on success.
      */
     public async delete(): Promise<void> {
+        // Close database connection before deleting.
+        this.close();
+
         const lDeleteRequest: IDBOpenDBRequest = globalThis.indexedDB.deleteDatabase(this.mDatabaseName);
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
@@ -147,11 +150,11 @@ export class WebDatabase {
             });
 
             // Databse delete success.
-            lDeleteRequest.onsuccess = () => {
+            lDeleteRequest.addEventListener('success', () => {
+                // Resolve on success.
                 pResolve();
-            };
+            });
         });
-
     }
 
     /**

@@ -76,6 +76,18 @@ export class WebDatabaseTableLayout {
     }
 
     /**
+     * Get table name.
+     */
+    public get tableName(): string {
+        // Restrict access when no table name is set.
+        if (!this.mTableName) {
+            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
+
+        return this.mTableName;
+    }
+
+    /**
      * Constructor.
      */
     public constructor() {

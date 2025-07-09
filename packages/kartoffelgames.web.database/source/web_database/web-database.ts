@@ -101,7 +101,7 @@ export class WebDatabase {
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableTypes: Dictionary<string, TableType>;
+    private readonly mTableTypes: Set<WebDatabaseTableLayout>;
 
     /**
      * Constructor.
@@ -113,10 +113,10 @@ export class WebDatabase {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
 
-        this.mTableTypes = new Dictionary<string, TableType>();
-        for (const lTableType of pTables) {
-            this.mTableTypes.set(lTableType.name, lTableType);
-        }
+        this.mTableTypes = new Set<WebDatabaseTableLayout>(pTables.map((pTableType: TableType) => {
+            // Read table layout from type.
+            return WebDatabaseTableLayout.configOf(pTableType);
+        }));
     }
 
     /**
@@ -437,15 +437,22 @@ export class WebDatabase {
      * @param pAction - Action withing this transaction.
      */
     public async transaction<TTables extends TableType, TResult>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => TResult): Promise<TResult> {
+        const lTableLayoutList: Array<WebDatabaseTableLayout> = new Array<WebDatabaseTableLayout>();
+
         // Tables should exists.
         for (const lTableType of pTables) {
-            if (!this.mTableTypes.has(lTableType.name)) {
-                throw new Exception(`Table "${lTableType.name}" does not exists in this database.`, this);
+            // Read table layout from type.
+            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
+
+            if (!this.mTableTypes.has(lTableLayout)) {
+                throw new Exception(`Table "${lTableLayout.tableName}" does not exists in this database.`, this);
             }
+
+            lTableLayoutList.push(lTableLayout);
         }
 
         // Create and open transaction.
-        const lTransaction: WebDatabaseTransaction<TTables> = new WebDatabaseTransaction(this, pTables, pMode);
+        const lTransaction: WebDatabaseTransaction<TTables> = new WebDatabaseTransaction(this, lTableLayoutList, pMode);
         await lTransaction.open();
 
         // Call action within the transaction.

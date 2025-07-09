@@ -27,11 +27,11 @@ export class WebDatabaseTable<TTableType extends TableType> {
     /**
      * Constructor.
      * 
-     * @param pType - Table type.
+     * @param pTypeLayout - Table layout.
      * @param pDatabase - Database.
      */
-    public constructor(pType: TTableType, pTransaction: WebDatabaseTransaction<TableType>) {
-        this.mTableType = pType;
+    public constructor(pTypeLayout: WebDatabaseTableLayout, pTransaction: WebDatabaseTransaction<TableType>) {
+        this.mTableType = pTypeLayout;
         this.mTransaction = pTransaction;
 
         // Get table layout.

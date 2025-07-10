@@ -47,20 +47,13 @@ export class WebDatabaseTableLayout {
     /**
      * Get all indices of the table type.
      */
-    public get identity(): TableLayoutIdentity {
+    public get identity(): Readonly<TableLayoutIdentity> | null {
         // Restrict access when no table name is set.
         if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
-        // Return a default identity when no identity is set.
-        if (!this.mIdentity) {
-            return {
-                key: '__ID__',
-                autoIncrement: true
-            };
-        }
-
+        // Return identity.
         return this.mIdentity;
     }
 

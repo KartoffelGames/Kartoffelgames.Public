@@ -431,7 +431,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
             const lWebDbTransaction: IDBTransaction = pTransaction.transaction;
 
             // Validate object store.
-            const lTestTableObjectStore: IDBObjectStore = lWebDbTransaction.objectStore(TestTable.name);
+            const lTestTableObjectStore: IDBObjectStore = lWebDbTransaction.objectStore(lTableName);
             expect(lTestTableObjectStore.name).toEqual(lTableName);
         });
     });

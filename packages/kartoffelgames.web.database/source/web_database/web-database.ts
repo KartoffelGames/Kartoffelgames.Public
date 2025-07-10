@@ -81,7 +81,7 @@ export class WebDatabase {
      * @param pTableName - Table name.
      */
     public static table(pTableName: string): ClassDecorator<TableType, void> {
-        return function (_pClassTarget: any, pContext: ClassDecoratorContext): void {
+        return function (pTableClass: any, pContext: ClassDecoratorContext): void {
             // Read metadata from metadata...
             const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
@@ -92,7 +92,7 @@ export class WebDatabase {
             }
 
             // Set table name.
-            lTableLayout.setTableName(pTableName);
+            lTableLayout.setTableName(pTableClass, pTableName);
 
             // Set the table layout to the metadata.
             lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
@@ -101,7 +101,7 @@ export class WebDatabase {
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableTypes: Set<WebDatabaseTableLayout>;
+    private readonly mTableTypes: Map<string, WebDatabaseTableLayout>;
 
     /**
      * Constructor.
@@ -113,10 +113,20 @@ export class WebDatabase {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
 
-        this.mTableTypes = new Set<WebDatabaseTableLayout>(pTables.map((pTableType: TableType) => {
+        // Map table types to their name and layouts.
+        this.mTableTypes = new Map<string, WebDatabaseTableLayout>();
+        for (const pTableType of pTables) {
             // Read table layout from type.
-            return WebDatabaseTableLayout.configOf(pTableType);
-        }));
+            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(pTableType);
+
+            // Check if table name is already set.
+            if (this.mTableTypes.has(lTableLayout.tableName)) {
+                throw new Exception(`Table "${lTableLayout.tableName}" already exists in this database.`, this);
+            }
+
+            // Set table type and layout.
+            this.mTableTypes.set(lTableLayout.tableName, lTableLayout);
+        }
     }
 
     /**
@@ -221,7 +231,7 @@ export class WebDatabase {
                         }
 
                         // Read table configuration.
-                        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
+                        const lTableLayout: WebDatabaseTableLayout = this.mTableTypes.get(lTableName)!;
 
                         // Open database table.
                         const lTable: IDBObjectStore = lReadTransaction.objectStore(lTableName);
@@ -307,7 +317,7 @@ export class WebDatabase {
                 // Create all remaining tables.
                 for (const lTableName of lUncreatedTableNames) {
                     // Read table and index configuration.
-                    const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
+                    const lTableLayout: WebDatabaseTableLayout = this.mTableTypes.get(lTableName)!;
 
                     // Add all indices to the index update list.
                     const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
@@ -362,8 +372,7 @@ export class WebDatabase {
                     }
 
                     // Read table configuration.
-                    const lTableType: TableType = this.mTableTypes.get(lTableUpdate.name)!;
-                    const lTableConfiguration = WebDatabaseTableLayout.configOf(lTableType);
+                    const lTableConfiguration = this.mTableTypes.get(lTableUpdate.name)!;
 
                     // Create table with correct identity.
                     if (lTableUpdate.action === 'create') {
@@ -444,7 +453,7 @@ export class WebDatabase {
             // Read table layout from type.
             const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
 
-            if (!this.mTableTypes.has(lTableLayout)) {
+            if (!this.mTableTypes.has(lTableLayout.tableName)) {
                 throw new Exception(`Table "${lTableLayout.tableName}" does not exists in this database.`, this);
             }
 

@@ -29,14 +29,15 @@ export class WebDatabaseTableLayout {
     private readonly mFields: Set<string>;
     private mIdentity: TableLayoutIdentity | null;
     private readonly mIndices: Map<string, TableLayoutIndex>;
-    private mTableName: string | null;
+    private mTableName: string;
+    private mTableType: TableType | null;
 
     /**
      * Get table field names.
      */
     public get fields(): Array<string> {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -48,7 +49,7 @@ export class WebDatabaseTableLayout {
      */
     public get identity(): TableLayoutIdentity {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -68,7 +69,7 @@ export class WebDatabaseTableLayout {
      */
     public get indices(): Array<string> {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -80,7 +81,7 @@ export class WebDatabaseTableLayout {
      */
     public get tableName(): string {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -88,10 +89,23 @@ export class WebDatabaseTableLayout {
     }
 
     /**
+     * Get table type.
+     */
+    public get tableType(): TableType {
+        // Restrict access when no table name is set.
+        if (!this.mTableType) {
+            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
+
+        return this.mTableType;
+    }
+
+    /**
      * Constructor.
      */
     public constructor() {
-        this.mTableName = null;
+        this.mTableName = '';
+        this.mTableType = null;
         this.mIdentity = null;
         this.mIndices = new Map<string, TableLayoutIndex>();
         this.mFields = new Set<string>();
@@ -193,11 +207,13 @@ export class WebDatabaseTableLayout {
     /**
      * Set table name.
      */
-    public setTableName(pName: string): void {
-        if (this.mTableName) {
+    public setTableName(pType: TableType, pName: string): void {
+        if (this.mTableType) {
             throw new Exception('Table name can only be set once.', this);
         }
+
         this.mTableName = pName;
+        this.mTableType = pType;
     }
 }
 

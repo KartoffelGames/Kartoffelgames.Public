@@ -143,8 +143,6 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         });
     }
 
-
-
     /**
      * Read data from table filtered by query.
      * When query index does not exists, it uses a expensive cursor filter.
@@ -160,7 +158,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
 
         // Get table connection.
-        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableType.name);
+        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 
         // Try to find index key.
         const lIndexName: string | null = (() => {
@@ -242,7 +240,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      * return filtered query result.
      */
     private async readQueryBlock(pBlock: Array<WebDatabaseQueryPart>): Promise<Dictionary<string | number, any>> {
-        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableType.name);
+        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 
         // Read all queries in parallel.
         const lQueryResultRequestList: Array<Promise<Array<any>>> = new Array<Promise<Array<any>>>();

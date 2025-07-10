@@ -7,14 +7,13 @@ import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
 export class WebDatabaseTable<TTableType extends TableType> {
     private readonly mTableLayout: WebDatabaseTableLayout;
-    private readonly mTableType: TTableType;
     private readonly mTransaction: WebDatabaseTransaction<TableType>;
 
     /**
-     * Get table type.
+     * Get table layout.
      */
-    public get tableType(): TTableType {
-        return this.mTableType;
+    public get tableLayout(): WebDatabaseTableLayout {
+        return this.mTableLayout;
     }
 
     /**
@@ -31,11 +30,8 @@ export class WebDatabaseTable<TTableType extends TableType> {
      * @param pDatabase - Database.
      */
     public constructor(pTypeLayout: WebDatabaseTableLayout, pTransaction: WebDatabaseTransaction<TableType>) {
-        this.mTableType = pTypeLayout;
+        this.mTableLayout = pTypeLayout;
         this.mTransaction = pTransaction;
-
-        // Get table layout.
-        this.mTableLayout = WebDatabaseTableLayout.configOf(this.mTableType);
     }
 
     /**
@@ -43,7 +39,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public async clear(): Promise<void> {
         // Get table connection.
-        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
+        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Clear data.
         const lRequest: IDBRequest<undefined> = lTable.clear();
@@ -67,7 +63,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public async count(): Promise<number> {
         // Get table connection.
-        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
+        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Clear data data.
         const lRequest: IDBRequest<number> = lTable.count();
@@ -97,7 +93,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public async delete(pData: InstanceType<TTableType>): Promise<void> {
         // Validate data type.
-        if (!(pData instanceof this.mTableType)) {
+        if (!(pData instanceof this.mTableLayout.tableType)) {
             throw new Exception(`Invalid data type.`, this);
         }
 
@@ -106,7 +102,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
         const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
         // Get table connection.
-        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
+        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Delete data.
         const lRequest: IDBRequest<undefined> = lTable.delete(lIdentityValue);
@@ -131,7 +127,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public async getAll(pCount?: number): Promise<Array<InstanceType<TTableType>>> {
         // Get table connection.
-        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
+        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Clear data data.
         const lRequest: IDBRequest<Array<any>> = lTable.getAll(null, pCount);
@@ -170,7 +166,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
 
         // Convert each item into type.
         for (const lSourceObject of pData) {
-            const lTargetObject: InstanceType<TTableType> = new this.mTableType() as InstanceType<TTableType>;
+            const lTargetObject: InstanceType<TTableType> = new this.mTableLayout.tableType() as InstanceType<TTableType>;
 
             for (const lKey of this.mTableLayout.fields) {
                 (<any>lTargetObject)[lKey] = lSourceObject[lKey];
@@ -189,12 +185,12 @@ export class WebDatabaseTable<TTableType extends TableType> {
      */
     public async put(pData: InstanceType<TTableType>): Promise<void> {
         // Validate data type.
-        if (!(pData instanceof this.mTableType)) {
+        if (!(pData instanceof this.mTableLayout.tableType)) {
             throw new Exception(`Invalid data type.`, this);
         }
 
         // Get table connection.
-        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableType.name);
+        const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Cleanup data to use only the fields defined in the table layout.
         const lCleanedData: Record<string, any> = {};
@@ -213,7 +209,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
                 const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
                 pReject(new Exception(`Error put data.` + lTarget.error, this));
 
-                
+
             });
 
             // Resolve on success.

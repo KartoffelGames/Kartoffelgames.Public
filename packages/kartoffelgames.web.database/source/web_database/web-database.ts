@@ -283,7 +283,7 @@ export class WebDatabase {
         const lResult: TResult = await pAction(lTransaction);
 
         // Commit transaction.
-        lTransaction.commit();
+        await lTransaction.commit();
 
         // Return result.
         return lResult;

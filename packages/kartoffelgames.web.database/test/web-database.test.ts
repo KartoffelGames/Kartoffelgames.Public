@@ -1,6 +1,6 @@
-import 'npm:fake-indexeddb/auto';
 import { expect } from '@kartoffelgames/core-test';
-import { WebDatabase, WebDatabaseTable } from '../source/index.ts';
+import 'npm:fake-indexeddb/auto';
+import { WebDatabase } from '../source/index.ts';
 
 Deno.test('WebDatabase.open', async (pContext) => {
     await pContext.step('Table - Identity-Autoincrement', async () => {
@@ -39,6 +39,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
 
             expect(lTestTableObjectStore.indexNames).toHaveLength(0);
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Unique', async () => {
@@ -85,6 +88,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual(lTableIndexPropertyName);
             expect(lIndex.multiEntry).toBeFalsy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Identity', async () => {
@@ -123,6 +129,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
 
             expect(lTestTableObjectStore.indexNames).toHaveLength(0);
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Multi-Unique', async () => {
@@ -169,6 +178,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual(lTableIndexPropertyName);
             expect(lIndex.multiEntry).toBeTruthy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index', async () => {
@@ -215,6 +227,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual(lTableIndexPropertyName);
             expect(lIndex.multiEntry).toBeFalsy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Compound', async () => {
@@ -265,6 +280,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual([lTableIndexProperty1Name, lTableIndexProperty2Name]);
             expect(lIndex.multiEntry).toBeFalsy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Compound-Unique', async () => {
@@ -315,6 +333,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual([lTableIndexProperty1Name, lTableIndexProperty2Name]);
             expect(lIndex.multiEntry).toBeFalsy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Multi-Unique', async () => {
@@ -361,6 +382,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             expect(lIndex.keyPath).toEqual(lTableIndexPropertyName);
             expect(lIndex.multiEntry).toBeTruthy();
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 
     await pContext.step('Table - Index-Multi-Compound', async () => {
@@ -382,7 +406,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
         }
 
         //Evaluation.
-        expect(lFailFunction).toThrow('Multientity index can only have one property.');
+        expect(lFailFunction).toThrow('Multi entity index can only have one property.');
     });
 
     await pContext.step('Table - Index-Multi-Compound-Unique', async () => {
@@ -404,7 +428,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
         }
 
         //Evaluation.
-        expect(lFailFunction).toThrow('Multientity index can only have one property.');
+        expect(lFailFunction).toThrow('Multi entity index can only have one property.');
     });
 
     await pContext.step('Table - Read name by table name', async () => {
@@ -434,6 +458,9 @@ Deno.test('WebDatabase.open', async (pContext) => {
             const lTestTableObjectStore: IDBObjectStore = lWebDbTransaction.objectStore(lTableName);
             expect(lTestTableObjectStore.name).toEqual(lTableName);
         });
+
+        // Cleanup. Close the database.
+        await lWebDatabase.close();
     });
 });
 
@@ -749,7 +776,7 @@ Deno.test('WebDatabase.field', async (pContext) => {
         };
 
         // Evaluation - should throw an error about multientity index
-        expect(decoratorFunction).toThrow('Multientity index can only have one property.');
+        expect(decoratorFunction).toThrow('Multi entity index can only have one property.');
     });
 
     await pContext.step('Error: mixed unique settings in compound index', () => {

@@ -40,14 +40,22 @@ export class WebDatabaseTransaction<TTables extends TableType> {
     }
 
     /**
-     * Force commit transaction.
+     * Force commit transaction and wait for completion.
      */
-    public commit(): void {
-        if (!this.mState) {
-            return;
-        }
+    public async commit(): Promise<void> {
+        return new Promise<void>((pResolve) => {
+            // Transaction is already closed.
+            if (!this.mState) {
+                return;
+            }
 
-        this.mState.commit();
+            // Wait for transaction to really complete.
+            this.mState.addEventListener('complete', () => {
+                pResolve();
+            });
+
+            this.mState.commit();
+        });
     }
 
     /**

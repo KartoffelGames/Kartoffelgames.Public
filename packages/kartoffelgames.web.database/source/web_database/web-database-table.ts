@@ -97,6 +97,11 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Invalid data type.`, this);
         }
 
+        // TODO:
+        if(!this.mTableLayout.identity) {
+            throw new Exception(`Table does not have an identity defined.`, this);
+        }
+
         // Get identity value from data.
         const lIdentityProperty: string = this.mTableLayout.identity.key;
         const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
@@ -205,21 +210,16 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
-                pReject(new Exception(`Error put data.` + lTarget.error, this));
-
-
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error put data.` + lRequest.error, this));
             });
 
             // Resolve on success.
-            lRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead.
-                const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
-
-                // Update object with the new identity when any identity is specified.
-                const lIdentityProperty: string = this.mTableLayout.identity.key;
-                (<any>pData)[lIdentityProperty] = lTarget.result;
+            lRequest.addEventListener('success', () => {
+                // Update object with the new identity when any identity is specified and auto increment is enabled.
+                if (this.mTableLayout.identity && this.mTableLayout.identity.autoIncrement) {
+                    (<any>pData)[this.mTableLayout.identity.key] = lRequest.result;
+                }
 
                 pResolve();
             });

@@ -3,6 +3,11 @@ import { type TableType, WebDatabaseTableLayout } from './web-database-table-lay
 import type { WebDatabase } from './web-database.ts';
 import { WebDatabaseTable } from './web-database-table.ts';
 
+/**
+ * Represents a database transaction that provides access to multiple tables with specified access modes.
+ * 
+ * @template TTables - The table types that are included in this transaction.
+ */
 export class WebDatabaseTransaction<TTables extends TableType> {
     private readonly mDatabase: WebDatabase;
     private readonly mMode: WebDbTransactionMode;

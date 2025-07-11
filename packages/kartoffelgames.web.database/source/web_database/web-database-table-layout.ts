@@ -146,7 +146,7 @@ export class WebDatabaseTableLayout {
                 name: pIndexName,
                 keys: new Array<string>() as [string],
                 unique: pIsUnique,
-                type: pMultiEnty ? 'multiEntryIndex' : 'index',
+                type: pMultiEnty ? 'multiEntry' : 'default',
             };
 
             // Link index to table config.
@@ -157,13 +157,13 @@ export class WebDatabaseTableLayout {
         lIndexConfig.keys.push(pPropertyKey);
 
         // Disable multientity when key is not a array or more than one key is set for the same index.
-        if (lIndexConfig.keys.length > 1 && lIndexConfig.type === 'multiEntryIndex') {
-            throw new Exception(`Multientity index can only have one property.`, this);
+        if (lIndexConfig.keys.length > 1 && lIndexConfig.type === 'multiEntry') {
+            throw new Exception(`Multi entity index can only have one property.`, this);
         }
 
         // Upgrade index type when more than one key is set.
         if (lIndexConfig.keys.length > 1) {
-            lIndexConfig.type = 'compoundIndex';
+            lIndexConfig.type = 'compound';
         }
 
         // Index is not unique when one index is not unique.
@@ -214,12 +214,12 @@ export type TableLayoutIndex = {
     name: string;
     keys: [string];
     unique: boolean;
-    type: 'index' | 'multiEntryIndex';
+    type: 'default' | 'multiEntry';
 } | {
     name: string;
     keys: Array<string>;
     unique: boolean;
-    type: 'compoundIndex';
+    type: 'compound';
 };
 
 export type TableLayoutIdentity = {

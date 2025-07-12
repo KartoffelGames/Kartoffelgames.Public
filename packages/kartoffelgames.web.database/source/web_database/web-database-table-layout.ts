@@ -121,59 +121,68 @@ export class WebDatabaseTableLayout {
     }
 
     /**
-     * Set table type identity.
+     * Set table type field.
+     * Setting a field includes the property value in the saved object.
      * 
-     * @param pType - Table type.
+     * @remarks
+     * Does not set a index or identity.
+     * 
      * @param pPropertyKey - Property key of identity.
-     * @param pIndexName - Index name.
-     * @param pIsArray - Property is key.
-     * @param pIsUnique - Index should be unique.
      */
-    public setTableField(pPropertyKey: string, pIndexName?: string, pIsUnique: boolean = false, pMultiEnty: boolean = false): void {
+    public setTableField(pPropertyKey: string): void {
         // add property key to field list.
         this.mFields.add(pPropertyKey);
+    }
 
-        // Skip index creation when no index name is set.
-        if (!pIndexName) {
-            return;
+    /**
+     * Adds an index to the table layout.
+     * 
+     * @param pPropertyKeys - Array of property names to be used as index keys. All properties must be set as fields before.
+     * @param pIsUnique - Whether the index should enforce uniqueness.
+     * @param pMultiEnty - If true, creates a multiEntry index (only allowed for a single property).
+     * 
+     * @throws {@link Exception} If any property is not set as a field, if the index already exists, or if multiEntry is used with multiple keys.
+     */
+    public setTableIndex(pPropertyKeys: Array<string>, pIsUnique: boolean, pMultiEnty: boolean): void {
+        // Create index name from property keys order of property keys matters.
+        const lIndexName: string = pPropertyKeys.join('+');
+
+        // Validate that each property is set as a field.
+        for (const lPropertyKey of pPropertyKeys) {
+            if (!this.mFields.has(lPropertyKey)) {
+                throw new Exception(`Index property "${lPropertyKey}" of index "${lIndexName}" is not set as field.`, this);
+            }
+        }
+
+        // Validate that index does not already exist.
+        if (this.mIndices.has(lIndexName)) {
+            throw new Exception(`Index "${lIndexName}" already exists.`, this);
         }
 
         // Initialize index.
-        let lIndexConfig: TableLayoutIndex | undefined = this.mIndices.get(pIndexName);
-        if (!lIndexConfig) {
-            // Set default configuration where anything is enabled.
-            lIndexConfig = {
-                name: pIndexName,
-                keys: new Array<string>() as [string],
-                unique: pIsUnique,
-                type: pMultiEnty ? 'multiEntry' : 'default',
-            };
+        let lIndexConfig: TableLayoutIndex = {
+            name: lIndexName,
+            keys: pPropertyKeys as [string],
+            unique: pIsUnique,
+            type: 'default'
+        };
 
-            // Link index to table config.
-            this.mIndices.set(pIndexName, lIndexConfig);
-        }
+        // Set correct index type.
+        if (pMultiEnty) {
+            // Restrict multientity when key is not a array or more than one key is set for the same index.
+            if (lIndexConfig.keys.length > 1 ) {
+                throw new Exception(`Multi entity index can only have one property.`, this);
+            }
 
-        // Add key to index.
-        lIndexConfig.keys.push(pPropertyKey);
-
-        // Disable multientity when key is not a array or more than one key is set for the same index.
-        if (lIndexConfig.keys.length > 1 && lIndexConfig.type === 'multiEntry') {
-            throw new Exception(`Multi entity index can only have one property.`, this);
-        }
-
-        // Upgrade index type when more than one key is set.
-        if (lIndexConfig.keys.length > 1) {
-            // Order keys alphabetically to ensure the same order in the index.
-            lIndexConfig.keys.sort();
-
-            // Set index type to compound.
+            // Set index type to multiEntry.
+            lIndexConfig.type = 'multiEntry';
+        } else if (lIndexConfig.keys.length > 1) {
+            // Set index type to compound when more than one key is set.
             lIndexConfig.type = 'compound';
         }
 
-        // Index is not unique when one index is not unique.
-        if (lIndexConfig.unique !== pIsUnique) {
-            throw new Exception(`Multi key index "${pIndexName}" cant have mixed unique settings.`, this);
-        }
+        // Link index to table config.
+        this.mIndices.set(lIndexName, lIndexConfig);
     }
 
     /**
@@ -216,14 +225,9 @@ export class WebDatabaseTableLayout {
 
 export type TableLayoutIndex = {
     name: string;
-    keys: [string];
-    unique: boolean;
-    type: 'default' | 'multiEntry';
-} | {
-    name: string;
     keys: Array<string>;
     unique: boolean;
-    type: 'compound';
+    type: 'default' | 'multiEntry' | 'compound';
 };
 
 export type TableLayoutIdentity = {

@@ -1,5 +1,6 @@
 import { Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { WebDatabaseFieldDecorator, WebDatabaseFieldDecoratorExtension } from "./layout_decorator/web-database-field.decorator.ts";
+import { WebDatabaseTableDecorator, WebDatabaseTableDecoratorExtension } from "./layout_decorator/web-database-table.decorator.ts";
 import { TableLayoutIdentity, WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
@@ -9,99 +10,58 @@ import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-databas
  */
 export class WebDatabase {
     /**
-     * Set propery as table field.
+     * Decorator for defining a field in a web database table.
      * 
-     * @param pIndexName - Index name.
-     * @param pUnique - Index should be unique.
-     * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
+     * @template T - The property type.
+     * @param pExtension - Optional extension for configuring the field as an identity or index.
+     * 
+     * @remarks
+     * This decorator registers the property as a field in the table layout. 
+     * You can use the `as` property in the extension to mark the field as an identity (primary key) or as an index.
+     * For number properties, you can specify auto-increment or manual identity. 
+     * For array properties, you can enable multiEntry indices.
+     * 
+     * @example
+     * ```typescript
+     * class User {
+     *   @WebDatabaseFieldDecorator({ as: { identity: 'auto' } })
+     *   public id!: number;
+     * 
+     *   @WebDatabaseFieldDecorator({ as: { index: { unique: true } } })
+     *   public email!: string;
+     * 
+     *   @WebDatabaseFieldDecorator({ as: { index: { multiEntry: true } } })
+     *   public tags!: string[];
+     * }
+     * ```
      */
-    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false): ClassFieldDecorator<any, any> {
-        return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
-            // Decorator can not be used on static propertys.
-            if (pContext.static) {
-                throw new Exception('Index property can not be a static property.', WebDatabase);
-            }
-
-            // Decorator can only be attached to string named properties.
-            if (typeof pContext.name !== 'string') {
-                throw new Exception('Index name must be a string.', WebDatabase);
-            }
-
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Add table type index to layout.
-            lTableLayout.setTableField(pContext.name, pIndexName, pUnique, pMultiEntry);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
+    public static field: <T>(pExtension?: WebDatabaseFieldDecoratorExtension<T>) => ClassFieldDecorator<any, T> = WebDatabaseFieldDecorator;
 
     /**
-     * Add identity to table type.
-     * Auto incremented identity is only supported for number types.
+     * Decorator for defining a web database table.
      * 
-     * @param pAutoIncrement - Auto incremented identity.
-     */
-    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement): ClassFieldDecorator<any, TAutoIncrement extends true ? number : any> {
-        return (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, TAutoIncrement extends true ? number : any>): void => {
-            // Decorator can not be used on static propertys.
-            if (pContext.static) {
-                throw new Exception('Identity property can not be a static property.', WebDatabase);
-            }
-
-            // Decorator can only be attached to string named properties.
-            if (typeof pContext.name !== 'string') {
-                throw new Exception('Identity name must be a string.', WebDatabase);
-            }
-
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Add table type index to layout.
-            lTableLayout.setTableIdentity(pContext.name, pAutoIncrement);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
-
-    /**
-     * Decorator for the database table.
+     * @template T - The table class type.
+     * @param pTableName - The name of the table.
+     * @param pExtension - Optional extension for defining compound indices.
      * 
-     * @param pTableName - Table name.
+     * @remarks
+     * This decorator sets up the table layout, including its name and indices, and stores the configuration in metadata.
+     * Use the `with` property in the extension to define compound indices, specifying property names and uniqueness.
+     * 
+     * @example
+     * ```typescript
+     * @WebDatabaseTableDecorator('users', {
+     *   with: [
+     *     { properties: ['firstName', 'lastName'], unique: true }
+     *   ]
+     * })
+     * class User {
+     *   public firstName!: string;
+     *   public lastName!: string;
+     * }
+     * ```
      */
-    public static table(pTableName: string): ClassDecorator<TableType, void> {
-        return function (pTableClass: any, pContext: ClassDecoratorContext): void {
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Set table name.
-            lTableLayout.setTableName(pTableClass, pTableName);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
+    public static table: <T extends TableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>) => ClassDecorator<T, void> = WebDatabaseTableDecorator;
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
@@ -348,7 +308,7 @@ export class WebDatabase {
                         }
 
                         // Compare identity with keyPath and autoIncrement.
-                        if(lTableLayoutIdentity.key !== lDatabaseTable.keyPath || lTableLayoutIdentity.autoIncrement !== lDatabaseTable.autoIncrement) {
+                        if (lTableLayoutIdentity.key !== lDatabaseTable.keyPath || lTableLayoutIdentity.autoIncrement !== lDatabaseTable.autoIncrement) {
                             return true;
                         }
 

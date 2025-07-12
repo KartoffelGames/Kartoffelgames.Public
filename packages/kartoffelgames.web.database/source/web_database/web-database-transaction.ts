@@ -101,7 +101,6 @@ export class WebDatabaseTransaction<TTables extends TableType> {
         // Create table object with attached opened db.
         return new WebDatabaseTable<T>(lTableLayout, this);
     }
-
 }
 
 export type WebDbTransactionMode = 'readwrite' | 'readonly';

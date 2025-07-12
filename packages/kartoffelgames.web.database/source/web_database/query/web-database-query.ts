@@ -42,7 +42,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
     }
 
     public async delete(): Promise<void> {
-        
+
     }
 
     /**

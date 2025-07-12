@@ -32,12 +32,12 @@ export const WebDatabaseFieldDecorator = <T>(pExtension?: WebDatabaseFieldDecora
     return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
         // Decorator can not be used on static propertys.
         if (pContext.static) {
-            throw new Exception('Index property can not be a static property.', WebDatabaseFieldDecorator);
+            throw new Exception('Field property can not be a static property.', WebDatabaseFieldDecorator);
         }
 
         // Decorator can only be attached to string named properties.
         if (typeof pContext.name !== 'string') {
-            throw new Exception('Index name must be a string.', WebDatabaseFieldDecorator);
+            throw new Exception('Field name must be a string.', WebDatabaseFieldDecorator);
         }
 
         // Read metadata from metadata...

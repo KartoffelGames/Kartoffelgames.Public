@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import type { TableType } from '../web-database-table-layout.ts';
+import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from '../web-database-table-layout.ts';
 import type { WebDatabaseTable } from '../web-database-table.ts';
 import { WebDatabaseQueryAction } from './web-database-query-action.ts';
 
@@ -20,14 +20,14 @@ export class WebDatabaseQuery<TTableType extends TableType> {
     /**
      * Chain database query with "AND".
      * 
-     * @param pIndexOrPropertyName - A index or a property name.
+     * @param pPropertyName - Property name.
      *  
      * @returns query action. 
      */
-    public and(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public and(pPropertyName: string): WebDatabaseQueryAction<TTableType> {
         // Create query part.
         const lPart: WebDatabaseQueryPart = {
-            indexKey: pIndexOrPropertyName,
+            property: pPropertyName,
             action: null,
             link: 'AND'
         };
@@ -48,14 +48,14 @@ export class WebDatabaseQuery<TTableType extends TableType> {
     /**
      * Chain database query with "OR".
      * 
-     * @param pIndexOrPropertyName - A index or a property name.
+     * @param pPropertyName - Property name.
      *  
      * @returns query action. 
      */
-    public or(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public or(pPropertyName: string): WebDatabaseQueryAction<TTableType> {
         // Create query part.
         const lPart: WebDatabaseQueryPart = {
-            indexKey: pIndexOrPropertyName,
+            property: pPropertyName,
             action: null,
             link: 'OR'
         };
@@ -81,21 +81,18 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
 
         // Devide queries into "AND" blocks.
-        const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = new Array<Array<WebDatabaseQueryPart>>();
+        const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
 
-        // Add first block.
-        lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
+        // TODO: Optimize for single query blocks.
+        // ---- ReadQueryBlock(block) => 
+        // ---- OpenCursor(block, action) => Open a cursor and filter it with the block.
 
-        // Assign every query into a block.
-        for (const lQuery of this.mQueryList) {
-            // Create new block on any or chain.
-            if (lQuery.link === 'OR') {
-                lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
-            }
+        // TODO: On 
 
-            // Add query to latest block.
-            lQueryBlockList.at(-1)!.push(lQuery);
-        }
+
+
+
+
 
         // Special solution for single query single block queries.
         // Not neet to filter or merge.
@@ -148,6 +145,189 @@ export class WebDatabaseQuery<TTableType extends TableType> {
     }
 
     /**
+     * Group queries into blocks.
+     * A block is a set of queries that are linked with "AND".
+     * 
+     * @param pQueryList - Query list.
+     * 
+     * @returns Query blocks.
+     */
+    private groupQueryBlock(pQueryList: Array<WebDatabaseQueryPart>): Array<WebDatabaseQueryBlock> {
+        // Devide queries into "AND" blocks.
+        const lQueryBlockList: Array<WebDatabaseQueryBlock> = new Array<WebDatabaseQueryBlock>();
+
+        // Add first block.
+        lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
+
+        // Assign every query into a block.
+        for (const lQuery of pQueryList) {
+            // Create new block on any or chain.
+            if (lQuery.link === 'OR') {
+                lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
+            }
+
+            // Add query to latest block.
+            lQueryBlockList.at(-1)!.push(lQuery);
+        }
+
+        return lQueryBlockList;
+    }
+
+    private openCursor(pBlock: WebDatabaseQueryBlock, pAction: (pItem: any) => boolean): Promise<Array<any>> {
+
+    }
+
+    /**
+     * Generate a single key range for a query block.
+     * When no index exists for the block, it returns null.
+     * 
+     * @param pBlock - Query block.
+     * 
+     * @returns IDBKeyRange or null when no index exists for the block. 
+     */
+    private generateIndexableKeyRange(pBlock: WebDatabaseQueryBlock): IDBKeyRange | null {
+        // Read table layout for easy access.
+        const lTableLayout: WebDatabaseTableLayout = this.mTable.tableLayout;
+
+        // When block is single, only check if a index for it exists.
+        if (pBlock.length === 1) {
+            // When no index exists for the property.
+            if (!lTableLayout.index(pBlock[0].property)) {
+                return null;
+            }
+
+            return pBlock[0].action;
+        }
+
+        // Read all used properties of the block.
+        const lBlockPropertyList: Map<string, IDBKeyRange> = new Map<string, IDBKeyRange>();
+        for(const pQuery of pBlock) {
+            lBlockPropertyList.set(pQuery.property, pQuery.action!);
+        }
+        
+        // Iterate each table index and check if it matches the block.
+        const lMatchingIndex: TableLayoutIndex | null = (() => {
+            // Iterate each table index.
+            LAYOUT_INDEX: for (const lIndexName of this.mTable.tableLayout.indices) {
+                // Read index from table layout.
+                const lIndex: TableLayoutIndex = this.mTable.tableLayout.index(lIndexName)!;
+
+                // Must be the same number of properties.
+                if (lIndex.keys.length !== lBlockPropertyList.size) {
+                    continue;
+                }
+
+                // Check if each property of the block is included in the index.
+                for (const lBlockPropertyKey of lBlockPropertyList.keys()) {
+                    // When the index does not include the property, continue with next index.
+                    if (!lIndex.keys.includes(lBlockPropertyKey)) {
+                        continue LAYOUT_INDEX;
+                    }
+                }
+
+                // When all properties are included, return the index.
+                return lIndex;
+            }
+
+            // No matching index found.
+            return null;
+        })();
+
+        // When no matching index was found, return null.
+        if(!lMatchingIndex) {
+            return null;
+        }
+
+        // When a matching index was found, generate a key range.
+        // TODO: 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
      * Read data from table filtered by query.
      * When query index does not exists, it uses a expensive cursor filter.
      * 
@@ -170,7 +350,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
             // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let lIndexNameListIndex: number = 0; lIndexNameListIndex < lIndexNameList.length; lIndexNameListIndex++) {
                 const lIndexName: string = lIndexNameList[lIndexNameListIndex];
-                if (lIndexName === pQuery.indexKey) {
+                if (lIndexName === pQuery.property) {
                     return lIndexName;
                 }
             }
@@ -223,7 +403,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
                 }
 
                 // Get value of filtered propery.
-                const lFiltedValue: any = lCursorResult.value[pQuery.indexKey];
+                const lFiltedValue: any = lCursorResult.value[pQuery.property];
 
                 // Append row when value is included in assigned action.
                 if (pQuery.action!.includes(lFiltedValue)) {
@@ -296,9 +476,11 @@ export class WebDatabaseQuery<TTableType extends TableType> {
 }
 
 type WebDatabaseQueryPart = {
-    indexKey: string;
+    property: string;
     action: IDBKeyRange | null;
     link: WebDatabaseQueryLink;
 };
+
+type WebDatabaseQueryBlock = Array<WebDatabaseQueryPart>;
 
 type WebDatabaseQueryLink = 'AND' | 'OR';

@@ -25,7 +25,7 @@ Deno.test('WebDatabaseTable.clear()', { sanitizeResources: false, sanitizeOps: f
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lTestData1 = new TestTable();
             lTestData1.name = 'Test Item 1';
             await lTable.put(lTestData1);
@@ -139,7 +139,7 @@ Deno.test('WebDatabaseTable.count()', { sanitizeResources: false, sanitizeOps: f
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             for (let i = 0; i < 5; i++) {
                 const lTestData = new TestTable();
                 lTestData.name = `Test Item ${i}`;
@@ -183,7 +183,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             lTestDataToDelete = new TestTable();
             lTestDataToDelete.name = 'To Delete';
             await lTable.put(lTestDataToDelete);
@@ -237,7 +237,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             lTestDataToDelete = new TestTable();
             lTestDataToDelete.id = 'delete-me';
             lTestDataToDelete.name = 'To Delete';
@@ -293,7 +293,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             lTestDataToDelete = new TestTable();
             lTestDataToDelete.email = 'delete@test.com';
             lTestDataToDelete.name = 'To Delete';
@@ -347,7 +347,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Process and Evaluation.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             // Try to delete invalid data type.
             const lInvalidData = { id: 1, name: 'Invalid' };
             await expect(lTable.delete(lInvalidData as any)).rejects.toThrow('Invalid data type.');
@@ -375,10 +375,10 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Process and Evaluation.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lTestData = new TestTable();
             lTestData.name = 'Test';
-            
+
             await expect(lTable.delete(lTestData)).rejects.toThrow('Table TestTable must have a unique, not multi entry, index or identity to delete data directly.');
         });
 
@@ -410,7 +410,7 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lResult = await lTable.getAll();
-            
+
             expect(lResult).toHaveLength(0);
             expect(Array.isArray(lResult)).toBeTruthy();
         });
@@ -443,7 +443,7 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             for (let i = 0; i < 3; i++) {
                 const lTestData = new TestTable();
                 lTestData.name = `Item ${i}`;
@@ -456,7 +456,7 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lResult = await lTable.getAll();
-            
+
             expect(lResult).toHaveLength(3);
             expect(lResult[0]).toBeInstanceOf(TestTable);
             expect(lResult[0].name).toEqual('Item 0');
@@ -490,7 +490,7 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             for (let i = 0; i < 5; i++) {
                 const lTestData = new TestTable();
                 lTestData.name = `Item ${i}`;
@@ -502,7 +502,7 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lResult = await lTable.getAll(2);
-            
+
             expect(lResult).toHaveLength(2);
             expect(lResult[0]).toBeInstanceOf(TestTable);
         });
@@ -535,7 +535,7 @@ Deno.test('WebDatabaseTable.parseToType()', { sanitizeResources: false, sanitize
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lResult = lTable.parseToType([]);
-            
+
             expect(lResult).toHaveLength(0);
             expect(Array.isArray(lResult)).toBeTruthy();
         });
@@ -568,21 +568,21 @@ Deno.test('WebDatabaseTable.parseToType()', { sanitizeResources: false, sanitize
         // Process and Evaluation.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lRawData = [
                 { id: 1, name: 'Test 1', value: 100, extraField: 'ignored' },
                 { id: 2, name: 'Test 2', value: 200, extraField: 'ignored' }
             ];
-            
+
             const lResult = lTable.parseToType(lRawData);
-            
+
             expect(lResult).toHaveLength(2);
             expect(lResult[0]).toBeInstanceOf(TestTable);
             expect(lResult[0].id).toEqual(1);
             expect(lResult[0].name).toEqual('Test 1');
             expect(lResult[0].value).toEqual(100);
             expect((lResult[0] as any).extraField).toBeUndefined();
-            
+
             expect(lResult[1]).toBeInstanceOf(TestTable);
             expect(lResult[1].id).toEqual(2);
             expect(lResult[1].name).toEqual('Test 2');
@@ -617,20 +617,20 @@ Deno.test('WebDatabaseTable.parseToType()', { sanitizeResources: false, sanitize
         // Process and Evaluation.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lRawData = [
                 { id: 1, name: 'Test 1' }, // Missing value field
                 { name: 'Test 2', value: 200 } // Missing id field
             ];
-            
+
             const lResult = lTable.parseToType(lRawData);
-            
+
             expect(lResult).toHaveLength(2);
             expect(lResult[0]).toBeInstanceOf(TestTable);
             expect(lResult[0].id).toEqual(1);
             expect(lResult[0].name).toEqual('Test 1');
             expect(lResult[0].value).toBeUndefined();
-            
+
             expect(lResult[1]).toBeInstanceOf(TestTable);
             expect(lResult[1].id).toBeUndefined();
             expect(lResult[1].name).toEqual('Test 2');
@@ -665,7 +665,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         let lTestData: TestTable;
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             lTestData = new TestTable();
             lTestData.name = 'Test Item';
             await lTable.put(lTestData);
@@ -673,12 +673,12 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
 
         // Evaluation. Verify data was saved and auto-increment ID was set.
         expect(lTestData!.id).toBeGreaterThan(0);
-        
+
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lCount = await lTable.count();
             expect(lCount).toEqual(1);
-            
+
             const lResult = await lTable.getAll();
             expect(lResult).toHaveLength(1);
             expect(lResult[0].name).toEqual('Test Item');
@@ -710,7 +710,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         // Process.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lTestData = new TestTable();
             lTestData.id = 'custom-id';
             lTestData.name = 'Test Item';
@@ -722,7 +722,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
             const lTable = pTransaction.table(TestTable);
             const lCount = await lTable.count();
             expect(lCount).toEqual(1);
-            
+
             const lResult = await lTable.getAll();
             expect(lResult).toHaveLength(1);
             expect(lResult[0].name).toEqual('Test Item');
@@ -754,7 +754,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         // Process.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lTestData = new TestTable();
             lTestData.name = 'Test Item';
             lTestData.value = 42;
@@ -766,7 +766,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
             const lTable = pTransaction.table(TestTable);
             const lCount = await lTable.count();
             expect(lCount).toEqual(1);
-            
+
             const lResult = await lTable.getAll();
             expect(lResult).toHaveLength(1);
             expect(lResult[0].name).toEqual('Test Item');
@@ -801,7 +801,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         // Process.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             const lTestData = new TestTable();
             lTestData.name = 'Test Item';
             lTestData.extraField = 'Should be filtered';
@@ -812,7 +812,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lResult = await lTable.getAll();
-            
+
             expect(lResult).toHaveLength(1);
             expect(lResult[0].name).toEqual('Test Item');
             expect(lResult[0].extraField).toBeUndefined();
@@ -843,7 +843,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         // Process and Evaluation.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
-            
+
             // Try to put invalid data type.
             const lInvalidData = { name: 'Invalid' };
             await expect(lTable.put(lInvalidData as any)).rejects.toThrow('Invalid data type.');
@@ -877,7 +877,7 @@ Deno.test('WebDatabaseTable.where()', { sanitizeResources: false, sanitizeOps: f
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lQuery = lTable.where('name');
-            
+
             // Verify query is created and is chainable.
             expect(lQuery).toBeDefined();
             expect(typeof lQuery.is).toEqual('function');
@@ -910,7 +910,7 @@ Deno.test('WebDatabaseTable.where()', { sanitizeResources: false, sanitizeOps: f
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lQuery = lTable.where('email');
-            
+
             // Verify query is created and is chainable.
             expect(lQuery).toBeDefined();
             expect(typeof lQuery.is).toEqual('function');
@@ -952,7 +952,7 @@ Deno.test('WebDatabaseTable.where()', { sanitizeResources: false, sanitizeOps: f
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lQuery = lTable.where(`${lIndexProperty1}+${lIndexProperty2}`);
-            
+
             // Verify query is created and is chainable.
             expect(lQuery).toBeDefined();
             expect(typeof lQuery.is).toEqual('function');

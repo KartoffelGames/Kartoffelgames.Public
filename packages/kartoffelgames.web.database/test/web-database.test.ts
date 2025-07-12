@@ -2,6 +2,9 @@ import { expect } from '@kartoffelgames/core-test';
 import 'npm:fake-indexeddb/auto';
 import { WebDatabase } from '../source/index.ts';
 
+// TODO: Test: Update a table from non unique index to unique index with unique data.
+// TODO: Test: Update a table from non unique index to unique index with data where the key is not unique.
+
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Create Table - Identity-Autoincrement', async () => {

@@ -41,12 +41,16 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         });
     }
 
+    public async delete(): Promise<void> {
+        
+    }
+
     /**
      * Execute query and get all values.
      * 
      * @returns filtered query result. 
      */
-    public async execute(): Promise<Array<InstanceType<TTableType>>> {
+    public async read(): Promise<Array<InstanceType<TTableType>>> {
         // Must have queries.
         if (this.mQueryList.length === 0) {
             throw new Exception('No queries specified.', this);

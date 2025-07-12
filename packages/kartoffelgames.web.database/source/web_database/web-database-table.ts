@@ -1,6 +1,6 @@
 
 import { Exception } from '@kartoffelgames/core';
-import { type TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
+import { TableLayoutIndex, type TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
 import { WebDatabaseQuery } from './query/web-database-query.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
@@ -97,34 +97,65 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Invalid data type.`, this);
         }
 
-        // TODO:
-        if(!this.mTableLayout.identity) {
-            throw new Exception(`Table does not have an identity defined.`, this);
-        }
-
-        // Get identity value from data.
-        const lIdentityProperty: string = this.mTableLayout.identity.key;
-        const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
-
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
-        // Delete data.
-        const lRequest: IDBRequest<undefined> = lTable.delete(lIdentityValue);
+        // Delete data by identity  when identity is defined.
+        if (this.mTableLayout.identity) {
+            // Get identity value from data.
+            const lIdentityProperty: string = this.mTableLayout.identity.key;
+            const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
-        // Wait for completion.
-        return new Promise<void>((pResolve, pReject) => {
-            // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
-                pReject(new Exception(`Error deleting data.` + lTarget.error, this));
-            });
+            // Delete data.
+            const lRequest: IDBRequest<undefined> = lTable.delete(lIdentityValue);
 
-            // Resolve on success.
-            lRequest.addEventListener('success', () => {
-                pResolve();
+            // Wait for completion.
+            return new Promise<void>((pResolve, pReject) => {
+                // Reject on error.
+                lRequest.addEventListener('error', (pEvent) => {
+                    const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
+                    pReject(new Exception(`Error deleting data.` + lTarget.error, this));
+                });
+
+                // Resolve on success.
+                lRequest.addEventListener('success', () => {
+                    pResolve();
+                });
             });
-        });
+        }
+
+        // Find a index with a unique key.
+        const lUniqueIndex: TableLayoutIndex | null = (() => {
+            for (const lIndexName of this.mTableLayout.indices) {
+                const lIndex: TableLayoutIndex = this.mTableLayout.index(lIndexName)!;
+                if (lIndex.unique && lIndex.type !== 'multiEntry') {
+                    return lIndex;
+                }
+            }
+
+            return null;
+        })();
+
+        // Validate existance of a unique index.
+        if(!lUniqueIndex) {
+            throw new Exception(`Table ${this.mTableLayout.tableName} must have a unique, not multi entry, index or identity to delete data directly.`, this);
+        }
+
+        // Read data for unique index.
+        const lUniqueIndexData: number | string | Array<number | string> = (()=>{
+            if(lUniqueIndex.keys.length === 1) {
+                // Single key index.
+                return (<any>pData)[lUniqueIndex.keys[0]];
+            }
+
+            // Multi key index.
+            return lUniqueIndex.keys.map((pPropertyName: string) => {
+                return (<any>pData)[pPropertyName];
+            });
+        })();
+
+        // Delete by query.
+        await this.where(lUniqueIndex.name).is(lUniqueIndexData).delete();
     }
 
     /**

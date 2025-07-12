@@ -1,6 +1,6 @@
-import { ClassFieldDecorator, Exception } from '@kartoffelgames/core';
-import { Metadata } from "@kartoffelgames/core-dependency-injection";
-import { WebDatabaseTableLayout } from "../web-database-table-layout.ts";
+import { type ClassFieldDecorator, Exception } from '@kartoffelgames/core';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { WebDatabaseTableLayout } from '../web-database-table-layout.ts';
 
 /**
  * Decorator for defining a field in a web database table.

@@ -1,7 +1,7 @@
 import { Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
-import { WebDatabaseFieldDecorator, WebDatabaseFieldDecoratorExtension } from "./layout_decorator/web-database-field.decorator.ts";
-import { WebDatabaseTableDecorator, WebDatabaseTableDecoratorExtension } from "./layout_decorator/web-database-table.decorator.ts";
-import { TableLayoutIdentity, WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
+import { WebDatabaseFieldDecorator, type WebDatabaseFieldDecoratorExtension } from './layout_decorator/web-database-field.decorator.ts';
+import { WebDatabaseTableDecorator, type WebDatabaseTableDecoratorExtension } from './layout_decorator/web-database-table.decorator.ts';
+import { type TableLayoutIdentity, WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
 /**
@@ -24,13 +24,13 @@ export class WebDatabase {
      * @example
      * ```typescript
      * class User {
-     *   @WebDatabaseFieldDecorator({ as: { identity: 'auto' } })
+     *   @WebDatabase.field({ as: { identity: 'auto' } })
      *   public id!: number;
      * 
-     *   @WebDatabaseFieldDecorator({ as: { index: { unique: true } } })
+     *   @WebDatabase.field({ as: { index: { unique: true } } })
      *   public email!: string;
      * 
-     *   @WebDatabaseFieldDecorator({ as: { index: { multiEntry: true } } })
+     *   @WebDatabase.field({ as: { index: { multiEntry: true } } })
      *   public tags!: string[];
      * }
      * ```
@@ -50,7 +50,7 @@ export class WebDatabase {
      * 
      * @example
      * ```typescript
-     * @WebDatabaseTableDecorator('users', {
+     * @WebDatabase.table('users', {
      *   with: [
      *     { properties: ['firstName', 'lastName'], unique: true }
      *   ]
@@ -79,9 +79,9 @@ export class WebDatabase {
 
         // Map table types to their name and layouts.
         this.mTableLayouts = new Map<string, WebDatabaseTableLayout>();
-        for (const pTableType of pTables) {
+        for (const lTableType of pTables) {
             // Read table layout from type.
-            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(pTableType);
+            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
 
             // Check if table name is already set.
             if (this.mTableLayouts.has(lTableLayout.tableName)) {
@@ -239,7 +239,7 @@ export class WebDatabase {
         await lTransaction.open();
 
         // Call action within the transaction.
-        // eslint-disable-next-line @typescript-eslint/await-thenable
+         
         const lResult: TResult = await pAction(lTransaction);
 
         // Commit transaction.
@@ -422,7 +422,7 @@ export class WebDatabase {
      * @param pUpgradeAction - Action to perform on upgrade.
      * @param pSuccessAction - Action to perform on success.
      */
-    private openDatabaseWithAction<T>(pVersion: number | undefined, pUpgradeAction: WebDatabaseUpdateAction, pSuccessAction: WebDatabaseSuccessAction<T>): Promise<T> {
+    private async openDatabaseWithAction<T>(pVersion: number | undefined, pUpgradeAction: WebDatabaseUpdateAction, pSuccessAction: WebDatabaseSuccessAction<T>): Promise<T> {
         return new Promise<T>((pResolve, pReject) => {
             // Open database with current version.
             const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName, pVersion);
@@ -475,5 +475,3 @@ type DatabaseUpdate = {
     version: number;
     tableUpdates: Array<TableUpdate>;
 };
-
-type WebDatabaseFieldDecoratorContext<TThis, TValue> = ClassGetterDecoratorContext<TThis, TValue> | ClassSetterDecoratorContext<TThis, TValue> | ClassFieldDecoratorContext<TThis, TValue> | ClassAccessorDecoratorContext<TThis, TValue>;

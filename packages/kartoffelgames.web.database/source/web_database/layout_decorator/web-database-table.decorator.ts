@@ -1,6 +1,6 @@
-import { type ClassDecorator } from '@kartoffelgames/core';
-import { Metadata } from "@kartoffelgames/core-dependency-injection";
-import { TableType, WebDatabaseTableLayout } from "../web-database-table-layout.ts";
+import type { ClassDecorator } from '@kartoffelgames/core';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { type TableType, WebDatabaseTableLayout } from '../web-database-table-layout.ts';
 
 /**
  * Decorator for defining a web database table.
@@ -61,7 +61,7 @@ export const WebDatabaseTableDecorator = <T extends TableType>(pTableName: strin
 
 export type WebDatabaseTableDecoratorExtension<T extends TableType> = {
     with: Array<{
-        properties: [WebDatabaseTableDecoratorTableProperties<T>, WebDatabaseTableDecoratorTableProperties<T>, ...WebDatabaseTableDecoratorTableProperties<T>[]];
+        properties: [WebDatabaseTableDecoratorTableProperties<T>, WebDatabaseTableDecoratorTableProperties<T>, ...Array<WebDatabaseTableDecoratorTableProperties<T>>];
         unique?: boolean;
     }>;
 };

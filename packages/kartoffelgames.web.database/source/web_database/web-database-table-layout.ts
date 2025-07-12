@@ -135,6 +135,31 @@ export class WebDatabaseTableLayout {
     }
 
     /**
+     * Set table type identity.
+     * 
+     * @param pType - Table type.
+     * @param pKey - Key of identity.
+     * @param pAutoIncrement - Autoincrement identity.
+     * 
+     * @throws {@link Exception} - When a identitfier for this type is already set.
+     */
+    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
+        // Read table config and restrict to one identity.
+        if (this.mIdentity) {
+            throw new Exception(`A table type can only have one identifier.`, this);
+        }
+
+        // Set table type identity.
+        this.mIdentity = {
+            key: pKey,
+            autoIncrement: pAutoIncrement,
+        };
+
+        // Add property key to field list.
+        this.mFields.add(pKey);
+    }
+
+    /**
      * Adds an index to the table layout.
      * 
      * @param pPropertyKeys - Array of property names to be used as index keys. All properties must be set as fields before.
@@ -160,7 +185,7 @@ export class WebDatabaseTableLayout {
         }
 
         // Initialize index.
-        let lIndexConfig: TableLayoutIndex = {
+        const lIndexConfig: TableLayoutIndex = {
             name: lIndexName,
             keys: pPropertyKeys as [string],
             unique: pIsUnique,
@@ -183,31 +208,6 @@ export class WebDatabaseTableLayout {
 
         // Link index to table config.
         this.mIndices.set(lIndexName, lIndexConfig);
-    }
-
-    /**
-     * Set table type identity.
-     * 
-     * @param pType - Table type.
-     * @param pKey - Key of identity.
-     * @param pAutoIncrement - Autoincrement identity.
-     * 
-     * @throws {@link Exception} - When a identitfier for this type is already set.
-     */
-    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
-        // Read table config and restrict to one identity.
-        if (this.mIdentity) {
-            throw new Exception(`A table type can only have one identifier.`, this);
-        }
-
-        // Set table type identity.
-        this.mIdentity = {
-            key: pKey,
-            autoIncrement: pAutoIncrement,
-        };
-
-        // Add property key to field list.
-        this.mFields.add(pKey);
     }
 
     /**

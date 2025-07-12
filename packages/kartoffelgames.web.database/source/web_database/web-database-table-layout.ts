@@ -163,6 +163,10 @@ export class WebDatabaseTableLayout {
 
         // Upgrade index type when more than one key is set.
         if (lIndexConfig.keys.length > 1) {
+            // Order keys alphabetically to ensure the same order in the index.
+            lIndexConfig.keys.sort();
+
+            // Set index type to compound.
             lIndexConfig.type = 'compound';
         }
 

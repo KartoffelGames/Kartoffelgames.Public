@@ -1,6 +1,9 @@
 import type { TableType } from '../web-database-table-layout.ts';
 import type { WebDatabaseQuery } from './web-database-query.ts';
 
+/**
+ * Provides chainable query actions for filtering table rows by value ranges or exact matches.
+ */
 export class WebDatabaseQueryAction<TTableType extends TableType> {
     private readonly mActionCallback: WebDatabaseQueryActionCallback;
     private readonly mDatabaseQuery: WebDatabaseQuery<TTableType>;

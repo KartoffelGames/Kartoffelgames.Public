@@ -2,7 +2,8 @@ import { expect } from '@kartoffelgames/core-test';
 import 'npm:fake-indexeddb/auto';
 import { WebDatabase } from '../source/index.ts';
 
-Deno.test('WebDatabase.open', async (pContext) => {
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
+Deno.test('WebDatabase.open', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Table - Identity-Autoincrement', async () => {
         // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -46,7 +47,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
 
     await pContext.step('Table - Index-Unique', async () => {
         // Setup. Table configuration.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);  
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableIndexPropertyName: string = 'myName';
         const lTableIndexName: string = 'indexName';
 
@@ -403,7 +404,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
                 @WebDatabase.field(lTableIndexName, false, true)
                 public [lTableIndexProperty2Name]!: string;
             }
-        }
+        };
 
         //Evaluation.
         expect(lFailFunction).toThrow('Multi entity index can only have one property.');
@@ -425,7 +426,7 @@ Deno.test('WebDatabase.open', async (pContext) => {
                 @WebDatabase.field(lTableIndexName, true, true)
                 public [lTableIndexProperty2Name]!: string;
             }
-        }
+        };
 
         //Evaluation.
         expect(lFailFunction).toThrow('Multi entity index can only have one property.');

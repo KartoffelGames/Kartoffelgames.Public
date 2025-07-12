@@ -433,15 +433,17 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lInitialTableName: string = 'InitialTable';
         const lNewTableName: string = 'NewTable';
+        const lInitialTableIndexPropertyName: string = 'name';
+        const lNewTableIdentityPropertyName: string = 'id';
+        const lNewTableIndexPropertyName: string = 'value';
 
         // Setup. Create initial database with native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                db.createObjectStore(lInitialTableName);
+            request.onupgradeneeded = () => {
+                request.result.createObjectStore(lInitialTableName);
             };
         });
         lInitialDb.close();
@@ -450,16 +452,16 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lInitialTableName)
         class InitialTable {
             @WebDatabase.field({ as: { index: {} } })
-            public name!: string;
+            public [lInitialTableIndexPropertyName]!: string;
         }
 
         @WebDatabase.table(lNewTableName)
         class NewTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lNewTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
-            public value!: string;
+            public [lNewTableIndexPropertyName]!: string;
         }
 
         // Process. Update database with WebDatabase.
@@ -477,17 +479,17 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lInitialTableStore.name).toEqual(lInitialTableName);
             expect(lInitialTableStore.keyPath).toBeNull();
             expect(lInitialTableStore.indexNames).toHaveLength(1);
-            expect(lInitialTableStore.indexNames).toContain('name');
+            expect(lInitialTableStore.indexNames).toContain(lInitialTableIndexPropertyName);
         });
 
         // Evaluation. Verify new table is created correctly.
         await lWebDatabase.transaction([NewTable], 'readonly', async (pTransaction) => {
             const lNewTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lNewTableName);
             expect(lNewTableStore.name).toEqual(lNewTableName);
-            expect(lNewTableStore.keyPath).toEqual('id');
+            expect(lNewTableStore.keyPath).toEqual(lNewTableIdentityPropertyName);
             expect(lNewTableStore.autoIncrement).toBeTruthy();
             expect(lNewTableStore.indexNames).toHaveLength(1);
-            expect(lNewTableStore.indexNames).toContain('value');
+            expect(lNewTableStore.indexNames).toContain(lNewTableIndexPropertyName);
         });
 
         // Cleanup. Close the database.
@@ -500,21 +502,20 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableToKeepName: string = 'TableToKeep';
         const lTableToRemoveName: string = 'TableToRemove';
         const lKeepIndexProperyName: string = 'keepIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with two tables using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-
+            request.onupgradeneeded = () => {
                 // Create table to keep.
-                const keepStore = db.createObjectStore(lTableToKeepName, { keyPath: 'id', autoIncrement: true });
+                const keepStore = request.result.createObjectStore(lTableToKeepName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 keepStore.createIndex(lKeepIndexProperyName, lKeepIndexProperyName, { unique: false });
 
                 // Create table to remove.
-                const removeStore = db.createObjectStore(lTableToRemoveName);
+                const removeStore = request.result.createObjectStore(lTableToRemoveName);
                 removeStore.createIndex('removeIndex', 'value', { unique: true });
             };
         });
@@ -524,7 +525,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableToKeepName)
         class TableToKeep {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lKeepIndexProperyName]!: string;
@@ -543,7 +544,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TableToKeep], 'readonly', async (pTransaction) => {
             const lKeptTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableToKeepName);
             expect(lKeptTableStore.name).toEqual(lTableToKeepName);
-            expect(lKeptTableStore.keyPath).toEqual('id');
+            expect(lKeptTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lKeptTableStore.autoIncrement).toBeTruthy();
             expect(lKeptTableStore.indexNames).toHaveLength(1);
             expect(lKeptTableStore.indexNames).toContain(lKeepIndexProperyName);
@@ -562,15 +563,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lTableIndexPropertyName: string = 'nameIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database without identity using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName);
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName);
                 store.createIndex(lTableIndexPropertyName, lTableIndexPropertyName, { unique: false });
             };
         });
@@ -580,7 +581,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lTableIndexPropertyName]!: string;
@@ -588,12 +589,12 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify table has identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
-            expect(lTableStore.keyPath).toEqual('id');
+            expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeTruthy();
             expect(lTableStore.indexNames).toHaveLength(1);
             expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
@@ -608,15 +609,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lTableIndexPropertyName: string = 'nameIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with identity using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lTableIndexPropertyName, lTableIndexPropertyName, { unique: false });
             };
         });
@@ -631,7 +632,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify table has no identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -651,15 +652,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lTableIndexPropertyName: string = 'nameIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with non-auto-increment identity using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: false });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: false });
                 store.createIndex(lTableIndexPropertyName, lTableIndexPropertyName, { unique: false });
             };
         });
@@ -669,7 +670,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lTableIndexPropertyName]!: string;
@@ -677,15 +678,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify table has auto-increment identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
-            expect(lTableStore.keyPath).toEqual('id');
+            expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeTruthy();
             expect(lTableStore.indexNames).toHaveLength(1);
-            expect(lTableStore.indexNames).toContain('nameIndex');
+            expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
         });
 
         // Cleanup. Close the database.
@@ -696,15 +697,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         // Setup. Database configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with auto-increment identity using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
             };
         });
         lInitialDb.close();
@@ -713,7 +714,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'manual' } })
-            public id!: string;
+            public [lTableIdentityPropertyName]!: string;
         }
 
         // Process. Update database with WebDatabase.
@@ -723,7 +724,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         // Evaluation. Verify table has non-auto-increment identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
-            expect(lTableStore.keyPath).toEqual('id');
+            expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeFalsy();
             expect(lTableStore.indexNames).toHaveLength(0);
         });
@@ -738,15 +739,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableName: string = 'TestTable';
         const lNewIndexPropertyName: string = 'newIndex';
         const lExistingIndexName: string = 'existingIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database without the new index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lExistingIndexName, lExistingIndexName, { unique: false });
             };
         });
@@ -756,7 +757,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lExistingIndexName]!: string;
@@ -767,7 +768,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify both indices exist.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -792,15 +793,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableName: string = 'TestTable';
         const lIndexToRemove: string = 'indexToRemove';
         const lIndexToKeep: string = 'keepIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with index to remove using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexToKeep, lIndexToKeep, { unique: false });
                 store.createIndex(lIndexToRemove, 'category', { unique: true });
             };
@@ -811,7 +812,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lIndexToKeep]!: string;
@@ -819,7 +820,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify only the kept index exists.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -838,15 +839,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lIndexPropertyName: string = 'testIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with non-unique index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexPropertyName, lIndexPropertyName, { unique: false });
             };
         });
@@ -856,7 +857,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: { unique: true } } })
             public [lIndexPropertyName]!: string;
@@ -864,7 +865,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index is now unique.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -884,15 +885,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lIndexPropertyName: string = 'testIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with unique index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexPropertyName, lIndexPropertyName, { unique: true });
             };
         });
@@ -902,7 +903,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: { unique: false } } })
             public [lIndexPropertyName]!: string;
@@ -910,7 +911,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index is no longer unique.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -930,15 +931,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lIndexPropertyName: string = 'testIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with non-multi-entry index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexPropertyName, lIndexPropertyName, { unique: false, multiEntry: false });
             };
         });
@@ -948,7 +949,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: { multiEntry: true } } })
             public [lIndexPropertyName]!: Array<string>;
@@ -956,7 +957,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index is now multi-entry.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -976,15 +977,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lIndexPropertyName: string = 'testIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with multi-entry index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexPropertyName, lIndexPropertyName, { unique: false, multiEntry: true });
             };
         });
@@ -994,7 +995,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: { multiEntry: false } } })
             public [lIndexPropertyName]!: string;
@@ -1002,7 +1003,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index is no longer multi-entry.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1023,15 +1024,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableName: string = 'TestTable';
         const lTableIndexProperty1Name: string = 'one';
         const lTableIndexProperty2Name: string = 'two';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with single-property index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`, lTableIndexProperty1Name, { unique: false });
             };
         });
@@ -1046,7 +1047,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         })
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field()
             public [lTableIndexProperty1Name]!: string;
@@ -1077,15 +1078,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
         const lIndexPropertyName: string = 'testIndex';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with compound index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(lIndexPropertyName, ['one', 'two'], { unique: false });
             };
         });
@@ -1095,7 +1096,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         @WebDatabase.table(lTableName)
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field({ as: { index: {} } })
             public [lIndexPropertyName]!: string;
@@ -1103,7 +1104,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index is now single-property.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1125,15 +1126,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableIndexProperty1Name: string = 'one';
         const lTableIndexProperty2Name: string = 'two';
         const lTableIndexProperty3Name: string = 'three';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with two-property compound index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}+${lTableIndexProperty3Name}`, [lTableIndexProperty1Name, lTableIndexProperty2Name], { unique: false });
             };
         });
@@ -1148,7 +1149,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         })
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field()
             public [lTableIndexProperty1Name]!: string;
@@ -1162,7 +1163,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index now includes three properties.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1184,15 +1185,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lTableIndexProperty1Name: string = 'one';
         const lTableIndexProperty2Name: string = 'two';
         const lTableIndexProperty3Name: string = 'three';
+        const lTableIdentityPropertyName: string = 'id';
 
         // Setup. Create initial database with three-property compound index using native IndexedDB API.
         const lInitialDb: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(lDatabaseName, 1);
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve(request.result);
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                const store = db.createObjectStore(lTableName, { keyPath: 'id', autoIncrement: true });
+            request.onupgradeneeded = () => {
+                const store = request.result.createObjectStore(lTableName, { keyPath: lTableIdentityPropertyName, autoIncrement: true });
                 store.createIndex(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`, [lTableIndexProperty1Name, lTableIndexProperty2Name, lTableIndexProperty3Name], { unique: false });
             };
         });
@@ -1207,7 +1208,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         })
         class TestTable {
             @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
+            public [lTableIdentityPropertyName]!: number;
 
             @WebDatabase.field()
             public [lTableIndexProperty1Name]!: string;
@@ -1218,7 +1219,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        const lUpdatedDb: IDBDatabase = await lWebDatabase.open();
+        await lWebDatabase.open();
 
         // Evaluation. Verify index now includes only two properties.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1374,7 +1375,7 @@ Deno.test('WebDatabase.field()', async (pContext) => {
         // Process
         const decoratorFunction = () => {
             class TestTable {
-                @WebDatabase.field({as : { index: {} } })
+                @WebDatabase.field({ as: { index: {} } })
                 public name!: string;
             }
         };
@@ -1387,7 +1388,7 @@ Deno.test('WebDatabase.field()', async (pContext) => {
         // Process
         const decoratorFunction = () => {
             class TestTable {
-                @WebDatabase.field({as : { index: { unique: true} } })
+                @WebDatabase.field({ as: { index: { unique: true } } })
                 public name!: string;
             }
         };
@@ -1400,7 +1401,7 @@ Deno.test('WebDatabase.field()', async (pContext) => {
         // Process
         const decoratorFunction = () => {
             class TestTable {
-                @WebDatabase.field({as : { index: {multiEntry: true} } })
+                @WebDatabase.field({ as: { index: { multiEntry: true } } })
                 public tags!: Array<string>;
             }
         };
@@ -1413,7 +1414,7 @@ Deno.test('WebDatabase.field()', async (pContext) => {
         // Process
         const decoratorFunction = () => {
             class TestTable {
-                @WebDatabase.field({as : { index: {multiEntry: true, unique: true} } })
+                @WebDatabase.field({ as: { index: { multiEntry: true, unique: true } } })
                 public uniqueTags!: Array<string>;
             }
         };

@@ -137,13 +137,13 @@ export class WebDatabaseTable<TTableType extends TableType> {
         })();
 
         // Validate existance of a unique index.
-        if(!lUniqueIndex) {
+        if (!lUniqueIndex) {
             throw new Exception(`Table ${this.mTableLayout.tableName} must have a unique, not multi entry, index or identity to delete data directly.`, this);
         }
 
         // Read data for unique index.
-        const lUniqueIndexData: number | string | Array<number | string> = (()=>{
-            if(lUniqueIndex.keys.length === 1) {
+        const lUniqueIndexData: number | string | Array<number | string> = (() => {
+            if (lUniqueIndex.keys.length === 1) {
                 // Single key index.
                 return (<any>pData)[lUniqueIndex.keys[0]];
             }
@@ -225,18 +225,45 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Invalid data type.`, this);
         }
 
+        // Validate identity when auto increment is disabled.
+        if (this.mTableLayout.identity && !this.mTableLayout.identity.autoIncrement) {
+            const lIdentityValue: any = (<any>pData)[this.mTableLayout.identity.key];
+
+            if (typeof lIdentityValue === 'undefined' || lIdentityValue === null) {
+                throw new Exception(`Identity value is required when auto increment is disabled.`, this);
+            }
+        }
+
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
         // Cleanup data to use only the fields defined in the table layout.
         const lCleanedData: Record<string, any> = {};
         for (const lField of this.mTableLayout.fields) {
+            const lData = (<any>pData)[lField];
+
+            // Detect identity field when a identity is defined.
+            if (this.mTableLayout.identity && this.mTableLayout.identity.key === lField && this.mTableLayout.identity.autoIncrement) {
+                // Skip adding identity value when auto increment is enabled and identity value is undefined.
+                if (typeof lData === 'undefined' || lData === null) {
+                    continue;
+                }
+            }
+
             // Copy only the fields defined in the table layout.
             lCleanedData[lField] = (<any>pData)[lField];
         }
 
         // Put data.
-        const lRequest: IDBRequest<IDBValidKey> = lTable.put(lCleanedData);
+        const lRequest: IDBRequest<IDBValidKey> = (() => {
+            // Generate a random out-of-line identity when no identity is defined.
+            if (!this.mTableLayout.identity) {
+                return lTable.put(lCleanedData, crypto.randomUUID());
+            }
+
+            // Put data with identity.
+            return lTable.put(lCleanedData);
+        })();
 
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {

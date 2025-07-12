@@ -239,7 +239,6 @@ export class WebDatabase {
         await lTransaction.open();
 
         // Call action within the transaction.
-         
         const lResult: TResult = await pAction(lTransaction);
 
         // Commit transaction.

@@ -141,21 +141,23 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Table ${this.mTableLayout.tableName} must have a unique, not multi entry, index or identity to delete data directly.`, this);
         }
 
-        // Read data for unique index.
-        const lUniqueIndexData: number | string | Array<number | string> = (() => {
-            if (lUniqueIndex.keys.length === 1) {
-                // Single key index.
-                return (<any>pData)[lUniqueIndex.keys[0]];
+        // Create a query that matches the unique index.
+        let lDeleteQuery: WebDatabaseQuery<TTableType> | null = null;
+        for(const lIndexKey of lUniqueIndex.keys) {
+            let lQueryAction: WebDatabaseQueryAction<TTableType>;
+            
+            // Create a query action for the index key.
+            if(lDeleteQuery === null) {
+                lQueryAction = this.where(lIndexKey);
+            } else {
+                lQueryAction = lDeleteQuery.and(lIndexKey);
             }
 
-            // Multi key index.
-            return lUniqueIndex.keys.map((pPropertyName: string) => {
-                return (<any>pData)[pPropertyName];
-            });
-        })();
+            lDeleteQuery = lQueryAction.is((<any>pData)[lIndexKey]);
+        }
 
         // Delete by query.
-        await this.where(lUniqueIndex.name).is(lUniqueIndexData).delete();
+        await lDeleteQuery!.delete();
     }
 
     /**

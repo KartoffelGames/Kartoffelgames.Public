@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from '../web-database-table-layout.ts';
 import type { WebDatabaseTable } from '../web-database-table.ts';
-import { WebDatabaseQueryAction } from './web-database-query-action.ts';
+import { WebDatabaseQueryAction, WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
 
 export class WebDatabaseQuery<TTableType extends TableType> {
     private readonly mQueryList: Array<WebDatabaseQueryPart>;
@@ -196,15 +196,17 @@ export class WebDatabaseQuery<TTableType extends TableType> {
                 return null;
             }
 
-            return pBlock[0].action;
+            const lBlockAction: WebDatabaseQueryActionBoundRange = pBlock[0].action!;
+
+            return IDBKeyRange.bound(lBlockAction.lower, lBlockAction.upper, lBlockAction.includeLower, lBlockAction.includeUpper);
         }
 
         // Read all used properties of the block.
-        const lBlockPropertyList: Map<string, IDBKeyRange> = new Map<string, IDBKeyRange>();
-        for(const pQuery of pBlock) {
+        const lBlockPropertyList: Map<string, WebDatabaseQueryActionBoundRange> = new Map<string, WebDatabaseQueryActionBoundRange>();
+        for (const pQuery of pBlock) {
             lBlockPropertyList.set(pQuery.property, pQuery.action!);
         }
-        
+
         // Iterate each table index and check if it matches the block.
         const lMatchingIndex: TableLayoutIndex | null = (() => {
             // Iterate each table index.
@@ -234,12 +236,23 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         })();
 
         // When no matching index was found, return null.
-        if(!lMatchingIndex) {
+        if (!lMatchingIndex) {
             return null;
         }
 
         // When a matching index was found, generate a key range.
-        // TODO: 
+        const lLowerFilterValueList: Array<string | number> = new Array<string | number>();
+        const lUpperFilterValueList: Array<string | number> = new Array<string | number>();
+
+
+        for(const lIndexKey of lMatchingIndex.keys) {
+            // Get the action for the index key. Key exists as the index was filtered by it.
+            const lActionBoundRange: WebDatabaseQueryActionBoundRange = lBlockPropertyList.get(lIndexKey)!;
+
+            
+        }
+
+        return IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, true, true);
     }
 
 
@@ -477,7 +490,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
 
 type WebDatabaseQueryPart = {
     property: string;
-    action: IDBKeyRange | null;
+    action: WebDatabaseQueryActionBoundRange | null;
     link: WebDatabaseQueryLink;
 };
 

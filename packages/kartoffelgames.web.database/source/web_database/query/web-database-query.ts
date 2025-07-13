@@ -83,11 +83,47 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         // Devide queries into "AND" blocks.
         const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
 
+        // Convert each query block into a indexable key range.
+        let lContainsUnindexableKeyRange: boolean = false;
+        const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange | WebDatabaseQueryUnindexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange | WebDatabaseQueryUnindexableKeyRange => {
+            // Convert block into indexable key range.
+            const lIndexableKeyRange: WebDatabaseQueryIndexableKeyRange | null = this.generateIndexableKeyRange(pBlock);
+            if (lIndexableKeyRange) {
+                return lIndexableKeyRange;
+            }
+
+            // Flag that a unindexable key range was found.
+            lContainsUnindexableKeyRange = true;
+
+            // When no indexable key range was found, use a unindexable key range.
+            return {
+                block: pBlock
+            };
+        });
+
+        // Shortcut when block contains a single indexable key range.
+        if (lIndexableKeyRangeList.length === 1 && !lContainsUnindexableKeyRange) {
+            // Read and convert single block.
+            return this.mTable.parseToType(await this.readQuery(lIndexableKeyRangeList[0] as WebDatabaseQueryIndexableKeyRange));
+        }
+
+
+
+
+
+
+
+
+
+
         // TODO: Optimize for single query blocks.
         // ---- ReadQueryBlock(block) => 
         // ---- OpenCursor(block, action) => Open a cursor and filter it with the block.
 
         // TODO: On 
+
+
+
 
 
 
@@ -173,10 +209,6 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         return lQueryBlockList;
     }
 
-    private openCursor(pBlock: WebDatabaseQueryBlock, pAction: (pItem: any) => boolean): Promise<Array<any>> {
-
-    }
-
     /**
      * Generate a single key range for a query block.
      * When no index exists for the block, it returns null.
@@ -185,20 +217,23 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      * 
      * @returns IDBKeyRange or null when no index exists for the block. 
      */
-    private generateIndexableKeyRange(pBlock: WebDatabaseQueryBlock): IDBKeyRange | null {
+    private generateIndexableKeyRange(pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange | null {
         // Read table layout for easy access.
         const lTableLayout: WebDatabaseTableLayout = this.mTable.tableLayout;
 
         // When block is single, only check if a index for it exists.
         if (pBlock.length === 1) {
+            const lQueryPart: WebDatabaseQueryPart = pBlock[0];
+
             // When no index exists for the property.
-            if (!lTableLayout.index(pBlock[0].property)) {
+            if (!lTableLayout.index(lQueryPart.property)) {
                 return null;
             }
 
-            const lBlockAction: WebDatabaseQueryActionBoundRange = pBlock[0].action!;
-
-            return IDBKeyRange.bound(lBlockAction.lower, lBlockAction.upper, lBlockAction.includeLower, lBlockAction.includeUpper);
+            return {
+                indexName: lQueryPart.property,
+                keyRange: IDBKeyRange.bound(lQueryPart.action!.lower, lQueryPart.action!.upper, true, true)
+            };
         }
 
         // Read all used properties of the block.
@@ -244,18 +279,88 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         const lLowerFilterValueList: Array<string | number> = new Array<string | number>();
         const lUpperFilterValueList: Array<string | number> = new Array<string | number>();
 
-
-        for(const lIndexKey of lMatchingIndex.keys) {
+        // Add each bound range values to in specified index key order.
+        for (const lIndexKey of lMatchingIndex.keys) {
             // Get the action for the index key. Key exists as the index was filtered by it.
             const lActionBoundRange: WebDatabaseQueryActionBoundRange = lBlockPropertyList.get(lIndexKey)!;
 
-            
+            // Set lower and upper filter value.
+            lLowerFilterValueList.push(lActionBoundRange.lower);
+            lUpperFilterValueList.push(lActionBoundRange.upper);
         }
 
-        return IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, true, true);
+        return {
+            indexName: lMatchingIndex.name,
+            keyRange: IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, true, true)
+        };
     }
 
+    private openCursor(pBlockList: Array<WebDatabaseQueryIndexableKeyRange>, pAction: (pCursor: IDBCursorWithValue) => boolean): Promise<Array<any>> {
+        // Get table connection.
+        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 
+        // When a indexable key range was found, use it.
+        let lCursorRequest: IDBRequest<IDBCursorWithValue | null>;
+        if (pBlockList.length > 0) {
+            lCursorRequest = lTableConnection.index(pBlockList[0].indexName).openCursor(pBlockList[0].keyRange);
+        } else {
+            lCursorRequest = lTableConnection.openCursor();
+        }
+
+        // List of remaining unprocessed blocks.
+        const lRemainingBlocks: Array<WebDatabaseQueryIndexableKeyRange> = pBlockList.slice(1);
+
+        // Read anything and filter.
+        const lFiteredList: Array<any> = new Array<any>();
+        return new Promise<Array<any>>((pResolve, pReject) => {
+            // Reject on error.
+            lCursorRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error fetching table.` + lCursorRequest.error, this));
+            });
+
+            // Resolve on success.
+            lCursorRequest.addEventListener('success', () => {
+                // Read event target like a shithead and resolve when cursor is eof.
+                const lCursorResult: IDBCursorWithValue | null = lCursorRequest.result;
+                if (!lCursorResult) {
+                    pResolve(lFiteredList);
+                    return;
+                }
+
+                // TODO: Filter result with remaining blocks.
+                // THAT IS FUCKED UP FOR MULTIPLE REASONS. 
+                // Find a good way to check if the current value matches a IDBKeyRange.
+                // Read index.
+
+                // TODO: That will not work as blocks can be chained with "OR" and not "AND". You useless.
+                for( const lBlock of lRemainingBlocks) {
+                    // Read index of block.
+                    const lIndex: TableLayoutIndex  = this.mTable.tableLayout.index(lBlock.indexName)!;
+
+                    // Create value range.
+                    const lIndexValues: Array<string | number> = lIndex.keys.map((pKey) => {
+                        // Get value of cursor for index key.
+                        return lCursorResult!.value[pKey];
+                    });
+
+                    // Check if value is in range. // TODO: Make it cleaner.
+                    if (!lBlock.keyRange.includes(lIndexValues)) {
+                        // When value is not in range, continue with next value.
+                        lCursorResult.continue();
+                        return;
+                    }
+                }
+
+                // Append row when value is included in assigned action.
+                if (pAction(lCursorResult)) {
+                    lFiteredList.push(lCursorResult.value);
+                }
+
+                // Continue next value.
+                lCursorResult.continue();
+            });
+        });
+    }
 
 
 
@@ -497,3 +602,12 @@ type WebDatabaseQueryPart = {
 type WebDatabaseQueryBlock = Array<WebDatabaseQueryPart>;
 
 type WebDatabaseQueryLink = 'AND' | 'OR';
+
+type WebDatabaseQueryIndexableKeyRange = {
+    indexName: string;
+    keyRange: IDBKeyRange;
+};
+
+type WebDatabaseQueryUnindexableKeyRange = {
+    block: WebDatabaseQueryBlock;
+};

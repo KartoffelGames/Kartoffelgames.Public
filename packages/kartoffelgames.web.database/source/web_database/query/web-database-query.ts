@@ -85,26 +85,20 @@ export class WebDatabaseQuery<TTableType extends TableType> {
 
         // Convert each query block into a indexable key range.
         let lContainsUnindexableKeyRange: boolean = false;
-        const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange | WebDatabaseQueryUnindexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange | WebDatabaseQueryUnindexableKeyRange => {
+        const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange => {
             // Convert block into indexable key range.
             const lIndexableKeyRange: WebDatabaseQueryIndexableKeyRange | null = this.generateIndexableKeyRange(pBlock);
-            if (lIndexableKeyRange) {
-                return lIndexableKeyRange;
+            if (!lIndexableKeyRange) {
+                throw new Exception(`No indexable key range for block found.`, this);
             }
 
-            // Flag that a unindexable key range was found.
-            lContainsUnindexableKeyRange = true;
-
-            // When no indexable key range was found, use a unindexable key range.
-            return {
-                block: pBlock
-            };
+            return lIndexableKeyRange;
         });
 
         // Shortcut when block contains a single indexable key range.
         if (lIndexableKeyRangeList.length === 1 && !lContainsUnindexableKeyRange) {
             // Read and convert single block.
-            return this.mTable.parseToType(await this.readQuery(lIndexableKeyRangeList[0] as WebDatabaseQueryIndexableKeyRange));
+            return this.mTable.parseToType(await this.readQuery(lIndexableKeyRangeList[0]));
         }
 
 
@@ -332,10 +326,10 @@ export class WebDatabaseQuery<TTableType extends TableType> {
                 // Find a good way to check if the current value matches a IDBKeyRange.
                 // Read index.
 
-                // TODO: That will not work as blocks can be chained with "OR" and not "AND". You useless.
-                for( const lBlock of lRemainingBlocks) {
+                // TODO: That will not work as blocks can be chained with "OR" and not "AND". You useless. 
+                for (const lBlock of lRemainingBlocks) {
                     // Read index of block.
-                    const lIndex: TableLayoutIndex  = this.mTable.tableLayout.index(lBlock.indexName)!;
+                    const lIndex: TableLayoutIndex = this.mTable.tableLayout.index(lBlock.indexName)!;
 
                     // Create value range.
                     const lIndexValues: Array<string | number> = lIndex.keys.map((pKey) => {
@@ -453,83 +447,24 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      * 
      * @returns Filtered item list. 
      */
-    private async readQuery(pQuery: WebDatabaseQueryPart): Promise<Array<any>> {
-        // Query must have a action.
-        if (!pQuery.action) {
-            throw new Exception('Query has no assigned action.', this);
-        }
-
+    private async readQuery(pQuery: WebDatabaseQueryIndexableKeyRange): Promise<Array<any>> {
         // Get table connection.
         const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 
-        // Try to find index key.
-        const lIndexName: string | null = (() => {
-            const lIndexNameList: DOMStringList = lTableConnection.indexNames;
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
-            for (let lIndexNameListIndex: number = 0; lIndexNameListIndex < lIndexNameList.length; lIndexNameListIndex++) {
-                const lIndexName: string = lIndexNameList[lIndexNameListIndex];
-                if (lIndexName === pQuery.property) {
-                    return lIndexName;
-                }
-            }
+        const lIndex: IDBIndex = lTableConnection.index(pQuery.indexName);
 
-            return null;
-        })();
-
-        // When index was found, use index.
-        if (lIndexName) {
-            const lIndex: IDBIndex = lTableConnection.index(lIndexName);
-
-            // Execute read request with the set query action.
-            const lRequest: IDBRequest<Array<any>> = lIndex.getAll(pQuery.action);
-            return new Promise<Array<any>>((pResolve, pReject) => {
-                // Reject on error.
-                lRequest.addEventListener('error', (pEvent) => {
-                    const lTarget: IDBRequest<Array<any>> = (<IDBRequest<Array<any>>>pEvent.target);
-                    pReject(new Exception(`Error fetching table.` + lTarget.error, this));
-                });
-
-                // Resolve on success.
-                lRequest.addEventListener('success', (pEvent) => {
-                    // Read event target like a shithead.
-                    const lTarget: IDBRequest<Array<any>> = pEvent.target as IDBRequest<Array<any>>;
-
-                    pResolve(lTarget.result);
-                });
-            });
-        }
-
-        // When no index was found you fucked up.
-        // Read anything and filter.
-        const lCursorRequest: IDBRequest<IDBCursorWithValue | null> = lTableConnection.openCursor();
-        const lFiteredList: Array<any> = new Array<any>();
+        // Execute read request with the set query action.
+        const lRequest: IDBRequest<Array<any>> = lIndex.getAll(pQuery.keyRange);
         return new Promise<Array<any>>((pResolve, pReject) => {
             // Reject on error.
-            lCursorRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<IDBCursorWithValue | null> = (<IDBRequest<IDBCursorWithValue | null>>pEvent.target);
+            lRequest.addEventListener('error', (pEvent) => {
+                const lTarget: IDBRequest<Array<any>> = (<IDBRequest<Array<any>>>pEvent.target);
                 pReject(new Exception(`Error fetching table.` + lTarget.error, this));
             });
 
             // Resolve on success.
-            lCursorRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead and resolve when cursor is eof.
-                const lTarget: IDBRequest<IDBCursorWithValue | null> = pEvent.target as IDBRequest<IDBCursorWithValue | null>;
-                const lCursorResult: IDBCursorWithValue | null = lTarget.result;
-                if (!lCursorResult) {
-                    pResolve(lFiteredList);
-                    return;
-                }
-
-                // Get value of filtered propery.
-                const lFiltedValue: any = lCursorResult.value[pQuery.property];
-
-                // Append row when value is included in assigned action.
-                if (pQuery.action!.includes(lFiltedValue)) {
-                    lFiteredList.push(lCursorResult.value);
-                }
-
-                // Continue next value.
-                lCursorResult.continue();
+            lRequest.addEventListener('success', () => {
+                pResolve(lRequest.result);
             });
         });
     }
@@ -606,8 +541,4 @@ type WebDatabaseQueryLink = 'AND' | 'OR';
 type WebDatabaseQueryIndexableKeyRange = {
     indexName: string;
     keyRange: IDBKeyRange;
-};
-
-type WebDatabaseQueryUnindexableKeyRange = {
-    block: WebDatabaseQueryBlock;
 };

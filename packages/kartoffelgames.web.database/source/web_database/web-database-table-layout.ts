@@ -47,10 +47,18 @@ export class WebDatabaseTableLayout {
     /**
      * Get all indices of the table type.
      */
-    public get identity(): Readonly<TableLayoutIdentity> | null {
+    public get identity(): Readonly<TableLayoutIdentity> {
         // Restrict access when no table name is set.
         if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
+
+        // Generic identity when no identity is set.
+        if (!this.mIdentity) {
+            return {
+                key: '__id__',
+                autoIncrement: true,
+            };
         }
 
         // Return identity.
@@ -149,14 +157,16 @@ export class WebDatabaseTableLayout {
             throw new Exception(`A table type can only have one identifier.`, this);
         }
 
+        // Validate that the identity property is set as field.
+        if (!this.mFields.has(pKey)) {
+            throw new Exception(`Identity property "${pKey}" is not set as field.`, this);
+        }
+
         // Set table type identity.
         this.mIdentity = {
             key: pKey,
             autoIncrement: pAutoIncrement,
         };
-
-        // Add property key to field list.
-        this.mFields.add(pKey);
     }
 
     /**
@@ -195,7 +205,7 @@ export class WebDatabaseTableLayout {
         // Set correct index type.
         if (pMultiEnty) {
             // Restrict multientity when key is not a array or more than one key is set for the same index.
-            if (lIndexConfig.keys.length > 1 ) {
+            if (lIndexConfig.keys.length > 1) {
                 throw new Exception(`Multi entity index can only have one property.`, this);
             }
 

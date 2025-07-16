@@ -178,14 +178,13 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Setup. Database and add test data.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
 
-        let lTestDataToDelete: TestTable;
+        const lTestDataToDelete: TestTable = new TestTable();
+        lTestDataToDelete.name = 'To Delete';
 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            lTestDataToDelete = new TestTable();
-            lTestDataToDelete.name = 'To Delete';
             await lTable.put(lTestDataToDelete);
 
             const lTestDataToKeep = new TestTable();
@@ -232,15 +231,14 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Setup. Database and add test data.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
 
-        let lTestDataToDelete: TestTable;
+        const lTestDataToDelete: TestTable = new TestTable();
+        lTestDataToDelete.id = 'delete-me';
+        lTestDataToDelete.name = 'To Delete';
 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            lTestDataToDelete = new TestTable();
-            lTestDataToDelete.id = 'delete-me';
-            lTestDataToDelete.name = 'To Delete';
             await lTable.put(lTestDataToDelete);
 
             const lTestDataToKeep = new TestTable();
@@ -288,15 +286,14 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         // Setup. Database and add test data.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
 
-        let lTestDataToDelete: TestTable;
+        const lTestDataToDelete: TestTable = new TestTable();
+        lTestDataToDelete.email = 'delete@test.com';
+        lTestDataToDelete.name = 'To Delete';
 
         // Add test data.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            lTestDataToDelete = new TestTable();
-            lTestDataToDelete.email = 'delete@test.com';
-            lTestDataToDelete.name = 'To Delete';
             await lTable.put(lTestDataToDelete);
 
             const lTestDataToKeep = new TestTable();
@@ -320,6 +317,61 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
             const lRemainingData = await lTable.getAll();
             expect(lRemainingData).toHaveLength(1);
             expect(lRemainingData[0].name).toEqual('To Keep');
+        });
+
+        // Cleanup.
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Delete with no identity field.', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableName: string = 'TestTable';
+
+        // Setup. Table with no identity field
+        @WebDatabase.table(lTableName)
+        class TestTable {
+            @WebDatabase.field()
+            public name!: string;
+
+            @WebDatabase.field()
+            public value!: number;
+        }
+
+        // Setup. Database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+        await lWebDatabase.open();
+
+        // Setup. Create test data.
+        const lTestDataToDelete: TestTable = new TestTable();
+        lTestDataToDelete.name = 'To Delete';
+        lTestDataToDelete.value = 42;
+
+        const lTestDataToKeep: TestTable = new TestTable();
+        lTestDataToKeep.name = 'To Keep';
+        lTestDataToKeep.value = 100;
+
+        // Setup. Add test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTable = pTransaction.table(TestTable);
+            await lTable.put(lTestDataToDelete);
+            await lTable.put(lTestDataToKeep);
+        });
+
+        // Process. Try to delete using the same object - should throw error.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            await pTransaction.table(TestTable).delete(lTestDataToDelete)
+        });
+
+        // Evaluation. Verify that all data is still present since delete failed.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lAllData = await pTransaction.table(TestTable).getAll();
+            
+            // Should still have both items since delete failed
+            expect(lAllData).toHaveLength(1);
+
+            // Verify one item is still present
+            expect(lAllData[0].name).toContain('To Keep');
         });
 
         // Cleanup.
@@ -357,7 +409,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
         lWebDatabase.close();
     });
 
-    await pContext.step('Error: No identity or unique index', async () => {
+    await pContext.step('Error: No identity value set', async () => {
         // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
@@ -379,7 +431,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
             const lTestData = new TestTable();
             lTestData.name = 'Test';
 
-            await expect(lTable.delete(lTestData)).rejects.toThrow('Table TestTable must have a unique, not multi entry, index or identity to delete data directly.');
+            await expect(lTable.delete(lTestData)).rejects.toThrow('Data has no valid identity value.');
         });
 
         // Cleanup.
@@ -662,12 +714,12 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
 
         // Process.
-        let lTestData: TestTable;
+        const lTestData: TestTable = new TestTable();
+        lTestData.name = 'Test Item';
+
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            lTestData = new TestTable();
-            lTestData.name = 'Test Item';
             await lTable.put(lTestData);
         });
 

@@ -169,11 +169,6 @@ export class WebDatabase {
                         return pTransaction.objectStore(lTableUpdate.name);
                     }
 
-                    // Create object store without an identity.
-                    if (!lTableConfiguration.identity) {
-                        return pDatabase.createObjectStore(lTableUpdate.name);
-                    }
-
                     // Create object store with identity.
                     return pDatabase.createObjectStore(lTableUpdate.name, {
                         keyPath: lTableConfiguration.identity.key,
@@ -289,21 +284,11 @@ export class WebDatabase {
 
                     // Validate correct identity, update table when it differs.
                     const lHasChangedIdentity: boolean = (() => {
-                        const lTableLayoutIdentity: Readonly<TableLayoutIdentity> | null = lTableLayout.identity;
+                        const lTableLayoutIdentity: Readonly<TableLayoutIdentity> = lTableLayout.identity;
 
                         // Identity is not set, but keyPath is set.
-                        if (lTableLayoutIdentity === null && lDatabaseTable.keyPath !== null) {
+                        if (lDatabaseTable.keyPath === null) {
                             return true;
-                        }
-
-                        // Identity is set, but keyPath is not set.
-                        if (lTableLayoutIdentity !== null && lDatabaseTable.keyPath === null) {
-                            return true;
-                        }
-
-                        // No identity and no keyPath, so no change.
-                        if (lTableLayoutIdentity === null || lDatabaseTable.keyPath === null) {
-                            return false;
                         }
 
                         // Compare identity with keyPath and autoIncrement.

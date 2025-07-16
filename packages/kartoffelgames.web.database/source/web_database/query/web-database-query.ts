@@ -3,6 +3,9 @@ import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from '../web
 import type { WebDatabaseTable } from '../web-database-table.ts';
 import { WebDatabaseQueryAction, WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
 
+// TODO: Tables NEED a primary key. Even when it is auto generated.
+// Makes anything so much easier.
+
 export class WebDatabaseQuery<TTableType extends TableType> {
     private readonly mQueryList: Array<WebDatabaseQueryPart>;
     private readonly mTable: WebDatabaseTable<TTableType>;
@@ -84,7 +87,6 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
 
         // Convert each query block into a indexable key range.
-        let lContainsUnindexableKeyRange: boolean = false;
         const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange => {
             // Convert block into indexable key range.
             const lIndexableKeyRange: WebDatabaseQueryIndexableKeyRange | null = this.generateIndexableKeyRange(pBlock);
@@ -95,83 +97,37 @@ export class WebDatabaseQuery<TTableType extends TableType> {
             return lIndexableKeyRange;
         });
 
+        // Read all indexable key ranges and save the largest result set.
+        const lRequestList: Array<Promise<Array<any>>> = new Array<Promise<Array<any>>>();
+        for (const lIndexableKeyRange of lIndexableKeyRangeList) {
+            lRequestList.push(this.readQuery(lIndexableKeyRange));
+        }
+
+        // Wait for all requests to finish.
+        const lQueryResultList: Array<Array<any>> = await Promise.all(lRequestList);
+
         // Shortcut when block contains a single indexable key range.
-        if (lIndexableKeyRangeList.length === 1 && !lContainsUnindexableKeyRange) {
+        if (lQueryResultList.length === 1) {
             // Read and convert single block.
-            return this.mTable.parseToType(await this.readQuery(lIndexableKeyRangeList[0]));
+            return this.mTable.parseToType(lQueryResultList[0]);
         }
 
+        // Buffer for identity key.
+        const lIdentityKey: string = this.mTable.tableLayout.identity.key;
 
-
-
-
-
-
-
-
-
-        // TODO: Optimize for single query blocks.
-        // ---- ReadQueryBlock(block) => 
-        // ---- OpenCursor(block, action) => Open a cursor and filter it with the block.
-
-        // TODO: On 
-
-
-
-
-
-
-
-
-
-        // Special solution for single query single block queries.
-        // Not neet to filter or merge.
-        if (lQueryBlockList.length === 1 && lQueryBlockList[0].length === 1) {
-            // Read and convert single block.
-            return this.mTable.parseToType(await this.readQuery(lQueryBlockList[0][0]));
-        }
-
-        // Special solution for single block queries.
-        // No need to merge.
-        if (lQueryBlockList.length === 1) {
-            const lQueryResult: Dictionary<string | number, any> = await this.readQueryBlock(lQueryBlockList[0]);
-
-            // Read and convert single block.
-            return this.mTable.parseToType(lQueryResult.values());
-        }
-
-        // Read all query blocks.
-        const lQueryBlockResultList: Set<Dictionary<string | number, any>> = new Set<Dictionary<string | number, any>>();
-        for (const lQueryBlock of lQueryBlockList) {
-            lQueryBlockResultList.add(await this.readQueryBlock(lQueryBlock));
-        }
-
-        // Find the greatest result set and use it as starting point.
-        // Greater performance when you only need to merge 1 entry in a set of 100 instead.
-        let lGreatestResultSet: Dictionary<string | number, any> = <any>null; // Will be set after the loop.
-        for (const lQueryBlockResult of lQueryBlockResultList) {
-            if (!lGreatestResultSet) {
-                lGreatestResultSet = lQueryBlockResult;
-                continue;
-            }
-
-            if (lGreatestResultSet.size < lQueryBlockResult.size) {
-                lGreatestResultSet = lQueryBlockResult;
-            }
-        }
-
-        // Remove the found set from iterator list.
-        lQueryBlockResultList.delete(lGreatestResultSet!);
-
-        // Merge remaining block result into.
-        for (const lQueryBlockResult of lQueryBlockResultList) {
-            for (const lQueryResultItem of lQueryBlockResult) {
-                lGreatestResultSet.set(...lQueryResultItem);
+        // Merge results.
+        const lMergedResult: Dictionary<string | number, any> = new Dictionary<string | number, any>();
+        for (const lQueryResult of lQueryResultList) {
+            for (const lResultItem of lQueryResult) {
+                const lIdentityValue: string = lResultItem[lIdentityKey];
+                if (!lMergedResult.has(lIdentityValue)) {
+                    lMergedResult.set(lIdentityValue, lResultItem);
+                }
             }
         }
 
         // Convert merged block.
-        return this.mTable.parseToType(lGreatestResultSet.values());
+        return this.mTable.parseToType(lMergedResult.values());
     }
 
     /**
@@ -356,89 +312,6 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         });
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Read data from table filtered by query.
      * When query index does not exists, it uses a expensive cursor filter.
@@ -467,64 +340,6 @@ export class WebDatabaseQuery<TTableType extends TableType> {
                 pResolve(lRequest.result);
             });
         });
-    }
-
-    /**
-     * Read the result of a query block.
-     * 
-     * @param pBlock - Query block. Queries that are linked with an "AND"-Connection.
-     * 
-     * return filtered query result.
-     */
-    private async readQueryBlock(pBlock: Array<WebDatabaseQueryPart>): Promise<Dictionary<string | number, any>> {
-        const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
-
-        // Read all queries in parallel.
-        const lQueryResultRequestList: Array<Promise<Array<any>>> = new Array<Promise<Array<any>>>();
-        for (const lQuery of pBlock) {
-            lQueryResultRequestList.push(this.readQuery(lQuery));
-        }
-
-        // Wait for all queries to finish.
-        const lQueryResultList: Array<Array<any>> = await Promise.all(lQueryResultRequestList);
-
-        // Get key of identity, identity is allways set and a single key.
-        const lIdentityKey: string = lTableConnection.keyPath as string;
-
-        // Conver all result list into an identity map.
-        const lIdentityMapList: Array<Dictionary<string | number, any>> = new Array<Dictionary<string | number, any>>();
-        for (const lQueryResult of lQueryResultList) {
-            // Map each item with its identity.
-            const lItemMap: Dictionary<string | number, any> = new Dictionary<string | number, any>();
-            for (const lItem of lQueryResult) {
-                lItemMap.set(lItem[lIdentityKey], lItem);
-            }
-
-            lIdentityMapList.push(lItemMap);
-        }
-
-        // Find the smallest identity set.
-        let lSmallestItemSet: Dictionary<string | number, any> = lIdentityMapList[0];
-        for (const lIdentityMap of lIdentityMapList) {
-            if (lIdentityMap.size < lSmallestItemSet.size) {
-                lSmallestItemSet = lIdentityMap;
-            }
-        }
-
-        // Remove smallest identity set from map list.
-        lIdentityMapList.splice(lIdentityMapList.indexOf(lSmallestItemSet), 1);
-
-        // Filter the smallest set for each remaining query.
-        for (const lFilteringQuery of lIdentityMapList) {
-            // Remove item from result list, when it does not exists in any other query result.
-            for (const lResultItemKey of lSmallestItemSet.keys()) {
-                if (!lFilteringQuery.has(lResultItemKey)) {
-                    lSmallestItemSet.delete(lResultItemKey);
-                }
-            }
-        }
-
-        return lSmallestItemSet;
     }
 }
 

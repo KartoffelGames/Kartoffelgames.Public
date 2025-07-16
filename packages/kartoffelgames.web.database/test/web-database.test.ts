@@ -5,6 +5,11 @@ import { WebDatabase } from '../source/index.ts';
 // TODO: Test: Update a table from non unique index to unique index with unique data.
 // TODO: Test: Update a table from non unique index to unique index with data where the key is not unique.
 
+const gEmptyIdentityValidate = (pTable: IDBObjectStore): void => {
+    expect(pTable.keyPath).toBe('__id__');
+    expect(pTable.autoIncrement).toBeTruthy();
+};
+
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Create Table - Identity-Autoincrement', async () => {
@@ -80,7 +85,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lTestTableObjectStore);
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
@@ -173,8 +178,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
-
+            gEmptyIdentityValidate(lTestTableObjectStore);
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
             expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
@@ -222,7 +226,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lTestTableObjectStore);
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
@@ -279,7 +283,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lTestTableObjectStore);
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
@@ -338,7 +342,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lTestTableObjectStore);
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
@@ -389,7 +393,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.name).toEqual(lTableName);
 
             // Validate identity field.
-            expect(lTestTableObjectStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lTestTableObjectStore);
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
@@ -487,8 +491,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         // Evaluation. Verify existing table is unchanged.
         await lWebDatabase.transaction([InitialTable], 'readonly', async (pTransaction) => {
             const lInitialTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lInitialTableName);
-            expect(lInitialTableStore.name).toEqual(lInitialTableName);
-            expect(lInitialTableStore.keyPath).toBeNull();
+            gEmptyIdentityValidate(lInitialTableStore);
             expect(lInitialTableStore.indexNames).toHaveLength(1);
             expect(lInitialTableStore.indexNames).toContain(lInitialTableIndexPropertyName);
         });
@@ -648,8 +651,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         // Evaluation. Verify table has no identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
-            expect(lTableStore.keyPath).toBeNull();
-            expect(lTableStore.autoIncrement).toBeFalsy();
+            gEmptyIdentityValidate(lTableStore)
             expect(lTableStore.indexNames).toHaveLength(1);
             expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
         });
@@ -1359,7 +1361,7 @@ Deno.test('WebDatabase.field()', async (pContext) => {
         // Process
         const lDecoratorFunction = () => {
             @WebDatabase.table('MultipleIdentityTable')
-            class TestTable {  
+            class TestTable {
                 @WebDatabase.field({ as: { identity: 'auto' } })
                 public id1!: number;
 

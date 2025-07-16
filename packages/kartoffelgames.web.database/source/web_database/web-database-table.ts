@@ -100,64 +100,31 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
-        // Delete data by identity  when identity is defined.
-        if (this.mTableLayout.identity) {
-            // Get identity value from data.
-            const lIdentityProperty: string = this.mTableLayout.identity.key;
-            const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
+        // Get identity value from data.
+        const lIdentityProperty: string = this.mTableLayout.identity.key;
+        const lIdentityValue: string | number = (<any>pData)[lIdentityProperty];
 
-            // Delete data.
-            const lRequest: IDBRequest<undefined> = lTable.delete(lIdentityValue);
+        // Validate identity value.
+        if (typeof lIdentityValue !== 'number' && typeof lIdentityValue !== 'string') {
+            throw new Exception(`Data has no valid identity value.`, this);
+        }
 
-            // Wait for completion.
-            return new Promise<void>((pResolve, pReject) => {
-                // Reject on error.
-                lRequest.addEventListener('error', (pEvent) => {
-                    const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
-                    pReject(new Exception(`Error deleting data.` + lTarget.error, this));
-                });
+        // Delete data.
+        const lRequest: IDBRequest<undefined> = lTable.delete(lIdentityValue);
 
-                // Resolve on success.
-                lRequest.addEventListener('success', () => {
-                    pResolve();
-                });
+        // Wait for completion.
+        return new Promise<void>((pResolve, pReject) => {
+            // Reject on error.
+            lRequest.addEventListener('error', (pEvent) => {
+                const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
+                pReject(new Exception(`Error deleting data.` + lTarget.error, this));
             });
-        }
 
-        // Find a index with a unique key.
-        const lUniqueIndex: TableLayoutIndex | null = (() => {
-            for (const lIndexName of this.mTableLayout.indices) {
-                const lIndex: TableLayoutIndex = this.mTableLayout.index(lIndexName)!;
-                if (lIndex.unique && lIndex.type !== 'multiEntry') {
-                    return lIndex;
-                }
-            }
-
-            return null;
-        })();
-
-        // Validate existance of a unique index.
-        if (!lUniqueIndex) {
-            throw new Exception(`Table ${this.mTableLayout.tableName} must have a unique, not multi entry, index or identity to delete data directly.`, this);
-        }
-
-        // Create a query that matches the unique index.
-        let lDeleteQuery: WebDatabaseQuery<TTableType> | null = null;
-        for(const lIndexKey of lUniqueIndex.keys) {
-            let lQueryAction: WebDatabaseQueryAction<TTableType>;
-            
-            // Create a query action for the index key.
-            if(lDeleteQuery === null) {
-                lQueryAction = this.where(lIndexKey);
-            } else {
-                lQueryAction = lDeleteQuery.and(lIndexKey);
-            }
-
-            lDeleteQuery = lQueryAction.is((<any>pData)[lIndexKey]);
-        }
-
-        // Delete by query.
-        await lDeleteQuery!.delete();
+            // Resolve on success.
+            lRequest.addEventListener('success', () => {
+                pResolve();
+            });
+        });
     }
 
     /**
@@ -227,15 +194,6 @@ export class WebDatabaseTable<TTableType extends TableType> {
             throw new Exception(`Invalid data type.`, this);
         }
 
-        // Validate identity when auto increment is disabled.
-        if (this.mTableLayout.identity && !this.mTableLayout.identity.autoIncrement) {
-            const lIdentityValue: any = (<any>pData)[this.mTableLayout.identity.key];
-
-            if (typeof lIdentityValue === 'undefined' || lIdentityValue === null) {
-                throw new Exception(`Identity value is required when auto increment is disabled.`, this);
-            }
-        }
-
         // Get table connection.
         const lTable: IDBObjectStore = this.mTransaction.transaction.objectStore(this.mTableLayout.tableName);
 
@@ -245,9 +203,9 @@ export class WebDatabaseTable<TTableType extends TableType> {
             const lData = (<any>pData)[lField];
 
             // Detect identity field when a identity is defined.
-            if (this.mTableLayout.identity && this.mTableLayout.identity.key === lField && this.mTableLayout.identity.autoIncrement) {
-                // Skip adding identity value when auto increment is enabled and identity value is undefined.
-                if (typeof lData === 'undefined' || lData === null) {
+            if (this.mTableLayout.identity.key === lField && this.mTableLayout.identity.autoIncrement) {
+                // Skip adding identity value when auto increment is enabled and the value is not a number.
+                if (typeof lData !== 'number') {
                     continue;
                 }
             }
@@ -258,11 +216,6 @@ export class WebDatabaseTable<TTableType extends TableType> {
 
         // Put data.
         const lRequest: IDBRequest<IDBValidKey> = (() => {
-            // Generate a random out-of-line identity when no identity is defined.
-            if (!this.mTableLayout.identity) {
-                return lTable.put(lCleanedData, crypto.randomUUID());
-            }
-
             // Put data with identity.
             return lTable.put(lCleanedData);
         })();
@@ -276,11 +229,9 @@ export class WebDatabaseTable<TTableType extends TableType> {
 
             // Resolve on success.
             lRequest.addEventListener('success', () => {
-                // Update object with the new identity when any identity is specified and auto increment is enabled.
-                if (this.mTableLayout.identity && this.mTableLayout.identity.autoIncrement) {
-                    (<any>pData)[this.mTableLayout.identity.key] = lRequest.result;
-                }
-
+                // Update object with the new identity.
+               (<any>pData)[this.mTableLayout.identity.key] = lRequest.result;
+               
                 pResolve();
             });
         });

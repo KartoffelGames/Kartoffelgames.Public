@@ -44,8 +44,55 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         });
     }
 
+    /**
+     * Executes the query and deletes all matching records from the table.
+     * Queries are grouped into blocks (OR logic), and for each block, a cursor iterates over matching records.
+     * Each record is deleted only once, even if it matches multiple blocks, by tracking deleted identities.
+     * Throws an error if no queries are specified or if a block cannot be mapped to an indexable key range.
+     *
+     * @throws {Exception} If no queries are specified or no indexable key range is found for a block.
+     * @returns A promise that resolves when all matching records have been deleted.
+     */
     public async delete(): Promise<void> {
+        // Must have queries.
+        if (this.mQueryList.length === 0) {
+            throw new Exception('No queries specified.', this);
+        }
 
+        // Divide queries into "OR" blocks.
+        const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
+
+        // Set to track already deleted items by their identity.
+        const lDeletedIdentities: Set<string | number> = new Set<string | number>();
+
+        // Get identity key for tracking deletions.
+        const lIdentityKey: string = this.mTable.tableLayout.identity.key;
+
+        for (const lBlock of lQueryBlockList) {
+            // Convert block into indexable key range.
+            const lIndexableKeyRange: WebDatabaseQueryIndexableKeyRange | null = this.generateIndexableKeyRange(lBlock);
+            if (!lIndexableKeyRange) {
+                throw new Exception(`No indexable key range for block found.`, this);
+            }
+
+            // Open cursor for the indexable key range and delete items.
+            // Await as delete cursors are linear anyway.
+            await this.openCursor(lIndexableKeyRange, (pCursor: IDBCursorWithValue) => {
+                // Get identity value to check if already deleted.
+                const lIdentityValue: string | number = pCursor.value[lIdentityKey];
+
+                // Skip if already deleted.
+                if (lDeletedIdentities.has(lIdentityValue)) {
+                    return;
+                }
+
+                // Mark as deleted.
+                lDeletedIdentities.add(lIdentityValue);
+
+                // Delete the current item.
+                pCursor.delete();
+            });
+        }
     }
 
     /**
@@ -245,24 +292,25 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         };
     }
 
-    private openCursor(pBlockList: Array<WebDatabaseQueryIndexableKeyRange>, pAction: (pCursor: IDBCursorWithValue) => boolean): Promise<Array<any>> {
+    /**
+     * Opens a cursor on the specified index and key range, iterating over all matching records.
+     * For each record, the provided action callback is invoked with the current cursor.
+     * The cursor continues automatically until all matching records have been processed.
+     *
+     * @param pQuery - The index name and key range to use for the cursor.
+     * @param pAction - Callback function to execute for each cursor result.
+     * 
+     * @returns A promise that resolves when the cursor has iterated over all matching records.
+     */
+    private openCursor(pQuery: WebDatabaseQueryIndexableKeyRange, pAction: (pCursor: IDBCursorWithValue) => void): Promise<void> {
         // Get table connection.
         const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 
         // When a indexable key range was found, use it.
-        let lCursorRequest: IDBRequest<IDBCursorWithValue | null>;
-        if (pBlockList.length > 0) {
-            lCursorRequest = lTableConnection.index(pBlockList[0].indexName).openCursor(pBlockList[0].keyRange);
-        } else {
-            lCursorRequest = lTableConnection.openCursor();
-        }
-
-        // List of remaining unprocessed blocks.
-        const lRemainingBlocks: Array<WebDatabaseQueryIndexableKeyRange> = pBlockList.slice(1);
+        const lCursorRequest: IDBRequest<IDBCursorWithValue | null> = lTableConnection.index(pQuery.indexName).openCursor(pQuery.keyRange);
 
         // Read anything and filter.
-        const lFiteredList: Array<any> = new Array<any>();
-        return new Promise<Array<any>>((pResolve, pReject) => {
+        return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
             lCursorRequest.addEventListener('error', () => {
                 pReject(new Exception(`Error fetching table.` + lCursorRequest.error, this));
@@ -273,38 +321,12 @@ export class WebDatabaseQuery<TTableType extends TableType> {
                 // Read event target like a shithead and resolve when cursor is eof.
                 const lCursorResult: IDBCursorWithValue | null = lCursorRequest.result;
                 if (!lCursorResult) {
-                    pResolve(lFiteredList);
+                    pResolve();
                     return;
                 }
 
-                // TODO: Filter result with remaining blocks.
-                // THAT IS FUCKED UP FOR MULTIPLE REASONS. 
-                // Find a good way to check if the current value matches a IDBKeyRange.
-                // Read index.
-
-                // TODO: That will not work as blocks can be chained with "OR" and not "AND". You useless. 
-                for (const lBlock of lRemainingBlocks) {
-                    // Read index of block.
-                    const lIndex: TableLayoutIndex = this.mTable.tableLayout.index(lBlock.indexName)!;
-
-                    // Create value range.
-                    const lIndexValues: Array<string | number> = lIndex.keys.map((pKey) => {
-                        // Get value of cursor for index key.
-                        return lCursorResult!.value[pKey];
-                    });
-
-                    // Check if value is in range. // TODO: Make it cleaner.
-                    if (!lBlock.keyRange.includes(lIndexValues)) {
-                        // When value is not in range, continue with next value.
-                        lCursorResult.continue();
-                        return;
-                    }
-                }
-
-                // Append row when value is included in assigned action.
-                if (pAction(lCursorResult)) {
-                    lFiteredList.push(lCursorResult.value);
-                }
+                // Call action with the cursor result.
+                pAction(lCursorResult);
 
                 // Continue next value.
                 lCursorResult.continue();

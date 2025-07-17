@@ -29,14 +29,15 @@ export class WebDatabaseTableLayout {
     private readonly mFields: Set<string>;
     private mIdentity: TableLayoutIdentity | null;
     private readonly mIndices: Map<string, TableLayoutIndex>;
-    private mTableName: string | null;
+    private mTableName: string;
+    private mTableType: TableType | null;
 
     /**
      * Get table field names.
      */
     public get fields(): Array<string> {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -46,20 +47,21 @@ export class WebDatabaseTableLayout {
     /**
      * Get all indices of the table type.
      */
-    public get identity(): TableLayoutIdentity {
+    public get identity(): Readonly<TableLayoutIdentity> {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
-        // Return a default identity when no identity is set.
+        // Generic identity when no identity is set.
         if (!this.mIdentity) {
             return {
-                key: '__ID__',
-                autoIncrement: true
+                key: '__id__',
+                autoIncrement: true,
             };
         }
 
+        // Return identity.
         return this.mIdentity;
     }
 
@@ -68,7 +70,7 @@ export class WebDatabaseTableLayout {
      */
     public get indices(): Array<string> {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
+        if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
@@ -76,10 +78,35 @@ export class WebDatabaseTableLayout {
     }
 
     /**
+     * Get table name.
+     */
+    public get tableName(): string {
+        // Restrict access when no table name is set.
+        if (!this.mTableType) {
+            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
+
+        return this.mTableName;
+    }
+
+    /**
+     * Get table type.
+     */
+    public get tableType(): TableType {
+        // Restrict access when no table name is set.
+        if (!this.mTableType) {
+            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
+
+        return this.mTableType;
+    }
+
+    /**
      * Constructor.
      */
     public constructor() {
-        this.mTableName = null;
+        this.mTableName = '';
+        this.mTableType = null;
         this.mIdentity = null;
         this.mIndices = new Map<string, TableLayoutIndex>();
         this.mFields = new Set<string>();
@@ -102,55 +129,17 @@ export class WebDatabaseTableLayout {
     }
 
     /**
-     * Set table type identity.
+     * Set table type field.
+     * Setting a field includes the property value in the saved object.
      * 
-     * @param pType - Table type.
+     * @remarks
+     * Does not set a index or identity.
+     * 
      * @param pPropertyKey - Property key of identity.
-     * @param pIndexName - Index name.
-     * @param pIsArray - Property is key.
-     * @param pIsUnique - Index should be unique.
      */
-    public setTableField(pPropertyKey: string, pIndexName?: string, pIsUnique: boolean = false, pMultiEnty: boolean = false): void {
+    public setTableField(pPropertyKey: string): void {
         // add property key to field list.
         this.mFields.add(pPropertyKey);
-
-        // Skip index creation when no index name is set.
-        if (!pIndexName) {
-            return;
-        }
-
-        // Initialize index.
-        let lIndexConfig: TableLayoutIndex | undefined = this.mIndices.get(pIndexName);
-        if (!lIndexConfig) {
-            // Set default configuration where anything is enabled.
-            lIndexConfig = {
-                name: pIndexName,
-                keys: new Array<string>() as [string],
-                unique: true,
-                type: pMultiEnty ? 'multiEntryIndex' : 'index',
-            };
-
-            // Link index to table config.
-            this.mIndices.set(pIndexName, lIndexConfig);
-        }
-
-        // Add key to index.
-        lIndexConfig.keys.push(pPropertyKey);
-
-        // Disable multientity when key is not a array or more than one key is set for the same index.
-        if (lIndexConfig.keys.length > 1 && lIndexConfig.type === 'multiEntryIndex') {
-            throw new Exception(`Multientity index can only have one key.`, this);
-        }
-
-        // Upgrade index type when more than one key is set.
-        if (lIndexConfig.keys.length > 1) {
-            lIndexConfig.type = 'compoundIndex';
-        }
-
-        // Index is not unique when one index is not unique.
-        if (!pIsUnique) {
-            lIndexConfig.unique = false;
-        }
     }
 
     /**
@@ -168,37 +157,87 @@ export class WebDatabaseTableLayout {
             throw new Exception(`A table type can only have one identifier.`, this);
         }
 
+        // Validate that the identity property is set as field.
+        if (!this.mFields.has(pKey)) {
+            throw new Exception(`Identity property "${pKey}" is not set as field.`, this);
+        }
+
         // Set table type identity.
         this.mIdentity = {
             key: pKey,
             autoIncrement: pAutoIncrement,
         };
+    }
 
-        // Add property key to field list.
-        this.mFields.add(pKey);
+    /**
+     * Adds an index to the table layout.
+     * 
+     * @param pPropertyKeys - Array of property names to be used as index keys. All properties must be set as fields before.
+     * @param pIsUnique - Whether the index should enforce uniqueness.
+     * @param pMultiEnty - If true, creates a multiEntry index (only allowed for a single property).
+     * 
+     * @throws {@link Exception} If any property is not set as a field, if the index already exists, or if multiEntry is used with multiple keys.
+     */
+    public setTableIndex(pPropertyKeys: Array<string>, pIsUnique: boolean, pMultiEnty: boolean): void {
+        // Create index name from property keys order of property keys matters.
+        const lIndexName: string = pPropertyKeys.join('+');
+
+        // Validate that each property is set as a field.
+        for (const lPropertyKey of pPropertyKeys) {
+            if (!this.mFields.has(lPropertyKey)) {
+                throw new Exception(`Index property "${lPropertyKey}" of index "${lIndexName}" is not set as field.`, this);
+            }
+        }
+
+        // Validate that index does not already exist.
+        if (this.mIndices.has(lIndexName)) {
+            throw new Exception(`Index "${lIndexName}" already exists.`, this);
+        }
+
+        // Initialize index.
+        const lIndexConfig: TableLayoutIndex = {
+            name: lIndexName,
+            keys: pPropertyKeys as [string],
+            unique: pIsUnique,
+            type: 'default'
+        };
+
+        // Set correct index type.
+        if (pMultiEnty) {
+            // Restrict multientity when key is not a array or more than one key is set for the same index.
+            if (lIndexConfig.keys.length > 1) {
+                throw new Exception(`Multi entity index can only have one property.`, this);
+            }
+
+            // Set index type to multiEntry.
+            lIndexConfig.type = 'multiEntry';
+        } else if (lIndexConfig.keys.length > 1) {
+            // Set index type to compound when more than one key is set.
+            lIndexConfig.type = 'compound';
+        }
+
+        // Link index to table config.
+        this.mIndices.set(lIndexName, lIndexConfig);
     }
 
     /**
      * Set table name.
      */
-    public setTableName(pName: string): void {
-        if (this.mTableName) {
+    public setTableName(pType: TableType, pName: string): void {
+        if (this.mTableType) {
             throw new Exception('Table name can only be set once.', this);
         }
+
         this.mTableName = pName;
+        this.mTableType = pType;
     }
 }
 
 export type TableLayoutIndex = {
     name: string;
-    keys: [string];
-    unique: boolean;
-    type: 'index' | 'multiEntryIndex';
-} | {
-    name: string;
     keys: Array<string>;
     unique: boolean;
-    type: 'compoundIndex';
+    type: 'default' | 'multiEntry' | 'compound';
 };
 
 export type TableLayoutIdentity = {

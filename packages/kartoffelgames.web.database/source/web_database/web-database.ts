@@ -1,107 +1,71 @@
-import { Dictionary, Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
+import { Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
+import { WebDatabaseFieldDecorator, type WebDatabaseFieldDecoratorExtension } from './layout_decorator/web-database-field.decorator.ts';
+import { WebDatabaseTableDecorator, type WebDatabaseTableDecoratorExtension } from './layout_decorator/web-database-table.decorator.ts';
+import { type TableLayoutIdentity, WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
+/**
+ * WebDatabase provides a high-level, type-safe, decorator-based API for working with IndexedDB in web applications.
+ * It manages database schema, tables, indexes, and transactions automatically based on TypeScript decorators.
+ */
 export class WebDatabase {
     /**
-     * Set propery as table field.
+     * Decorator for defining a field in a web database table.
      * 
-     * @param pIndexName - Index name.
-     * @param pUnique - Index should be unique.
-     * @param pMultiEntry - Index is a multi entry index. Only supported for arrays.
+     * @template T - The property type.
+     * @param pExtension - Optional extension for configuring the field as an identity or index.
+     * 
+     * @remarks
+     * This decorator registers the property as a field in the table layout. 
+     * You can use the `as` property in the extension to mark the field as an identity (primary key) or as an index.
+     * For number properties, you can specify auto-increment or manual identity. 
+     * For array properties, you can enable multiEntry indices.
+     * 
+     * @example
+     * ```typescript
+     * class User {
+     *   @WebDatabase.field({ as: { identity: 'auto' } })
+     *   public id!: number;
+     * 
+     *   @WebDatabase.field({ as: { index: { unique: true } } })
+     *   public email!: string;
+     * 
+     *   @WebDatabase.field({ as: { index: { multiEntry: true } } })
+     *   public tags!: string[];
+     * }
+     * ```
      */
-    public static field(pIndexName?: string, pUnique: boolean = false, pMultiEntry: boolean = false): ClassFieldDecorator<any, any> {
-        return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
-            // Decorator can not be used on static propertys.
-            if (pContext.static) {
-                throw new Exception('Index property can not be a static property.', WebDatabase);
-            }
-
-            // Decorator can only be attached to string named properties.
-            if (typeof pContext.name !== 'string') {
-                throw new Exception('Index name must be a string.', WebDatabase);
-            }
-
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Add table type index to layout.
-            lTableLayout.setTableField(pContext.name, pIndexName, pUnique, pMultiEntry);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
+    public static field: <T>(pExtension?: WebDatabaseFieldDecoratorExtension<T>) => ClassFieldDecorator<any, T> = WebDatabaseFieldDecorator;
 
     /**
-     * Add identity to table type.
-     * Auto incremented identity is only supported for number types.
+     * Decorator for defining a web database table.
      * 
-     * @param pAutoIncrement - Auto incremented identity.
-     */
-    public static identity<TAutoIncrement extends true | false>(pAutoIncrement: TAutoIncrement): ClassFieldDecorator<any, TAutoIncrement extends true ? number : any> {
-        return (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, TAutoIncrement extends true ? number : any>): void => {
-            // Decorator can not be used on static propertys.
-            if (pContext.static) {
-                throw new Exception('Identity property can not be a static property.', WebDatabase);
-            }
-
-            // Decorator can only be attached to string named properties.
-            if (typeof pContext.name !== 'string') {
-                throw new Exception('Identity name must be a string.', WebDatabase);
-            }
-
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Add table type index to layout.
-            lTableLayout.setTableIdentity(pContext.name, pAutoIncrement);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
-
-    /**
-     * Decorator for the database table.
+     * @template T - The table class type.
+     * @param pTableName - The name of the table.
+     * @param pExtension - Optional extension for defining compound indices.
      * 
-     * @param pTableName - Table name.
+     * @remarks
+     * This decorator sets up the table layout, including its name and indices, and stores the configuration in metadata.
+     * Use the `with` property in the extension to define compound indices, specifying property names and uniqueness.
+     * 
+     * @example
+     * ```typescript
+     * @WebDatabase.table('users', {
+     *   with: [
+     *     { properties: ['firstName', 'lastName'], unique: true }
+     *   ]
+     * })
+     * class User {
+     *   public firstName!: string;
+     *   public lastName!: string;
+     * }
+     * ```
      */
-    public static table(pTableName: string): ClassDecorator<TableType, void> {
-        return function (_pClassTarget: any, pContext: ClassDecoratorContext): void {
-            // Read metadata from metadata...
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-
-            // Try to read table layout from metadata.
-            let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
-            if (!lTableLayout) {
-                lTableLayout = new WebDatabaseTableLayout();
-            }
-
-            // Set table name.
-            lTableLayout.setTableName(pTableName);
-
-            // Set the table layout to the metadata.
-            lConstructorMetadata.setMetadata(WebDatabaseTableLayout.METADATA_KEY, lTableLayout);
-        };
-    }
+    public static table: <T extends TableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>) => ClassDecorator<T, void> = WebDatabaseTableDecorator;
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableTypes: Dictionary<string, TableType>;
+    private readonly mTableLayouts: Map<string, WebDatabaseTableLayout>;
 
     /**
      * Constructor.
@@ -113,9 +77,19 @@ export class WebDatabase {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
 
-        this.mTableTypes = new Dictionary<string, TableType>();
+        // Map table types to their name and layouts.
+        this.mTableLayouts = new Map<string, WebDatabaseTableLayout>();
         for (const lTableType of pTables) {
-            this.mTableTypes.set(lTableType.name, lTableType);
+            // Read table layout from type.
+            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
+
+            // Check if table name is already set.
+            if (this.mTableLayouts.has(lTableLayout.tableName)) {
+                throw new Exception(`Table "${lTableLayout.tableName}" already exists in this database.`, this);
+            }
+
+            // Set table type and layout.
+            this.mTableLayouts.set(lTableLayout.tableName, lTableLayout);
         }
     }
 
@@ -137,6 +111,9 @@ export class WebDatabase {
      * Delete database and resolve on success.
      */
     public async delete(): Promise<void> {
+        // Close database connection before deleting.
+        this.close();
+
         const lDeleteRequest: IDBOpenDBRequest = globalThis.indexedDB.deleteDatabase(this.mDatabaseName);
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
@@ -147,11 +124,11 @@ export class WebDatabase {
             });
 
             // Databse delete success.
-            lDeleteRequest.onsuccess = () => {
+            lDeleteRequest.addEventListener('success', () => {
+                // Resolve on success.
                 pResolve();
-            };
+            });
         });
-
     }
 
     /**
@@ -165,20 +142,274 @@ export class WebDatabase {
         }
 
         // Open db with current version. Read all object stores and all indices and compare.
-        const lDatabaseUpdate: DatabaseUpdate = await new Promise((pResolve, pReject) => {
-            const lDatabaseUpdate: DatabaseUpdate = {
-                version: 0,
-                updateNeeded: false,
-                tableUpdates: new Array<TableUpdate>()
-            };
+        const lDatabaseUpdate: DatabaseUpdate = await this.detectDatabaseLayoutChanges();
 
+        // Get current or next version when a update must be made.
+        const lDatabaseVersion: number = (lDatabaseUpdate.tableUpdates.length > 0) ? lDatabaseUpdate.version + 1 : lDatabaseUpdate.version;
+
+        // Open database request.
+        return this.openDatabaseWithAction(lDatabaseVersion, (pDatabase: IDBDatabase, pTransaction: IDBTransaction) => {
+            // ORDER OF UPDATES IS IMPORTANT!!!
+
+            // Iterate over all table updates and apply them. 
+            for (const lTableUpdate of lDatabaseUpdate.tableUpdates) {
+                // Delete action.
+                if (lTableUpdate.action === 'delete') {
+                    pDatabase.deleteObjectStore(lTableUpdate.name);
+                    continue;
+                }
+
+                // Read table configuration.
+                const lTableConfiguration = this.mTableLayouts.get(lTableUpdate.name)!;
+
+                // Create table with correct identity.
+                const lTable: IDBObjectStore = (() => {
+                    // No action, so just return the existing table.
+                    if (lTableUpdate.action === 'none') {
+                        return pTransaction.objectStore(lTableUpdate.name);
+                    }
+
+                    // Create object store with identity.
+                    return pDatabase.createObjectStore(lTableUpdate.name, {
+                        keyPath: lTableConfiguration.identity.key,
+                        autoIncrement: lTableConfiguration.identity.autoIncrement
+                    });
+                })();
+
+                // No other update needed, so continue.
+                if (lTableUpdate.indices.length === 0) {
+                    continue;
+                }
+
+                // Iterate over all index updates and apply them.
+                for (const lIndexUpdate of lTableUpdate.indices) {
+                    // Index delete action.
+                    if (lIndexUpdate.action === 'delete') {
+                        lTable.deleteIndex(lIndexUpdate.name);
+                        continue;
+                    }
+
+                    // Read index configuration.
+                    const lIndexConfiguration: TableLayoutIndex = lTableConfiguration.index(lIndexUpdate.name)!;
+
+                    // Read single keys as string, so multientries are recognized as single key.
+                    const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
+
+                    // Create index with correct configuration.
+                    lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
+                        unique: lIndexConfiguration.unique,
+                        multiEntry: lIndexConfiguration.type === 'multiEntry'
+                    });
+                }
+            }
+        }, (pDatabase: IDBDatabase) => {
+            // Return database connection after update.
+            return pDatabase;
+        });
+    }
+
+    /**
+     * Create a synchron action where data can be read or written.
+     * 
+     * @param pTables - Tabes for this transaction.
+     * @param pAction - Action withing this transaction.
+     */
+    public async transaction<TTables extends TableType, TResult>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => TResult): Promise<TResult> {
+        const lTableLayoutList: Array<WebDatabaseTableLayout> = new Array<WebDatabaseTableLayout>();
+
+        // Tables should exists.
+        for (const lTableType of pTables) {
+            // Read table layout from type.
+            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
+
+            if (!this.mTableLayouts.has(lTableLayout.tableName)) {
+                throw new Exception(`Table "${lTableLayout.tableName}" does not exists in this database.`, this);
+            }
+
+            lTableLayoutList.push(lTableLayout);
+        }
+
+        // Create and open transaction.
+        const lTransaction: WebDatabaseTransaction<TTables> = new WebDatabaseTransaction(this, lTableLayoutList, pMode);
+        await lTransaction.open();
+
+        // Call action within the transaction.
+        const lResult: TResult = await pAction(lTransaction);
+
+        // Commit transaction.
+        await lTransaction.commit();
+
+        // Return result.
+        return lResult;
+    }
+
+    /**
+     * Detect database layout changes and return a list of updates.
+     * 
+     * @returns Database update information.
+     */
+    private async detectDatabaseLayoutChanges(): Promise<DatabaseUpdate> {
+        const lDatabaseUpdate: DatabaseUpdate = {
+            version: 0,
+            tableUpdates: new Array<TableUpdate>()
+        };
+
+        // Open database with current version. Read all object stores and all indices and compare.
+        return this.openDatabaseWithAction(undefined, () => { }, (pDatabase: IDBDatabase) => {
+            // Set current loaded database version.
+            lDatabaseUpdate.version = pDatabase.version;
+
+            // Read current tables names and tables names that should be created.
+            const lExistingTableNames: Set<string> = new Set<string>(Array.from(pDatabase.objectStoreNames));
+            const lMissingTableNames: Set<string> = new Set<string>(Array.from(this.mTableLayouts.keys()));
+
+            // Check current tables. When no tables exists, skip it, so no "Empty Transaction"-Error is thrown.
+            if (lExistingTableNames.size > 0) {
+                // Open a read transaction to read current table configurations.
+                const lTransaction: IDBTransaction = pDatabase.transaction([...lExistingTableNames], 'readonly');
+
+                // Read all existing databases. 
+                for (const lTableName of lExistingTableNames) {
+                    // Mark table as deleteable when it does not exists anymore.
+                    if (!lMissingTableNames.has(lTableName)) {
+                        lDatabaseUpdate.tableUpdates.push({ name: lTableName, action: 'delete', indices: [] });
+                        continue;
+                    }
+
+                    // Read table configuration.
+                    const lTableLayout: WebDatabaseTableLayout = this.mTableLayouts.get(lTableName)!;
+
+                    // Open database table.
+                    const lDatabaseTable: IDBObjectStore = lTransaction.objectStore(lTableName);
+
+                    // Validate correct identity, update table when it differs.
+                    const lHasChangedIdentity: boolean = (() => {
+                        const lTableLayoutIdentity: Readonly<TableLayoutIdentity> = lTableLayout.identity;
+
+                        // Identity is not set, but keyPath is set.
+                        if (lDatabaseTable.keyPath === null) {
+                            return true;
+                        }
+
+                        // Compare identity with keyPath and autoIncrement.
+                        if (lTableLayoutIdentity.key !== lDatabaseTable.keyPath || lTableLayoutIdentity.autoIncrement !== lDatabaseTable.autoIncrement) {
+                            return true;
+                        }
+
+                        return false;
+                    })();
+
+                    // Identity changed, identity cant be updated, so delete table and create it again with the correct identity.
+                    if (lHasChangedIdentity) {
+                        lDatabaseUpdate.tableUpdates.push({ name: lTableName, action: 'delete', indices: [] });
+
+                        // Continue without deleting it from the missing table list, so it will be created again with the correct identity.
+                        continue;
+                    }
+
+                    // Remove table from uncreated table list, so it doesnt get created again.
+                    lMissingTableNames.delete(lTableName);
+
+                    // Read current tables indeces and tables indecies that should be created.
+                    const lExistingTableIndices: Set<string> = new Set<string>(Array.from(lDatabaseTable.indexNames));
+                    const lMissingTableIndices: Set<string> = new Set<string>(lTableLayout.indices);
+
+                    const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
+                    for (const lIndexName of lExistingTableIndices) {
+                        // Mark index as deleteable when it does not exists anymore.
+                        if (!lMissingTableIndices.has(lIndexName)) {
+                            lIndexUpdates.push({
+                                name: lIndexName,
+                                action: 'delete',
+                            });
+                            continue;
+                        }
+
+                        // Read current index
+                        const lCurrentIndex: IDBIndex = lDatabaseTable.index(lIndexName);
+                        const lIndexLayout: TableLayoutIndex = lTableLayout.index(lIndexName)!;
+
+                        // Read index keys. A Compound index is already checked by creating index key. Join with space, as space is not a valid keypath name.
+                        const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(' ') : lCurrentIndex.keyPath;
+                        const lConfiguratedIndexKey: string = lIndexLayout.keys.join(' ');
+
+                        // Configurated entry is a multi entry index.
+                        const lConfiguratedIsMultiEntry: boolean = lIndexLayout.type === 'multiEntry';
+
+                        // Validate same index configuration. Delete the current index when it differs.
+                        if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lConfiguratedIsMultiEntry || lCurrentIndex.unique !== lIndexLayout.unique) {
+                            lIndexUpdates.push({
+                                name: lIndexName,
+                                action: 'delete',
+                            });
+
+                            // Continue without deleting it from the missing index list, so it will created again with the correct configuration.
+                            continue;
+                        }
+
+                        // Remove index from uncreated index list, so it doesnt get created again.
+                        lMissingTableIndices.delete(lIndexName);
+                    }
+
+                    // Create all remaing missing indices.
+                    for (const lIndexName of lMissingTableIndices) {
+                        lIndexUpdates.push({
+                            name: lIndexName,
+                            action: 'create',
+                        });
+                    }
+
+                    // Add index update table update when any index is not created or must be deleted.
+                    if (lIndexUpdates.length > 0) {
+                        lDatabaseUpdate.tableUpdates.push({
+                            name: lTableName,
+                            action: 'none',
+                            indices: lIndexUpdates
+                        });
+                        continue;
+                    }
+                }
+            }
+
+            // Create all remaining tables.
+            for (const lTableName of lMissingTableNames) {
+                // Read table and index configuration.
+                const lTableLayout: WebDatabaseTableLayout = this.mTableLayouts.get(lTableName)!;
+
+                // Add all indices to the index update list.
+                const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
+                for (const lIndexName of lTableLayout.indices) {
+                    lIndexUpdates.push({
+                        name: lIndexName,
+                        action: 'create',
+                    });
+                }
+
+                // Add create table update to database update.
+                lDatabaseUpdate.tableUpdates.push({
+                    name: lTableName,
+                    action: 'create',
+                    indices: lIndexUpdates
+                });
+            }
+
+            // Close connection before resolving.
+            pDatabase.close();
+
+            return lDatabaseUpdate;
+        });
+    }
+
+    /**
+     * Open database with action and resolve on success.
+     * 
+     * @param pUpgradeAction - Action to perform on upgrade.
+     * @param pSuccessAction - Action to perform on success.
+     */
+    private async openDatabaseWithAction<T>(pVersion: number | undefined, pUpgradeAction: WebDatabaseUpdateAction, pSuccessAction: WebDatabaseSuccessAction<T>): Promise<T> {
+        return new Promise<T>((pResolve, pReject) => {
             // Open database with current version.
-            const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName);
-
-            // Set defaults when no database exists.
-            lOpenRequest.addEventListener('upgradeneeded', () => {
-                // Empty update.
-            });
+            const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName, pVersion);
 
             // Reject on block or error. 
             lOpenRequest.addEventListener('blocked', (pEvent) => {
@@ -189,270 +420,29 @@ export class WebDatabase {
                 pReject(new Exception('Error opening database. ' + lTarget.error, this));
             });
 
-            // Save open state.
-            lOpenRequest.addEventListener('success', (pEvent) => {
-                const lDatabaseConnection: IDBDatabase = (<IDBOpenDBRequest>pEvent.target).result;
-
-                // Set current loaded database version.
-                lDatabaseUpdate.version = lDatabaseConnection.version;
-
-                // Read current tables names and tables names that should be created.
-                const lCurrentTableNames: Set<string> = new Set<string>(Array.from(lDatabaseConnection.objectStoreNames));
-                const lUncreatedTableNames: Set<string> = new Set<string>(Array.from(this.mTableTypes.keys()));
-
-                // Check current tables. When no tables exists, skip it, so no "Empty Transaction"-Error is thrown.
-                if (lCurrentTableNames.size > 0) {
-                    // Open a read transaction to read current table configurations.
-                    const lReadTransaction: IDBTransaction = lDatabaseConnection.transaction([...lCurrentTableNames], 'readonly');
-
-                    // Read all existing databases. 
-                    for (const lTableName of lCurrentTableNames) {
-                        // Mark table as deleteable when it does not exists anymore.
-                        if (!lUncreatedTableNames.has(lTableName)) {
-                            lDatabaseUpdate.tableUpdates.push({
-                                name: lTableName,
-                                action: 'delete',
-                                indices: []
-                            });
-                            continue;
-                        }
-
-                        // Read table configuration.
-                        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
-
-                        // Open database table.
-                        const lTable: IDBObjectStore = lReadTransaction.objectStore(lTableName);
-
-                        // Validate correct identity, update table when it differs.
-                        const lConfiguratedKeyPath: string = lTableLayout.identity.key;
-                        const lConfiguratedAutoIncrement: boolean = lTableLayout.identity.autoIncrement;
-                        if (lTable.keyPath !== lConfiguratedKeyPath || lTable.autoIncrement !== lConfiguratedAutoIncrement) {
-                            lDatabaseUpdate.tableUpdates.push({
-                                name: lTableName,
-                                action: 'delete',
-                                indices: []
-                            });
-
-                            // Continue without deleting it from the uncreated table list, so it can be created again with the correct identity.
-                            continue;
-                        }
-
-                        // Remove table from uncreated table list, so it doesnt get created again.
-                        lUncreatedTableNames.delete(lTableName);
-
-                        // Read current tables indeces and tables indecies that should be created.
-                        const lCurrentTableIndices: Set<string> = new Set<string>(Array.from(lTable.indexNames));
-                        const lUncreatedTableIndices: Set<string> = new Set<string>(lTableLayout.indices);
-
-                        const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
-                        for (const lIndexName of lCurrentTableIndices) {
-                            // Mark index as deleteable when it does not exists anymore.
-                            if (!lUncreatedTableIndices.has(lIndexName)) {
-                                lIndexUpdates.push({
-                                    name: lIndexName,
-                                    action: 'delete',
-                                });
-                                continue;
-                            }
-
-                            // Read current index
-                            const lCurrentIndex: IDBIndex = lTable.index(lIndexName);
-                            const lIndexConfiguration: TableLayoutIndex = lTableLayout.index(lIndexName)!;
-
-                            // Read index keys. A Compound index is already checked by creating index key.
-                            const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(',') : lCurrentIndex.keyPath;
-                            const lConfiguratedIndexKey: string = lIndexConfiguration.keys.join(',');
-
-                            // Configurated entry is a multi entry index.
-                            const lConfiguratedIsMultiEntry: boolean = lIndexConfiguration.type === 'multiEntryIndex';
-
-                            // Validate same index configuration. Delete the current index when it differs.
-                            if (lCurrentIndexKey !== lConfiguratedIndexKey || lCurrentIndex.multiEntry !== lConfiguratedIsMultiEntry || lCurrentIndex.unique !== lIndexConfiguration.unique) {
-                                lIndexUpdates.push({
-                                    name: lIndexName,
-                                    action: 'delete',
-                                });
-
-                                // Continue without deleting it from the uncreated index list, so it can be created again with the correct configuration.
-                                continue;
-                            }
-
-                            // Remove index from uncreated index list, so it doesnt get created again.
-                            lUncreatedTableIndices.delete(lIndexName);
-                        }
-
-                        // Create all remaing missing indices.
-                        for (const lIndexName of lUncreatedTableIndices) {
-                            lIndexUpdates.push({
-                                name: lIndexName,
-                                action: 'create',
-                            });
-                        }
-
-                        // Add index update table update when any index is not created or must be deleted.
-                        if (lIndexUpdates.length > 0) {
-                            lDatabaseUpdate.tableUpdates.push({
-                                name: lTableName,
-                                action: 'none',
-                                indices: lIndexUpdates
-                            });
-                            continue;
-                        }
-                    }
+            // Set defaults when no database exists.
+            lOpenRequest.addEventListener('upgradeneeded', () => {
+                try {
+                    pUpgradeAction(lOpenRequest.result, lOpenRequest.transaction!);
+                } catch (pError) {
+                    pReject(pError);
                 }
-
-                // Create all remaining tables.
-                for (const lTableName of lUncreatedTableNames) {
-                    // Read table and index configuration.
-                    const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(this.mTableTypes.get(lTableName)!);
-
-                    // Add all indices to the index update list.
-                    const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();
-                    for (const lIndexName of lTableLayout.indices) {
-                        lIndexUpdates.push({
-                            name: lIndexName,
-                            action: 'create',
-                        });
-                    }
-
-                    // Add create table update to database update.
-                    lDatabaseUpdate.tableUpdates.push({
-                        name: lTableName,
-                        action: 'create',
-                        indices: lIndexUpdates
-                    });
-                }
-
-                // Check for any update.
-                for (const lTableUpdate of lDatabaseUpdate.tableUpdates) {
-                    // Set database to need a update when any update should be made.
-                    if (lTableUpdate.action !== 'none' || lTableUpdate.indices.length > 0) {
-                        lDatabaseUpdate.updateNeeded = true;
-                        break;
-                    }
-                }
-
-                // Close connection before resolving.
-                lDatabaseConnection.close();
-
-                pResolve(lDatabaseUpdate);
-            });
-        });
-
-        // Get current or next version when a update must be made.
-        const lDatabaseVersion: number = (lDatabaseUpdate.updateNeeded) ? lDatabaseUpdate.version + 1 : lDatabaseUpdate.version;
-
-        // Open database request.
-        const lOpenRequest: IDBOpenDBRequest = globalThis.indexedDB.open(this.mDatabaseName, lDatabaseVersion);
-        return new Promise<IDBDatabase>((pResolve, pReject) => {
-            // Init tables on upgradeneeded.
-            lOpenRequest.addEventListener('upgradeneeded', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
-                const lDatabaseConnection: IDBDatabase = lTarget.result;
-                const lDatabaseTransaction: IDBTransaction = lTarget.transaction!;
-
-                for (const lTableUpdate of lDatabaseUpdate.tableUpdates) {
-                    // Delete action.
-                    if (lTableUpdate.action === 'delete') {
-                        lDatabaseConnection.deleteObjectStore(lTableUpdate.name);
-                        continue;
-                    }
-
-                    // Read table configuration.
-                    const lTableType: TableType = this.mTableTypes.get(lTableUpdate.name)!;
-                    const lTableConfiguration = WebDatabaseTableLayout.configOf(lTableType);
-
-                    // Create table with correct identity.
-                    if (lTableUpdate.action === 'create') {
-                        if (lTableConfiguration.identity) {
-                            lDatabaseConnection.createObjectStore(lTableUpdate.name, {
-                                keyPath: lTableConfiguration.identity.key,
-                                autoIncrement: lTableConfiguration.identity.autoIncrement
-                            });
-                        } else {
-                            // Create object store without an identity.
-                            lDatabaseConnection.createObjectStore(lTableUpdate.name);
-                        }
-                    }
-
-                    // Update indices.
-                    if (lTableUpdate.indices.length > 0) {
-                        const lTable: IDBObjectStore = lDatabaseTransaction.objectStore(lTableUpdate.name);
-
-                        // Create indices.
-                        for (const lIndexUpdate of lTableUpdate.indices) {
-                            // Index delete action.
-                            if (lIndexUpdate.action === 'delete') {
-                                lTable.deleteIndex(lIndexUpdate.name);
-                                continue;
-                            }
-
-                            // Read index configuration.
-                            const lIndexConfiguration: TableLayoutIndex = lTableConfiguration.index(lIndexUpdate.name)!;
-
-                            // Read single keys as string, so multientries are recognized as single key.
-                            const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
-
-                            // Index create action.
-                            if (lIndexUpdate.action === 'create') {
-                                lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
-                                    unique: lIndexConfiguration.unique,
-                                    multiEntry: lIndexConfiguration.type === 'multiEntryIndex'
-                                });
-                                continue;
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Reject when update is blocked.
-            lOpenRequest.addEventListener('blocked', (pEvent) => {
-                pReject(new Exception(`Database locked from another tab. Unable to update from "${pEvent.oldVersion}" to "${pEvent.newVersion}"`, this));
-            });
-
-            // Reject on error.
-            lOpenRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
-
-                pReject(new Exception('Error opening database. ' + lTarget.error, this));
             });
 
             // Save open state.
-            lOpenRequest.addEventListener('success', (pEvent) => {
-                // Save and resolve
-                this.mDatabaseConnection = (<IDBOpenDBRequest>pEvent.target).result;
-                pResolve(this.mDatabaseConnection);
+            lOpenRequest.addEventListener('success', () => {
+                try {
+                    pResolve(pSuccessAction(lOpenRequest.result));
+                } catch (pError) {
+                    pReject(pError);
+                }
             });
         });
-    }
-
-    /**
-     * Create a synchron action where data can be read or written.
-     * 
-     * @param pTables - Tabes for this transaction.
-     * @param pAction - Action withing this transaction.
-     */
-    public async transaction<TTables extends TableType>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => void): Promise<void> {
-        // Tables should exists.
-        for (const lTableType of pTables) {
-            if (!this.mTableTypes.has(lTableType.name)) {
-                throw new Exception(`Table "${lTableType.name}" does not exists in this database.`, this);
-            }
-        }
-
-        // Create and open transaction.
-        const lTransaction: WebDatabaseTransaction<TTables> = new WebDatabaseTransaction(this, pTables, pMode);
-        await lTransaction.open();
-
-        // Call action within the transaction.
-        // eslint-disable-next-line @typescript-eslint/await-thenable
-        await pAction(lTransaction);
-
-        // Commit transaction.
-        lTransaction.commit();
     }
 }
+
+type WebDatabaseUpdateAction = (pDatabase: IDBDatabase, pTransaction: IDBTransaction) => void;
+type WebDatabaseSuccessAction<T> = (pDatabase: IDBDatabase) => T;
 
 type IndexUpdate = {
     name: string;
@@ -467,8 +457,5 @@ type TableUpdate = {
 
 type DatabaseUpdate = {
     version: number;
-    updateNeeded: boolean;
     tableUpdates: Array<TableUpdate>;
 };
-
-type WebDatabaseFieldDecoratorContext<TThis, TValue> = ClassGetterDecoratorContext<TThis, TValue> | ClassSetterDecoratorContext<TThis, TValue> | ClassFieldDecoratorContext<TThis, TValue> | ClassAccessorDecoratorContext<TThis, TValue>;

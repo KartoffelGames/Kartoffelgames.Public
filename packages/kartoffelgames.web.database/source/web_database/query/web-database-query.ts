@@ -129,7 +129,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         if (this.mQueryList.length === 0) {
             throw new Exception('No queries specified.', this);
         }
-
+        
         // Devide queries into "AND" blocks.
         const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
 
@@ -229,7 +229,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
 
             return {
                 indexName: lQueryPart.property,
-                keyRange: IDBKeyRange.bound(lQueryPart.action!.lower, lQueryPart.action!.upper, true, true)
+                keyRange: IDBKeyRange.bound(lQueryPart.action!.lower, lQueryPart.action!.upper, false, false)
             };
         }
 
@@ -288,7 +288,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
 
         return {
             indexName: lMatchingIndex.name,
-            keyRange: IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, true, true)
+            keyRange: IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, false, false)
         };
     }
 

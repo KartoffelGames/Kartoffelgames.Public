@@ -2,415 +2,470 @@ import { expect } from '@kartoffelgames/core-test';
 import 'npm:fake-indexeddb/auto';
 import { WebDatabase } from '../source/index.ts';
 
-// Test classes for different scenarios
-@WebDatabase.table('Users')
-class User {
-    @WebDatabase.field({ as: { identity: 'auto' } })
-    public id!: number;
-
-    @WebDatabase.field({ as: { index: { unique: true } } })
-    public email!: string;
-
-    @WebDatabase.field({ as: { index: {} } })
-    public age!: number;
-
-    @WebDatabase.field()
-    public name!: string;
-}
-
-@WebDatabase.table('Products', {
-    with: [
-        { properties: ['category', 'brand'], unique: false },
-        { properties: ['category', 'price'], unique: false }
-    ]
-})
-class Product {
-    @WebDatabase.field({ as: { identity: 'auto' } })
-    public id!: number;
-
-    @WebDatabase.field()
-    public category!: string;
-
-    @WebDatabase.field()
-    public brand!: string;
-
-    @WebDatabase.field()
-    public price!: number;
-
-    @WebDatabase.field()
-    public name!: string;
-}
-
-@WebDatabase.table('Orders')
-class Order {
-    @WebDatabase.field({ as: { identity: 'manual' } })
-    public orderId!: string;
-
-    @WebDatabase.field({ as: { index: {} } })
-    public customerId!: number;
-
-    @WebDatabase.field({ as: { index: {} } })
-    public status!: string;
-
-    @WebDatabase.field()
-    public total!: number;
-}
-
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Single index query with exact match using is()', async () => {
-        // Setup
+    await pContext.step('Single Index - Query with is()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lTableIndexValue: string = 'TestValue1';
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: { unique: true } } })
+            public [lTableIndexPropertyName]!: string;
+
+            @WebDatabase.field()
+            public propertyTwo!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lUser1 = new User();
-            lUser1.email = 'john@example.com';
-            lUser1.age = 25;
-            lUser1.name = 'John Doe';
-            await lUserTable.put(lUser1);
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyName] = lTableIndexValue;
+            lTestObject1.propertyTwo = 'TestValue2';
+            await lTestTable.put(lTestObject1);
 
-            const lUser2 = new User();
-            lUser2.email = 'jane@example.com';
-            lUser2.age = 30;
-            lUser2.name = 'Jane Smith';
-            await lUserTable.put(lUser2);
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyName] = 'NotSearched';
+            lTestObject2.propertyTwo = 'TestValue3';
+            await lTestTable.put(lTestObject2);
         });
 
-        // Test query
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lResults = await lUserTable.where('email').is('john@example.com').read();
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).is(lTableIndexValue).read();
             
+            // Evaluation.
             expect(lResults).toHaveLength(1);
-            expect(lResults[0].email).toBe('john@example.com');
-            expect(lResults[0].name).toBe('John Doe');
+            expect(lResults[0][lTableIndexPropertyName]).toBe(lTableIndexValue);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Single index query with range using between()', async () => {
-        // Setup
+    await pContext.step('Single Index - Query with between()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lLowerValue: number = 25;
+        const lUpperValue: number = 35;
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [20, 25, 30, 35, 40];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Test query
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lResults = await lUserTable.where('age').between(24, 31).read();
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).between(lLowerValue, lUpperValue).read();
             
-            expect(lResults).toHaveLength(2);
-            expect(lResults.map(u => u.age).sort()).toEqual([25, 30]);
-        });
-
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Single index query with greater than filter', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
-
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            
-            const lAges = [20, 25, 30, 35, 40];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
-            }
-        });
-
-        // Test query
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lResults = await lUserTable.where('age').greaterThan(30).read();
-            
-            expect(lResults).toHaveLength(2);
-            expect(lResults.map(u => u.age).sort()).toEqual([35, 40]);
-        });
-
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Single index query with lower than filter', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
-
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            
-            const lAges = [20, 25, 30, 35, 40];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
-            }
-        });
-
-        // Test query
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lResults = await lUserTable.where('age').lowerThan(30).read();
-            
-            expect(lResults).toHaveLength(2);
-            expect(lResults.map(u => u.age).sort()).toEqual([20, 25]);
-        });
-
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Compound index query with exact match', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Product]);
-
-        // Create test data
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            
-            const lProducts = [
-                { category: 'Electronics', brand: 'Apple', price: 999, name: 'iPhone' },
-                { category: 'Electronics', brand: 'Samsung', price: 899, name: 'Galaxy' },
-                { category: 'Clothing', brand: 'Nike', price: 199, name: 'Shoes' },
-                { category: 'Electronics', brand: 'Apple', price: 1299, name: 'MacBook' }
-            ];
-
-            for (const lProductData of lProducts) {
-                const lProduct = new Product();
-                Object.assign(lProduct, lProductData);
-                await lProductTable.put(lProduct);
-            }
-        });
-
-        // Test compound index query
-        await lWebDatabase.transaction([Product], 'readonly', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            const lResults = await lProductTable
-                .where('category').is('Electronics')
-                .and('brand').is('Apple')
-                .read();
-            
-            expect(lResults).toHaveLength(2);
-            expect(lResults.every(p => p.category === 'Electronics' && p.brand === 'Apple')).toBeTruthy();
-        });
-
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Compound index query with range filters', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Product]);
-
-        // Create test data
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            
-            const lProducts = [
-                { category: 'Electronics', brand: 'Apple', price: 500, name: 'iPad' },
-                { category: 'Electronics', brand: 'Samsung', price: 800, name: 'Tablet' },
-                { category: 'Electronics', brand: 'Sony', price: 1200, name: 'Camera' },
-                { category: 'Clothing', brand: 'Nike', price: 150, name: 'Shirt' }
-            ];
-
-            for (const lProductData of lProducts) {
-                const lProduct = new Product();
-                Object.assign(lProduct, lProductData);
-                await lProductTable.put(lProduct);
-            }
-        });
-
-        // Test compound index query with price range
-        await lWebDatabase.transaction([Product], 'readonly', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            const lResults = await lProductTable
-                .where('category').is('Electronics')
-                .and('price').between(600, 1000)
-                .read();
-            
+            // Evaluation.
             expect(lResults).toHaveLength(1);
-            expect(lResults[0].brand).toBe('Samsung');
-            expect(lResults[0].price).toBe(800);
+            expect(lResults[0][lTableIndexPropertyName]).toBe(30);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Query by identity field', async () => {
-        // Setup
+    await pContext.step('Single Index - Query with greaterThan()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Order]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lThresholdValue: number = 25;
 
-        // Create test data
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lOrders = [
-                { orderId: 'ORD-001', customerId: 123, status: 'pending', total: 100 },
-                { orderId: 'ORD-002', customerId: 456, status: 'completed', total: 200 },
-                { orderId: 'ORD-003', customerId: 789, status: 'pending', total: 150 }
-            ];
-
-            for (const lOrderData of lOrders) {
-                const lOrder = new Order();
-                Object.assign(lOrder, lOrderData);
-                await lOrderTable.put(lOrder);
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Test identity query
-        await lWebDatabase.transaction([Order], 'readonly', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            const lResults = await lOrderTable.where('orderId').is('ORD-002').read();
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).greaterThan(lThresholdValue).read();
             
+            // Evaluation.
+            expect(lResults).toHaveLength(2);
+            expect(lResults.map(r => r[lTableIndexPropertyName]).sort()).toEqual([30, 40]);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Single Index - Query with lowerThan()', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lThresholdValue: number = 35;
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
+            }
+        });
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).lowerThan(lThresholdValue).read();
+            
+            // Evaluation.
+            expect(lResults).toHaveLength(2);
+            expect(lResults.map(r => r[lTableIndexPropertyName]).sort()).toEqual([20, 30]);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Compound Index - Query with is() on both properties', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyOneName: string = 'propertyOne';
+        const lTableIndexPropertyTwoName: string = 'propertyTwo';
+        const lSearchValueOne: string = 'TestValue1';
+        const lSearchValueTwo: string = 'TestValue2';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable', {
+            with: [{
+                properties: [lTableIndexPropertyOneName, lTableIndexPropertyTwoName],
+                unique: false
+            }]
+        })
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field()
+            public [lTableIndexPropertyOneName]!: string;
+
+            @WebDatabase.field()
+            public [lTableIndexPropertyTwoName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyOneName] = lSearchValueOne;
+            lTestObject1[lTableIndexPropertyTwoName] = lSearchValueTwo;
+            await lTestTable.put(lTestObject1);
+
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyOneName] = lSearchValueOne;
+            lTestObject2[lTableIndexPropertyTwoName] = 'DifferentValue';
+            await lTestTable.put(lTestObject2);
+        });
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable
+                .where(lTableIndexPropertyOneName).is(lSearchValueOne)
+                .and(lTableIndexPropertyTwoName).is(lSearchValueTwo)
+                .read();
+            
+            // Evaluation.
             expect(lResults).toHaveLength(1);
-            expect(lResults[0].orderId).toBe('ORD-002');
-            expect(lResults[0].total).toBe(200);
+            expect(lResults[0][lTableIndexPropertyOneName]).toBe(lSearchValueOne);
+            expect(lResults[0][lTableIndexPropertyTwoName]).toBe(lSearchValueTwo);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Query with single OR condition', async () => {
-        // Setup
+    await pContext.step('Identity - Query with is() on identity property', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Order]);
+        const lTableIdentityPropertyName: string = 'propertyOne';
+        const lSearchValue: string = 'TestIdentity1';
 
-        // Create test data
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'manual' } })
+            public [lTableIdentityPropertyName]!: string;
+
+            @WebDatabase.field()
+            public propertyTwo!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lOrders = [
-                { orderId: 'ORD-001', customerId: 123, status: 'pending', total: 100 },
-                { orderId: 'ORD-002', customerId: 456, status: 'completed', total: 200 },
-                { orderId: 'ORD-003', customerId: 789, status: 'cancelled', total: 150 },
-                { orderId: 'ORD-004', customerId: 123, status: 'pending', total: 300 }
-            ];
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIdentityPropertyName] = lSearchValue;
+            lTestObject1.propertyTwo = 'TestValue2';
+            await lTestTable.put(lTestObject1);
 
-            for (const lOrderData of lOrders) {
-                const lOrder = new Order();
-                Object.assign(lOrder, lOrderData);
-                await lOrderTable.put(lOrder);
-            }
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIdentityPropertyName] = 'DifferentIdentity';
+            lTestObject2.propertyTwo = 'TestValue3';
+            await lTestTable.put(lTestObject2);
         });
 
-        // Test OR query
-        await lWebDatabase.transaction([Order], 'readonly', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            const lResults = await lOrderTable
-                .where('status').is('pending')
-                .or('status').is('completed')
-                .read();
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIdentityPropertyName).is(lSearchValue).read();
             
-            expect(lResults).toHaveLength(3);
-            const lStatuses = lResults.map(o => o.status);
-            expect(lStatuses.filter(s => s === 'pending')).toHaveLength(2);
-            expect(lStatuses.filter(s => s === 'completed')).toHaveLength(1);
+            // Evaluation.
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIdentityPropertyName]).toBe(lSearchValue);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Query with two OR conditions (triple condition)', async () => {
-        // Setup
+    await pContext.step('Query without OR - Single condition', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lSearchValue: string = 'TestValue1';
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [18, 25, 30, 35, 40, 45, 50];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: string[] = [lSearchValue, 'TestValue2', 'TestValue3'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Test triple OR query
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lResults = await lUserTable
-                .where('age').is(25)
-                .or('age').is(35)
-                .or('age').is(45)
-                .read();
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).is(lSearchValue).read();
             
-            expect(lResults).toHaveLength(3);
-            expect(lResults.map(u => u.age).sort()).toEqual([25, 35, 45]);
+            // Evaluation.
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toBe(lSearchValue);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Complex query with AND and OR combinations', async () => {
-        // Setup
+    await pContext.step('Query with one OR - Two conditions', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Product]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lSearchValueOne: string = 'TestValue1';
+        const lSearchValueTwo: string = 'TestValue2';
 
-        // Create test data
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lProducts = [
-                { category: 'Electronics', brand: 'Apple', price: 999, name: 'iPhone' },
-                { category: 'Electronics', brand: 'Samsung', price: 899, name: 'Galaxy' },
-                { category: 'Electronics', brand: 'Apple', price: 1299, name: 'MacBook' },
-                { category: 'Clothing', brand: 'Nike', price: 199, name: 'Shoes' },
-                { category: 'Clothing', brand: 'Adidas', price: 299, name: 'Jacket' }
-            ];
-
-            for (const lProductData of lProducts) {
-                const lProduct = new Product();
-                Object.assign(lProduct, lProductData);
-                await lProductTable.put(lProduct);
+            const lTestValues: string[] = [lSearchValueOne, lSearchValueTwo, 'TestValue3'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Test complex query: (Electronics AND Apple) OR (Clothing AND price > 250)
-        await lWebDatabase.transaction([Product], 'readonly', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            const lResults = await lProductTable
-                .where('category').is('Electronics')
-                .and('brand').is('Apple')
-                .or('category').is('Clothing')
-                .and('price').greaterThan(250)
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable
+                .where(lTableIndexPropertyName).is(lSearchValueOne)
+                .or(lTableIndexPropertyName).is(lSearchValueTwo)
                 .read();
             
+            // Evaluation.
+            expect(lResults).toHaveLength(2);
+            const lResultValues = lResults.map(r => r[lTableIndexPropertyName]).sort();
+            expect(lResultValues).toEqual([lSearchValueOne, lSearchValueTwo]);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Query with two ORs - Three conditions', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lSearchValueOne: string = 'TestValue1';
+        const lSearchValueTwo: string = 'TestValue2';
+        const lSearchValueThree: string = 'TestValue3';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            
+            const lTestValues: string[] = [lSearchValueOne, lSearchValueTwo, lSearchValueThree, 'TestValue4'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
+            }
+        });
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable
+                .where(lTableIndexPropertyName).is(lSearchValueOne)
+                .or(lTableIndexPropertyName).is(lSearchValueTwo)
+                .or(lTableIndexPropertyName).is(lSearchValueThree)
+                .read();
+            
+            // Evaluation.
             expect(lResults).toHaveLength(3);
-            // Should include: iPhone, MacBook (Electronics + Apple), Jacket (Clothing + price > 250)
-            const lNames = lResults.map(p => p.name).sort();
-            expect(lNames).toEqual(['iPhone', 'Jacket', 'MacBook']);
+            const lResultValues = lResults.map(r => r[lTableIndexPropertyName]).sort();
+            expect(lResultValues).toEqual([lSearchValueOne, lSearchValueTwo, lSearchValueThree]);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Error: No queries specified', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            
+            const lFailingFunction = async () => {
+                // Create query but don't specify any actions
+                const lQuery = lTestTable.where as any;
+                const lQueryInstance = new lQuery.constructor.__proto__.constructor(lTestTable);
+                await lQueryInstance.read();
+            };
+
+            // Evaluation.
+            await expect(lFailingFunction()).rejects.toThrow('No queries specified.');
         });
 
         lWebDatabase.close();
@@ -418,414 +473,507 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
 });
 
 Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Delete with single index exact match', async () => {
-        // Setup
+    await pContext.step('Single Index - Delete with is()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lDeleteValue: string = 'TestValue1';
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lUsers = [
-                { email: 'john@example.com', age: 25, name: 'John Doe' },
-                { email: 'jane@example.com', age: 30, name: 'Jane Smith' },
-                { email: 'bob@example.com', age: 35, name: 'Bob Johnson' }
-            ];
-
-            for (const lUserData of lUsers) {
-                const lUser = new User();
-                Object.assign(lUser, lUserData);
-                await lUserTable.put(lUser);
+            const lTestValues: string[] = [lDeleteValue, 'TestValue2', 'TestValue3'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete specific user
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            await lUserTable.where('email').is('jane@example.com').delete();
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).is(lDeleteValue).delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lAllUsers = await lUserTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lAllUsers).toHaveLength(2);
-            expect(lAllUsers.map(u => u.email)).not.toContain('jane@example.com');
+            expect(lResults).toHaveLength(2);
+            expect(lResults.map(r => r[lTableIndexPropertyName])).not.toContain(lDeleteValue);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with range filter using between()', async () => {
-        // Setup
+    await pContext.step('Single Index - Delete with between()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lLowerValue: number = 25;
+        const lUpperValue: number = 35;
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [20, 25, 30, 35, 40, 45];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete users in age range
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            await lUserTable.where('age').between(28, 37).delete();
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).between(lLowerValue, lUpperValue).delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lRemainingUsers = await lUserTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingUsers).toHaveLength(4);
-            expect(lRemainingUsers.map(u => u.age).sort()).toEqual([20, 25, 40, 45]);
+            expect(lResults).toHaveLength(2);
+            expect(lResults.map(r => r[lTableIndexPropertyName]).sort()).toEqual([20, 40]);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with greater than filter', async () => {
-        // Setup
+    await pContext.step('Single Index - Delete with greaterThan()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lThresholdValue: number = 25;
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [20, 25, 30, 35, 40];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete users older than 30
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            await lUserTable.where('age').greaterThan(30).delete();
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).greaterThan(lThresholdValue).delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lRemainingUsers = await lUserTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingUsers).toHaveLength(3);
-            expect(lRemainingUsers.map(u => u.age).sort()).toEqual([20, 25, 30]);
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toBe(20);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with lower than filter', async () => {
-        // Setup
+    await pContext.step('Single Index - Delete with lowerThan()', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lThresholdValue: number = 35;
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [20, 25, 30, 35, 40];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: number[] = [20, 30, 40];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete users younger than 30
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            await lUserTable.where('age').lowerThan(30).delete();
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).lowerThan(lThresholdValue).delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lRemainingUsers = await lUserTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingUsers).toHaveLength(3);
-            expect(lRemainingUsers.map(u => u.age).sort()).toEqual([30, 35, 40]);
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toBe(40);
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with compound index query', async () => {
-        // Setup
+    await pContext.step('Compound Index - Delete with is() on both properties', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Product]);
+        const lTableIndexPropertyOneName: string = 'propertyOne';
+        const lTableIndexPropertyTwoName: string = 'propertyTwo';
+        const lDeleteValueOne: string = 'TestValue1';
+        const lDeleteValueTwo: string = 'TestValue2';
 
-        // Create test data
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable', {
+            with: [{
+                properties: [lTableIndexPropertyOneName, lTableIndexPropertyTwoName],
+                unique: false
+            }]
+        })
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field()
+            public [lTableIndexPropertyOneName]!: string;
+
+            @WebDatabase.field()
+            public [lTableIndexPropertyTwoName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lProducts = [
-                { category: 'Electronics', brand: 'Apple', price: 999, name: 'iPhone' },
-                { category: 'Electronics', brand: 'Samsung', price: 899, name: 'Galaxy' },
-                { category: 'Electronics', brand: 'Apple', price: 1299, name: 'MacBook' },
-                { category: 'Clothing', brand: 'Nike', price: 199, name: 'Shoes' }
-            ];
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyOneName] = lDeleteValueOne;
+            lTestObject1[lTableIndexPropertyTwoName] = lDeleteValueTwo;
+            await lTestTable.put(lTestObject1);
 
-            for (const lProductData of lProducts) {
-                const lProduct = new Product();
-                Object.assign(lProduct, lProductData);
-                await lProductTable.put(lProduct);
-            }
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyOneName] = lDeleteValueOne;
+            lTestObject2[lTableIndexPropertyTwoName] = 'DifferentValue';
+            await lTestTable.put(lTestObject2);
         });
 
-        // Delete Apple Electronics
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            await lProductTable
-                .where('category').is('Electronics')
-                .and('brand').is('Apple')
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable
+                .where(lTableIndexPropertyOneName).is(lDeleteValueOne)
+                .and(lTableIndexPropertyTwoName).is(lDeleteValueTwo)
                 .delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([Product], 'readonly', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            const lRemainingProducts = await lProductTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingProducts).toHaveLength(2);
-            expect(lRemainingProducts.map(p => p.name).sort()).toEqual(['Galaxy', 'Shoes']);
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyTwoName]).toBe('DifferentValue');
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete by identity field', async () => {
-        // Setup
+    await pContext.step('Identity - Delete with is() on identity property', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Order]);
+        const lTableIdentityPropertyName: string = 'propertyOne';
+        const lDeleteValue: string = 'TestIdentity1';
 
-        // Create test data
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'manual' } })
+            public [lTableIdentityPropertyName]!: string;
+
+            @WebDatabase.field()
+            public propertyTwo!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lOrders = [
-                { orderId: 'ORD-001', customerId: 123, status: 'pending', total: 100 },
-                { orderId: 'ORD-002', customerId: 456, status: 'completed', total: 200 },
-                { orderId: 'ORD-003', customerId: 789, status: 'pending', total: 150 }
-            ];
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIdentityPropertyName] = lDeleteValue;
+            lTestObject1.propertyTwo = 'TestValue2';
+            await lTestTable.put(lTestObject1);
 
-            for (const lOrderData of lOrders) {
-                const lOrder = new Order();
-                Object.assign(lOrder, lOrderData);
-                await lOrderTable.put(lOrder);
-            }
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIdentityPropertyName] = 'DifferentIdentity';
+            lTestObject2.propertyTwo = 'TestValue3';
+            await lTestTable.put(lTestObject2);
         });
 
-        // Delete specific order by ID
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            await lOrderTable.where('orderId').is('ORD-002').delete();
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIdentityPropertyName).is(lDeleteValue).delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([Order], 'readonly', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            const lRemainingOrders = await lOrderTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingOrders).toHaveLength(2);
-            expect(lRemainingOrders.map(o => o.orderId)).not.toContain('ORD-002');
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIdentityPropertyName]).toBe('DifferentIdentity');
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with single OR condition', async () => {
-        // Setup
+    await pContext.step('Delete without OR - Single condition', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Order]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lDeleteValue: string = 'TestValue1';
 
-        // Create test data
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lOrders = [
-                { orderId: 'ORD-001', customerId: 123, status: 'pending', total: 100 },
-                { orderId: 'ORD-002', customerId: 456, status: 'completed', total: 200 },
-                { orderId: 'ORD-003', customerId: 789, status: 'cancelled', total: 150 },
-                { orderId: 'ORD-004', customerId: 123, status: 'pending', total: 300 }
-            ];
-
-            for (const lOrderData of lOrders) {
-                const lOrder = new Order();
-                Object.assign(lOrder, lOrderData);
-                await lOrderTable.put(lOrder);
+            const lTestValues: string[] = [lDeleteValue, 'TestValue2', 'TestValue3'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete pending or cancelled orders
-        await lWebDatabase.transaction([Order], 'readwrite', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            await lOrderTable
-                .where('status').is('pending')
-                .or('status').is('cancelled')
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).is(lDeleteValue).delete();
+        });
+
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
+            
+            expect(lResults).toHaveLength(2);
+            expect(lResults.map(r => r[lTableIndexPropertyName])).not.toContain(lDeleteValue);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Delete with one OR - Two conditions', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lDeleteValueOne: string = 'TestValue1';
+        const lDeleteValueTwo: string = 'TestValue2';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            
+            const lTestValues: string[] = [lDeleteValueOne, lDeleteValueTwo, 'TestValue3'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
+            }
+        });
+
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable
+                .where(lTableIndexPropertyName).is(lDeleteValueOne)
+                .or(lTableIndexPropertyName).is(lDeleteValueTwo)
                 .delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([Order], 'readonly', async (pTransaction) => {
-            const lOrderTable = pTransaction.table(Order);
-            const lRemainingOrders = await lOrderTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingOrders).toHaveLength(1);
-            expect(lRemainingOrders[0].status).toBe('completed');
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toBe('TestValue3');
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with two OR conditions (triple condition)', async () => {
-        // Setup
+    await pContext.step('Delete with two ORs - Three conditions', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lDeleteValueOne: string = 'TestValue1';
+        const lDeleteValueTwo: string = 'TestValue2';
+        const lDeleteValueThree: string = 'TestValue3';
 
-        // Create test data
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lAges = [20, 25, 30, 35, 40, 45, 50];
-            for (let i = 0; i < lAges.length; i++) {
-                const lUser = new User();
-                lUser.email = `user${i}@example.com`;
-                lUser.age = lAges[i];
-                lUser.name = `User ${i}`;
-                await lUserTable.put(lUser);
+            const lTestValues: string[] = [lDeleteValueOne, lDeleteValueTwo, lDeleteValueThree, 'TestValue4'];
+            for (const lValue of lTestValues) {
+                const lTestObject = new TestTable();
+                lTestObject[lTableIndexPropertyName] = lValue;
+                await lTestTable.put(lTestObject);
             }
         });
 
-        // Delete users aged 25, 35, or 45
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            await lUserTable
-                .where('age').is(25)
-                .or('age').is(35)
-                .or('age').is(45)
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable
+                .where(lTableIndexPropertyName).is(lDeleteValueOne)
+                .or(lTableIndexPropertyName).is(lDeleteValueTwo)
+                .or(lTableIndexPropertyName).is(lDeleteValueThree)
                 .delete();
         });
 
-        // Verify deletion
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            const lRemainingUsers = await lUserTable.getAll();
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
             
-            expect(lRemainingUsers).toHaveLength(4);
-            expect(lRemainingUsers.map(u => u.age).sort()).toEqual([20, 30, 40, 50]);
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toBe('TestValue4');
         });
 
         lWebDatabase.close();
     });
 
-    await pContext.step('Delete with complex AND and OR combinations', async () => {
-        // Setup
+    await pContext.step('Error: No queries specified', async () => {
+        // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [Product]);
 
-        // Create test data
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
             
-            const lProducts = [
-                { category: 'Electronics', brand: 'Apple', price: 999, name: 'iPhone' },
-                { category: 'Electronics', brand: 'Samsung', price: 899, name: 'Galaxy' },
-                { category: 'Electronics', brand: 'Apple', price: 1299, name: 'MacBook' },
-                { category: 'Clothing', brand: 'Nike', price: 199, name: 'Shoes' },
-                { category: 'Clothing', brand: 'Adidas', price: 299, name: 'Jacket' }
-            ];
+            const lFailingFunction = async () => {
+                // Create query but don't specify any actions
+                const lQuery = lTestTable.where as any;
+                const lQueryInstance = new lQuery.constructor.__proto__.constructor(lTestTable);
+                await lQueryInstance.delete();
+            };
 
-            for (const lProductData of lProducts) {
-                const lProduct = new Product();
-                Object.assign(lProduct, lProductData);
-                await lProductTable.put(lProduct);
-            }
-        });
-
-        // Delete: (Electronics AND Apple) OR (Clothing AND price > 250)
-        await lWebDatabase.transaction([Product], 'readwrite', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            await lProductTable
-                .where('category').is('Electronics')
-                .and('brand').is('Apple')
-                .or('category').is('Clothing')
-                .and('price').greaterThan(250)
-                .delete();
-        });
-
-        // Verify deletion
-        await lWebDatabase.transaction([Product], 'readonly', async (pTransaction) => {
-            const lProductTable = pTransaction.table(Product);
-            const lRemainingProducts = await lProductTable.getAll();
-            
-            expect(lRemainingProducts).toHaveLength(2);
-            // Should remain: Galaxy (Electronics but not Apple), Shoes (Clothing but price <= 250)
-            const lNames = lRemainingProducts.map(p => p.name).sort();
-            expect(lNames).toEqual(['Galaxy', 'Shoes']);
+            // Evaluation.
+            await expect(lFailingFunction()).rejects.toThrow('No queries specified.');
         });
 
         lWebDatabase.close();
     });
 });
 
-Deno.test('WebDatabaseQuery Error Cases', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Read with incomplete query should throw error', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
-
-        await lWebDatabase.transaction([User], 'readonly', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            
-            // Create a query but don't call .is(), .between(), etc.
-            const lQuery = new (lUserTable as any).constructor.__proto__.constructor(lUserTable);
-            
-            // Should throw error when trying to read without any queries
-            await expect(async () => {
-                await lQuery.read();
-            }).rejects.toThrow('No queries specified.');
-        });
-
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Delete with incomplete query should throw error', async () => {
-        // Setup
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lWebDatabase = new WebDatabase(lDatabaseName, [User]);
-
-        await lWebDatabase.transaction([User], 'readwrite', async (pTransaction) => {
-            const lUserTable = pTransaction.table(User);
-            
-            // Create a query but don't call .is(), .between(), etc.
-            const lQuery = new (lUserTable as any).constructor.__proto__.constructor(lUserTable);
-            
-            // Should throw error when trying to delete without any queries
-            await expect(async () => {
-                await lQuery.delete();
-            }).rejects.toThrow('No queries specified.');
-        });
-
-        lWebDatabase.close();
-    });
-});

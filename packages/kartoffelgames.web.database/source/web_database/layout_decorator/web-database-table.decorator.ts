@@ -44,11 +44,6 @@ export const WebDatabaseTableDecorator = <T extends WebDatabaseTableType>(pTable
         if (pExtension) {
             // Iterate over the extensions and add them to the table layout.
             for (const lCompoundIndex of pExtension.with) {
-                // Check if all properties are strings.
-                if (!lCompoundIndex.properties.every(pProperty => typeof pProperty === 'string')) {
-                    throw new Error('All property names of a compound index must be strings.');
-                }
-
                 // Add properties to the table layout.
                 lTableLayout.setTableIndex(lCompoundIndex.properties, lCompoundIndex.unique ?? false, false);
             }

@@ -4,7 +4,7 @@ import { Metadata } from '@kartoffelgames/core-dependency-injection';
 /**
  * Singleton. Table layout and settings.
  */
-export class WebDatabaseTableLayout {
+export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
     public static readonly METADATA_KEY: symbol = Symbol('WebDatabaseTableLayoutMetadataKey');
 
     /**
@@ -14,9 +14,9 @@ export class WebDatabaseTableLayout {
      * 
      * @returns table type config. 
      */
-    public static configOf(pType: TableType): WebDatabaseTableLayout {
+    public static configOf<TTable extends WebDatabaseTableType>(pType: TTable): WebDatabaseTableLayout<TTable> {
         // Read table config from metadata.
-        const lTableLayout: WebDatabaseTableLayout | null = Metadata.get(pType).getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+        const lTableLayout: WebDatabaseTableLayout<TTable> | null = Metadata.get(pType).getMetadata(WebDatabaseTableLayout.METADATA_KEY);
 
         // Table type is not initialized.
         if (!lTableLayout) {
@@ -27,10 +27,10 @@ export class WebDatabaseTableLayout {
     }
 
     private readonly mFields: Set<string>;
-    private mIdentity: TableLayoutIdentity | null;
-    private readonly mIndices: Map<string, TableLayoutIndex>;
+    private mIdentity: WebDatabaseTableLayoutTableLayoutIdentity | null;
+    private readonly mIndices: Map<string, WebDatabaseTableLayoutTableLayoutIndex<T>>;
     private mTableName: string;
-    private mTableType: TableType | null;
+    private mTableType: T | null;
 
     /**
      * Get table field names.
@@ -47,7 +47,7 @@ export class WebDatabaseTableLayout {
     /**
      * Get all indices of the table type.
      */
-    public get identity(): Readonly<TableLayoutIdentity> {
+    public get identity(): Readonly<WebDatabaseTableLayoutTableLayoutIdentity> {
         // Restrict access when no table name is set.
         if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
@@ -92,7 +92,7 @@ export class WebDatabaseTableLayout {
     /**
      * Get table type.
      */
-    public get tableType(): TableType {
+    public get tableType(): WebDatabaseTableType {
         // Restrict access when no table name is set.
         if (!this.mTableType) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
@@ -108,7 +108,7 @@ export class WebDatabaseTableLayout {
         this.mTableName = '';
         this.mTableType = null;
         this.mIdentity = null;
-        this.mIndices = new Map<string, TableLayoutIndex>();
+        this.mIndices = new Map<string, WebDatabaseTableLayoutTableLayoutIndex<T>>();
         this.mFields = new Set<string>();
     }
 
@@ -119,13 +119,13 @@ export class WebDatabaseTableLayout {
      * 
      * @returns Table type index or undefined when not found.
      */
-    public index(pName: string): TableLayoutIndex | undefined {
+    public index(pName: string): WebDatabaseTableLayoutTableLayoutIndex<T> | null {
         // Restrict access when no table name is set.
         if (!this.mTableName) {
             throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
         }
 
-        return this.mIndices.get(pName);
+        return this.mIndices.get(pName) ?? null;
     }
 
     /**
@@ -151,7 +151,7 @@ export class WebDatabaseTableLayout {
      * 
      * @throws {@link Exception} - When a identitfier for this type is already set.
      */
-    public setTableIdentity(pKey: string, pAutoIncrement: boolean): void {
+    public setTableIdentity(pKey: WebDatabaseTableLayoutFieldName<T>, pAutoIncrement: boolean): void {
         // Read table config and restrict to one identity.
         if (this.mIdentity) {
             throw new Exception(`A table type can only have one identifier.`, this);
@@ -178,7 +178,7 @@ export class WebDatabaseTableLayout {
      * 
      * @throws {@link Exception} If any property is not set as a field, if the index already exists, or if multiEntry is used with multiple keys.
      */
-    public setTableIndex(pPropertyKeys: Array<string>, pIsUnique: boolean, pMultiEnty: boolean): void {
+    public setTableIndex(pPropertyKeys: Array<WebDatabaseTableLayoutFieldName<T>>, pIsUnique: boolean, pMultiEnty: boolean): void {
         // Create index name from property keys order of property keys matters.
         const lIndexName: string = pPropertyKeys.join('+');
 
@@ -195,9 +195,9 @@ export class WebDatabaseTableLayout {
         }
 
         // Initialize index.
-        const lIndexConfig: TableLayoutIndex = {
+        const lIndexConfig: WebDatabaseTableLayoutTableLayoutIndex<T> = {
             name: lIndexName,
-            keys: pPropertyKeys as [string],
+            keys: pPropertyKeys,
             unique: pIsUnique,
             type: 'default'
         };
@@ -223,7 +223,7 @@ export class WebDatabaseTableLayout {
     /**
      * Set table name.
      */
-    public setTableName(pType: TableType, pName: string): void {
+    public setTableName(pType: T, pName: string): void {
         if (this.mTableType) {
             throw new Exception('Table name can only be set once.', this);
         }
@@ -233,16 +233,18 @@ export class WebDatabaseTableLayout {
     }
 }
 
-export type TableLayoutIndex = {
+export type WebDatabaseTableLayoutTableLayoutIndex<T extends WebDatabaseTableType> = {
     name: string;
-    keys: Array<string>;
+    keys: Array<WebDatabaseTableLayoutFieldName<T>>;
     unique: boolean;
     type: 'default' | 'multiEntry' | 'compound';
 };
 
-export type TableLayoutIdentity = {
+export type WebDatabaseTableLayoutTableLayoutIdentity = {
     key: string;
     autoIncrement: boolean;
 };
 
-export type TableType = IVoidParameterConstructor<object>;
+export type WebDatabaseTableType = IVoidParameterConstructor<object>;
+
+export type WebDatabaseTableLayoutFieldName<T extends WebDatabaseTableType> = keyof InstanceType<T> & string;

@@ -907,7 +907,7 @@ Deno.test('WebDatabaseTable.put()', { sanitizeResources: false, sanitizeOps: fal
 });
 
 Deno.test('WebDatabaseTable.where()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Create query with property name', async () => {
+    await pContext.step('Create query', async () => {
         // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lTableName: string = 'TestTable';
@@ -929,81 +929,6 @@ Deno.test('WebDatabaseTable.where()', { sanitizeResources: false, sanitizeOps: f
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
             const lQuery = lTable.where('name');
-
-            // Verify query is created and is chainable.
-            expect(lQuery).toBeDefined();
-            expect(typeof lQuery.is).toEqual('function');
-            expect(typeof lQuery.between).toEqual('function');
-        });
-
-        // Cleanup.
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Create query with index name', async () => {
-        // Setup. Table configuration.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lTableName: string = 'TestTable';
-
-        // Setup. Table
-        @WebDatabase.table(lTableName)
-        class TestTable {
-            @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
-
-            @WebDatabase.field({ as: { index: {} } })
-            public email!: string;
-        }
-
-        // Setup. Database.
-        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-
-        // Process and Evaluation.
-        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
-            const lTable = pTransaction.table(TestTable);
-            const lQuery = lTable.where('email');
-
-            // Verify query is created and is chainable.
-            expect(lQuery).toBeDefined();
-            expect(typeof lQuery.is).toEqual('function');
-            expect(typeof lQuery.between).toEqual('function');
-        });
-
-        // Cleanup.
-        lWebDatabase.close();
-    });
-
-    await pContext.step('Create query with compound index name', async () => {
-        // Setup. Table configuration.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lTableName: string = 'TestTable';
-        const lIndexProperty1 = 'firstName';
-        const lIndexProperty2 = 'lastName';
-
-        // Setup. Table
-        @WebDatabase.table(lTableName, {
-            with: [{
-                properties: [lIndexProperty1, lIndexProperty2]
-            }]
-        })
-        class TestTable {
-            @WebDatabase.field({ as: { identity: 'auto' } })
-            public id!: number;
-
-            @WebDatabase.field()
-            public [lIndexProperty1]!: string;
-
-            @WebDatabase.field()
-            public [lIndexProperty2]!: string;
-        }
-
-        // Setup. Database.
-        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-
-        // Process and Evaluation.
-        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
-            const lTable = pTransaction.table(TestTable);
-            const lQuery = lTable.where(`${lIndexProperty1}+${lIndexProperty2}`);
 
             // Verify query is created and is chainable.
             expect(lQuery).toBeDefined();

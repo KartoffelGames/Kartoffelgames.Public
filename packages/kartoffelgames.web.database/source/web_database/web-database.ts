@@ -1,14 +1,14 @@
 import { Exception, type ClassDecorator, type ClassFieldDecorator } from '@kartoffelgames/core';
 import { WebDatabaseFieldDecorator, type WebDatabaseFieldDecoratorExtension } from './layout_decorator/web-database-field.decorator.ts';
 import { WebDatabaseTableDecorator, type WebDatabaseTableDecoratorExtension } from './layout_decorator/web-database-table.decorator.ts';
-import { type TableLayoutIdentity, WebDatabaseTableLayout, type TableLayoutIndex, type TableType } from './web-database-table-layout.ts';
+import { type WebDatabaseTableLayoutTableLayoutIdentity, WebDatabaseTableLayout, type WebDatabaseTableLayoutTableLayoutIndex, type WebDatabaseTableType } from './web-database-table-layout.ts';
 import { WebDatabaseTransaction, type WebDbTransactionMode } from './web-database-transaction.ts';
 
 /**
  * WebDatabase provides a high-level, type-safe, decorator-based API for working with IndexedDB in web applications.
  * It manages database schema, tables, indexes, and transactions automatically based on TypeScript decorators.
  */
-export class WebDatabase {
+export class WebDatabase<TTables extends WebDatabaseTableType> {
     /**
      * Decorator for defining a field in a web database table.
      * 
@@ -61,11 +61,11 @@ export class WebDatabase {
      * }
      * ```
      */
-    public static table: <T extends TableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>) => ClassDecorator<T, void> = WebDatabaseTableDecorator;
+    public static table: <T extends WebDatabaseTableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>) => ClassDecorator<T, void> = WebDatabaseTableDecorator;
 
     private mDatabaseConnection: IDBDatabase | null;
     private readonly mDatabaseName: string;
-    private readonly mTableLayouts: Map<string, WebDatabaseTableLayout>;
+    private readonly mTableLayouts: Map<string, WebDatabaseTableLayout<TTables>>;
 
     /**
      * Constructor.
@@ -73,15 +73,15 @@ export class WebDatabase {
      * @param pName - Database name.
      * @param pTables - Database tables.
      */
-    public constructor(pName: string, pTables: Array<TableType>) {
+    public constructor(pName: string, pTables: Array<TTables>) {
         this.mDatabaseName = pName;
         this.mDatabaseConnection = null;
 
         // Map table types to their name and layouts.
-        this.mTableLayouts = new Map<string, WebDatabaseTableLayout>();
+        this.mTableLayouts = new Map<string, WebDatabaseTableLayout<TTables>>();
         for (const lTableType of pTables) {
             // Read table layout from type.
-            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
+            const lTableLayout: WebDatabaseTableLayout<typeof lTableType> = WebDatabaseTableLayout.configOf(lTableType);
 
             // Check if table name is already set.
             if (this.mTableLayouts.has(lTableLayout.tableName)) {
@@ -190,7 +190,7 @@ export class WebDatabase {
                     }
 
                     // Read index configuration.
-                    const lIndexConfiguration: TableLayoutIndex = lTableConfiguration.index(lIndexUpdate.name)!;
+                    const lIndexConfiguration: WebDatabaseTableLayoutTableLayoutIndex<WebDatabaseTableType> = lTableConfiguration.index(lIndexUpdate.name)!;
 
                     // Read single keys as string, so multientries are recognized as single key.
                     const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
@@ -214,13 +214,13 @@ export class WebDatabase {
      * @param pTables - Tabes for this transaction.
      * @param pAction - Action withing this transaction.
      */
-    public async transaction<TTables extends TableType, TResult>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => TResult): Promise<TResult> {
-        const lTableLayoutList: Array<WebDatabaseTableLayout> = new Array<WebDatabaseTableLayout>();
+    public async transaction<TResult>(pTables: Array<TTables>, pMode: WebDbTransactionMode, pAction: (pTransaction: WebDatabaseTransaction<TTables>) => TResult): Promise<TResult> {
+        const lTableLayoutList: Array<WebDatabaseTableLayout<TTables>> = new Array<WebDatabaseTableLayout<TTables>>();
 
         // Tables should exists.
         for (const lTableType of pTables) {
             // Read table layout from type.
-            const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(lTableType);
+            const lTableLayout: WebDatabaseTableLayout<typeof lTableType> = WebDatabaseTableLayout.configOf(lTableType);
 
             if (!this.mTableLayouts.has(lTableLayout.tableName)) {
                 throw new Exception(`Table "${lTableLayout.tableName}" does not exists in this database.`, this);
@@ -277,14 +277,14 @@ export class WebDatabase {
                     }
 
                     // Read table configuration.
-                    const lTableLayout: WebDatabaseTableLayout = this.mTableLayouts.get(lTableName)!;
+                    const lTableLayout: WebDatabaseTableLayout<WebDatabaseTableType> = this.mTableLayouts.get(lTableName)!;
 
                     // Open database table.
                     const lDatabaseTable: IDBObjectStore = lTransaction.objectStore(lTableName);
 
                     // Validate correct identity, update table when it differs.
                     const lHasChangedIdentity: boolean = (() => {
-                        const lTableLayoutIdentity: Readonly<TableLayoutIdentity> = lTableLayout.identity;
+                        const lTableLayoutIdentity: Readonly<WebDatabaseTableLayoutTableLayoutIdentity> = lTableLayout.identity;
 
                         // Identity is not set, but keyPath is set.
                         if (lDatabaseTable.keyPath === null) {
@@ -327,7 +327,7 @@ export class WebDatabase {
 
                         // Read current index
                         const lCurrentIndex: IDBIndex = lDatabaseTable.index(lIndexName);
-                        const lIndexLayout: TableLayoutIndex = lTableLayout.index(lIndexName)!;
+                        const lIndexLayout: WebDatabaseTableLayoutTableLayoutIndex<WebDatabaseTableType> = lTableLayout.index(lIndexName)!;
 
                         // Read index keys. A Compound index is already checked by creating index key. Join with space, as space is not a valid keypath name.
                         const lCurrentIndexKey: string = Array.isArray(lCurrentIndex.keyPath) ? lCurrentIndex.keyPath.join(' ') : lCurrentIndex.keyPath;
@@ -374,7 +374,7 @@ export class WebDatabase {
             // Create all remaining tables.
             for (const lTableName of lMissingTableNames) {
                 // Read table and index configuration.
-                const lTableLayout: WebDatabaseTableLayout = this.mTableLayouts.get(lTableName)!;
+                const lTableLayout: WebDatabaseTableLayout<WebDatabaseTableType> = this.mTableLayouts.get(lTableName)!;
 
                 // Add all indices to the index update list.
                 const lIndexUpdates: Array<IndexUpdate> = new Array<IndexUpdate>();

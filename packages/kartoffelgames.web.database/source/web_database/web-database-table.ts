@@ -1,25 +1,31 @@
-
 import { Exception } from '@kartoffelgames/core';
-import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
 import { WebDatabaseQuery } from './query/web-database-query.ts';
+import type { WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName, WebDatabaseTableType } from './web-database-table-layout.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
-export class WebDatabaseTable<TTableType extends TableType> {
-    private readonly mTableLayout: WebDatabaseTableLayout;
-    private readonly mTransaction: WebDatabaseTransaction<TableType>;
+/**
+ * Represents a table within a WebDatabase transaction, providing methods to manipulate and query table data.
+ * Supports CRUD operations, type-safe data conversion, and fluent query building for indexed fields.
+ * Each instance is bound to a specific table layout and transaction context.
+ *
+ * @typeParam TTableType - The table type this instance operates on.
+ */
+export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
+    private readonly mTableLayout: WebDatabaseTableLayout<TTableType>;
+    private readonly mTransaction: WebDatabaseTransaction<WebDatabaseTableType>;
 
     /**
      * Get table layout.
      */
-    public get tableLayout(): WebDatabaseTableLayout {
+    public get tableLayout(): WebDatabaseTableLayout<TTableType> {
         return this.mTableLayout;
     }
 
     /**
      * Get transaction.
      */
-    public get transaction(): WebDatabaseTransaction<TableType> {
+    public get transaction(): WebDatabaseTransaction<WebDatabaseTableType> {
         return this.mTransaction;
     }
 
@@ -29,7 +35,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      * @param pTypeLayout - Table layout.
      * @param pDatabase - Database.
      */
-    public constructor(pTypeLayout: WebDatabaseTableLayout, pTransaction: WebDatabaseTransaction<TableType>) {
+    public constructor(pTypeLayout: WebDatabaseTableLayout<TTableType>, pTransaction: WebDatabaseTransaction<WebDatabaseTableType>) {
         this.mTableLayout = pTypeLayout;
         this.mTransaction = pTransaction;
     }
@@ -240,11 +246,11 @@ export class WebDatabaseTable<TTableType extends TableType> {
     /**
      * Create a new table query.
      * 
-     * @param pIndexOrPropertyName - A index or a property name.
+     * @param pIndexOrPropertyName - Indexed property name of the table to filter by.
      * 
      * @returns a new chainable table query.
      */
-    public where(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public where(pIndexOrPropertyName: WebDatabaseTableLayoutFieldName<TTableType>): WebDatabaseQueryAction<TTableType> {
         return new WebDatabaseQuery<TTableType>(this).and(pIndexOrPropertyName);
     }
 }

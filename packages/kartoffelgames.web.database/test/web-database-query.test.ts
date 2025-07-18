@@ -441,7 +441,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         // Setup. Create Table definition.
         @WebDatabase.table('TestTable')
         class TestTable {
-            @WebDatabase.field({ as: { identity: 'manual', index: { unique: true } } })
+            @WebDatabase.field({ as: { identity: 'manual' } })
             public [lTableIdentityPropertyName]!: string;
 
             @WebDatabase.field()
@@ -1200,7 +1200,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         // Setup. Create Table definition.
         @WebDatabase.table('TestTable')
         class TestTable {
-            @WebDatabase.field({ as: { identity: 'manual', index: { unique: true } } })
+            @WebDatabase.field({ as: { identity: 'manual' } })
             public [lTableIdentityPropertyName]!: string;
 
             @WebDatabase.field()

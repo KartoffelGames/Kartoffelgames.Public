@@ -371,6 +371,108 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         lWebDatabase.close();
     });
 
+    await pContext.step('Single Index - Multi-entry - Query with is()', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lSearchValue: string = 'TestValue2';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: { multiEntry: true } } })
+            public [lTableIndexPropertyName]!: Array<string>;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyName] = ['TestValue1', lSearchValue, 'TestValue3'];
+            await lTestTable.put(lTestObject1);
+
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyName] = ['TestValue4', 'TestValue5'];
+            await lTestTable.put(lTestObject2);
+
+            const lTestObject3 = new TestTable();
+            lTestObject3[lTableIndexPropertyName] = ['TestValue6', lSearchValue];
+            await lTestTable.put(lTestObject3);
+        });
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).is(lSearchValue).read();
+
+            // Evaluation.
+            expect(lResults).toHaveLength(2);
+            expect(lResults[0][lTableIndexPropertyName]).toContain(lSearchValue);
+            expect(lResults[1][lTableIndexPropertyName]).toContain(lSearchValue);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Single Index - Multi-entry - Query with between()', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lLowerValue: string = 'TestValue1';
+        const lUpperValue: string = 'TestValue4';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: { multiEntry: true } } })
+            public [lTableIndexPropertyName]!: Array<string>;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyName] = ['TestValue1', 'TestValue3'];
+            await lTestTable.put(lTestObject1);
+
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyName] = ['TestValue5', 'TestValue6'];
+            await lTestTable.put(lTestObject2);
+
+            const lTestObject3 = new TestTable();
+            lTestObject3[lTableIndexPropertyName] = ['TestValue2', 'TestValue7'];
+            await lTestTable.put(lTestObject3);
+        });
+
+        // Process. Test query.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.where(lTableIndexPropertyName).between(lLowerValue, lUpperValue).read();
+
+            // Evaluation.
+            expect(lResults).toHaveLength(2);
+            const lFoundValues: string[] = lResults.flatMap(r => r[lTableIndexPropertyName] as string[]).filter((v: string) => v >= lLowerValue && v <= lUpperValue);
+            expect(lFoundValues).toContain('TestValue2');
+            expect(lFoundValues).toContain('TestValue3');
+        });
+
+        lWebDatabase.close();
+    });
+
     await pContext.step('Compound Index - Query with is() on both properties', async () => {
         // Setup. Table configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -1121,6 +1223,116 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
 
             expect(lResults).toHaveLength(1);
             expect(lResults[0][lTableIndexPropertyName]).toBe('TestValue5');
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Single Index - Multi-entry - Delete with is()', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lDeleteValue: string = 'TestValue2';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: { multiEntry: true } } })
+            public [lTableIndexPropertyName]!: Array<string>;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyName] = ['TestValue1', lDeleteValue, 'TestValue3'];
+            await lTestTable.put(lTestObject1);
+
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyName] = ['TestValue4', 'TestValue5'];
+            await lTestTable.put(lTestObject2);
+
+            const lTestObject3 = new TestTable();
+            lTestObject3[lTableIndexPropertyName] = ['TestValue6', lDeleteValue];
+            await lTestTable.put(lTestObject3);
+        });
+
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).is(lDeleteValue).delete();
+        });
+
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
+
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).not.toContain(lDeleteValue);
+            expect(lResults[0][lTableIndexPropertyName]).toEqual(['TestValue4', 'TestValue5']);
+        });
+
+        lWebDatabase.close();
+    });
+
+    await pContext.step('Single Index - Multi-entry - Delete with between()', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableIndexPropertyName: string = 'propertyOne';
+        const lLowerValue: string = 'TestValue1';
+        const lUpperValue: string = 'TestValue5';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table('TestTable')
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field({ as: { index: { multiEntry: true } } })
+            public [lTableIndexPropertyName]!: Array<string>;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Setup. Create test data.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+
+            const lTestObject1 = new TestTable();
+            lTestObject1[lTableIndexPropertyName] = ['TestValue1', 'TestValue3'];
+            await lTestTable.put(lTestObject1);
+
+            const lTestObject2 = new TestTable();
+            lTestObject2[lTableIndexPropertyName] = ['TestValue5', 'TestValue6'];
+            await lTestTable.put(lTestObject2);
+
+            const lTestObject3 = new TestTable();
+            lTestObject3[lTableIndexPropertyName] = ['TestValue2', 'TestValue7'];
+            await lTestTable.put(lTestObject3);
+        });
+
+        // Process. Test delete.
+        await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            await lTestTable.where(lTableIndexPropertyName).between(lLowerValue, lUpperValue).delete();
+        });
+
+        // Evaluation.
+        await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lTestTable = pTransaction.table(TestTable);
+            const lResults = await lTestTable.getAll();
+
+            expect(lResults).toHaveLength(1);
+            expect(lResults[0][lTableIndexPropertyName]).toEqual(['TestValue5', 'TestValue6']);
         });
 
         lWebDatabase.close();

@@ -358,9 +358,8 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
         const lRequest: IDBRequest<Array<any>> = lIndex.getAll(pQuery.keyRange);
         return new Promise<Array<any>>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<Array<any>> = (<IDBRequest<Array<any>>>pEvent.target);
-                pReject(new Exception(`Error fetching table.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error fetching table.` + lRequest.error, this));
             });
 
             // Resolve on success.

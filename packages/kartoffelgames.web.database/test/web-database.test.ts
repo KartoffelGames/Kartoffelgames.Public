@@ -445,6 +445,55 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         lWebDatabase.close();
     });
 
+    await pContext.step('Open existing database - No update needed', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableName: string = 'TestTable';
+        const lTableIdentityPropertyName: string = 'id';
+        const lTableIndexPropertyName: string = 'indexOne';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table(lTableName)
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public [lTableIdentityPropertyName]!: number;
+
+            @WebDatabase.field({ as: { index: {} } })
+            public [lTableIndexPropertyName]!: string;
+        }
+
+        // Setup. Create and open database first time.
+        const lWebDatabase1 = new WebDatabase(lDatabaseName, [TestTable]);
+        const lFirstDb: IDBDatabase = await lWebDatabase1.open();
+        const lInitialVersion: number = lFirstDb.version;
+        lWebDatabase1.close();
+
+        // Process. Open the same database again with identical schema.
+        const lWebDatabase2 = new WebDatabase(lDatabaseName, [TestTable]);
+        const lSecondDb: IDBDatabase = await lWebDatabase2.open();
+
+        // Evaluation. Verify no version increment occurred.
+        expect(lSecondDb.version).toEqual(lInitialVersion);
+        expect(lSecondDb.name).toEqual(lDatabaseName);
+        expect(lSecondDb.objectStoreNames).toHaveLength(1);
+        expect(lSecondDb.objectStoreNames).toContain(lTableName);
+
+        // Evaluation. Verify table schema is unchanged.
+        await lWebDatabase2.transaction([TestTable], 'readonly', async (pTransaction) => {
+            const lWebDbTransaction: IDBTransaction = pTransaction.transaction;
+            const lTestTableObjectStore: IDBObjectStore = lWebDbTransaction.objectStore(lTableName);
+
+            expect(lTestTableObjectStore.keyPath).toEqual(lTableIdentityPropertyName);
+            expect(lTestTableObjectStore.autoIncrement).toBeTruthy();
+            expect(lTestTableObjectStore.indexNames).toHaveLength(2);
+            expect(lTestTableObjectStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+        });
+
+        // Cleanup. Close the database.
+        lWebDatabase2.close();
+    });
+
     await pContext.step('Update database - Add Table', async () => {
         // Setup. Database configuration.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -607,7 +656,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify table has identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -651,12 +699,11 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify table has no identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
-            gEmptyIdentityValidate(lTableStore)
+            gEmptyIdentityValidate(lTableStore);
             expect(lTableStore.indexNames).toHaveLength(1);
             expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
         });
@@ -696,7 +743,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify table has auto-increment identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -738,7 +784,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify table has non-auto-increment identity.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -788,7 +833,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify both indices exist.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -841,7 +885,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify only the kept index exists.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -887,7 +930,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is now unique.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -895,7 +937,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.indexNames).toHaveLength(2);
             expect(lTableStore.indexNames).toContain(lIndexPropertyName);
             expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
-            
+
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeTruthy();
             expect(lIndex.keyPath).toEqual(lIndexPropertyName);
@@ -937,7 +979,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is no longer unique.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -945,7 +986,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.indexNames).toHaveLength(2);
             expect(lTableStore.indexNames).toContain(lIndexPropertyName);
             expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
-            
+
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
             expect(lIndex.keyPath).toEqual(lIndexPropertyName);
@@ -987,7 +1028,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is now multi-entry.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -995,7 +1035,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.indexNames).toHaveLength(2);
             expect(lTableStore.indexNames).toContain(lIndexPropertyName);
             expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
-            
+
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
             expect(lIndex.keyPath).toEqual(lIndexPropertyName);
@@ -1037,7 +1077,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is no longer multi-entry.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1045,7 +1084,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.indexNames).toHaveLength(2);
             expect(lTableStore.indexNames).toContain(lIndexPropertyName);
             expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
-            
+
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
             expect(lIndex.keyPath).toEqual(lIndexPropertyName);
@@ -1096,7 +1135,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is now compound.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1142,7 +1180,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index is now single-property.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1150,7 +1187,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.indexNames).toHaveLength(2);
             expect(lTableStore.indexNames).toContain(lIndexPropertyName);
             expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
-            
+
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
             expect(lIndex.keyPath).toEqual(lIndexPropertyName);
@@ -1205,7 +1242,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index now includes three properties.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1261,7 +1297,6 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Process. Update database with WebDatabase.
         const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
-        await lWebDatabase.open();
 
         // Evaluation. Verify index now includes only two properties.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -1310,6 +1345,63 @@ Deno.test('WebDatabase.table()', async (pContext) => {
 
         // Evaluation - should not throw an error
         expect(lDecoratorFunction).not.toThrow();
+    });
+});
+
+Deno.test('WebDatabase.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Delete database', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableName: string = 'TestTable';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table(lTableName)
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+
+            @WebDatabase.field()
+            public propertyOne!: string;
+        }
+
+        // Setup. Create database.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+        await lWebDatabase.open();
+        lWebDatabase.close();
+
+        // Process. Delete database.
+        await lWebDatabase.delete();
+
+        // Evaluation. Verify database is deleted by trying to open it and checking it's empty.
+        const lDatabaseNames: Array<string> = (await globalThis.indexedDB.databases()).map((pDatabase) => { return pDatabase.name!; });
+
+        // Evaluation.
+        expect(lDatabaseNames).not.toContain(lDatabaseName);
+    });
+
+    await pContext.step('Delete database - Database never created', async () => {
+        // Setup. Table configuration.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lTableName: string = 'TestTable';
+
+        // Setup. Create Table definition.
+        @WebDatabase.table(lTableName)
+        class TestTable {
+            @WebDatabase.field({ as: { identity: 'auto' } })
+            public id!: number;
+        }
+
+        // Setup. Create database but never open it.
+        const lWebDatabase = new WebDatabase(lDatabaseName, [TestTable]);
+
+        // Process. Delete database that was never created.
+        await lWebDatabase.delete();
+
+        // Evaluation. Verify database is deleted by trying to open it and checking it's empty.
+        const lDatabaseNames: Array<string> = (await globalThis.indexedDB.databases()).map((pDatabase) => { return pDatabase.name!; });
+
+        // Evaluation.
+        expect(lDatabaseNames).not.toContain(lDatabaseName);
     });
 });
 

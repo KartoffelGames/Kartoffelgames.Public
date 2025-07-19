@@ -117,13 +117,11 @@ export class WebDatabase<TTables extends WebDatabaseTableType> {
         const lDeleteRequest: IDBOpenDBRequest = globalThis.indexedDB.deleteDatabase(this.mDatabaseName);
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lDeleteRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
-
-                pReject(new Exception('Error deleting database. ' + lTarget.error, this));
+            lDeleteRequest.addEventListener('error', () => {
+                pReject(new Exception('Error deleting database. ' + lDeleteRequest.error, this));
             });
 
-            // Databse delete success.
+            // Database delete success.
             lDeleteRequest.addEventListener('success', () => {
                 // Resolve on success.
                 pResolve();
@@ -144,68 +142,95 @@ export class WebDatabase<TTables extends WebDatabaseTableType> {
         // Open db with current version. Read all object stores and all indices and compare.
         const lDatabaseUpdate: DatabaseUpdate = await this.detectDatabaseLayoutChanges();
 
-        // Get current or next version when a update must be made.
-        const lDatabaseVersion: number = (lDatabaseUpdate.tableUpdates.length > 0) ? lDatabaseUpdate.version + 1 : lDatabaseUpdate.version;
+        const lDatabaseConnection: IDBDatabase = await (async () => {
+            // When no update is needed, just return the current connection.
+            if (lDatabaseUpdate.tableUpdates.length === 0) {
+                return lDatabaseUpdate.connection;
+            }
 
-        // Open database request.
-        return this.openDatabaseWithAction(lDatabaseVersion, (pDatabase: IDBDatabase, pTransaction: IDBTransaction) => {
-            // ORDER OF UPDATES IS IMPORTANT!!!
+            // Close the old versions database connection.
+            lDatabaseUpdate.connection.close();
 
-            // Iterate over all table updates and apply them. 
-            for (const lTableUpdate of lDatabaseUpdate.tableUpdates) {
-                // Delete action.
-                if (lTableUpdate.action === 'delete') {
-                    pDatabase.deleteObjectStore(lTableUpdate.name);
-                    continue;
-                }
+            // Open database request with an incremented version.
+            return this.openDatabaseWithAction(lDatabaseUpdate.version + 1, (pDatabase: IDBDatabase, pTransaction: IDBTransaction) => {
+                // ORDER OF UPDATES IS IMPORTANT!!!
 
-                // Read table configuration.
-                const lTableConfiguration = this.mTableLayouts.get(lTableUpdate.name)!;
-
-                // Create table with correct identity.
-                const lTable: IDBObjectStore = (() => {
-                    // No action, so just return the existing table.
-                    if (lTableUpdate.action === 'none') {
-                        return pTransaction.objectStore(lTableUpdate.name);
-                    }
-
-                    // Create object store with identity.
-                    return pDatabase.createObjectStore(lTableUpdate.name, {
-                        keyPath: lTableConfiguration.identity.key,
-                        autoIncrement: lTableConfiguration.identity.autoIncrement
-                    });
-                })();
-
-                // No other update needed, so continue.
-                if (lTableUpdate.indices.length === 0) {
-                    continue;
-                }
-
-                // Iterate over all index updates and apply them.
-                for (const lIndexUpdate of lTableUpdate.indices) {
-                    // Index delete action.
-                    if (lIndexUpdate.action === 'delete') {
-                        lTable.deleteIndex(lIndexUpdate.name);
+                // Iterate over all table updates and apply them. 
+                for (const lTableUpdate of lDatabaseUpdate.tableUpdates) {
+                    // Delete action.
+                    if (lTableUpdate.action === 'delete') {
+                        pDatabase.deleteObjectStore(lTableUpdate.name);
                         continue;
                     }
 
-                    // Read index configuration.
-                    const lIndexConfiguration: WebDatabaseTableLayoutTableLayoutIndex<WebDatabaseTableType> = lTableConfiguration.index(lIndexUpdate.name)!;
+                    // Read table configuration.
+                    const lTableConfiguration = this.mTableLayouts.get(lTableUpdate.name)!;
 
-                    // Read single keys as string, so multientries are recognized as single key.
-                    const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
+                    // Create table with correct identity.
+                    const lTable: IDBObjectStore = (() => {
+                        // No action, so just return the existing table.
+                        if (lTableUpdate.action === 'none') {
+                            return pTransaction.objectStore(lTableUpdate.name);
+                        }
 
-                    // Create index with correct configuration.
-                    lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
-                        unique: lIndexConfiguration.unique,
-                        multiEntry: lIndexConfiguration.type === 'multiEntry'
-                    });
+                        // Create object store with identity.
+                        return pDatabase.createObjectStore(lTableUpdate.name, {
+                            keyPath: lTableConfiguration.identity.key,
+                            autoIncrement: lTableConfiguration.identity.autoIncrement
+                        });
+                    })();
+
+                    // No other update needed, so continue.
+                    if (lTableUpdate.indices.length === 0) {
+                        continue;
+                    }
+
+                    // Iterate over all index updates and apply them.
+                    for (const lIndexUpdate of lTableUpdate.indices) {
+                        // Index delete action.
+                        if (lIndexUpdate.action === 'delete') {
+                            lTable.deleteIndex(lIndexUpdate.name);
+                            continue;
+                        }
+
+                        // Read index configuration.
+                        const lIndexConfiguration: WebDatabaseTableLayoutTableLayoutIndex<WebDatabaseTableType> = lTableConfiguration.index(lIndexUpdate.name)!;
+
+                        // Read single keys as string, so multientries are recognized as single key.
+                        const lIndexKeys: string | Array<string> = lIndexConfiguration.keys.length > 1 ? lIndexConfiguration.keys : lIndexConfiguration.keys[0];
+
+                        // Create index with correct configuration.
+                        lTable.createIndex(lIndexUpdate.name, lIndexKeys, {
+                            unique: lIndexConfiguration.unique,
+                            multiEntry: lIndexConfiguration.type === 'multiEntry'
+                        });
+                    }
                 }
+            }, (pDatabase: IDBDatabase) => {
+                // Return database connection after update.
+                return pDatabase;
+            });
+        })();
+
+        // Clear database connection on close.
+        lDatabaseConnection.addEventListener('close', () => {
+            if (this.mDatabaseConnection === lDatabaseConnection) {
+                this.close();
             }
-        }, (pDatabase: IDBDatabase) => {
-            // Return database connection after update.
-            return pDatabase;
         });
+
+        // Clear database connection onversion change.
+        lDatabaseConnection.addEventListener('versionchange', () => {
+            if (this.mDatabaseConnection === lDatabaseConnection) {
+                this.close();
+            }
+        });        
+
+        // Set database connection.
+        this.mDatabaseConnection = lDatabaseConnection;
+
+        // Return database connection.
+        return lDatabaseConnection;
     }
 
     /**
@@ -249,15 +274,14 @@ export class WebDatabase<TTables extends WebDatabaseTableType> {
      * @returns Database update information.
      */
     private async detectDatabaseLayoutChanges(): Promise<DatabaseUpdate> {
-        const lDatabaseUpdate: DatabaseUpdate = {
-            version: 0,
-            tableUpdates: new Array<TableUpdate>()
-        };
-
         // Open database with current version. Read all object stores and all indices and compare.
         return this.openDatabaseWithAction(undefined, () => { }, (pDatabase: IDBDatabase) => {
-            // Set current loaded database version.
-            lDatabaseUpdate.version = pDatabase.version;
+            // Create database update object.
+            const lDatabaseUpdate: DatabaseUpdate = {
+                connection: pDatabase,
+                version: pDatabase.version,
+                tableUpdates: new Array<TableUpdate>()
+            };
 
             // Read current tables names and tables names that should be created.
             const lExistingTableNames: Set<string> = new Set<string>(Array.from(pDatabase.objectStoreNames));
@@ -393,9 +417,6 @@ export class WebDatabase<TTables extends WebDatabaseTableType> {
                 });
             }
 
-            // Close connection before resolving.
-            pDatabase.close();
-
             return lDatabaseUpdate;
         });
     }
@@ -415,9 +436,8 @@ export class WebDatabase<TTables extends WebDatabaseTableType> {
             lOpenRequest.addEventListener('blocked', (pEvent) => {
                 pReject(new Exception(`Database locked from another tab. Unable to update from "${pEvent.oldVersion}" to "${pEvent.newVersion}"`, this));
             });
-            lOpenRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBOpenDBRequest = pEvent.target as IDBOpenDBRequest;
-                pReject(new Exception('Error opening database. ' + lTarget.error, this));
+            lOpenRequest.addEventListener('error', () => {
+                pReject(new Exception('Error opening database. ' + lOpenRequest.error, this));
             });
 
             // Set defaults when no database exists.
@@ -456,6 +476,7 @@ type TableUpdate = {
 };
 
 type DatabaseUpdate = {
+    connection: IDBDatabase;
     version: number;
     tableUpdates: Array<TableUpdate>;
 };

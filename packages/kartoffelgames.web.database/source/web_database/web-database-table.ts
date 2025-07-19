@@ -53,9 +53,8 @@ export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
-                pReject(new Exception(`Error clearing table data.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error clearing table data.` + lRequest.error, this));
             });
 
             lRequest.addEventListener('success', () => {
@@ -77,17 +76,13 @@ export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
         // Wait for completion.
         return new Promise<number>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<number> = (<IDBRequest<number>>pEvent.target);
-                pReject(new Exception(`Error counting table rows.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error counting table rows.` + lRequest.error, this));
             });
 
             // Resolve on success.
-            lRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead.
-                const lTarget: IDBRequest<number> = pEvent.target as IDBRequest<number>;
-
-                pResolve(lTarget.result);
+            lRequest.addEventListener('success', () => {
+                pResolve(lRequest.result);
             });
         });
     }
@@ -121,9 +116,8 @@ export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
-                pReject(new Exception(`Error deleting data.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error deleting data.` + lRequest.error, this));
             });
 
             // Resolve on success.
@@ -146,18 +140,14 @@ export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
         // Wait for completion.
         return new Promise<Array<InstanceType<TTableType>>>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<number> = (<IDBRequest<number>>pEvent.target);
-                pReject(new Exception(`Error fetching table.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error fetching table.` + lRequest.error, this));
             });
 
             // Resolve on success.
-            lRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead.
-                const lTarget: IDBRequest<Array<any>> = pEvent.target as IDBRequest<Array<any>>;
-
+            lRequest.addEventListener('success', () => {
                 // Convert each item into type.
-                const lResult: Array<InstanceType<TTableType>> = this.parseToType(lTarget.result);
+                const lResult: Array<InstanceType<TTableType>> = this.parseToType(lRequest.result);
 
                 // Resolve converted data.
                 pResolve(lResult);

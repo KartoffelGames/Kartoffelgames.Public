@@ -37,9 +37,7 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      */
     public get fields(): Array<string> {
         // Restrict access when no table name is set.
-        if (!this.mTableType) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
         return Array.from(this.mFields.values());
     }
@@ -49,9 +47,7 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      */
     public get identity(): Readonly<WebDatabaseTableLayoutTableLayoutIdentity> {
         // Restrict access when no table name is set.
-        if (!this.mTableType) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
         // Generic identity when no identity is set.
         if (!this.mIdentity) {
@@ -69,10 +65,7 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      * Get all indices of the table type.
      */
     public get indices(): Array<string> {
-        // Restrict access when no table name is set.
-        if (!this.mTableType) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
         return Array.from(this.mIndices.keys());
     }
@@ -81,10 +74,7 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      * Get table name.
      */
     public get tableName(): string {
-        // Restrict access when no table name is set.
-        if (!this.mTableType) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
         return this.mTableName;
     }
@@ -94,11 +84,9 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      */
     public get tableType(): WebDatabaseTableType {
         // Restrict access when no table name is set.
-        if (!this.mTableType) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
-        return this.mTableType;
+        return this.mTableType!;
     }
 
     /**
@@ -121,9 +109,7 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
      */
     public index(pName: string): WebDatabaseTableLayoutTableLayoutIndex<T> | null {
         // Restrict access when no table name is set.
-        if (!this.mTableName) {
-            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
-        }
+        this.validateAndThrowIfNotInitialized();
 
         return this.mIndices.get(pName) ?? null;
     }
@@ -230,6 +216,18 @@ export class WebDatabaseTableLayout<T extends WebDatabaseTableType> {
 
         this.mTableName = pName;
         this.mTableType = pType;
+    }
+
+    /**
+     * Validate that the table is initialized.
+     * 
+     * @throws {@link Exception} - When the table is not initialized.
+     */
+    private validateAndThrowIfNotInitialized(): void {
+        // Restrict access when no table name is set.
+        if (!this.mTableType) {
+            throw new Exception('Webdatabase field defined but the Table was not initialized with a name.', this);
+        }
     }
 }
 

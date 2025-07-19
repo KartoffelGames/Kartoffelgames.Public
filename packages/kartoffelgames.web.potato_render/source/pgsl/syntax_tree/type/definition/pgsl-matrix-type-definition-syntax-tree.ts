@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
-import { PgslMatrixTypeName } from '../enum/pgsl-matrix-type-name.enum';
-import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
-import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
+import { PgslMatrixTypeName } from '../enum/pgsl-matrix-type-name.enum.ts';
+import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum.ts';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree.ts';
 
 /**
  * Matrix type definition.

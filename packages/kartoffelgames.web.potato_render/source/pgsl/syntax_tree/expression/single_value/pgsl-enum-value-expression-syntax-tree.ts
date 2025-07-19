@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
-import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree';
-import { PgslStringValueExpressionSyntaxTree } from './pgsl-string-value-expression-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree.ts';
+import { PgslStringValueExpressionSyntaxTree } from './pgsl-string-value-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding single enum value.

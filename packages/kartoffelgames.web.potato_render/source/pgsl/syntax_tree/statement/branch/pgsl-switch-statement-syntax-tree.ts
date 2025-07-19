@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
-import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
-import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
+import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
 
 /**
  * PGSL structure for a switch statement with optional default block.

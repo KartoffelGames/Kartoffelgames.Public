@@ -1,5 +1,5 @@
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
 
 /**
  * Void type definition.

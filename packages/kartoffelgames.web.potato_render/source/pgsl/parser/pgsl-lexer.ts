@@ -1,6 +1,6 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
-import { Lexer, LexerToken } from '@kartoffelgames/core.parser';
-import { PgslToken } from './pgsl-token.enum';
+import { Lexer, LexerPattern, LexerPatternType, LexerToken } from '@kartoffelgames/core-parser';
+import { PgslToken } from './pgsl-token.enum.ts';
 
 export class PgslLexer extends Lexer<PgslToken> {
     /**
@@ -134,7 +134,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         this.validWhitespaces = '\u0020\u0009\u000A\u000B\u000C\u000D\u0085\u200E\u200F\u2028\u2029';
 
         // Comment.
-        this.addTokenTemplate('Comment', {
+        const lCommentPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /(\/\*(.|\n)*?\*\/)|(\/\/.*?\n)/,
                 type: PgslToken.Comment
@@ -142,7 +142,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Identifier.
-        this.addTokenTemplate('Identifier', {
+        const lIdentifierPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}])/u,
                 type: PgslToken.Identifier
@@ -150,7 +150,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Comma.
-        this.addTokenTemplate('Comma', {
+        const lCommaPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /,/,
                 type: PgslToken.Comma
@@ -158,7 +158,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // MemberDelimiter.
-        this.addTokenTemplate('MemberDelimiter', {
+        const lMemberDelimiterPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /\./,
                 type: PgslToken.MemberDelimiter
@@ -166,7 +166,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Colon.
-        this.addTokenTemplate('Colon', {
+        const lColonPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /:/,
                 type: PgslToken.Colon
@@ -174,7 +174,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Semicolon.
-        this.addTokenTemplate('Semicolon', {
+        const lSemicolonPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 regex: /;/,
                 type: PgslToken.Semicolon
@@ -182,7 +182,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Parentheses.
-        this.addTokenTemplate('Parentheses', {
+        const lParenthesesPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 start: {
                     regex: /\(/,
@@ -193,12 +193,12 @@ export class PgslLexer extends Lexer<PgslToken> {
                     type: PgslToken.ParenthesesEnd
                 }
             }
-        }, () => {
-            lApplyTemplates();
+        }, (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => {
+            lUseCoreTemplates(pLexerPattern);
         });
 
         // Lists.
-        this.addTokenTemplate('List', {
+        const lListPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 start: {
                     regex: /\[/,
@@ -209,12 +209,12 @@ export class PgslLexer extends Lexer<PgslToken> {
                     type: PgslToken.ListEnd
                 }
             }
-        }, () => {
-            lApplyTemplates();
+        }, (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => {
+            lUseCoreTemplates(pLexerPattern);
         });
 
         // Block
-        this.addTokenTemplate('Block', {
+        const lBlockPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 start: {
                     regex: /\{/,
@@ -225,53 +225,39 @@ export class PgslLexer extends Lexer<PgslToken> {
                     type: PgslToken.BlockEnd
                 }
             }
-        }, () => {
-            lApplyTemplates();
+        }, (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => {
+            lUseCoreTemplates(pLexerPattern);
         });
 
-        // Assignments.
-        const lAssignmentTemplateList: Array<string> = new Array<string>();
-        for (const [lTokenType, lTokenValue] of PgslLexer.mAssignments) {
-            const lTemplateName: string = 'Assignment' + lTokenType;
-            lAssignmentTemplateList.push(lTemplateName);
-
-            this.addTokenTemplate(lTemplateName, {
-                pattern: {
-                    regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-                    type: lTokenType
-                },
-            });
-        }
-
         // Literal values.
-        const lLiteralTemplateList = ['LiteralIntegerValue', 'LiteralFloatValue', 'LiteralBooleanValue', 'LiteralStringValue'] as const;
-        this.addTokenTemplate(lLiteralTemplateList[0], {
+        const lLiteralPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, any>>();
+        lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
                 regex: /(0[xX][0-9a-fA-F]+[iu]?)|(0[iu]?)|([1-9][0-9]*[iu]?)/,
                 type: PgslToken.LiteralInteger
             },
-        });
-        this.addTokenTemplate(lLiteralTemplateList[1], {
+        }));
+        lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
                 regex: /(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[fh]?)|(0[fh])|([1-9][0-9]*[fh])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[fh]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[fh]?)|([0-9]+[eE][+-]?[0-9]+[fh]?)/,
                 type: PgslToken.LiteralFloat
             },
-        });
-        this.addTokenTemplate(lLiteralTemplateList[2], {
+        }));
+        lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
                 regex: /true|false/,
                 type: PgslToken.LiteralBoolean
             },
-        });
-        this.addTokenTemplate(lLiteralTemplateList[3], {
+        }));
+        lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
                 regex: /".*?"/,
                 type: PgslToken.LiteralString
             },
-        });
+        }));
 
         // Template list.
-        this.addTokenTemplate('TemplateList', {
+        const lTemplateListPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 start: {
                     regex: /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/u,
@@ -412,97 +398,109 @@ export class PgslLexer extends Lexer<PgslToken> {
                     type: PgslToken.TemplateListEnd
                 }
             }
-        }, () => {
-            lApplyTemplates();
+        }, (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => {
+            lUseCoreTemplates(pLexerPattern);
         });
 
-        // Keywords
-        const lKeywordTemplateList: Array<string> = new Array<string>();
-        for (const [lTokenType, lTokenValue] of PgslLexer.mKeywords) {
-            const lTemplateName: string = 'Keyword' + lTokenType;
-            lKeywordTemplateList.push(lTemplateName);
+        // Assignments.
+        const lAssignmentPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mAssignments) {
+            lAssignmentPatternList.push(this.createTokenPattern({
+                pattern: {
+                    regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+                    type: lTokenType
+                }
+            }));
+        }
 
-            this.addTokenTemplate(lTemplateName, {
+        // Keywords
+        const lKeywordPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mKeywords) {
+            lKeywordPatternList.push(this.createTokenPattern({
                 pattern: {
                     regex: new RegExp(`${lTokenValue}(?![\\w])`),
                     type: lTokenType
                 },
-            });
+            }));
         }
 
         // ReservedKeywords.
-        const lReservedKeywordTemplateList: Array<string> = new Array<string>();
+        const lReservedKeywordPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
         for (const lTokenValue of PgslLexer.mReservedKeywords) {
-            const lTemplateName: string = 'ReservedKeyword' + lTokenValue;
-            lReservedKeywordTemplateList.push(lTemplateName);
-
-            this.addTokenTemplate(lTemplateName, {
+            lReservedKeywordPatternList.push(this.createTokenPattern({
                 pattern: {
                     regex: new RegExp(`${lTokenValue}(?![\\w])`),
                     type: PgslToken.ReservedKeyword
                 },
-            });
+            }));
         }
 
         // Operations
-        const lOperationTemplateList: Array<string> = new Array<string>();
+        const lOperationPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
         for (const [lTokenType, lTokenValue] of PgslLexer.mOperations) {
-            const lTemplateName: string = 'Operation' + lTokenType;
-            lOperationTemplateList.push(lTemplateName);
-
-            this.addTokenTemplate(lTemplateName, {
+            lOperationPatternList.push(this.createTokenPattern({
                 pattern: {
                     regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
                     type: lTokenType
                 },
-            });
+            }));
         }
 
         // Apply templates with specificity.
-        const lApplyTemplates = () => {
+        const lUseCoreTemplates = <TTargget extends LexerPattern<PgslToken, LexerPatternType> | PgslLexer>(pLexerPattern: TTargget) => {
+            // When the target is a lexer, use the root token pattern function.
+            // Otherwise use the child pattern function.
+            let lPatternApplyFunction: (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => void;
+            if(pLexerPattern instanceof PgslLexer) {
+                lPatternApplyFunction = pLexerPattern.useRootTokenPattern;
+            } else {
+                lPatternApplyFunction = pLexerPattern.useChildPattern;
+            }
+
             // Comments.
-            this.useTokenTemplate('Comment', 0);
+            lPatternApplyFunction.call(pLexerPattern, lCommentPattern);
 
             // Structoring tokens.
-            this.useTokenTemplate('Comma', 1);
-            this.useTokenTemplate('MemberDelimiter', 1);
-            this.useTokenTemplate('Colon', 1);
-            this.useTokenTemplate('Semicolon', 1);
-            this.useTokenTemplate('Block', 1);
-            this.useTokenTemplate('Parentheses', 1);
-            this.useTokenTemplate('List', 1);
+            lPatternApplyFunction.call(pLexerPattern, lCommaPattern);
+            lPatternApplyFunction.call(pLexerPattern, lMemberDelimiterPattern);
+            lPatternApplyFunction.call(pLexerPattern, lColonPattern);
+            lPatternApplyFunction.call(pLexerPattern, lSemicolonPattern);
+            lPatternApplyFunction.call(pLexerPattern, lBlockPattern);
+            lPatternApplyFunction.call(pLexerPattern, lParenthesesPattern);
+            lPatternApplyFunction.call(pLexerPattern, lListPattern);
 
             // Tokens with ambiguity. 
-            this.useTokenTemplate('TemplateList', 1);
+            lPatternApplyFunction.call(pLexerPattern, lTemplateListPattern);
 
             // Assignments.
-            for (const lTemplateName of lAssignmentTemplateList) {
-                this.useTokenTemplate(lTemplateName, 1);
+            for (const lAssignmentPattern of lAssignmentPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lAssignmentPattern);
             }
 
             // Literals.
-            for (const lTemplateName of lLiteralTemplateList) {
-                this.useTokenTemplate(lTemplateName, 1);
+            for (const lLiteralPattern of lLiteralPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lLiteralPattern);
             }
 
             // Keywords.
-            for (const lTemplateName of lKeywordTemplateList) {
-                this.useTokenTemplate(lTemplateName, 1);
+            for (const lKeywordPattern of lKeywordPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lKeywordPattern);
             }
 
             // Reserved keywords.
-            for (const lTemplateName of lReservedKeywordTemplateList) {
-                this.useTokenTemplate(lTemplateName, 1);
+            for (const lReservedKeywordPattern of lReservedKeywordPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lReservedKeywordPattern);
             }
 
             // Operations.
-            for (const lTemplateName of lOperationTemplateList) {
-                this.useTokenTemplate(lTemplateName, 1);
+            for (const lOperationPattern of lOperationPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lOperationPattern);
             }
 
-            this.useTokenTemplate('Identifier', 99);
+            lPatternApplyFunction.call(pLexerPattern, lIdentifierPattern);
         };
 
-        lApplyTemplates();
+        // Apply all templates to the root lexer.
+        lUseCoreTemplates(this);
     }
 }

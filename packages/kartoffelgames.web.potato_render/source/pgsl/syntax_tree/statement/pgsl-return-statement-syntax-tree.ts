@@ -1,6 +1,6 @@
-import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
 
 /**
  * PGSL structure holding a return statement with an optional expression.

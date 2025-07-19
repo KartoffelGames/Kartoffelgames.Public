@@ -1,5 +1,5 @@
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 
 /**
  * PGSL base expression.

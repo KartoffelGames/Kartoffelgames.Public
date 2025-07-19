@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ParserException } from '@kartoffelgames/core.parser';
-import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
+import { CodeParserException } from '@kartoffelgames/core-parser';
+import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree.ts';
 
 /**
  * Base pgsl syntax tree object.
@@ -207,14 +207,10 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
 
             // Extend message by file name.
             lMessage = `Transpile file setup failed: ${lMessage}`;
+            lMessage += `[${this.mMeta.position.start.line}:${this.mMeta.position.start.column}-${this.mMeta.position.end.line}:${this.mMeta.position.end.column}]`;
 
             // Build and throw parser exception.
-            throw new ParserException(lMessage, this,
-                this.mMeta.position.start.column,
-                this.mMeta.position.start.line,
-                this.mMeta.position.end.column,
-                this.mMeta.position.end.line
-            );
+            throw new Exception(lMessage, this);
         }
 
         // Return reference.
@@ -249,14 +245,10 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
 
             // Extend message by file name.
             lMessage = `Transpile file validation failed: ${lMessage}`;
+            lMessage += `[${this.mMeta.position.start.line}:${this.mMeta.position.start.column}-${this.mMeta.position.end.line}:${this.mMeta.position.end.column}]`;
 
             // Build and throw parser exception.
-            throw new ParserException(lMessage, this,
-                this.mMeta.position.start.column,
-                this.mMeta.position.start.line,
-                this.mMeta.position.end.column,
-                this.mMeta.position.end.line
-            );
+            throw new Exception(lMessage, this);
         }
 
         // Return reference.

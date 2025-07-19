@@ -1,6 +1,6 @@
-import { Matrix } from '../../math/matrix';
-import { Transform, TransformMatrix } from '../transform';
-import { IProjection } from './projection/i-projection.interface';
+import { Matrix } from '../../math/matrix.ts';
+import { Transform, TransformMatrix } from '../transform.ts';
+import { IProjection } from './projection/i-projection.interface.ts';
 
 export class ViewProjection {
     private readonly mProjection: IProjection;

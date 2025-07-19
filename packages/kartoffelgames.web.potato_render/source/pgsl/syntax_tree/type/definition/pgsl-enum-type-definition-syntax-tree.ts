@@ -1,7 +1,7 @@
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree.ts';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
 
 /**
  * Enum type definition that aliases a plain type.

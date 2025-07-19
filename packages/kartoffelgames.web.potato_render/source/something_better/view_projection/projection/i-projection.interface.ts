@@ -1,4 +1,4 @@
-import { Matrix } from '../../../math/matrix';
+import { Matrix } from '../../../math/matrix.ts';
 
 export interface IProjection {
     aspectRatio: number;

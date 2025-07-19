@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree.ts';
+import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding single variable name.

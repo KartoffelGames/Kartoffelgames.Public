@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree';
-import { PgslAliasDeclarationSyntaxTree } from './declaration/pgsl-alias-declaration-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declaration-syntax-tree';
-import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree';
-import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-declaration-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
+import { PgslAliasDeclarationSyntaxTree } from './declaration/pgsl-alias-declaration-syntax-tree.ts';
+import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declaration-syntax-tree.ts';
+import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree.ts';
+import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-declaration-syntax-tree.ts';
+import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree.ts';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree {
     private readonly mContentList: Array<BasePgslSyntaxTree>;

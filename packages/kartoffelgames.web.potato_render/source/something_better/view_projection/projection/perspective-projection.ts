@@ -1,5 +1,5 @@
-import { Matrix } from '../../../math/matrix';
-import { IProjection } from './i-projection.interface';
+import { Matrix } from '../../../math/matrix.ts';
+import { IProjection } from './i-projection.interface.ts';
 
 export class PerspectiveProjection implements IProjection {
     private mAngleOfView: number;

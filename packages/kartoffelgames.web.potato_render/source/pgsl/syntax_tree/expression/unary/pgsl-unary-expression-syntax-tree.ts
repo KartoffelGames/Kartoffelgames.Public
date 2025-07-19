@@ -1,10 +1,10 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.

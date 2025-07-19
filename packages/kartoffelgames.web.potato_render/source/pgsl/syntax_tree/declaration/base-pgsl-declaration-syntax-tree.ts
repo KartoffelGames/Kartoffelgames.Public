@@ -1,5 +1,5 @@
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
 
 /**
  * PGSL base declaration. Every declaration has a optional attribute list.

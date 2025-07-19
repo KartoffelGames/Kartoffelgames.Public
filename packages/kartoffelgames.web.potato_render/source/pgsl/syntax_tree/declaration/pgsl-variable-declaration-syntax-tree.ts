@@ -1,11 +1,11 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
-import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum';
-import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

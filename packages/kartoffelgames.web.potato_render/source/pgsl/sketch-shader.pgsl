@@ -54,7 +54,7 @@ function calculatePointLights(fragmentPosition: vec4, normal: vec4): vec4 {
 /**
  * Apply lights to fragment color.
  */
-fn applyLight(colorIn: vec4, fragmentPosition: vec4, normal: vec4): vec4 {
+function applyLight(colorIn: vec4, fragmentPosition: vec4, normal: vec4): vec4 {
     let lightColor: vec4 = vec4(0, 0, 0, 1);
 
     lightColor += ambientLight.color;

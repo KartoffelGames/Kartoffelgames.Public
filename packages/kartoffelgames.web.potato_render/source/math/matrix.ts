@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { Vector } from './vector';
+import { Vector } from './vector.ts';
 
 export class Matrix {
     /**

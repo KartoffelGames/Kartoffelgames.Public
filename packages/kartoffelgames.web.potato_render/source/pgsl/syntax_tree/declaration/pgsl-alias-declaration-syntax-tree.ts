@@ -1,7 +1,7 @@
-import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree';
-import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

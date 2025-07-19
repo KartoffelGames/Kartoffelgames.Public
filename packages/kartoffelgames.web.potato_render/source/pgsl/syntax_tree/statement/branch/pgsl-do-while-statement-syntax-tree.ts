@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum';
-import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
-import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
+import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
 
 /**
  * PGSL structure for a do while statement.

@@ -1,4 +1,4 @@
-import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree.ts';
 
 /**
  * PGSL base statement.

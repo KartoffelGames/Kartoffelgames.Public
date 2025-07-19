@@ -1,15 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum';
-import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
-import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
-import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree';
-import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree';
-import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
-import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
+import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum.ts';
+import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum.ts';
+import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum.ts';
+import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree.ts';
+import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree.ts';
+import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree.ts';
 
 /**
  * Build in type definition that aliases a plain type.

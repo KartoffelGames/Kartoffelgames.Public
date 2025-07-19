@@ -1,5 +1,5 @@
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
-import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 
 /**
  * PGSL structure holding a continue statement.

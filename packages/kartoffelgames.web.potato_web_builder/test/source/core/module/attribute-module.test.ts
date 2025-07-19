@@ -1,22 +1,18 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { ModuleDataLevel } from '../../../../source/core/data/module-data-level';
-import { AccessMode } from '../../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
-import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
-import '../../../utility/chai-helper';
-import '../../../utility/request-animation-frame-mock-session';
-import { TestUtil } from '../../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
 
-describe('Custom Module', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { ModuleDataLevel } from '../../../../source/core/data/module-data-level.ts';
+import { AccessMode } from '../../../../source/core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
 
-    it('-- Set non existing temporary value of level procedure', async () => {
+Deno.test('PwbAttributeModule--Functionality: CustomModule - Set non existing temporary value of level procedure', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lTemporaryValueName: string = 'notthere';
 
@@ -28,7 +24,7 @@ describe('Custom Module', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class Module extends Processor {
-            public constructor(pData: ModuleDataLevel) {
+            public constructor(pData = Injection.use(ModuleDataLevel)) {
                 super();
 
                 const lExpression = pData.createExpressionProcedure('');
@@ -53,6 +49,6 @@ describe('Custom Module', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal(`Temporary value "${lTemporaryValueName}" does not exist for this procedure.`);
+        expect(lErrorMessage).toBe(`Temporary value "${lTemporaryValueName}" does not exist for this procedure.`);
     });
 });

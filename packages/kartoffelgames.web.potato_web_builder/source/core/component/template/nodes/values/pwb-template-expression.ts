@@ -1,4 +1,4 @@
-import { BasePwbTemplateValue } from './base-pwb-template-value';
+import { BasePwbTemplateValue } from './base-pwb-template-value.ts';
 
 /**
  * Pwb template expression.

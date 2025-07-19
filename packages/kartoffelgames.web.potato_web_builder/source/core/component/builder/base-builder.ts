@@ -1,8 +1,9 @@
 
-import { DataLevel } from '../../data/data-level';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { BaseBuilderData, Boundary } from './data/base-builder-data';
+import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
+import type { DataLevel } from '../../data/data-level.ts';
+import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
+import type { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
 
 /**
  * Builder that builds and updates content of component.
@@ -10,6 +11,7 @@ import { BaseBuilderData, Boundary } from './data/base-builder-data';
  * @internal
  */
 export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
+    private readonly mApplicationContext: PwbApplicationConfiguration;
     private readonly mComponentValues: DataLevel;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
@@ -19,6 +21,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      */
     public get anchor(): ChildNode {
         return this.mContent.contentAnchor;
+    }
+
+    /**
+     * Get application context.
+     */
+    public get applicationContext(): PwbApplicationConfiguration {
+        return this.mApplicationContext;
     }
 
     /**
@@ -52,10 +61,15 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Constructor.
      * 
+     * @param pApplicationContext - Application context.
      * @param pTemplate - Builder template.
      * @param pDataLevel - Data level of a this builder.
+     * @param pContent - Content of this builder.
      */
-    public constructor(pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
+    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
+        // Set application context.
+        this.mApplicationContext = pApplicationContext;
+
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
@@ -93,6 +107,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         let lUpdated: boolean = false;
         const lBuilderList = this.content.builders;
         if (lBuilderList.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let lIndex: number = 0; lIndex < lBuilderList.length; lIndex++) {
                 const lBuilder = lBuilderList[lIndex];
 
@@ -123,7 +138,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // On custom element
         if (lTagname.includes('-')) {
             // Get custom element.
-            const lCustomElement: any = window.customElements.get(lTagname);
+            const lCustomElement: any = globalThis.customElements.get(lTagname);
 
             // Create custom element.
             if (typeof lCustomElement !== 'undefined') {
@@ -144,6 +159,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * @returns text node with specified text.
      */
     protected createZoneEnabledText(pText: string): Text {
+        // Create new text node.
         return document.createTextNode(pText);
     }
 

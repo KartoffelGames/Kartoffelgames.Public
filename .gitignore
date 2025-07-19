@@ -8,4 +8,5 @@ node_modules
 scratchpad
 debug.log
 /packages/**/library
-!/enviroment/project_blueprint/scratchpad
+package.json
+package-lock.json

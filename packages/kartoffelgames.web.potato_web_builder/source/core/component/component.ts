@@ -1,18 +1,19 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
-import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
-import { Processor } from '../core_entity/processor';
-import { ComponentDataLevel } from '../data/component-data-level';
-import { DataLevel } from '../data/data-level';
-import { UpdateMode } from '../enum/update-mode.enum';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
-import { StaticBuilder } from './builder/static-builder';
-import { ComponentElement } from './component-element';
-import { ComponentModules } from './component-modules';
-import { ComponentRegister } from './component-register';
-import { PwbTemplate } from './template/nodes/pwb-template';
-import { TemplateParser } from './template/template-parser';
+import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
+import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
+import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
+import type { Processor } from '../core_entity/processor.ts';
+import { ComponentDataLevel } from '../data/component-data-level.ts';
+import { DataLevel } from '../data/data-level.ts';
+import { UpdateMode } from '../enum/update-mode.enum.ts';
+import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
+import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
+import { StaticBuilder } from './builder/static-builder.ts';
+import { ComponentElement } from './component-element.ts';
+import { ComponentModules } from './component-modules.ts';
+import { ComponentRegister } from './component-register.ts';
+import type { PwbTemplate } from './template/nodes/pwb-template.ts';
+import { TemplateParser } from './template/template-parser.ts';
 
 /**
  * Component manager. 
@@ -46,8 +47,9 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.processorConstructor,
-            debugLevel: PwbDebugLogLevel.Component,
+            loggingType: PwbApplicationDebugLoggingType.Component,
             trigger: UpdateTrigger.Any,
             isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0,
             trackConstructorChanges: true
@@ -81,7 +83,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(this.applicationContext, lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
@@ -167,6 +169,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 }
 
 type ComponentConstructorParameter = {
+    /**
+     * General application configuration.
+     */
+    applicationContext: PwbApplicationConfiguration;
+
     /**
      * Component processor constructor.
      */

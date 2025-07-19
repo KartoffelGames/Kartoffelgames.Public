@@ -1,27 +1,23 @@
-import { expect } from 'chai';
-import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../../../source/core/component/component';
-import { ComponentRegister } from '../../../../source/core/component/component-register';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error';
-import { UpdateMode } from '../../../../source/core/enum/update-mode.enum';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
-import { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module';
-import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator';
-import { PwbExport } from '../../../../source/module/export/pwb-export.decorator';
-import '../../../utility/request-animation-frame-mock-session';
-import '../../../utility/chai-helper';
-import { TestUtil } from '../../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
 
-describe('HtmlComponent', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { expect } from '@kartoffelgames/core-test';
+import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
+import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error.ts';
+import { UpdateMode } from '../../../../source/core/enum/update-mode.enum.ts';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import type { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
+import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
+import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
 
-    it('-- Single element', async () => {
+Deno.test('PwbComponent--Functionality: Single element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -34,11 +30,19 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLDivElement], true);
-    });
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLDivElement
+        ], true);
 
-    it('-- Sibling element', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Sibling element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -51,11 +55,20 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div, Span.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(3);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLDivElement, HTMLSpanElement], true);
-    });
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(3);
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLDivElement,
+            HTMLSpanElement
+        ], true);
 
-    it('-- Child element', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Child element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -68,17 +81,22 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
                 childs: [HTMLSpanElement]
             }
         ], true);
-    });
 
-    it('-- Ignore comments', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Ignore Comments', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -86,23 +104,27 @@ describe('HtmlComponent', () => {
         })
         class TestComponent extends Processor { }
 
-
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
         // 2 => StaticAnchor, Div.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
                 childs: []
             }
         ], true);
-    });
 
-    it('-- Same component childs', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Same component childs', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define child component.
         const lChildSelector: string = TestUtil.randomSelector();
         @PwbComponent({
@@ -124,12 +146,17 @@ describe('HtmlComponent', () => {
         const lSecondChild: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[2];
 
         // Evaluation
-        expect(lFirstChild).instanceOf(HTMLElement);
-        expect(lSecondChild).instanceOf(HTMLElement);
-        expect(lFirstChild).to.not.be.equal(lSecondChild);
-    });
+        expect(lFirstChild).toBeInstanceOf(HTMLElement);
+        expect(lSecondChild).toBeInstanceOf(HTMLElement);
+        expect(lFirstChild).not.toBe(lSecondChild);
 
-    it('-- No template', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: No template', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -140,12 +167,17 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment
         ], true);
-    });
 
-    it('-- Add local styles', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
+    await pContext.step('Default', async () => {
         const lStyleContent: string = 'p {color: red;}';
 
         // Setup. Define component.
@@ -160,14 +192,19 @@ describe('HtmlComponent', () => {
         const lStyleElement: HTMLStyleElement = <HTMLStyleElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[0];
 
         // Evaluation
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             HTMLStyleElement,
             Comment
         ], true);
-        expect(lStyleElement.textContent).to.equal(lStyleContent);
-    });
+        expect(lStyleElement.textContent).toBe(lStyleContent);
 
-    it('-- Manual update. Initial update', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
 
@@ -186,16 +223,21 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
                 textContent: lInitialValue
             }
         ], true);
-    });
 
-    it('-- Manual update. User triggered update', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Manual update. User triggered update', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
         const lNewValue: string = 'New Value';
@@ -210,8 +252,12 @@ describe('HtmlComponent', () => {
             @PwbExport
             public value: string = lInitialValue;
 
-            public constructor(private readonly mComponent: Component) {
+            private readonly mComponent: Component;
+
+            public constructor(pComponent = Injection.use(Component)) {
                 super();
+
+                this.mComponent = pComponent;
             }
 
             @PwbExport
@@ -225,7 +271,7 @@ describe('HtmlComponent', () => {
         lComponent.value = lNewValue;
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
@@ -238,16 +284,21 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment,
             {
                 node: HTMLDivElement,
                 textContent: lNewValue
             }
         ], true);
-    });
 
-    it('-- Isolated update scope', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Isolated update scope', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lIsolatedSelector: string = TestUtil.randomSelector();
 
@@ -258,7 +309,7 @@ describe('HtmlComponent', () => {
             template: '{{this.innerValue}}',
             updateScope: UpdateMode.Isolated
         })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         class CapsuledTestComponent extends Processor implements IComponentOnUpdate {
             @PwbExport
             public innerValue: string = '';
@@ -300,11 +351,17 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lCapsuledContent);
 
         // Evaluation.
-        expect(lDefaultUpdated, 'TestComponent').to.be.false;
-        expect(lIsolatedUpdated, 'CapsuledTestComponent').to.be.true;
-    });
+        expect(lDefaultUpdated, 'TestComponent').toBeFalsy();
+        expect(lIsolatedUpdated, 'CapsuledTestComponent').toBeTruthy();
 
-    it('-- Custom expression module', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lCapsuledContent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Custom expression module', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
@@ -330,16 +387,21 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             {
                 node: HTMLDivElement,
                 textContent: lExpressionValue
             }
         ], true);
-    });
 
-    it('-- Create HTMLUnknownElement on unknown element', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Create HTMLUnknownElement on unknown element', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -352,11 +414,19 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLUnknownElement], true);
-    });
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLUnknownElement
+        ], true);
 
-    it('-- Create HTMLElement on unknown component', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Create HTMLElement on unknown component', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -369,18 +439,26 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
-        expect(lComponent).to.have.componentStructure([Comment, HTMLElement], true); // HTMLUnknownElement not creates in JSDOM.
-    });
+        expect(lComponent.shadowRoot?.childNodes).toHaveLength(2);
+        expect(lComponent).toBeComponentStructure([
+            Comment,
+            HTMLElement
+        ], true); // HTMLUnknownElement not creates in JSDOM.
 
-    it('-- Element reference', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
         class TestComponent extends Processor {
             private readonly mElementReference: Node;
-            public constructor(pElementReference: Component) {
+            public constructor(pElementReference = Injection.use(Component)) {
                 super();
 
                 this.mElementReference = pElementReference.element;
@@ -398,10 +476,15 @@ describe('HtmlComponent', () => {
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
-        expect(lComponent).to.equal(lComponentReference);
-    });
+        expect(lComponent).toBe(lComponentReference);
 
-    it('-- User callbacks', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lCallPosition = {
             onPwbInitialize: 1,
@@ -457,7 +540,7 @@ describe('HtmlComponent', () => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lExpectedCallOrder).to.deep.equal(
+        expect(lExpectedCallOrder).toBeDeepEqual(
             [
                 lCallPosition.onPwbInitialize,
                 lCallPosition.onPwbUpdate,
@@ -465,9 +548,14 @@ describe('HtmlComponent', () => {
                 lCallPosition.onPwbDeconstruct,
             ]
         );
-    });
 
-    it('-- Deconstruct Manual', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Deconstruct Manual', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Process. Define component.
         let lWasDeconstructed: boolean = false;
         @PwbComponent({
@@ -486,49 +574,82 @@ describe('HtmlComponent', () => {
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
-        expect(lWasDeconstructed).to.be.true;
-    });
+        expect(lWasDeconstructed).toBeTruthy();
 
-    it('-- Loop detection', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div>{{this.innerValue}}</div>'
+            template: `
+            <div>
+                {{this.innerValue}}
+            </div>`
         })
         class TestComponent extends Processor implements IComponentOnUpdate {
             public innerValue: number = 1;
-
+            
             private readonly mComponent: Component;
-            public constructor(pComponent: Component) {
+            private mEnabled: boolean = false;
+
+            public constructor(pComponent = Injection.use(Component)) {
                 super();
 
                 this.mComponent = pComponent;
+                this.innerValue = 1;
+                this.mEnabled = false;
             }
 
-            public onUpdate(): void {
-                // Trigger update again after update.
-                this.triggerUpdate();
+            @PwbExport
+            public disable(): void {
+                this.mEnabled = false;
             }
 
-            private triggerUpdate(): void {
+            @PwbExport
+            public enable(): void {
+                this.mEnabled = true;
                 this.innerValue++;
                 this.mComponent.update();
             }
+
+            public onUpdate(): void {
+                if (this.mEnabled) {
+                    this.innerValue++;
+                    this.mComponent.update();
+                }
+            }
         }
+
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Process. Create element.
         let lError: any;
         try {
-            await <any>TestUtil.createComponent(TestComponent);
+            // Enable loop.
+            lComponent.enable();
+            await TestUtil.waitForUpdate(lComponent);
         } catch (e) {
             lError = e;
         }
 
-        // Evaluation.
-        expect(lError).to.be.instanceOf(UpdateLoopError);
-    });
+        // Disable loop.
+        lComponent.disable();
 
-    it('-- Creation without customElements register', async () => {
+        // Evaluation.
+        expect(lError).toBeInstanceOf(UpdateLoopError);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Creation without customElements register', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
 
@@ -540,17 +661,19 @@ describe('HtmlComponent', () => {
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
-        let lComponent: HTMLElement | null = null;
-        if (lComponentConstructor) {
-            lComponent = new lComponentConstructor();
-        }
+        const lComponentConstructor: CustomElementConstructor = window.customElements.get(lSelector)!;
+        const lComponent: HTMLElement = new lComponentConstructor();
 
         // Evaluation.
-        expect(lComponent).to.be.instanceOf(HTMLElement);
-    });
+        expect(lComponent).toBeInstanceOf(HTMLElement);
 
-    it('-- Prevent construction of processor when not needed.', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbComponent--Functionality: Prevent construction of processor when not needed.', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define flag.
         let lConstructionCalled: boolean = false;
 
@@ -568,9 +691,12 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element.
-        await TestUtil.createComponent(TestComponent);
+        const lComponent = await TestUtil.createComponent(TestComponent);
 
         // Evaluation
-        expect(lConstructionCalled).to.be.false;
+        expect(lConstructionCalled).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

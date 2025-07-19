@@ -1,19 +1,14 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('IfInstruction', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-    it('Initial false', async () => {
+Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;
 
@@ -32,13 +27,18 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
-    });
 
-    it('Initial true', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('IfInstruction--Functionality: Initial true', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = true;
 
@@ -57,15 +57,20 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
-    });
 
-    it('Updated false', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;
 
@@ -87,13 +92,18 @@ describe('IfInstruction', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
-    });
 
-    it('Updated true', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: boolean = true;
 
@@ -115,15 +125,20 @@ describe('IfInstruction', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
-    });
 
-    it('None boolean false value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('IfInstruction--Functionality: None boolean false value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: any = null;
 
@@ -142,13 +157,18 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
         ], true);
-    });
 
-    it('None boolean true value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('IfInstruction--Functionality: None boolean true value', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lDisplayed: any = new Object();
 
@@ -167,11 +187,14 @@ describe('IfInstruction', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator Child Anchor
             HTMLDivElement
         ], true);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

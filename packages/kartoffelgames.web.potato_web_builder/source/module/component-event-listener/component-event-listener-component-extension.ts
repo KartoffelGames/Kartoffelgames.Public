@@ -1,11 +1,10 @@
-import { Exception } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../core/component/component';
-import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { Processor } from '../../core/core_entity/processor';
+import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Component } from '../../core/component/component.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import type { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
@@ -24,30 +23,24 @@ export class ComponentEventListenerComponentExtension extends Processor implemen
      * 
      * @param pComponent - Component processor.
      */
-    public constructor(pComponent: Component) {
+    public constructor(pComponent = Injection.use(Component)) {
         super();
         
         // Get event metadata.
-        const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
+        const lEventPropertyList: Array<[PropertyKey, string]> = new Array<[PropertyKey, string]>();
 
         let lClass: InjectionConstructor = pComponent.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
-            const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+            const lPropertyList: Array<[PropertyKey, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
             if (lPropertyList) {
                 // Merge all properies into event property list.
                 for (const lProperty of lPropertyList) {
                     lEventPropertyList.push(lProperty);
-
-                    // Validate property type: Function.
-                    if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
-                        throw new Exception(`Event listener property must be of type Function`, this);
-                    }
                 }
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
         } while (lClass = Object.getPrototypeOf(lClass));
 
         // Initialize lists.

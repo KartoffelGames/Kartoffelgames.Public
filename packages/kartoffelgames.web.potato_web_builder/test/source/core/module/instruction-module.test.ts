@@ -1,25 +1,21 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../../source/core/core_entity/processor';
-import { ComponentDataLevel } from '../../../../source/core/data/component-data-level';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
-import { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module';
-import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result';
-import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import '../../../utility/chai-helper';
-import '../../../utility/request-animation-frame-mock-session';
-import { TestUtil } from '../../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../../utility/test-util.ts';
 
-describe('Custom Module', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
+import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
+import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';
+import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
+import type { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
+import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
+import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
 
-    it('-- Same result, twice', async () => {
+Deno.test('PwbInstructionModule--Functionality: CustomModule - Same result, twice', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'multiresult',
@@ -29,7 +25,7 @@ describe('Custom Module', () => {
         class WrongModule extends Processor implements IInstructionOnUpdate {
             private readonly mDataLevel: ComponentDataLevel;
 
-            public constructor(pValueReference: ComponentDataLevel) {
+            public constructor(pValueReference = Injection.use(ComponentDataLevel)) {
                 super();
 
                 this.mDataLevel = pValueReference;
@@ -69,10 +65,12 @@ describe('Custom Module', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal(`Can't add same template or values for multiple Elements.`);
+        expect(lErrorMessage).toBe(`Can't add same template or values for multiple Elements.`);
     });
+});
 
-    it('-- Manupulator without update method', async () => {
+Deno.test('PwbInstructionModule--Functionality: CustomModule - Manipulator without update method', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'noupdatemethod',
@@ -89,7 +87,10 @@ describe('Custom Module', () => {
         class TestComponent extends Processor { }
 
         // Process. Create element.
-        await <any>TestUtil.createComponent(TestComponent);
+        const lComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
 
         // Should be allowed. No errors.
     });

@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { AttributeModule } from '../../../module/attribute_module/attribute-module';
-import { ExpressionModule } from '../../../module/expression_module/expression-module';
-import { ComponentModules } from '../../component-modules';
-import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute';
-import { BaseBuilderData } from './base-builder-data';
+import type { AttributeModule } from '../../../module/attribute_module/attribute-module.ts';
+import type { ExpressionModule } from '../../../module/expression_module/expression-module.ts';
+import type { ComponentModules } from '../../component-modules.ts';
+import type { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute.ts';
+import { BaseBuilderData } from './base-builder-data.ts';
 
 export class StaticBuilderData extends BaseBuilderData {
     private mAttributeModulesChangedOrder: boolean;

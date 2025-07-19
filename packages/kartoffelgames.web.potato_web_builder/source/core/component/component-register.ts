@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Component, ComponentProcessor } from './component';
+import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { Processor } from '../core_entity/processor.ts';
+import type { Component, ComponentProcessor } from './component.ts';
 
 export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
@@ -57,7 +58,7 @@ export class ComponentRegister {
      * @throws {@link Exception}
      * When {@link pConstructor} is not a registered component processor.
      */
-    public static ofConstructor(pConstructor: InjectionConstructor): ComponentConstructorInformationData {
+    public static ofConstructor(pConstructor: typeof Processor): ComponentConstructorInformationData {
         // Get selector of constructor.
         const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
@@ -65,7 +66,7 @@ export class ComponentRegister {
         }
 
         // Get component constructor from custom element registry.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor | undefined = globalThis.customElements.get(lSelector);
         if (!lComponentConstructor) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }
@@ -154,7 +155,7 @@ export class ComponentRegister {
     }
 }
 
-type ComponentInformationData = {
+export type ComponentInformationData = {
     selector: string;
     constructor: InjectionConstructor;
     element: HTMLElement;
@@ -162,7 +163,7 @@ type ComponentInformationData = {
     processor?: ComponentProcessor | undefined;
 };
 
-type ComponentConstructorInformationData = {
+export type ComponentConstructorInformationData = {
     selector: string,
     constructor: InjectionConstructor,
     elementConstructor: CustomElementConstructor;

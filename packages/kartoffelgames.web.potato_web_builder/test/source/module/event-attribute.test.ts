@@ -1,18 +1,13 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('EventAttribute', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-    it('-- Basic click event', async () => {
+Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lEventComponentSelector: string = TestUtil.randomSelector();
 
@@ -40,10 +35,15 @@ describe('EventAttribute', () => {
         lEventChild.click();
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lEventValueResult).to.equal('click');
-    });
+        expect(lEventValueResult).toBe('click');
 
-    it('-- Clear listener events on deconstruct', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('EventAttribute--Functionality: Clear listener events on deconstruct', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         let lClicked: boolean = false;
 
@@ -65,6 +65,9 @@ describe('EventAttribute', () => {
         lClickableChild.click();
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
-        expect(lClicked).to.be.false;
+        expect(lClicked).toBeFalsy();
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

@@ -1,26 +1,25 @@
 import { Exception } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorConstructor } from '../../core/component/component';
-import { ExportExtension } from './export-extension';
+import type { ConstructorMetadata } from '@kartoffelgames/core-dependency-injection';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
+import { ExportExtension } from './export-extension.ts';
 
 /**
  * AtScript.
  * Export value to component element.
  */
-export function PwbExport(pTarget: object, pPropertyKey: string): void {
-    // Usually Class Prototype. Globaly.
-    const lPrototype: object = pTarget;
-    const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;
-
-    // Check if real decorator on static property.
-    if (typeof pTarget === 'function') {
+export function PwbExport(_pTarget: any, pContext: ClassMemberDecoratorContext): void {
+    // Metadata is not allowed for statics.
+    if (pContext.static) {
         throw new Exception('Event target is not for a static property.', PwbExport);
     }
 
+    // Read class metadata from decorator metadata object.
+    const lClassMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+
     // Get property list from constructor metadata.
-    const lExportedPropertyList: Array<string> = Metadata.get(lUserClassConstructor).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES) ?? new Array<string>();
-    lExportedPropertyList.push(pPropertyKey);
+    const lExportedPropertyList: Array<string | symbol> = lClassMetadata.getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES) ?? new Array<string | symbol>();
+    lExportedPropertyList.push(pContext.name);
 
     // Set metadata.
-    Metadata.get(lUserClassConstructor).setMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES, lExportedPropertyList);
+    lClassMetadata.setMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES, lExportedPropertyList);
 }

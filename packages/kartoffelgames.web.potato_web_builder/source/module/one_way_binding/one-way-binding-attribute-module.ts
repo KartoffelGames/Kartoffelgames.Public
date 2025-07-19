@@ -1,12 +1,13 @@
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleDataLevel } from '../../core/data/module-data-level';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { LevelProcedure } from '../../core/data/level-procedure';
-import { Processor } from '../../core/core_entity/processor';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Processor } from '../../core/core_entity/processor.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import type { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
 
 /**
  * Bind value to view object.
@@ -29,9 +30,9 @@ export class OneWayBindingAttributeModule extends Processor implements IAttribut
      * @param pModuleValues - Values of module.
      * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleDataLevel, pModuleAttribute: ModuleAttribute) {
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
         super();
-        
+
         this.mTarget = pTargetNode;
 
         // Create expression procedure form attribute value.

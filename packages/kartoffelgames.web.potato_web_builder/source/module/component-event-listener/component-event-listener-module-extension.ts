@@ -1,13 +1,12 @@
-import { Exception } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension';
-import { Processor } from '../../core/core_entity/processor';
+import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import type { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
+import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
+import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
@@ -26,30 +25,24 @@ export class ComponentEventListenerModuleExtension extends Processor implements 
      * @param pExtensionTargetModule - Module processor.
      * @param pModuleElementReference - Component html element.
      */
-    public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNode) {
+    public constructor(pExtensionTargetModule = Injection.use(AttributeModule), pModuleElementReference = Injection.use(ModuleTargetNode)) {
         super();
 
         // Get event metadata.
-        const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
+        const lEventPropertyList: Array<[PropertyKey, string]> = new Array<[PropertyKey, string]>();
 
         let lClass: InjectionConstructor = pExtensionTargetModule.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
-            const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+            const lPropertyList: Array<[PropertyKey, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
             if (lPropertyList) {
                 // Merge all properies into event property list.
                 for (const lProperty of lPropertyList) {
                     lEventPropertyList.push(lProperty);
-
-                    // Validate property type: Function.
-                    if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
-                        throw new Exception(`Event listener property must be of type Function`, this);
-                    }
                 }
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
         } while (lClass = Object.getPrototypeOf(lClass));
 
         // Initialize lists.

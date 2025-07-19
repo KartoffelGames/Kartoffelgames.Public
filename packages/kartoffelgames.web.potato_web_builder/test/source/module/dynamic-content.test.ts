@@ -1,21 +1,16 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
-import { PwbTemplateTextNode } from '../../../source/core/component/template/nodes/pwb-template-text-node';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('DynamicContent', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Funcitonal imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { PwbTemplateTextNode } from '../../../source/core/component/template/nodes/pwb-template-text-node.ts';
+import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
+import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
 
-    it('-- Initial', async () => {
+Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -39,15 +34,20 @@ describe('DynamicContent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator 1. Child Anchor
             HTMLDivElement
         ], true);
-    });
 
-    it('-- Keep content', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Values.
         const lTextContent: string = 'Text content';
 
@@ -80,7 +80,7 @@ describe('DynamicContent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent).to.have.componentStructure([
+        expect(lComponent).toBeComponentStructure([
             Comment, // Component Anchor
             Comment, // - Manipulator Anchor
             Comment, // -- Manipulator 1. Child Anchor
@@ -89,9 +89,14 @@ describe('DynamicContent', () => {
                 textContent: lTextContent
             }
         ], true);
-    });
 
-    it('-- Wrong result type', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('DynamicContent--Functionality: Wrong result type', async (pContext) => {
+    await pContext.step('Default', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -113,6 +118,6 @@ describe('DynamicContent', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Dynamic content method has a wrong result type.');
+        expect(lErrorMessage).toBe('Dynamic content method has a wrong result type.');
     });
 });

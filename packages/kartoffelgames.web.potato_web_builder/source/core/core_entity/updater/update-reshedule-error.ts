@@ -1,4 +1,3 @@
-
 export class UpdateResheduleError extends Error {
     /**
      * Constructor.

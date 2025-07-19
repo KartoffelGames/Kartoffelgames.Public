@@ -1,15 +1,15 @@
-import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { CoreEntityRegister } from '../../core_entity/core-entity-register';
-import { ExpressionModule, IPwbExpressionModuleProcessorConstructor } from './expression-module';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { ExpressionModule, type IPwbExpressionModuleProcessorConstructor } from './expression-module.ts';
 
 /**
  * AtScript. PWB Expression module.
  */
 export function PwbExpressionModule(pSettings: ExpressionSettings): any {
-    return (pExpressionModuleConstructor: IPwbExpressionModuleProcessorConstructor) => {
+    return (pExpressionModuleConstructor: IPwbExpressionModuleProcessorConstructor, pContext: ClassDecoratorContext) => {
         // Set processor to be injectable
-        Injector.Injectable(pExpressionModuleConstructor);
+        Injection.registerInjectable(pExpressionModuleConstructor, pContext.metadata, 'instanced');
 
         // Register module.
         CoreEntityRegister.register(ExpressionModule, pExpressionModuleConstructor, {

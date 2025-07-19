@@ -1,19 +1,14 @@
-import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../utility/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+// Import mock at start of file.
+import { TestUtil } from '../../utility/test-util.ts';
 
-describe('TwoWayBinding', () => {
-    before(() => {
-        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
-        PwbConfiguration.configuration.error.print = false;
-    });
+// Functional imports after mock.
+import { expect } from '@kartoffelgames/core-test';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
-    it('-- Initial value', async () => {
+Deno.test('TwoWayBinding--Functionality: Initial value', async (pContext) => {
+    await pContext.step('Initial value', async () => {
         // Setup. Define values.
         const lInitialValue: string = 'INITIAL__VALUE';
 
@@ -34,10 +29,15 @@ describe('TwoWayBinding', () => {
         const lInputValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lInputValue).to.equal(lInitialValue);
-    });
+        expect(lInputValue).toBe(lInitialValue);
 
-    it('-- Change view value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('TwoWayBinding--Functionality: Change view value', async (pContext) => {
+    await pContext.step('Change view value', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 
@@ -61,10 +61,15 @@ describe('TwoWayBinding', () => {
         const lComponentValue: string = lComponent.userValue;
 
         // Evaluation.
-        expect(lComponentValue).to.equal(lNewValue);
-    });
+        expect(lComponentValue).toBe(lNewValue);
 
-    it('-- Change component value', async () => {
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('TwoWayBinding--Functionality: Change component value', async (pContext) => {
+    await pContext.step('Change component value', async () => {
         // Setup. Define values.
         const lNewValue: string = 'NEW__VALUE';
 
@@ -87,6 +92,9 @@ describe('TwoWayBinding', () => {
         const lViewValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
 
         // Evaluation.
-        expect(lViewValue).to.equal(lNewValue);
+        expect(lViewValue).toBe(lNewValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
     });
 });

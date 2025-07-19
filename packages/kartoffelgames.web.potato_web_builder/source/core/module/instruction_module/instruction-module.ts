@@ -1,9 +1,9 @@
-import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
-import { ModuleExpression } from '../injection_reference/module-expression';
-import { ModuleTemplate } from '../injection_reference/module-template';
-import { InstructionResult } from './instruction-result';
+import type { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node.ts';
+import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
+import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
+import { ModuleExpression } from '../injection_reference/module-expression.ts';
+import { ModuleTemplate } from '../injection_reference/module-template.ts';
+import { InstructionResult } from './instruction-result.ts';
 
 export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
     private mLastResult: InstructionResult;
@@ -21,6 +21,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      */
     public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
         super({
+            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
             parent: pParameter.parent,
             trigger: pParameter.trigger,

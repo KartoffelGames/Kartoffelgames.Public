@@ -1,10 +1,10 @@
 import { List } from '@kartoffelgames/core';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../core/component/component';
-import { Processor } from '../../core/core_entity/processor';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
+import { Component } from '../../core/component/component.ts';
+import { Processor } from '../../core/core_entity/processor.ts';
+import { AccessMode } from '../../core/enum/access-mode.enum.ts';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 
 @PwbExtensionModule({
     access: AccessMode.ReadWrite,
@@ -21,7 +21,7 @@ export class ExportExtension extends Processor {
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pComponent: Component) {
+    public constructor(pComponent = Injection.use(Component)) {
         super();
 
         this.mComponent = pComponent;
@@ -38,7 +38,7 @@ export class ExportExtension extends Processor {
             }
 
             // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
+
         } while (lClass = Object.getPrototypeOf(lClass));
 
         const lDistinctExportedPropertys: Set<string> = new Set<string>(lExportedPropertyList);
@@ -98,7 +98,7 @@ export class ExportExtension extends Processor {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
         // Init mutation observerm observing attribute changes.
-        const lMutationObserver: MutationObserver = new window.MutationObserver((pMutationList) => {
+        const lMutationObserver: MutationObserver = new MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
                 const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);
@@ -113,7 +113,7 @@ export class ExportExtension extends Processor {
 
         // Set initial state of attribute.
         for (const lAttributeName of pExportedAttributes) {
-            if (this.mComponent.element.hasAttribute(lAttributeName)) {                
+            if (this.mComponent.element.hasAttribute(lAttributeName)) {
                 const lCurrentAttributeValue: string = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName)!;
 
                 // Set again and trigger mutation observer.

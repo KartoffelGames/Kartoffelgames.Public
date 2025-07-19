@@ -18,19 +18,8 @@ export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
  */
 export type Readonly<T> = { +readonly [P in keyof T]: T[P] };
 
-/**
- * Union of all typed arrays.
- * 
- * @public
- */
-export type TypedArray = Float32Array | Float64Array | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
-
-/**
- * Deep remove all optionals from properties. 
- */
-export type NoOptional<T> = { [P in keyof Required<T>]: NoOptional<T[P]> };
-
-/**
- * Deep partial type.
- */
-export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;
+// Decorator types.
+export type ClassDecorator<TClass extends Function, TResult extends TClass | void> = (pOriginalClass: TClass, pContext: ClassDecoratorContext) => TResult;
+export type ClassAccessorDecorator<TThis extends Function, TValue> = (pTarget: ClassAccessorDecoratorTarget<TThis, TValue>, pContext: ClassAccessorDecoratorContext) => ClassAccessorDecoratorResult<TThis, TValue>;
+export type ClassMethodDecorator<TThis extends Function, TFunction extends Function> = (pTarget: TFunction, pContext: ClassMethodDecoratorContext<TThis>) => TFunction | void;
+export type ClassFieldDecorator<TThis extends Function, TValue> = (_pTarget: any, pContext: ClassFieldDecoratorContext<TThis, TValue>) => ((pValue: TValue) => TValue) | void;

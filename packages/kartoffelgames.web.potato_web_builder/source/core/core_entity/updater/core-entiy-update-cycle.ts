@@ -1,6 +1,6 @@
-import { Writeable } from '@kartoffelgames/core';
-import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy';
-import { CoreEntityUpdater } from './core-entity-updater';
+import type { Writeable } from '@kartoffelgames/core';
+import type { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy.ts';
+import type { CoreEntityUpdater } from './core-entity-updater.ts';
 
 export class CoreEntityUpdateCycle {
     private static mCurrentUpdateCycle: UpdateCycle | null = null;
@@ -19,7 +19,7 @@ export class CoreEntityUpdateCycle {
 
         // Init new update cycle when not.
         if (!CoreEntityUpdateCycle.mCurrentUpdateCycle) {
-            const lTimeStamp = globalThis.performance.now();
+            const lTimeStamp = performance.now();
 
             // Create new cycle.
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
@@ -62,7 +62,7 @@ export class CoreEntityUpdateCycle {
 
         // Init new update cycle when not.
         if (!CoreEntityUpdateCycle.mCurrentUpdateCycle) {
-            const lTimeStamp = globalThis.performance.now();
+            const lTimeStamp = performance.now();
 
             // Create new cycle.
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
@@ -101,7 +101,7 @@ export class CoreEntityUpdateCycle {
     public static updateCycleRunId(pCycle: UpdateCycle, pUpdater: CoreEntityUpdater): void {
         if (pCycle.initiator === pUpdater) {
             // Current time.
-            const lTimeStamp: number = globalThis.performance.now();
+            const lTimeStamp: number = performance.now();
 
             // Retype cycle and update runner.
             const lWriteableCycle: Writeable<UpdateCycle> = pCycle;
@@ -114,7 +114,7 @@ export class CoreEntityUpdateCycle {
 
     public static updateCyleStartTime(pCycle: UpdateCycle): void {
         // Current time.
-        const lTimeStamp: number = globalThis.performance.now();
+        const lTimeStamp: number = performance.now();
 
         // Retype cycle and update runner.
         const lWriteableCycle: Writeable<UpdateCycle> = pCycle;

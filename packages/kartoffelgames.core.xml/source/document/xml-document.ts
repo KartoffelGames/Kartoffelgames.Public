@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core';
-import { BaseXmlNode } from '../node/base-xml-node';
+import { BaseXmlNode } from '../node/base-xml-node.ts';
 
 /**
  * XMLDocument.

@@ -1,4 +1,4 @@
-import { BaseXmlNode } from './base-xml-node';
+import { BaseXmlNode } from './base-xml-node.ts';
 
 /**
  * Node only contains text.

@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node';
+import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
 
 /**
  * Pwb template document. Root object of every template.

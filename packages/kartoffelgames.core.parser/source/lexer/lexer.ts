@@ -547,9 +547,6 @@ export class Lexer<TTokenType extends string> {
                     // Yield found token.
                     yield lFoundToken;
 
-                    // Yield found token.
-                    yield lFoundToken;
-
                     // Exit inner recursion when the end was found.
                     return;
                 }

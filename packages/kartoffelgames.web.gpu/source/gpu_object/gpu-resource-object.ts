@@ -1,6 +1,6 @@
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObject } from './gpu-object';
-import { GpuObjectSetup } from './gpu-object-setup';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObject } from './gpu-object.ts';
+import { GpuObjectSetup } from './gpu-object-setup.ts';
 
 /**
  * Gpu resource object.

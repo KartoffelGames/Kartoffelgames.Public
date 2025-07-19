@@ -1,5 +1,5 @@
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObject } from '../gpu_object/gpu-object';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObject } from '../gpu_object/gpu-object.ts';
 
 /**
  * Bundles execute calls to execute them bunched.

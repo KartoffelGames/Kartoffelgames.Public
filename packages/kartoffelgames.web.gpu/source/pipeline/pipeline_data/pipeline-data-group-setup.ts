@@ -1,5 +1,5 @@
-import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup';
-import { PipelineDataSetupData } from './pipeline-data-setup';
+import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
+import { PipelineDataSetupData } from './pipeline-data-setup.ts';
 
 /**
  * Child setup for a single pipeline data group binding buffer.

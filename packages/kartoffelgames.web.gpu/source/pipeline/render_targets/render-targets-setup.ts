@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { TextureOperation } from '../../constant/texture-operation.enum';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object';
-import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup';
-import { CanvasTexture } from '../../texture/canvas-texture';
-import { GpuTextureView } from '../../texture/gpu-texture-view';
-import { RenderTargetSetupTextures, RenderTargetTextureSetup } from './render-targets-texture-setup';
+import { TextureOperation } from '../../constant/texture-operation.enum.ts';
+import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
+import { CanvasTexture } from '../../texture/canvas-texture.ts';
+import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import { RenderTargetSetupTextures, RenderTargetTextureSetup } from './render-targets-texture-setup.ts';
 
 /**
  * Render target setup.

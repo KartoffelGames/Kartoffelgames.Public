@@ -5,7 +5,8 @@
     "tasks": {},
     "imports": {
         "@std/testing": "jsr:@std/testing@^1.0.9",
-        "@std/expect": "jsr:@std/expect@^1.0.13"
+        "@std/expect": "jsr:@std/expect@^1.0.13",
+        "@std/webgpu": "jsr:@std/webgpu@^0.224.8"
     },
     "exports": "./source/index.ts",
     "publish": {
@@ -22,16 +23,18 @@
             "package-blueprint": "kg-main",
             "bundle": {
                 "enabled": false,
-                "bundleSettingsFile": ""
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "scratchpad": {
                 "mainBundleRequired": false,
-                "port": 8088
+                "port": 8088,
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "page": {
                 "enabled": true,
                 "mainBundleRequired": false,
-                "port": 8088
+                "port": 8088,
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "test": {
                 "directory": "./test",

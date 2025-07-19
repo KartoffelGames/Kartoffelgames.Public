@@ -1,10 +1,10 @@
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObject } from '../gpu_object/gpu-object';
-import { PipelineLayout } from '../pipeline/pipeline-layout';
-import { RenderTargets } from '../pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline } from '../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
-import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout';
-import { Shader } from './shader';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObject } from '../gpu_object/gpu-object.ts';
+import { PipelineLayout } from '../pipeline/pipeline-layout.ts';
+import { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
+import { VertexFragmentPipeline } from '../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
+import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout.ts';
+import { Shader } from './shader.ts';
 
 /**
  * Render parts of a shader programm.

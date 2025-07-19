@@ -1,37 +1,37 @@
-import { GpuBuffer } from '../../source/buffer/gpu-buffer';
-import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
-import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum';
-import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum';
-import { CompareFunction } from '../../source/constant/compare-function.enum';
-import { ComputeStage } from '../../source/constant/compute-stage.enum';
-import { GpuFeature } from '../../source/constant/gpu-feature.enum';
-import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
-import { SamplerType } from '../../source/constant/sampler-type.enum';
-import { StorageBindingType } from '../../source/constant/storage-binding-type.enum';
-import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum';
-import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum';
-import { TextureFormat } from '../../source/constant/texture-format.enum';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum';
-import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum';
-import { GpuDevice } from '../../source/device/gpu-device';
-import { GpuExecution } from '../../source/execution/gpu-execution';
-import { ComputePass } from '../../source/execution/pass/compute-pass';
-import { RenderPass } from '../../source/execution/pass/render-pass';
-import { BindGroup } from '../../source/pipeline/bind_group/bind-group';
-import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout';
-import { ComputePipeline } from '../../source/pipeline/compute-pipeline';
-import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data';
-import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
-import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter';
-import { Shader } from '../../source/shader/shader';
-import { ShaderRenderModule } from '../../source/shader/shader-render-module';
-import { CanvasTexture } from '../../source/texture/canvas-texture';
-import { GpuTexture, GpuTextureCopyOptions } from '../../source/texture/gpu-texture';
-import { AmbientLight } from './camera/light/ambient-light';
-import { Transform, TransformMatrix } from './camera/transform';
-import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection';
-import { ViewProjection } from './camera/view_projection/view-projection';
+import { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
+import { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
+import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
+import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
+import { CompareFunction } from '../../source/constant/compare-function.enum.ts';
+import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
+import { GpuFeature } from '../../source/constant/gpu-feature.enum.ts';
+import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum.ts';
+import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
+import { StorageBindingType } from '../../source/constant/storage-binding-type.enum.ts';
+import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum.ts';
+import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum.ts';
+import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
+import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import { GpuDevice } from '../../source/device/gpu-device.ts';
+import { GpuExecution } from '../../source/execution/gpu-execution.ts';
+import { ComputePass } from '../../source/execution/pass/compute-pass.ts';
+import { RenderPass } from '../../source/execution/pass/render-pass.ts';
+import { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
+import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
+import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
+import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
+import { RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
+import { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
+import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
+import { Shader } from '../../source/shader/shader.ts';
+import { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import { CanvasTexture } from '../../source/texture/canvas-texture.ts';
+import { GpuTexture, GpuTextureCopyOptions } from '../../source/texture/gpu-texture.ts';
+import { AmbientLight } from './camera/light/ambient-light.ts';
+import { Transform, TransformMatrix } from './camera/transform.ts';
+import { PerspectiveProjection } from './camera/view_projection/projection/perspective-projection.ts';
+import { ViewProjection } from './camera/view_projection/view-projection.ts';
 import colorCubeShader from './game_objects/color_cube/color-cube-shader.wgsl';
 import cubeShader from './game_objects/cube/cube-shader.wgsl';
 import particleComputeShader from './game_objects/leaf_particle/particle-compute-shader.wgsl';
@@ -39,10 +39,10 @@ import particleShader from './game_objects/leaf_particle/particle-shader.wgsl';
 import lightBoxShader from './game_objects/light/light-box-shader.wgsl';
 import skyboxShader from './game_objects/skybox/sky-box-shader.wgsl';
 import videoCanvasShader from './game_objects/video_canvas/video-canvas-shader.wgsl';
-import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, CanvasVertexUvData } from './meshes/canvas-mesh';
-import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh';
-import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh';
-import { InitCameraControls, UpdateFpsDisplay } from './util';
+import { CanvasVertexIndices, CanvasVertexNormalData, CanvasVertexPositionData, CanvasVertexUvData } from './meshes/canvas-mesh.ts';
+import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './meshes/cube-mesh.ts';
+import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh.ts';
+import { InitCameraControls, UpdateFpsDisplay } from './util.ts';
 
 const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;
@@ -725,7 +725,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         .colorBlend(TextureBlendOperation.Add, TextureBlendFactor.SrcAlpha, TextureBlendFactor.OneMinusSrcAlpha);
 
     // vertexCount: GPUSize32, instanceCount?: GPUSize32, firstVertex?: GPUSize32, firstInstance?: GPUSize32    
-    const lIndirectionBuffer: GpuBuffer = new GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([ParticleVertexIndices.length, 0, 0, 0]));
+    const lIndirectionBuffer: GpuBuffer = new GpuBuffer(pGpu, 4 * 4).initialData(new Uint32Array([ParticleVertexIndices.length, 0, 0, 0]).buffer);
 
     const lRenderInstruction: RenderInstruction = {
         pipeline: lParticlePipeline,

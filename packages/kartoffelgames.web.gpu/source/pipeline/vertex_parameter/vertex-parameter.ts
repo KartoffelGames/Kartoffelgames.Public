@@ -1,16 +1,16 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { GpuBufferView } from '../../buffer/gpu-buffer-view';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum';
-import { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout';
-import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout';
-import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject } from '../../gpu_object/gpu-object';
+import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import { GpuBufferView } from '../../buffer/gpu-buffer-view.ts';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
+import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
+import { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout.ts';
+import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout.ts';
+import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject } from '../../gpu_object/gpu-object.ts';
 
 /**
  * Vertex parameters used for a single render draw call.
@@ -77,7 +77,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 2);
                 lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(new Uint16Array(pIndices));
+                lIndexBuffer.initialData(new Uint16Array(pIndices).buffer);
 
                 // Create view of buffer.
                 this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
@@ -95,7 +95,7 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                 // Create index buffer.
                 const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 4);
                 lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(new Uint32Array(pIndices));
+                lIndexBuffer.initialData(new Uint32Array(pIndices).buffer);
 
                 // Create view of buffer.
                 this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);

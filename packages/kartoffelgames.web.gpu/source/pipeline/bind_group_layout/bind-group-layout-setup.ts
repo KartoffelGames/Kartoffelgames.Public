@@ -1,9 +1,9 @@
-import { BaseMemoryLayout } from '../../base-memory-layout';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { StorageBindingType } from '../../constant/storage-binding-type.enum';
-import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup';
-import { BindGroupBindingMemoryLayoutSetuData, BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup';
+import { BaseMemoryLayout } from '../../base-memory-layout.ts';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import { ComputeStage } from '../../constant/compute-stage.enum.ts';
+import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
+import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
+import { BindGroupBindingMemoryLayoutSetuData, BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup.ts';
 
 /**
  * setup object to add bindings to bind group layouts.

@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
-import { CompareFunction } from '../constant/compare-function.enum';
-import { FilterMode } from '../constant/filter-mode.enum';
-import { SamplerType } from '../constant/sampler-type.enum';
-import { WrappingMode } from '../constant/wrapping-mode.enum';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
-import { SamplerMemoryLayout } from './memory_layout/sampler-memory-layout';
+import { CompareFunction } from '../constant/compare-function.enum.ts';
+import { FilterMode } from '../constant/filter-mode.enum.ts';
+import { SamplerType } from '../constant/sampler-type.enum.ts';
+import { WrappingMode } from '../constant/wrapping-mode.enum.ts';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import { SamplerMemoryLayout } from './memory_layout/sampler-memory-layout.ts';
 
 /**
  * Gpu texture sampler resource.

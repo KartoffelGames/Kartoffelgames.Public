@@ -24,7 +24,6 @@ export enum GpuLimit {
     MaxBufferSize = 'maxBufferSize',
     MaxVertexAttributes = 'maxVertexAttributes',
     MaxVertexBufferArrayStride = 'maxVertexBufferArrayStride',
-    MaxInterStageShaderComponents = 'maxInterStageShaderComponents',
     MaxInterStageShaderVariables = 'maxInterStageShaderVariables',
     MaxColorAttachments = 'maxColorAttachments',
     MaxColorAttachmentBytesPerSample = 'maxColorAttachmentBytesPerSample',

@@ -1,19 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { StorageBindingType } from '../../constant/storage-binding-type.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { TextureSampler } from '../../texture/texture-sampler';
-import { BindGroupDataSetup } from './bind-group-data-setup';
-import { BindGroupLayout, BindLayout } from '../bind_group_layout/bind-group-layout';
-import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native';
-import { GpuTextureView } from '../../texture/gpu-texture-view';
-import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout';
-import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout';
+import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
+import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
+import { TextureUsage } from '../../constant/texture-usage.enum.ts';
+import { TextureSampler } from '../../texture/texture-sampler.ts';
+import { BindGroupDataSetup } from './bind-group-data-setup.ts';
+import { BindGroupLayout, BindLayout } from '../bind_group_layout/bind-group-layout.ts';
+import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
+import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
+import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';
 
 /**
  * Pipeline bind group unbound from a group binding index.

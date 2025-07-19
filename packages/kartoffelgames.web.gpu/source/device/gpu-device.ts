@@ -1,14 +1,14 @@
 import { Exception, List } from '@kartoffelgames/core';
-import { GpuFeature } from '../constant/gpu-feature.enum';
-import { GpuLimit } from '../constant/gpu-limit.enum';
-import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
-import { ComputePass, ComputePassExecutionFunction } from '../execution/pass/compute-pass';
-import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass';
-import { RenderTargets } from '../pipeline/render_targets/render-targets';
-import { Shader } from '../shader/shader';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities';
-import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities';
+import { GpuFeature } from '../constant/gpu-feature.enum.ts';
+import { GpuLimit } from '../constant/gpu-limit.enum.ts';
+import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution.ts';
+import { ComputePass, ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
+import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
+import { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
+import { Shader } from '../shader/shader.ts';
+import { CanvasTexture } from '../texture/canvas-texture.ts';
+import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
+import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities.ts';
 
 export class GpuDevice {
     /**
@@ -51,7 +51,7 @@ export class GpuDevice {
                 // Fill in required features.
                 for (const lLimit of pOptions.limits) {
                     // Read available limit.
-                    const lAdapterLimit: number | undefined = lAdapter.limits[lLimit.name];
+                    const lAdapterLimit: number | undefined = lAdapter.limits[lLimit.name] as number | undefined;
                     if (typeof lAdapterLimit === 'undefined') {
                         throw new Exception(`Gpu does not support any "${lLimit.name}" limit.`, this);
                     }

@@ -1,7 +1,7 @@
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
-import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup';
-import { ShaderSetupReferenceData } from './shader-setup';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
+import { ShaderSetupReferenceData } from './shader-setup.ts';
 
 /**
  * Child setup object to render targets to shaders. 

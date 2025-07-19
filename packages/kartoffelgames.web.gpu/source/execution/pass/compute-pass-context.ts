@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { ComputePipeline } from '../../pipeline/compute-pipeline';
-import { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data';
+import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
+import { ComputePipeline } from '../../pipeline/compute-pipeline.ts';
+import { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data.ts';
 
 /**
  * Context for a compute pass.

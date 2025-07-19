@@ -23,3 +23,6 @@ export type ClassDecorator<TClass extends Function, TResult extends TClass | voi
 export type ClassAccessorDecorator<TThis extends Function, TValue> = (pTarget: ClassAccessorDecoratorTarget<TThis, TValue>, pContext: ClassAccessorDecoratorContext) => ClassAccessorDecoratorResult<TThis, TValue>;
 export type ClassMethodDecorator<TThis extends Function, TFunction extends Function> = (pTarget: TFunction, pContext: ClassMethodDecoratorContext<TThis>) => TFunction | void;
 export type ClassFieldDecorator<TThis extends Function, TValue> = (_pTarget: any, pContext: ClassFieldDecoratorContext<TThis, TValue>) => ((pValue: TValue) => TValue) | void;
+
+// Typed array type.
+export type TypedArray = | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array;

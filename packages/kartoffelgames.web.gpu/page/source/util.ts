@@ -1,31 +1,113 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
-import { GpuBufferView } from '../../source/buffer/gpu-buffer-view';
-import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection';
+import { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
+import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection.ts';
 
 export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBufferView<Float32Array>): void => {
-    // Register keyboard mouse movements.
-    const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
-    lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
-    lDefaultConfiguaration.addAction('Back', [KeyboardButton.KeyS]);
-    lDefaultConfiguaration.addAction('Left', [KeyboardButton.KeyA]);
-    lDefaultConfiguaration.addAction('Right', [KeyboardButton.KeyD]);
-    lDefaultConfiguaration.addAction('Up', [KeyboardButton.ShiftLeft]);
-    lDefaultConfiguaration.addAction('Down', [KeyboardButton.ControlLeft]);
-    lDefaultConfiguaration.addAction('RotateLeft', [KeyboardButton.KeyQ]);
-    lDefaultConfiguaration.addAction('RotateRight', [KeyboardButton.KeyE]);
-    lDefaultConfiguaration.addAction('Yaw', [MouseButton.Xaxis]);
-    lDefaultConfiguaration.addAction('Pitch', [MouseButton.Yaxis]);
-    lDefaultConfiguaration.triggerTolerance = 0;
-    const lInputConfiguration: InputConfiguration = new InputConfiguration(lDefaultConfiguaration);
-    const lInputDevices: InputDevices = new InputDevices(lInputConfiguration);
-    lInputDevices.registerConnector(new MouseKeyboardConnector());
 
     const lCurrentActionValue: Dictionary<string, number> = new Dictionary<string, number>();
-    const lKeyboard: BaseInputDevice = lInputDevices.devices[0];
-    lKeyboard.addEventListener('actionstatechange', (pEvent) => {
-        lCurrentActionValue.set(pEvent.action, pEvent.state);
+
+    // Initialize all action values to 0
+    lCurrentActionValue.set('Forward', 0);
+    lCurrentActionValue.set('Back', 0);
+    lCurrentActionValue.set('Left', 0);
+    lCurrentActionValue.set('Right', 0);
+    lCurrentActionValue.set('Up', 0);
+    lCurrentActionValue.set('Down', 0);
+    lCurrentActionValue.set('RotateLeft', 0);
+    lCurrentActionValue.set('RotateRight', 0);
+    lCurrentActionValue.set('Yaw', 0);
+    lCurrentActionValue.set('Pitch', 0);
+
+    // Keyboard event handlers
+    window.addEventListener('keydown', (pEvent) => {
+        switch (pEvent.code) {
+            case 'KeyW':
+                lCurrentActionValue.set('Forward', 1);
+                break;
+            case 'KeyS':
+                lCurrentActionValue.set('Back', 1);
+                break;
+            case 'KeyA':
+                lCurrentActionValue.set('Left', 1);
+                break;
+            case 'KeyD':
+                lCurrentActionValue.set('Right', 1);
+                break;
+            case 'ShiftLeft':
+                lCurrentActionValue.set('Up', 1);
+                break;
+            case 'ControlLeft':
+                lCurrentActionValue.set('Down', 1);
+                break;
+            case 'KeyQ':
+                lCurrentActionValue.set('RotateLeft', 1);
+                break;
+            case 'KeyE':
+                lCurrentActionValue.set('RotateRight', 1);
+                break;
+        }
     });
+
+    window.addEventListener('keyup', (pEvent) => {
+        switch (pEvent.code) {
+            case 'KeyW':
+                lCurrentActionValue.set('Forward', 0);
+                break;
+            case 'KeyS':
+                lCurrentActionValue.set('Back', 0);
+                break;
+            case 'KeyA':
+                lCurrentActionValue.set('Left', 0);
+                break;
+            case 'KeyD':
+                lCurrentActionValue.set('Right', 0);
+                break;
+            case 'ShiftLeft':
+                lCurrentActionValue.set('Up', 0);
+                break;
+            case 'ControlLeft':
+                lCurrentActionValue.set('Down', 0);
+                break;
+            case 'KeyQ':
+                lCurrentActionValue.set('RotateLeft', 0);
+                break;
+            case 'KeyE':
+                lCurrentActionValue.set('RotateRight', 0);
+                break;
+        }
+    });
+
+    // Mouse movement for camera rotation
+    let lMouseMoveTimeout: number | null = null;
+    
+    window.addEventListener('mousemove', (pEvent) => {
+        const lDeltaX = pEvent.movementX;
+        const lDeltaY = pEvent.movementY;
+
+        // Normalize mouse movement to -1 to 1 range (10x faster sensitivity)
+        const lSensitivity = 0.5;
+        const lYawValue = Math.max(-1, Math.min(1, lDeltaX * lSensitivity));
+        const lPitchValue = Math.max(-1, Math.min(1, lDeltaY * lSensitivity));
+
+        lCurrentActionValue.set('Yaw', lYawValue);
+        lCurrentActionValue.set('Pitch', lPitchValue);
+        
+        // Clear existing timeout
+        if (lMouseMoveTimeout !== null) {
+            clearTimeout(lMouseMoveTimeout);
+        }
+        
+        // Reset mouse values after a short delay when movement stops
+        lMouseMoveTimeout = setTimeout(() => {
+            lCurrentActionValue.set('Yaw', 0);
+            lCurrentActionValue.set('Pitch', 0);
+        }, 16); // ~1 frame at 60fps
+    });
+
+    pCanvas.addEventListener('click', () => {
+        pCanvas.requestPointerLock();
+    });
+
     window.setInterval(() => {
         const lSpeed = 10;
 
@@ -78,9 +160,6 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
         pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
     }, 8);
-    pCanvas.addEventListener('click', () => {
-        pCanvas.requestPointerLock();
-    });
 };
 
 export const UpdateFpsDisplay = (() => {

@@ -1,4 +1,4 @@
-import { GpuObjectSetup } from '../gpu-object-setup';
+import { GpuObjectSetup } from '../gpu-object-setup.ts';
 
 export interface IGpuObjectSetup<TSetupObject extends GpuObjectSetup<any>> {
     /**

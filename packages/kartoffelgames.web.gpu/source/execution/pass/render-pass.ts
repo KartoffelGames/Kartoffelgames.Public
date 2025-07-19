@@ -1,15 +1,15 @@
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuFeature } from '../../constant/gpu-feature.enum';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject } from '../../gpu_object/gpu-object';
-import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object';
-import { PipelineData, PipelineDataInvalidationType } from '../../pipeline/pipeline_data/pipeline-data';
-import { RenderTargets } from '../../pipeline/render_targets/render-targets';
-import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline';
-import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/vertex_parameter/vertex-parameter';
-import { GpuExecutionContext } from '../gpu-execution';
-import { RenderPassContext } from './render-pass-context';
+import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
+import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject } from '../../gpu_object/gpu-object.ts';
+import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
+import { PipelineData, PipelineDataInvalidationType } from '../../pipeline/pipeline_data/pipeline-data.ts';
+import { RenderTargets } from '../../pipeline/render_targets/render-targets.ts';
+import { VertexFragmentPipeline, VertexFragmentPipelineInvalidationType } from '../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
+import { VertexParameter, VertexParameterInvalidationType } from '../../pipeline/vertex_parameter/vertex-parameter.ts';
+import { GpuExecutionContext } from '../gpu-execution.ts';
+import { RenderPassContext } from './render-pass-context.ts';
 
 /**
  * Gpu render pass. Has the ability to bundle render calls for static lists.

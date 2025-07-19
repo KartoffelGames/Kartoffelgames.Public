@@ -1,15 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../../buffer/memory_layout/struct-buffer-memory-layout';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
-import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native';
-import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup';
-import { VertexParameter } from './vertex-parameter';
-import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup';
+import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
+import { StructBufferMemoryLayout } from '../../buffer/memory_layout/struct-buffer-memory-layout.ts';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
+import { VertexParameter } from './vertex-parameter.ts';
+import { VertexParameterLayoutSetup, VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup.ts';
 
 /**
  * Vertex parameter layout.

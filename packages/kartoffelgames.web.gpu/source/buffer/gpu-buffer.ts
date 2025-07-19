@@ -1,10 +1,10 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
-import { BufferUsage } from '../constant/buffer-usage.enum';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
-import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view';
-import { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout';
+import { BufferUsage } from '../constant/buffer-usage.enum.ts';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view.ts';
+import { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout.ts';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -150,7 +150,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * @param pData - Data.
      * @param pOffset - Data offset.
      */
-    public async write(pData: ArrayBuffer, pOffset?: number): Promise<void> {
+    public async write(pData: ArrayBufferLike, pOffset?: number): Promise<void> {
         // Set buffer as writeable.
         this.extendUsage(BufferUsage.CopyDestination);
 
@@ -179,7 +179,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         }
 
         // Convert views into array buffers.
-        let lDataArrayBuffer: ArrayBuffer = pData;
+        let lDataArrayBuffer: ArrayBufferLike = pData;
         if (ArrayBuffer.isView(lDataArrayBuffer)) {
             lDataArrayBuffer = lDataArrayBuffer.buffer;
         }
@@ -257,7 +257,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         // Write data. Is completly async.
         if (this.mInitialData) {
             // Convert views into array buffers.
-            let lDataArrayBuffer: ArrayBuffer = this.mInitialData;
+            let lDataArrayBuffer: ArrayBufferLike = this.mInitialData;
             if (ArrayBuffer.isView(lDataArrayBuffer)) {
                 lDataArrayBuffer = lDataArrayBuffer.buffer;
             }

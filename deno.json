@@ -20,6 +20,9 @@
     "license": "LGPL-3.0-only",
     "imports": {},
     "lock": false,
+    "unstable": [
+        "webgpu"
+    ],
     "compilerOptions": {
         "allowUnreachableCode": false,
         "exactOptionalPropertyTypes": true,

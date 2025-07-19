@@ -1,8 +1,8 @@
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object';
-import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup';
-import { BaseBufferMemoryLayout } from './base-buffer-memory-layout';
-import { StructBufferMemoryLayoutPropertySetup } from './struct-buffer-memory-layout-property-setup';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
+import { BaseBufferMemoryLayout } from './base-buffer-memory-layout.ts';
+import { StructBufferMemoryLayoutPropertySetup } from './struct-buffer-memory-layout-property-setup.ts';
 
 /**
  * Setup object to add properties to a struct layout.

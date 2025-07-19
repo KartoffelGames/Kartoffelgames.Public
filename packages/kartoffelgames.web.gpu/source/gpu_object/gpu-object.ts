@@ -1,7 +1,9 @@
+// @ts-types="npm:@webgpu/types"
+
 import { Dictionary, Exception, IDeconstructable, List, Writeable } from '@kartoffelgames/core';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons';
-import { GpuObjectSetup } from './gpu-object-setup';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons.ts';
+import { GpuObjectSetup } from './gpu-object-setup.ts';
 
 /**
  * Object that handles gpu data, resources or configs.

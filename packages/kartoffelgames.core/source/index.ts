@@ -32,6 +32,9 @@ export {
     type ClassAccessorDecorator,
     type ClassMethodDecorator,
     type ClassFieldDecorator,
+
+    // Types that should be native
+    type TypedArray
 } from './types.ts';
 
 // Algorythms

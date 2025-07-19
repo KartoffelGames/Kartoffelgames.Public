@@ -1,7 +1,7 @@
-import { BaseMemoryLayout } from '../../base-memory-layout';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureViewDimension } from '../../constant/texture-view-dimension.enum';
-import { GpuDevice } from '../../device/gpu-device';
+import { BaseMemoryLayout } from '../../base-memory-layout.ts';
+import { TextureFormat } from '../../constant/texture-format.enum.ts';
+import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
 
 /**
  * Memory layout for textures views.

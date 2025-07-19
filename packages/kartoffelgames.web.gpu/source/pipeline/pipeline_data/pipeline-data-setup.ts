@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BindGroup } from '../bind_group/bind-group';
-import { PipelineDataGroupSetup, PipelineDataGroupSetupData } from './pipeline-data-group-setup';
-import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup';
+import { BindGroup } from '../bind_group/bind-group.ts';
+import { PipelineDataGroupSetup, PipelineDataGroupSetupData } from './pipeline-data-group-setup.ts';
+import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
 
 /**
  * Setup object for a pipline data.

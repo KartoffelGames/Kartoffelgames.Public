@@ -1,24 +1,24 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { CompareFunction } from '../../constant/compare-function.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
-import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
-import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
-import { StencilOperation } from '../../constant/stencil-operation.enum';
-import { TextureAspect } from '../../constant/texture-aspect.enum';
-import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum';
-import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject } from '../../gpu_object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../../gpu_object/gpu-object-invalidation-reasons';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native';
-import { ShaderRenderModule } from '../../shader/shader-render-module';
-import { GpuTextureView } from '../../texture/gpu-texture-view';
-import { PipelineLayout } from '../pipeline-layout';
-import { RenderTargets } from '../render_targets/render-targets';
-import { VertexFragmentPipelineDepthConfiguration } from './vertex-fragment-pipeline-depth-configuration';
-import { VertexFragmentPipelineStencilConfiguration } from './vertex-fragment-pipeline-stencil-configuration';
-import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration';
+import { CompareFunction } from '../../constant/compare-function.enum.ts';
+import { ComputeStage } from '../../constant/compute-stage.enum.ts';
+import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum.ts';
+import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum.ts';
+import { PrimitiveTopology } from '../../constant/primitive-topology.enum.ts';
+import { StencilOperation } from '../../constant/stencil-operation.enum.ts';
+import { TextureAspect } from '../../constant/texture-aspect.enum.ts';
+import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum.ts';
+import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject } from '../../gpu_object/gpu-object.ts';
+import { GpuObjectInvalidationReasons } from '../../gpu_object/gpu-object-invalidation-reasons.ts';
+import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import { ShaderRenderModule } from '../../shader/shader-render-module.ts';
+import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import { PipelineLayout } from '../pipeline-layout.ts';
+import { RenderTargets } from '../render_targets/render-targets.ts';
+import { VertexFragmentPipelineDepthConfiguration } from './vertex-fragment-pipeline-depth-configuration.ts';
+import { VertexFragmentPipelineStencilConfiguration } from './vertex-fragment-pipeline-stencil-configuration.ts';
+import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration.ts';
 
 /**
  * Gpu pipeline resource for rendering with a vertex and fragment shader. 

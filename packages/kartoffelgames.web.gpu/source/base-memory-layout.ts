@@ -1,6 +1,6 @@
-import { GpuDevice } from './device/gpu-device';
-import { GpuObject } from './gpu_object/gpu-object';
-import { GpuObjectSetup } from './gpu_object/gpu-object-setup';
+import { GpuDevice } from './device/gpu-device.ts';
+import { GpuObject } from './gpu_object/gpu-object.ts';
+import { GpuObjectSetup } from './gpu_object/gpu-object-setup.ts';
 
 /**
  * Base memory layout. 

@@ -1,11 +1,11 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { ComputeStage } from '../constant/compute-stage.enum';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObject } from '../gpu_object/gpu-object';
-import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native';
-import { ShaderComputeModule } from '../shader/shader-compute-module';
-import { PipelineLayout } from './pipeline-layout';
+import { ComputeStage } from '../constant/compute-stage.enum.ts';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObject } from '../gpu_object/gpu-object.ts';
+import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
+import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import { ShaderComputeModule } from '../shader/shader-compute-module.ts';
+import { PipelineLayout } from './pipeline-layout.ts';
 
 /**
  * Gpu pipeline resource for computing with a compute shader. 

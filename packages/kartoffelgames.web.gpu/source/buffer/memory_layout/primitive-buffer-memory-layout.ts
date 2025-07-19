@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum';
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum';
-import { GpuDevice } from '../../device/gpu-device';
-import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout';
+import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
+import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout.ts';
 
 /**
  * Memory layout for a primitive number buffer or part of a buffer.

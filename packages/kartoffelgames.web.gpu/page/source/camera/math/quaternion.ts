@@ -1,6 +1,6 @@
-import { Euler } from './euler';
-import { Matrix } from './matrix';
-import { Vector } from './vector';
+import { Euler } from './euler.ts';
+import { Matrix } from './matrix.ts';
+import { Vector } from './vector.ts';
 
 export class Quaternion {
     /**

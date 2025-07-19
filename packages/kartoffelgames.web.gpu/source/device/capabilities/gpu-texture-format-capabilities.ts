@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuFeature } from '../../constant/gpu-feature.enum';
-import { TextureAspect } from '../../constant/texture-aspect.enum';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureSampleType } from '../../constant/texture-sample-type.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { GpuDevice } from '../gpu-device';
+import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
+import { TextureAspect } from '../../constant/texture-aspect.enum.ts';
+import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
+import { TextureFormat } from '../../constant/texture-format.enum.ts';
+import { TextureSampleType } from '../../constant/texture-sample-type.enum.ts';
+import { TextureUsage } from '../../constant/texture-usage.enum.ts';
+import { GpuDevice } from '../gpu-device.ts';
 
 export class GpuTextureFormatCapabilities {
     private readonly mDevice: GpuDevice;
@@ -15,7 +15,7 @@ export class GpuTextureFormatCapabilities {
      * Get prefered canvas format.
      */
     public get preferredCanvasFormat(): TextureFormat {
-        return window.navigator.gpu.getPreferredCanvasFormat() as TextureFormat;
+        return globalThis.navigator.gpu.getPreferredCanvasFormat() as TextureFormat;
     }
 
     /**

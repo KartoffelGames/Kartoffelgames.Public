@@ -1,6 +1,6 @@
 import { Dictionary, EnumUtil } from '@kartoffelgames/core';
-import { GpuFeature } from '../../constant/gpu-feature.enum';
-import { GpuLimit } from '../../constant/gpu-limit.enum';
+import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
+import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 
 /**
  * Gpu limits and features.

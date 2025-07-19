@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { GpuDevice } from '../device/gpu-device';
-import { GpuObjectSetupReferences } from './gpu-object';
+import { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObjectSetupReferences } from './gpu-object.ts';
 
 /**
  * Gpu setup object.

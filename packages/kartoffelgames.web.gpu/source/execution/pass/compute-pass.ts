@@ -1,10 +1,10 @@
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuFeature } from '../../constant/gpu-feature.enum';
-import { GpuDevice } from '../../device/gpu-device';
-import { GpuObject } from '../../gpu_object/gpu-object';
-import { GpuExecutionContext } from '../gpu-execution';
-import { ComputePassContext } from './compute-pass-context';
+import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
+import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
+import { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject } from '../../gpu_object/gpu-object.ts';
+import { GpuExecutionContext } from '../gpu-execution.ts';
+import { ComputePassContext } from './compute-pass-context.ts';
 
 /**
  * Gpu compute pass.

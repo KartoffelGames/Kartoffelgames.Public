@@ -1,6 +1,6 @@
 import { type ClassFieldDecorator, Exception } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { WebDatabaseTableLayout } from '../web-database-table-layout.ts';
+import { WebDatabaseTableLayout, WebDatabaseTableType } from '../web-database-table-layout.ts';
 
 /**
  * Decorator for defining a field in a web database table.
@@ -28,7 +28,7 @@ import { WebDatabaseTableLayout } from '../web-database-table-layout.ts';
  * }
  * ```
  */
-export const WebDatabaseFieldDecorator = <T>(pExtension?: WebDatabaseFieldDecoratorExtension<T>): ClassFieldDecorator<any, T> => {
+export const WebDatabaseFieldDecorator = <T, TTable extends WebDatabaseTableType>(pExtension?: WebDatabaseFieldDecoratorExtension<T>): ClassFieldDecorator<TTable, T> => {
     return function (_pTarget: any, pContext: WebDatabaseFieldDecoratorContext<any, any>): void {
         // Decorator can not be used on static propertys.
         if (pContext.static) {
@@ -44,7 +44,7 @@ export const WebDatabaseFieldDecorator = <T>(pExtension?: WebDatabaseFieldDecora
         const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
         // Try to read table layout from metadata.
-        let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+        let lTableLayout: WebDatabaseTableLayout<any> | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
         if (!lTableLayout) {
             lTableLayout = new WebDatabaseTableLayout();
         }
@@ -53,15 +53,18 @@ export const WebDatabaseFieldDecorator = <T>(pExtension?: WebDatabaseFieldDecora
         lTableLayout.setTableField(pContext.name);
 
         // Get index name.
-        if (pExtension) {
+        if (pExtension?.as) {
             // Set identity for the table.
-            if (pExtension.as.identity) {
+            if ('identity' in pExtension.as && pExtension.as.identity) {
                 // Set identity for the table.
                 lTableLayout.setTableIdentity(pContext.name, pExtension.as.identity === 'auto');
+
+                // Set identity property as index. Allws unique and single entry.
+                lTableLayout.setTableIndex([pContext.name], true, false);
             }
 
             // Set index properties.
-            if (pExtension.as.index) {
+            if ('index' in pExtension.as && pExtension.as.index) {
                 // Add table type index to layout.
                 lTableLayout.setTableIndex([pContext.name], pExtension.as.index.unique ?? false, pExtension.as.index.multiEntry ?? false);
             }
@@ -72,31 +75,40 @@ export const WebDatabaseFieldDecorator = <T>(pExtension?: WebDatabaseFieldDecora
     };
 };
 
-export type WebDatabaseFieldDecoratorExtension<T> = T extends number ? {
+type WebDatabaseFieldDecoratorIdentity<T> = (T extends number ? {
     as: {
-        identity?: 'auto' | 'manual';
-        index?: {
+        identity: 'auto' | 'manual';
+    };
+} : {
+    as: {
+        identity: 'manual';
+    };
+}) & { as: { index?: never; }; };
+
+type WebDatabaseFieldDecoratorIndex<T> = (T extends number ? {
+    as: {
+        index: {
             unique?: boolean;
             multiEntry?: false;
         };
     };
 } : T extends Array<any> ? {
     as: {
-        identity?: 'manual';
-        index?: {
+        index: {
             unique?: boolean;
             multiEntry?: boolean;
         };
     };
 } : {
     as: {
-        identity?: 'manual';
-        index?: {
+        index: {
             unique?: boolean;
             multiEntry?: false;
         };
     };
-};
+}) & { as: { identity?: never; }; };
+
+export type WebDatabaseFieldDecoratorExtension<T> = WebDatabaseFieldDecoratorIdentity<T> | WebDatabaseFieldDecoratorIndex<T>;
 
 type WebDatabaseFieldDecoratorContext<TThis, TValue> = ClassGetterDecoratorContext<TThis, TValue> | ClassSetterDecoratorContext<TThis, TValue> | ClassFieldDecoratorContext<TThis, TValue> | ClassAccessorDecoratorContext<TThis, TValue>;
 

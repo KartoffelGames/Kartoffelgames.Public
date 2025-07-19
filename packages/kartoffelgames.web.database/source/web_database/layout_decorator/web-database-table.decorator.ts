@@ -1,6 +1,6 @@
 import type { ClassDecorator } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { type TableType, WebDatabaseTableLayout } from '../web-database-table-layout.ts';
+import { type WebDatabaseTableType, WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
 
 /**
  * Decorator for defining a web database table.
@@ -26,13 +26,13 @@ import { type TableType, WebDatabaseTableLayout } from '../web-database-table-la
  * }
  * ```
  */
-export const WebDatabaseTableDecorator = <T extends TableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>): ClassDecorator<T, void> => {
+export const WebDatabaseTableDecorator = <T extends WebDatabaseTableType>(pTableName: string, pExtension?: WebDatabaseTableDecoratorExtension<T>): ClassDecorator<T, void> => {
     return function (pTableClass: T, pContext: ClassDecoratorContext): void {
         // Read metadata from metadata...
         const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
         // Try to read table layout from metadata.
-        let lTableLayout: WebDatabaseTableLayout | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
+        let lTableLayout: WebDatabaseTableLayout<T> | null = lConstructorMetadata.getMetadata(WebDatabaseTableLayout.METADATA_KEY);
         if (!lTableLayout) {
             lTableLayout = new WebDatabaseTableLayout();
         }
@@ -44,13 +44,8 @@ export const WebDatabaseTableDecorator = <T extends TableType>(pTableName: strin
         if (pExtension) {
             // Iterate over the extensions and add them to the table layout.
             for (const lCompoundIndex of pExtension.with) {
-                // Check if all properties are strings.
-                if (!lCompoundIndex.properties.every(pProperty => typeof pProperty === 'string')) {
-                    throw new Error('All property names of a compound index must be strings.');
-                }
-
                 // Add properties to the table layout.
-                lTableLayout.setTableIndex(lCompoundIndex.properties as Array<string>, lCompoundIndex.unique ?? false, false);
+                lTableLayout.setTableIndex(lCompoundIndex.properties, lCompoundIndex.unique ?? false, false);
             }
         }
 
@@ -59,11 +54,9 @@ export const WebDatabaseTableDecorator = <T extends TableType>(pTableName: strin
     };
 };
 
-export type WebDatabaseTableDecoratorExtension<T extends TableType> = {
+export type WebDatabaseTableDecoratorExtension<T extends WebDatabaseTableType> = {
     with: Array<{
-        properties: [WebDatabaseTableDecoratorTableProperties<T>, WebDatabaseTableDecoratorTableProperties<T>, ...Array<WebDatabaseTableDecoratorTableProperties<T>>];
+        properties: [WebDatabaseTableLayoutFieldName<T>, WebDatabaseTableLayoutFieldName<T>, ...Array<WebDatabaseTableLayoutFieldName<T>>];
         unique?: boolean;
     }>;
 };
-
-type WebDatabaseTableDecoratorTableProperties<T extends TableType> = keyof InstanceType<T>;

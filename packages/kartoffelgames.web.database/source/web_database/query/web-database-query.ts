@@ -1,13 +1,19 @@
+/**
+ * Provides a fluent API for building and executing queries on a WebDatabaseTable.
+ * Supports chaining of query conditions using AND/OR logic, and allows for reading or deleting records
+ * that match the specified conditions. Queries are mapped to available indices for efficient execution,
+ * and will throw if no suitable index exists for a query block. Each query instance is bound to a specific table.
+ *
+ * @typeParam TTableType - The table type this query operates on.
+ */
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from '../web-database-table-layout.ts';
+import type { WebDatabaseTableLayoutTableLayoutIndex, WebDatabaseTableType, WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
 import type { WebDatabaseTable } from '../web-database-table.ts';
 import { WebDatabaseQueryAction, WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
 
-// TODO: Tables NEED a primary key. Even when it is auto generated.
-// Makes anything so much easier.
 
-export class WebDatabaseQuery<TTableType extends TableType> {
-    private readonly mQueryList: Array<WebDatabaseQueryPart>;
+export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
+    private readonly mQueryList: Array<WebDatabaseQueryPart<TTableType>>;
     private readonly mTable: WebDatabaseTable<TTableType>;
 
     /**
@@ -17,7 +23,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      */
     public constructor(pTable: WebDatabaseTable<TTableType>) {
         this.mTable = pTable;
-        this.mQueryList = new Array<WebDatabaseQueryPart>();
+        this.mQueryList = new Array<WebDatabaseQueryPart<TTableType>>();
     }
 
     /**
@@ -27,9 +33,9 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      *  
      * @returns query action. 
      */
-    public and(pPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public and(pPropertyName: WebDatabaseTableLayoutFieldName<TTableType>): WebDatabaseQueryAction<TTableType> {
         // Create query part.
-        const lPart: WebDatabaseQueryPart = {
+        const lPart: WebDatabaseQueryPart<TTableType> = {
             property: pPropertyName,
             action: null,
             link: 'AND'
@@ -60,7 +66,7 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
 
         // Divide queries into "OR" blocks.
-        const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
+        const lQueryBlockList: Array<Array<WebDatabaseQueryPart<TTableType>>> = this.groupQueryBlock(this.mQueryList);
 
         // Set to track already deleted items by their identity.
         const lDeletedIdentities: Set<string | number> = new Set<string | number>();
@@ -102,9 +108,9 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      *  
      * @returns query action. 
      */
-    public or(pPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public or(pPropertyName: WebDatabaseTableLayoutFieldName<TTableType>): WebDatabaseQueryAction<TTableType> {
         // Create query part.
-        const lPart: WebDatabaseQueryPart = {
+        const lPart: WebDatabaseQueryPart<TTableType> = {
             property: pPropertyName,
             action: null,
             link: 'OR'
@@ -131,10 +137,10 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
         
         // Devide queries into "AND" blocks.
-        const lQueryBlockList: Array<Array<WebDatabaseQueryPart>> = this.groupQueryBlock(this.mQueryList);
+        const lQueryBlockList: Array<Array<WebDatabaseQueryPart<TTableType>>> = this.groupQueryBlock(this.mQueryList);
 
         // Convert each query block into a indexable key range.
-        const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange => {
+        const lIndexableKeyRangeList: Array<WebDatabaseQueryIndexableKeyRange> = lQueryBlockList.map((pBlock: WebDatabaseQueryBlock<TTableType>): WebDatabaseQueryIndexableKeyRange => {
             // Convert block into indexable key range.
             const lIndexableKeyRange: WebDatabaseQueryIndexableKeyRange | null = this.generateIndexableKeyRange(pBlock);
             if (!lIndexableKeyRange) {
@@ -185,18 +191,18 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      * 
      * @returns Query blocks.
      */
-    private groupQueryBlock(pQueryList: Array<WebDatabaseQueryPart>): Array<WebDatabaseQueryBlock> {
+    private groupQueryBlock(pQueryList: Array<WebDatabaseQueryPart<TTableType>>): Array<WebDatabaseQueryBlock<TTableType>> {
         // Devide queries into "AND" blocks.
-        const lQueryBlockList: Array<WebDatabaseQueryBlock> = new Array<WebDatabaseQueryBlock>();
+        const lQueryBlockList: Array<WebDatabaseQueryBlock<TTableType>> = new Array<WebDatabaseQueryBlock<TTableType>>();
 
         // Add first block.
-        lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
+        lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
 
         // Assign every query into a block.
         for (const lQuery of pQueryList) {
             // Create new block on any or chain.
             if (lQuery.link === 'OR') {
-                lQueryBlockList.push(new Array<WebDatabaseQueryPart>());
+                lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
             }
 
             // Add query to latest block.
@@ -214,13 +220,13 @@ export class WebDatabaseQuery<TTableType extends TableType> {
      * 
      * @returns IDBKeyRange or null when no index exists for the block. 
      */
-    private generateIndexableKeyRange(pBlock: WebDatabaseQueryBlock): WebDatabaseQueryIndexableKeyRange | null {
+    private generateIndexableKeyRange(pBlock: WebDatabaseQueryBlock<TTableType>): WebDatabaseQueryIndexableKeyRange | null {
         // Read table layout for easy access.
-        const lTableLayout: WebDatabaseTableLayout = this.mTable.tableLayout;
+        const lTableLayout: WebDatabaseTableLayout<TTableType> = this.mTable.tableLayout;
 
         // When block is single, only check if a index for it exists.
         if (pBlock.length === 1) {
-            const lQueryPart: WebDatabaseQueryPart = pBlock[0];
+            const lQueryPart: WebDatabaseQueryPart<TTableType> = pBlock[0];
 
             // When no index exists for the property.
             if (!lTableLayout.index(lQueryPart.property)) {
@@ -234,17 +240,17 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         }
 
         // Read all used properties of the block.
-        const lBlockPropertyList: Map<string, WebDatabaseQueryActionBoundRange> = new Map<string, WebDatabaseQueryActionBoundRange>();
+        const lBlockPropertyList: Map<WebDatabaseTableLayoutFieldName<TTableType>, WebDatabaseQueryActionBoundRange> = new Map<WebDatabaseTableLayoutFieldName<TTableType>, WebDatabaseQueryActionBoundRange>();
         for (const pQuery of pBlock) {
             lBlockPropertyList.set(pQuery.property, pQuery.action!);
         }
 
         // Iterate each table index and check if it matches the block.
-        const lMatchingIndex: TableLayoutIndex | null = (() => {
+        const lMatchingIndex: WebDatabaseTableLayoutTableLayoutIndex<TTableType> | null = (() => {
             // Iterate each table index.
             LAYOUT_INDEX: for (const lIndexName of this.mTable.tableLayout.indices) {
                 // Read index from table layout.
-                const lIndex: TableLayoutIndex = this.mTable.tableLayout.index(lIndexName)!;
+                const lIndex: WebDatabaseTableLayoutTableLayoutIndex<TTableType> = this.mTable.tableLayout.index(lIndexName)!;
 
                 // Must be the same number of properties.
                 if (lIndex.keys.length !== lBlockPropertyList.size) {
@@ -352,9 +358,8 @@ export class WebDatabaseQuery<TTableType extends TableType> {
         const lRequest: IDBRequest<Array<any>> = lIndex.getAll(pQuery.keyRange);
         return new Promise<Array<any>>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<Array<any>> = (<IDBRequest<Array<any>>>pEvent.target);
-                pReject(new Exception(`Error fetching table.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error fetching table.` + lRequest.error, this));
             });
 
             // Resolve on success.
@@ -365,13 +370,13 @@ export class WebDatabaseQuery<TTableType extends TableType> {
     }
 }
 
-type WebDatabaseQueryPart = {
-    property: string;
+type WebDatabaseQueryPart<TTableType extends WebDatabaseTableType> = {
+    property: WebDatabaseTableLayoutFieldName<TTableType>;
     action: WebDatabaseQueryActionBoundRange | null;
     link: WebDatabaseQueryLink;
 };
 
-type WebDatabaseQueryBlock = Array<WebDatabaseQueryPart>;
+type WebDatabaseQueryBlock<TTableType extends WebDatabaseTableType> = Array<WebDatabaseQueryPart<TTableType>>;
 
 type WebDatabaseQueryLink = 'AND' | 'OR';
 

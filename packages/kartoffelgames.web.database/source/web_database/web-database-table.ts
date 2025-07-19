@@ -1,25 +1,31 @@
-
 import { Exception } from '@kartoffelgames/core';
-import type { TableLayoutIndex, TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
 import type { WebDatabaseQueryAction } from './query/web-database-query-action.ts';
 import { WebDatabaseQuery } from './query/web-database-query.ts';
+import type { WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName, WebDatabaseTableType } from './web-database-table-layout.ts';
 import type { WebDatabaseTransaction } from './web-database-transaction.ts';
 
-export class WebDatabaseTable<TTableType extends TableType> {
-    private readonly mTableLayout: WebDatabaseTableLayout;
-    private readonly mTransaction: WebDatabaseTransaction<TableType>;
+/**
+ * Represents a table within a WebDatabase transaction, providing methods to manipulate and query table data.
+ * Supports CRUD operations, type-safe data conversion, and fluent query building for indexed fields.
+ * Each instance is bound to a specific table layout and transaction context.
+ *
+ * @typeParam TTableType - The table type this instance operates on.
+ */
+export class WebDatabaseTable<TTableType extends WebDatabaseTableType> {
+    private readonly mTableLayout: WebDatabaseTableLayout<TTableType>;
+    private readonly mTransaction: WebDatabaseTransaction<WebDatabaseTableType>;
 
     /**
      * Get table layout.
      */
-    public get tableLayout(): WebDatabaseTableLayout {
+    public get tableLayout(): WebDatabaseTableLayout<TTableType> {
         return this.mTableLayout;
     }
 
     /**
      * Get transaction.
      */
-    public get transaction(): WebDatabaseTransaction<TableType> {
+    public get transaction(): WebDatabaseTransaction<WebDatabaseTableType> {
         return this.mTransaction;
     }
 
@@ -29,7 +35,7 @@ export class WebDatabaseTable<TTableType extends TableType> {
      * @param pTypeLayout - Table layout.
      * @param pDatabase - Database.
      */
-    public constructor(pTypeLayout: WebDatabaseTableLayout, pTransaction: WebDatabaseTransaction<TableType>) {
+    public constructor(pTypeLayout: WebDatabaseTableLayout<TTableType>, pTransaction: WebDatabaseTransaction<WebDatabaseTableType>) {
         this.mTableLayout = pTypeLayout;
         this.mTransaction = pTransaction;
     }
@@ -47,9 +53,8 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<IDBValidKey> = pEvent.target as IDBRequest<IDBValidKey>;
-                pReject(new Exception(`Error clearing table data.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error clearing table data.` + lRequest.error, this));
             });
 
             lRequest.addEventListener('success', () => {
@@ -71,17 +76,13 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Wait for completion.
         return new Promise<number>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<number> = (<IDBRequest<number>>pEvent.target);
-                pReject(new Exception(`Error counting table rows.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error counting table rows.` + lRequest.error, this));
             });
 
             // Resolve on success.
-            lRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead.
-                const lTarget: IDBRequest<number> = pEvent.target as IDBRequest<number>;
-
-                pResolve(lTarget.result);
+            lRequest.addEventListener('success', () => {
+                pResolve(lRequest.result);
             });
         });
     }
@@ -115,9 +116,8 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Wait for completion.
         return new Promise<void>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<undefined> = pEvent.target as IDBRequest<undefined>;
-                pReject(new Exception(`Error deleting data.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error deleting data.` + lRequest.error, this));
             });
 
             // Resolve on success.
@@ -140,18 +140,14 @@ export class WebDatabaseTable<TTableType extends TableType> {
         // Wait for completion.
         return new Promise<Array<InstanceType<TTableType>>>((pResolve, pReject) => {
             // Reject on error.
-            lRequest.addEventListener('error', (pEvent) => {
-                const lTarget: IDBRequest<number> = (<IDBRequest<number>>pEvent.target);
-                pReject(new Exception(`Error fetching table.` + lTarget.error, this));
+            lRequest.addEventListener('error', () => {
+                pReject(new Exception(`Error fetching table.` + lRequest.error, this));
             });
 
             // Resolve on success.
-            lRequest.addEventListener('success', (pEvent) => {
-                // Read event target like a shithead.
-                const lTarget: IDBRequest<Array<any>> = pEvent.target as IDBRequest<Array<any>>;
-
+            lRequest.addEventListener('success', () => {
                 // Convert each item into type.
-                const lResult: Array<InstanceType<TTableType>> = this.parseToType(lTarget.result);
+                const lResult: Array<InstanceType<TTableType>> = this.parseToType(lRequest.result);
 
                 // Resolve converted data.
                 pResolve(lResult);
@@ -240,11 +236,11 @@ export class WebDatabaseTable<TTableType extends TableType> {
     /**
      * Create a new table query.
      * 
-     * @param pIndexOrPropertyName - A index or a property name.
+     * @param pIndexOrPropertyName - Indexed property name of the table to filter by.
      * 
      * @returns a new chainable table query.
      */
-    public where(pIndexOrPropertyName: string): WebDatabaseQueryAction<TTableType> {
+    public where(pIndexOrPropertyName: WebDatabaseTableLayoutFieldName<TTableType>): WebDatabaseQueryAction<TTableType> {
         return new WebDatabaseQuery<TTableType>(this).and(pIndexOrPropertyName);
     }
 }

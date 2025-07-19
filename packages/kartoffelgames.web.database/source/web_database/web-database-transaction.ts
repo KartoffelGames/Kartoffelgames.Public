@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { type TableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
+import { type WebDatabaseTableType, WebDatabaseTableLayout } from './web-database-table-layout.ts';
 import type { WebDatabase } from './web-database.ts';
 import { WebDatabaseTable } from './web-database-table.ts';
 
@@ -8,11 +8,11 @@ import { WebDatabaseTable } from './web-database-table.ts';
  * 
  * @template TTables - The table types that are included in this transaction.
  */
-export class WebDatabaseTransaction<TTables extends TableType> {
-    private readonly mDatabase: WebDatabase;
+export class WebDatabaseTransaction<TTables extends WebDatabaseTableType> {
+    private readonly mDatabase: WebDatabase<TTables>;
     private readonly mMode: WebDbTransactionMode;
     private mState: IDBTransaction | null;
-    private readonly mTableLayouts: Set<WebDatabaseTableLayout>;
+    private readonly mTableLayouts: Set<WebDatabaseTableLayout<TTables>>;
 
     /**
      * Underlying transaction.
@@ -32,9 +32,9 @@ export class WebDatabaseTransaction<TTables extends TableType> {
      * @param pTableLayouts - Tables layouts of transaction.
      * @param pMode - Transaction mode.
      */
-    public constructor(pDatabase: WebDatabase, pTableLayouts: Array<WebDatabaseTableLayout>, pMode: WebDbTransactionMode) {
+    public constructor(pDatabase: WebDatabase<TTables>, pTableLayouts: Array<WebDatabaseTableLayout<TTables>>, pMode: WebDbTransactionMode) {
         this.mDatabase = pDatabase;
-        this.mTableLayouts = new Set<WebDatabaseTableLayout>(pTableLayouts);
+        this.mTableLayouts = new Set<WebDatabaseTableLayout<TTables>>(pTableLayouts);
         this.mMode = pMode;
         this.mState = null;
     }
@@ -70,7 +70,7 @@ export class WebDatabaseTransaction<TTables extends TableType> {
         const lDatabaseConnection: IDBDatabase = await this.mDatabase.open();
 
         // Convert types into names.
-        const lTableNames: Array<string> = Array.from(this.mTableLayouts).map((pTableLayout: WebDatabaseTableLayout) => {
+        const lTableNames: Array<string> = Array.from(this.mTableLayouts).map((pTableLayout: WebDatabaseTableLayout<TTables>) => {
             return pTableLayout.tableName;
         });
 
@@ -91,7 +91,7 @@ export class WebDatabaseTransaction<TTables extends TableType> {
      * @returns Table connection. 
      */
     public table<T extends TTables>(pType: T): WebDatabaseTable<T> {
-        const lTableLayout: WebDatabaseTableLayout = WebDatabaseTableLayout.configOf(pType);
+        const lTableLayout: WebDatabaseTableLayout<T> = WebDatabaseTableLayout.configOf(pType);
 
         // Table type must exists in table.
         if (!this.mTableLayouts.has(lTableLayout)) {

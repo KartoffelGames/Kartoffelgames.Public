@@ -1713,10 +1713,10 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
-        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | undefined | null = null as any;
 
         const lInnerGraph = Graph.define(() => {
             return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
@@ -1816,10 +1816,10 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         });
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
-        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | undefined | null = null as any;
 
         const lInnerGraph = Graph.define(() => {
             return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
@@ -1855,10 +1855,10 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         });
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
-        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | undefined | null = null as any;
 
         const lInnerGraph = Graph.define(() => {
             return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
@@ -1894,8 +1894,8 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         });
         const lCodeTextList: Array<string> = ['valOne', 'valTwo'];
 
-        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
 
         const lMainGraph = Graph.define(() => {
             return GraphNode.new<TokenType>().required([
@@ -1912,8 +1912,8 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         lParser.parse(lCodeTextList.join(' '));
 
         // Evaluation.
-        expect(lReceivedMainStartToken?.type).toBe('EMPTY_GRAPH_START');
-        expect(lReceivedMainEndToken?.type).toBe('EMPTY_GRAPH_END');
+        expect(lReceivedMainStartToken?.type).toBeUndefined();
+        expect(lReceivedMainEndToken?.type).toBeUndefined();
     });
 
     await pContext.step('Accurate token positions on trimTokenCache when not linear.', () => {
@@ -1923,10 +1923,10 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
         });
         const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
 
-        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
-        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | undefined | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | undefined | null = null as any;
 
         const lInnerGraph = Graph.define(() => {
             return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);

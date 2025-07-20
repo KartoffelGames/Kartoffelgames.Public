@@ -10,10 +10,10 @@ import { Graph } from '../source/parser/graph/graph.ts';
  * @param pStartToken - LexerToken<string> | null
  * @param pEndToken - LexerToken<string> | null
  */
-const generateState = (pStartToken: LexerToken<string> | null, pEndToken: LexerToken<string> | null): CodeParserProcessState<string> => {
+const generateState = (pStartToken?: LexerToken<string>, pEndToken?: LexerToken<string>): CodeParserProcessState<string> => {
     // Generate a mock state that simulates the behavior of a code parser process state.
     return new (class {
-        public getGraphBoundingToken(): [LexerToken<string> | null, LexerToken<string> | null] {
+        public getGraphBoundingToken(): [LexerToken<string> | undefined, LexerToken<string> | undefined] {
             return [pStartToken ?? pEndToken, pEndToken ?? pStartToken];
         }
     }) as CodeParserProcessState<string>;
@@ -73,7 +73,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(null, null));
+        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toBe(lRawData);
@@ -86,7 +86,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(null, null));
+        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toHaveProperty('key', 'value');
@@ -101,7 +101,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(null, null));
+        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toHaveProperty('key', 'value');
@@ -117,16 +117,16 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(null, null));
+        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
 
         // Evaluation.
         expect(typeof lResult).toBe('symbol');
     });
 
-    await pContext.step('Pass tokens to converter - both null', () => {
+    await pContext.step('Pass tokens to converter - both undefined', () => {
         // Setup.
-        let lPassedStartToken: LexerToken<string> | null = null;
-        let lPassedEndToken: LexerToken<string> | null = null;
+        let lPassedStartToken: LexerToken<string> | undefined | null = null;
+        let lPassedEndToken: LexerToken<string> | undefined | null = null;
 
         // Process.
         const lGraph = Graph.define(() => GraphNode.new<string>())
@@ -135,19 +135,18 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(null, null));
+        lGraph.convert({}, generateState(undefined, undefined));
 
         // Evaluation.
-        expect(lPassedStartToken).not.toBeNull();
-        expect(lPassedEndToken).not.toBeNull();
+        expect(lPassedStartToken).toBeUndefined();
+        expect(lPassedEndToken).toBeUndefined();
     });
 
-    await pContext.step('Pass tokens to converter - start token null', () => {
+    await pContext.step('Pass tokens to converter - start token undefined', () => {
         // Setup.
-        const lReceivedStartToken: LexerToken<string> | null = null;
         const lReceivedEndToken: LexerToken<string> = new LexerToken<string>('testType', 'testValue', 1, 1);
-        let lPassedStartToken: LexerToken<string> | null = null;
-        let lPassedEndToken: LexerToken<string> | null = null;
+        let lPassedStartToken: LexerToken<string> | undefined | null = null;
+        let lPassedEndToken: LexerToken<string> | undefined | null = null;
 
         // Process.
         const lGraph = Graph.define(() => GraphNode.new<string>())
@@ -156,19 +155,18 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(lReceivedStartToken, lReceivedEndToken));
+        lGraph.convert({}, generateState(undefined, lReceivedEndToken));
 
         // Evaluation.
         expect(lPassedStartToken).toBe(lReceivedEndToken);
         expect(lPassedEndToken).toBe(lReceivedEndToken);
     });
 
-    await pContext.step('Pass tokens to converter - end token null', () => {
+    await pContext.step('Pass tokens to converter - end token undefined', () => {
         // Setup.
         const lReceivedStartToken: LexerToken<string> = new LexerToken<string>('testType', 'testValue', 1, 1);
-        const lReceivedEndToken: LexerToken<string> | null = null;
-        let lPassedStartToken: LexerToken<string> | null = null;
-        let lPassedEndToken: LexerToken<string> | null = null;
+        let lPassedStartToken: LexerToken<string> | undefined | null = null;
+        let lPassedEndToken: LexerToken<string> | undefined | null = null;
 
         // Process.
         const lGraph = Graph.define(() => GraphNode.new<string>())
@@ -177,7 +175,7 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(lReceivedStartToken, lReceivedEndToken));
+        lGraph.convert({}, generateState(lReceivedStartToken, undefined));
 
         // Evaluation.
         expect(lPassedStartToken).toBe(lReceivedStartToken);
@@ -188,8 +186,8 @@ Deno.test('Graph.convert()', async (pContext) => {
         // Setup.
         const lReceivedStartToken: LexerToken<string> = new LexerToken<string>('startType', 'startValue', 1, 1);
         const lReceivedEndToken: LexerToken<string> = new LexerToken<string>('endType', 'endValue', 2, 2);
-        let lPassedStartToken: LexerToken<string> | null = null;
-        let lPassedEndToken: LexerToken<string> | null = null;
+        let lPassedStartToken: LexerToken<string> | undefined | null = null;
+        let lPassedEndToken: LexerToken<string> | undefined | null = null;
 
         // Process.
         const lGraph = Graph.define(() => GraphNode.new<string>())
@@ -216,7 +214,7 @@ Deno.test('Graph.converter()', async (pContext) => {
 
         // Evaluation.
         expect(lNewGraph).not.toBe(lGraph);
-        expect(lNewGraph.convert({ key: 'value' }, generateState(null, null))).toHaveProperty('extra', 'added');
+        expect(lNewGraph.convert({ key: 'value' }, generateState(undefined, undefined))).toHaveProperty('extra', 'added');
     });
 
     await pContext.step('Preserve existing converters when adding new one', () => {
@@ -228,7 +226,7 @@ Deno.test('Graph.converter()', async (pContext) => {
         const lNewGraph = lGraph.converter((pData) => ({ ...pData, step2: true }));
 
         // Evaluation.
-        const lResult = lNewGraph.convert({ key: 'value' }, generateState(null, null));
+        const lResult = lNewGraph.convert({ key: 'value' }, generateState(undefined, undefined));
         expect(lResult).toHaveProperty('step1', true);
         expect(lResult).toHaveProperty('step2', true);
     });

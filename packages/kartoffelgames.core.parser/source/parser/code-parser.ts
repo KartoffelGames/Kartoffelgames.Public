@@ -43,7 +43,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Set configuration.
         this.mConfiguration = {
             keepTraceIncidents: false,
-            trimTokenCache: true, // TODO: Make to false
+            trimTokenCache: false,
             ...pConfiguration
         };
     }

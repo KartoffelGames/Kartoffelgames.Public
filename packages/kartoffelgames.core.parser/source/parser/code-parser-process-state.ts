@@ -106,8 +106,8 @@ export class CodeParserProcessState<TTokenType extends string> {
         // Copy all unused token of the current token cache. 
         const lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor) as Array<LexerToken<TTokenType>>;
 
-        // When only the "end of token"-marker (null) is left, remove it.
-        if (lUnusedToken.length === 1 && lUnusedToken[0] === null) {
+        // When the last token is the "end of token"-marker (null), remove it.
+        if (lUnusedToken.length !== 0 && lUnusedToken.at(-1) === null) {
             lUnusedToken.pop();
         }
 
@@ -131,11 +131,6 @@ export class CodeParserProcessState<TTokenType extends string> {
     public getGraphBoundingToken(): [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
-
-        console.log(lCurrentGraphStack.token, this.mTokenCache.length,
-            this.mTokenCache.map((a)=>a?.value).join(', ')
-
-        )
 
         // Get start and end token from current graph stack.
         let lStartToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.start];

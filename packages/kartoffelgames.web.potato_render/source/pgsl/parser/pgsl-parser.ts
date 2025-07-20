@@ -66,7 +66,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
         // Define helper graphs.
-        this.defineCore();
+        const lCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs();
+
         this.defineExpression();
         this.defineModuleScope();
 
@@ -158,147 +159,137 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     /**
      * Define core graphs used by different scopes.
      */
-    private defineCore(): void {
+    private defineCoreGraphs(pExpressionGraphs: PgslParserExpressionGraphs): PgslParserCoreGraphs {
+        /** 
+         * Recursive list of expressions seperated with comma.
+         * ```
+         * - "<EXPRESSION>"
+         * - "<EXPRESSION>, <EXPRESSION>"
+         * - "<EXPRESSION>, <EXPRESSION>, <EXPRESSION>"
+         * ```
+         */
+        const lAttributeItemParameterList = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, { list: Array<BasePgslExpressionSyntaxTree>; }> = lAttributeItemParameterList;
 
-        this.defineGraphPart('General-AttributeList', this.graph()
-            .loop('list', this.graph()
-                .single(PgslToken.ListStart)
-                .single('name', PgslToken.Identifier)
-                .single(PgslToken.ParenthesesStart)
-                .optional('parameter', this.graph()
-                    .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                    .loop('additional', this.graph()
-                        .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                    )
-                )
-                .single(PgslToken.ParenthesesEnd)
-                .single(PgslToken.ListEnd)
-            ),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
-                // Create attribute list.
-                const lAttributeList: ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0] = new Array<{ name: string; parameter: Array<BasePgslExpressionSyntaxTree>; }>();
+            return GraphNode.new<PgslToken>()
+                .required('list[]', pExpressionGraphs.expression).optional('list<-list',
+                    GraphNode.new<PgslToken>().required(PgslToken.Comma).required('list<-list', lSelfReference)
+                );
+        });
 
-                // Add each attribute to list.
-                for (const lAttribute of pData.list) {
-                    // Build parameter list of attribute.
-                    const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
-                    if (lAttribute.parameter) {
-                        // Add attribute parameter to parameter list.
-                        lParameterList.push(lAttribute.parameter.first, ...lAttribute.parameter.additional.map((pParameter) => { return pParameter.expression; }));
-                    }
+        /**
+         * Single attribute item with optional parameter.
+         * ```
+         * - "[<IDENTIFIER>()]"
+         * - "[<IDENTIFIER>(<EXPRESSION_LIST>)]"
+         * ```
+         */
+        const lAttributeItemGraph = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.ListStart)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.ParenthesesStart)
+                .optional('parameter<-list', lAttributeItemParameterList)
+                .required(PgslToken.ParenthesesEnd)
+                .required(PgslToken.ListEnd);
+        });
 
-                    // Add each attribute with parameters.
-                    lAttributeList.push({
-                        name: lAttribute.name,
-                        parameter: lParameterList
-                    });
-                }
 
-                // Create attribute list syntax tree.
-                return new PgslAttributeListSyntaxTree(lAttributeList, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Attribute item list.
+         * ```
+         * - "<ATTRIBUTE_ITEM>"
+         * - "<ATTRIBUTE_ITEM><ATTRIBUTE_ITEM>"
+         * ```
+         */
+        const lAttributeListGraph = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0][number]>; }> = lAttributeListGraph;
 
-        this.defineGraphPart('General-TypeDeclaration', this.graph()
-            .optional('pointer', PgslToken.OperatorMultiply)
-            .single('name', PgslToken.Identifier)
-            .optional('templateList', this.graph()
-                .single(PgslToken.TemplateListStart)
-                .branch('first', [
-                    this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
-                    this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
-                ])
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma)
-                    .branch('value', [
-                        this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
-                        this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
-                    ])
-                )
-                .single(PgslToken.TemplateListEnd)
-            ),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
-                // Define root structure of type definition syntax tree structure data and apply type name.
-                const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = new Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>();
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lAttributeItemGraph).optional('list<-list', lSelfReference);
+        });
 
-                // Append optional template list.
-                if (pData.templateList) {
-                    // Build Parameter list
-                    lTemplateList.push(pData.templateList.first);
-                    lTemplateList.push(...pData.templateList.additional.map((pParameter) => { return pParameter.value; }));
+        /**
+         * Attribute list.
+         * Converts the internal attribute list into a {@link PgslAttributeListSyntaxTree}
+         */
+        const lAttributeListSyntaxTreeGraph = Graph.define(() => {
+            return GraphNode.new<PgslToken>().required('list<-list', lAttributeListGraph);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
+            // Create attribute list syntax tree.
+            return new PgslAttributeListSyntaxTree(pData.list, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                    // Sometimes a variable name expression is a type definition :(
-                    // So we need to filter it.
-                    for (let lIndex: number = 0; lIndex < lTemplateList.length; lIndex++) {
-                        const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lTemplateList[lIndex];
-                        if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
-                            // Replace variable name expression with type expression.
-                            if (this.nameIsType(lParameter.name)) {
-                                // Replace variable name with a type definition of the same name.
-                                lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
-                                    range: [
-                                        lParameter.meta.position.start.line,
-                                        lParameter.meta.position.start.column,
-                                        lParameter.meta.position.end.line,
-                                        lParameter.meta.position.end.column,
-                                    ]
-                                });
-                            }
-                        }
-                    }
-                }
+        /**
+         * Template list for a type declaration seperated by comma.
+         * ```
+         * - "<EXPRESSION|TYPE_DECLARATION>"
+         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
+         * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
+         * ```
+         */
+        const lTypeDeclarationTemplateListGraph = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, { list: Array<BasePgslExpressionSyntaxTree | BasePgslTypeDefinitionSyntaxTree>; }> = lTypeDeclarationTemplateListGraph;
 
-                // Create type definition syntax tree.
-                return this.mTypeFactory.generate(pData.name, !!pData.pointer, lTemplateList, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+            return GraphNode.new<PgslToken>()
+                .required('list[]', [
+                    pExpressionGraphs.expression,
+                    lTypeDeclarationSyntaxTreeGraph
+                ]).optional('list<-list',
+                    GraphNode.new<PgslToken>().required(PgslToken.Comma).required('list<-list', lSelfReference)
+                );
+        });
 
-        this.defineGraphPart('General-TypeDeclaration-ForcedTemplate', this.graph()
-            .optional('pointer', PgslToken.OperatorMultiply)
-            .single('name', PgslToken.Identifier)
-            .single('templateList', this.graph()
-                .single(PgslToken.TemplateListStart)
-                .branch('first', [
-                    this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
-                    this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
-                ])
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma)
-                    .branch('value', [
-                        this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
-                        this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
-                    ])
-                )
-                .single(PgslToken.TemplateListEnd)
-            ),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
-                // Build Parameter list
-                const lParameterList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = [pData.templateList.first, ...pData.templateList.additional.map((pParameter) => { return pParameter.value; })];
+        /**
+         * Type declaration with a optional pointer icon and optional type template list.
+         * ```
+         * - "<IDENTIFIER>"
+         * - "<IDENTIFIER><<TEMPLATE_LIST>>"
+         * - "*<IDENTIFIER>"
+         * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
+         * ```
+         */
+        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, BasePgslTypeDefinitionSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .optional('pointer', PgslToken.OperatorMultiply)
+                .required('name', PgslToken.Identifier)
+                .optional('templateList<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.TemplateListStart)
+                    .required('list<-list', lTypeDeclarationTemplateListGraph)
+                    .required(PgslToken.TemplateListEnd)
+                );
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
+            // Define root structure of type definition syntax tree structure data and apply type name.
+            const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = pData.templateList;
 
-                // Sometimes a variable name expression is a type definition :(
-                // So we need to filter it.
-                for (let lIndex: number = 0; lIndex < lParameterList.length; lIndex++) {
-                    const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
-                    if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
-                        // Replace variable name expression with type expression.
-                        if (this.nameIsType(lParameter.name)) {
-                            // Replace variable name with a type definition of the same name.
-                            lParameterList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
-                                range: [
-                                    lParameter.meta.position.start.line,
-                                    lParameter.meta.position.start.column,
-                                    lParameter.meta.position.end.line,
-                                    lParameter.meta.position.end.column,
-                                ]
-                            });
-                        }
+            // Sometimes a variable name expression is a type definition :(
+            // So we need to filter it.
+            for (let lIndex: number = 0; lIndex < lTemplateList.length; lIndex++) {
+                const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lTemplateList[lIndex];
+                if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
+                    // Replace variable name expression with type expression.
+                    if (this.nameIsType(lParameter.name)) {
+                        // Replace variable name with a type definition of the same name.
+                        lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.name, false, [], {
+                            range: [
+                                lParameter.meta.position.start.line,
+                                lParameter.meta.position.start.column,
+                                lParameter.meta.position.end.line,
+                                lParameter.meta.position.end.column,
+                            ]
+                        });
                     }
                 }
-
-                // Create type definition syntax tree.
-                return this.mTypeFactory.generate(pData.name, !!pData.pointer, lParameterList, this.createTokenBoundParameter(pStartToken, pEndToken));
             }
-        );
+            
+            // Create type definition syntax tree.
+            return this.mTypeFactory.generate(pData.name, !!pData.pointer, lTemplateList, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
+
+        return {
+            attributeList: lAttributeListSyntaxTreeGraph,
+            typeDeclaration: lTypeDeclarationSyntaxTreeGraph
+        };
     }
 
     /**
@@ -1050,3 +1041,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             this.mTypeFactory.structNames.has(pName);
     }
 }
+
+type PgslParserCoreGraphs = {
+    attributeList: Graph<PgslToken, object, PgslAttributeListSyntaxTree>;
+    typeDeclaration: Graph<PgslToken, object, BasePgslTypeDefinitionSyntaxTree>;
+};
+
+type PgslParserExpressionGraphs = {
+    expression: Graph<PgslToken, object, BasePgslExpressionSyntaxTree>;
+};

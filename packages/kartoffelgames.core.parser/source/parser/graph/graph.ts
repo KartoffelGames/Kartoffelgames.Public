@@ -1,3 +1,5 @@
+import { LexerToken } from "../../lexer/lexer-token.ts";
+import { CodeParserProcessState } from "../code-parser-process-state.ts";
 import type { GraphNode } from './graph-node.ts';
 
 /**
@@ -19,7 +21,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
         return new Graph(pNodeCollector);
     }
 
-    private readonly mDataConverterList: Array<GraphDataCollector>;
+    private readonly mDataConverterList: Array<GraphDataCollector<TTokenType>>;
     private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
 
@@ -44,7 +46,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      */
     private constructor(pGraph: GraphNodeCollector<TTokenType, TOriginalData>) {
         this.mGraphCollector = pGraph;
-        this.mDataConverterList = new Array<GraphDataCollector>();
+        this.mDataConverterList = new Array<GraphDataCollector<TTokenType>>();
         this.mResolvedGraphNode = null;
     }
 
@@ -55,22 +57,32 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * 
      * @returns Resolved data.
      */
-    public convert(pRawData: TOriginalData): TResultData | symbol {
+    public convert(pRawData: TOriginalData, pParsingProcessState: CodeParserProcessState<TTokenType>): TResultData | symbol {
         // No parser skip any converter.
-        if(this.mDataConverterList.length === 0) {
+        if (this.mDataConverterList.length === 0) {
             return pRawData as unknown as TResultData;
         }
 
+        // Get start and end token of graph.
+        let [pStartToken, pEndToken] = pParsingProcessState.getGraphBoundingToken();
+
+        // Fill in an empty token when no start or end token is provided.
+        // That can only happen when the graph is empty.
+        if(!pStartToken || !pEndToken) {
+            pStartToken = new LexerToken<TTokenType>('EMPTY_GRAPH_START' as TTokenType, 'EMPTY GRAPH START', 0, 0);
+            pEndToken = new LexerToken<TTokenType>('EMPTY_GRAPH_END' as TTokenType, 'EMPTY GRAPH END', 0, 0);
+        }
+
         // Single parser, skip iteration.
-        if(this.mDataConverterList.length === 1) {
-            return this.mDataConverterList[0](pRawData);
+        if (this.mDataConverterList.length === 1) {
+            return this.mDataConverterList[0](pRawData, pStartToken, pEndToken);
         }
 
         // Convert data with each added data converter.
         let lData: any = pRawData;
         for (const lDataConverter of this.mDataConverterList) {
             // Convert data and skip parsing when result is a symbol (error).
-            lData = lDataConverter(lData);
+            lData = lDataConverter(lData, pStartToken, pEndToken);
             if (typeof lData === 'symbol') {
                 return lData;
             }
@@ -85,7 +97,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * 
      * @param pConverter - Data converter
      */
-    public converter<TConvertedData>(pConverter: GraphDataCollector<TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
+    public converter<TConvertedData>(pConverter: GraphDataCollector<TTokenType, TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
         const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector);
 
         // Add all previous data converters and the new converter to the new graph.
@@ -96,6 +108,6 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
 }
 
 type GraphNodeCollector<TTokenType extends string = string, TResultData extends object = object> = () => GraphNode<TTokenType, TResultData>;
-type GraphDataCollector<TCurrentData = any, TResult = any> = (pRawData: TCurrentData) => TResult | symbol;
+type GraphDataCollector<TTokenType extends string, TCurrentData = any, TResult = any> = (pRawData: TCurrentData, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>) => TResult | symbol;
 
 export type GraphRef<TResultType> = Graph<string, any, TResultType>;

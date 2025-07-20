@@ -1,3 +1,4 @@
+import { LexerToken } from "@kartoffelgames/core-parser";
 import { expect } from '@kartoffelgames/core-test';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParserException } from '../source/parser/code-parser-exception.ts';
@@ -43,74 +44,6 @@ Deno.test('CodeParser.lexer', async (pContext) => {
 
         // Evaluation
         expect(lParser.lexer).toBe(lLexer);
-    });
-});
-
-Deno.test('CodeParser.debugMode', async (pContext) => {
-    await pContext.step('Should correctly set and get debugMode to true', () => {
-        // Setup
-        const lParser: CodeParser<string, any> = new CodeParser(new Lexer<string>());
-
-        // Process
-        lParser.debugMode = true;
-
-        // Evaluation
-        expect(lParser.debugMode).toBe(true);
-    });
-
-    await pContext.step('Should correctly set and get debugMode to false', () => {
-        // Setup
-        const lParser: CodeParser<string, any> = new CodeParser(new Lexer<string>());
-
-        // Process
-        lParser.debugMode = false;
-
-        // Evaluation
-        expect(lParser.debugMode).toBe(false);
-    });
-
-    await pContext.step('Should include a complete trace in the exception when debugMode is true', () => {
-        // Setup
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
-        lParser.debugMode = true;
-
-        // Define a graph that will fail
-        const lMainGraph = Graph.define(() => {
-            return GraphNode.new<TokenType>().optional(
-                GraphNode.new<TokenType>().required(TokenType.Modifier)
-            ).required(TokenType.Identifier).required(TokenType.Semicolon);
-        });
-        lParser.setRootGraph(lMainGraph);
-
-        // Process and evaluate
-        const lErrorFunction = () => {
-            lParser.parse('identifier');
-        };
-
-        const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
-        expect(lException).toBeInstanceOf(CodeParserException);
-        expect(lException.incidents).toHaveLength(2);
-    });
-
-    await pContext.step('Should not include a complete trace in the exception when debugMode is false', () => {
-        // Setup
-        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
-        lParser.debugMode = false;
-
-        // Define a graph that will fail
-        const lMainGraph = Graph.define(() => {
-            return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon);
-        });
-        lParser.setRootGraph(lMainGraph);
-
-        // Process and evaluate
-        const lErrorFunction = () => {
-            lParser.parse('const');
-        };
-
-        const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
-        expect(lException).toBeInstanceOf(CodeParserException);
-        expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
     });
 });
 
@@ -588,7 +521,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation. Loop chain twice as long as actual loop.
-            expect(lErrorFunction).toThrow('Unexpected end of statement. Token "Modifier" expected.');
+            expect(lErrorFunction).toThrow('Tokens could not be parsed. Graph end meet without reaching last token. Current: "const" (Modifier)');
         });
 
         await pContext.step('Required self reference fail when not on end of graph', () => {
@@ -872,7 +805,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             expect(lErrorFunction).toThrow(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "identifier" (${TokenType.Identifier})`);
         });
 
-        await pContext.step('Dublicate branchings paths takes the first', () => {
+        await pContext.step('Duplicate branchings paths takes the first', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lCodeText: string = 'const identifier;';
@@ -1173,7 +1106,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
     });
 
     await pContext.step('Identifier errors.', async (pContext) => {
-        await pContext.step('Graph has dublicate single value identifier', () => {
+        await pContext.step('Graph has duplicate single value identifier', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lMainGraph = Graph.define(() => {
@@ -1187,10 +1120,10 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "Something"`);
+            expect(lErrorFunction).toThrow(`Graph path has a duplicate value identifier "Something"`);
         });
 
-        await pContext.step('Graph has dublicate list value identifier. With existing single identifier.', () => {
+        await pContext.step('Graph has duplicate list value identifier. With existing single identifier.', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
             const lLoopGraph = Graph.define(() => {
@@ -1210,7 +1143,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).toThrow(`Graph path has a dublicate value identifier "something"`);
+            expect(lErrorFunction).toThrow(`Graph path has a duplicate value identifier "something"`);
         });
 
         await pContext.step('Not completing to end and failing on the first token.', () => {
@@ -1774,6 +1707,43 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             expect(lErrorFunction).toThrow(lErrorMessage);
         });
     });
+
+    await pContext.step('Token passthrough to converter', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
+
+        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+
+        const lInnerGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedInnerStartToken = pStartToken;
+            lReceivedInnerEndToken = pEndToken;
+            return pData;
+        });
+
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(lInnerGraph).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedMainStartToken = pStartToken;
+            lReceivedMainEndToken = pEndToken;
+            return pData;
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process.
+        lParser.parse(lCodeTextList.join(' '));
+
+        // Evaluation.
+        expect(lReceivedMainStartToken?.value).toBe('valOne');
+        expect(lReceivedInnerStartToken?.value).toBe('valTwo');
+        expect(lReceivedInnerEndToken?.value).toBe('valThree');
+        expect(lReceivedMainEndToken?.value).toBe('valFour');
+    });
 });
 
 Deno.test('CodeParser.setRootGraph()', async (pContext) => {
@@ -1788,6 +1758,204 @@ Deno.test('CodeParser.setRootGraph()', async (pContext) => {
 
         // Evaluation.
         lParser.setRootGraph(lMainGraph);
+    });
+});
+
+
+Deno.test('CodeParser.constructor()', async (pContext) => {
+    await pContext.step('Include a complete trace in the exception when debugMode is true', () => {
+        // Setup
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            keepTraceIncidents: true
+        });
+
+        // Define a graph that will fail
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional(
+                GraphNode.new<TokenType>().required(TokenType.Modifier)
+            ).required(TokenType.Identifier).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process and evaluate
+        const lErrorFunction = () => {
+            lParser.parse('identifier');
+        };
+
+        const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+        expect(lException).toBeInstanceOf(CodeParserException);
+        expect(lException.incidents).toHaveLength(2);
+    });
+
+    await pContext.step('Omit trace list in the exception when debugMode is false', () => {
+        // Setup
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            keepTraceIncidents: false
+        });
+
+        // Define a graph that will fail
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional(TokenType.Modifier).required(TokenType.Identifier).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process and evaluate
+        const lErrorFunction = () => {
+            lParser.parse('const');
+        };
+
+        const lException = (() => { try { lErrorFunction(); } catch (e) { return e; } return null; })() as CodeParserException<string>;
+        expect(lException).toBeInstanceOf(CodeParserException);
+        expect(() => lException.incidents).toThrow('A complete incident list is only available on debug mode.');
+    });
+
+    await pContext.step('Accurate token positions on trimTokenCache', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            trimTokenCache: false
+        });
+        const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
+
+        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+
+        const lInnerGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedInnerStartToken = pStartToken;
+            lReceivedInnerEndToken = pEndToken;
+            return pData;
+        });
+
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(lInnerGraph).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedMainStartToken = pStartToken;
+            lReceivedMainEndToken = pEndToken;
+            return pData;
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process.
+        lParser.parse(lCodeTextList.join(' '));
+
+        // Evaluation.
+        expect(lReceivedMainStartToken?.value).toBe(lCodeTextList[0]);
+        expect(lReceivedInnerStartToken?.value).toBe(lCodeTextList[1]);
+        expect(lReceivedInnerEndToken?.value).toBe(lCodeTextList[2]);
+        expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[3]);
+    });
+
+    await pContext.step('Inaccurate token positions on trimTokenCache', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            trimTokenCache: true
+        });
+        const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
+
+        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+
+        const lInnerGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedInnerStartToken = pStartToken;
+            lReceivedInnerEndToken = pEndToken;
+            return pData;
+        });
+
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(lInnerGraph).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedMainStartToken = pStartToken;
+            lReceivedMainEndToken = pEndToken;
+            return pData;
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process.
+        lParser.parse(lCodeTextList.join(' '));
+
+        // Evaluation.
+        expect(lReceivedMainStartToken?.value).toBe(lCodeTextList[3]);
+        expect(lReceivedInnerStartToken?.value).toBe(lCodeTextList[1]);
+        expect(lReceivedInnerEndToken?.value).toBe(lCodeTextList[2]);
+        expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[3]);
+    });
+
+    await pContext.step('Empty token positions on trimTokenCache graph own no node itself.', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            trimTokenCache: true
+        });
+        const lCodeTextList: Array<string> = ['valOne', 'valTwo'];
+
+        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required([
+                GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier)
+            ]);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedMainStartToken = pStartToken;
+            lReceivedMainEndToken = pEndToken;
+            return pData;
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process.
+        lParser.parse(lCodeTextList.join(' '));
+
+        // Evaluation.
+        expect(lReceivedMainStartToken?.type).toBe('EMPTY_GRAPH_START');
+        expect(lReceivedMainEndToken?.type).toBe('EMPTY_GRAPH_END');
+    });
+
+    await pContext.step('Accurate token positions on trimTokenCache when not linear.', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer(), {
+            trimTokenCache: true
+        });
+        const lCodeTextList: Array<string> = ['valOne', 'valTwo', 'valThree', 'valFour'];
+
+        let lReceivedMainStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedMainEndToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerStartToken: LexerToken<TokenType> | null = null as any;
+        let lReceivedInnerEndToken: LexerToken<TokenType> | null = null as any;
+
+        const lInnerGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required(TokenType.Identifier).required(TokenType.Identifier);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedInnerStartToken = pStartToken;
+            lReceivedInnerEndToken = pEndToken;
+            return pData;
+        });
+
+        const lMainGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required([
+                GraphNode.new<TokenType>().required(TokenType.Identifier).required(lInnerGraph).required(TokenType.Identifier),
+                TokenType.Custom
+            ]);
+        }).converter((pData, pStartToken, pEndToken) => {
+            lReceivedMainStartToken = pStartToken;
+            lReceivedMainEndToken = pEndToken;
+            return pData;
+        });
+        lParser.setRootGraph(lMainGraph);
+
+        // Process.
+        lParser.parse(lCodeTextList.join(' '));
+
+        // Evaluation.
+        expect(lReceivedMainStartToken?.value).toBe(lCodeTextList[0]);
+        expect(lReceivedInnerStartToken?.value).toBe(lCodeTextList[1]);
+        expect(lReceivedInnerEndToken?.value).toBe(lCodeTextList[2]);
+        expect(lReceivedMainEndToken?.value).toBe(lCodeTextList[3]);
     });
 });
 

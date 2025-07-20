@@ -13,6 +13,7 @@ export class CodeParserProcessState<TTokenType extends string> {
     private readonly mProcessStack: Stack<CodeParserProcessStackItem<TTokenType>>;
     private readonly mTokenCache: Array<LexerToken<TTokenType> | null>;
     private readonly mTokenGenerator: Generator<LexerToken<TTokenType>, any, any>;
+    private readonly mTrimTokenCache: boolean;
 
     /**
      * Get the current graph the cursor is in.
@@ -60,8 +61,10 @@ export class CodeParserProcessState<TTokenType extends string> {
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
+     * @param pKeepTraceIncidents - Keep a complete trace of incidents.
+     * @param pTrimTokenCache - Trim the token cache to keep memory usage low.
      */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pKeepTraceIncidents: boolean, pTrimTokenCache: boolean) {
         this.mTokenGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mLastTokenPosition = {
@@ -71,8 +74,11 @@ export class CodeParserProcessState<TTokenType extends string> {
         this.mTokenCache = new Array<LexerToken<TTokenType>>();
         this.mProcessStack = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
-        // Create trace.
-        this.mIncidentTrace = new CodeParserTrace<TTokenType>(pDebug);
+        // Set configuration.
+        this.mTrimTokenCache = pTrimTokenCache;
+
+        // Create trace object.
+        this.mIncidentTrace = new CodeParserTrace<TTokenType>(pKeepTraceIncidents);
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -98,9 +104,11 @@ export class CodeParserProcessState<TTokenType extends string> {
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
 
         // Copy all unused token of the current token cache. 
-        let lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor) as Array<LexerToken<TTokenType>>;
-        if (lUnusedToken[lUnusedToken.length - 1] === null) {
-            lUnusedToken = new Array<LexerToken<TTokenType>>();
+        const lUnusedToken: Array<LexerToken<TTokenType>> = this.mTokenCache.slice(lCurrentGraphStack.token.cursor) as Array<LexerToken<TTokenType>>;
+
+        // When the last token is the "end of token"-marker (null), remove it.
+        if (lUnusedToken.length !== 0 && lUnusedToken.at(-1) === null) {
+            lUnusedToken.pop();
         }
 
         // Generate all remaining tokens and cached unused tokens.
@@ -109,6 +117,34 @@ export class CodeParserProcessState<TTokenType extends string> {
         }
 
         return lUnusedToken;
+    }
+
+    /**
+     * Returns the start and end tokens that bound the current graph in the parser.
+     * 
+     * This method retrieves the first and last tokens associated with the current graph stack.
+     * If either the start or end token is not available, it defaults to the other token.
+     * If neither is available, both will be null.
+     * 
+     * @returns A tuple containing the start and end LexerToken objects (or null if not available).
+     */
+    public getGraphBoundingToken(): [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] {
+        // Get top graph.
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Get start and end token from current graph stack.
+        let lStartToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.start];
+        let lEndToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.cursor - 1];
+
+        // When either of the token is not set, assign the other token.
+        lStartToken ??= lEndToken;
+        lEndToken ??= lStartToken;
+
+        // Default to last generated token when token was not set.
+        return [
+            lStartToken ?? null,
+            lEndToken ?? null
+        ];
     }
 
     /**
@@ -139,11 +175,12 @@ export class CodeParserProcessState<TTokenType extends string> {
         lStartToken = this.mTokenCache[lCurrentGraphStack.token.start];
         lEndToken = this.mTokenCache[lCurrentGraphStack.token.cursor - 1];
 
-        // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? lEndToken;
-        lEndToken = lEndToken ?? lStartToken;
+        // When either of the token is not set, assign the other token.
+        lStartToken ??= lEndToken;
+        lEndToken ??= lStartToken;
 
-        // No start token means there is also no endtoken.
+        // One of them is not set at this point, none of them is set.
+        // So we can return the last token position.
         if (!lStartToken || !lEndToken) {
             return {
                 graph: lCurrentGraphStack.graph,
@@ -306,8 +343,15 @@ export class CodeParserProcessState<TTokenType extends string> {
             lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
 
-        // Truncate parent graphs token cache to the current token.
-        // So the token memory gets cleared from memory.
+        // When the token cache is not trimmed, we can just move the parent stack index to the last graphs stack index.
+        // This code is more of a clean cut for the set configuration and could be merged with the next code block.
+        if(!this.mTrimTokenCache){
+            // Move parent stack index to the last graphs stack index.
+            lParentGraphStack.token.cursor = lCurrentTokenStack.token.cursor;
+            return;
+        }
+
+        // Truncate parent graphs token cache to the current token so the used token gets cleared from memory.
         if (lCurrentTokenStack.linear) {
             // Reset parent index to zero.
             this.mTokenCache.splice(0, lCurrentTokenStack.token.cursor);

@@ -233,8 +233,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
         }
 
-        // deno-coverage-ignore-next
+        // deno-coverage-ignore
         throw new Exception(`Invalid node next parse state "${pCurrentProcess.state}".`, this);
+        // deno-coverage-ignore
     }
 
     /**
@@ -331,8 +332,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
         }
 
-        // deno-coverage-ignore-next
+        // deno-coverage-ignore
         throw new Exception(`Invalid graph parse state "${pCurrentProcess.state}".`, this);
+        // deno-coverage-ignore
     }
 
     /**
@@ -412,8 +414,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
         }
 
-        // deno-coverage-ignore-next
+        // deno-coverage-ignore
         throw new Exception(`Invalid node parse state "${pCurrentProcess.state}".`, this);
+        // deno-coverage-ignore
     }
 
     /**
@@ -552,8 +555,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
         }
 
-        // deno-coverage-ignore-next
+        // deno-coverage-ignore
         throw new Exception(`Invalid node value parse state "${pCurrentProcess.state}".`, this);
+        // deno-coverage-ignore
     }
 
     /**

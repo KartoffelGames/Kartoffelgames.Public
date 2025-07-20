@@ -31,9 +31,9 @@ export class CodeParserTrace<TTokenType extends string> {
     /**
      * Constructor.
      * 
-     * @param pDebug - Keeps a complete list of all incidents.
+     * @param pKeepTraceIncidents - Keep a complete list of all incidents.
      */
-    public constructor(pDebug: boolean) {
+    public constructor(pKeepTraceIncidents: boolean) {
         // Set a default top incident.
         this.mTop = {
             message: 'Unknown parser error',
@@ -48,7 +48,7 @@ export class CodeParserTrace<TTokenType extends string> {
             cause: null
         };
 
-        if (pDebug) {
+        if (pKeepTraceIncidents) {
             this.mIncidents = new Array<CodeParserTraceIncident<TTokenType>>();
         } else {
             this.mIncidents = null;

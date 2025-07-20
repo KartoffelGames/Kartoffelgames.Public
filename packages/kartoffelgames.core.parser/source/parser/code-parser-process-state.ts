@@ -60,8 +60,9 @@ export class CodeParserProcessState<TTokenType extends string> {
      * Constructor.
      * 
      * @param pLexerGenerator - A generator that produces LexerToken objects of the specified token type.
+     * @param pKeepTraceIncidents - Keep a complete trace of incidents.
      */
-    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pDebug: boolean) {
+    public constructor(pLexerGenerator: Generator<LexerToken<TTokenType>, any, any>, pKeepTraceIncidents: boolean) {
         this.mTokenGenerator = pLexerGenerator;
         this.mGraphStack = new Stack<CodeParserCursorGraph<TTokenType>>();
         this.mLastTokenPosition = {
@@ -72,7 +73,7 @@ export class CodeParserProcessState<TTokenType extends string> {
         this.mProcessStack = new Stack<CodeParserProcessStackItem<TTokenType>>();
 
         // Create trace.
-        this.mIncidentTrace = new CodeParserTrace<TTokenType>(pDebug);
+        this.mIncidentTrace = new CodeParserTrace<TTokenType>(pKeepTraceIncidents);
 
         // Push a placeholder root graph on the stack.
         this.mGraphStack.push({
@@ -123,6 +124,11 @@ export class CodeParserProcessState<TTokenType extends string> {
     public getGraphBoundingToken(): [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] {
         // Get top graph.
         const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        console.log(lCurrentGraphStack.token, this.mTokenCache.length,
+            this.mTokenCache.map((a)=>a?.value).join(', ')
+
+        )
 
         // Get start and end token from current graph stack.
         let lStartToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.start];
@@ -334,6 +340,8 @@ export class CodeParserProcessState<TTokenType extends string> {
         if (lCurrentTokenStack.token.cursor !== lCurrentTokenStack.token.start && lParentGraphStack.circularGraphs.size > 0) {
             lParentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
         }
+
+        // TODO: Dont slice on debug state.
 
         // Truncate parent graphs token cache to the current token.
         // So the token memory gets cleared from memory.

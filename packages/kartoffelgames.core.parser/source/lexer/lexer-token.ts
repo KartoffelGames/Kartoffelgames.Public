@@ -51,7 +51,7 @@ export class LexerToken<TTokenType extends string> {
 
     /**
      * Add a meta value to this token.
-     * Dublicate metas are overriden.
+     * Duplicate metas are overriden.
      * 
      * @param pMetaList - Meta values of token.
      */

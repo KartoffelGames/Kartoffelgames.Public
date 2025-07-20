@@ -20,18 +20,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     public static readonly NODE_NULL_RESULT: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
     public static readonly NODE_VALUE_LIST_END_MEET: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
 
-    private mDebugMode: boolean;
+    private mConfiguration: Required<CodeParserConfiguration>;
     private readonly mLexer: Lexer<TTokenType>;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
-
-    /**
-     * Get debug mode.
-     */
-    public get debugMode(): boolean {
-        return this.mDebugMode;
-    } set debugMode(pValue: boolean) {
-        this.mDebugMode = pValue;
-    }
 
     /**
      * Get lexer.
@@ -45,10 +36,16 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @param pLexer - Token lexer.
      */
-    public constructor(pLexer: Lexer<TTokenType>) {
+    public constructor(pLexer: Lexer<TTokenType>, pConfiguration?: CodeParserConfiguration) {
         this.mLexer = pLexer;
         this.mRootPart = null;
-        this.mDebugMode = false;
+
+        // Set configuration.
+        this.mConfiguration = {
+            keepTraceIncidents: false,
+            trimTokenCache: false,
+            ...pConfiguration
+        };
     }
 
     /**
@@ -71,7 +68,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Create a parser state for the code text.
-        const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(this.mLexer.tokenize(pCodeText, pProgressTracker), this.mDebugMode);
+        const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(
+            this.mLexer.tokenize(pCodeText, pProgressTracker),
+            this.mConfiguration.keepTraceIncidents
+        );
 
         // Parse root graph part.
         const lRootParseData: unknown | CodeParserErrorSymbol = (() => {
@@ -599,3 +599,23 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 type CodeParserNodeNullResult = typeof CodeParser.NODE_NULL_RESULT;
 
 export type CodeParserProgressTracker = (pPosition: number, pLine: number, pColumn: number) => void;
+
+export type CodeParserConfiguration = {
+    /**
+     * Keep a list of parsing incidents of every parsing branch.
+     * Uses more memory, but allows to keep track of parsing errors.
+     * 
+     * Default: false
+     */
+    keepTraceIncidents?: boolean;
+
+    /**
+     * When true, the parser will trim the current token cache when a static branch was parsed.
+     * This is useful to reduce memory usage when parsing large texts without complex structures like xml.
+     * 
+     * Enabling will reduce the accuracy of the current token positions.
+     * 
+     * Default: false
+     */
+    trimTokenCache?: boolean;
+};

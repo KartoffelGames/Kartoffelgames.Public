@@ -136,7 +136,7 @@ export class Lexer<TTokenType extends string> {
 
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
-            // Create flag set and add sticky. Set removes all dublicate flags.
+            // Create flag set and add sticky. Set removes all duplicate flags.
             const lFlags: Set<string> = new Set(pRegex.flags.split(''));
 
             // Create pattern with same flags and added default group.

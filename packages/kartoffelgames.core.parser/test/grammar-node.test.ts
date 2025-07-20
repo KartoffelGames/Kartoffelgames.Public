@@ -229,7 +229,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
         };
 
         // Evaluation.
-        expect(lFailFunction).toThrow(`Graph path has a dublicate value identifier "${lPrimaryKey}"`);
+        expect(lFailFunction).toThrow(`Graph path has a duplicate value identifier "${lPrimaryKey}"`);
     });
 
     await pContext.step('Array key no merge, primitive value', () => {

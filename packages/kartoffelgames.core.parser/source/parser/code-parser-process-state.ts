@@ -112,6 +112,34 @@ export class CodeParserProcessState<TTokenType extends string> {
     }
 
     /**
+     * Returns the start and end tokens that bound the current graph in the parser.
+     * 
+     * This method retrieves the first and last tokens associated with the current graph stack.
+     * If either the start or end token is not available, it defaults to the other token.
+     * If neither is available, both will be null.
+     * 
+     * @returns A tuple containing the start and end LexerToken objects (or null if not available).
+     */
+    public getGraphBoundingToken(): [LexerToken<TTokenType> | null, LexerToken<TTokenType> | null] {
+        // Get top graph.
+        const lCurrentGraphStack: CodeParserCursorGraph<TTokenType> = this.mGraphStack.top!;
+
+        // Get start and end token from current graph stack.
+        let lStartToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.start];
+        let lEndToken: LexerToken<TTokenType> | null = this.mTokenCache[lCurrentGraphStack.token.cursor - 1];
+
+        // When either of the token is not set, assign the other token.
+        lStartToken ??= lEndToken;
+        lEndToken ??= lStartToken;
+
+        // Default to last generated token when token was not set.
+        return [
+            lStartToken ?? null,
+            lEndToken ?? null
+        ];
+    }
+
+    /**
      * Retrieves the current position of the parser cursor within the code graph.
      *
      * This method calculates the start and end positions (line and column) of the current token
@@ -139,11 +167,12 @@ export class CodeParserProcessState<TTokenType extends string> {
         lStartToken = this.mTokenCache[lCurrentGraphStack.token.start];
         lEndToken = this.mTokenCache[lCurrentGraphStack.token.cursor - 1];
 
-        // Default to last generated token when token was not set.
-        lStartToken = lStartToken ?? lEndToken;
-        lEndToken = lEndToken ?? lStartToken;
+        // When either of the token is not set, assign the other token.
+        lStartToken ??= lEndToken;
+        lEndToken ??= lStartToken;
 
-        // No start token means there is also no endtoken.
+        // One of them is not set at this point, none of them is set.
+        // So we can return the last token position.
         if (!lStartToken || !lEndToken) {
             return {
                 graph: lCurrentGraphStack.graph,

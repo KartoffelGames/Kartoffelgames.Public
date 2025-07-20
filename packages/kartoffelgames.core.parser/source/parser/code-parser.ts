@@ -303,7 +303,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // Try to convert data.
-                const lConvertedData: object | symbol = lGraph.convert(lNodeParseResult);
+                const lConvertedData: object | symbol = lGraph.convert(lNodeParseResult, pParsingProcessState);
                 if (typeof lConvertedData === 'symbol') {
                     // Read the current graph position.
                     const lGraphPosition: CodeParserProcessCursorPosition<TTokenType> = pParsingProcessState.getGraphPosition();

@@ -48,6 +48,7 @@ export class CodeParserTrace<TTokenType extends string> {
             cause: null
         };
 
+        // Create a incident list when debug mode is enabled.
         if (pKeepTraceIncidents) {
             this.mIncidents = new Array<CodeParserTraceIncident<TTokenType>>();
         } else {

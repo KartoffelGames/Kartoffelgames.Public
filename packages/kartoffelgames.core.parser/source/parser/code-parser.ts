@@ -43,7 +43,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Set configuration.
         this.mConfiguration = {
             keepTraceIncidents: false,
-            trimTokenCache: false,
+            trimTokenCache: true, // TODO: Make to false
             ...pConfiguration
         };
     }
@@ -70,7 +70,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Create a parser state for the code text.
         const lParseProcessState: CodeParserProcessState<TTokenType> = new CodeParserProcessState<TTokenType>(
             this.mLexer.tokenize(pCodeText, pProgressTracker),
-            this.mConfiguration.keepTraceIncidents
+            this.mConfiguration.keepTraceIncidents,
+            this.mConfiguration.trimTokenCache
         );
 
         // Parse root graph part.
@@ -604,6 +605,7 @@ export type CodeParserConfiguration = {
     /**
      * Keep a list of parsing incidents of every parsing branch.
      * Uses more memory, but allows to keep track of parsing errors.
+     * More of a debugging feature.
      * 
      * Default: false
      */
@@ -613,7 +615,7 @@ export type CodeParserConfiguration = {
      * When true, the parser will trim the current token cache when a static branch was parsed.
      * This is useful to reduce memory usage when parsing large texts without complex structures like xml.
      * 
-     * Enabling will reduce the accuracy of the current token positions.
+     * Enabling will reduce the accuracy of the current token positions in graph converter and related functions,
      * 
      * Default: false
      */

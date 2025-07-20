@@ -74,9 +74,9 @@ export class MyersDiff<TA, TB> {
             }
         }
 
-        // Empty array for typescript. This area is never reached.
-        // deno-coverage-ignore-next
+        // deno-coverage-ignore Empty array for typescript. This area is never reached.
         return new Array<HistoryItem<TA, TB>>();
+        // deno-coverage-ignore
     }
 }
 

@@ -138,7 +138,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         if (!this.mIdentifier.isList) {
             // Throw when key already exists in chain data.
             if (this.mIdentifier.dataKey in pChainData) {
-                throw new Exception(`Graph path has a dublicate value identifier "${this.mIdentifier.dataKey}"`, this);
+                throw new Exception(`Graph path has a duplicate value identifier "${this.mIdentifier.dataKey}"`, this);
             }
 
             // Skip adding node data when it is not set.

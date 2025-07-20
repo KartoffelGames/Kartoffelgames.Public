@@ -16,19 +16,19 @@ import type { ICloneable } from '../interface/i-cloneable.ts';
 export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements ICloneable<Dictionary<TKey, TValue>>{
     /**
      * Add value and key to dictionary. 
-     * Throws {@link Exception}  for any added dublicate key. 
+     * Throws {@link Exception}  for any added duplicate key. 
      * 
      * @param pKey - Key of item.
      * @param pValue - value of item.
      * 
      * @throws
-     * On any dublicate key set,
+     * On any duplicate key set,
      * 
      * @example Adding a new and existing key.
      * ```TypeScript
      * const dictionary = new Dictionary<string, number>();
      * dictionary.add('a', 4); // => OK
-     * dictionary.add('a', 4); // => Fail: Dublicate key.
+     * dictionary.add('a', 4); // => Fail: Duplicate key.
      * ```
      */
     public add(pKey: TKey, pValue: TValue): void {
@@ -36,7 +36,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
         if (!this.has(pKey)) {
             this.set(pKey, pValue);
         } else {
-            throw new Exception("Can't add dublicate key to dictionary.", this);
+            throw new Exception("Can't add duplicate key to dictionary.", this);
         }
     }
 

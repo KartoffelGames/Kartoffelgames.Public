@@ -69,10 +69,10 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns new list instance with only distinct values.
      * 
-     * @example Create a new list with dublicates and create a new distinct list out of it.
+     * @example Create a new list with duplicates and create a new distinct list out of it.
      * ```TypeScript
-     * const listWithDublicates = List.newListWith<number>(1, 1, 2, 3, 3);
-     * const distinctList = listWithDublicates.distinct(); // => [1, 2, 3]
+     * const listWithDuplicates = List.newListWith<number>(1, 1, 2, 3, 3);
+     * const distinctList = listWithDuplicates.distinct(); // => [1, 2, 3]
      * ```
      */
     public distinct(): List<T> {

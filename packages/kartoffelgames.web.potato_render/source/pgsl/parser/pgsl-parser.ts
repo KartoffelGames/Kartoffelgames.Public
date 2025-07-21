@@ -68,10 +68,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // Define helper graphs.
         const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs(lCoreGraphs);
         const lCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
+        const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lExpressionGraphs);
 
+        
         this.defineModuleScope();
 
-        this.defineFunctionScope();
+        
 
         // Set root.
         this.defineRoot();
@@ -176,7 +178,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .required(PgslToken.ParenthesesEnd)
                 .required(PgslToken.ListEnd);
         });
-
 
         /**
          * Attribute item list.
@@ -617,38 +618,74 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     /**
      * Define all statements and flows used inside function scope.
      */
-    private defineFunctionScope(): void {
+    private defineStatementGraphs(pExpressionGraphs: PgslParserExpressionGraphs): PgslParserStatementGraphs {
+        /**
+         * If statement graph. wrapped expression with an block expression 
+         * and optional self chaining with else.
+         * ```
+         * - "if(<EXPRESSION>)<BLOCK>"
+         * - "if(<EXPRESSION>)<BLOCK> else <BLOCK>"
+         * - "if(<EXPRESSION>)<BLOCK> else <SELF>"
+         * ```
+         */
+        const lIfStatementGraph = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, PgslIfStatementSyntaxTree> = lIfStatementGraph;
 
-        this.defineGraphPart('Statement-If', this.graph()
-            .single(PgslToken.KeywordIf)
-            .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            .optional('else', this.graph()
-                .single(PgslToken.KeywordElse)
-                .branch('block', [
-                    this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'),
-                    this.partReference<PgslIfStatementSyntaxTree>('Statement-If')
-                ])
-            ),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
-                // Create data.
-                const lData: ConstructorParameters<typeof PgslIfStatementSyntaxTree>[0] = {
-                    expression: pData.expression,
-                    block: pData.block,
-                    else: null
-                };
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordIf)
+                .required(PgslToken.ParenthesesStart)
+                .required('expression', pExpressionGraphs.expression)
+                .required(PgslToken.ParenthesesEnd)
+                .required('block', lBlockStatementGraph)
+                .optional('elseBlock<-block', GraphNode.new<PgslToken>()
+                    .required(PgslToken.KeywordElse)
+                    .required('block', [
+                        lBlockStatementGraph,
+                        lSelfReference
+                    ])
+                );
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
+            // Create data.
+            const lData: ConstructorParameters<typeof PgslIfStatementSyntaxTree>[0] = {
+                expression: pData.expression,
+                block: pData.block,
+                else: pData.elseBlock ?? null
+            };
 
-                // Optional else block.
-                if (pData.else) {
-                    lData.else = pData.else.block;
-                }
+            // Create if statement syntax tree.
+            return new PgslIfStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                // Create if statement syntax tree.
-                return new PgslIfStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * List of statements graph.
+         * ```
+         * - "<STATEMENT>"
+         * - "<STATEMENT><STATEMENT>"
+         * - "<STATEMENT><STATEMENT><STATEMENT>"
+         * ```
+         */
+        const lStatementListGraph = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, { list: Array<BasePgslStatementSyntaxTree>; }> = lStatementListGraph;
+
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lStatementSyntaxTreeGraph).optional('list<-list', lSelfReference);
+        });
+
+        /**
+         * Block statement graph. Optional list of statements wrapped with clamps.
+         * ```
+         * - "{}"
+         * - "{<STATEMENT_LIST>}"
+         * ```
+         */
+        const lBlockStatementGraph: Graph<PgslToken, object, PgslBlockStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.BlockStart)
+                .optional('statements<-list', lStatementListGraph)
+                .required(PgslToken.BlockEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
+            return new PgslBlockStatementSyntaxTree(pData.statements, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
         this.defineGraphPart('Statement-Switch', this.graph()
             .single(PgslToken.KeywordSwitch)
@@ -881,36 +918,35 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('Statement-Block', this.graph()
-            .single(PgslToken.BlockStart)
-            .loop('statements', this.partReference<BasePgslStatementSyntaxTree>('Statement'))
-            .single(PgslToken.BlockEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
-                return new PgslBlockStatementSyntaxTree(pData.statements, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Statement graph. 
+         * Bundles the different statements into a single graph.
+         */
+        const lStatementSyntaxTreeGraph: Graph<PgslToken, object, BasePgslStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('statement<-statement', [
+                    GraphNode.new<PgslToken>().required('statement', lIfStatementGraph),
+                    GraphNode.new<PgslToken>().required('statement', lSwitchStatementGraph),
+                    GraphNode.new<PgslToken>().required('statement', lForStatementGraph),
+                    GraphNode.new<PgslToken>().required('statement', lWhileStatementGraph),
+                    GraphNode.new<PgslToken>().required('statement', lDoWhileStatementGraph),
+                    GraphNode.new<PgslToken>().required('statement', lBreakStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lContinueStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lDiscardStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lReturnStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lVariableDeclarationStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lAssignmentStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lIncrementDecrementStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lFunctionCallStatementGraph).required(PgslToken.Semicolon),
+                    GraphNode.new<PgslToken>().required('statement', lBlockStatementGraph)
+                ]);
+        }).converter((pData): BasePgslStatementSyntaxTree => {
+            return pData.statement;
+        });
 
-        this.defineGraphPart('Statement', this.graph()
-            .branch('item', [
-                this.graph().single('statement', this.partReference<PgslIfStatementSyntaxTree>('Statement-If')),
-                this.graph().single('statement', this.partReference<PgslSwitchStatementSyntaxTree>('Statement-Switch')),
-                this.graph().single('statement', this.partReference<PgslForStatementSyntaxTree>('Statement-For')),
-                this.graph().single('statement', this.partReference<PgslWhileStatementSyntaxTree>('Statement-While')),
-                this.graph().single('statement', this.partReference<PgslDoWhileStatementSyntaxTree>('Statement-DoWhile')),
-                this.graph().single('statement', this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall')).single(PgslToken.Semicolon),
-                this.graph().single('statement', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            ]),
-            (pData): BasePgslStatementSyntaxTree => {
-                return pData.item.statement;
-            }
-        );
+        return {
+            statement: lStatementSyntaxTreeGraph
+        };
     }
 
     /**
@@ -1138,4 +1174,8 @@ type PgslParserExpressionGraphs = {
     expressionList: Graph<PgslToken, object, {
         list: Array<BasePgslExpressionSyntaxTree>;
     }>;
+};
+
+type PgslParserStatementGraphs = {
+    statement: Graph<PgslToken, object, BasePgslStatementSyntaxTree>;
 };

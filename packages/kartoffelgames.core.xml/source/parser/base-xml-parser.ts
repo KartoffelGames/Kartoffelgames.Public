@@ -294,8 +294,10 @@ export abstract class BaseXmlParser {
             lElement.namespacePrefix = pData.openingNamespace?.name ?? null;
 
             // Add attributes.
-            for (const lAttribute of pData.attributes) {
-                lElement.setAttribute(lAttribute.name, lAttribute.value, lAttribute.namespacePrefix);
+            if (pData.attributes) {
+                for (const lAttribute of pData.attributes) {
+                    lElement.setAttribute(lAttribute.name, lAttribute.value, lAttribute.namespacePrefix);
+                }
             }
 
             // Add content values.

@@ -37,7 +37,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
     public get configuration(): GraphNodeConfiguration {
         return {
             dataKey: this.mIdentifier.dataKey,
-            isList: this.mIdentifier.isList,
+            isList: this.mIdentifier.type === 'list',
             isRequired: this.mConnections.required,
             isBranch: this.mConnections.values.length > 1
         };
@@ -71,26 +71,28 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         // Split idenfifier into {empty: boolean, key: string, list: boolean, mergeKey: string}
         if (pIdentifier === '') {
             this.mIdentifier = {
-                dataKey: '', isList: false, mergeKey: '',
-                omitData: true
+                type: 'empty',
+                dataKey: '',
+                mergeKey: '',
             };
         } else if (pIdentifier.endsWith('[]')) {
             this.mIdentifier = {
-                omitData: false, isList: true, mergeKey: '',
+                type: 'list',
+                mergeKey: '',
                 dataKey: pIdentifier.substring(0, pIdentifier.length - 2), // Remove [] from key.
             };
         } else if (pIdentifier.includes('<-')) {
             const lSplit: Array<string> = pIdentifier.split('<-');
             this.mIdentifier = {
-                omitData: false,
-                isList: true,
+                type: 'merge',
                 dataKey: lSplit[0],
                 mergeKey: lSplit[1]
             };
         }
         else {
             this.mIdentifier = {
-                omitData: false, isList: false, mergeKey: '',
+                type: 'single',
+                mergeKey: '',
                 dataKey: pIdentifier
             };
         }
@@ -130,77 +132,130 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
      */
     public mergeData(pNodeData: unknown | undefined, pChainData: object): TResultData {
         // Nothing to do on empty nodes.
-        if (this.mIdentifier.omitData) {
+        if (this.mIdentifier.type === 'empty') {
             return pChainData as TResultData;
         }
 
-        // Merge as single key. Single keys are never merge keys
-        if (!this.mIdentifier.isList) {
+        // Type parse and checks to clean up code.
+        const lOpenChainData: Record<string, unknown> = pChainData as Record<string, unknown>;
+        const lIsNodeDataEmpty = typeof pNodeData === 'undefined';
+
+        // Merge as single key.
+        if (this.mIdentifier.type === 'single') {
             // Throw when key already exists in chain data.
             if (this.mIdentifier.dataKey in pChainData) {
                 throw new Exception(`Graph path has a duplicate value identifier "${this.mIdentifier.dataKey}"`, this);
             }
 
             // Skip adding node data when it is not set.
-            if (typeof pNodeData === 'undefined') {
+            if (lIsNodeDataEmpty) {
                 return pChainData as TResultData;
             }
 
             // Merge as single key.
-            (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = pNodeData;
+            lOpenChainData[this.mIdentifier.dataKey] = pNodeData;
 
             return pChainData as TResultData;
         }
 
-        // Data that should be merged into the chain data.
-        const lNodeData: unknown = (() => {
-            // Node is optional and data is undefined, node data is a empty array.
-            if (!this.mConnections.required && typeof pNodeData === 'undefined') {
-                return new Array<unknown>();
+        // Create list data of single data, merge single data into
+        if (this.mIdentifier.type === 'list') {
+            // Type list allways create an array.
+            let lNodeData: Array<unknown>;
+            if (lIsNodeDataEmpty) {
+                lNodeData = new Array<unknown>();
+            } else if (Array.isArray(pNodeData)) {
+                lNodeData = pNodeData;
+            } else {
+                lNodeData = [pNodeData];
             }
 
-            // Merge with merge key.
-            if (this.mIdentifier.mergeKey) {
-                // Node data must be an object
-                if (typeof pNodeData !== 'object' || pNodeData === null) {
-                    throw new Exception('Node data must be an object when merge key is set.', this);
+            const lMergedData: Array<unknown> = (() => {
+                // If a list data already exists in the chain data, merge the node data into the existing list.
+                if (this.mIdentifier.dataKey in pChainData) {
+                    // Read the chain data.
+                    const lChainData: unknown = lOpenChainData[this.mIdentifier.dataKey];
+
+                    // When chain data is not a array add it as an item to the node data. 
+                    if (!Array.isArray(lChainData)) {
+                        lNodeData.push(lChainData);
+                        return lNodeData;
+                    }
+
+                    // When chain data is a array. Merge the node data in it and resolve.
+                    lChainData.unshift(...lNodeData);
+                    return lChainData;
                 }
 
-                // Chain data must contain the merge key.
-                if (!(this.mIdentifier.mergeKey in pNodeData)) {
-                    throw new Exception(`Node data does not contain merge key "${this.mIdentifier.mergeKey}"`, this);
-                }
+                return lNodeData;
+            })();
 
-                // Read value from node data.
-                return (<Record<string, unknown>>pNodeData)[this.mIdentifier.mergeKey];
-            }
+            // Set data into chain data.
+            lOpenChainData[this.mIdentifier.dataKey] = lMergedData;
 
-            // Node data is the value.
-            return pNodeData;
-        })();
+            // Return result.
+            return pChainData as TResultData;
+        }
+
+        // Only one left ist merge.
+
+        // Node is optional and data is undefined, node data is a empty array.
+        if (lIsNodeDataEmpty) {
+            return pChainData as TResultData;
+        }
 
         // Merge as list.
+        // - NodeData:undefined && ChainData:any       => No merge
+        // - NodeData:any       && ChainData:undefined => No Merge. Just insert data into chain data.
+        // - NodeData:primitive && ChainData:array     => Merge NodeData into ChainData-Array
+        // - NodeData:array     && ChainData:array     => Merge NodeData-ArrayItems into ChainData-Array
+        // - NodeData:primitive && ChainData:primitive => ERROR (Handled by type "single")
+        // - NodeData:array     && ChainData:primitive => ERROR
+
+        // Data that should be merged into the chain data.
+        const lMergePickedNodeData: unknown = (() => {
+            if (!this.mIdentifier.mergeKey) {
+                throw new Exception('Cant merge data without a merge key.', this);
+            }
+
+            // Node data must be an object
+            if (typeof pNodeData !== 'object' || pNodeData === null) {
+                throw new Exception('Node data must be an object when merge key is set.', this);
+            }
+
+            // Chain data must contain the merge key.
+            if (!(this.mIdentifier.mergeKey in pNodeData)) {
+                throw new Exception(`Node data does not contain merge key "${this.mIdentifier.mergeKey}"`, this);
+            }
+
+            // Read value from node data.
+            return (<Record<string, unknown>>pNodeData)[this.mIdentifier.mergeKey];
+        })();
+
+        // NodeData:undefined && ChainData:any => No merge
+        if (typeof lMergePickedNodeData === undefined) {
+            return pChainData as TResultData;
+        }
 
         // Read value from chain data.
-        let lChainMergeValue: unknown = (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey];
-        const lChainMergeValueIsArray: boolean = Array.isArray(lChainMergeValue);
+        const lChainMergeValue: unknown = lOpenChainData[this.mIdentifier.dataKey];
 
-        // Throw when chain merge value exists but is not an array.
-        if (typeof lChainMergeValue !== 'undefined' && !lChainMergeValueIsArray) {
+        // NodeData any && ChainData undefined => No Merge. Just insert data into chain data.
+        if(typeof lChainMergeValue === 'undefined'){
+            lOpenChainData[this.mIdentifier.dataKey] = lMergePickedNodeData;
+            return lOpenChainData as TResultData;
+        }
+
+        // NodeData:array && ChainData:primitive => ERROR: 
+        if(!Array.isArray(lChainMergeValue)){
             throw new Exception(`Chain data merge value is not an array but should be.`, this);
         }
 
-        // Create and add new array when is does not already exists in the chain data.
-        if (!lChainMergeValueIsArray) {
-            lChainMergeValue = new Array<unknown>();
-            (<Record<string, unknown>>pChainData)[this.mIdentifier.dataKey] = lChainMergeValue;
-        }
-
         // Merge node and chain data. must be pushed in reversed order to represent the bottom up approach.
-        if (Array.isArray(lNodeData)) {
-            (<Array<unknown>>lChainMergeValue).unshift(...lNodeData);
+        if (Array.isArray(lMergePickedNodeData)) {
+            (<Array<unknown>>lChainMergeValue).unshift(...lMergePickedNodeData);
         } else {
-            (<Array<unknown>>lChainMergeValue).unshift(lNodeData);
+            (<Array<unknown>>lChainMergeValue).unshift(lMergePickedNodeData);
         }
 
         return pChainData as TResultData;
@@ -443,9 +498,8 @@ type GraphNodeConfiguration = {
 };
 
 type GraphNodeIdentifier = {
-    omitData: boolean;
+    type: 'empty' | 'list' | 'merge' | 'single';
     dataKey: string;
-    isList: boolean;
     mergeKey: string;
 };
 
@@ -505,7 +559,6 @@ type OptionalChainResult<TTokenType extends string, TCurrentResult extends objec
         ) :
         TCurrentResult extends { [x in TPropertyKey]: any } ? unknown : // Should not have the key. 
         TValue extends GraphNodeValue<TTokenType, infer TNodeResultValue> ? (
-            TNodeResultValue extends { [x in TMergeKey]: Array<infer TMergeValue> } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]: Array<TMergeValue> }>> :
             TNodeResultValue extends { [x in TMergeKey]: infer TMergeValue } ? GraphNode<TTokenType, MergeObjects<TCurrentResult, { [x in TPropertyKey]?: TMergeValue }>> :
             unknown
         ) :

@@ -291,22 +291,19 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
     await pContext.step('Array key with merge, array value', () => {
         // Setup.
         const lPrimaryKey: string = 'Value';
-        const lPreValue: string = 'Prevalue';
-        const lChainValue: { [key: string]: any, pre: number; } = { pre: 12, [lPrimaryKey]: [lPreValue] };
+        const lValueList: Array<string> = ['PrimitiveValue1', 'PrimitiveValue2', 'PrimitiveValue3'];
+        const lChainValue: { [key: string]: any, pre: number; } = { pre: 12, [lPrimaryKey]: [lValueList[2]] };
         const lRequiredNode: GraphNode<string> = GraphNode.new().required(`${lPrimaryKey}[]`, 'sometoken');
-        const lValue: any = ['PrimitiveValue1', 'PrimitiveValue2'];
-
+        
         // Process.
-        const lResultData: any = lRequiredNode.mergeData(lValue, lChainValue);
+        const lResultData: any = lRequiredNode.mergeData(lValueList.slice(0,2), lChainValue);
 
         // Evaluation.
         expect(lResultData).toHaveProperty('pre');
         expect(lResultData.pre).toBe(lChainValue.pre);
         expect(lResultData).toHaveProperty(lPrimaryKey);
-        expect(lResultData[lPrimaryKey]).toHaveLength(3);
-        expect(lResultData[lPrimaryKey][0]).toBe(lValue[0]);
-        expect(lResultData[lPrimaryKey][1]).toBe(lValue[1]);
-        expect(lResultData[lPrimaryKey][2]).toBe(lPreValue);
+        expect(lResultData[lPrimaryKey]).toHaveLength(lValueList.length);
+        expect(lResultData[lPrimaryKey]).toEqual(lValueList)
     });
 
     await pContext.step('Array key with merge, reference value', () => {
@@ -332,16 +329,18 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
     await pContext.step('Merge key existing key not array.', () => {
         // Setup.
         const lPrimaryKey: string = 'Value';
-        const lChainValue: { [key: string]: any, pre: number; } = { pre: 12, [lPrimaryKey]: 'NOT_AN_ARRAY' };
+        const lPossibleResultValue: Array<string> = ['PrimitiveValue', 'NOT_AN_ARRAY']
+        const lChainValue: { [key: string]: any, pre: number; } = { pre: 12, [lPrimaryKey]: lPossibleResultValue[1] };
         const lRequiredNode: GraphNode<string> = GraphNode.new().required(`${lPrimaryKey}[]`, 'sometoken');
 
         // Process.
-        const lFailFunction = () => {
-            lRequiredNode.mergeData('PrimitiveValue', lChainValue);
-        };
+        const lData = lRequiredNode.mergeData(lPossibleResultValue[0], lChainValue);
 
         // Evaluation.
-        expect(lFailFunction).toThrow(`Chain data merge value is not an array but should be.`);
+        expect(lData).toEqual({
+            pre: 12,
+            [lPrimaryKey]: lPossibleResultValue
+        });
     });
 
     await pContext.step('Merge key no merge, primitive value', () => {
@@ -364,8 +363,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
         expect(lResultData).toHaveProperty('pre');
         expect(lResultData.pre).toBe(lChainValue.pre);
         expect(lResultData).toHaveProperty(lPrimaryKey);
-        expect(lResultData[lPrimaryKey]).toHaveLength(1);
-        expect(lResultData[lPrimaryKey][0]).toBe(lValue);
+        expect(lResultData[lPrimaryKey]).toBe(lValue);
     });
 
     await pContext.step('Merge key no merge, reference value', () => {
@@ -388,8 +386,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
         expect(lResultData).toHaveProperty('pre');
         expect(lResultData.pre).toBe(lChainValue.pre);
         expect(lResultData).toHaveProperty(lPrimaryKey);
-        expect(lResultData[lPrimaryKey]).toHaveLength(1);
-        expect(lResultData[lPrimaryKey][0]).toBe(lValue);
+        expect(lResultData[lPrimaryKey]).toBe(lValue);
     });
 
     await pContext.step('Merge key with merge, primitive value', () => {
@@ -492,7 +489,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
         expect(lFailFunction).toThrow('Node data must be an object when merge key is set.');
     });
 
-    await pContext.step('Merge key node object missing key.', () => {
+    await pContext.step('Merge key node object missing key - required.', () => {
         // Setup keys.
         const lPrimaryKey: string = 'Value';
         const lMergeKey: string = 'MergeKey';
@@ -503,6 +500,27 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
 
         // Setup graph.
         const lRequiredNode: GraphNode<string> = GraphNode.new().required(`${lPrimaryKey}<-${lMergeKey}`, GraphNode.new().required(lMergeKey, 'sometoken'));
+
+        // Process.
+        const lFailFunction = () => {
+            lRequiredNode.mergeData(lNodeValue, lChainValue);
+        };
+
+        // Evaluation.
+        expect(lFailFunction).toThrow(`Node data does not contain merge key "${lMergeKey}"`);
+    });
+
+    await pContext.step('Merge key node object missing key - optional.', () => {
+        // Setup keys.
+        const lPrimaryKey: string = 'Value';
+        const lMergeKey: string = 'MergeKey';
+
+        // Setup values.
+        const lChainValue: { [key: string]: any; } = {};
+        const lNodeValue: any = { 'WrongKey': 'PrimitiveValue' };
+
+        // Setup graph.
+        const lRequiredNode: GraphNode<string> = GraphNode.new().optional(`${lPrimaryKey}<-${lMergeKey}`, GraphNode.new().required(lMergeKey, 'sometoken'));
 
         // Process.
         const lFailFunction = () => {
@@ -593,7 +611,7 @@ Deno.test('GraphNode.required()', async (pContext) => {
         // Evaluation.
         expect(lGraph.root).toBe(lRequiredNode);
         expect(lGraph.configuration.isRequired).toBeTruthy();
-        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
     });
@@ -716,7 +734,7 @@ Deno.test('GraphNode.optional()', async (pContext) => {
         // Evaluation.
         expect(lGraph.root).toBe(lRequiredNode);
         expect(lGraph.configuration.isRequired).toBeFalsy();
-        expect(lGraph.configuration.isList).toBeTruthy();
+        expect(lGraph.configuration.isList).toBeFalsy();
         expect(lGraph.configuration.isBranch).toBeFalsy();
         expect(lGraph.configuration.dataKey).toBe('Name');
     });

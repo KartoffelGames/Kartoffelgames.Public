@@ -55,7 +55,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         return lAttributes;
     })();
 
-    private readonly mAttributeDefinitionList: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>;
+    private readonly mAttributeDefinitionList: Array<PgslAttributeListSyntaxTreeAttribute>;
 
     /**
      * Constructor.
@@ -67,8 +67,10 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
     public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta, false);
 
-        // Set data.
-        this.mAttributeDefinitionList = pAttributes;
+        // Set data. Initialize empty parameters.
+        this.mAttributeDefinitionList = pAttributes.map((pParameter) => {
+            return { name: pParameter.name, parameter: pParameter.parameter ?? [] };
+        });
 
         // Set data as child trees.
         for (const lAttribute of this.mAttributeDefinitionList) {
@@ -223,6 +225,11 @@ type PgslAttributeListSyntaxTreeSetupData = {
 };
 
 export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
+    name: string,
+    parameter?: Array<BasePgslExpressionSyntaxTree>;
+};
+
+export type PgslAttributeListSyntaxTreeAttribute = {
     name: string,
     parameter: Array<BasePgslExpressionSyntaxTree>;
 };

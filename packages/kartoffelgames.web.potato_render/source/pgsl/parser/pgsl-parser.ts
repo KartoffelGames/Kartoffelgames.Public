@@ -244,7 +244,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
             // Define root structure of type definition syntax tree structure data and apply type name.
-            const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = pData.templateList;
+            const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = pData.templateList ?? [];
 
             // Sometimes a variable name expression is a type definition :(
             // So we need to filter it.
@@ -560,7 +560,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .required(PgslToken.ParenthesesEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
             // Create function call expression syntax tree.
-            return new PgslFunctionCallExpressionSyntaxTree(pData.name, pData.parameters, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslFunctionCallExpressionSyntaxTree(pData.name, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -579,7 +579,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .required(PgslToken.ParenthesesEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslNewCallExpressionSyntaxTree => {
             // Create function call expression syntax tree.
-            return new PgslNewCallExpressionSyntaxTree(pData.type, pData.parameters, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslNewCallExpressionSyntaxTree(pData.type, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -684,7 +684,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .optional('statements<-list', lStatementListGraph)
                 .required(PgslToken.BlockEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
-            return new PgslBlockStatementSyntaxTree(pData.statements, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslBlockStatementSyntaxTree(pData.statements ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         this.defineGraphPart('Statement-Switch', this.graph()

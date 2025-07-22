@@ -356,8 +356,30 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             const lParsedData: any = lParser.parse(lCodeText);
 
             // Evaluation.
+            expect(lParsedData).not.toHaveProperty('loop');
+        });
+
+        await pContext.step('Loop Parsing with existing items', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+            const lCodeTextList: Array<string> = ['const','ident','ident','ident','ident','ident'];
+
+            // Setup. Define graph part and set as root.
+            const lLoopGraph = Graph.define(() => {
+                const lSelfReference: Graph<TokenType, { data: Array<string>; }> = lLoopGraph;
+                return GraphNode.new<TokenType>().required('data[]', TokenType.Identifier).optional('data<-data', lSelfReference);
+            });
+            const lMainGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required(TokenType.Modifier).optional('loop<-data', lLoopGraph);
+            });
+            lParser.setRootGraph(lMainGraph);
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeTextList.join(' '));
+
+            // Evaluation.
             expect(lParsedData).toHaveProperty('loop');
-            expect(lParsedData.loop).toBeDeepEqual([]);
+            expect(lParsedData.loop).toBeDeepEqual(lCodeTextList.slice(1));
         });
 
         await pContext.step('Optional recursion loops', () => {
@@ -1761,7 +1783,6 @@ Deno.test('CodeParser.setRootGraph()', async (pContext) => {
     });
 });
 
-
 Deno.test('CodeParser.constructor()', async (pContext) => {
     await pContext.step('Include a complete trace in the exception when debugMode is true', () => {
         // Setup
@@ -1962,50 +1983,309 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
 Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
     type TypedTokenType = 'item1' | 'item2' | 'item3';
     type TypedBaseObject = { a: 'a'; };
-    await pContext.step('Default', () => {
-        // Content data.
-        const lContentGraph = Graph.define(() => {
-            return GraphNode.new<TypedTokenType>().required('node', ['item1', 'item2', 'item3']);
-        }).converter((): Array<TypedBaseObject> => {
-            return {} as any; // doesnt matter
-        });;
 
-        const lContentListGraph = Graph.define(() => {
-            const lSelfReference: Graph<TypedTokenType, any, Array<TypedBaseObject>> = lContentListGraph;
+    type ExtractGraphResultType<T> = T extends Graph<any, any, infer TGraphResult> ? TGraphResult : never;
 
-            return GraphNode.new<TypedTokenType>().required('list[]', lContentGraph).optional('list[]', lSelfReference);
+    await pContext.step('Required single value', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['ident'];
 
-        }).converter((pData): Array<TypedBaseObject> => {
-            const lContentList: Array<TypedBaseObject> = new Array<TypedBaseObject>();
-
-            for (const lItem of pData.list) {
-                lContentList.push(lItem);
-            }
-
-            return lContentList;
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node', TokenType.Identifier);
         });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: string; };
+        expect(lData).toEqual({ node: lCodeText[0] });
     });
 
-    await pContext.step('Alternative', () => {
-        const lContentGraph = Graph.define(() => {
-            return GraphNode.new<TypedTokenType>().required('node', ['item1', 'item2', 'item3']);
-        }).converter((): TypedBaseObject => {
-            return {} as any; // doesnt matter
+    await pContext.step('Required array single value', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['const'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node[]', TokenType.Modifier);
         });
+        lParser.setRootGraph(lGraph);
 
-        const lContentListGraph = Graph.define(() => {
-            const lSelfReference: Graph<TypedTokenType, any, { list: Array<TypedBaseObject>; }> = lContentListGraph;
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
 
-            return GraphNode.new<TypedTokenType>().required('list[]', lContentGraph).optional('list<-list', lSelfReference);
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: lCodeText });
+    });
 
-        }).converter((pData): { list: Array<TypedBaseObject>; } => {
-            const lContentList: Array<TypedBaseObject> = new Array<TypedBaseObject>();
+    await pContext.step('Required single value merge', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier'];
 
-            for (const lItem of pData.list) {
-                lContentList.push(lItem);
-            }
-
-            return { list: lContentList };
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node<-value',
+                GraphNode.new<TokenType>().required('value', TokenType.Identifier)
+            );
         });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: string; };
+        expect(lData).toEqual({ node: lCodeText[0] });
+    });
+
+    await pContext.step('Required array value merge', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['const'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Modifier)
+            );
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: lCodeText });
+    });
+
+    await pContext.step('Required array value merge with existing array', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier', 'identifier'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node[]', TokenType.Identifier).required('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Identifier)
+            );
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: lCodeText });
+    });
+
+    await pContext.step('Optional single value - Existing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node', TokenType.Identifier);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
+        expect(lData).toEqual({ node: lCodeText[0] });
+    });
+
+    await pContext.step('Optional single value - Missing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = [';'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node', TokenType.Identifier).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
+        expect(lData).toEqual({});
+    });
+
+    await pContext.step('Optional array value - Existing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node[]', TokenType.Identifier);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: [lCodeText[0]] });
+    });
+
+    await pContext.step('Optional array value - Missing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = [';'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node[]', TokenType.Identifier).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: [] });
+    });
+
+    await pContext.step('Optional single value merge - Existing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node<-value',
+                GraphNode.new<TokenType>().required('value', TokenType.Identifier)
+            );
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
+        expect(lData).toEqual({ node: lCodeText[0] });
+    });
+
+    await pContext.step('Optional single value merge - Missing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = [';'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node<-value',
+                GraphNode.new<TokenType>().required('value', TokenType.Identifier)
+            ).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: string; };
+        expect(lData).toEqual({});
+    });
+
+    await pContext.step('Optional array value merge - Existing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['const'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Modifier)
+            );
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: Array<string>; };
+        expect(lData).toEqual({ node: lCodeText });
+    });
+
+    await pContext.step('Optional array value merge - Missing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = [';'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().optional('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Modifier)
+            ).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node?: Array<string>; };
+        expect(lData).toEqual({});
+    });
+
+    await pContext.step('Optional array value merge with existing array - Existing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier', 'identifier'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node[]', TokenType.Identifier).optional('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Identifier)
+            );
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: lCodeText });
+    });
+
+    await pContext.step('Optional array value merge with existing array - Missing', () => {
+        // Setup.
+        const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+        const lCodeText: Array<string> = ['identifier', ';'];
+
+        // Setup.
+        const lGraph = Graph.define(() => {
+            return GraphNode.new<TokenType>().required('node[]', TokenType.Identifier).optional('node<-value',
+                GraphNode.new<TokenType>().required('value[]', TokenType.Identifier)
+            ).required(TokenType.Semicolon);
+        });
+        lParser.setRootGraph(lGraph);
+
+        // Process
+        const lData = lParser.parse(lCodeText.join(' '));
+
+        // Evaluation
+        ({} as ExtractGraphResultType<typeof lGraph>) satisfies { node: Array<string>; };
+        expect(lData).toEqual({ node: [lCodeText[0]] });
     });
 });

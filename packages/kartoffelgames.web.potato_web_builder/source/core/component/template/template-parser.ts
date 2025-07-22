@@ -322,7 +322,7 @@ export class TemplateParser {
                     GraphNode.new<PwbTemplateToken>().required('text', PwbTemplateToken.XmlValue)
                 ])
             ).optional('data<-data', lSelfReference);
-        }); 
+        });
         const lXmlAttribute = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('name', PwbTemplateToken.XmlIdentifier).optional('attributeValue',
                 GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.XmlAssignment).required(PwbTemplateToken.XmlExplicitValueIdentifier).optional('list<-data', lXmlAttributeValueList).required(PwbTemplateToken.XmlExplicitValueIdentifier)
@@ -331,7 +331,7 @@ export class TemplateParser {
             const lValues: Array<string | PwbTemplateExpression> = new Array<string | PwbTemplateExpression>();
 
             // Add value to value list.
-            if (pData.attributeValue) {
+            if (pData.attributeValue?.list) {
                 for (const lAttributeValue of pData.attributeValue.list) {
                     if (lAttributeValue.value instanceof PwbTemplateExpression) {
                         lValues.push(lAttributeValue.value);
@@ -426,8 +426,10 @@ export class TemplateParser {
             lElement.tagName = pData.openingTagName;
 
             // Add attributes.
-            for (const lAttribute of pData.attributes) {
-                lElement.setAttribute(lAttribute.name).addValue(...lAttribute.values);
+            if (pData.attributes) {
+                for (const lAttribute of pData.attributes) {
+                    lElement.setAttribute(lAttribute.name).addValue(...lAttribute.values);
+                }
             }
 
             // Add content values.
@@ -484,13 +486,15 @@ export class TemplateParser {
         }).converter((pData): Array<BasePwbTemplateNode> => {
             const lContentList: Array<BasePwbTemplateNode> = new Array<BasePwbTemplateNode>();
 
-            for (const lItem of pData.list) {
-                // Skip omitted nodes.
-                if (lItem === null) {
-                    continue;
-                }
+            if (pData.list) {
+                for (const lItem of pData.list) {
+                    // Skip omitted nodes.
+                    if (lItem === null) {
+                        continue;
+                    }
 
-                lContentList.push(lItem);
+                    lContentList.push(lItem);
+                }
             }
 
             return lContentList;

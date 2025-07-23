@@ -30,7 +30,7 @@ import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-do-while-statement-syntax-tree.ts';
 import { PgslForStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-for-statement-syntax-tree.ts';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-if-statement-syntax-tree.ts';
-import { PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-switch-statement-syntax-tree.ts';
+import { PgslSwitchStatementSwitchCase, PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-switch-statement-syntax-tree.ts';
 import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-while-statement-syntax-tree.ts';
 import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree.ts';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree.ts';
@@ -65,15 +65,27 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // Setup buffer.
         this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
-        // Define helper graphs.
+        // Create empty core graph reference.
+        const lCoreGraphs: PgslParserCoreGraphs = {
+            attributeList: null as any,
+            typeDeclaration: null as any,
+        };
+
+        // Define expression graphs use the mime object of core graph for defining.
         const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs(lCoreGraphs);
-        const lCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
+
+        // Create actual core graphs and assign them to the mime object.
+        const lDefinedCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
+        lCoreGraphs.attributeList = lDefinedCoreGraphs.attributeList;
+        lCoreGraphs.typeDeclaration = lDefinedCoreGraphs.typeDeclaration;
+
+        // Define statement graphs.
         const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lExpressionGraphs);
 
-        
+
         this.defineModuleScope();
 
-        
+
 
         // Set root.
         this.defineRoot();
@@ -687,50 +699,62 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             return new PgslBlockStatementSyntaxTree(pData.statements ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
-        this.defineGraphPart('Statement-Switch', this.graph()
-            .single(PgslToken.KeywordSwitch)
-            .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd)
-            .single(PgslToken.BlockStart)
-            .loop('cases', this.graph()
-                .single(PgslToken.KeywordCase)
-                .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                .loop('additionals', this.graph()
-                    .single(PgslToken.Comma)
-                    .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+        /**
+         * Single case of a switch statement graph. Containing a case with a list of expressions devided by comma and a block.
+         * ```
+         * - "case <EXPRESSION> <BLOCK>"
+         * - "case <EXPRESSION>, <EXPRESSION> <BLOCK>"
+         * - "case <EXPRESSION>, <EXPRESSION>, <EXPRESSION> <BLOCK>"
+         * ```
+         */
+        const lSwitchCaseStatementGraph: Graph<PgslToken, object, PgslSwitchStatementSwitchCase> = Graph.define(() => {
+            return GraphNode.new<PgslToken>().required(PgslToken.KeywordCase)
+                .required('cases<-list', pExpressionGraphs.expressionList)
+                .required('block', lBlockStatementGraph);
+        });
+
+        /**
+         * List of cases of a switch statement graph.
+         */
+        const lSwitchCaseStatementListGraph: Graph<PgslToken, object, { list: Array<PgslSwitchStatementSwitchCase>; }> = Graph.define(() => {
+            const lSelfReference: Graph<PgslToken, object, { list: Array<PgslSwitchStatementSwitchCase>; }> = lSwitchCaseStatementListGraph;
+
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lSwitchCaseStatementGraph).optional('list<-list', lSelfReference);
+        });
+
+        /**
+         * Switch statement graph. A switch expression with a list of cases and a optional default block.
+         * '''
+         * - "switch(<EXPRESSION>){} "
+         * - "switch(<EXPRESSION>){<CASE_LIST>} "
+         * - "switch(<EXPRESSION>){default <BLOCK>} "
+         * - "switch(<EXPRESSION>){<CASE_LIST> default <BLOCK>} "
+         * '''
+         */
+        const lSwitchStatementGraph: Graph<PgslToken, object, PgslSwitchStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordSwitch)
+                .required(PgslToken.ParenthesesStart)
+                .required('expression', pExpressionGraphs.expression)
+                .required(PgslToken.ParenthesesEnd)
+                .required(PgslToken.BlockStart)
+                .optional('cases<-list', lSwitchCaseStatementListGraph)
+                .optional('defaultBlock<-block', GraphNode.new<PgslToken>()
+                    .required(PgslToken.KeywordDefault)
+                    .required('block', lBlockStatementGraph)
                 )
-                .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            )
-            .optional('default', this.graph()
-                .single(PgslToken.KeywordDefault)
-                .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            )
-            .single(PgslToken.BlockEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
-                // Build switch data structure.
-                const lData: ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0] = {
-                    expression: pData.expression,
-                    cases: new Array<ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0]['cases'][number]>(),
-                    default: null
-                };
+                .required(PgslToken.BlockEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
+            // Build switch data structure.
+            const lData: ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0] = {
+                expression: pData.expression,
+                cases: pData.cases ?? [],
+                default: pData.defaultBlock ?? null
+            };
 
-                // Add each case.
-                for (const lCase of pData.cases) {
-                    lData.cases.push({
-                        block: lCase.block,
-                        cases: [lCase.expression, ...lCase.additionals.map((pCase) => { return pCase.expression; })]
-                    });
-                }
-
-                // Add optional default case.
-                if (pData.default) {
-                    lData.default = pData.default.block;
-                }
-
-                return new PgslSwitchStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+            return new PgslSwitchStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
         this.defineGraphPart('Statement-For', this.graph()
             .single(PgslToken.KeywordFor)

@@ -6,235 +6,247 @@ import { LexerToken } from '@kartoffelgames/core-parser';
 const gPgslLexer: PgslLexer = new PgslLexer();
 
 Deno.test('PgslLexer.tokenize() - Literals - Float', async (pContext) => {
-    await pContext.step('Decimal value without suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 1.0;
-        `;
+    await pContext.step('Decimal variations', async (pContext) => {
+        await pContext.step('Decimal value without suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 1.0;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
+
+        await pContext.step('Decimal value with missing decimal value', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 01.;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
+
+        await pContext.step('Decimal value with missing integer value', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = .01;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
     });
 
-    await pContext.step('Decimal value with missing decimal value', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 01.;
-        `;
+    await pContext.step('Float suffix variations', async (pContext) => {
+        await pContext.step('Decimal value with f suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 1.0f;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
+
+        await pContext.step('Decimal value with h suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 1.0h;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
+
+        await pContext.step('Integer value with f suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 1f;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
+
+        await pContext.step('Integer value with h suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 1h;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
     });
 
-    await pContext.step('Decimal value with missing integer value', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = .01;
-        `;
+    await pContext.step('Hexadecimal float variations', async (pContext) => {
+        await pContext.step('Hex value with ending f value', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 0x1P+4f;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
 
-    await pContext.step('Decimal value with f suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 1.0f;
-        `;
+        await pContext.step('Hex value with zero integer', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: f32 = 0X.3;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
-
-    await pContext.step('Decimal value with h suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 1.0h;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
-
-    await pContext.step('Integer value with f suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 1f;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
-
-    await pContext.step('Integer value with h suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 1h;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
-
-    await pContext.step('Hex value with ending f value', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 0x1P+4f;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
-    });
-
-    await pContext.step('Hex value with zero integer', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: f32 = 0X.3;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralFloat);
+        });
     });
 });
 
 Deno.test('PgslLexer.tokenize() - Literals - Integer', async (pContext) => {
-    await pContext.step('Signed Integer value without suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: i32 = 1;
-        `;
+    await pContext.step('Basic integer variations', async (pContext) => {
+        await pContext.step('Signed Integer value without suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: i32 = 1;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
+
+        await pContext.step('Signed Integer value with i suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: i32 = 1i;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
+
+        await pContext.step('Unsigned Integer value with u suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: u32 = 1u;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
     });
 
-    await pContext.step('Signed Integer value with i suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: i32 = 1i;
-        `;
+    await pContext.step('Hexadecimal integer variations', async (pContext) => {
+        await pContext.step('Hex value without suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: i32 = 0x123;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
-    });
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
 
-    await pContext.step('Unsigned Integer value with u suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: u32 = 1u;
-        `;
+        await pContext.step('Hex value with u suffix', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: u32 = 0x123u;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
-    });
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
 
-    await pContext.step('Hex value without suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: i32 = 0x123;
-        `;
+        await pContext.step('Hex value with ending f value', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: i32 = 0x3f;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
-    });
-
-    await pContext.step('Hex value with u suffix', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: u32 = 0x123u;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
-    });
-
-    await pContext.step('Hex value with ending f value', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: i32 = 0x3f;
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+        });
     });
 });
 
 Deno.test('PgslLexer.tokenize() - Literals - Boolean', async (pContext) => {
-    await pContext.step('true', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: bool = true;
-        `;
+    await pContext.step('Boolean value variations', async (pContext) => {
+        await pContext.step('true', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: bool = true;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralBoolean);
-    });
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralBoolean);
+        });
 
-    await pContext.step('false', () => {
-        // Setup.
-        const lCodeString = `
-            const testVariableName: bool = false;
-        `;
+        await pContext.step('false', () => {
+            // Setup.
+            const lCodeString = `
+                const testVariableName: bool = false;
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[5].type).toBe(PgslToken.LiteralBoolean);
+            // Evaluation.
+            expect(lTokenList[5].type).toBe(PgslToken.LiteralBoolean);
+        });
     });
 });
 
 Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
-    await pContext.step('Basic template list cases', async (pNestedContext) => {
-        await pNestedContext.step('Identifier in list', () => {
+    await pContext.step('Basic template list cases', async (pContext) => {
+        await pContext.step('Identifier in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<testValue>;
@@ -250,7 +262,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Literal in list', () => {
+        await pContext.step('Literal in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<120>;
@@ -266,7 +278,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Literal with prefix in list', () => {
+        await pContext.step('Literal with prefix in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<120f>;
@@ -282,7 +294,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Template list in list', () => {
+        await pContext.step('Template list in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<nestedTemplate<120>>;
@@ -302,8 +314,8 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
         });
     });
 
-    await pContext.step('Expression cases in template lists', async (pNestedContext) => {
-        await pNestedContext.step('Expression in list', () => {
+    await pContext.step('Expression cases in template lists', async (pContext) => {
+        await pContext.step('Expression in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<testExpression()>;
@@ -321,7 +333,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[8].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Expression with greater than in list', () => {
+        await pContext.step('Expression with greater than in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<testExpression(testA > testB)>;
@@ -342,7 +354,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[11].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Expression with lower than in list', () => {
+        await pContext.step('Expression with lower than in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<testExpression(testA < testB)>;
@@ -363,7 +375,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[11].type).toBe(PgslToken.TemplateListEnd);
         });
 
-        await pNestedContext.step('Expression with comparison in list', () => {
+        await pContext.step('Expression with comparison in list', () => {
             // Setup.
             const lCodeString = `
                 const testVariableName: testTemplate<testExpression(testA == testB)>;
@@ -385,8 +397,8 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
         });
     });
 
-    await pContext.step('Complex template list cases', async (pNestedContext) => {
-        await pNestedContext.step('Ignore short circuit lower and greater comparisons', () => {
+    await pContext.step('Complex template list cases', async (pContext) => {
+        await pContext.step('Ignore short circuit lower and greater comparisons', () => {
             // Setup.
             const lCodeString = `testA<testB || testB>testC;`;
 
@@ -404,7 +416,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Value with binary or', () => {
+        await pContext.step('Value with binary or', () => {
             // Setup.
             const lCodeString = `testA<testB | testC>;`;
 
@@ -421,7 +433,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Nested template list', () => {
+        await pContext.step('Nested template list', () => {
             // Setup.
             const lCodeString = `testA<testB, testC<testD>>;`;
 
@@ -442,8 +454,8 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
         });
     });
 
-    await pContext.step('Additional template list edge cases', async (pNestedContext) => {
-        await pNestedContext.step('Nested template list with lower than compare combined with short circuit or', () => {
+    await pContext.step('Additional template list edge cases', async (pContext) => {
+        await pContext.step('Nested template list with lower than compare combined with short circuit or', () => {
             // Setup.
             const lCodeString = `testA<testB, testA<testB || true>;`;
 
@@ -464,7 +476,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[10].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Negated boolean value', () => {
+        await pContext.step('Negated boolean value', () => {
             // Setup.
             const lCodeString = `testA<!true>;`;
 
@@ -480,7 +492,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[5].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Negated compare value', () => {
+        await pContext.step('Negated compare value', () => {
             // Setup.
             const lCodeString = `testA<testB != testC>;`;
 
@@ -497,7 +509,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Left shift operator in value', () => {
+        await pContext.step('Left shift operator in value', () => {
             // Setup.
             const lCodeString = `testA<testB << 1>;`;
 
@@ -514,7 +526,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Lower than operator in value', () => {
+        await pContext.step('Lower than operator in value', () => {
             // Setup.
             const lCodeString = `testA<2 < 1>;`;
 
@@ -531,7 +543,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Lower than equal operator in value', () => {
+        await pContext.step('Lower than equal operator in value', () => {
             // Setup.
             const lCodeString = `testA<testB <= 1>;`;
 
@@ -548,7 +560,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('Value with Parentheses and short circuit or', () => {
+        await pContext.step('Value with Parentheses and short circuit or', () => {
             // Setup.
             const lCodeString = `testA<(testA || testB)>;`;
 
@@ -567,7 +579,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[8].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('List start after a ignored token', () => {
+        await pContext.step('List start after a ignored token', () => {
             // Setup.
             const lCodeString = `testA <1>;`;
 
@@ -583,8 +595,8 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
         });
     });
 
-    await pContext.step('Failing states', async (pNestedContext) => {
-        await pNestedContext.step('Forbidden token', () => {
+    await pContext.step('Failing states', async (pContext) => {
+        await pContext.step('Forbidden token', () => {
             // Setup.
             const lCodeString = `testA<;>`;
 
@@ -596,7 +608,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[0].type).not.toBe(PgslToken.TemplateListStart);
         });
 
-        await pNestedContext.step('Forbidden assignment', () => {
+        await pContext.step('Forbidden assignment', () => {
             // Setup.
             const lCodeString = `testA<testC = 1>`;
 
@@ -608,7 +620,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[0].type).not.toBe(PgslToken.TemplateListStart);
         });
 
-        await pNestedContext.step('Greater than operator in value', () => {
+        await pContext.step('Greater than operator in value', () => {
             // Setup.
             const lCodeString = `testA<2 > 1>;`;
 
@@ -620,7 +632,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[0].type).not.toBe(PgslToken.TemplateListStart);
         });
 
-        await pNestedContext.step('Not closing', () => {
+        await pContext.step('Not closing', () => {
             // Setup.
             const lCodeString = `testA<testC, testB`;
 
@@ -632,7 +644,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lTokenList[0].type).not.toBe(PgslToken.TemplateListStart);
         });
 
-        await pNestedContext.step('Error: Closed nesting without nesting', () => {
+        await pContext.step('Error: Closed nesting without nesting', () => {
             // Setup.
             const lCodeString = `testA<)>`;
 
@@ -645,7 +657,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lFailingFunction).toThrow();
         });
 
-        await pNestedContext.step('Error: Closed nesting with wrong corresponding nesting - Square brackets', () => {
+        await pContext.step('Error: Closed nesting with wrong corresponding nesting - Square brackets', () => {
             // Setup.
             const lCodeString = `testA<[)>`;
 
@@ -658,7 +670,7 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
             expect(lFailingFunction).toThrow();
         });
 
-        await pNestedContext.step('Error: Closed nesting with wrong corresponding nesting - Parentheses', () => {
+        await pContext.step('Error: Closed nesting with wrong corresponding nesting - Parentheses', () => {
             // Setup.
             const lCodeString = `testA<(]>`;
 
@@ -674,164 +686,172 @@ Deno.test('PgslLexer.tokenize() - Template lists', async (pContext) => {
 });
 
 Deno.test('PgslLexer.tokenize() - Assignments', async (pContext) => {
-    await pContext.step('Assignment', () => {
-        // Setup.
-        const lCodeString = `testVariableName = 1.0;`;
+    await pContext.step('Basic assignment operators', async (pContext) => {
+        await pContext.step('Assignment', () => {
+            // Setup.
+            const lCodeString = `testVariableName = 1.0;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.Assignment);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.Assignment);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 
-    await pContext.step('Assignment with plus', () => {
-        // Setup.
-        const lCodeString = `testVariableName += 1.0;`;
+    await pContext.step('Arithmetic assignment operators', async (pContext) => {
+        await pContext.step('Assignment with plus', () => {
+            // Setup.
+            const lCodeString = `testVariableName += 1.0;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentPlus);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentPlus);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with minus', () => {
+            // Setup.
+            const lCodeString = `testVariableName -= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentMinus);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with multiply', () => {
+            // Setup.
+            const lCodeString = `testVariableName *= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentMultiply);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with divide', () => {
+            // Setup.
+            const lCodeString = `testVariableName /= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentDivide);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with modulo', () => {
+            // Setup.
+            const lCodeString = `testVariableName %= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentModulo);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 
-    await pContext.step('Assignment with minus', () => {
-        // Setup.
-        const lCodeString = `testVariableName -= 1.0;`;
+    await pContext.step('Bitwise assignment operators', async (pContext) => {
+        await pContext.step('Assignment with binary and', () => {
+            // Setup.
+            const lCodeString = `testVariableName &= 1.0;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentMinus);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryAnd);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with binary or', () => {
+            // Setup.
+            const lCodeString = `testVariableName |= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryOr);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Assignment with binary xor', () => {
+            // Setup.
+            const lCodeString = `testVariableName ^= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryXor);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 
-    await pContext.step('Assignment with multiply', () => {
-        // Setup.
-        const lCodeString = `testVariableName *= 1.0;`;
+    await pContext.step('Shift assignment operators', async (pContext) => {
+        await pContext.step('Assignment with shift right', () => {
+            // Setup.
+            const lCodeString = `testVariableName >>= 1.0;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentMultiply);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentShiftRight);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
 
-    await pContext.step('Assignment with divide', () => {
-        // Setup.
-        const lCodeString = `testVariableName /= 1.0;`;
+        await pContext.step('Assignment with shift left', () => {
+            // Setup.
+            const lCodeString = `testVariableName <<= 1.0;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentDivide);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with modulo', () => {
-        // Setup.
-        const lCodeString = `testVariableName %= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentModulo);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with binary and', () => {
-        // Setup.
-        const lCodeString = `testVariableName &= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryAnd);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with binary or', () => {
-        // Setup.
-        const lCodeString = `testVariableName |= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryOr);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with binary xor', () => {
-        // Setup.
-        const lCodeString = `testVariableName ^= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentBinaryXor);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with shift right', () => {
-        // Setup.
-        const lCodeString = `testVariableName >>= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentShiftRight);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Assignment with shift left', () => {
-        // Setup.
-        const lCodeString = `testVariableName <<= 1.0;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.AssignmentShiftLeft);
-        expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.AssignmentShiftLeft);
+            expect(lTokenList[2].type).toBe(PgslToken.LiteralFloat);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 });
 
 Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
-    await pContext.step('Basic arithmetic operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorPlus', () => {
+    await pContext.step('Basic arithmetic operators', async (pContext) => {
+        await pContext.step('OperatorPlus', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 + 2;`;
 
@@ -844,7 +864,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorMinus', () => {
+        await pContext.step('OperatorMinus', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 - 2;`;
 
@@ -857,7 +877,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorMultiply', () => {
+        await pContext.step('OperatorMultiply', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 * 2;`;
 
@@ -870,7 +890,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorDivide', () => {
+        await pContext.step('OperatorDivide', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 / 2;`;
 
@@ -883,7 +903,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorModulo', () => {
+        await pContext.step('OperatorModulo', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 % 2;`;
 
@@ -897,8 +917,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
         });
     });
 
-    await pContext.step('Unary operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorNot', () => {
+    await pContext.step('Unary operators', async (pContext) => {
+        await pContext.step('OperatorNot', () => {
             // Setup.
             const lCodeString = `const testA: bool = !true;`;
 
@@ -910,7 +930,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.LiteralBoolean);
         });
 
-        await pNestedContext.step('OperatorBinaryNegate', () => {
+        await pContext.step('OperatorBinaryNegate', () => {
             // Setup.
             const lCodeString = `const testA: bool = ~1`;
 
@@ -922,7 +942,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[6].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorIncrement', () => {
+        await pContext.step('OperatorIncrement', () => {
             // Setup.
             const lCodeString = `testName++`;
 
@@ -934,7 +954,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[1].type).toBe(PgslToken.OperatorIncrement);
         });
         
-        await pNestedContext.step('OperatorDecrement', () => {
+        await pContext.step('OperatorDecrement', () => {
             // Setup.
             const lCodeString = `testName--`;
 
@@ -947,8 +967,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
         });
     });
 
-    await pContext.step('Shift operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorShiftLeft', () => {
+    await pContext.step('Shift operators', async (pContext) => {
+        await pContext.step('OperatorShiftLeft', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 << 2;`;
 
@@ -961,7 +981,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorShiftRight', () => {
+        await pContext.step('OperatorShiftRight', () => {
             // Setup.
             const lCodeString = `const testA: i32 = 1 >> 2;`;
 
@@ -975,8 +995,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
         });
     });
 
-    await pContext.step('Comparison operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorGreaterThan', () => {
+    await pContext.step('Comparison operators', async (pContext) => {
+        await pContext.step('OperatorGreaterThan', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 > 2;`;
 
@@ -989,7 +1009,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorLowerThan', () => {
+        await pContext.step('OperatorLowerThan', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 < 2;`;
 
@@ -1002,7 +1022,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorGreaterThanEqual', () => {
+        await pContext.step('OperatorGreaterThanEqual', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 >= 2;`;
 
@@ -1015,7 +1035,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorLowerThanEqual', () => {
+        await pContext.step('OperatorLowerThanEqual', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 <= 2;`;
 
@@ -1028,7 +1048,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorEqual', () => {
+        await pContext.step('OperatorEqual', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 == 2;`;
 
@@ -1041,7 +1061,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorNotEqual', () => {
+        await pContext.step('OperatorNotEqual', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 != 2;`;
 
@@ -1055,8 +1075,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
         });
     });
 
-    await pContext.step('Binary operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorBinaryAnd', () => {
+    await pContext.step('Binary operators', async (pContext) => {
+        await pContext.step('OperatorBinaryAnd', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 & 2;`;
 
@@ -1069,7 +1089,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorBinaryOr', () => {
+        await pContext.step('OperatorBinaryOr', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 | 2;`;
 
@@ -1082,7 +1102,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[7].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorBinaryXor', () => {
+        await pContext.step('OperatorBinaryXor', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 ^ 2;`;
 
@@ -1096,8 +1116,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
         });
     });
 
-    await pContext.step('Short circuit operators', async (pNestedContext) => {
-        await pNestedContext.step('OperatorShortCircuitAnd', () => {
+    await pContext.step('Short circuit operators', async (pContext) => {
+        await pContext.step('OperatorShortCircuitAnd', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 < 2 && 1 > 2;`;
 
@@ -1114,7 +1134,7 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
             expect(lTokenList[11].type).toBe(PgslToken.LiteralInteger);
         });
 
-        await pNestedContext.step('OperatorShortCircuitOr', () => {
+        await pContext.step('OperatorShortCircuitOr', () => {
             // Setup.
             const lCodeString = `const testA: bool = 1 < 2 || 1 > 2;`;
 
@@ -1134,8 +1154,8 @@ Deno.test('PgslLexer.tokenize() - Operations', async (pContext) => {
 });
 
 Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
-    await pContext.step('Basic keywords', async (pNestedContext) => {
-        await pNestedContext.step('KeywordAlias', () => {
+    await pContext.step('Basic keywords', async (pContext) => {
+        await pContext.step('KeywordAlias', () => {
             // Setup.
             const lCodeString = `alias testIdentifier;`;
 
@@ -1148,7 +1168,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordBreak', () => {
+        await pContext.step('KeywordBreak', () => {
             // Setup.
             const lCodeString = `break testIdentifier;`;
 
@@ -1161,7 +1181,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordCase', () => {
+        await pContext.step('KeywordCase', () => {
             // Setup.
             const lCodeString = `case testIdentifier;`;
 
@@ -1174,7 +1194,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordConst', () => {
+        await pContext.step('KeywordConst', () => {
             // Setup.
             const lCodeString = `const testIdentifier;`;
 
@@ -1187,7 +1207,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordConstAssert', () => {
+        await pContext.step('KeywordConstAssert', () => {
             // Setup.
             const lCodeString = `const_assert testIdentifier;`;
 
@@ -1200,7 +1220,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordContinue', () => {
+        await pContext.step('KeywordContinue', () => {
             // Setup.
             const lCodeString = `continue testIdentifier;`;
 
@@ -1213,7 +1233,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordContinuing', () => {
+        await pContext.step('KeywordContinuing', () => {
             // Setup.
             const lCodeString = `continuing testIdentifier;`;
 
@@ -1226,7 +1246,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDefault', () => {
+        await pContext.step('KeywordDefault', () => {
             // Setup.
             const lCodeString = `default testIdentifier;`;
 
@@ -1239,7 +1259,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDiagnostic', () => {
+        await pContext.step('KeywordDiagnostic', () => {
             // Setup.
             const lCodeString = `diagnostic testIdentifier;`;
 
@@ -1252,7 +1272,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDiscard', () => {
+        await pContext.step('KeywordDiscard', () => {
             // Setup.
             const lCodeString = `discard testIdentifier;`;
 
@@ -1265,7 +1285,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordElse', () => {
+        await pContext.step('KeywordElse', () => {
             // Setup.
             const lCodeString = `else testIdentifier;`;
 
@@ -1278,7 +1298,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordEnable', () => {
+        await pContext.step('KeywordEnable', () => {
             // Setup.
             const lCodeString = `enable testIdentifier;`;
 
@@ -1291,7 +1311,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordFunction', () => {
+        await pContext.step('KeywordFunction', () => {
             // Setup.
             const lCodeString = `function testIdentifier;`;
 
@@ -1304,7 +1324,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordFor', () => {
+        await pContext.step('KeywordFor', () => {
             // Setup.
             const lCodeString = `for testIdentifier;`;
 
@@ -1317,7 +1337,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordIf', () => {
+        await pContext.step('KeywordIf', () => {
             // Setup.
             const lCodeString = `if testIdentifier;`;
 
@@ -1330,7 +1350,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordLoop', () => {
+        await pContext.step('KeywordLoop', () => {
             // Setup.
             const lCodeString = `loop testIdentifier;`;
 
@@ -1343,7 +1363,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordRequires', () => {
+        await pContext.step('KeywordRequires', () => {
             // Setup.
             const lCodeString = `requires testIdentifier;`;
 
@@ -1356,7 +1376,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordReturn', () => {
+        await pContext.step('KeywordReturn', () => {
             // Setup.
             const lCodeString = `return testIdentifier;`;
 
@@ -1369,7 +1389,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordStruct', () => {
+        await pContext.step('KeywordStruct', () => {
             // Setup.
             const lCodeString = `struct testIdentifier;`;
 
@@ -1382,7 +1402,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordSwitch', () => {
+        await pContext.step('KeywordSwitch', () => {
             // Setup.
             const lCodeString = `switch testIdentifier;`;
 
@@ -1395,7 +1415,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordWhile', () => {
+        await pContext.step('KeywordWhile', () => {
             // Setup.
             const lCodeString = `while testIdentifier;`;
 
@@ -1408,7 +1428,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordEnum', () => {
+        await pContext.step('KeywordEnum', () => {
             // Setup.
             const lCodeString = `enum testIdentifier;`;
 
@@ -1421,7 +1441,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDo', () => {
+        await pContext.step('KeywordDo', () => {
             // Setup.
             const lCodeString = `do {} testIdentifier`;
 
@@ -1433,8 +1453,8 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
         });
     });
 
-    await pContext.step('Declaration keywords', async (pNestedContext) => {
-        await pNestedContext.step('KeywordDeclarationLet', () => {
+    await pContext.step('Declaration keywords', async (pContext) => {
+        await pContext.step('KeywordDeclarationLet', () => {
             // Setup.
             const lCodeString = `let testIdentifier;`;
 
@@ -1447,7 +1467,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationVar', () => {
+        await pContext.step('KeywordDeclarationVar', () => {
             // Setup.
             const lCodeString = `var testIdentifier;`;
 
@@ -1460,7 +1480,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationStorage', () => {
+        await pContext.step('KeywordDeclarationStorage', () => {
             // Setup.
             const lCodeString = `storage testIdentifier;`;
 
@@ -1473,7 +1493,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationUniform', () => {
+        await pContext.step('KeywordDeclarationUniform', () => {
             // Setup.
             const lCodeString = `uniform testIdentifier;`;
 
@@ -1486,7 +1506,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationWorkgroup', () => {
+        await pContext.step('KeywordDeclarationWorkgroup', () => {
             // Setup.
             const lCodeString = `workgroup testIdentifier;`;
 
@@ -1499,7 +1519,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationPrivate', () => {
+        await pContext.step('KeywordDeclarationPrivate', () => {
             // Setup.
             const lCodeString = `private testIdentifier;`;
 
@@ -1512,7 +1532,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordDeclarationParam', () => {
+        await pContext.step('KeywordDeclarationParam', () => {
             // Setup.
             const lCodeString = `param testIdentifier;`;
 
@@ -1525,7 +1545,7 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
             expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
         });
 
-        await pNestedContext.step('KeywordNew', () => {
+        await pContext.step('KeywordNew', () => {
             // Setup.
             const lCodeString = `new testIdentifier;`;
 
@@ -1541,166 +1561,174 @@ Deno.test('PgslLexer.tokenize() - Keywords', async (pContext) => {
 });
 
 Deno.test('PgslLexer.tokenize() - Basic tokens', async (pContext) => {
-    await pContext.step('Block', () => {
-        // Setup.
-        const lCodeString = `{testIdentifier};`;
+    await pContext.step('Container tokens', async (pContext) => {
+        await pContext.step('Block', () => {
+            // Setup.
+            const lCodeString = `{testIdentifier};`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.BlockStart);
-        expect(lTokenList[1].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[2].type).toBe(PgslToken.BlockEnd);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.BlockStart);
+            expect(lTokenList[1].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[2].type).toBe(PgslToken.BlockEnd);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Parentheses', () => {
+            // Setup.
+            const lCodeString = `(testIdentifier);`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.ParenthesesStart);
+            expect(lTokenList[1].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[2].type).toBe(PgslToken.ParenthesesEnd);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('List', () => {
+            // Setup.
+            const lCodeString = `[testIdentifier];`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.ListStart);
+            expect(lTokenList[1].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[2].type).toBe(PgslToken.ListEnd);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 
-    await pContext.step('Parentheses', () => {
-        // Setup.
-        const lCodeString = `(testIdentifier);`;
+    await pContext.step('Identifier and separators', async (pContext) => {
+        await pContext.step('Identifier', () => {
+            // Setup.
+            const lCodeString = `testIdentifier;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.ParenthesesStart);
-        expect(lTokenList[1].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[2].type).toBe(PgslToken.ParenthesesEnd);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Comma', () => {
+            // Setup.
+            const lCodeString = `(testA, testB, testC)`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[1].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[2].type).toBe(PgslToken.Comma);
+            expect(lTokenList[3].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[4].type).toBe(PgslToken.Comma);
+            expect(lTokenList[5].type).toBe(PgslToken.Identifier);
+        });
+
+        await pContext.step('MemberDelimiter', () => {
+            // Setup.
+            const lCodeString = `testAAA.testBBB;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.MemberDelimiter);
+            expect(lTokenList[2].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
+
+        await pContext.step('Colon', () => {
+            // Setup.
+            const lCodeString = `
+            {
+                testAAA: testBBB,
+            }
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[1].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[2].type).toBe(PgslToken.Colon);
+            expect(lTokenList[3].type).toBe(PgslToken.Identifier);
+        });
+
+        await pContext.step('Semicolon', () => {
+            // Setup.
+            const lCodeString = `testAAA;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.Semicolon);
+        });
     });
 
-    await pContext.step('List', () => {
-        // Setup.
-        const lCodeString = `[testIdentifier];`;
+    await pContext.step('Special tokens', async (pContext) => {
+        await pContext.step('ReservedKeyword', () => {
+            // Setup.
+            const lCodeString = `testAAA unsafe;`;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.ListStart);
-        expect(lTokenList[1].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[2].type).toBe(PgslToken.ListEnd);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Identifier', () => {
-        // Setup.
-        const lCodeString = `testIdentifier;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Comma', () => {
-        // Setup.
-        const lCodeString = `(testA, testB, testC)`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[1].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[2].type).toBe(PgslToken.Comma);
-        expect(lTokenList[3].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[4].type).toBe(PgslToken.Comma);
-        expect(lTokenList[5].type).toBe(PgslToken.Identifier);
-    });
-
-    await pContext.step('MemberDelimiter', () => {
-        // Setup.
-        const lCodeString = `testAAA.testBBB;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.MemberDelimiter);
-        expect(lTokenList[2].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('Colon', () => {
-        // Setup.
-        const lCodeString = `
-        {
-            testAAA: testBBB,
-        }
-        `;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[1].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[2].type).toBe(PgslToken.Colon);
-        expect(lTokenList[3].type).toBe(PgslToken.Identifier);
-    });
-
-    await pContext.step('Semicolon', () => {
-        // Setup.
-        const lCodeString = `testAAA;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.Semicolon);
-    });
-
-    await pContext.step('ReservedKeyword', () => {
-        // Setup.
-        const lCodeString = `testAAA unsafe;`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[1].type).toBe(PgslToken.ReservedKeyword);
-        expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[1].type).toBe(PgslToken.ReservedKeyword);
+            expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
+        });
     });
 });
 
 Deno.test('PgslLexer.tokenize() - Comments', async (pContext) => {
-    await pContext.step('Single line', () => {
-        // Setup.
-        const lCodeString = `
-            // testIdentifier;
-            const testA;    
-        `;
+    await pContext.step('Comment types', async (pContext) => {
+        await pContext.step('Single line', () => {
+            // Setup.
+            const lCodeString = `
+                // testIdentifier;
+                const testA;    
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Comment);
-        expect(lTokenList[1].type).toBe(PgslToken.KeywordDeclarationConst);
-        expect(lTokenList[2].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
-    });
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Comment);
+            expect(lTokenList[1].type).toBe(PgslToken.KeywordDeclarationConst);
+            expect(lTokenList[2].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
 
-    await pContext.step('Multi line', () => {
-        // Setup.
-        const lCodeString = `
-            /* 
-                testIdentifier;
-            */
-            const testA;    
-        `;
+        await pContext.step('Multi line', () => {
+            // Setup.
+            const lCodeString = `
+                /* 
+                    testIdentifier;
+                */
+                const testA;    
+            `;
 
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
-        // Evaluation.
-        expect(lTokenList[0].type).toBe(PgslToken.Comment);
-        expect(lTokenList[1].type).toBe(PgslToken.KeywordDeclarationConst);
-        expect(lTokenList[2].type).toBe(PgslToken.Identifier);
-        expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+            // Evaluation.
+            expect(lTokenList[0].type).toBe(PgslToken.Comment);
+            expect(lTokenList[1].type).toBe(PgslToken.KeywordDeclarationConst);
+            expect(lTokenList[2].type).toBe(PgslToken.Identifier);
+            expect(lTokenList[3].type).toBe(PgslToken.Semicolon);
+        });
     });
 });

@@ -80,7 +80,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         lCoreGraphs.typeDeclaration = lDefinedCoreGraphs.typeDeclaration;
 
         // Define statement graphs.
-        const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lExpressionGraphs);
+        const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lCoreGraphs, lExpressionGraphs);
 
 
         this.defineModuleScope();
@@ -630,7 +630,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     /**
      * Define all statements and flows used inside function scope.
      */
-    private defineStatementGraphs(pExpressionGraphs: PgslParserExpressionGraphs): PgslParserStatementGraphs {
+    private defineStatementGraphs(pCoreGraphs: PgslParserCoreGraphs, pExpressionGraphs: PgslParserExpressionGraphs): PgslParserStatementGraphs {
         /**
          * If statement graph. wrapped expression with an block expression 
          * and optional self chaining with else.
@@ -640,9 +640,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          * - "if(<EXPRESSION>)<BLOCK> else <SELF>"
          * ```
          */
-        const lIfStatementGraph = Graph.define(() => {
-            const lSelfReference: Graph<PgslToken, object, PgslIfStatementSyntaxTree> = lIfStatementGraph;
-
+        const lIfStatementGraph: Graph<PgslToken, object, PgslIfStatementSyntaxTree> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordIf)
                 .required(PgslToken.ParenthesesStart)
@@ -653,7 +651,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     .required(PgslToken.KeywordElse)
                     .required('block', [
                         lBlockStatementGraph,
-                        lSelfReference
+                        lIfStatementGraph // Self reference.
                     ])
                 );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
@@ -676,11 +674,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          * - "<STATEMENT><STATEMENT><STATEMENT>"
          * ```
          */
-        const lStatementListGraph = Graph.define(() => {
-            const lSelfReference: Graph<PgslToken, object, { list: Array<BasePgslStatementSyntaxTree>; }> = lStatementListGraph;
-
+        const lStatementListGraph: Graph<PgslToken, object, { list: Array<BasePgslStatementSyntaxTree>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('list[]', lStatementSyntaxTreeGraph).optional('list<-list', lSelfReference);
+                .required('list[]', lStatementSyntaxTreeGraph)
+                .optional('list<-list', lStatementListGraph); // Self reference.
         });
 
         /**
@@ -717,10 +714,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          * List of cases of a switch statement graph.
          */
         const lSwitchCaseStatementListGraph: Graph<PgslToken, object, { list: Array<PgslSwitchStatementSwitchCase>; }> = Graph.define(() => {
-            const lSelfReference: Graph<PgslToken, object, { list: Array<PgslSwitchStatementSwitchCase>; }> = lSwitchCaseStatementListGraph;
-
             return GraphNode.new<PgslToken>()
-                .required('list[]', lSwitchCaseStatementGraph).optional('list<-list', lSelfReference);
+                .required('list[]', lSwitchCaseStatementGraph)
+                .optional('list<-list', lSwitchCaseStatementListGraph); // Self reference.
         });
 
         /**
@@ -756,191 +752,236 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             return new PgslSwitchStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
-        this.defineGraphPart('Statement-For', this.graph()
-            .single(PgslToken.KeywordFor)
-            .single(PgslToken.ParenthesesStart)
-            .optional('init', this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'))
-            .single(PgslToken.Semicolon)
-            .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.Semicolon)
-            .optionalBranch('update', [
-                this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
-                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement'),
-                this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall')
-            ])
-            .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
-                // Build switch data structure.
-                const lData: ConstructorParameters<typeof PgslForStatementSyntaxTree>[0] = {
-                    block: pData.block,
-                    init: null,
-                    expression: null,
-                    update: null
-                };
+        /**
+         * While statement graph. A while loop with condition and block.
+         * ```
+         * - "while(<EXPRESSION>)<BLOCK>"
+         * ```
+         */
+        const lWhileStatementGraph: Graph<PgslToken, object, PgslWhileStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordWhile)
+                .required(PgslToken.ParenthesesStart)
+                .required('expression', pExpressionGraphs.expression)
+                .required(PgslToken.ParenthesesEnd)
+                .required('block', lBlockStatementGraph);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
+            return new PgslWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                // Optional initial declaration.
-                if (pData.init) {
-                    lData.init = pData.init;
-                }
+        /**
+         * Do-while statement graph. A do-while loop with block and condition.
+         * ```
+         * - "do <BLOCK> while(<EXPRESSION>)"
+         * ```
+         */
+        const lDoWhileStatementGraph: Graph<PgslToken, object, PgslDoWhileStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordDo)
+                .required('block', lBlockStatementGraph)
+                .required(PgslToken.KeywordWhile)
+                .required(PgslToken.ParenthesesStart)
+                .required('expression', pExpressionGraphs.expression)
+                .required(PgslToken.ParenthesesEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
+            return new PgslDoWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                // Optional expression.
-                if (pData.expression) {
-                    lData.expression = pData.expression;
-                }
+        /**
+         * Break statement graph. Break statement.
+         * ```
+         * - "break"
+         * ```
+         */
+        const lBreakStatementGraph: Graph<PgslToken, object, PgslBreakStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordBreak);
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
+            return new PgslBreakStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                // Optional expression.
-                if (pData.update) {
-                    lData.update = pData.update;
-                }
+        /**
+         * Continue statement graph. Continue statement.
+         * ```
+         * - "continue"
+         * ```
+         */
+        const lContinueStatementGraph: Graph<PgslToken, object, PgslContinueStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordContinue);
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
+            return new PgslContinueStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                return new PgslForStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Return statement graph. Return statement with optional expression.
+         * ```
+         * - "return"
+         * - "return <EXPRESSION>"
+         * ```
+         */
+        const lReturnStatementGraph: Graph<PgslToken, object, PgslReturnStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordReturn)
+                .optional('expression', pExpressionGraphs.expression);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
+            return new PgslReturnStatementSyntaxTree(pData.expression ?? null, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-        this.defineGraphPart('Statement-While', this.graph()
-            .single(PgslToken.KeywordWhile)
-            .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
-                return new PgslWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Discard statement graph. Discard statement.
+         * ```
+         * - "discard"
+         * ```
+         */
+        const lDiscardStatementGraph: Graph<PgslToken, object, PgslDiscardStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordDiscard);
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
+            return new PgslDiscardStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-        this.defineGraphPart('Statement-DoWhile', this.graph()
-            .single(PgslToken.KeywordDo)
-            .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            .single(PgslToken.KeywordWhile)
-            .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
-                return new PgslDoWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Variable declaration statement graph. Declaration of a variable with type and optional initialization.
+         * ```
+         * - "let <IDENTIFIER>: <TYPE_DECLARATION>;"
+         * - "const <IDENTIFIER>: <TYPE_DECLARATION>;"
+         * - "let <IDENTIFIER>: <TYPE_DECLARATION> = <EXPRESSION>;"
+         * - "const <IDENTIFIER>: <TYPE_DECLARATION> = <EXPRESSION>;"
+         * ```
+         */
+        const lVariableDeclarationStatementGraph: Graph<PgslToken, object, PgslVariableDeclarationStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('declarationType', [
+                    PgslToken.KeywordDeclarationConst,
+                    PgslToken.KeywordDeclarationLet
+                ])
+                .required('variableName', PgslToken.Identifier)
+                .required(PgslToken.Colon)
+                .required('type', pCoreGraphs.typeDeclaration)
+                .optional('initialExpression<-expression', GraphNode.new<PgslToken>()
+                    .required(PgslToken.Assignment)
+                    .required('expression', pExpressionGraphs.expression)
+                );
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
+            // Build variable declaration data structure.
+            const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
+                declarationType: pData.declarationType,
+                name: pData.variableName,
+                type: pData.type,
+                expression: pData.initialExpression ?? null
+            };
 
-        this.defineGraphPart('Statement-Break', this.graph()
-            .single(PgslToken.KeywordBreak),
-            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
-                return new PgslBreakStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+            return new PgslVariableDeclarationStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-        this.defineGraphPart('Statement-Continue', this.graph()
-            .single(PgslToken.KeywordContinue),
-            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
-                return new PgslContinueStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * For statement graph. A for loop with optional initialization, condition, and update.
+         * ```
+         * - "for(;;)<BLOCK>"
+         * - "for(<VARIABLE_DECLARATION>; <EXPRESSION>; <UPDATE>)<BLOCK>"
+         * - "for(; <EXPRESSION>; <UPDATE>)<BLOCK>"
+         * - "for(<VARIABLE_DECLARATION>;; <UPDATE>)<BLOCK>"
+         * - "for(<VARIABLE_DECLARATION>; <EXPRESSION>;)<BLOCK>"
+         * - "for(<VARIABLE_DECLARATION>;;)<BLOCK>"
+         * - "for(;<EXPRESSION>;)<BLOCK>"
+         * - "for(;;<UPDATE>)<BLOCK>"
+         * ```
+         */
+        const lForStatementGraph: Graph<PgslToken, object, PgslForStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.KeywordFor)
+                .required(PgslToken.ParenthesesStart)
+                .optional('init', lVariableDeclarationStatementGraph)
+                .required(PgslToken.Semicolon)
+                .optional('expression', pExpressionGraphs.expression)
+                .required(PgslToken.Semicolon)
+                .optional('update', [
+                    lAssignmentStatementGraph,
+                    lIncrementDecrementStatementGraph,
+                    lFunctionCallStatementGraph
+                ])
+                .required(PgslToken.ParenthesesEnd)
+                .required('block', lBlockStatementGraph);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
+            // Build for statement data structure.
+            const lData: ConstructorParameters<typeof PgslForStatementSyntaxTree>[0] = {
+                block: pData.block,
+                init: pData.init ?? null,
+                expression: pData.expression ?? null,
+                update: pData.update ?? null
+            };
 
-        this.defineGraphPart('Statement-Return', this.graph()
-            .single(PgslToken.KeywordContinue)
-            .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
-                return new PgslReturnStatementSyntaxTree(pData.expression ?? null, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+            return new PgslForStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-        this.defineGraphPart('Statement-Discard', this.graph()
-            .single(PgslToken.KeywordDiscard),
-            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
-                return new PgslDiscardStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Assignment statement graph. Assignment of a value to a variable.
+         * ```
+         * - "<EXPRESSION> = <EXPRESSION>"
+         * - "<EXPRESSION> += <EXPRESSION>"
+         * - "<EXPRESSION> -= <EXPRESSION>"
+         * ```
+         */
+        const lAssignmentStatementGraph: Graph<PgslToken, object, PgslAssignmentStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('variable', pExpressionGraphs.expression)
+                .required('assignment', [
+                    PgslToken.Assignment,
+                    PgslToken.AssignmentPlus,
+                    PgslToken.AssignmentMinus,
+                    PgslToken.AssignmentMultiply,
+                    PgslToken.AssignmentDivide,
+                    PgslToken.AssignmentModulo,
+                    PgslToken.AssignmentBinaryAnd,
+                    PgslToken.AssignmentBinaryOr,
+                    PgslToken.AssignmentBinaryXor,
+                    PgslToken.AssignmentShiftRight,
+                    PgslToken.AssignmentShiftLeft,
+                ])
+                .required('expression', pExpressionGraphs.expression);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
+            return new PgslAssignmentStatementSyntaxTree({
+                expression: pData.expression,
+                assignment: pData.assignment,
+                variable: pData.variable
+            }, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-        this.defineGraphPart('Statement-VariableDeclaration', this.graph()
-            .branch('declarationType', [
-                PgslToken.KeywordDeclarationConst,
-                PgslToken.KeywordDeclarationLet
-            ])
-            .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
-            .single('type', this.partReference<BasePgslTypeDefinitionSyntaxTree>('General-TypeDeclaration'))
-            .optional('initial',
-                this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            ),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
-                // Build enum data structure.
-                const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
-                    declarationType: pData.declarationType,
-                    name: pData.variableName,
-                    type: pData.type,
-                    expression: null
-                };
+        /**
+         * Increment/Decrement statement graph. Post-increment or post-decrement operation.
+         * ```
+         * - "<EXPRESSION>++"
+         * - "<EXPRESSION>--"
+         * ```
+         */
+        const lIncrementDecrementStatementGraph: Graph<PgslToken, object, PgslIncrementDecrementStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('expression', pExpressionGraphs.expression)
+                .required('operator', [
+                    PgslToken.OperatorIncrement,
+                    PgslToken.OperatorDecrement
+                ]);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
+            return new PgslIncrementDecrementStatementSyntaxTree(pData.operator, pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
-                // Set inial value expression.
-                if (pData.initial) {
-                    lData.expression = pData.initial.expression;
-                }
-
-                return new PgslVariableDeclarationStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Statement-Assignment', this.graph()
-            .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .branch('assignment', [
-                PgslToken.Assignment,
-                PgslToken.AssignmentPlus,
-                PgslToken.AssignmentMinus,
-                PgslToken.AssignmentMultiply,
-                PgslToken.AssignmentDivide,
-                PgslToken.AssignmentModulo,
-                PgslToken.AssignmentBinaryAnd,
-                PgslToken.AssignmentBinaryOr,
-                PgslToken.AssignmentBinaryXor,
-                PgslToken.AssignmentShiftRight,
-                PgslToken.AssignmentShiftLeft,
-            ])
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
-                return new PgslAssignmentStatementSyntaxTree({
-                    expression: pData.expression,
-                    assignment: pData.assignment,
-                    variable: pData.variable
-                }, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Statement-IncrementDecrement', this.graph()
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .branch('operator', [
-                PgslToken.OperatorIncrement,
-                PgslToken.OperatorDecrement
-            ]),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
-                return new PgslIncrementDecrementStatementSyntaxTree(pData.operator, pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Statement-FunctionCall', this.graph()
-            .single('name', PgslToken.Identifier)
-            .single(PgslToken.ParenthesesStart)
-            .optional('parameter', this.graph()
-                .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                )
-            )
-            .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
-                // Build parameter list of function.
-                const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
-                if (pData.parameter) {
-                    // Add parameter expressions.
-                    lParameterList.push(
-                        // Add first expression.
-                        pData.parameter.first,
-                        // Add optional appending expressions.
-                        ...(pData.parameter ?? []).additional.map((pAdditional) => { return pAdditional.expression; })
-                    );
-                }
-
-                // Create function call expression syntax tree.
-                return new PgslFunctionCallStatementSyntaxTree(pData.name, lParameterList, this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
+        /**
+         * Function call statement graph. Function call as a statement.
+         * ```
+         * - "<IDENTIFIER>()"
+         * - "<IDENTIFIER>(<EXPRESSION_LIST>)"
+         * ```
+         */
+        const lFunctionCallStatementGraph: Graph<PgslToken, object, PgslFunctionCallStatementSyntaxTree> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.ParenthesesStart)
+                .optional('parameters<-list', pExpressionGraphs.expressionList)
+                .required(PgslToken.ParenthesesEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
+            return new PgslFunctionCallStatementSyntaxTree(pData.name, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+        });
 
         /**
          * Statement graph. 
@@ -948,7 +989,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          */
         const lStatementSyntaxTreeGraph: Graph<PgslToken, object, BasePgslStatementSyntaxTree> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('statement<-statement', [
+                .required('branch', [
                     GraphNode.new<PgslToken>().required('statement', lIfStatementGraph),
                     GraphNode.new<PgslToken>().required('statement', lSwitchStatementGraph),
                     GraphNode.new<PgslToken>().required('statement', lForStatementGraph),
@@ -965,7 +1006,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     GraphNode.new<PgslToken>().required('statement', lBlockStatementGraph)
                 ]);
         }).converter((pData): BasePgslStatementSyntaxTree => {
-            return pData.statement;
+            return pData.branch.statement;
         });
 
         return {

@@ -1,589 +1,570 @@
-import { ParserException } from '@kartoffelgames/core.parser';
-import { expect } from 'chai';
-import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
-import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree';
-import { PgslDeclarationType } from '../../../source/pgsl/enum/pgsl-declaration-type.enum';
-
-describe('PsglParser', () => {
-    const lPgslParser: PgslParser = new PgslParser();
-
-    describe('-- Modulescope variable declarations', () => {
-        describe('-- General', () => {
-            it('-- Correct name', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-
-                // Setup.
-                const lSourceCode: string = `
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-
-                // Evaluation.
-                expect(lResultDeclaration.name).to.equal(lVariableName);
-            });
-
-            it('-- Correct declaration type', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-
-                // Setup.
-                const lSourceCode: string = `
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-
-                // Evaluation.
-                expect(lResultDeclaration.declarationType).to.equal(PgslDeclarationType.Const);
-            });
-
-            it('-- Reject wrong type assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    const myInt: Integer = 10f;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
-
-        describe('-- const declaration', () => {
-            it('-- Correct constant flag.', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-
-                // Setup.
-                const lSourceCode: string = `
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-
-                // Evaluation.
-                expect(lResultDeclaration.isConstant).to.be.true;
-            });
-
-            it('-- Declaration with const value', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-
-                // Setup.
-                const lSourceCode: string = `
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-
-                // Evaluation.
-                expect(lResultDeclaration.isConstant).to.be.true;
-            });
-
-            it('-- Declaration with const expression', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-
-                // Setup.
-                const lSourceCode: string = `
-                    const otherConst: Integer = 10;
-                    const ${lVariableName}: Integer = 10 * otherConst;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-
-                // Evaluation.
-                expect(lResultDeclaration.isConstant).to.be.true;
-            });
-
-            it('-- Const declaration with attributes', () => {
-                // Setup. Set variable name.
-                const lVariableName: string = 'myInt';
-                const lAttributeName: string = 'CustomAttribute';
-
-                // Setup.
-                const lSourceCode: string = `
-                    [${lAttributeName}()]
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-                const lAttribute = lResultDeclaration.attributes.getAttribute(lAttributeName);
-
-                // Evaluation.
-                expect(lAttribute).to.exist;
-            });
-
-            it('-- Reject const declaration without assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    private notAConst: Integer = 10;
-                    const myInt: Integer = notAConst;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject const declaration without const assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    const myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
-
-        describe('-- param declaration', () => {
-            it('-- Declaration with const value', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    param myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration with other param expression', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    param otherParam: Integer = 10;
-                    param myInt: Integer = 10 * otherParam;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration with const expression', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    const otherConst: Integer = 10;
-                    param myInt: Integer = 10 * otherConst;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Reject param declaration without assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    param myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject param declaration with attributes', () => {
-                // Setup.
-                const lSourceCode: string = ` 
-                    [Attribute]
-                    param myInt: Integer = 1;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
-
-        describe('-- private declaration', () => {
-            it('-- Declaration with const value assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    private myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration without assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    private myInt: Integer;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration with expression value assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    private myInt: Integer = 10 + 11;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Reject private declaration with attributes', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [Attribute]
-                    private myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
-
-        describe('-- workgroup declaration', () => { // TODO: Better naming
-            it('-- Declaration with expression value', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    workgroup myInt: Integer;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Reject workgroup declaration with assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    workgroup myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject workgroup declaration with attributes', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [Attribute]
-                    workgroup myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
-
-        describe('-- uniform declaration', () => {
-            it('-- Declaration with const value', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    uniform myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Reject uniform declaration without binding', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    uniform myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject uniform declaration with assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    uniform myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            // TODO: sampler and texture values.
-        });
-
-        describe('-- storage declaration', () => {
-            it('-- Declaration with read access', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    [AccessMode(AccessMode.Read)]
-                    storage myInt: Integer;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration with write access', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    [AccessMode(AccessMode.Write)]
-                    storage myInt: Integer;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Declaration with read write access', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    [AccessMode(AccessMode.ReadWrite)]
-                    storage myInt: Integer;
-                `;
-
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-
-            it('-- Reject storage declaration without binding', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [AccessMode(AccessMode.ReadWrite)]
-                    storage myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject storage declaration without access mode', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    storage myInt: Integer;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-
-            it('-- Reject storage declaration with assignment', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    [GroupBinding(x, y)]
-                    [AccessMode(AccessMode.ReadWrite)]
-                    storage myInt: Integer = 10;
-                `;
-
-                // Process.
-                const lErrorFunction = () => {
-                    lPgslParser.parse(lSourceCode);
-                };
-
-                // Evaluation. // TODO:
-                expect(lErrorFunction).to.throw(ParserException);
-            });
-        });
+import { CodeParserException } from '@kartoffelgames/core-parser';
+import { expect } from '@kartoffelgames/core-test';
+import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser.ts';
+import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree.ts';
+import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts';
+import { PgslDeclarationType } from '../../../source/pgsl/enum/pgsl-declaration-type.enum.ts';
+
+const gPgslParser: PgslParser = new PgslParser();
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - General', async (pContext) => {
+    await pContext.step('Correct name', () => {
+        // Setup.
+        const lVariableName: string = 'testVariableName';
+        const lSourceCode: string = `
+            const ${lVariableName}: Integer = 10;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
+
+        // Evaluation.
+        expect(lResultDeclaration.name).toBe(lVariableName);
     });
 
-    describe('-- Templatelist', () => {
-        it('-- Single', () => {
-            // Setup.
-            const lSourceCode: string = `
-                private valName: Array<Integer>;
-            `;
+    await pContext.step('Correct declaration type', () => {
+        // Setup.
+        const lVariableName: string = 'testVariableName';
+        const lExpectedDeclarationType = PgslDeclarationType.Const;
+        const lSourceCode: string = `
+            const ${lVariableName}: Integer = 10;
+        `;
 
-            // Process.
-            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
-            // Evaluation. // TODO:
-            expect(lResult).to.be.true;
-        });
-
-        it('-- List', () => {
-            // Setup.
-            const lSourceCode: string = `
-                const valName: Array<Integer, 3>;
-            `;
-
-            // Process.
-            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-            // Evaluation. // TODO:
-            expect(lResult).to.be.true;
-        });
-
-        it('-- Nested', () => {
-            // Setup.
-            const lSourceCode: string = `
-                const valName: Array<Vector2<Integer>, 2>;
-            `;
-
-            // Process.
-            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
-
-            // Evaluation. // TODO:
-            expect(lResult).to.be.true;
-        });
+        // Evaluation.
+        expect(lResultDeclaration.declarationType).toBe(lExpectedDeclarationType);
     });
 
-    describe('-- Expression', () => {
-        describe('-- Variable expression', () => {
-            it('-- Variable name', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    const valName: Integer = 10;
+    await pContext.step('Error: Wrong type assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const testVariable: Integer = 10f;
+        `;
 
-                    function test(): void {
-                        let value: Integer = valName;
-                    }
-                `;
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
 
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
 
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
+Deno.test('PgslParser.parse() - Module scope variable declarations - Const declaration', async (pContext) => {
+    await pContext.step('Correct constant flag', () => {
+        // Setup.
+        const lVariableName: string = 'testVariable';
+        const lSourceCode: string = `
+            const ${lVariableName}: Integer = 10;
+        `;
 
-            it('-- Index value', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    function test(): void {
-                        let valName: Array<Integer, 3> = new Array<Integer, 3>(1, 2, 3);
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
-                        let value: Integer = valName[10];
-                    }
-                `;
+        // Evaluation.
+        expect(lResultDeclaration.isConstant).toBe(true);
+    });
 
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+    await pContext.step('Declaration with const value', () => {
+        // Setup.
+        const lVariableName: string = 'testVariable';
+        const lSourceCode: string = `
+            const ${lVariableName}: Integer = 10;
+        `;
 
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
-            it('-- Composite value', () => {
-                // Setup.
-                const lSourceCode: string = `
-                    struct MyStruct {
-                        prop: Integer
-                    }
+        // Evaluation.
+        expect(lResultDeclaration.isConstant).toBe(true);
+    });
 
-                    function test(): void {
-                        let valName: MyStruct;
+    await pContext.step('Declaration with const expression', () => {
+        // Setup.
+        const lVariableName: string = 'testVariable';
+        const lSourceCode: string = `
+            const otherConst: Integer = 10;
+            const ${lVariableName}: Integer = 10 * otherConst;
+        `;
 
-                        let value: Integer = valName.prop;
-                    }
-                `;
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
-                // Process.
-                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+        // Evaluation.
+        expect(lResultDeclaration.isConstant).toBe(true);
+    });
 
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
-            });
-        });
+    await pContext.step('Const declaration with attributes', () => {
+        // Setup.
+        const lVariableName: string = 'testVariable';
+        const lAttributeName: string = 'CustomAttribute';
+        const lSourceCode: string = `
+            [${lAttributeName}()]
+            const ${lVariableName}: Integer = 10;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+        const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
+        const lAttribute = lResultDeclaration.attributes.getAttribute(lAttributeName);
+
+        // Evaluation.
+        expect(lAttribute).not.toBeNull();
+    });
+
+    await pContext.step('Error: Const declaration without assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            private notAConst: Integer = 10;
+            const testVariable: Integer = notAConst;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Const declaration without assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - Param declaration', async (pContext) => {
+    await pContext.step('Declaration with const value', () => {
+        // Setup.
+        const lSourceCode: string = `
+            param testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration with other param expression', () => {
+        // Setup.
+        const lSourceCode: string = `
+            param otherParam: Integer = 10;
+            param testVariable: Integer = 10 * otherParam;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration with const expression', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const otherConst: Integer = 10;
+            param testVariable: Integer = 10 * otherConst;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Error: Param declaration without assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            param testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Param declaration with attributes', () => {
+        // Setup.
+        const lSourceCode: string = ` 
+            [Attribute]
+            param testVariable: Integer = 1;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - Private declaration', async (pContext) => {
+    await pContext.step('Declaration with const value assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            private testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration without assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            private testVariable: Integer;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration with expression value assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            private testVariable: Integer = 10 + 11;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Error: Private declaration with attributes', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [Attribute]
+            private testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - Workgroup declaration', async (pContext) => {
+    await pContext.step('Declaration with expression value', () => {
+        // Setup.
+        const lSourceCode: string = `
+            workgroup testVariable: Integer;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Error: Workgroup declaration with assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            workgroup testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Workgroup declaration with attributes', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [Attribute]
+            workgroup testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - Uniform declaration', async (pContext) => {
+    await pContext.step('Declaration with const value', () => {
+        // Setup.
+        const lSourceCode: string = `
+            uniform testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Error: Uniform declaration without binding', () => {
+        // Setup.
+        const lSourceCode: string = `
+            uniform testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Uniform declaration with assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            uniform testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Module scope variable declarations - Storage declaration', async (pContext) => {
+    await pContext.step('Declaration with read access', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            [AccessMode(AccessMode.Read)]
+            storage testVariable: Integer;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration with write access', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            [AccessMode(AccessMode.Write)]
+            storage testVariable: Integer;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Declaration with read write access', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            [AccessMode(AccessMode.ReadWrite)]
+            storage testVariable: Integer;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Error: Storage declaration without binding', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [AccessMode(AccessMode.ReadWrite)]
+            storage testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Storage declaration without access mode', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            storage testVariable: Integer;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+
+    await pContext.step('Error: Storage declaration with assignment', () => {
+        // Setup.
+        const lSourceCode: string = `
+            [GroupBinding(x, y)]
+            [AccessMode(AccessMode.ReadWrite)]
+            storage testVariable: Integer = 10;
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.parse(lSourceCode);
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(CodeParserException);
+    });
+});
+
+Deno.test('PgslParser.parse() - Template list', async (pContext) => {
+    await pContext.step('Single', () => {
+        // Setup.
+        const lSourceCode: string = `
+            private testVariable: Array<Integer>;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('List', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const testVariable: Array<Integer, 3>;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Nested', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const testVariable: Array<Vector2<Integer>, 2>;
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+});
+
+Deno.test('PgslParser.parse() - Expression - Variable expression', async (pContext) => {
+    await pContext.step('Variable name', () => {
+        // Setup.
+        const lSourceCode: string = `
+            const testVariable: Integer = 10;
+
+            function test(): void {
+                let value: Integer = testVariable;
+            }
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Index value', () => {
+        // Setup.
+        const lSourceCode: string = `
+            function test(): void {
+                let testVariable: Array<Integer, 3> = new Array<Integer, 3>(1, 2, 3);
+
+                let value: Integer = testVariable[10];
+            }
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
+    });
+
+    await pContext.step('Composite value', () => {
+        // Setup.
+        const lSourceCode: string = `
+            struct TestStruct {
+                prop: Integer
+            }
+
+            function test(): void {
+                let testVariable: TestStruct;
+
+                let value: Integer = testVariable.prop;
+            }
+        `;
+
+        // Process.
+        const lResult: PgslModuleSyntaxTree = gPgslParser.parse(lSourceCode);
+
+        // Evaluation.
+        expect(lResult).toBeTruthy();
     });
 });

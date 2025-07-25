@@ -78,7 +78,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.OperatorShortCircuitOr, '||');
         lKeywords.set(PgslToken.OperatorBinaryAnd, '&');
         lKeywords.set(PgslToken.OperatorBinaryOr, '|');
-        
+
         // Stuff that shares greater and lower than.
         lKeywords.set(PgslToken.OperatorShiftLeft, '<<');
         lKeywords.set(PgslToken.OperatorShiftRight, '>>');
@@ -93,7 +93,7 @@ export class PgslLexer extends Lexer<PgslToken> {
 
         // Other operations that dont share any thing
         lKeywords.set(PgslToken.OperatorBinaryXor, '^');
-        lKeywords.set(PgslToken.OperatorBinaryNegate, '~'); 
+        lKeywords.set(PgslToken.OperatorBinaryNegate, '~');
         lKeywords.set(PgslToken.OperatorMultiply, '*');
         lKeywords.set(PgslToken.OperatorDivide, '/');
         lKeywords.set(PgslToken.OperatorModulo, '%');
@@ -254,20 +254,15 @@ export class PgslLexer extends Lexer<PgslToken> {
         const lTemplateListPattern: LexerPattern<PgslToken, LexerPatternType> = this.createTokenPattern({
             pattern: {
                 start: {
-                    regex: /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/u,
+                    regex: /<(?![<=])/,
                     type: PgslToken.TemplateListStart,
-                    validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
-                        console.log('TRIGGERED')
-
-                        // Init nexting stack.
+                    validator: (_pToken: LexerToken<PgslToken>, pText: string): boolean => {
+                        // Init nexting stack and lookup code points.
                         const lNestingStack: Stack<'(' | '[' | '<'> = new Stack<'(' | '[' | '<'>();
-
                         const lPermittedCodePoints: Set<string> = new Set<string>([';', ':', '{', '}']);
-                        const lTemplateListOpeningRegex: RegExp = /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/ug;
 
                         // Iterate each code point.
-                        let lCurrentTextIndex: number = pIndex + pToken.value.length;
-                        while (lCurrentTextIndex < pText.length) {
+                        for (let lCurrentTextIndex: number = 0; lCurrentTextIndex < pText.length; lCurrentTextIndex++) {
                             const lCurrentCodePoint: string = pText[lCurrentTextIndex];
 
                             // Branch for special code points..
@@ -373,17 +368,11 @@ export class PgslLexer extends Lexer<PgslToken> {
                                     }
 
                                     // Push nested 
-                                    lTemplateListOpeningRegex.lastIndex = lCurrentTextIndex;
-                                    if (lTemplateListOpeningRegex.exec(pText)) {
-                                        lNestingStack.push(lCurrentCodePoint);
-                                    }
+                                    lNestingStack.push(lCurrentCodePoint);
 
                                     break;
                                 }
                             }
-
-                            // When nothing special happened, check next code point.
-                            lCurrentTextIndex++;
                         }
 
                         return false;
@@ -436,7 +425,7 @@ export class PgslLexer extends Lexer<PgslToken> {
             // When the target is a lexer, use the root token pattern function.
             // Otherwise use the child pattern function.
             let lPatternApplyFunction: (pLexerPattern: LexerPattern<PgslToken, LexerPatternType>) => void;
-            if(pLexerPattern instanceof PgslLexer) {
+            if (pLexerPattern instanceof PgslLexer) {
                 lPatternApplyFunction = pLexerPattern.useRootTokenPattern;
             } else {
                 lPatternApplyFunction = pLexerPattern.useChildPattern;

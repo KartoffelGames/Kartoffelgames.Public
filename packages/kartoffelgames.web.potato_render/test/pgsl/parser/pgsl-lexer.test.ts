@@ -531,19 +531,22 @@ Deno.test('PgslLexer.tokenize()', async (pContext) => {
 
             await pContext.step('Lower than operator in value', () => {
                 // Setup.
-                const lCodeString = `testA<2 < 1>;`;
+                const lCodeString = `testA<(2 < 1)>;`;
 
                 // Process.
                 const lTokenList: Array<LexerToken<PgslToken>> = [...gPgslLexer.tokenize(lCodeString)];
 
                 // Evaluation.
+                expect(lTokenList).toHaveLength(9);
                 expect(lTokenList[0].type).toBe(PgslToken.Identifier);
                 expect(lTokenList[1].type).toBe(PgslToken.TemplateListStart);
-                expect(lTokenList[2].type).toBe(PgslToken.LiteralInteger);
-                expect(lTokenList[3].type).toBe(PgslToken.OperatorLowerThan);
-                expect(lTokenList[4].type).toBe(PgslToken.LiteralInteger);
-                expect(lTokenList[5].type).toBe(PgslToken.TemplateListEnd);
-                expect(lTokenList[6].type).toBe(PgslToken.Semicolon);
+                expect(lTokenList[2].type).toBe(PgslToken.ParenthesesStart);
+                expect(lTokenList[3].type).toBe(PgslToken.LiteralInteger);
+                expect(lTokenList[4].type).toBe(PgslToken.OperatorLowerThan);
+                expect(lTokenList[5].type).toBe(PgslToken.LiteralInteger);
+                expect(lTokenList[6].type).toBe(PgslToken.ParenthesesEnd);
+                expect(lTokenList[7].type).toBe(PgslToken.TemplateListEnd);
+                expect(lTokenList[8].type).toBe(PgslToken.Semicolon);
             });
 
             await pContext.step('Lower than equal operator in value', () => {
@@ -1694,7 +1697,9 @@ Deno.test('PgslLexer.tokenize()', async (pContext) => {
                 expect(lTokenList[2].type).toBe(PgslToken.Semicolon);
             });
         });
-    }); await pContext.step('Comments', async (pContext) => {
+    });
+    
+    await pContext.step('Comments', async (pContext) => {
         await pContext.step('Comment types', async (pContext) => {
             await pContext.step('Single line', () => {
                 // Setup.

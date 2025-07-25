@@ -4,29 +4,9 @@ import { PgslToken } from './pgsl-token.enum.ts';
 
 export class PgslLexer extends Lexer<PgslToken> {
     /**
-     * Type Value pairs of token used for value assignments.
-     */
-    private static readonly mAssignments: Dictionary<PgslToken, string> = (() => {
-        const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
-        lKeywords.set(PgslToken.Assignment, '=');
-        lKeywords.set(PgslToken.AssignmentPlus, '+=');
-        lKeywords.set(PgslToken.AssignmentMinus, '-=');
-        lKeywords.set(PgslToken.AssignmentMultiply, '*=');
-        lKeywords.set(PgslToken.AssignmentDivide, '/=');
-        lKeywords.set(PgslToken.AssignmentModulo, '%=');
-        lKeywords.set(PgslToken.AssignmentBinaryAnd, '&=');
-        lKeywords.set(PgslToken.AssignmentBinaryOr, '|=');
-        lKeywords.set(PgslToken.AssignmentBinaryXor, '^=');
-        lKeywords.set(PgslToken.AssignmentShiftRight, '>>=');
-        lKeywords.set(PgslToken.AssignmentShiftLeft, '<<=');
-
-        return lKeywords;
-    })();
-
-    /**
      * Hardcoded system reserved keywords.
      */
-    private static readonly mKeywords: Dictionary<PgslToken, string> = (() => {
+    private static readonly mStaticKeywords: Dictionary<PgslToken, string> = (() => {
         const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
         lKeywords.set(PgslToken.KeywordAlias, 'alias');
         lKeywords.set(PgslToken.KeywordBreak, 'break');
@@ -66,43 +46,57 @@ export class PgslLexer extends Lexer<PgslToken> {
     })();
 
     /**
-     * Type Value pairs of token used for value operations.
+     * Type Value pairs of static token of only symbols.
      */
-    private static readonly mOperations: Dictionary<PgslToken, string> = (() => {
+    private static readonly mStaticSymbols: Dictionary<PgslToken, string> = (() => {
         const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
 
-        // Increment and decrement operator
+        // Stuff that stand above all because it is a combination.
+        lKeywords.set(PgslToken.AssignmentMultiply, '*=');
+        lKeywords.set(PgslToken.AssignmentDivide, '/=');
+        lKeywords.set(PgslToken.AssignmentModulo, '%=');
+        lKeywords.set(PgslToken.AssignmentBinaryAnd, '&=');
+        lKeywords.set(PgslToken.AssignmentBinaryOr, '|=');
+        lKeywords.set(PgslToken.AssignmentBinaryXor, '^=');
+        lKeywords.set(PgslToken.AssignmentShiftRight, '>>=');
+        lKeywords.set(PgslToken.AssignmentShiftLeft, '<<=');
+
+        // Stuff that shares plus and minus.
         lKeywords.set(PgslToken.OperatorIncrement, '++');
         lKeywords.set(PgslToken.OperatorDecrement, '--');
-
-        // Math
+        lKeywords.set(PgslToken.AssignmentPlus, '+=');
+        lKeywords.set(PgslToken.AssignmentMinus, '-=');
         lKeywords.set(PgslToken.OperatorPlus, '+');
         lKeywords.set(PgslToken.OperatorMinus, '-');
+
+        // Stuff that shares exclamationmark
+        lKeywords.set(PgslToken.OperatorNotEqual, '!=');
+        lKeywords.set(PgslToken.OperatorNot, '!');
+
+        // Stuff that shares ampersand and pipe
+        lKeywords.set(PgslToken.OperatorShortCircuitAnd, '&&');
+        lKeywords.set(PgslToken.OperatorShortCircuitOr, '||');
+        lKeywords.set(PgslToken.OperatorBinaryAnd, '&');
+        lKeywords.set(PgslToken.OperatorBinaryOr, '|');
+        
+        // Stuff that shares greater and lower than.
+        lKeywords.set(PgslToken.OperatorShiftLeft, '<<');
+        lKeywords.set(PgslToken.OperatorShiftRight, '>>');
+        lKeywords.set(PgslToken.OperatorGreaterThanEqual, '>=');
+        lKeywords.set(PgslToken.OperatorLowerThanEqual, '<=');
+        lKeywords.set(PgslToken.OperatorGreaterThan, '>');
+        lKeywords.set(PgslToken.OperatorLowerThan, '<');
+
+        // Stuff that shares equal.
+        lKeywords.set(PgslToken.OperatorEqual, '==');
+        lKeywords.set(PgslToken.Assignment, '=');
+
+        // Other operations that dont share any thing
+        lKeywords.set(PgslToken.OperatorBinaryXor, '^');
+        lKeywords.set(PgslToken.OperatorBinaryNegate, '~'); 
         lKeywords.set(PgslToken.OperatorMultiply, '*');
         lKeywords.set(PgslToken.OperatorDivide, '/');
         lKeywords.set(PgslToken.OperatorModulo, '%');
-
-        // Some other stuff
-        lKeywords.set(PgslToken.OperatorNot, '!');
-
-        // Compare stuff
-        lKeywords.set(PgslToken.OperatorEqual, '==');
-        lKeywords.set(PgslToken.OperatorGreaterThan, '>');
-        lKeywords.set(PgslToken.OperatorLowerThan, '<');
-        lKeywords.set(PgslToken.OperatorShortCircuitAnd, '&&');
-        lKeywords.set(PgslToken.OperatorShortCircuitOr, '||');
-        lKeywords.set(PgslToken.OperatorGreaterThanEqual, '>=');
-        lKeywords.set(PgslToken.OperatorLowerThanEqual, '<=');
-        lKeywords.set(PgslToken.OperatorNotEqual, '!=');
-
-        // Binary operations
-        lKeywords.set(PgslToken.OperatorBinaryAnd, '&');
-        lKeywords.set(PgslToken.OperatorBinaryOr, '|');
-        lKeywords.set(PgslToken.OperatorBinaryXor, '^');
-        lKeywords.set(PgslToken.OperatorBinaryNegate, '~');
-        lKeywords.set(PgslToken.OperatorShiftLeft, '<<');
-        lKeywords.set(PgslToken.OperatorShiftRight, '>>');
-
 
         return lKeywords;
     })();
@@ -233,14 +227,14 @@ export class PgslLexer extends Lexer<PgslToken> {
         const lLiteralPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, any>>();
         lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
-                regex: /(0[xX][0-9a-fA-F]+[iu]?)|(0[iu]?)|([1-9][0-9]*[iu]?)/,
-                type: PgslToken.LiteralInteger
+                regex: /(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[fh]?)|(0[fh])|([1-9][0-9]*[fh])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[fh]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[fh]?)|([0-9]+[eE][+-]?[0-9]+[fh]?)/,
+                type: PgslToken.LiteralFloat
             },
         }));
         lLiteralPatternList.push(this.createTokenPattern({
             pattern: {
-                regex: /(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[fh]?)|(0[fh])|([1-9][0-9]*[fh])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[fh]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[fh]?)|([0-9]+[eE][+-]?[0-9]+[fh]?)/,
-                type: PgslToken.LiteralFloat
+                regex: /(0[xX][0-9a-fA-F]+[iu]?)|(0[iu]?)|([1-9][0-9]*[iu]?)/,
+                type: PgslToken.LiteralInteger
             },
         }));
         lLiteralPatternList.push(this.createTokenPattern({
@@ -263,6 +257,8 @@ export class PgslLexer extends Lexer<PgslToken> {
                     regex: /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/u,
                     type: PgslToken.TemplateListStart,
                     validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
+                        console.log('TRIGGERED')
+
                         // Init nexting stack.
                         const lNestingStack: Stack<'(' | '[' | '<'> = new Stack<'(' | '[' | '<'>();
 
@@ -402,20 +398,9 @@ export class PgslLexer extends Lexer<PgslToken> {
             lUseCoreTemplates(pLexerPattern);
         });
 
-        // Assignments.
-        const lAssignmentPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
-        for (const [lTokenType, lTokenValue] of PgslLexer.mAssignments) {
-            lAssignmentPatternList.push(this.createTokenPattern({
-                pattern: {
-                    regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-                    type: lTokenType
-                }
-            }));
-        }
-
         // Keywords
         const lKeywordPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
-        for (const [lTokenType, lTokenValue] of PgslLexer.mKeywords) {
+        for (const [lTokenType, lTokenValue] of PgslLexer.mStaticKeywords) {
             lKeywordPatternList.push(this.createTokenPattern({
                 pattern: {
                     regex: new RegExp(`${lTokenValue}(?![\\w])`),
@@ -435,14 +420,14 @@ export class PgslLexer extends Lexer<PgslToken> {
             }));
         }
 
-        // Operations
-        const lOperationPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
-        for (const [lTokenType, lTokenValue] of PgslLexer.mOperations) {
-            lOperationPatternList.push(this.createTokenPattern({
+        // Static symbols.
+        const lStaticSymbolPatternList: Array<LexerPattern<PgslToken, LexerPatternType>> = new Array<LexerPattern<PgslToken, LexerPatternType>>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mStaticSymbols) {
+            lStaticSymbolPatternList.push(this.createTokenPattern({
                 pattern: {
                     regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
                     type: lTokenType
-                },
+                }
             }));
         }
 
@@ -460,28 +445,6 @@ export class PgslLexer extends Lexer<PgslToken> {
             // Comments.
             lPatternApplyFunction.call(pLexerPattern, lCommentPattern);
 
-            // Structoring tokens.
-            lPatternApplyFunction.call(pLexerPattern, lCommaPattern);
-            lPatternApplyFunction.call(pLexerPattern, lMemberDelimiterPattern);
-            lPatternApplyFunction.call(pLexerPattern, lColonPattern);
-            lPatternApplyFunction.call(pLexerPattern, lSemicolonPattern);
-            lPatternApplyFunction.call(pLexerPattern, lBlockPattern);
-            lPatternApplyFunction.call(pLexerPattern, lParenthesesPattern);
-            lPatternApplyFunction.call(pLexerPattern, lListPattern);
-
-            // Tokens with ambiguity. 
-            lPatternApplyFunction.call(pLexerPattern, lTemplateListPattern);
-
-            // Assignments.
-            for (const lAssignmentPattern of lAssignmentPatternList) {
-                lPatternApplyFunction.call(pLexerPattern, lAssignmentPattern);
-            }
-
-            // Literals.
-            for (const lLiteralPattern of lLiteralPatternList) {
-                lPatternApplyFunction.call(pLexerPattern, lLiteralPattern);
-            }
-
             // Keywords.
             for (const lKeywordPattern of lKeywordPatternList) {
                 lPatternApplyFunction.call(pLexerPattern, lKeywordPattern);
@@ -492,11 +455,29 @@ export class PgslLexer extends Lexer<PgslToken> {
                 lPatternApplyFunction.call(pLexerPattern, lReservedKeywordPattern);
             }
 
-            // Operations.
-            for (const lOperationPattern of lOperationPatternList) {
-                lPatternApplyFunction.call(pLexerPattern, lOperationPattern);
+            // Tokens with ambiguity. Before symbols as symbols contains greater and lower than.
+            lPatternApplyFunction.call(pLexerPattern, lTemplateListPattern);
+
+            // Static symbols.
+            for (const lAssignmentPattern of lStaticSymbolPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lAssignmentPattern);
             }
 
+            // Literals.
+            for (const lLiteralPattern of lLiteralPatternList) {
+                lPatternApplyFunction.call(pLexerPattern, lLiteralPattern);
+            }
+
+            // Structoring tokens.
+            lPatternApplyFunction.call(pLexerPattern, lCommaPattern);
+            lPatternApplyFunction.call(pLexerPattern, lMemberDelimiterPattern);
+            lPatternApplyFunction.call(pLexerPattern, lColonPattern);
+            lPatternApplyFunction.call(pLexerPattern, lSemicolonPattern);
+            lPatternApplyFunction.call(pLexerPattern, lBlockPattern);
+            lPatternApplyFunction.call(pLexerPattern, lParenthesesPattern);
+            lPatternApplyFunction.call(pLexerPattern, lListPattern);
+
+            // Identity pattern. Counts as a wildcard i guess.
             lPatternApplyFunction.call(pLexerPattern, lIdentifierPattern);
         };
 

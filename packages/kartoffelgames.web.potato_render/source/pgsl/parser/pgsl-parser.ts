@@ -211,10 +211,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          */
         const lAttributeListSyntaxTreeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('list<-list', lAttributeListGraph);
+                .optional('list<-list', lAttributeListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
             // Create attribute list syntax tree.
-            return new PgslAttributeListSyntaxTree(pData.list, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslAttributeListSyntaxTree(pData.list ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**

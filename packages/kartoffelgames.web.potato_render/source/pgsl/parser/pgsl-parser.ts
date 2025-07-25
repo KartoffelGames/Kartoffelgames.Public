@@ -1293,7 +1293,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          */
         const lModuleScopeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .optional('list<-list', lModuleScopeDeclarationListGraph);
+                .required('list<-list', lModuleScopeDeclarationListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
             return new PgslModuleSyntaxTree(pData.list ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });

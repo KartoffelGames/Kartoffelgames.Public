@@ -366,7 +366,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             await pContext.step('Declaration with read access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBinding(x, y)]
+                    [GroupBinding("one", "two")]
                     [AccessMode(AccessMode.Read)]
                     storage testVariable: Integer;
                 `;
@@ -381,7 +381,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             await pContext.step('Declaration with write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBinding(x, y)]
+                    [GroupBinding("one", "two")]
                     [AccessMode(AccessMode.Write)]
                     storage testVariable: Integer;
                 `;
@@ -396,7 +396,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             await pContext.step('Declaration with read write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBinding(x, y)]
+                    [GroupBinding("one", "two")]
                     [AccessMode(AccessMode.ReadWrite)]
                     storage testVariable: Integer;
                 `;

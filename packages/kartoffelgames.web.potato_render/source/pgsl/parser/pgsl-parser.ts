@@ -601,21 +601,28 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, BasePgslExpressionSyntaxTree> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', [
-                    lLiteralValueExpressionGraph,
-                    lParenthesizedExpressionGraph,
-                    lFunctionCallExpressionGraph,
-                    lVariableNameExpressionGraph,
-                    lIndexedValueExpressionGraph,
-                    lStringValueExpressionGraph,
-                    lAddressOfExpressionGraph,
+                    // Combination expressions, combining two expressions.
                     lValueDecompositionExpressionGraph,
-                    lPointerExpressionGraph,
-                    lNewExpressionGraph,
-                    lUnaryExpressionGraph,
-                    lBitOperationExpressionGraph,
                     lComparisonExpressionGraph,
                     lArithmeticExpressionGraph,
-                    lLogicalExpressionGraph
+                    lLogicalExpressionGraph,
+                    lBitOperationExpressionGraph,
+
+                    // Extending expressions. Extending a expression another expression.
+                    lFunctionCallExpressionGraph,  
+                    lIndexedValueExpressionGraph,
+
+                    // Expression additives. Add something before after.
+                    lAddressOfExpressionGraph,
+                    lPointerExpressionGraph,
+                    lUnaryExpressionGraph,
+                    lParenthesizedExpressionGraph,
+
+                    // Single value expressions.
+                    lNewExpressionGraph,
+                    lLiteralValueExpressionGraph,
+                    lStringValueExpressionGraph,
+                    lVariableNameExpressionGraph,
                 ]);
         }).converter((pData): BasePgslExpressionSyntaxTree => {
             return pData.expression;
@@ -1264,7 +1271,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             aliasDeclaration: lAliasDeclarationGraph,
             enumDeclaration: lEnumDeclarationGraph,
             structDeclaration: lStructDeclarationGraph,
-            structPropertyDeclaration: lStructPropertyDeclarationGraph,
             functionDeclaration: lFunctionDeclarationGraph
         };
     }
@@ -1342,6 +1348,5 @@ type PgslParserDeclarationGraphs = {
     aliasDeclaration: Graph<PgslToken, object, PgslAliasDeclarationSyntaxTree>;
     enumDeclaration: Graph<PgslToken, object, PgslEnumDeclarationSyntaxTree>;
     structDeclaration: Graph<PgslToken, object, PgslStructDeclarationSyntaxTree>;
-    structPropertyDeclaration: Graph<PgslToken, object, PgslStructPropertyDeclarationSyntaxTree>;
     functionDeclaration: Graph<PgslToken, object, PgslFunctionDeclarationSyntaxTree>;
 };

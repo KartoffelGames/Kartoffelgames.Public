@@ -26,7 +26,6 @@ import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expre
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-variable-name-expression-syntax-tree.ts';
 import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree.ts';
 import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree.ts';
-import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree.ts';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree.ts';
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-do-while-statement-syntax-tree.ts';
 import { PgslForStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-for-statement-syntax-tree.ts';
@@ -53,8 +52,10 @@ import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-na
 import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
+import { PgslSyntaxDocument } from "../syntax_tree/pgsl-syntax-document.ts";
+import { PgslSyntaxTreeScope } from "../syntax_tree/pgsl-syntax-tree-scope.ts";
 
-export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
+export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
 
     /**
@@ -102,7 +103,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public override parse(pCodeText: string): PgslModuleSyntaxTree {
+    public override parse(pCodeText: string): PgslSyntaxDocument {
 
         // TODO: On second layer only not the parser.
         // Insert imports. #IMPORT
@@ -115,11 +116,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // TODO: Replace comments with same amount of spaces ans newlines.
 
         // Parse document structure.
-        const lDocument: PgslModuleSyntaxTree = super.parse(pCodeText);
+        const lDocument: PgslSyntaxDocument = super.parse(pCodeText);
+
+        const lValidationScope: PgslSyntaxTreeScope = new PgslSyntaxTreeScope();
 
         // Validate document.
-        lDocument.setup();
-        lDocument.validateIntegrity();
+        lDocument.validate(lValidationScope);
+
+        if( lValidationScope.errors.length > 0) {
+            throw lValidationScope.errors[0];
+        }
 
         // Clear old parsing buffers.
         this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
@@ -199,7 +205,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
          * - "<ATTRIBUTE_ITEM><ATTRIBUTE_ITEM>"
          * ```
          */
-        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0][number]>; }> = Graph.define(() => {
+        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeListSyntaxTree>[1][number]>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lAttributeItemGraph)
                 .optional('list<-list', lAttributeListGraph); // Self reference
@@ -214,7 +220,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .optional('list<-list', lAttributeListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
             // Create attribute list syntax tree.
-            return new PgslAttributeListSyntaxTree(pData.list ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslAttributeListSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
         });
 
         /**
@@ -1278,7 +1284,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     /**
      * Define root graph.
      */
-    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, PgslModuleSyntaxTree> {
+    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, PgslSyntaxDocument> {
         /**
          * List of declaration graphs.
          */
@@ -1300,8 +1306,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         const lModuleScopeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list<-list', lModuleScopeDeclarationListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
-            return new PgslModuleSyntaxTree(pData.list ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSyntaxDocument => {
+            return new PgslSyntaxDocument(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
         });
 
         // Return module scope graph.

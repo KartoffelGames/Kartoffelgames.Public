@@ -1,21 +1,16 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
-import { CodeParserException } from '@kartoffelgames/core-parser';
-import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree.ts';
+import { Exception } from '@kartoffelgames/core';
+import { PgslSyntaxDocument } from "./pgsl-syntax-document.ts";
+import { PgslSyntaxTreeScope } from "./pgsl-syntax-tree-scope.ts";
 
 /**
  * Base pgsl syntax tree object.
  */
-export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
+export abstract class BasePgslSyntaxTree {
     private readonly mBuildIn: boolean;
     private readonly mChilds: Array<BasePgslSyntaxTree>;
-    private readonly mIsScopeBarrier: boolean;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: BasePgslSyntaxTree | null;
-    private readonly mScopedValues: Dictionary<string, BasePgslSyntaxTree>;
-    private mSetupCompleted: boolean;
-    private mSetupData: TSetupData | null;
-    private mSetupStarted: boolean;
-    
+
     /**
      * Structure is build in and does not be included in the final output.
      * Can still be used for validation.
@@ -25,9 +20,16 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
     }
 
     /**
+     * Child nodes of the syntax tree.
+     */
+    public get childs(): ReadonlyArray<BasePgslSyntaxTree> {
+        return this.mChilds;
+    }
+
+    /**
      * Assoziated document of pgsl structure.
      */
-    public get document(): PgslModuleSyntaxTree {
+    public get document(): PgslSyntaxDocument {
         if (!this.mParent) {
             throw new Exception('PGSL-Structure not attached to any document', this);
         }
@@ -43,40 +45,13 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
     }
 
     /**
-     * Parent structure of this object.
-     * 
-     * @throws {@link Exception}
-     * When structure was not assigned to a parent.
-     */
-    public get parent(): BasePgslSyntaxTree | null {
-        return this.mParent;
-    }
-
-    /**
-     * Setup data.
-     */
-    protected get setupData(): TSetupData | null {
-        return this.mSetupData;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pData - Initial data.
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pDefinesValueScope: boolean) {
-        this.mSetupStarted = false;
-        this.mSetupCompleted = false;
-
-        // Set initial data and null setup data.
-        this.mSetupData = null;
-
-        // Setup scoped value list.
-        this.mIsScopeBarrier = pDefinesValueScope;
-        this.mScopedValues = new Dictionary<string, BasePgslSyntaxTree>();
-
+    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
         // Save meta information.
         this.mMeta = {
             position: {
@@ -111,173 +86,25 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
 
             // Set childs parent.
             lChild.setParent(this);
-
-            // Direct setup when parent is setup.
-            if (this.mSetupStarted) {
-                lChild.setup();
-            }
         }
-    }
-
-    /**
-     * Read variable declaration by name.
-     * 
-     * @param pVariableName - Variable name.
-     * 
-     * @returns the declaration of the scoped variable.
-     * 
-     * @throws {@link Exception}
-     * When the variable does not exits. 
-     */
-    public getScopedValue(pValueName: string): BasePgslSyntaxTree {
-        // Try to read declaration
-        let lDeclaration: BasePgslSyntaxTree | undefined = this.mScopedValues.get(pValueName);
-
-        // When not declaration is found, search in parent scoped.
-        if (!lDeclaration && this.mParent) {
-            lDeclaration = this.mParent.getScopedValue(pValueName);
-        }
-
-        if (!lDeclaration) {
-            throw new Exception(`Value with the name "${pValueName}" not defined in current scope.`, this);
-        }
-
-        return lDeclaration;
-    }
-
-    /**
-     * Push a value to next available scope.
-     * 
-     * @param pValueName - Value name.
-     * @param pValue - Value of scoped name. 
-     */
-    public pushScopedValue(pValueName: string, pValue: BasePgslSyntaxTree): void {
-        // Save value when current tree defines a scope barrier.
-        if (this.mIsScopeBarrier) {
-            if (this.mScopedValues.has(pValueName)) {
-                throw new Exception(`Scoped value "${pValueName}" Already defined for current scope.`, this);
-            }
-
-            // Set value to this scope.
-            this.mScopedValues.set(pValueName, pValue);
-            return;
-        }
-
-        // Can only add value to next scope when current tree has a parent.
-        if (!this.mParent) {
-            throw new Exception(`Can't push value "${pValueName}" to current scope. No scope defined.`, this);
-        }
-
-        // Push value to parent. Hopefully it is the next available scope barrier. 
-        this.mParent.pushScopedValue(pValueName, pValue);
-    }
-
-    /**
-     * Setup tree structure. 
-     */
-    public setup(): this {
-        // Dont need to setup a second time.
-        if (this.mSetupStarted) {
-            return this;
-        }
-
-        // Lock another setup.
-        this.mSetupStarted = true;
-
-        // Setup all child structures.
-        for (const lChild of this.mChilds) {
-            lChild.setup();
-        }
-
-        // Apply data.
-        try {
-            // Call structure setup function.
-            this.mSetupData = this.onSetup();
-
-            // Complete setup.
-            this.mSetupCompleted = true;
-        } catch (pError) {
-            // Get message of exception.
-            let lMessage: string = '';
-            if (pError instanceof Error) {
-                lMessage = pError.message;
-            } else {
-                lMessage = (<any>pError).toString();
-            }
-
-            // Extend message by file name.
-            lMessage = `Transpile file setup failed: ${lMessage}`;
-            lMessage += `[${this.mMeta.position.start.line}:${this.mMeta.position.start.column}-${this.mMeta.position.end.line}:${this.mMeta.position.end.column}]`;
-
-            // Build and throw parser exception.
-            throw new Exception(lMessage, this);
-        }
-
-        // Return reference.
-        return this;
     }
 
     /**
      * Validate tree structure. 
      */
-    public validateIntegrity(): this {
-        if (!this.mSetupCompleted) {
-            throw new Exception('Syntax tree must be setup to be validated.', this);
-        }
-
-        // Validate all child structures.
-        for (const lChild of this.mChilds) {
-            lChild.validateIntegrity();
-        }
-
-        // Apply data.
-        try {
-            // Call structure validate function.
-            this.onValidateIntegrity();
-        } catch (pError) {
-            // Get message of exception.
-            let lMessage: string = '';
-            if (pError instanceof Error) {
-                lMessage = pError.message;
-            } else {
-                lMessage = (<any>pError).toString();
-            }
-
-            // Extend message by file name.
-            lMessage = `Transpile file validation failed: ${lMessage}`;
-            lMessage += `[${this.mMeta.position.start.line}:${this.mMeta.position.start.column}-${this.mMeta.position.end.line}:${this.mMeta.position.end.column}]`;
-
-            // Build and throw parser exception.
-            throw new Exception(lMessage, this);
-        }
+    public validate(pScope: PgslSyntaxTreeScope): this {
+        // Call structure validate function.
+        this.onValidateIntegrity(pScope);
 
         // Return reference.
         return this;
     }
 
     /**
-     * Throws when the syntax tree was not validated.
+     * Validate syntax tree.
+     * Shouldn't throw. Errors should be added to the scope.
      */
-    protected ensureSetup(): asserts this is { setupData: TSetupData; } {
-        if (!this.mSetupCompleted) {
-            throw new Exception('Syntax tree must be setup to access properties.', this);
-        }
-    }
-
-    /**
-     * Retrieve data of current structure.
-     */
-    protected onSetup(): TSetupData {
-        // Nothing to setup.
-        return null as TSetupData;
-    }
-
-    /**
-     * Retrieve data of current structure.
-     */
-    protected onValidateIntegrity(): void {
-        // Nothing to validate.
-    }
+    protected abstract onValidateIntegrity(pScope: PgslSyntaxTreeScope): void;
 
     /**
      * Set parent tree of syntax tree.
@@ -285,11 +112,6 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
      * @param pParent - Parent of structure.
      */
     private setParent(pParent: BasePgslSyntaxTree): this {
-        // Cant set parent twice.
-        if (this.mParent) {
-            throw new Exception('PGSL-Structure has a parent can not be moved.', this);
-        }
-
         // Set parent.
         this.mParent = pParent;
 
@@ -297,8 +119,12 @@ export abstract class BasePgslSyntaxTree<TSetupData = unknown> {
         return this;
     }
 
-    // TODO: Add something that can transpile into wgsl.
+    /**
+     * Transpile the syntax tree into wgsl.
+     */
+    public abstract transpile(): string;
 }
+
 
 export type BasePgslSyntaxTreeMeta = {
     range: [number, number, number, number],

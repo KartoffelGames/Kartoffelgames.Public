@@ -1,13 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFixedState } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
+import { PgslSyntaxTreeScope } from "../pgsl-syntax-tree-scope.ts";
 
 /**
- * Generic attributre list.
+ * Generic attribute list.
  */
-export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttributeListSyntaxTreeSetupData> {
+export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
     /**
      * All valid attributes.
      */
@@ -55,26 +56,28 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         return lAttributes;
     })();
 
-    private readonly mAttributeDefinitionList: Array<PgslAttributeListSyntaxTreeAttribute>;
+    private readonly mAttributeDefinitionList: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
 
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
+     * @param pAttributes - Attribute list.
      */
-    public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta, false);
+    public constructor(pMeta: BasePgslSyntaxTreeMeta, pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>) {
+        super(pMeta);
 
-        // Set data. Initialize empty parameters.
-        this.mAttributeDefinitionList = pAttributes.map((pParameter) => {
-            return { name: pParameter.name, parameter: pParameter.parameter ?? [] };
-        });
+        // Init empty attribute list.
+        this.mAttributeDefinitionList = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
 
-        // Set data as child trees.
-        for (const lAttribute of this.mAttributeDefinitionList) {
-            this.appendChild(...lAttribute.parameter);
+        // Convert and add each attribute to list.
+        for (const lAttribute of pAttributes) {
+            const lAttributeParameterList: Array<BasePgslExpressionSyntaxTree> = lAttribute.parameter ?? [];
+            // Add attribute to syntax tree.
+            this.appendChild(...lAttributeParameterList);
+
+            // Allow own attribute names but ignore it.
+            this.mAttributeDefinitionList.set(lAttribute.name, lAttributeParameterList);
         }
     }
 
@@ -86,10 +89,8 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * @returns all attribute parameters 
      */
     public getAttribute(pName: string): Array<BasePgslExpressionSyntaxTree> {
-        this.ensureSetup();
-
         // Try to read attribute parameters.
-        const lAttributeParameter: Array<BasePgslExpressionSyntaxTree> | undefined = this.setupData.attributes.get(pName);
+        const lAttributeParameter: Array<BasePgslExpressionSyntaxTree> | undefined = this.mAttributeDefinitionList.get(pName);
         if (!lAttributeParameter) {
             throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
         }
@@ -98,58 +99,30 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
     }
 
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
-     */
-    protected override onSetup(): PgslAttributeListSyntaxTreeSetupData {
-        const lAttributeList: Dictionary<string, Array<BasePgslExpressionSyntaxTree>> = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
-
-        // Convert and add each attribute to list.
-        for (const lAttribute of this.mAttributeDefinitionList) {
-            // Validate existence.
-            if (lAttributeList.has(lAttribute.name)) {
-                throw new Exception(`Attribute "${lAttribute}" already exists for this entity.`, this);
-            }
-
-            // Allow own attribute names but ignore it.
-            if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
-                lAttributeList.set(lAttribute.name, lAttribute.parameter);
-                continue;
-            }
-
-            // Set attribute.
-            lAttributeList.set(lAttribute.name, lAttribute.parameter);
-        }
-
-        return {
-            attributes: lAttributeList
-        };
-    }
-
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
-
+    protected override onValidateIntegrity(pScope: PgslSyntaxTreeScope): void {
         // Only const expressions allowed.
-        for (const [lAttributeName, lAttributeParameter] of this.setupData.attributes) {
+        for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
             for (const lParameter of lAttributeParameter) {
-                if (!lParameter.isConstant) {
-                    throw new Exception(`Attribute "${lAttributeName}" contains a none constant parameter.`, this);
+                // Validate parameter as standalone expression.
+                lParameter.validate(pScope);
+
+                // Expression must be fixed at shader creation.
+                if (lParameter.fixedState < PgslExpressionSyntaxTreeFixedState.ShaderCreationFixed) {
+                    pScope.pushError(`Attribute "${lAttributeName}" contains a none shader creation fixed parameter.`, this.meta, this);
                 }
             }
 
             // Validate parameters when it is a build in attribute.
             if (PgslAttributeListSyntaxTree.mValidAttributes.has(lAttributeName)) {
                 if (!this.validateParameter(lAttributeParameter, PgslAttributeListSyntaxTree.mValidAttributes.get(lAttributeName)!)) {
-                    throw new Exception(`Attribute "${lAttributeName}" has invalid parameters.`, this);
+                    pScope.pushError(`Attribute "${lAttributeName}" has invalid parameters.`, this.meta, this);
                 }
             }
         }
     }
+
     /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
@@ -218,6 +191,32 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
 
         return false;
     }
+
+    /**
+     * Transpile syntax tree to WGSL code.
+     */
+    public override transpile(): string {
+        let lResult: string = '';
+
+        // Transpile each attribute.
+        for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
+            // Transpile attribute name.
+            lResult += `@${lAttributeName}(`;
+
+            // Transpile all parameters.
+            lResult += lAttributeParameter
+                .map((pParameter: BasePgslExpressionSyntaxTree) => {
+                    return pParameter.transpile();
+                })
+                .join(', ');
+
+            lResult += ')';
+        }
+
+        // Return result.
+        return lResult;
+    }
+
 }
 
 type PgslAttributeListSyntaxTreeSetupData = {

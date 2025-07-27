@@ -1,15 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BufferItemFormat } from '../constant/buffer-item-format.enum.ts';
-import { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum.ts';
-import { ComputeStage } from '../constant/compute-stage.enum.ts';
-import { GpuDevice } from '../device/gpu-device.ts';
-import { GpuObject, GpuObjectSetupReferences } from '../gpu_object/gpu-object.ts';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import { IGpuObjectSetup } from '../gpu_object/interface/i-gpu-object-setup.ts';
-import { BindGroupLayout } from '../pipeline/bind_group_layout/bind-group-layout.ts';
+import type { BufferItemFormat } from '../constant/buffer-item-format.enum.ts';
+import type { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum.ts';
+import type { ComputeStage } from '../constant/compute-stage.enum.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
+import { GpuObject, type GpuObjectSetupReferences } from '../gpu_object/gpu-object.ts';
+import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import type { IGpuObjectSetup } from '../gpu_object/interface/i-gpu-object-setup.ts';
+import type { BindGroupLayout } from '../pipeline/bind_group_layout/bind-group-layout.ts';
 import { PipelineLayout } from '../pipeline/pipeline-layout.ts';
-import { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout.ts';
-import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup.ts';
+import type { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout.ts';
+import { ShaderSetup, type ShaderSetupReferenceData } from './setup/shader-setup.ts';
 import { ShaderComputeModule } from './shader-compute-module.ts';
 import { ShaderRenderModule } from './shader-render-module.ts';
 

@@ -1,5 +1,5 @@
 import { Matrix } from '../../math/matrix.ts';
-import { IProjection } from './i-projection.interface.ts';
+import type { IProjection } from './i-projection.interface.ts';
 
 export class OrthographicProjection implements IProjection {
     private mAspectRatio: number;

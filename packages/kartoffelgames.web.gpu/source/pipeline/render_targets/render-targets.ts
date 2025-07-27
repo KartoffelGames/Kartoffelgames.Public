@@ -4,15 +4,15 @@ import { TextureAspect } from '../../constant/texture-aspect.enum.ts';
 import { TextureOperation } from '../../constant/texture-operation.enum.ts';
 import { TextureUsage } from '../../constant/texture-usage.enum.ts';
 import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
-import { TextureFormatCapability } from '../../device/capabilities/gpu-texture-format-capabilities.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { TextureFormatCapability } from '../../device/capabilities/gpu-texture-format-capabilities.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
-import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
-import { CanvasTexture } from '../../texture/canvas-texture.ts';
-import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
-import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup.ts';
+import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
+import type { CanvasTexture } from '../../texture/canvas-texture.ts';
+import type { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import { type RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup.ts';
 
 /**
  * Group of textures with the same size and multisample level.

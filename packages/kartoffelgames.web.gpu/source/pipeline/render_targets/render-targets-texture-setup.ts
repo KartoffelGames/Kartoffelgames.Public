@@ -1,12 +1,12 @@
 import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
-import { TextureFormat } from '../../constant/texture-format.enum.ts';
+import type { TextureFormat } from '../../constant/texture-format.enum.ts';
 import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import { CanvasTexture } from '../../texture/canvas-texture.ts';
+import type { CanvasTexture } from '../../texture/canvas-texture.ts';
 import { GpuTexture } from '../../texture/gpu-texture.ts';
-import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
-import { RenderTargetSetupData } from './render-targets-setup.ts';
+import type { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import type { RenderTargetSetupData } from './render-targets-setup.ts';
 
 /**
  * Child setup to add or create textures to render target bundles.

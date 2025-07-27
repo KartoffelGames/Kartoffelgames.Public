@@ -1,29 +1,31 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslSyntaxDocument } from "./pgsl-syntax-document.ts";
-import { PgslSyntaxTreeScope } from "./pgsl-syntax-tree-scope.ts";
+import type { PgslSyntaxDocument } from './pgsl-syntax-document.ts';
+import type { PgslSyntaxTreeValidationTrace } from './pgsl-syntax-tree-validation-trace.ts';
 
 /**
  * Base pgsl syntax tree object.
+ * 
+ * @remark
+ * Lifecycle:
+ * - constructor():,
+ *     - No parent node is available.
+ *     - Definition of scope. Should it define a new scope or use any parent scope.
+ *     - appendChild() can be called to add child nodes.
+ * 
+ * - validate():
+ *    - onScopeBuild() is called on the current node. Append 
  */
-export abstract class BasePgslSyntaxTree {
+export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | void = void> {
     private readonly mBuildIn: boolean;
-    private readonly mChilds: Array<BasePgslSyntaxTree>;
+    private readonly mChildNodes: Array<BasePgslSyntaxTree>;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: BasePgslSyntaxTree | null;
 
     /**
-     * Structure is build in and does not be included in the final output.
-     * Can still be used for validation.
-     */
-    public get buildIn(): boolean {
-        return this.mBuildIn;
-    }
-
-    /**
      * Child nodes of the syntax tree.
      */
-    public get childs(): ReadonlyArray<BasePgslSyntaxTree> {
-        return this.mChilds;
+    protected get childNodes(): ReadonlyArray<BasePgslSyntaxTree> {
+        return this.mChildNodes;
     }
 
     /**
@@ -47,9 +49,7 @@ export abstract class BasePgslSyntaxTree {
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
         // Save meta information.
@@ -69,7 +69,42 @@ export abstract class BasePgslSyntaxTree {
 
         // Hirachy information.
         this.mParent = null;
-        this.mChilds = new Array<BasePgslSyntaxTree>();
+        this.mChildNodes = new Array<BasePgslSyntaxTree>();
+    }
+
+    /**
+     * Transpile the syntax tree into wgsl.
+     * If the structure is build in, it will return an empty string.
+     * 
+     * @returns transpiled wgsl code.
+     */
+    public transpile(): string {
+        // If build in, return empty string.
+        if (this.mBuildIn) {
+            return '';
+        }
+
+        // Call transpile function.
+        return this.onTranspile();
+    }
+
+    /**
+     * Validate tree structure.
+     * 
+     * @param pTrace - Validation trace.
+     * 
+     * @return this - Reference to the current syntax tree.
+     */
+    public validate(pTrace: PgslSyntaxTreeValidationTrace): this {
+        // Call structure validate function.
+        const lValidationAttachment: TValidationAttachment = this.onValidateIntegrity(pTrace);
+        if (typeof lValidationAttachment !== 'undefined') {
+            // I did this because i don't care. Hehehe
+            pTrace.attachValue(this, lValidationAttachment as any);
+        }
+
+        // Return reference.
+        return this;
     }
 
     /**
@@ -78,11 +113,11 @@ export abstract class BasePgslSyntaxTree {
      * 
      * @param pChild - Child syntax tree.
      */
-    public appendChild(...pChild: Array<BasePgslSyntaxTree>): void {
+    protected appendChild(...pChild: Array<BasePgslSyntaxTree>): void {
         // Add any child.
         for (const lChild of pChild) {
             // Append to child list. 
-            this.mChilds.push(lChild);
+            this.mChildNodes.push(lChild);
 
             // Set childs parent.
             lChild.setParent(this);
@@ -90,26 +125,11 @@ export abstract class BasePgslSyntaxTree {
     }
 
     /**
-     * Validate tree structure. 
-     */
-    public validate(pScope: PgslSyntaxTreeScope): this {
-        // Call structure validate function.
-        this.onValidateIntegrity(pScope);
-
-        // Return reference.
-        return this;
-    }
-
-    /**
-     * Validate syntax tree.
-     * Shouldn't throw. Errors should be added to the scope.
-     */
-    protected abstract onValidateIntegrity(pScope: PgslSyntaxTreeScope): void;
-
-    /**
      * Set parent tree of syntax tree.
      * 
      * @param pParent - Parent of structure.
+     * 
+     * @return this - Reference to the current syntax tree.
      */
     private setParent(pParent: BasePgslSyntaxTree): this {
         // Set parent.
@@ -122,7 +142,13 @@ export abstract class BasePgslSyntaxTree {
     /**
      * Transpile the syntax tree into wgsl.
      */
-    public abstract transpile(): string;
+    protected abstract onTranspile(): string;
+
+    /**
+     * Validate syntax tree.
+     * Shouldn't throw. Errors should be added to the scope.
+     */
+    protected abstract onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): TValidationAttachment;
 }
 
 

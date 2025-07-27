@@ -1,8 +1,8 @@
 import { CodeParserException } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
 import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser.ts';
-import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree.ts';
-import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts';
+import type { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree.ts';
+import type { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts';
 import { PgslDeclarationType } from '../../../source/pgsl/enum/pgsl-declaration-type.enum.ts';
 
 const gPgslParser: PgslParser = new PgslParser();

@@ -1,10 +1,10 @@
 import { TextureDimension } from '../constant/texture-dimension.enum.ts';
-import { TextureFormat } from '../constant/texture-format.enum.ts';
+import type { TextureFormat } from '../constant/texture-format.enum.ts';
 import { TextureUsage } from '../constant/texture-usage.enum.ts';
-import { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuObject } from '../gpu_object/gpu-object.ts';
-import { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import type { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
+import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
 
 /**
  * Canvas texture. Can only be used as render attachment or to be copied into.

@@ -1,15 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
-import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
+import type { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import type { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
-import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
-import { BindGroup, BindGroupInvalidationType } from '../bind_group/bind-group.ts';
-import { BindLayout } from '../bind_group_layout/bind-group-layout.ts';
-import { PipelineLayout } from '../pipeline-layout.ts';
-import { PipelineDataSetup, PipelineDataSetupData, PipelineDataSetupDataGroup } from './pipeline-data-setup.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
+import { type BindGroup, BindGroupInvalidationType } from '../bind_group/bind-group.ts';
+import type { BindLayout } from '../bind_group_layout/bind-group-layout.ts';
+import type { PipelineLayout } from '../pipeline-layout.ts';
+import { PipelineDataSetup, type PipelineDataSetupData, type PipelineDataSetupDataGroup } from './pipeline-data-setup.ts';
 
 /**
  * Bundle of bind groups.

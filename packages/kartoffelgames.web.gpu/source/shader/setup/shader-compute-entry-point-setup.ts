@@ -1,5 +1,5 @@
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import { ShaderSetupReferenceData } from './shader-setup.ts';
+import type { ShaderSetupReferenceData } from './shader-setup.ts';
 
 /**
  * Child setup object to add compute entry points for shaders. 

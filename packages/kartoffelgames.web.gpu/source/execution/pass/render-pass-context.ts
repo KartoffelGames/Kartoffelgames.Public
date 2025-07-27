@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
+import type { GpuBuffer } from '../../buffer/gpu-buffer.ts';
 import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
-import { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data.ts';
-import { RenderTargets } from '../../pipeline/render_targets/render-targets.ts';
-import { VertexFragmentPipeline } from '../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
-import { VertexParameter } from '../../pipeline/vertex_parameter/vertex-parameter.ts';
+import type { PipelineData, PipelineDataGroup } from '../../pipeline/pipeline_data/pipeline-data.ts';
+import type { RenderTargets } from '../../pipeline/render_targets/render-targets.ts';
+import type { VertexFragmentPipeline } from '../../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
+import type { VertexParameter } from '../../pipeline/vertex_parameter/vertex-parameter.ts';
 
 /**
  * Context for a render pass.

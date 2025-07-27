@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
-import { CameraMatrix, ViewProjection } from './camera/view_projection/view-projection.ts';
+import type { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
+import { CameraMatrix, type ViewProjection } from './camera/view_projection/view-projection.ts';
 
 export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBufferView<Float32Array>): void => {
 

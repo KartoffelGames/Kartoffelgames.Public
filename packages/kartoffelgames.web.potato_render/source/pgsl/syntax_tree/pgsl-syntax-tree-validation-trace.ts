@@ -1,13 +1,16 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, SyntaxTreeMeta } from "./base-pgsl-syntax-tree.ts";
+import type { BasePgslSyntaxTree, SyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
 
 /**
- * Scope for pgsl syntax tree.
+ * Trace for pgsl syntax tree validation.
  * Scopes are created mostly by block statements.
+ * 
+ * @template TValidationAttachment - Current restricted type of attachable data to the validation trace.
  */
-export class PgslSyntaxTreeScope {
+export class PgslSyntaxTreeValidationTrace {
     private readonly mScopeList: Array<Dictionary<string, BasePgslSyntaxTree>>;
     private readonly mErrorList: Array<PgslParserError>;
+    private readonly mAttachment: WeakMap<BasePgslSyntaxTree, object>;
 
     /**
      * Get the list of errors.
@@ -22,8 +25,41 @@ export class PgslSyntaxTreeScope {
      * Create a scope object.
      */
     public constructor() {
+        // Initialize scope list, error list and attachment map.
         this.mScopeList = new Array<Dictionary<string, BasePgslSyntaxTree>>();
         this.mErrorList = new Array<PgslParserError>();
+        this.mAttachment = new WeakMap<BasePgslSyntaxTree, object>();
+    }
+
+    /**
+     * Get the attachment for a specific syntax tree.
+     * 
+     * @param pTarget - Target syntax tree.
+     * 
+     * @returns Attachment for the target syntax tree.
+     */
+    public getAttachment<TTarget extends BasePgslSyntaxTree>(pTarget: TTarget): PgslSyntaxTreeValidationAttachment<TTarget> {
+        // Check if attachment exists and throw  if not.
+        if (!this.mAttachment.has(pTarget)) {
+            throw new Exception(`No attachment found for target syntax tree`, pTarget);
+        }
+
+        return this.mAttachment.get(pTarget)! as PgslSyntaxTreeValidationAttachment<TTarget>;
+    }
+
+    /**
+     * Attach a value to the current syntax tree.
+     * 
+     * @param pTarget - Target syntax tree.
+     * @param pValue - Value to attach.
+     */
+    public attachValue<TTarget extends BasePgslSyntaxTree>(pTarget: TTarget, pValue: PgslSyntaxTreeValidationAttachment<TTarget>): void {
+        if (typeof pValue === 'undefined') {
+            throw new Exception(`Cannot attach undefined value to syntax tree`, pTarget);
+        }
+
+        // Attach value to current syntax tree.
+        this.mAttachment.set(pTarget, pValue);
     }
 
     /**
@@ -98,7 +134,7 @@ export class PgslSyntaxTreeScope {
      * 
      * @param pScopeAction - Action to execute in scope.
      */
-    public valueScope(pScopeAction: () => void): void {
+    public newScope(pScopeAction: () => void): void {
         // Create new scope.
         const lScope: Dictionary<string, BasePgslSyntaxTree> = new Dictionary<string, BasePgslSyntaxTree>();
 
@@ -147,3 +183,5 @@ export class PgslParserError extends Exception<BasePgslSyntaxTree> {
         this.mMeta = pMeta;
     }
 }
+
+type PgslSyntaxTreeValidationAttachment<T extends BasePgslSyntaxTree<any>> = T extends BasePgslSyntaxTree<infer TAttachment> ? TAttachment : never;

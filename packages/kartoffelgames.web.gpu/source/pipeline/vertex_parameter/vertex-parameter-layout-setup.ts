@@ -1,6 +1,6 @@
-import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
+import type { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
-import { VertexParameterBufferLayoutData, VertexParameterBufferLayoutSetup } from './vertex-parameter-buffer-layout-setup.ts';
+import { type VertexParameterBufferLayoutData, VertexParameterBufferLayoutSetup } from './vertex-parameter-buffer-layout-setup.ts';
 
 /**
  * setup object for vertex layouts.

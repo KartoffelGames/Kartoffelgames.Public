@@ -1,7 +1,7 @@
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import type { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
+import type { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import { VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup.ts';
+import type { VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup.ts';
 
 /**
  * Child setup object to divide and add new names parameters to a vertex parameter buffer layout.

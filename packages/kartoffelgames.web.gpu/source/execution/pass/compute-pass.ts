@@ -1,9 +1,9 @@
 import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
 import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
 import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject } from '../../gpu_object/gpu-object.ts';
-import { GpuExecutionContext } from '../gpu-execution.ts';
+import type { GpuExecutionContext } from '../gpu-execution.ts';
 import { ComputePassContext } from './compute-pass-context.ts';
 
 /**

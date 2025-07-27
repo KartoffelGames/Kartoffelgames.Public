@@ -1,12 +1,12 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslAccessMode } from '../../../enum/pgsl-access-mode.enum.ts';
 import { PgslTexelFormat } from '../../../enum/pgsl-texel-format.enum.ts';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
 import { PgslTextureTypeName } from '../enum/pgsl-texture-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';
 
 export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslTextureTypeDefinitionSyntaxTreeStructureData> {

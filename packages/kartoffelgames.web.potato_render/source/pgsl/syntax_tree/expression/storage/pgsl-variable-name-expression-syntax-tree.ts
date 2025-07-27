@@ -1,30 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree.ts';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeState } from '../base-pgsl-expression-syntax-tree.ts';
+import type { PgslSyntaxTreeValidationTrace } from '../../pgsl-syntax-tree-validation-trace.ts';
 
 /**
  * PGSL structure holding single variable name.
  */
-export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslVariableNameExpressionSyntaxTreeSetupData> {
+export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mName: string;
-
-    /**
-     * Variable name.
-     */
-    public get name(): string {
-        return this.mName;
-    }
-
-    /**
-     * Get variable definition.
-     */
-    public get variable(): PgslVariableDeclarationSyntaxTree | PgslVariableDeclarationStatementSyntaxTree {
-        this.ensureSetup();
-
-        return this.setupData.data.variable;
-    }
 
     /**
      * Constructor.
@@ -40,31 +25,34 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
+     * Transpile current expression to WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslVariableNameExpressionSyntaxTreeSetupData> {
-        const lVariableDefinition: BasePgslSyntaxTree | undefined = this.getScopedValue(this.mName);
+    protected override onTranspile(): string {
+        return this.mName;
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeState {
+        // Check if variable is defined.
+        const lVariableDefinition: BasePgslSyntaxTree | undefined = pScope.getScopedValue(this.mName);
         if (!lVariableDefinition) {
-            throw new Exception(`Variable "${this.mName}" not defined.`, this);
+            pScope.pushError(`Variable "${this.mName}" not defined.`, this.meta, this);
         }
 
         // Must be a variable.
         if (!(lVariableDefinition instanceof PgslVariableDeclarationSyntaxTree) && !(lVariableDefinition instanceof PgslVariableDeclarationStatementSyntaxTree)) {
-            throw new Exception(`Name "${this.mName}" does not refere to a variable.`, this);
+            pScope.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
         }
 
+        // Read variable definition attachment.
+        const lVariableDefinitionAttachment: PgslExpressionSyntaxTreeState = pScope.getAttachment(lVariableDefinition);
+
         return {
-            expression: {
-                isFixed: lVariableDefinition.isCreationFixed,
-                isStorage: true,
-                resolveType: lVariableDefinition.type,
-                isConstant: lVariableDefinition.isConstant
-            },
-            data: {
-                variable: lVariableDefinition
-            }
+            fixedState: lVariableDefinition.fixedState,
+            isStorage: true,
+            resolveType: lVariableDefinition.type,
         };
     }
 }

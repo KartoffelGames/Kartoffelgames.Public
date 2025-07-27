@@ -1,6 +1,6 @@
-import { Exception, TypedArray } from '@kartoffelgames/core';
+import { Exception, type TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
-import { GpuBufferView, GpuBufferViewFormat } from '../../buffer/gpu-buffer-view.ts';
+import type { GpuBufferView, GpuBufferViewFormat } from '../../buffer/gpu-buffer-view.ts';
 import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout.ts';
 import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
 import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
@@ -10,15 +10,15 @@ import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
 import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
 import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import { GpuResourceObject } from '../../gpu_object/gpu-resource-object.ts';
+import type { GpuResourceObject } from '../../gpu_object/gpu-resource-object.ts';
 import { GpuTexture } from '../../texture/gpu-texture.ts';
-import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
+import type { GpuTextureView } from '../../texture/gpu-texture-view.ts';
 import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
 import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';
 import { TextureSampler } from '../../texture/texture-sampler.ts';
-import { BindLayout } from '../bind_group_layout/bind-group-layout.ts';
+import type { BindLayout } from '../bind_group_layout/bind-group-layout.ts';
 
 /**
  * Setup child object for setup bind group gpu data resources. 

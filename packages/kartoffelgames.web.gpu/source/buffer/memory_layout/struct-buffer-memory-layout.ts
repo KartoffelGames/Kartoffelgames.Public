@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
-import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
-import { BaseBufferMemoryLayout, BufferLayoutLocation } from './base-buffer-memory-layout.ts';
-import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
+import { BaseBufferMemoryLayout, type BufferLayoutLocation } from './base-buffer-memory-layout.ts';
+import { StructBufferMemoryLayoutSetup, type StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup.ts';
 
 /**
  * Memory layout for a struct buffer or part of a buffer.

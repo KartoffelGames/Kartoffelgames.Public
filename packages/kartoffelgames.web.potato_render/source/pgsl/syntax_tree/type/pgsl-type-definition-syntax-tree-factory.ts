@@ -1,5 +1,5 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { BasePgslTypeDefinitionSyntaxTree } from './definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslAliasedTypeDefinitionSyntaxTree } from './definition/pgsl-aliased-type-definition-syntax-tree.ts';

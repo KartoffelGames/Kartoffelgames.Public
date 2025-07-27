@@ -1,5 +1,5 @@
-import { LexerToken } from "../../lexer/lexer-token.ts";
-import { CodeParserProcessState } from "../code-parser-process-state.ts";
+import type { LexerToken } from '../../lexer/lexer-token.ts';
+import type { CodeParserProcessState } from '../code-parser-process-state.ts';
 import type { GraphNode } from './graph-node.ts';
 
 /**

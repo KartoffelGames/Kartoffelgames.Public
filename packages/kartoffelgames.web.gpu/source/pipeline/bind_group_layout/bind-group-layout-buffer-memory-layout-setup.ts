@@ -1,15 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
 import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout.ts';
-import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
+import type { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
 import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
 import { StructBufferMemoryLayout } from '../../buffer/memory_layout/struct-buffer-memory-layout.ts';
-import { StructBufferMemoryLayoutSetup } from '../../buffer/memory_layout/struct-buffer-memory-layout-setup.ts';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import type { StructBufferMemoryLayoutSetup } from '../../buffer/memory_layout/struct-buffer-memory-layout-setup.ts';
+import type { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import { BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
+import type { BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
 
 /**
  * Buffer memory layout setup object for bind group layouts.

@@ -1,4 +1,4 @@
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 
 /**

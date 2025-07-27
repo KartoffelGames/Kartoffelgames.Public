@@ -1,8 +1,8 @@
-import { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuObject } from '../gpu_object/gpu-object.ts';
 import { ComputePipeline } from '../pipeline/compute-pipeline.ts';
-import { PipelineLayout } from '../pipeline/pipeline-layout.ts';
-import { Shader } from './shader.ts';
+import type { PipelineLayout } from '../pipeline/pipeline-layout.ts';
+import type { Shader } from './shader.ts';
 
 /**
  * Compute part of a shader programm.

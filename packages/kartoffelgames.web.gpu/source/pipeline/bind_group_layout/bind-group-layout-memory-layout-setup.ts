@@ -1,15 +1,15 @@
-import { BaseMemoryLayout } from '../../base-memory-layout.ts';
-import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
-import { SamplerType } from '../../constant/sampler-type.enum.ts';
-import { TextureFormat } from '../../constant/texture-format.enum.ts';
-import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { BaseMemoryLayout } from '../../base-memory-layout.ts';
+import type { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
+import type { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import type { SamplerType } from '../../constant/sampler-type.enum.ts';
+import type { TextureFormat } from '../../constant/texture-format.enum.ts';
+import type { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
 import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
 import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';
 import { BindGroupLayoutBufferMemoryLayoutSetup } from './bind-group-layout-buffer-memory-layout-setup.ts';
-import { BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
+import type { BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
 
 /**
  * Child setup object to set types to single bindings.

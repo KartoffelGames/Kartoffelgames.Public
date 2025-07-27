@@ -1,7 +1,7 @@
-import { TextureAspect } from '../../constant/texture-aspect.enum.ts';
-import { TextureBlendFactor } from '../../constant/texture-blend-factor.enum.ts';
-import { TextureBlendOperation } from '../../constant/texture-blend-operation.enum.ts';
-import { VertexFragmentPipelineTargetConfigData } from './vertex-fragment-pipeline.ts';
+import type { TextureAspect } from '../../constant/texture-aspect.enum.ts';
+import type { TextureBlendFactor } from '../../constant/texture-blend-factor.enum.ts';
+import type { TextureBlendOperation } from '../../constant/texture-blend-operation.enum.ts';
+import type { VertexFragmentPipelineTargetConfigData } from './vertex-fragment-pipeline.ts';
 
 /**
  * Configuration object for piplines target.

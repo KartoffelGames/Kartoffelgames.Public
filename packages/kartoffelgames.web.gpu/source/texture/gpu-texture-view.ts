@@ -1,10 +1,10 @@
-import { TextureUsage } from '../constant/texture-usage.enum.ts';
+import type { TextureUsage } from '../constant/texture-usage.enum.ts';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum.ts';
-import { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import { GpuTexture } from './gpu-texture.ts';
-import { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout.ts';
+import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import type { GpuTexture } from './gpu-texture.ts';
+import type { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout.ts';
 
 /**
  * View to a gpu texture.

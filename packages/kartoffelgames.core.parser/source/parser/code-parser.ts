@@ -20,7 +20,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     public static readonly NODE_NULL_RESULT: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
     public static readonly NODE_VALUE_LIST_END_MEET: symbol = Symbol('FAILED_NODE_VALUE_PARSE');
 
-    private mConfiguration: Required<CodeParserConfiguration>;
+    private readonly mConfiguration: Required<CodeParserConfiguration>;
     private readonly mLexer: Lexer<TTokenType>;
     private mRootPart: Graph<TTokenType, any, TParseResult> | null;
 

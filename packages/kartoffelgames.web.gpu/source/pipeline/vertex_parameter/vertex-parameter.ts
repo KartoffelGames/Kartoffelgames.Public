@@ -1,15 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
-import { GpuBufferView } from '../../buffer/gpu-buffer-view.ts';
+import type { GpuBufferView } from '../../buffer/gpu-buffer-view.ts';
 import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
 import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
 import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
-import { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout.ts';
+import type { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout.ts';
 import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout.ts';
 import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject } from '../../gpu_object/gpu-object.ts';
 
 /**

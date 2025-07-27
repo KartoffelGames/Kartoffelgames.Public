@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuLimit } from '../constant/gpu-limit.enum.ts';
-import { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuObject } from '../gpu_object/gpu-object.ts';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import { BindGroupLayout } from './bind_group_layout/bind-group-layout.ts';
+import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import type { BindGroupLayout } from './bind_group_layout/bind-group-layout.ts';
 import { PipelineData } from './pipeline_data/pipeline-data.ts';
-import { PipelineDataSetup } from './pipeline_data/pipeline-data-setup.ts';
+import type { PipelineDataSetup } from './pipeline_data/pipeline-data-setup.ts';
 
 /**
  * Gpu pipeline layout.

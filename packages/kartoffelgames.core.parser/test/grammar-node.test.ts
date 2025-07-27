@@ -303,7 +303,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
         expect(lResultData.pre).toBe(lChainValue.pre);
         expect(lResultData).toHaveProperty(lPrimaryKey);
         expect(lResultData[lPrimaryKey]).toHaveLength(lValueList.length);
-        expect(lResultData[lPrimaryKey]).toEqual(lValueList)
+        expect(lResultData[lPrimaryKey]).toEqual(lValueList);
     });
 
     await pContext.step('Array key with merge, reference value', () => {
@@ -329,7 +329,7 @@ Deno.test('GraphNode.mergeData()', async (pContext) => {
     await pContext.step('Merge key existing key not array.', () => {
         // Setup.
         const lPrimaryKey: string = 'Value';
-        const lPossibleResultValue: Array<string> = ['PrimitiveValue', 'NOT_AN_ARRAY']
+        const lPossibleResultValue: Array<string> = ['PrimitiveValue', 'NOT_AN_ARRAY'];
         const lChainValue: { [key: string]: any, pre: number; } = { pre: 12, [lPrimaryKey]: lPossibleResultValue[1] };
         const lRequiredNode: GraphNode<string> = GraphNode.new().required(`${lPrimaryKey}[]`, 'sometoken');
 

@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import 'npm:fake-indexeddb/auto';
 import { WebDatabase } from '../source/index.ts';
-import { WebDatabaseQuery } from "../source/web_database/query/web-database-query.ts";
+import { WebDatabaseQuery } from '../source/web_database/query/web-database-query.ts';
 
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
@@ -129,7 +129,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -173,7 +173,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -217,7 +217,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -262,7 +262,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -306,7 +306,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -350,7 +350,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -465,7 +465,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
 
             // Evaluation.
             expect(lResults).toHaveLength(2);
-            const lFoundValues: string[] = lResults.flatMap(r => r[lTableIndexPropertyName] as string[]).filter((v: string) => v >= lLowerValue && v <= lUpperValue);
+            const lFoundValues: Array<string> = lResults.flatMap(r => r[lTableIndexPropertyName] as Array<string>).filter((v: string) => v >= lLowerValue && v <= lUpperValue);
             expect(lFoundValues).toContain('TestValue2');
             expect(lFoundValues).toContain('TestValue3');
         });
@@ -604,7 +604,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lSearchValue, 'TestValue2', 'TestValue3'];
+            const lTestValues: Array<string> = [lSearchValue, 'TestValue2', 'TestValue3'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -649,7 +649,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lSearchValueOne, lSearchValueTwo, 'TestValue3'];
+            const lTestValues: Array<string> = [lSearchValueOne, lSearchValueTwo, 'TestValue3'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -699,7 +699,7 @@ Deno.test('WebDatabaseQuery.read()', { sanitizeResources: false, sanitizeOps: fa
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lSearchValueOne, lSearchValueTwo, lSearchValueThree, 'TestValue4'];
+            const lTestValues: Array<string> = [lSearchValueOne, lSearchValueTwo, lSearchValueThree, 'TestValue4'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -857,7 +857,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lDeleteValue, 'TestValue2', 'TestValue3'];
+            const lTestValues: Array<string> = [lDeleteValue, 'TestValue2', 'TestValue3'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -906,7 +906,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [lDeleteValue, 456, 789];
+            const lTestValues: Array<number> = [lDeleteValue, 456, 789];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -956,7 +956,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1006,7 +1006,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1055,7 +1055,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1104,7 +1104,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: number[] = [20, 30, 40];
+            const lTestValues: Array<number> = [20, 30, 40];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1153,7 +1153,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1202,7 +1202,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = ['TestValue1', 'TestValue3', 'TestValue5'];
+            const lTestValues: Array<string> = ['TestValue1', 'TestValue3', 'TestValue5'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1478,7 +1478,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lDeleteValue, 'TestValue2', 'TestValue3'];
+            const lTestValues: Array<string> = [lDeleteValue, 'TestValue2', 'TestValue3'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1528,7 +1528,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lDeleteValueOne, lDeleteValueTwo, 'TestValue3'];
+            const lTestValues: Array<string> = [lDeleteValueOne, lDeleteValueTwo, 'TestValue3'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;
@@ -1582,7 +1582,7 @@ Deno.test('WebDatabaseQuery.delete()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTestTable = pTransaction.table(TestTable);
 
-            const lTestValues: string[] = [lDeleteValueOne, lDeleteValueTwo, lDeleteValueThree, 'TestValue4'];
+            const lTestValues: Array<string> = [lDeleteValueOne, lDeleteValueTwo, lDeleteValueThree, 'TestValue4'];
             for (const lValue of lTestValues) {
                 const lTestObject = new TestTable();
                 lTestObject[lTableIndexPropertyName] = lValue;

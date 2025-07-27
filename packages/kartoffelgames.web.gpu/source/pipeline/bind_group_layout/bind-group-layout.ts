@@ -1,18 +1,18 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BaseMemoryLayout } from '../../base-memory-layout.ts';
+import type { BaseMemoryLayout } from '../../base-memory-layout.ts';
 import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
-import { ComputeStage } from '../../constant/compute-stage.enum.ts';
+import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
-import { TextureFormatCapability } from '../../device/capabilities/gpu-texture-format-capabilities.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
-import { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
+import type { TextureFormatCapability } from '../../device/capabilities/gpu-texture-format-capabilities.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
 import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
 import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';
 import { BindGroup } from '../bind_group/bind-group.ts';
-import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
+import { BindGroupLayoutSetup, type BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
 
 /**
  * Bind group layout. Fixed at creation. 

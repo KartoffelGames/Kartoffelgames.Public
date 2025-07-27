@@ -1,5 +1,5 @@
-import { CompareFunction } from '../../constant/compare-function.enum.ts';
-import { VertexFragmentPipelineDepthConfigurationData } from './vertex-fragment-pipeline.ts';
+import type { CompareFunction } from '../../constant/compare-function.enum.ts';
+import type { VertexFragmentPipelineDepthConfigurationData } from './vertex-fragment-pipeline.ts';
 
 /**
  * Configuration object for pipeline depth target. 

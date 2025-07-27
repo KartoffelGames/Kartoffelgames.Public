@@ -1,14 +1,14 @@
 
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
-import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import type { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
+import type { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
 import { ArrayBufferMemoryLayout } from './array-buffer-memory-layout.ts';
-import { BaseBufferMemoryLayout } from './base-buffer-memory-layout.ts';
+import type { BaseBufferMemoryLayout } from './base-buffer-memory-layout.ts';
 import { PrimitiveBufferMemoryLayout } from './primitive-buffer-memory-layout.ts';
 import { StructBufferMemoryLayout } from './struct-buffer-memory-layout.ts';
-import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup.ts';
+import type { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup.ts';
 
 /**
  * Child setup to add types to struct properties.

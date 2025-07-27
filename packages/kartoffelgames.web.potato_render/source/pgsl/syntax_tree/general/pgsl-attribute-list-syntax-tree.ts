@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFixedState } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { type BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFixedState, PgslExpressionSyntaxTreeState } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
-import { PgslSyntaxTreeScope } from "../pgsl-syntax-tree-scope.ts";
+import type { PgslSyntaxTreeValidationTrace } from '../pgsl-syntax-tree-validation-trace.ts';
 
 /**
  * Generic attribute list.
@@ -99,17 +99,44 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
     }
 
     /**
+     * Transpile syntax tree to WGSL code.
+     */
+    protected override onTranspile(): string {
+        let lResult: string = '';
+
+        // Transpile each attribute.
+        for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
+            // Transpile attribute name.
+            lResult += `@${lAttributeName}(`;
+
+            // Transpile all parameters.
+            lResult += lAttributeParameter
+                .map((pParameter: BasePgslExpressionSyntaxTree) => {
+                    return pParameter.transpile();
+                })
+                .join(', ');
+
+            lResult += ')';
+        }
+
+        // Return result.
+        return lResult;
+    }
+
+    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pScope: PgslSyntaxTreeScope): void {
+    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): void {
         // Only const expressions allowed.
         for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
             for (const lParameter of lAttributeParameter) {
                 // Validate parameter as standalone expression.
                 lParameter.validate(pScope);
 
+                const lParameterAttachment: PgslExpressionSyntaxTreeState = pScope.getAttachment(lParameter);
+
                 // Expression must be fixed at shader creation.
-                if (lParameter.fixedState < PgslExpressionSyntaxTreeFixedState.ShaderCreationFixed) {
+                if (lParameterAttachment.fixedState < PgslExpressionSyntaxTreeFixedState.ShaderCreationFixed) {
                     pScope.pushError(`Attribute "${lAttributeName}" contains a none shader creation fixed parameter.`, this.meta, this);
                 }
             }
@@ -191,32 +218,6 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
 
         return false;
     }
-
-    /**
-     * Transpile syntax tree to WGSL code.
-     */
-    public override transpile(): string {
-        let lResult: string = '';
-
-        // Transpile each attribute.
-        for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
-            // Transpile attribute name.
-            lResult += `@${lAttributeName}(`;
-
-            // Transpile all parameters.
-            lResult += lAttributeParameter
-                .map((pParameter: BasePgslExpressionSyntaxTree) => {
-                    return pParameter.transpile();
-                })
-                .join(', ');
-
-            lResult += ')';
-        }
-
-        // Return result.
-        return lResult;
-    }
-
 }
 
 type PgslAttributeListSyntaxTreeSetupData = {

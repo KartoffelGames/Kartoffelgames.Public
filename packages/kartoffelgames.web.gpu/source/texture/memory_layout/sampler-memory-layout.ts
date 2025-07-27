@@ -1,6 +1,6 @@
 import { BaseMemoryLayout } from '../../base-memory-layout.ts';
-import { SamplerType } from '../../constant/sampler-type.enum.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
+import type { SamplerType } from '../../constant/sampler-type.enum.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
 
 /**
  * Memory layouts for texture samplers.

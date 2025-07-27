@@ -1,5 +1,5 @@
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
 
 /**
  * Boolean type definition.

@@ -1,5 +1,5 @@
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
+import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
 
 /**
  * PGSL base type definition.

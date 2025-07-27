@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-struct-type-definition-syntax-tree.ts';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
-import { PgslStructPropertyDeclarationSyntaxTree } from '../../declaration/pgsl-struct-property-declaration-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import type { PgslStructPropertyDeclarationSyntaxTree } from '../../declaration/pgsl-struct-property-declaration-syntax-tree.ts';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.

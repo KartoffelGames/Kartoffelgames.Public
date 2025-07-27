@@ -9,7 +9,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import type { WebDatabaseTableLayoutTableLayoutIndex, WebDatabaseTableType, WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
 import type { WebDatabaseTable } from '../web-database-table.ts';
-import { WebDatabaseQueryAction, WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
+import { WebDatabaseQueryAction, type WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
 
 
 export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
@@ -308,7 +308,7 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
      * 
      * @returns A promise that resolves when the cursor has iterated over all matching records.
      */
-    private openCursor(pQuery: WebDatabaseQueryIndexableKeyRange, pAction: (pCursor: IDBCursorWithValue) => void): Promise<void> {
+    private async openCursor(pQuery: WebDatabaseQueryIndexableKeyRange, pAction: (pCursor: IDBCursorWithValue) => void): Promise<void> {
         // Get table connection.
         const lTableConnection: IDBObjectStore = this.mTable.transaction.transaction.objectStore(this.mTable.tableLayout.tableName);
 

@@ -1,11 +1,10 @@
-import { Exception } from "@kartoffelgames/core";
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from "./base-pgsl-syntax-tree.ts";
-import { PgslSyntaxTreeScope } from "./pgsl-syntax-tree-scope.ts";
-import { PgslAliasDeclarationSyntaxTree } from "./declaration/pgsl-alias-declaration-syntax-tree.ts";
-import { PgslEnumDeclarationSyntaxTree } from "./declaration/pgsl-enum-declaration-syntax-tree.ts";
-import { PgslFunctionDeclarationSyntaxTree } from "./declaration/pgsl-function-declaration-syntax-tree.ts";
-import { PgslStructDeclarationSyntaxTree } from "./declaration/pgsl-struct-declaration-syntax-tree.ts";
-import { PgslVariableDeclarationSyntaxTree } from "./declaration/pgsl-variable-declaration-syntax-tree.ts";
+import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
+import { PgslAliasDeclarationSyntaxTree } from './declaration/pgsl-alias-declaration-syntax-tree.ts';
+import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declaration-syntax-tree.ts';
+import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree.ts';
+import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-declaration-syntax-tree.ts';
+import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "./pgsl-syntax-tree-validation-trace.ts";
 
 export class PgslSyntaxDocument extends BasePgslSyntaxTree {
     /**
@@ -33,13 +32,24 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
     }
 
     /**
+     * Transpile syntax tree to WGSL code.
+     */
+    protected override onTranspile(): string {
+        // Transpile all childs.
+        return this.childNodes
+            .reduce((pCurrentValue: string, pChild: BasePgslSyntaxTree) => {
+                return pCurrentValue + pChild.transpile();
+            }, '');
+    }
+
+    /**
      * Validate syntax tree.
      */
-    protected override onValidateIntegrity(pScope: PgslSyntaxTreeScope): void {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): void {
         // Create new scope.
-        pScope.valueScope(() => {
+        pTrace.newScope(() => {
             // Validate all child structures.
-            for (const lChild of this.childs) {
+            for (const lChild of this.childNodes) {
                 // Module scope content must be a specific tree type.
                 switch (true) {
                     case lChild instanceof PgslAliasDeclarationSyntaxTree: break;
@@ -48,23 +58,13 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
                     case lChild instanceof PgslVariableDeclarationSyntaxTree: break;
                     case lChild instanceof PgslStructDeclarationSyntaxTree: break;
                     default: {
-                        throw new Exception(`Unknown module structure.`, this);
+                        pTrace.pushError(`Unknown module structure.`, lChild.meta, lChild);
                     }
                 }
 
-                lChild.validate(pScope);
+                // Validate child structure.
+                lChild.validate(pTrace);
             }
         });
-    }
-
-    /**
-     * Transpile syntax tree to WGSL code.
-     */
-    public override transpile(): string {
-        // Transpile all childs.
-        return this.childs
-            .reduce((pCurrentValue: string, pChild: BasePgslSyntaxTree) => {
-                return pCurrentValue + pChild.transpile();
-            }, '');
     }
 }

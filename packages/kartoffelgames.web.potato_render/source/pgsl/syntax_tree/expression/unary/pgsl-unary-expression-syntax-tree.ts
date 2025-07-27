@@ -1,33 +1,17 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeState } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
  */
-export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslUnaryExpressionSyntaxTreeSetupData> {
+export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mExpression: BasePgslExpressionSyntaxTree;
-    private readonly mOperatorName: string;
-
-    /**
-     * Expression reference.
-     */
-    public get expression(): BasePgslExpressionSyntaxTree {
-        return this.mExpression;
-    }
-
-    /**
-     * Unary operator.
-     */
-    public get operator(): PgslOperator {
-        this.ensureSetup();
-
-        return this.setupData.data.operator;
-    }
+    private readonly mOperator: string;
 
     /**
      * Constructor.
@@ -41,62 +25,43 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
 
         // Set data.
         this.mExpression = pExpression;
-        this.mOperatorName = pOperator;
+        this.mOperator = pOperator;
     }
 
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
+     * Transpile current expression to WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslUnaryExpressionSyntaxTreeSetupData> {
-        // Try to read operator.
-        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
-        if (!lOperator) {
-            throw new Exception(`Can't use "${this.mOperatorName}" as a operator.`, this);
-        }
-
-        // TODO: Integer type changes when value is negative.
-
-        return {
-            expression: {
-                isFixed: this.mExpression.isCreationFixed,
-                isStorage: false,
-                resolveType: this.mExpression.resolveType,
-                isConstant: this.mExpression.isConstant
-            },
-            data: {
-                operator: lOperator
-            }
-        };
+    protected override onTranspile(): string {
+        // Transpile expression.
+        const lExpression: string = this.mExpression.transpile();
+        return `${this.mOperator}${lExpression}`;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeState {
+        // Validate child expression.
+        this.mExpression.validate(pTrace);
+
+        // Read attached value of expression.
+        const lExpressionState: PgslExpressionSyntaxTreeState = pTrace.getAttachment(this.mExpression);
 
         // Type buffer for validating the processed types.
         let lValueType: BasePgslTypeDefinitionSyntaxTree;
 
         // Validate vectors differently.
-        if (this.mExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
-            lValueType = this.mExpression.resolveType.innerType;
+        if (lExpressionState.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            lValueType = lExpressionState.resolveType.innerType;
         } else {
-            lValueType = this.mExpression.resolveType;
-        }
-
-        // Validate operator.
-        if (![PgslOperator.BinaryNegate, PgslOperator.Minus, PgslOperator.Not].includes(this.setupData.data.operator)) {
-            throw new Exception(`Unary operator "${this.setupData.data.operator}" not supported`, this);
+            lValueType = lExpressionState.resolveType;
         }
 
         // Validate type for each.
-        switch (this.setupData.data.operator) {
+        switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
                 if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
-                    throw new Exception(`Binary negation only valid for numeric type.`, this);
+                    pTrace.pushError(`Binary negation only valid for numeric type.`, this.meta, this);
                 }
 
                 break;
@@ -104,22 +69,28 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
             case PgslOperator.Minus: {
                 // TODO: Not unsigned int.
                 if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
-                    throw new Exception(`Negation only valid for numeric or vector type.`, this);
+                    pTrace.pushError(`Negation only valid for numeric or vector type.`, this.meta, this);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
                 if (lValueType.baseType !== PgslBaseTypeName.Boolean) {
-                    throw new Exception(`Boolean negation only valid for boolean type.`, this);
+                    pTrace.pushError(`Boolean negation only valid for boolean type.`, this.meta, this);
                 }
 
                 break;
             }
+            default: {
+                pTrace.pushError(`Unknown unary operator "${this.mOperator}".`, this.meta, this);
+            }
         }
+
+        // TODO: Resolved integer type changes when value is negative.
+        return {
+            fixedState: lExpressionState.fixedState,
+            isStorage: false,
+            resolveType: lExpressionState.resolveType,
+        };
     }
 }
-
-export type PgslUnaryExpressionSyntaxTreeSetupData = {
-    operator: PgslOperator;
-};

@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { LexerToken } from '../source/lexer/lexer-token.ts';
-import { CodeParserProcessState } from "../source/parser/code-parser-process-state.ts";
+import type { CodeParserProcessState } from '../source/parser/code-parser-process-state.ts';
 import { GraphNode } from '../source/parser/graph/graph-node.ts';
 import { Graph } from '../source/parser/graph/graph.ts';
 
@@ -16,7 +16,7 @@ const generateState = (pStartToken?: LexerToken<string>, pEndToken?: LexerToken<
         public getGraphBoundingToken(): [LexerToken<string> | undefined, LexerToken<string> | undefined] {
             return [pStartToken ?? pEndToken, pEndToken ?? pStartToken];
         }
-    }) as CodeParserProcessState<string>;
+    })() as CodeParserProcessState<string>;
 };
 
 Deno.test('Graph.define()', async (pContext) => {

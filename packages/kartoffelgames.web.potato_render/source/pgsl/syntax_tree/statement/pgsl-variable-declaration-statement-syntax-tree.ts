@@ -1,9 +1,9 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
-import { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
 

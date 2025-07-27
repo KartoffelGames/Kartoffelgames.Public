@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum.ts';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum.ts';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
 import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree.ts';
 import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree.ts';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';

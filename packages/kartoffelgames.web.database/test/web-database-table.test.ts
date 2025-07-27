@@ -360,7 +360,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
 
         // Process. Try to delete using the same object - should throw error.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
-            await pTransaction.table(TestTable).delete(lTestDataToDelete)
+            await pTransaction.table(TestTable).delete(lTestDataToDelete);
         });
 
         // Evaluation. Verify that all data is still present since delete failed.

@@ -5,7 +5,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
 import { TextureFormat } from '../../constant/texture-format.enum.ts';
 import { TextureSampleType } from '../../constant/texture-sample-type.enum.ts';
 import { TextureUsage } from '../../constant/texture-usage.enum.ts';
-import { GpuDevice } from '../gpu-device.ts';
+import type { GpuDevice } from '../gpu-device.ts';
 
 export class GpuTextureFormatCapabilities {
     private readonly mDevice: GpuDevice;

@@ -1,4 +1,4 @@
-import { LexerToken } from "@kartoffelgames/core-parser";
+import type { LexerToken } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParserException } from '../source/parser/code-parser-exception.ts';

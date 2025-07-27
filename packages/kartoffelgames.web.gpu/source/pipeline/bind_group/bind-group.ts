@@ -5,12 +5,12 @@ import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts'
 import { TextureUsage } from '../../constant/texture-usage.enum.ts';
 import { TextureSampler } from '../../texture/texture-sampler.ts';
 import { BindGroupDataSetup } from './bind-group-data-setup.ts';
-import { BindGroupLayout, BindLayout } from '../bind_group_layout/bind-group-layout.ts';
+import type { BindGroupLayout, BindLayout } from '../bind_group_layout/bind-group-layout.ts';
 import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
-import { GpuDevice } from '../../device/gpu-device.ts';
-import { GpuObject, GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
-import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
-import { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
+import type { GpuDevice } from '../../device/gpu-device.ts';
+import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import { type GpuResourceObject, GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
+import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
 import { GpuTextureView } from '../../texture/gpu-texture-view.ts';
 import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
 import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';

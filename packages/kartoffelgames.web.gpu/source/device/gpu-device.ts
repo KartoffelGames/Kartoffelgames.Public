@@ -1,9 +1,9 @@
 import { Exception, List } from '@kartoffelgames/core';
-import { GpuFeature } from '../constant/gpu-feature.enum.ts';
-import { GpuLimit } from '../constant/gpu-limit.enum.ts';
-import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution.ts';
-import { ComputePass, ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
-import { RenderPass, RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
+import type { GpuFeature } from '../constant/gpu-feature.enum.ts';
+import type { GpuLimit } from '../constant/gpu-limit.enum.ts';
+import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
+import { ComputePass, type ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
+import { RenderPass, type RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
 import { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
 import { Shader } from '../shader/shader.ts';
 import { CanvasTexture } from '../texture/canvas-texture.ts';

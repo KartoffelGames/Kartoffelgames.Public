@@ -1,6 +1,6 @@
-import { CompareFunction } from '../../constant/compare-function.enum.ts';
-import { StencilOperation } from '../../constant/stencil-operation.enum.ts';
-import { VertexFragmentPipelineStencilConfigurationData } from './vertex-fragment-pipeline.ts';
+import type { CompareFunction } from '../../constant/compare-function.enum.ts';
+import type { StencilOperation } from '../../constant/stencil-operation.enum.ts';
+import type { VertexFragmentPipelineStencilConfigurationData } from './vertex-fragment-pipeline.ts';
 
 /**
  * Configuration object for pipeline stencil target. 

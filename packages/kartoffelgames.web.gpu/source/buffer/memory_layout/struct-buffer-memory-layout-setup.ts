@@ -1,7 +1,7 @@
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
-import { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
-import { BaseBufferMemoryLayout } from './base-buffer-memory-layout.ts';
+import type { BaseBufferMemoryLayout } from './base-buffer-memory-layout.ts';
 import { StructBufferMemoryLayoutPropertySetup } from './struct-buffer-memory-layout-property-setup.ts';
 
 /**

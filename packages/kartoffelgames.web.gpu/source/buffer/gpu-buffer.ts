@@ -1,10 +1,10 @@
-import { Exception, TypedArray } from '@kartoffelgames/core';
+import { Exception, type TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../constant/buffer-usage.enum.ts';
-import { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
-import { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import { GpuBufferView, GpuBufferViewFormat } from './gpu-buffer-view.ts';
-import { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout.ts';
+import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import { GpuBufferView, type GpuBufferViewFormat } from './gpu-buffer-view.ts';
+import type { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout.ts';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.

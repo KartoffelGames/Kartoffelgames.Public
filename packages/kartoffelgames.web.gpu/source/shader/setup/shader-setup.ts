@@ -1,12 +1,12 @@
-import { ComputeStage } from '../../constant/compute-stage.enum.ts';
+import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
 import { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout.ts';
-import { BindGroupLayoutSetup } from '../../pipeline/bind_group_layout/bind-group-layout-setup.ts';
+import type { BindGroupLayoutSetup } from '../../pipeline/bind_group_layout/bind-group-layout-setup.ts';
 import { VertexParameterLayout } from '../../pipeline/vertex_parameter/vertex-parameter-layout.ts';
-import { VertexParameterLayoutSetup } from '../../pipeline/vertex_parameter/vertex-parameter-layout-setup.ts';
-import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader.ts';
+import type { VertexParameterLayoutSetup } from '../../pipeline/vertex_parameter/vertex-parameter-layout-setup.ts';
+import type { ShaderModuleEntryPointFragmentRenderTarget } from '../shader.ts';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup.ts';
-import { ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup.ts';
+import { type ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup.ts';
 
 /**
  * Setup object to setup all layout and constant informations for shaders.

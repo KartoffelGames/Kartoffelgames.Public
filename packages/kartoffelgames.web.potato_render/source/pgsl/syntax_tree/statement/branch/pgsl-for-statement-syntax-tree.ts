@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 import { PgslAssignmentStatementSyntaxTree } from '../pgsl-assignment-statement-syntax-tree.ts';
-import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
+import type { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
 import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree.ts';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../pgsl-increment-decrement-statement-syntax-tree.ts';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree.ts';
+import type { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.

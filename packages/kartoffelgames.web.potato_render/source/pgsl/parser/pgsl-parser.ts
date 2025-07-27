@@ -1,14 +1,14 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { CodeParser, Graph, GraphNode, LexerToken } from '@kartoffelgames/core-parser';
-import { BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
-import { BasePgslDeclarationSyntaxTree } from "../syntax_tree/declaration/base-pgsl-declaration-syntax-tree.ts";
+import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
+import type { BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { BasePgslDeclarationSyntaxTree } from '../syntax_tree/declaration/base-pgsl-declaration-syntax-tree.ts';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-alias-declaration-syntax-tree.ts';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-enum-declaration-syntax-tree.ts';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-function-declaration-syntax-tree.ts';
 import { PgslStructDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-struct-declaration-syntax-tree.ts';
 import { PgslStructPropertyDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-struct-property-declaration-syntax-tree.ts';
 import { PgslVariableDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree.ts';
 import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression-syntax-tree.ts';
 import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression-syntax-tree.ts';
@@ -26,11 +26,11 @@ import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expre
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-variable-name-expression-syntax-tree.ts';
 import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree.ts';
 import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree.ts';
-import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree.ts';
+import type { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree.ts';
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-do-while-statement-syntax-tree.ts';
 import { PgslForStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-for-statement-syntax-tree.ts';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-if-statement-syntax-tree.ts';
-import { PgslSwitchStatementSwitchCase, PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-switch-statement-syntax-tree.ts';
+import { type PgslSwitchStatementSwitchCase, PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-switch-statement-syntax-tree.ts';
 import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-while-statement-syntax-tree.ts';
 import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree.ts';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree.ts';
@@ -41,7 +41,7 @@ import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/state
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree.ts';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree.ts';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree.ts';
-import { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum.ts';
 import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum.ts';
@@ -52,8 +52,8 @@ import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-na
 import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslSyntaxDocument } from "../syntax_tree/pgsl-syntax-document.ts";
-import { PgslSyntaxTreeScope } from "../syntax_tree/pgsl-syntax-tree-scope.ts";
+import { PgslSyntaxDocument } from '../syntax_tree/pgsl-syntax-document.ts';
+import { PgslSyntaxTreeValidationTrace } from '../syntax_tree/pgsl-syntax-tree-validation-trace.ts';
 
 export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
@@ -118,7 +118,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         // Parse document structure.
         const lDocument: PgslSyntaxDocument = super.parse(pCodeText);
 
-        const lValidationScope: PgslSyntaxTreeScope = new PgslSyntaxTreeScope();
+        const lValidationScope: PgslSyntaxTreeValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Validate document.
         lDocument.validate(lValidationScope);

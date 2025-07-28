@@ -6,11 +6,12 @@ import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expre
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
 import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeSetupData> {
+export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeValidationAttachment> {
     private static readonly mDeclarationAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = (() => {
         // Create mapping of declaration type to address space.
         const lAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = new Dictionary<PgslDeclarationType, PgslValueAddressSpace>();
@@ -107,6 +108,10 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         }
     }
 
+    protected override onTranspile(): string {
+        return ;
+    }
+
     /**
      * Retrieve data of current structure.
      * 
@@ -133,7 +138,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(): PgslVariableDeclarationSyntaxTreeValidationAttachment {
         this.ensureSetup();
 
         // Create list of all module variable declarations types.
@@ -182,11 +187,11 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 }
 
-type PgslVariableDeclarationSyntaxTreeSetupData = {
+export type PgslVariableDeclarationSyntaxTreeValidationAttachment = {
+    fixedState: PgslValueFixedState;
     declarationType: PgslDeclarationType;
-    isConstant: boolean;
-    isFixed: boolean;
     addressSpace: PgslValueAddressSpace;
+    type: BasePgslTypeDefinitionSyntaxTree;
 };
 
 export type PgslVariableDeclarationSyntaxTreeConstructorParameter = {

@@ -4,7 +4,7 @@ import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation
 import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeState } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
@@ -40,12 +40,12 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeState {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Validate child expression.
         this.mExpression.validate(pTrace);
 
         // Read attached value of expression.
-        const lExpressionState: PgslExpressionSyntaxTreeState = pTrace.getAttachment(this.mExpression);
+        const lExpressionState: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
 
         // Type buffer for validating the processed types.
         let lValueType: BasePgslTypeDefinitionSyntaxTree;

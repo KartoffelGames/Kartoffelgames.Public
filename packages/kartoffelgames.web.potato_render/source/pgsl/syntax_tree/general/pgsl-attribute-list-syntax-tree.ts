@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { type BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFixedState, PgslExpressionSyntaxTreeState } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { type BasePgslExpressionSyntaxTree, PgslValueFixedState, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../pgsl-syntax-tree-validation-trace.ts';
@@ -133,10 +133,10 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
                 // Validate parameter as standalone expression.
                 lParameter.validate(pScope);
 
-                const lParameterAttachment: PgslExpressionSyntaxTreeState = pScope.getAttachment(lParameter);
+                const lParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pScope.getAttachment(lParameter);
 
                 // Expression must be fixed at shader creation.
-                if (lParameterAttachment.fixedState < PgslExpressionSyntaxTreeFixedState.ShaderCreationFixed) {
+                if (lParameterAttachment.fixedState < PgslValueFixedState.ShaderCreationFixed) {
                     pScope.pushError(`Attribute "${lAttributeName}" contains a none shader creation fixed parameter.`, this.meta, this);
                 }
             }

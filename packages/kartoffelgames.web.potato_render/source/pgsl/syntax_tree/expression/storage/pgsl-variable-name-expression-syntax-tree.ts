@@ -1,9 +1,10 @@
-import { Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree.ts';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeState } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslVariableDeclarationSyntaxTree, PgslVariableDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-variable-declaration-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../../pgsl-syntax-tree-validation-trace.ts';
+import { PgslVariableDeclarationStatementSyntaxTree, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement-syntax-tree.ts';
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding single variable name.
@@ -34,25 +35,41 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeState {
+    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Check if variable is defined.
         const lVariableDefinition: BasePgslSyntaxTree | undefined = pScope.getScopedValue(this.mName);
         if (!lVariableDefinition) {
             pScope.pushError(`Variable "${this.mName}" not defined.`, this.meta, this);
         }
 
-        // Must be a variable.
-        if (!(lVariableDefinition instanceof PgslVariableDeclarationSyntaxTree) && !(lVariableDefinition instanceof PgslVariableDeclarationStatementSyntaxTree)) {
-            pScope.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
+        if (lVariableDefinition instanceof PgslVariableDeclarationSyntaxTree) {
+            // Read variable definition attachment.
+            const lVariableDeclarationAttachment: PgslVariableDeclarationSyntaxTreeValidationAttachment = pScope.getAttachment(lVariableDefinition);
+            return {
+                fixedState: lVariableDeclarationAttachment.fixedState,
+                isStorage: true,
+                resolveType: lVariableDeclarationAttachment.type
+            };
         }
 
-        // Read variable definition attachment.
-        const lVariableDefinitionAttachment: PgslExpressionSyntaxTreeState = pScope.getAttachment(lVariableDefinition);
+        // Must be a variable.
+        if (lVariableDefinition instanceof PgslVariableDeclarationStatementSyntaxTree) {
+            // Read variable definition attachment.
+            const lVariableDeclarationAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pScope.getAttachment(lVariableDefinition);
+            return {
+                fixedState: lVariableDeclarationAttachment.fixedState,
+                isStorage: true,
+                resolveType: lVariableDeclarationAttachment.type
+            };
+        }
+
+        // Variable definition neither a declaration nor a statement.
+        pScope.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
 
         return {
-            fixedState: lVariableDefinition.fixedState,
-            isStorage: true,
-            resolveType: lVariableDefinition.type,
+            fixedState: PgslValueFixedState.Variable,
+            isStorage: false,
+            resolveType: null as unknown as PgslNumericTypeDefinitionSyntaxTree // TODO: Maybe use a unknown type here?
         };
     }
 }

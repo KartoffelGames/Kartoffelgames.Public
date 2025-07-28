@@ -1,16 +1,17 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
+import { BasePgslStatementSyntaxTree } from "./base-pgsl-statement-syntax-tree.ts";
 
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeSetupData> {
+export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeValidationAttachment> {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mName: string;
@@ -124,7 +125,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(): PgslVariableDeclarationStatementSyntaxTreeValidationAttachment {
         this.ensureSetup();
 
         // Create list of all bit operations.
@@ -165,11 +166,13 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let. But only when not used as a pointer...
 }
 
-type PgslVariableDeclarationStatementSyntaxTreeSetupData = {
+
+export type PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = {
+    fixedState: PgslValueFixedState;
     declarationType: PgslDeclarationType;
-    isConstant: boolean;
-    isFixed: boolean;
+    type: BasePgslTypeDefinitionSyntaxTree;
 };
+
 
 export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
     declarationType: string;

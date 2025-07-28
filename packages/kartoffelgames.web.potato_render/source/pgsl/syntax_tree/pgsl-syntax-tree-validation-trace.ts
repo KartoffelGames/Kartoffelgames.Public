@@ -184,4 +184,4 @@ export class PgslParserError extends Exception<BasePgslSyntaxTree> {
     }
 }
 
-type PgslSyntaxTreeValidationAttachment<T extends BasePgslSyntaxTree<any>> = T extends BasePgslSyntaxTree<infer TAttachment> ? TAttachment : never;
+type PgslSyntaxTreeValidationAttachment<T> = T extends BasePgslSyntaxTree<infer TAttachment> ? TAttachment : never;

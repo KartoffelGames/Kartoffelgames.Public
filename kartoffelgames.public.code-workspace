@@ -29,6 +29,10 @@
             "path": "packages\\kartoffelgames.core.parser"
         },
         {
+            "name": "Kartoffelgames.Core.Pgsl",
+            "path": "./packages\\kartoffelgames.core.pgsl"
+        },
+        {
             "name": "Kartoffelgames.Core.Test",
             "path": "./packages\\kartoffelgames.core.test"
         },

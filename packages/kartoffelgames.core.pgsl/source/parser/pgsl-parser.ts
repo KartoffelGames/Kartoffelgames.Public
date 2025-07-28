@@ -41,7 +41,7 @@ import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/state
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree.ts';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree.ts';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/base-pgsl-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum.ts';
 import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum.ts';
@@ -49,7 +49,7 @@ import { PgslNumericTypeName } from '../syntax_tree/type/enum/pgsl-numeric-type-
 import { PgslSamplerTypeName } from '../syntax_tree/type/enum/pgsl-sampler-build-name.enum.ts';
 import { PgslTextureTypeName } from '../syntax_tree/type/enum/pgsl-texture-type-name.enum.ts';
 import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-name.enum.ts';
-import { PgslTypeDeclarationSyntaxTreeFactory } from '../syntax_tree/type/pgsl-type-definition-syntax-tree-factory.ts';
+import { PgslTypeDeclarationSyntaxTreeFactory } from './pgsl-type-definition-syntax-tree-factory.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslSyntaxDocument } from '../syntax_tree/pgsl-syntax-document.ts';

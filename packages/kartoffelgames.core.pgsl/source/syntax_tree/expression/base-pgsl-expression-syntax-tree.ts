@@ -1,6 +1,6 @@
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree.ts';
 
 /**
  * PGSL base expression.

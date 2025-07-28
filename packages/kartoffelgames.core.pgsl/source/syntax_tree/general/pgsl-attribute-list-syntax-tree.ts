@@ -1,9 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { type BasePgslExpressionSyntaxTree, PgslValueFixedState, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { type BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../pgsl-syntax-tree-validation-trace.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 
 /**
  * Generic attribute list.
@@ -22,7 +23,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
         lAttributes.set('AccessMode', [
             [['read', 'write', 'read_write']]
         ]);
-        lAttributes.set('WorkgroupSize', [
+        lAttributes.set('WorkgroupSize', [ // TODO: Blend with Compute
             ['Expression'],
             ['Expression', 'Expression'],
             ['Expression', 'Expression', 'Expression']

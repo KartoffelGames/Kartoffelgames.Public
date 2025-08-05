@@ -221,18 +221,9 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
     }
 }
 
-type PgslAttributeListSyntaxTreeSetupData = {
-    attributes: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
-};
-
 export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
     name: string,
     parameter?: Array<BasePgslExpressionSyntaxTree>;
-};
-
-export type PgslAttributeListSyntaxTreeAttribute = {
-    name: string,
-    parameter: Array<BasePgslExpressionSyntaxTree>;
 };
 
 type AttributeParameterType = 'Expression' | 'String' | Array<string>;

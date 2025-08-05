@@ -1,123 +1,99 @@
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslBaseTypeName } from './enum/pgsl-base-type-name.enum.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+
+// TODO: There are types that should not be transpiled, how do we handle them?
 
 /**
  * PGSL base type definition.
  */
-export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown> extends BasePgslSyntaxTree<PgslTypeDefinitionAttributes<TTypeSetupData>> {
+export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends object | undefined = undefined> extends BasePgslSyntaxTree<BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional>> {
     /**
-     * Base type of definition.
+     * Check if set structure is equal to this structure.
+     * 
+     * @param pTarget - Target structure.
+     * 
+     * @returns if both structures are equal.
      */
-    public get aliased(): boolean {
-        // Must be setup.
-        this.ensureSetup();
+    public static equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree, pSource: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments.
+        const lSourceAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<any> = pValidationTrace.getAttachment(pSource);
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<any> = pValidationTrace.getAttachment(pTarget);
 
-        return !!this.setupData.aliased;
-    }
-
-    /**
-     * Real type of definition. Converts all aliased types into its unaliased definition..
-     */
-    public get aliasedType(): BasePgslTypeDefinitionSyntaxTree {
-        // Must be setup.
-        this.ensureSetup();
-
-        // Deep return alised type when it is aliased.
-        if (this.setupData.aliased) {
-            return this.setupData.aliased.aliasedType;
+        // Same type.
+        if (pTarget.constructor !== pSource.constructor) {
+            return false;
         }
 
-        return this;
+        // Same storable definition.
+        if (lSourceAttachment.storable !== lTargetAttachment.storable) {
+            return false;
+        }
+
+        // Same hostSharable definition.
+        if (lSourceAttachment.hostSharable !== lTargetAttachment.hostSharable) {
+            return false;
+        }
+
+        // Same composite definition.
+        if (lSourceAttachment.composite !== lTargetAttachment.composite) {
+            return false;
+        }
+
+        // Same constructable definition.
+        if (lSourceAttachment.constructible !== lTargetAttachment.constructible) {
+            return false;
+        }
+
+        // Same fixed footprintdefinition.
+        if (lSourceAttachment.fixedFootprint !== lTargetAttachment.fixedFootprint) {
+            return false;
+        }
+
+        // Same indexable definition.
+        if (lSourceAttachment.indexable !== lTargetAttachment.indexable) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Base type of definition.
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pFrom - Target type.
      */
-    public get baseType(): PgslBaseTypeName {
-        // Must be setup.
-        this.ensureSetup();
+    public static explicitCastable(pValidationTrace: PgslSyntaxTreeValidationTrace, pFrom: BasePgslTypeDefinitionSyntaxTree, pTo: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // When they are the same, they are castable.
+        if (BasePgslTypeDefinitionSyntaxTree.equals(pValidationTrace, pFrom, pTo)) {
+            return true;
+        }
 
-        return this.setupData.baseType;
+        // Should at least has the same base type.
+        if (pFrom.constructor !== pTo.constructor) {
+            return false;
+        }
+
+        return pFrom.isExplicitCastableInto(pValidationTrace, pTo);
     }
 
     /**
-     * If declaration is a composite type.
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pTarget - Target type.
      */
-    public get isComposite(): boolean {
-        // Must be setup.
-        this.ensureSetup();
+    public static implicitCastable(pValidationTrace: PgslSyntaxTreeValidationTrace, pFrom: BasePgslTypeDefinitionSyntaxTree, pTo: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // When they are the same, they are castable.
+        if (BasePgslTypeDefinitionSyntaxTree.equals(pValidationTrace, pFrom, pTo)) {
+            return true;
+        }
 
-        return this.setupData.typeAttributes.composite;
-    }
+        // When they are not explicit castable, they never be able to implicit cast.
+        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, pFrom, pTo)) {
+            return false;
+        }
 
-    /**
-     * If declaration has a fixed byte length.
-     */
-    public get isConstructable(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.constructable;
-    }
-
-    /**
-     * If declaration has a fixed byte length.
-     */
-    public get isFixed(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.fixed;
-    }
-
-    /**
-     * If is sharable with the host.
-     */
-    public get isHostShareable(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.hostSharable;
-    }
-
-    /**
-     * Composite value with properties that can be access by index.
-     */
-    public get isIndexable(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.indexable;
-    }
-
-    /**
-     * If is a plain type.
-     */
-    public get isPlainType(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.plain;
-    }
-
-    /**
-     * If value is storable in a variable.
-     */
-    public get isStorable(): boolean {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.typeAttributes.storable;
-    }
-
-    /**
-     * Types setup data.
-     */
-    protected get typeSetupData(): TTypeSetupData {
-        // Must be setup.
-        this.ensureSetup();
-
-        return this.setupData.data;
+        return pFrom.isImplicitCastableInto(pValidationTrace, pTo);
     }
 
     /**
@@ -126,175 +102,82 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TTypeSetupData = unknown>
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta, false);
+        super(pMeta);
     }
 
     /**
-     * Check if set structure is equal to this structure.
+     * Check if type is equal to target type.
      * 
-     * @param pTarget - Target structure.
+     * @param pValidationTrace - Validation trace to use.
+     * @param pTarget - Target type.
      * 
-     * @returns if both structures are equal.
+     * @returns true when both types describes the same type.
      */
-    public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): pTarget is this {
-        // Ensure setups.
-        this.ensureSetup();
-        pTarget.ensureSetup();
-
-        // Same storable definition.
-        if (this.setupData.typeAttributes.storable !== pTarget.setupData.typeAttributes.storable) {
-            return false;
-        }
-
-        // Same hostSharable definition.
-        if (this.setupData.typeAttributes.hostSharable !== pTarget.setupData.typeAttributes.hostSharable) {
-            return false;
-        }
-
-        // Same plain definition.
-        if (this.setupData.typeAttributes.plain !== pTarget.setupData.typeAttributes.plain) {
-            return false;
-        }
-
-        // Same composite definition.
-        if (this.setupData.typeAttributes.composite !== pTarget.setupData.typeAttributes.composite) {
-            return false;
-        }
-
-        // Same constructable definition.
-        if (this.setupData.typeAttributes.constructable !== pTarget.setupData.typeAttributes.constructable) {
-            return false;
-        }
-
-        // Same fixed definition.
-        if (this.setupData.typeAttributes.fixed !== pTarget.setupData.typeAttributes.fixed) {
-            return false;
-        }
-
-        // Same indexable definition.
-        if (this.setupData.typeAttributes.indexable !== pTarget.setupData.typeAttributes.indexable) {
-            return false;
-        }
-
-        // Same base type.
-        return this.setupData.baseType === pTarget.setupData.baseType;
-    }
+    protected abstract equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
 
     /**
      * Check if type is explicit castable into target type.
      * 
+     * @param pValidationTrace - Validation trace to use.
      * @param pTarget - Target type.
+     * 
+     * @returns true when type is explicit castable into target type.
      */
-    public explicitCastable(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // Ensure setups.
-        this.ensureSetup();
-        pTarget.ensureSetup();
-
-        // When they are the same, they are castable.
-        if (this.equals(pTarget)) {
-            return true;
-        }
-
-        // Should at least has the same base type.
-        if (this.setupData.baseType !== pTarget.setupData.baseType) {
-            return false;
-        }
-
-        return this.isExplicitCastable(pTarget as unknown as this);
-    }
+    protected abstract isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
 
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param pValidationTrace - Validation trace to use.
      * @param pTarget - Target type.
-     */
-    public implicitCastable(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // When they are not explicit castable, they never be able to implicit cast.
-        if (!this.explicitCastable(pTarget)) {
-            return false;
-        }
-
-        // When they are the same, they are castable.
-        if (this.equals(pTarget)) {
-            return true;
-        }
-
-        return this.isImplicitCastable(pTarget as this);
-    }
-
-    /**
-     * Check if type is explicit castable into target type.
      * 
-     * @param pTarget - Target type.
+     * @returns true when type is implicit castable into target type.
      */
-    protected abstract isExplicitCastable(pTarget: this): boolean;
-
-    /**
-     * Check if type is implicit castable into target type.
-     * 
-     * @param pTarget - Target type.
-     */
-    protected abstract isImplicitCastable(pTarget: this): boolean;
-
-    /**
-     * Required override.
-     */
-    protected abstract override onSetup(): PgslTypeDefinitionAttributes<TTypeSetupData>;
+    protected abstract isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
 }
 
-export type PgslTypeDefinitionAttributes<TTypeSetupData> = {
+export type BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional extends object | undefined = undefined> = {
     /**
-     * Type is alliased.
+     * Types additional data.
      */
-    aliased: false | BasePgslTypeDefinitionSyntaxTree;
+    additional: TAdditional;
 
     /**
-     * Own setup data.
-     */
-    data: TTypeSetupData;
-
-    /**
-     * Basic type.
+     * Base type of the type definition.
      */
     baseType: PgslBaseTypeName;
 
     /**
-     * Type information.
+     * Value is storable in a variable.
      */
-    typeAttributes: {
-        /**
-         * Value is storable in a variable.
-         */
-        storable: boolean;
+    storable: boolean;
 
-        /**
-         * Sharable with the host
-         */
-        hostSharable: boolean;
+    /**
+     * Sharable with the host
+     */
+    hostSharable: boolean;
 
-        /**
-         * Declaration is a plain type.
-         */
-        plain: boolean;
+    /**
+     * Declaration is a composite type.
+     */
+    composite: boolean;
 
-        /**
-         * Declaration is a composite type.
-         */
-        composite: boolean;
+    /**
+     * Type is a constructable.
+     * Meaning can be created, loaded, stored, passed into functions, and returned from functions.
+     */
+    constructible: boolean;
 
-        /**
-         * declaration is a constructable.
-         */
-        constructable: boolean;
+    /**
+     * Type has a fixed byte length.
+     */
+    fixedFootprint: boolean;
 
-        /**
-         * declaration has a fixed byte length.
-         */
-        fixed: boolean;
+    /**
+     * composite value with properties that can be access by index
+     */
+    indexable: boolean;
 
-        /**
-         * composite value with properties that can be access by index
-         */
-        indexable: boolean;
-    };
+    // TODO: Maybe a flag enum?
+    // TODO: plain type or concrete type
 };

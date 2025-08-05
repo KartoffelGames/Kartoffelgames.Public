@@ -1,7 +1,8 @@
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslAliasDeclarationSyntaxTree } from '../../declaration/pgsl-alias-declaration-syntax-tree.ts';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslAliasDeclarationSyntaxTree } from "../declaration/pgsl-alias-declaration-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
  * Aliased type definition that aliases a plain type.
@@ -12,10 +13,10 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Constructor.
      * 
-     * @param pAliasName - Alias name.
      * @param pMeta - Syntax tree meta data.
+     * @param pAliasName - Alias name.
      */
-    public constructor(pAliasName: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pMeta: BasePgslSyntaxTreeMeta, pAliasName: string) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
         super(pMeta);
 
@@ -24,50 +25,101 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     }
 
     /**
+     * Compare this type with a target type for equality.
+     * 
+     * @param _pValidationTrace - Validation trace.
+     * @param pTarget - Target comparison type. 
+     * 
+     * @returns true when both share the same comparison type.
+     */
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // Resolve alias declaration.
+        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+            return false;
+        }
+
+        // Check inner type of aliased type for equality.
+        return PgslAliasedTypeDefinitionSyntaxTree.equals(pValidationTrace, lAliasedDefinition.type, pTarget);
+    }
+
+    /**
      * Check if type is explicit castable into target type.
      * 
-     * @param pTarget - Target type.
+     * @param _pValidationTrace - Validation trace.
+     * @param _pTarget - Target type.
      */
-    protected override isExplicitCastable(pTarget: this): boolean {
-        // Mirrows aliased.
-        return this.aliasedType.explicitCastable(pTarget);
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // Resolve alias declaration.
+        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+            return false;
+        }
+
+        // Check if aliased type is explicit castable into target type.
+        return PgslAliasedTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lAliasedDefinition.type, pTarget);
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastable(pTarget: this): boolean {
-        // Mirrows aliased.
-        return this.aliasedType.implicitCastable(pTarget);
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // Resolve alias declaration.
+        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+            return false;
+        }
+
+        // Check if aliased type is explicit castable into target type.
+        return PgslAliasedTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lAliasedDefinition.type, pTarget);
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile current type definition into a string.
      * 
-     * @returns setup data.
+     * @returns Transpiled string.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
-        // Read aliased type.
-        const lAliasedDefinition: PgslAliasDeclarationSyntaxTree = this.document.resolveAlias(this.mAliasName);
+    protected override onTranspile(): string {
+        return `${this.mAliasName}`;
+    }
 
-        // Save aliased type for easy access.
-        const lAliasType: BasePgslTypeDefinitionSyntaxTree = lAliasedDefinition.type;
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+        // Resolve alias declaration.
+        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+            pValidationTrace.pushError(`Name '${this.mAliasName}' is does not resolve to an alias declaration.`, this.meta, this);
 
+            return {
+                additional: undefined,
+                baseType: PgslBaseTypeName.Alias,
+                storable: false,
+                hostSharable: false,
+                composite: false,
+                constructible: false,
+                fixedFootprint: false,
+                indexable: false
+            };
+        }
+
+        // Read aliased type attachments.
+        const lAliasedTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lAliasedDefinition.type);
+
+        // Simply copy anything from aliased type attachment.
         return {
-            aliased: lAliasType,
-            baseType: PgslBaseTypeName.Alias,
-            data: null,
-            typeAttributes: {
-                composite: lAliasType.isComposite,
-                constructable: lAliasType.isConstructable,
-                fixed: lAliasType.isFixed,
-                indexable: lAliasType.isIndexable,
-                plain: lAliasType.isPlainType,
-                hostSharable: lAliasType.isHostShareable,
-                storable: lAliasType.isStorable
-            }
+            additional: lAliasedTypeAttachment.additional,
+            baseType: lAliasedTypeAttachment.baseType,
+            storable: lAliasedTypeAttachment.storable,
+            hostSharable: lAliasedTypeAttachment.hostSharable,
+            composite: lAliasedTypeAttachment.composite,
+            constructible: lAliasedTypeAttachment.constructible,
+            fixedFootprint: lAliasedTypeAttachment.fixedFootprint,
+            indexable: lAliasedTypeAttachment.indexable
         };
     }
 }

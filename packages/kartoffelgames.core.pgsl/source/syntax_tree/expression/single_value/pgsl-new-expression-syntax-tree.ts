@@ -93,7 +93,7 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
         }
 
         // Must be constructable.
-        if (!this.mType.isConstructable) {
+        if (!this.mType.isConstructible) {
             throw new Exception(`New expression must be a length fixed type.`, this);
         }
 

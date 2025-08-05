@@ -4,24 +4,41 @@ import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition-syntax-tree.ts';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
 export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeValidationAttachment> {
+    /**
+     * Mapping of declaration type to address space.
+     */
     private static readonly mDeclarationAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = (() => {
-        // Create mapping of declaration type to address space.
         const lAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = new Dictionary<PgslDeclarationType, PgslValueAddressSpace>();
         lAddressSpaceMapping.set(PgslDeclarationType.Storage, PgslValueAddressSpace.Storage);
         lAddressSpaceMapping.set(PgslDeclarationType.Uniform, PgslValueAddressSpace.Uniform);
         lAddressSpaceMapping.set(PgslDeclarationType.Workgroup, PgslValueAddressSpace.Workgroup);
         lAddressSpaceMapping.set(PgslDeclarationType.Private, PgslValueAddressSpace.Private);
+        lAddressSpaceMapping.set(PgslDeclarationType.Const, PgslValueAddressSpace.Private);
+        lAddressSpaceMapping.set(PgslDeclarationType.Param, PgslValueAddressSpace.Private);
 
         return lAddressSpaceMapping;
     })();
+
+    /**
+     * List of declaration types which can be used for variable declarations.
+     */
+    private static readonly mDeclarationTypeSet: Set<PgslDeclarationType> = new Set([
+        PgslDeclarationType.Const,
+        PgslDeclarationType.Storage,
+        PgslDeclarationType.Uniform,
+        PgslDeclarationType.Workgroup,
+        PgslDeclarationType.Private,
+        PgslDeclarationType.Param,
+    ]);
 
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
@@ -29,46 +46,10 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mTypeDeclaration: BasePgslTypeDefinitionSyntaxTree;
 
     /**
-     * If declaration is a constant expression.
-     */
-    public get addressSpace(): PgslValueAddressSpace {
-        this.ensureSetup();
-
-        return this.setupData.addressSpace;
-    }
-
-    /**
-     * Variable declaration type.
-     */
-    public get declarationType(): PgslDeclarationType {
-        this.ensureSetup();
-
-        return this.setupData.declarationType;
-    }
-
-    /**
      * Value initialization expression.
      */
     public get expression(): BasePgslExpressionSyntaxTree | null {
         return this.mExpression;
-    }
-
-    /**
-     * If declaration is a constant expression.
-     */
-    public get isConstant(): boolean {
-        this.ensureSetup();
-
-        return this.setupData.isConstant;
-    }
-
-    /**
-     * If declaration is a constant expression.
-     */
-    public get isCreationFixed(): boolean {
-        this.ensureSetup();
-
-        return this.setupData.isFixed;
     }
 
     /**
@@ -109,51 +90,57 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 
     protected override onTranspile(): string {
-        return ;
-    }
-
-    /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
-     */
-    protected override onSetup(): PgslVariableDeclarationSyntaxTreeSetupData {
-        // Push variable definition to current scope.
-        this.pushScopedValue(this.mName, this);
-
         // Try to parse declaration type.
-        const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
         if (!lDeclarationType) {
-            throw new Exception(`Can't use "${this.mDeclarationTypeName}" as a declaration type.`, this);
+            lDeclarationType = PgslDeclarationType.Private;
         }
 
-        return {
-            addressSpace: PgslVariableDeclarationSyntaxTree.mDeclarationAddressSpaceMapping.getOrDefault(lDeclarationType, PgslValueAddressSpace.None),
-            declarationType: lDeclarationType,
-            isFixed: lDeclarationType === PgslDeclarationType.Param,
-            isConstant: lDeclarationType === PgslDeclarationType.Const
-        };
+        const lDeclarationTypeString: string = (() => {
+            // TODO: Needs some better handling for texture and sampler types.
+
+            switch (lDeclarationType) {
+                case PgslDeclarationType.Const:
+                    return 'const';
+                case PgslDeclarationType.Storage:
+                    // TODO: when read write attribute is set use another accessmode.
+                    return 'var<storage, read_write>';
+                case PgslDeclarationType.Uniform:
+                    return 'var<uniform>';
+                case PgslDeclarationType.Workgroup:
+                    return 'var<workgroup>';
+                case PgslDeclarationType.Private:
+                    return 'var<private>';
+                case PgslDeclarationType.Param:
+                    return 'override';
+            }
+
+            return 'var<private>';
+        })();
+
+        // Transpile attributes and type declaration.
+        const lAttributes: string = this.attributes.transpile();
+        const lTypeDeclaration: string = this.mTypeDeclaration.transpile();
+
+        // If no expression is given, return declaration without expression.
+        if (!this.mExpression) {
+            return `${lAttributes} ${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
+        }
+
+        return `${lAttributes} ${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile()};`;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): PgslVariableDeclarationSyntaxTreeValidationAttachment {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pScopeTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationSyntaxTreeValidationAttachment {
+        // Push variable definition to current scope.
+        pScopeTrace.pushScopedValue(this.mName, this);
 
-        // Create list of all module variable declarations types.
-        const lDeclarationTypeList: Array<PgslDeclarationType> = [
-            PgslDeclarationType.Const,
-            PgslDeclarationType.Storage,
-            PgslDeclarationType.Uniform,
-            PgslDeclarationType.Workgroup,
-            PgslDeclarationType.Private,
-            PgslDeclarationType.Param,
-        ];
-
-        // Validate.
-        if (!lDeclarationTypeList.includes(this.setupData.declarationType)) {
-            throw new Exception(`Declaration type "${this.setupData.declarationType}" can not be used for module scope variable declarations.`, this);
+        // Try to parse declaration type.
+        const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        if (!lDeclarationType) {
+            throw new Exception(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this);
         }
 
         // Const declaration types.
@@ -162,8 +149,11 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             PgslDeclarationType.Param,
         ];
 
+        // Read attachments of type declaration.
+        const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pScopeTrace.getAttachment(this.mTypeDeclaration);
+
         // Validate const type needs to be constructible.
-        if (lConstDeclarationTypeList.includes(this.setupData.declarationType) && !this.mTypeDeclaration.isConstructable) {
+        if (lConstDeclarationTypeList.includes(lDeclarationType) && !lTypeAttachment.constructible) {
             throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
         }
 
@@ -184,6 +174,28 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         // TODO: Validate if declaration type allows any initialization expression.
         // TODO: Validate if expression fits declaration type.
         // TODO: Validate if declaration is const when it is the expression part should be the same.
+
+        // TODO: To fit all this into a readable mess: https://www.w3.org/TR/WGSL/#var-and-value
+        // Write a mapping for each declaration type.
+
+        // Determine fixed state based on declaration type.
+        const lFixedState: PgslValueFixedState = (() => {
+            switch (lDeclarationType) {
+                case PgslDeclarationType.Const:
+                    return PgslValueFixedState.Constant;
+                case PgslDeclarationType.Param:
+                    return PgslValueFixedState.PipelineCreationFixed;
+            }
+
+            return PgslValueFixedState.Variable;
+        })();
+
+        return {
+            addressSpace: PgslVariableDeclarationSyntaxTree.mDeclarationAddressSpaceMapping.get(lDeclarationType)!,
+            declarationType: lDeclarationType,
+            type: this.mTypeDeclaration,
+            fixedState: lFixedState
+        };
     }
 }
 

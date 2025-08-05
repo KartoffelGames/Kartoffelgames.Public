@@ -1,8 +1,8 @@
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
@@ -26,6 +26,9 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
         // Set data.
         this.mExpression = pExpression;
         this.mOperator = pOperator;
+
+        // Add data as child tree.
+        this.appendChild(this.mExpression);
     }
 
     /**

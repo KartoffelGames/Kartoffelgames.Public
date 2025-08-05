@@ -1,7 +1,8 @@
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 
 /**
  * Numeric type definition.
@@ -35,13 +36,8 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(pTarget: BasePgslTypeDefinitionSyntaxTree): pTarget is this {
-        // Base equals.
-        if (!super.equals(pTarget)) {
-            return false;
-        }
-
-        return this.mNumericType !== pTarget.mNumericType;
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        return this.mNumericType !== pTarget.numericType;
     }
 
     /**
@@ -49,8 +45,8 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastable(_pTarget: this): boolean {
-        // All numberic values are explicit castable.
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+        // All numberic values are explicit castable into another numeric type.
         return true;
     }
 
@@ -59,39 +55,63 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastable(pTarget: this): boolean {
-        // Abstract float is allways castable.
-        if (pTarget.mNumericType === PgslNumericTypeName.AbstractFloat) {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // An abstract float is castable into all all types.
+        if (this.mNumericType === PgslNumericTypeName.AbstractFloat) {
             return true;
         }
 
-        // Abstract int is allways castable.
-        if (pTarget.mNumericType === PgslNumericTypeName.AbstractInteger) {
-            return true;
+        // An abstract int is only castable into all integer types.
+        if (this.mNumericType === PgslNumericTypeName.AbstractInteger) {
+            // To be more readable the target type of checking if it is an integer type, is done in a separate if block.
+            if (pTarget.numericType === PgslNumericTypeName.AbstractInteger || pTarget.numericType === PgslNumericTypeName.Integer || pTarget.numericType === PgslNumericTypeName.UnsignedInteger) {
+                return true;
+            }
         }
 
-        return true;
+        // Any other non abstract numeric type is not implicit castable.
+        return false;
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile type definition.
      * 
-     * @returns setup data.
+     * @returns transpiled code.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+    protected override onTranspile(): string {
+        switch (this.mNumericType) {
+            case PgslNumericTypeName.Float:
+                return 'f32';        
+            case PgslNumericTypeName.Float16:
+                return 'f16';
+            case PgslNumericTypeName.Integer:
+                return 'i32';
+            case PgslNumericTypeName.UnsignedInteger:
+                return 'u32';
+            case PgslNumericTypeName.AbstractFloat:
+                return 'f32'; // Abstract float is transpiled to f32.
+            case PgslNumericTypeName.AbstractInteger:
+                return 'i32'; // Abstract integer is transpiled to i32.
+        }
+   }
+
+    /**
+     * Validate syntax tree integrity.
+     * 
+     * @param _pScope - Validation scope.
+     * 
+     * @returns validation attachment.
+     */
+    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
         return {
-            aliased: false,
+            additional: undefined,
             baseType: PgslBaseTypeName.Numberic,
-            data: null,
-            typeAttributes: {
-                composite: false,
-                constructable: true,
-                fixed: true,
-                indexable: false,
-                plain: true,
-                hostSharable: true,
-                storable: true
-            }
+            storable: true,
+            hostSharable: true,
+            composite: false,
+            constructible: true,
+            fixedFootprint: true,
+            indexable: false
         };
     }
 }

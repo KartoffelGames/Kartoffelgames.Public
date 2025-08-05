@@ -1,7 +1,7 @@
-import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
@@ -44,13 +44,25 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
         this.appendChild(pType);
     }
 
+    protected override onTranspile(): string {
+        // Transpile property type.
+        const lType: string = this.mTypeDefinition.transpile();
+
+        // Transpile attribute list.
+        const lAttributes: string = this.attributes.transpile();
+
+        return `${lAttributes} ${this.mName}: ${lType},`;
+    }
+
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
-        // Supports only plain types.
-        if (!this.mTypeDefinition.isPlainType) {
-            throw new Exception('Structure properties can only store plain types.', this);
-        }
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
+        // Validate type definition and attributes.
+        this.mTypeDefinition.validate(pValidationTrace);
+        this.attributes.validate(pValidationTrace);
+
+        // TODO: Must be plain type or concrete type. creation-fixed footprint Array
+        /// a structure type that has a creation-fixed footprint
     }
 }

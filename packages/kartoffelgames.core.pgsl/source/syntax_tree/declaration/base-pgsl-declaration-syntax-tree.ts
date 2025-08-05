@@ -4,7 +4,7 @@ import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list
 /**
  * PGSL base declaration. Every declaration has a optional attribute list.
  */
-export abstract class BasePgslDeclarationSyntaxTree<TValidationAttachment extends object | void> extends BasePgslSyntaxTree<TValidationAttachment> {
+export abstract class BasePgslDeclarationSyntaxTree<TValidationAttachment extends object | void = void> extends BasePgslSyntaxTree<TValidationAttachment> {
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
 
     /**

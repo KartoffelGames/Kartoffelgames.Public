@@ -1,16 +1,33 @@
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
  * Void type definition.
  */
-export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<null> {
+export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<undefined> {
+    /**
+     * Check if type is equal to target type.
+     * 
+     * @param _pValidationTrace - Validation trace to use.
+     * @param _pTarget - Target type.
+     * 
+     * @returns true when both types describes the same type.
+     */
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+        // Void type is always equal to itself.
+        return true;
+    }
+
     /**
      * Check if type is explicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
+     * 
+     * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastable(_pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }
@@ -18,32 +35,43 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
+     * 
+     * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastable(_pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile type definition.
      * 
-     * @returns setup data.
+     * @returns transpiled code.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+    protected override onTranspile(): string {
+        // Void type is not transpiled.
+        return '';
+    }
+
+    /**
+     * Validate syntax tree integrity.
+     * 
+     * @param _pScope - Validation scope.
+     * 
+     * @returns validation attachment.
+     */
+    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
         return {
-            aliased: false,
+            additional: undefined,
             baseType: PgslBaseTypeName.Void,
-            data: null,
-            typeAttributes: {
-                composite: false,
-                constructable: false,
-                fixed: true,
-                indexable: false,
-                plain: false,
-                hostSharable: false,
-                storable: false
-            }
+            storable: false,
+            hostSharable: false,
+            composite: false,
+            constructible: false,
+            fixedFootprint: false,
+            indexable: false,
         };
     }
 }

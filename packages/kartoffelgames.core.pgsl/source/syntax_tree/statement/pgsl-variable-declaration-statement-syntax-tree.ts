@@ -147,7 +147,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
             }
 
             // Const declaration type needs to be constructible.
-            if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mTypeDeclaration.isConstructable) {
+            if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mTypeDeclaration.isConstructible) {
                 throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
             }
         }

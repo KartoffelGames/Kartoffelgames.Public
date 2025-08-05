@@ -3,7 +3,7 @@ import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl
 import { PgslVariableDeclarationSyntaxTree, PgslVariableDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-variable-declaration-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../../pgsl-syntax-tree-validation-trace.ts';
 import { PgslVariableDeclarationStatementSyntaxTree, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement-syntax-tree.ts';
-import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
@@ -73,7 +73,3 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
         };
     }
 }
-
-type PgslVariableNameExpressionSyntaxTreeSetupData = {
-    variable: PgslVariableDeclarationSyntaxTree | PgslVariableDeclarationStatementSyntaxTree;
-};

@@ -1,16 +1,33 @@
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
  * Boolean type definition.
  */
-export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<null> {
+export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+    /**
+     * Check if type is equal to target type.
+     * 
+     * @param _pValidationTrace - Validation trace to use.
+     * @param _pTarget - Target type.
+     * 
+     * @returns true when both types describes the same type.
+     */
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+        // Boolean type is always equal to itself.
+        return true;
+    }
+
     /**
      * Check if type is explicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
+     * 
+     * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastable(_pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
         // A boolean is never explicit nor implicit castable.
         return false;
     }
@@ -18,32 +35,43 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
+     * 
+     * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastable(_pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
         // A boolean is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile type definition.
      * 
-     * @returns setup data.
+     * @returns transpiled code.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
+    protected override onTranspile(): string {
+        // Boolean type is not transpiled.
+        return 'bool';
+    }
+
+    /**
+     * Validate syntax tree integrity.
+     * 
+     * @param _pValidationTrace - Validation scope.
+     * 
+     * @returns validation attachment.
+     */
+    protected override onValidateIntegrity(_pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
         return {
-            aliased: false,
+            additional: undefined,
             baseType: PgslBaseTypeName.Boolean,
-            data: null,
-            typeAttributes: {
-                composite: false,
-                constructable: true,
-                fixed: true,
-                indexable: false,
-                plain: true,
-                hostSharable: false,
-                storable: true
-            }
+            storable: true,
+            hostSharable: false,
+            composite: false,
+            constructible: true,
+            fixedFootprint: true,
+            indexable: false,
         };
     }
 }

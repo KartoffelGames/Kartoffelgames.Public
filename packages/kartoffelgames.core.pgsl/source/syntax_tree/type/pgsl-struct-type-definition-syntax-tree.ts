@@ -1,22 +1,15 @@
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslStructDeclarationSyntaxTree } from '../../declaration/pgsl-struct-declaration-syntax-tree.ts';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslStructDeclarationSyntaxTree } from "../declaration/pgsl-struct-declaration-syntax-tree.ts";
+import { PgslAttributeListSyntaxTree } from "../general/pgsl-attribute-list-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
- * struct type definition.
+ * Struct type definition.
  */
-export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStructTypeDefinitionSyntaxTreeSetupData> {
+export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mStructName: string;
-
-    /**
-     * Struct definition.
-     */
-    public get struct(): PgslStructDeclarationSyntaxTree {
-        this.ensureSetup();
-
-        return this.setupData?.data.struct;
-    }
 
     /**
      * Struct name.
@@ -40,85 +33,126 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
+     * Compare this type with a target type for equality.
+     * 
+     * @param _pValidationTrace - Validation trace.
+     * @param pTarget - Target comparison type. 
+     * 
+     * @returns true when both types describes the same type.
+     */
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        return this.mStructName === pTarget.mStructName;
+    }
+
+    /**
      * Check if type is explicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastable(_pTarget: this): boolean {
-        // Never castable.
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+        // A texture is never explicit nor implicit castable.
         return false;
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastable(_pTarget: this): boolean {
-        // Never castable.
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+        // A texture is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile current type definition into a string.
      * 
-     * @returns setup data.
+     * @returns Transpiled string.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<PgslStructTypeDefinitionSyntaxTreeSetupData> {
+    protected override onTranspile(): string {
+        return `${this.mStructName}`;
+    }
+
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace to use.
+     */
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
         // Read aliased type.
-        const lStruct: PgslStructDeclarationSyntaxTree  = this.document.resolveStruct(this.mStructName);
+        const lStruct: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mStructName);
 
-        // Only when all members are constructable
-        const lConstructable: boolean = (() => {
+        if (!(lStruct instanceof PgslStructDeclarationSyntaxTree)) {
+            pValidationTrace.pushError(`Name '${this.mStructName}' is does not resolve to a struct declaration.`, this.meta, this);
+
+            // Create empty meta.
+            const lEmptyMeta: BasePgslSyntaxTreeMeta = {
+                range: [0, 0, 0, 0],
+                buildIn: false
+            };
+
+            // Create and validate empty struct.
+            const lPlaceholderStruct: PgslStructDeclarationSyntaxTree = new PgslStructDeclarationSyntaxTree(this.mStructName, [], new PgslAttributeListSyntaxTree(lEmptyMeta, []), lEmptyMeta);
+
+            // Validate placeholder struct.
+            lPlaceholderStruct.validate(pValidationTrace);
+
+            return {
+                additional: {
+                    struct: lPlaceholderStruct
+                },
+                baseType: PgslBaseTypeName.Struct,
+                composite: true,
+                indexable: false,
+                storable: true,
+                hostSharable: false,
+                constructible: false,
+                fixedFootprint: false,
+            };
+        }
+
+        // Check properties for constructable, host sharable, and fixed footprint characteristics
+        const [lConstructable, lHostSharable, lFixedFootprint]: [boolean, boolean, boolean] = (() => {
+            let lConstructable = true;
+            let lHostSharable = true;
+            let lFixedFootprint = true;
+
+            // Check all properties except the last one for fixed footprint
             for (const lProperty of lStruct.properties) {
-                if (!lProperty.type.isConstructable) {
-                    return false;
-                }
+                const lPropertyTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lProperty.type);
+
+                // Check if property is constructible
+                lConstructable &&= lPropertyTypeAttachment.constructible;
+
+                // Check if property is host sharable
+                lHostSharable &&= lPropertyTypeAttachment.hostSharable;   
+
+                // For fixed footprint: all properties except the last must be fixed
+                lFixedFootprint &&= lPropertyTypeAttachment.fixedFootprint;   
             }
 
-            return true;
-        })();
-
-        // Only when all members are sharable.
-        const lHostSharable: boolean = (() => {
-            for (const lProperty of lStruct.properties) {
-                if (!lProperty.type.isHostShareable) {
-                    return false;
-                }
-            }
-
-            return true;
-        })();
-
-        // Only when all members are fixed.
-        const lFixed: boolean = (() => {
-            if (lStruct.properties.length === 0) {
-                return true;
-            }
-
-            // Only the last member can be a variable size.
-            return lStruct.properties.at(-1)!.type.isFixed;
+            return [lConstructable, lHostSharable, lFixedFootprint];
         })();
 
         return {
-            aliased: false,
-            baseType: PgslBaseTypeName.Struct,
-            data: {
+            additional: {
                 struct: lStruct
             },
-            typeAttributes: {
-                composite: true,
-                constructable: lConstructable,
-                fixed: lFixed,
-                indexable: false,
-                plain: true,
-                hostSharable: lHostSharable,
-                storable: true
-            }
-        };
+            baseType: PgslBaseTypeName.Struct,
+            composite: true,
+            indexable: false,
+            storable: true,
+
+            // Only takes affect when all members are sharing the same property.
+            hostSharable: lHostSharable,
+            constructible: lConstructable,
+            fixedFootprint: lFixedFootprint,
+        }
     }
 }
 
-export type PgslStructTypeDefinitionSyntaxTreeSetupData = {
+export type PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
     struct: PgslStructDeclarationSyntaxTree;
 };

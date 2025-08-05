@@ -1,11 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-struct-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
+import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree.ts';
+import { PgslStructTypeDefinitionSyntaxTree } from '../../type/pgsl-struct-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
 import type { PgslStructPropertyDeclarationSyntaxTree } from '../../declaration/pgsl-struct-property-declaration-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
@@ -46,17 +49,51 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         this.appendChild(this.mValue);
     }
 
+    protected override onTranspile(): string {
+        // Transpile value and property.
+        return `${this.mValue.transpile()}.${this.mProperty}`;
+    }
+
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
+     * Validate data of current structure.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
+    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Get attachment of value.
+        const lValueAttachment: PgslExpressionSyntaxTreeValidationAttachment = pScope.getAttachment(this.mValue);
+
+        // Must be compositeable.
+        if (!lValueAttachment.resolveType.isComposite) {
+            throw new Exception(`Type must be a compositeable type.`, this);
+        }
+
+        // Only struct likes can have accessable properties.
+        switch (true) {
+            case lValueAttachment.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
+                if (!lValueAttachment.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; })) {
+                    pScope.pushError(`Struct has no defined property "${this.mProperty}"`, this.meta, this);
+                }
+                break;
+            }
+
+            case lValueAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                // Validate swizzle name.
+                if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(this.mProperty)) {
+                    pScope.pushError(`Swizzle name "${this.mProperty}" can't be used to access vector.`, this.meta, this);
+                }
+
+                break;
+            }
+
+            default: {
+                pScope.pushError(`Value is not a composite type property.`, this.meta, this);
+            }
+        }
+
         // Resolve property type.
-        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree | null = (() => {
             switch (true) {
-                case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
-                    const lProperty: PgslStructPropertyDeclarationSyntaxTree | undefined = this.mValue.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; });
+                case lValueAttachment.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
+                    const lProperty: PgslStructPropertyDeclarationSyntaxTree | undefined = lValueAttachment.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; });
                     if (!lProperty) {
                         throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
                     }
@@ -64,8 +101,8 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
                     return lProperty.type;
                 }
 
-                case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
-                    const lInnerType: BasePgslTypeDefinitionSyntaxTree = this.mValue.resolveType.innerType;
+                case lValueAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                    const lInnerType: BasePgslTypeDefinitionSyntaxTree = lValueAttachment.resolveType.innerType;
 
                     // When swizzle is only one long return the inner type.
                     if (this.mProperty.length === 1) {
@@ -90,50 +127,25 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
                 }
             }
 
-            throw new Exception(`Value is not a composite type properties.`, this);
+            // No valid type found.
+            pScope.pushError(`Value is not a composite type property "${this.mProperty}".`, this.meta, this);
+
+            return null;
         })();
 
-        return {
-            expression: {
-                isFixed: this.mValue.isCreationFixed,
+        if (lResolveType === null) {
+            return {
+                fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: lResolveType,
-                isConstant: this.mValue.isConstant
-            },
-            data: null
+                resolveType: null as unknown as PgslNumericTypeDefinitionSyntaxTree // TODO: Maybe use a unknown type here?
+            };
+        }
+
+        return {
+            fixedState: lValueAttachment.fixedState,
+            // If the value is a struct, it is a storage. A swizzle name is not a storage. 
+            isStorage: lValueAttachment.resolveType instanceof PgslStructTypeDefinitionSyntaxTree,
+            resolveType: lResolveType
         };
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(): void {
-        // Must be compositeable.
-        if (!this.mValue.resolveType.isComposite) {
-            throw new Exception(`Type must be a compositeable type.`, this);
-        }
-
-        // Only struct likes can have accessable properties.
-        switch (true) {
-            case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
-                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { return pProperty.name === this.mProperty; })) {
-                    throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
-                }
-                break;
-            }
-
-            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
-                // Validate swizzle name.
-                if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(this.mProperty)) {
-                    throw new Exception(`Swizzle name "${this.mProperty}" can't be used to access vector.`, this);
-                }
-
-                break;
-            }
-
-            default: {
-                throw new Exception(`Value is not a composite type property.`, this);
-            }
-        }
     }
 }

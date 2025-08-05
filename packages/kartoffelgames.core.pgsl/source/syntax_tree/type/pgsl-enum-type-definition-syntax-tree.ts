@@ -1,13 +1,20 @@
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree.ts';
-import { PgslBaseTypeName } from '../enum/pgsl-base-type-name.enum.ts';
-import { BasePgslTypeDefinitionSyntaxTree, type PgslTypeDefinitionAttributes } from './base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
  * Enum type definition that aliases a plain type.
  */
 export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
     private readonly mEnumName: string;
+
+    /**
+     * Enum name.
+     */
+    public get enumName(): string {
+        return this.mEnumName;
+    }
 
     /**
      * Constructor.
@@ -24,50 +31,103 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
     }
 
     /**
+     * Compare this type with a target type for equality.
+     * 
+     * @param _pValidationTrace - Validation trace.
+     * @param pTarget - Target comparison type. 
+     * 
+     * @returns true when both share the same name.
+     */
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        return this.mEnumName === pTarget.enumName;
+    }
+
+    /**
      * Check if type is explicit castable into target type.
      * 
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isExplicitCastable(pTarget: this): boolean {
-        // A enum in mirrows aliased.
-        return this.aliasedType.explicitCastable(pTarget);
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // Read enum type.
+        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+
+        // Read attachment from enum type.
+        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
+            return false;
+        }
+
+        // Compare enum inner type with target type.
+        return PgslEnumTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lEnumTypeDefinition, pTarget);
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastable(pTarget: this): boolean {
-        // A enum in mirrows aliased.
-        return this.aliasedType.implicitCastable(pTarget);
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+        // Read enum type.
+        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+
+        // Read attachment from enum type.
+        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
+            return false;
+        }
+
+        // Compare enum inner type with target type.
+        return PgslEnumTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lEnumTypeDefinition, pTarget);
     }
 
     /**
-     * Setup syntax tree.
+     * Transpile current type definition into a string.
      * 
-     * @returns setup data.
+     * @returns Transpiled string.
      */
-    protected override onSetup(): PgslTypeDefinitionAttributes<null> {
-        // Read aliased type.
-        const lEnumDefinition: PgslEnumDeclarationSyntaxTree = this.document.resolveEnum(this.mEnumName);
+    protected override onTranspile(): string {
+        // A transpiled enum is allways a u32 type.
+        // String values can not be used to be transpiled.
+        return `u32`;
+    }
 
-        // Save aliased type for easy access.
-        const lAliasType: BasePgslTypeDefinitionSyntaxTree = lEnumDefinition.type;
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace to use.
+     */
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+        // Read enum type.
+        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+
+        // Read attachment from enum type.
+        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
+            return {
+                additional: undefined,
+                baseType: PgslBaseTypeName.Enum,
+                composite: false,
+                indexable: false,
+                storable: false,
+                hostSharable: false,
+                constructible: false,
+                fixedFootprint: false,
+            };
+        }
+
+        // Read enum type attachment.
+        const lAliasType: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumTypeDefinition);
 
         return {
-            aliased: lAliasType,
-            baseType: PgslBaseTypeName.Enum,
-            data: null,
-            typeAttributes: {
-                composite: lAliasType.isComposite,
-                constructable: lAliasType.isConstructable,
-                fixed: lAliasType.isFixed,
-                indexable: lAliasType.isIndexable,
-                plain: lAliasType.isPlainType,
-                hostSharable: lAliasType.isHostShareable,
-                storable: lAliasType.isStorable
-            }
+            additional: undefined,
+            baseType: PgslBaseTypeName.Sampler,
+
+            // Copy of alias type attributes.
+            composite: lAliasType.composite,
+            indexable: lAliasType.indexable,
+            storable: lAliasType.storable,
+            hostSharable: lAliasType.hostSharable,
+            constructible: lAliasType.constructible,
+            fixedFootprint: lAliasType.fixedFootprint
         };
     }
 }

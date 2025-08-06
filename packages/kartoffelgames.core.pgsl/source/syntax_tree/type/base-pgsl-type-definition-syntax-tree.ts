@@ -70,7 +70,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         }
 
         // Should at least has the same base type.
-        if (pFrom.constructor !== pTo.constructor) {
+        if (pFrom.constructor !== pTo.constructor) { // TODO: Thats fucked up. Remove same constructor check.
             return false;
         }
 
@@ -89,7 +89,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         }
 
         // When they are not explicit castable, they never be able to implicit cast.
-        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, pFrom, pTo)) {
+        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, pFrom, pTo)) {  // TODO: Thats fucked up. Remove same constructor check.
             return false;
         }
 

@@ -1,19 +1,20 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value/pgsl-literal-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import type { PgslNumericTypeDefinitionSyntaxTree } from '../type/definition/pgsl-numeric-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum.ts';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../type/pgsl-numeric-type-definition-syntax-tree.ts";
 
 /**
  * PGSL syntax tree of a enum declaration.
  */
-export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslEnumDeclarationSyntaxTreeSetupData> {
+export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslEnumDeclarationSyntaxTreeValidationAttachment> {
     private readonly mName: string;
     private readonly mValues: PgslEnumDeclarationSyntaxTreeValues;
 
@@ -22,19 +23,6 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      */
     public get name(): string {
         return this.mName;
-    }
-
-    /**
-     * Underlying type of enum.
-     */
-    public get type(): BasePgslTypeDefinitionSyntaxTree {
-        this.ensureSetup();
-
-        // The best way of getting the first value.
-        const lExpression: BasePgslExpressionSyntaxTree = this.mValues.values().next().value;
-
-        // Get type of value.
-        return lExpression.resolveType;
     }
 
     /**
@@ -50,73 +38,62 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
         // Set data.
         this.mName = pName;
         this.mValues = pValue;
+
+        // Add all values as child.
+        for (const pItem of pValue) {
+            this.appendChild(pItem.value);
+        }
     }
 
     /**
-     * Get value of property. Return null when the property is not defined.
+     * Transpile current enum declaration into a string.
      * 
-     * @param pName - Property name.
-     * 
-     * @returns Value of property or null when the property is not defined.
+     * @returns Transpiled string.
      */
-    public property(pName: string): PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree | null {
-        this.ensureSetup();
+    protected override onTranspile(): string {
+        // Transpile attribute list.
+        let lResult: string = this.attributes.transpile();
 
-        if (this.setupData.values.has(pName)) {
-            return this.setupData.values.get(pName)! as PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree;
+        // Create a const declaration for each enum value.
+        for(const lProperty of this.mValues) {
+            lResult += `const ENUM__${this.mName}__${lProperty.name}: u32 = ${lProperty.value.transpile()};\n`;
         }
-
-        return null;
-    }
-
-    /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data. 
-     */
-    protected override onSetup(): PgslEnumDeclarationSyntaxTreeSetupData {
-        // Push enum definition to current scope.
-        this.pushScopedValue(this.mName, this);
-
-        // Add each item to enum.
-        const lValueList = new Dictionary<string, BasePgslExpressionSyntaxTree>();
-        for (const lItem of this.mValues) {
-            // Validate dublicates.
-            if (lValueList.has(lItem.name)) {
-                throw new Exception(`Value "${lItem.name}" was already added to enum "${this.mName}"`, this);
-            }
-
-            lValueList.set(lItem.name, lItem.value);
-        }
-
-        return {
-            values: lValueList
-        };
+        
+        return lResult;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslEnumDeclarationSyntaxTreeValidationAttachment {
+        pValidationTrace.pushScopedValue(this.mName, this);
 
-        // Empty enums are not allowed.
-        if (this.setupData.values.size) {
-            throw new Exception(`Enum ${this.mName} has no values`, this);
+        // Validate that the enum has no dublicate names.
+        const lPropertyList: Dictionary<string, BasePgslExpressionSyntaxTree> = new Dictionary<string, BasePgslExpressionSyntaxTree>();
+        for (const lItem of this.mValues) {
+            // Validate dublicates.
+            if (lPropertyList.has(lItem.name)) {
+                pValidationTrace.pushError(`Value "${lItem.name}" was already added to enum "${this.mName}"`, this.meta, this);
+            }
+
+            lPropertyList.set(lItem.name, lItem.value);
         }
 
         let lFirstPropertyType: typeof PgslLiteralValueExpressionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree | null = null;
-        for (const lProperty of this.setupData.values.values()) {
+        for (const lProperty of this.mValues) {
             // Only literals are allowed.
-            if (!(lProperty instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty instanceof PgslStringValueExpressionSyntaxTree)) {
-                throw new Exception(`Value on enum "${this.mName}" invalid. Only literal values are allowed.`, this);
+            if (!(lProperty.value instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty.value instanceof PgslStringValueExpressionSyntaxTree)) {
+                pValidationTrace.pushError(`Value on enum "${this.mName}" invalid. Only literal values are allowed.`, this.meta, this);
             }
 
             // All values need to be string or integer.
-            if (lProperty instanceof PgslLiteralValueExpressionSyntaxTree) {
-                if (lProperty.resolveType.baseType !== PgslBaseTypeName.Numberic) {
-                    if ((<PgslNumericTypeDefinitionSyntaxTree>lProperty.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
-                        throw new Exception(`Enum can only hold string or unsigned integer values.`, this);
+            if (lProperty.value instanceof PgslLiteralValueExpressionSyntaxTree) {
+                // Read attachment of literal value.
+                const lPropertyAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lProperty.value);
+
+                if (lPropertyAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) {
+                    if (lPropertyAttachment.resolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+                        pValidationTrace.pushError(`Enum "${this.mName}" can only hold unsigned integer values.`, this.meta, this);
                     }
                 }
             }
@@ -132,13 +109,40 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
                 continue;
             }
 
-            throw new Exception(`Enum can't have mixed values.`, this);
+            pValidationTrace.pushError(`Enum "${this.mName}" has mixed value types. Expected all values to be of the same type.`, this.meta, this);
         }
+
+        // Empty enums are not allowed.
+        if (this.mValues.length === 0) {
+            pValidationTrace.pushError(`Enum ${this.mName} has no values`, this.meta, this);
+
+            // Create empty enum value.
+            return {
+                type: new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, { range: [0, 0, 0, 0] }),
+                values: lPropertyList
+            };
+        }
+
+        // Read attachment of literal value.
+        const lPropertyAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mValues[0].value);
+
+        return {
+            type: lPropertyAttachment.resolveType,
+            values: lPropertyList
+        };
     }
 }
 
 export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: BasePgslExpressionSyntaxTree; }>;
 
-type PgslEnumDeclarationSyntaxTreeSetupData = {
+type PgslEnumDeclarationSyntaxTreeValidationAttachment = {
+    /**
+     * Underlying type of the enum.
+     */
+    type: BasePgslTypeDefinitionSyntaxTree;
+
+    /**
+     * Values of the enum.
+     */
     values: Dictionary<string, BasePgslExpressionSyntaxTree>;
 };

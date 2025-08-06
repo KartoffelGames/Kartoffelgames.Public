@@ -222,7 +222,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
             throw new Exception(`Alias can't have templates values.`, this);
         }
 
-        return new PgslAliasedTypeDefinitionSyntaxTree(pRawName, pMeta);
+        return new PgslAliasedTypeDefinitionSyntaxTree(pMeta, pRawName);
     }
 
     /**
@@ -267,7 +267,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Build BuildInType definition.
-        return new PgslArrayTypeDefinitionSyntaxTree(lTypeTemplate, lLengthParameter, pMeta);
+        return new PgslArrayTypeDefinitionSyntaxTree(pMeta, lTypeTemplate, lLengthParameter);
     }
 
     /**
@@ -306,7 +306,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         }
 
         // Build BuildInType definition.
-        return new PgslBuildInTypeDefinitionSyntaxTree(lTypeName, pRawTemplate[0] ?? null, pMeta);
+        return new PgslBuildInTypeDefinitionSyntaxTree(pMeta, lTypeName, pRawTemplate[0] ?? null);
     }
 
     /**
@@ -394,7 +394,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
         const lTypeDeclaration: BasePgslTypeDefinitionSyntaxTree = this.generate(pRawName, false, pRawTemplate, pMeta);
 
         // Build pointer type definition.
-        return new PgslPointerTypeDefinitionSyntaxTree(lTypeDeclaration, pMeta);
+        return new PgslPointerTypeDefinitionSyntaxTree(pMeta,lTypeDeclaration);
     }
 
     /**

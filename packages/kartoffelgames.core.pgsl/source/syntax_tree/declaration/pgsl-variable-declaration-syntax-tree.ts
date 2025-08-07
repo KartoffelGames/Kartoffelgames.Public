@@ -133,9 +133,12 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pScopeTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationSyntaxTreeValidationAttachment {
         // Push variable definition to current scope.
-        pScopeTrace.pushScopedValue(this.mName, this);
+        pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate attributes.
+        this.attributes.validate(pValidationTrace);
 
         // Try to parse declaration type.
         const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
@@ -150,7 +153,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         ];
 
         // Read attachments of type declaration.
-        const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pScopeTrace.getAttachment(this.mTypeDeclaration);
+        const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mTypeDeclaration);
 
         // Validate const type needs to be constructible.
         if (lConstDeclarationTypeList.includes(lDeclarationType) && !lTypeAttachment.constructible) {

@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
@@ -52,7 +51,7 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         // Transpile properties.
         const lProperties: string = this.mProperties.map((pProperty: PgslStructPropertyDeclarationSyntaxTree) => pProperty.transpile()).join(' ');
 
-        return `${lAttributes} struct ${this.mName} {\n${lProperties}\n}`;
+        return `${lAttributes} struct ${this.mName} {\n${lProperties}\n}\n`;
     }
 
     /**
@@ -61,6 +60,9 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
         // Push struct declaration as scoped value.
         pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate attributes.
+        this.attributes.validate(pValidationTrace);
 
         const lNameBuffer: Set<string> = new Set<string>();
 

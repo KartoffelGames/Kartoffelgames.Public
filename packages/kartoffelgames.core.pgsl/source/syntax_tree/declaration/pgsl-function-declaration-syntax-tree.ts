@@ -1,13 +1,14 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 import type { PgslBlockStatementSyntaxTree } from '../statement/pgsl-block-statement-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<null> {
+export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mConstant: boolean;
     private readonly mName: string;
@@ -79,15 +80,64 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current alias declaration into a string.
      * 
-     * @returns nothing. 
+     * @returns Transpiled string.
      */
-    protected override onSetup(): null {
-        // Add function declaration to current scope.
-        this.pushScopedValue(this.mName, this);
+    protected override onTranspile(): string {
+        // Transpile return type.
+        const lReturnType: string = this.mReturnType.transpile();
 
-        return null;
+        // Transpile function parameter list.
+        const lParameterList: string = this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
+            return ` ${pParameter.name}: ${pParameter.type.transpile()}`
+        }).join(', ');
+
+        // Transpile attribute list.
+        let lResult: string = this.attributes.transpile();
+
+        // Create function declaration head without return type.
+        lResult += `fn ${this.mName}(${lParameterList})`;
+
+        // Add return type when it is not void/empty.
+        if (lReturnType !== '') {
+            lResult += ` -> ${lReturnType}`;
+        }
+
+        // Add function block.
+        lResult += this.mBlock.transpile();
+
+        return lResult;
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
+        pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate attributes.
+        this.attributes.validate(pValidationTrace);
+
+        // Validate return type.
+        this.mReturnType.validate(pValidationTrace);
+
+        // Create a new scope to combine all parameters with the function block.
+        pValidationTrace.newScope(() => {
+            // Validate each parameters and add them to the validation scope.
+            for (const lParameter of this.mParameter) {
+                // Validate.
+                lParameter.type.validate(pValidationTrace);
+
+                // Push parameter as scoped value.
+                pValidationTrace.pushScopedValue(lParameter.name, lParameter.type);
+            }
+
+            // Validate function block.
+            this.mBlock.validate(pValidationTrace);
+        });
+        
+        // TODO: Dont know what but maaaaybe need some validation return data.
     }
 }
 

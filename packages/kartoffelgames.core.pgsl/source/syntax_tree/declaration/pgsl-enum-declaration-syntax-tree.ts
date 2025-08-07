@@ -1,15 +1,14 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { Dictionary } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value/pgsl-literal-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
-import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum.ts';
-import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition-syntax-tree.ts";
+import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
+import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum.ts';
 import { PgslNumericTypeDefinitionSyntaxTree } from "../type/pgsl-numeric-type-definition-syntax-tree.ts";
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -67,6 +66,9 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      */
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslEnumDeclarationSyntaxTreeValidationAttachment {
         pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate attributes.
+        this.attributes.validate(pValidationTrace);
 
         // Validate that the enum has no dublicate names.
         const lPropertyList: Dictionary<string, BasePgslExpressionSyntaxTree> = new Dictionary<string, BasePgslExpressionSyntaxTree>();

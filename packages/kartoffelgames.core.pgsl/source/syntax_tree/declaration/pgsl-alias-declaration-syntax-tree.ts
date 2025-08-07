@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
@@ -44,14 +45,28 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current alias declaration into a string.
      * 
-     * @returns nothing. 
+     * @returns Transpiled string.
      */
-    protected override onSetup(): null {
-        // Add alias declaration to current scope.
-        this.pushScopedValue(this.mName, this);
+    protected override onTranspile(): string {
+        // Transpile attribute list.
+        let lResult: string = this.attributes.transpile();
 
-        return null;
+        // Create a alias declaration for the type.
+        lResult += `alias ${this.mName} = ${this.mTypeDefinition.transpile()};\n`;
+
+        return lResult;
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
+        pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate type definition and attributes.
+        this.mTypeDefinition.validate(pValidationTrace);
+        this.attributes.validate(pValidationTrace);
     }
 }

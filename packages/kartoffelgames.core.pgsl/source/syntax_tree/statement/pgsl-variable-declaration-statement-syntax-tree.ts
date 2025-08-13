@@ -3,10 +3,11 @@ import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatementSyntaxTree } from "./base-pgsl-statement-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
@@ -18,44 +19,10 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     private readonly mTypeDeclaration: BasePgslTypeDefinitionSyntaxTree;
 
     /**
-    * Address space of declaration.
-    */
-    public get addressSpace(): PgslValueAddressSpace {
-        return PgslValueAddressSpace.Function;
-    }
-
-    /**
-     * Variable declaration type.
-     */
-    public get declarationType(): PgslDeclarationType {
-        this.ensureSetup();
-
-        return this.setupData.declarationType;
-    }
-
-    /**
      * Expression reference.
      */
     public get expression(): BasePgslExpressionSyntaxTree | null {
         return this.mExpression;
-    }
-
-    /**
-     * If declaration is a constant expression.
-     */
-    public get isConstant(): boolean {
-        this.ensureSetup();
-
-        return this.setupData.isConstant;
-    }
-
-    /**
-     * If declaration is a constant expression.
-     */
-    public get isCreationFixed(): boolean {
-        this.ensureSetup();
-
-        return this.setupData.isFixed;
     }
 
     /**
@@ -79,7 +46,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslVariableDeclarationStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta, false);
+        super(pMeta);
 
         // Set data.
         this.mDeclarationTypeName = pParameter.declarationType;
@@ -95,38 +62,50 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current declaration statement into a string.
      * 
-     * @returns setuped data.
+     * @returns Transpiled string.
      */
-    protected override onSetup(): PgslVariableDeclarationStatementSyntaxTreeSetupData {
-        // Push variable definition to current scope.
-        this.pushScopedValue(this.mName, this);
+    protected override onTranspile(): string {
+        // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let. But only when not used as a pointer.
 
-        // Expression value has a fixed byte size.
-        let lIsFixed: boolean = false;
-        if (this.mExpression) {
-            lIsFixed = this.mExpression.isCreationFixed;
+        // Depending on the expression presence, create the declaration with or without an initialization value.
+        if(this.mExpression){
+            return `${this.mDeclarationTypeName} ${this.mName}: ${this.mTypeDeclaration} = ${this.mExpression};`;
+        } else {
+            return `${this.mDeclarationTypeName} ${this.mName}: ${this.mTypeDeclaration};`;
         }
-
-        // Parse declaration type.
-        const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
-        if (!lDeclarationType) {
-            throw new Exception(`Declaration type "${this.mDeclarationTypeName}" not defined.`, this);
-        }
-
-        return {
-            declarationType: lDeclarationType,
-            isConstant: this.mDeclarationTypeName === PgslDeclarationType.Const,
-            isFixed: lIsFixed
-        };
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): PgslVariableDeclarationStatementSyntaxTreeValidationAttachment {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationStatementSyntaxTreeValidationAttachment {
+        // TODO: Only valid in function scope.
+
+        pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Expression value has a fixed byte size.
+        let lFixedState: PgslValueFixedState = PgslValueFixedState.Variable;
+
+        // Read expression attachment when a expression is present.
+        if (this.mExpression) {
+            const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+            lFixedState = lExpressionAttachment.fixedState;
+
+            // Validate same type.
+            if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mTypeDeclaration, lExpressionAttachment.resolveType)) {
+                pValidationTrace.pushError(`Expression values type can't be converted to variables type.`, this.meta, this);
+            }
+        }
+
+        // Parse declaration type.
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        if (!lDeclarationType) {
+            pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" not defined.`, this.meta, this);
+
+            lDeclarationType = PgslDeclarationType.Var;
+        }
 
         // Create list of all bit operations.
         const lDeclarationTypeList: Array<PgslDeclarationType> = [
@@ -135,44 +114,44 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         ];
 
         // Validate.
-        if (!lDeclarationTypeList.includes(this.setupData.declarationType)) {
-            throw new Exception(`Declaration type "${this.setupData.declarationType}" can not be used for block variable declarations.`, this);
+        if (!lDeclarationTypeList.includes(lDeclarationType)) {
+            pValidationTrace.pushError(`Declaration type "${lDeclarationType}" can not be used for block variable declarations.`, this.meta, this);
         }
 
+        // Read attachment of type declaration.
+        const lTypeDeclarationAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mTypeDeclaration);
+
         // Value validation does not apply to pointers.
-        if (!(this.mTypeDeclaration.baseType !== PgslBaseTypeName.Pointer)) {
+        if (lTypeDeclarationAttachment.baseType !== PgslBaseTypeName.Pointer) {
             // Type needs to be storable.
-            if (!this.mTypeDeclaration.isStorable) {
+            if (!lTypeDeclarationAttachment.storable) {
                 throw new Exception(`Type is not storable or a pointer of it.`, this);
             }
 
             // Const declaration type needs to be constructible.
-            if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mTypeDeclaration.isConstructible) {
+            if (this.mDeclarationTypeName === PgslDeclarationType.Const && !lTypeDeclarationAttachment.constructible) {
                 throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
             }
-        }
-
-        // Validate same type.
-        if (this.mExpression && !this.mTypeDeclaration.explicitCastable(this.mExpression.resolveType)) {
-            throw new Exception(`Expression values type can't be converted to variables type.`, this);
         }
 
         // Validate const value need to have a initialization.
         if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mExpression) {
             throw new Exception(`Constants need a initializer value.`, this);
         }
+
+        return {
+            declarationType: lDeclarationType,
+            fixedState: lFixedState,
+            type: this.mTypeDeclaration,
+        };
     }
-
-    // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let. But only when not used as a pointer...
 }
-
 
 export type PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = {
     fixedState: PgslValueFixedState;
     declarationType: PgslDeclarationType;
     type: BasePgslTypeDefinitionSyntaxTree;
 };
-
 
 export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
     declarationType: string;

@@ -67,7 +67,7 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         const lNameBuffer: Set<string> = new Set<string>();
 
         // Create new scope for validation of properties.
-        pValidationTrace.newScope(() => {
+        pValidationTrace.newScope(this, () => {
             // Only types with fixed footprints.
             // Only last property is allowed to be variable but then the struct is no longer fixed. // TODO: Maybe set this in validation.
             for (let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++) {

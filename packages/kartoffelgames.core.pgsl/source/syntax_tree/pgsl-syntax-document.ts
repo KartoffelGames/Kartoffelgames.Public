@@ -47,7 +47,7 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
      */
     protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): void {
         // Create new scope.
-        pTrace.newScope(() => {
+        pTrace.newScope(this, () => {
             // Validate all child structures.
             for (const lChild of this.childNodes) {
                 // Module scope content must be a specific tree type.

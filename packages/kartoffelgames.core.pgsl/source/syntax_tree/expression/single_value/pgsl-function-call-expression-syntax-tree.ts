@@ -1,11 +1,14 @@
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { PgslVoidTypeDefinitionSyntaxTree } from "../../type/pgsl-void-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeSetupData> {
+export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree>;
 
@@ -41,71 +44,60 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
         this.appendChild(...this.mParameterList);
     }
 
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslFunctionCallExpressionSyntaxTreeSetupData> {
-        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName);
-
-        // Determinate fixed state of function.
-        const lIsFixed = (() => {
-            // Set call expression as constant when all parameter are constants and the function itself is a constant.
-            // When the function is not a constant, the parameters doesn't matter.
-            if (!lFunctionDeclaration.isConstant) {
-                return false;
-            } else {
-                // When one parameter is not a constant then nothing is a constant.
-                for (const lParameter of this.mParameterList) {
-                    if (!lParameter.isCreationFixed) {
-                        return false;
-                    }
-                }
-
-                // Function is constant, parameters need to be to.
-                return true;
-            }
-        })();
-
-        // Determinate constant state of function.
-        const lIsConstant = (() => {
-            // Set call expression as constant when all parameter are constants and the function itself is a constant.
-            // When the function is not a constant, the parameters doesn't matter.
-            if (!lFunctionDeclaration.isConstant) {
-                return false;
-            } else {
-                // When one parameter is not a constant then nothing is a constant.
-                for (const lParameter of this.mParameterList) {
-                    if (!lParameter.isConstant) {
-                        return false;
-                    }
-                }
-
-                // Function is constant, parameters need to be to.
-                return true;
-            }
-        })();
-
-        return {
-            expression: {
-                isFixed: lIsFixed,
-                isStorage: false,
-                resolveType: lFunctionDeclaration.returnType,
-                isConstant: lIsConstant
-            },
-            data: {
-                function: lFunctionDeclaration
-            }
-        };
+    /**
+     * Transpiles the expression to a string representation.
+     * 
+     * @returns Transpiled string.
+     */
+    protected override onTranspile(): string {
+        return `${this.mName}(${this.mParameterList.map(param => param.transpile()).join(', ')})`;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
-        //const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName);
-        
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        const lFunctionDeclaration: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mName);
+
+        // Should be a function declaration otherwise it cant be validated further.
+        if (!(lFunctionDeclaration instanceof PgslFunctionDeclarationSyntaxTree)) {
+            pValidationTrace.pushError(`Function '${this.mName}' is not defined.`, this.meta, this);
+
+            return {
+                fixedState: PgslValueFixedState.Variable,
+                isStorage: false,
+                resolveType: new PgslVoidTypeDefinitionSyntaxTree({range: [0,0,0,0]})
+            };
+        }
 
         // TODO: Validate function parameter.
+
+        // Check properties for constructable, host sharable, and fixed footprint characteristics
+        const lFixedState: PgslValueFixedState = (() => {
+            // Function needs to be fixed to count as constant.
+            if (!lFunctionDeclaration.isConstant) {
+                return PgslValueFixedState.Variable;
+            }
+
+            let lFixedState = PgslValueFixedState.Constant;
+
+            // Check all parameter.
+            for (const lParameter of this.mParameterList) {
+                const lParameterTypeAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lParameter);
+
+                // Save the minimum fixed state
+                if(lParameterTypeAttachment.fixedState < lFixedState) {
+                    lFixedState = lParameterTypeAttachment.fixedState;
+                }
+            }
+
+            return lFixedState;
+        })();
+
+        return {
+            fixedState: lFixedState,
+            isStorage: false,
+            resolveType: lFunctionDeclaration.returnType
+        };
     }
 }
-
-type PgslFunctionCallExpressionSyntaxTreeSetupData = {
-    function: PgslFunctionDeclarationSyntaxTree;
-};

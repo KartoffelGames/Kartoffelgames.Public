@@ -90,7 +90,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 
         // Transpile function parameter list.
         const lParameterList: string = this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
-            return ` ${pParameter.name}: ${pParameter.type.transpile()}`
+            return ` ${pParameter.name}: ${pParameter.type.transpile()}`;
         }).join(', ');
 
         // Transpile attribute list.
@@ -112,6 +112,8 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace.
      */
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
         pValidationTrace.pushScopedValue(this.mName, this);
@@ -123,7 +125,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.mReturnType.validate(pValidationTrace);
 
         // Create a new scope to combine all parameters with the function block.
-        pValidationTrace.newScope(() => {
+        pValidationTrace.newScope(this, () => {
             // Validate each parameters and add them to the validation scope.
             for (const lParameter of this.mParameter) {
                 // Validate.
@@ -136,7 +138,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             // Validate function block.
             this.mBlock.validate(pValidationTrace);
         });
-        
+
         // TODO: Dont know what but maaaaybe need some validation return data.
     }
 }

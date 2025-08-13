@@ -1,13 +1,15 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
 
 /**
  * PGSL structure holding a increment or decrement statement.
  */
-export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeSetupData> {
+export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeAttachmentData> {
     private readonly mExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperatorName: string;
 
@@ -19,15 +21,6 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
     }
 
     /**
-     * Expression operator.
-     */
-    public get operator(): PgslOperator {
-        this.ensureSetup();
-
-        return this.setupData.operator;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pData - Initial data.
@@ -36,7 +29,7 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      */
     public constructor(pOperator: string, pExpression: BasePgslExpressionSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pMeta, false);
+        super(pMeta);
 
         // Set base data.
         this.mOperatorName = pOperator;
@@ -49,27 +42,25 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpiles the statement to a string representation.
      * 
-     * @returns setuped data.
+     * @returns Transpiled string.
      */
-    protected override onSetup(): PgslIncrementDecrementStatementSyntaxTreeSetupData {
-        // Try to parse operator.
-        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
-        if (!lOperator) {
-            throw new Exception(`Operator "${this.mOperatorName}" not a valid operator.`, this);
-        }
-
-        return {
-            operator: lOperator
-        };
+    protected override onTranspile(): string {
+        // TODO: Maybe the semicolon should be handled differently. Loops like the for loop dont need them.
+        return `${this.mExpression.transpile()}${this.mOperatorName};`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace.
+     * 
+     * @returns Attachment data.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslIncrementDecrementStatementSyntaxTreeAttachmentData {
+        // Validate expression.
+        this.mExpression.validate(pValidationTrace);
 
         // Create list of all bit operations.
         const lIncrementDecrementOperatorList: Array<PgslOperator> = [
@@ -77,23 +68,31 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
             PgslOperator.Decrement
         ];
 
-        // Validate operator.
-        if (!lIncrementDecrementOperatorList.includes(this.setupData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${this.setupData.operator}" can not used for increment or decrement statements.`, this);
+        // Try to parse operator and validate operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
+        if (!lIncrementDecrementOperatorList.includes(lOperator!)) {
+            pValidationTrace.pushError(`Invalid increment or decrement operator "${this.mOperatorName}".`, this.meta, this);
         }
 
+        // Read attachment of expression.
+        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+
         // Must be a storage.
-        if (!this.mExpression.isStorage) {
-            throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
+        if (!lExpressionAttachment.isStorage) {
+            pValidationTrace.pushError('Increment or decrement expression must be applied to a storage expression', this.meta, this);
         }
 
         // Shouldnt be a const value.
-        if (this.mExpression.isConstant) {
-            throw new Exception(`Increment or decrement expression shouldn't be a constant`, this);
+        if (lExpressionAttachment.fixedState !== PgslValueFixedState.Variable) {
+            pValidationTrace.pushError(`Increment or decrement expression must be a variable`, this.meta, this);
         }
+
+        return {
+            operator: lOperator ?? PgslOperator.Increment
+        };
     }
 }
 
-type PgslIncrementDecrementStatementSyntaxTreeSetupData = {
+type PgslIncrementDecrementStatementSyntaxTreeAttachmentData = {
     operator: PgslOperator;
 };

@@ -8,7 +8,7 @@ import type { BasePgslSyntaxTree, SyntaxTreeMeta } from './base-pgsl-syntax-tree
  * @template TValidationAttachment - Current restricted type of attachable data to the validation trace.
  */
 export class PgslSyntaxTreeValidationTrace {
-    private readonly mScopeList: Array<Dictionary<string, BasePgslSyntaxTree>>;
+    private readonly mScopeList: Array<PgslSyntaxTreeValidationTraceScope>;
     private readonly mErrorList: Array<PgslParserError>;
     private readonly mAttachment: WeakMap<BasePgslSyntaxTree, object>;
 
@@ -22,11 +22,22 @@ export class PgslSyntaxTreeValidationTrace {
     }
 
     /**
+     * Get the current scope.
+     */
+    public get scope(): PgslSyntaxTreeValidationTraceScope {
+        if (this.mScopeList.length === 0) {
+            throw new Exception(`No scope available.`, this);
+        }
+
+        return this.mScopeList.at(-1)!;
+    }
+
+    /**
      * Create a scope object.
      */
     public constructor() {
         // Initialize scope list, error list and attachment map.
-        this.mScopeList = new Array<Dictionary<string, BasePgslSyntaxTree>>();
+        this.mScopeList = new Array<PgslSyntaxTreeValidationTraceScope>();
         this.mErrorList = new Array<PgslParserError>();
         this.mAttachment = new WeakMap<BasePgslSyntaxTree, object>();
     }
@@ -81,11 +92,11 @@ export class PgslSyntaxTreeValidationTrace {
         // Iterate scoped list in reverse order to find the first declaration.
         for (let lIndex = this.mScopeList.length - 1; lIndex >= 0; lIndex--) {
             // Get scope values.
-            const lScopeValues: Dictionary<string, BasePgslSyntaxTree> = this.mScopeList[lIndex];
+            const lScopeValues: PgslSyntaxTreeValidationTraceScope = this.mScopeList[lIndex];
 
             // Check if value is defined in current scope and return it.
-            if (lScopeValues.has(pValueName)) {
-                return lScopeValues.get(pValueName)!;
+            if (lScopeValues.values.has(pValueName)) {
+                return lScopeValues.values.get(pValueName)!;
             }
         }
 
@@ -109,12 +120,12 @@ export class PgslSyntaxTreeValidationTrace {
         const lCurrentScope = this.mScopeList[this.mScopeList.length - 1];
 
         // Check if value is already defined in current scope.
-        if (lCurrentScope.has(pValueName)) {
+        if (lCurrentScope.values.has(pValueName)) {
             throw new Exception(`Scoped value "${pValueName}" already defined for current scope.`, this);
         }
 
         // Push value to current scope.
-        lCurrentScope.set(pValueName, pValue);
+        lCurrentScope.values.set(pValueName, pValue);
     }
 
     /**
@@ -132,20 +143,95 @@ export class PgslSyntaxTreeValidationTrace {
     /**
      * Execute action in a new scope.
      * 
+     * @param pScopeTree - Scope tree to create.
      * @param pScopeAction - Action to execute in scope.
      */
-    public newScope(pScopeAction: () => void): void {
+    public newScope(pScopeTree: BasePgslSyntaxTree, pScopeAction: () => void): void {
+        // Read last scopes.
+        const lLastScopes: Array<BasePgslSyntaxTree> = new Array<BasePgslSyntaxTree>();
+        if (this.mScopeList.length > 0) {
+            lLastScopes.push(...this.mScopeList.at(-1)!.scopes);
+        }
+
+        // Push new scope tree to last scopes.
+        lLastScopes.push(pScopeTree);
+
         // Create new scope.
-        const lScope: Dictionary<string, BasePgslSyntaxTree> = new Dictionary<string, BasePgslSyntaxTree>();
+        const lScope: PgslSyntaxTreeValidationTraceScope = new PgslSyntaxTreeValidationTraceScope(lLastScopes);
 
         // Add scope to list.
         this.mScopeList.push(lScope);
 
         // Execute scope action.
-        pScopeAction();
+        try {
+            pScopeAction();
+        } finally {
+            // Remove scope from list.
+            this.mScopeList.pop();
+        }
+    }
+}
 
-        // Remove scope from list.
-        this.mScopeList.pop();
+class PgslSyntaxTreeValidationTraceScope {
+    private readonly mScopes: Array<BasePgslSyntaxTree>;
+    private readonly mValues: Dictionary<string, BasePgslSyntaxTree>;
+
+    /**
+     * Get the scope.
+     */
+    public get scopes(): Array<BasePgslSyntaxTree> {
+        return this.mScopes;
+    }
+
+    /**
+     * Get the values of the scope.
+     * 
+     * @returns Values of the scope.
+     */
+    public get values(): Dictionary<string, BasePgslSyntaxTree> {
+        return this.mValues;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pScope - Scope.
+     */
+    public constructor(pScopes: Array<BasePgslSyntaxTree>) {
+        this.mScopes = pScopes;
+        this.mValues = new Dictionary<string, BasePgslSyntaxTree>();
+    }
+
+    /**
+     * Check if the scope has a specific scope type.
+     * 
+     * @param pScopeType - Scope type to check for.
+     * 
+     * @returns True if the scope has the specified scope type, false otherwise.
+     */
+    public hasScope<T extends BasePgslSyntaxTree>(pScopeType: new (...args: any[]) => T): boolean {
+        return this.mScopes.some(scope => scope instanceof pScopeType);
+    }
+
+    /**
+     * Check if the direct scope has a specific scope type.
+     * 
+     * @param pScopeType - Scope type to check for.
+     * 
+     * @returns True if the scope has the specified scope type, false otherwise.
+     */
+    public hasDirectScope<T extends BasePgslSyntaxTree>(pScopeType: new (...args: any[]) => T): boolean {
+        return this.mScopes[0] instanceof pScopeType;
+    }
+
+    public getScopeOf<T extends BasePgslSyntaxTree>(pScopeType: new (...args: any[]) => T): T {
+        // Find scope tree of type.
+        const lScopeTree = this.mScopes.find(scope => scope instanceof pScopeType) as T | undefined;
+        if (!lScopeTree) {
+            throw new Exception(`Scope of type ${pScopeType.name} not found.`, this);
+        }
+
+        return lScopeTree;
     }
 }
 

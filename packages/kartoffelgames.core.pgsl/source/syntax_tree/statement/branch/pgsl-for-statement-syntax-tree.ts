@@ -1,14 +1,15 @@
-import { Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 import { PgslAssignmentStatementSyntaxTree } from '../pgsl-assignment-statement-syntax-tree.ts';
 import type { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
 import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree.ts';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../pgsl-increment-decrement-statement-syntax-tree.ts';
-import type { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree.ts';
+import type { PgslVariableDeclarationStatementSyntaxTree, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../pgsl-variable-declaration-statement-syntax-tree.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.
@@ -54,15 +55,13 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree {
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslForStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta,) {
-        super(pMeta, false);
+        super(pMeta);
 
         // Set data.
         this.mBlock = pParameter.block;
         this.mUpdate = pParameter.update;
         this.mExpression = pParameter.expression;
         this.mInit = pParameter.init;
-
-        // TODO: Push init value to block scope.
 
         // Set child as tree data.
         this.appendChild(this.mBlock);
@@ -78,17 +77,78 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     }
 
     /**
-     * Validate data of current structure.
+     * Transpile the current structure to a string representation.
+     * 
+     * @returns Transpiled string.
      */
-    protected override onValidateIntegrity(): void {
-        // Expression must be a boolean.
-        if (this.mExpression && this.mExpression.resolveType.baseType !== PgslBaseTypeName.Boolean) {
-            throw new Exception('Expression of for loops must resolve into a boolean.', this);
+    protected override onTranspile(): string {
+        let lResult: string = '';
+
+        // Transpile init value when set.
+        if (this.mInit) {
+            lResult += this.mInit.transpile();
         }
 
-        // Variable musst be a let
-        if (this.mInit && this.mInit.declarationType !== PgslDeclarationType.Let) {
-            throw new Exception('Initial of for loops must be a let declaration.', this);
+        // Create a loop.
+        lResult += 'loop {';
+
+        // When a expression is set define it as exit.
+        if (this.mExpression) {
+            lResult += `if !(${this.mExpression.transpile()}) { break; }`;
+        }
+
+        // Append the actual body.
+        lResult += this.mBlock.transpile();
+
+        // Set the update expression when defined.
+        if (this.mUpdate) {
+            lResult += `${this.mUpdate.transpile()};`;
+        }
+
+        // And close the loop.
+        return lResult + '}';
+    }
+
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace.
+     */
+    protected onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
+        // Validate init first to add value to block scope. 
+        if (this.mInit) {
+            // Validate init declaration.
+            this.mInit.validate(pValidationTrace);
+
+            // Push value to scope.
+            pValidationTrace.pushScopedValue(this.mInit.name, this.mInit);
+
+            // Read attachment of init declaration.
+            const lInitAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInit);
+
+            // Variable must be a let
+            if (lInitAttachment.declarationType !== PgslDeclarationType.Let) {
+                pValidationTrace.pushError('Initial of for loops must be a let declaration.', this.mInit.meta, this);
+            }
+        }
+
+        // Validate block.
+        this.mBlock.validate(pValidationTrace);
+
+        // Validate expression.
+        if (this.mExpression) {
+            this.mExpression.validate(pValidationTrace);
+
+            // Read attachments of expression.
+            const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+
+            // Read attachment of expression resolve type.
+            const lExpressionResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
+
+            // Expression must be a boolean.
+            if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+                pValidationTrace.pushError('Expression of while loops must resolve into a boolean.', this.mExpression.meta, this);
+            }
         }
 
         // Validate update statement.
@@ -100,7 +160,7 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree {
                     break;
                 }
                 default: {
-                    throw new Exception('For update statement must be eighter a assignment, increment or function statement.', this);
+                    pValidationTrace.pushError('For update statement must be either an assignment, increment or function statement.', this.mUpdate.meta, this);
                 }
             }
         }

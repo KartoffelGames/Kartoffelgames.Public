@@ -1,4 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 
 /**
@@ -8,18 +9,25 @@ export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
     public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta, false);
+        super(pMeta);
+    }
+
+    /**
+     * Transpile the current structure to a string representation.
+     * 
+     * @returns Transpiled string.
+     */
+    protected override onTranspile(): string {
+      return `continue;`;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(_pValidationTrace: PgslSyntaxTreeValidationTrace): void {
         // TODO: Only in Loops
     }
 }

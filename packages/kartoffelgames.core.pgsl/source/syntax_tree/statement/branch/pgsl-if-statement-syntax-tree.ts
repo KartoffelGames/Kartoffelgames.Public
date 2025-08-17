@@ -1,6 +1,7 @@
-import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree.ts';
 import type { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree.ts';
@@ -35,13 +36,26 @@ export class PgslIfStatementSyntaxTree extends BasePgslStatementSyntaxTree {
     }
 
     /**
+     * Transpile the current structure to a string representation.
+     * 
+     * @returns Transpiled string.
+     */
+    protected override onTranspile(): string {
+        if (!this.mElse) {
+            return `if (${this.mExpression.transpile()}) ${this.mBlock.transpile()}`;
+        } else {
+            return `if (${this.mExpression.transpile()}) ${this.mBlock.transpile()} else ${this.mElse.transpile()}`;
+        }
+    }
+
+    /**
      * Constructor.
      * 
      * @param pParameter - Parameters.
      * @param pMeta - Syntax tree meta data.
      */
     public constructor(pParameter: PgslIfStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta, false);
+        super(pMeta);
 
         // Set data.
         this.mExpression = pParameter.expression;
@@ -57,11 +71,30 @@ export class PgslIfStatementSyntaxTree extends BasePgslStatementSyntaxTree {
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pValidationTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
+    protected onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): void {
+        // Validate expression.
+        this.mExpression.validate(pValidationTrace);
+
+        // Validate block.
+        this.mBlock.validate(pValidationTrace);
+
+        // Validate else block.
+        if (this.mElse) {
+            this.mElse.validate(pValidationTrace);
+        }
+
+        // Read attachments of expression.
+        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+
+        // Read attachment of expression resolve type.
+        const lExpressionResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
+
         // Expression must be a boolean.
-        if (this.mExpression.resolveType.baseType !== PgslBaseTypeName.Boolean) {
-            throw new Exception('Expression of do-while loops must resolve into a boolean.', this);
+        if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+            pValidationTrace.pushError('Expression of if must resolve into a boolean.', this.expression.meta, this);
         }
     }
 }

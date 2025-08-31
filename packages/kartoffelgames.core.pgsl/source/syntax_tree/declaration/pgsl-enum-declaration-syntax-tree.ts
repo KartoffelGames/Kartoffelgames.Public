@@ -137,7 +137,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 
 export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: BasePgslExpressionSyntaxTree; }>;
 
-type PgslEnumDeclarationSyntaxTreeValidationAttachment = {
+export type PgslEnumDeclarationSyntaxTreeValidationAttachment = {
     /**
      * Underlying type of the enum.
      */

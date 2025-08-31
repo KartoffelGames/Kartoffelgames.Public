@@ -1,12 +1,15 @@
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslStringTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-string-type-definition-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { PgslStringTypeDefinitionSyntaxTree } from "../../type/pgsl-string-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
 export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mValue: string;
+    private readonly mType: PgslStringTypeDefinitionSyntaxTree;
 
     /**
      * Value of literal.
@@ -26,16 +29,9 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
 
         // Set data.
         this.mValue = pTextValue.substring(1, pTextValue.length - 1);
-    }
 
-    /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
-     */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
         // Create type declaration.
-        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({
+        this.mType = new PgslStringTypeDefinitionSyntaxTree({
             range: [
                 this.meta.position.start.line,
                 this.meta.position.start.column,
@@ -44,18 +40,29 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
             ]
         });
 
+        // Append type as child.
+        this.appendChild(this.mType);
+    }
+
+    /**
+     * Transpile current expression to WGSL code.
+     */
+    protected override onTranspile(): string {
+        return this.mValue;
+    }
+
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
+     */
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        this.mType.validate(pTrace);
+
         return {
-            expression: {
-                isFixed: true,
-                isStorage: false,
-                resolveType: lTypeDeclaration,
-                isConstant: true
-            },
-            data: null
+            fixedState: PgslValueFixedState.Constant,
+            isStorage: false,
+            resolveType: this.mType
         };
     }
 }
-
-export type PgslStringValueExpressionSyntaxTreeStructureData = {
-
-};

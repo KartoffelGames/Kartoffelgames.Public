@@ -1,13 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslArrayTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-array-type-definition-syntax-tree.ts';
-import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-matrix-type-definition-syntax-tree.ts';
-import type { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
+import { PgslArrayTypeDefinitionSyntaxTree } from "../../type/pgsl-array-type-definition-syntax-tree.ts";
+import { PgslMatrixTypeDefinitionSyntaxTree } from "../../type/pgsl-matrix-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
+import { PgslVectorTypeDefinitionSyntaxTree } from "../../type/pgsl-vector-type-definition-syntax-tree.ts";
 
 /**
  * PGSL structure holding a variable with index expression.
@@ -49,55 +50,67 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
+     * Transpile current expression to WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
-        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
-            switch (true) {
-                case this.mValue.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
-                    return this.mValue.resolveType.innerType;
-                }
-
-                case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
-                    return this.mValue.resolveType.innerType;
-                }
-
-                case this.mValue.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
-                    return this.mValue.resolveType.vectorType;
-                }
-            }
-
-            // This should never be called.
-            throw new Exception('Type does not support a index signature', this);
-        })();
-
-        return {
-            expression: {
-                isFixed: this.mIndex.isCreationFixed && this.mValue.isCreationFixed,
-                isStorage: true,
-                resolveType: lResolveType,
-                isConstant: this.mIndex.isConstant && this.mValue.isConstant
-            },
-            data: null
-        };
+    protected override onTranspile(): string {
+      return `${this.mValue.transpile()}[${this.mIndex.transpile()}]`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
-        // Type needs to be a composite.
-        if (!this.mValue.resolveType.isIndexable) {
-            throw new Exception(`Value of index expression needs to be a indexable composite value.`, this);
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate index and value expressions.
+        this.mIndex.validate(pTrace);
+        this.mValue.validate(pTrace);
+
+        // Read the attachments from the value expression.
+        const lValueAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mValue);
+        const lValueResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lValueAttachment.resolveType);
+
+        // Value needs to be indexable.
+        if (!lValueResolveTypeAttachment.indexable) {
+            pTrace.pushError('Value of index expression needs to be a indexable composite value.', this.mValue.meta, this);
         }
 
+        // Read the attachments from the index expression.
+        const lIndexAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mIndex);
+        const lIndexResolveType: BasePgslTypeDefinitionSyntaxTree = lIndexAttachment.resolveType;
+
         // Value needs to be a unsigned numeric value.
-        if (this.mIndex.resolveType.baseType !== PgslBaseTypeName.Numberic) {
-            if ((<PgslNumericTypeDefinitionSyntaxTree>this.mIndex.resolveType).numericType !== PgslNumericTypeName.UnsignedInteger) {
-                throw new Exception(`Index needs to be a unsigned numeric value.`, this);
-            }
+        if (!(lIndexResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lIndexResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+            pTrace.pushError('Index needs to be a unsigned numeric value.', this.mIndex.meta, this);
         }
+
+        const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
+            switch (true) {
+                case lValueAttachment.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
+                    return lValueAttachment.resolveType.innerType;
+                }
+
+                case lValueAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                    return lValueAttachment.resolveType.innerType;
+                }
+
+                case lValueAttachment.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
+                    return lValueAttachment.resolveType.vectorType;
+                }
+
+                default: {
+                    pTrace.pushError('Type does not support a index signature', this.mValue.meta,this);
+
+                    // Somehow could have the same type.
+                    return lValueAttachment.resolveType;
+                }
+            }
+        })();
+
+        return {
+            fixedState: Math.min(lValueAttachment.fixedState, lIndexAttachment.fixedState),
+            isStorage: true,
+            resolveType: lResolveType
+        };
     }
 }

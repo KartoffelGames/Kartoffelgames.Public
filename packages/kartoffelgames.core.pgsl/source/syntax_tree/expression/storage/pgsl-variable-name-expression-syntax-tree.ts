@@ -34,6 +34,8 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pScope - Validation scope.
      */
     protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Check if variable is defined.

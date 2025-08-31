@@ -1,11 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
-import { PgslIndexedValueExpressionSyntaxTree } from '../storage/pgsl-indexed-value-expression-syntax-tree.ts';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../storage/pgsl-value-decomposition-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a variable name used to get the address.
@@ -35,57 +32,46 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data.
+     * @returns WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<unknown> {
-        const lResolveType: BasePgslTypeDefinitionSyntaxTree = new PgslPointerTypeDefinitionSyntaxTree(this.mVariable.resolveType, {
-            range: [
-                this.meta.position.start.line,
-                this.meta.position.start.column,
-                this.meta.position.end.line,
-                this.meta.position.end.column,
-            ]
-        });
-
-        return {
-            expression: {
-                isFixed: true,
-                isStorage: false,
-                resolveType: lResolveType,
-                isConstant: true
-            },
-            data: null
-        };
+    protected override onTranspile(): string {
+        return `&${this.mVariable.transpile()}`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate variable.
+        this.mVariable.validate(pTrace);
+
+        // Read attachment of inner expression.
+        const lVariableAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mVariable);
+
         // Type of expression needs to be storable.
-        if (!this.mVariable.isStorage) {
+        if (!lVariableAttachment.isStorage) {
             throw new Exception(`Target of address needs to a stored value`, this);
         }
 
+        // Read type attachment of variable.
+        const lVariableResolveType: BasePgslTypeDefinitionSyntaxTree = lVariableAttachment.resolveType;
+        const lVariableResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableResolveType);
+
         // Type of expression needs to be storable.
-        if (!this.mVariable.resolveType.isStorable) {
+        if (!lVariableResolveTypeAttachment.storable) {
             throw new Exception(`Target of address needs to storable`, this);
         }
 
-        // No vector item.
-        const lParent: BasePgslExpressionSyntaxTree = this.mVariable.parent as BasePgslExpressionSyntaxTree;
-        if (lParent.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
-            // Single swizzle name.
-            if (this.mVariable instanceof PgslValueDecompositionExpressionSyntaxTree && this.mVariable.property.length === 1) {
-                throw new Exception(`AddressOf operator can not be applied to a vector item.`, this);
-            }
+        // TODO: No vector item.
 
-            // Reference by index.
-            if (this.mVariable instanceof PgslIndexedValueExpressionSyntaxTree) {
-                throw new Exception(`AddressOf operator can not be applied to a vector item.`, this);
-            }
-        }
+        return {
+            fixedState: lVariableAttachment.fixedState,
+            isStorage: false,
+            resolveType: lVariableResolveType
+        };
     }
 }

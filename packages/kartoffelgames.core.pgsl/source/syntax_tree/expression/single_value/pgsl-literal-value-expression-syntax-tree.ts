@@ -1,27 +1,19 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree.ts';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslBooleanTypeDefinitionSyntaxTree } from "../../type/pgsl-boolean-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeSetupData> {
+export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mTextValue: string;
-
-    /**
-     * Value of literal.
-     * Booleans habe a one for true and 0 for false.
-     */
-    public get value(): number {
-        this.ensureSetup();
-
-        return this.setupData.data.value;
-    }
 
     /**
      * Constructor.
@@ -38,11 +30,21 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data. 
+     * @returns WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslLiteralValueExpressionSyntaxTreeSetupData> {
+    protected override onTranspile(): string {
+        // Basically does nothing to the value.
+        return this.mTextValue;
+    }
+
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
+     */
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Convert value.
         const [lBaseType, lScalarType, lValue] = this.convertData(this.mTextValue);
 
@@ -73,16 +75,13 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
         // Add resolve type as child tree.
         this.appendChild(lResolveType);
 
+        // Validate child type.
+        lResolveType.validate(pTrace);
+
         return {
-            expression: {
-                isFixed: true,
-                isStorage: false,
-                resolveType: lResolveType,
-                isConstant: true
-            },
-            data: {
-                value: lValue
-            }
+            fixedState: PgslValueFixedState.Constant,
+            isStorage: false,
+            resolveType: lResolveType
         };
     }
 

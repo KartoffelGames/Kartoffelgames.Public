@@ -2,8 +2,8 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
 import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree.ts';
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
@@ -33,6 +33,8 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
 
     /**
      * Transpile current expression to WGSL code.
+     * 
+     * @returns WGSL code.
      */
     protected override onTranspile(): string {
         // Transpile expression.
@@ -48,22 +50,25 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
         this.mExpression.validate(pTrace);
 
         // Read attached value of expression.
-        const lExpressionState: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
+        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
 
         // Type buffer for validating the processed types.
         let lValueType: BasePgslTypeDefinitionSyntaxTree;
 
         // Validate vectors differently.
-        if (lExpressionState.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
-            lValueType = lExpressionState.resolveType.innerType;
+        if (lExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            lValueType = lExpressionAttachment.resolveType.innerType;
         } else {
-            lValueType = lExpressionState.resolveType;
+            lValueType = lExpressionAttachment.resolveType;
         }
+
+        // Read expression resolve type attachment.
+        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lExpressionAttachment.resolveType);
 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numberic) {
                     pTrace.pushError(`Binary negation only valid for numeric type.`, this.meta, this);
                 }
 
@@ -71,14 +76,14 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
             }
             case PgslOperator.Minus: {
                 // TODO: Not unsigned int.
-                if (lValueType.baseType !== PgslBaseTypeName.Numberic) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numberic) {
                     pTrace.pushError(`Negation only valid for numeric or vector type.`, this.meta, this);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
-                if (lValueType.baseType !== PgslBaseTypeName.Boolean) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
                     pTrace.pushError(`Boolean negation only valid for boolean type.`, this.meta, this);
                 }
 
@@ -91,9 +96,9 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
 
         // TODO: Resolved integer type changes when value is negative.
         return {
-            fixedState: lExpressionState.fixedState,
+            fixedState: lExpressionAttachment.fixedState,
             isStorage: false,
-            resolveType: lExpressionState.resolveType,
+            resolveType: lExpressionAttachment.resolveType,
         };
     }
 }

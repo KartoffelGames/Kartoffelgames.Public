@@ -1,20 +1,20 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
  */
 export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
-    private readonly mVariable: BasePgslExpressionSyntaxTree;
+    private readonly mExpression: BasePgslExpressionSyntaxTree;
 
     /**
-     * Variable reference.
+     * Expression reference.
      */
-    public get variable(): BasePgslExpressionSyntaxTree {
-        return this.mVariable;
+    public get expression(): BasePgslExpressionSyntaxTree {
+        return this.mExpression;
     }
 
     /**
@@ -27,44 +27,45 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
         super(pMeta);
 
         // Set data.
-        this.mVariable = pVariable;
+        this.mExpression = pVariable;
 
         // Add data as child tree.
-        this.appendChild(this.mVariable);
+        this.appendChild(this.mExpression);
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data.
+     * @returns WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
-        // Validate that it needs to be a variable name, index value or value decomposition.
-        if (this.mVariable.resolveType.baseType !== PgslBaseTypeName.Pointer) {
-            throw new Exception('Value of a pointer expression needs to be a pointer', this);
-        }
-
-        // Pointer value will allways be a pointer.
-        const lPointerType: PgslPointerTypeDefinitionSyntaxTree = this.mVariable.resolveType as PgslPointerTypeDefinitionSyntaxTree;
-
-        return {
-            expression: {
-                isFixed: this.mVariable.isCreationFixed,
-                isStorage: true,
-                resolveType: lPointerType.referencedType,
-                isConstant: this.mVariable.isConstant
-            },
-            data: null
-        };
+    protected override onTranspile(): string {
+      return `*${this.mExpression.transpile()}`;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate child expression.
+        this.mExpression.validate(pTrace);
+
+        // Read attached value of expression.
+        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
+
+        // Read expression resolve type attachment.
+        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lExpressionAttachment.resolveType);
+
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if (this.mVariable.resolveType.baseType !== PgslBaseTypeName.Pointer) {
+        if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Pointer) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
+
+        // TODO: Somehow must save the address space.
+
+        return {
+            fixedState: lExpressionAttachment.fixedState,
+            isStorage: true,
+            resolveType: lExpressionAttachment.resolveType,
+        };
     }
 }

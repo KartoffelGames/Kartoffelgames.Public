@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a expression surrounded with parentheses.
@@ -31,19 +32,28 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslExpressionSyn
     }
 
     /**
-     * Retrieve data of current structure.
-     * 
-     * @returns setuped data.
+     * Transpile current expression to WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
+    protected override onTranspile(): string {
+        return `(${this.mExpression.transpile()})`;
+    }
+
+    /**
+     * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
+     */
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate inner expression.
+        this.mExpression.validate(pTrace);
+
+        // Read attachment of inner expression.
+        const lAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
+
         return {
-            expression: {
-                isFixed: this.mExpression.isCreationFixed,
-                isStorage: false,
-                resolveType: this.mExpression.resolveType,
-                isConstant: this.mExpression.isConstant
-            },
-            data: null
+            fixedState: lAttachment.fixedState,
+            isStorage: false,
+            resolveType: lAttachment.resolveType
         };
     }
 }

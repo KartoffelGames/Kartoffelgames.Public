@@ -183,6 +183,11 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pValidationTrace - Validation trace to use.
      */
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+        // Validate template parameters.
+        for (const lTemplate of this.mTemplateList) {
+            lTemplate.validate(pValidationTrace);
+        }
+
         const lTextureTemplates: Array<typeof PgslNumericTypeDefinitionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree> = PgslTextureTypeDefinitionSyntaxTree.mTemplateMapping.get(this.mTextureType)!;
 
         // Ensure same length.

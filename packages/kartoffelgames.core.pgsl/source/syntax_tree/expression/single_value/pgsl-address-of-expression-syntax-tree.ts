@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
@@ -54,7 +53,7 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
 
         // Type of expression needs to be storable.
         if (!lVariableAttachment.isStorage) {
-            throw new Exception(`Target of address needs to a stored value`, this);
+            pTrace.pushError(`Target of address needs to a stored value`, this.mVariable.meta, this);
         }
 
         // Read type attachment of variable.
@@ -63,7 +62,7 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
 
         // Type of expression needs to be storable.
         if (!lVariableResolveTypeAttachment.storable) {
-            throw new Exception(`Target of address needs to storable`, this);
+            pTrace.pushError(`Target of address needs to storable`, this.mVariable.meta, this);
         }
 
         // TODO: No vector item.

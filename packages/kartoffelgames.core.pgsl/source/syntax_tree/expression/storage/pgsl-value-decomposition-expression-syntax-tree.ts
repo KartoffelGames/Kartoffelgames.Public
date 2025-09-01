@@ -49,6 +49,11 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
         this.appendChild(this.mValue);
     }
 
+    /**
+     * Transpile current expression to WGSL code.
+     * 
+     * @returns WGSL code of current expression.
+     */
     protected override onTranspile(): string {
         // Transpile value and property.
         return `${this.mValue.transpile()}.${this.mProperty}`;
@@ -58,6 +63,9 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate value.
+        this.mValue.validate(pTrace);
+
         // Get attachment of value.
         const lValueAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mValue);
 

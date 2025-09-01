@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslEnumDeclarationSyntaxTree, PgslEnumDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-enum-declaration-syntax-tree.ts';
@@ -58,7 +57,13 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
         // Catch undefined enum names.
         const lReferencedEnum: BasePgslSyntaxTree = pTrace.getScopedValue(this.mName);
         if (!(lReferencedEnum instanceof PgslEnumDeclarationSyntaxTree)) {
-            throw new Exception(`Enum "${this.mName}" not defined.`, this);
+            pTrace.pushError(`Enum "${this.mName}" not defined.`, this.meta, this);
+
+            return {
+                fixedState: PgslValueFixedState.Variable,
+                isStorage: false,
+                resolveType: null as unknown as PgslNumericTypeDefinitionSyntaxTree // TODO: Maybe use a unknown type here?
+            };
         }
 
         // Read attachment of enum.

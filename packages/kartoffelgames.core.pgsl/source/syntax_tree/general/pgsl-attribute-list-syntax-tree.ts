@@ -1,10 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { PgslEnumDeclarationSyntaxTree, PgslEnumDeclarationSyntaxTreeValidationAttachment } from "../declaration/pgsl-enum-declaration-syntax-tree.ts";
 import { type BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../pgsl-syntax-tree-validation-trace.ts';
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 
 /**
  * Generic attribute list.
@@ -127,25 +128,25 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): void {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): void {
         // Only const expressions allowed.
         for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
             for (const lParameter of lAttributeParameter) {
                 // Validate parameter as standalone expression.
-                lParameter.validate(pScope);
+                lParameter.validate(pTrace);
 
-                const lParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pScope.getAttachment(lParameter);
+                const lParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(lParameter);
 
                 // Expression must be fixed at shader creation.
                 if (lParameterAttachment.fixedState < PgslValueFixedState.ShaderCreationFixed) {
-                    pScope.pushError(`Attribute "${lAttributeName}" contains a none shader creation fixed parameter.`, this.meta, this);
+                    pTrace.pushError(`Attribute "${lAttributeName}" contains a none shader creation fixed parameter.`, this.meta, this);
                 }
             }
 
             // Validate parameters when it is a build in attribute.
             if (PgslAttributeListSyntaxTree.mValidAttributes.has(lAttributeName)) {
-                if (!this.validateParameter(lAttributeParameter, PgslAttributeListSyntaxTree.mValidAttributes.get(lAttributeName)!)) {
-                    pScope.pushError(`Attribute "${lAttributeName}" has invalid parameters.`, this.meta, this);
+                if (!this.validateParameter(pTrace, lAttributeParameter, PgslAttributeListSyntaxTree.mValidAttributes.get(lAttributeName)!)) {
+                    pTrace.pushError(`Attribute "${lAttributeName}" has invalid parameters.`, this.meta, this);
                 }
             }
         }
@@ -157,7 +158,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
      * 
      * @param pData - Structure data.
      */
-    private validateParameter(pParameterSourceList: Array<BasePgslExpressionSyntaxTree>, pValidationParameterList: Array<Array<AttributeParameterType>>): boolean {
+    private validateParameter(pTrace: PgslSyntaxTreeValidationTrace, pParameterSourceList: Array<BasePgslExpressionSyntaxTree>, pValidationParameterList: Array<Array<AttributeParameterType>>): boolean {
         // Attribute doesn needs parameter.
         if (pParameterSourceList.length === 0 && pValidationParameterList.length === 0) {
             return true;
@@ -178,7 +179,16 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
                 // Convert enum to literal or string. expression.
                 let lActualAttributeParameter: BasePgslExpressionSyntaxTree = pParameterSourceList[lIndex];
                 if (lActualAttributeParameter instanceof PgslEnumValueExpressionSyntaxTree) {
-                    lActualAttributeParameter = lActualAttributeParameter.value;
+                    // Read enum from name.
+                    const lEnum: BasePgslSyntaxTree = pTrace.getScopedValue(lActualAttributeParameter.name);
+                    if (lEnum instanceof PgslEnumDeclarationSyntaxTree) {
+                        // Read the attachment of the enum.
+                        const lEnumAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lEnum);
+                        if (lEnumAttachment.values.has(lActualAttributeParameter.name)) {
+                            // Set value of enums property as actual attribute parameter.
+                            lActualAttributeParameter = lEnumAttachment.values.get(lActualAttributeParameter.name)!;
+                        }
+                    }
                 }
 
                 switch (lExpectedTemplateType) {

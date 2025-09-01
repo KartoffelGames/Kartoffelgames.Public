@@ -1,7 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
@@ -43,60 +45,67 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data.
+     * @returns WGSL code of current expression.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData {
-        // When one parameter is not a constant then nothing is a constant.
-        const lIsConstant: boolean = (() => {
-            for (const lParameter of this.mParameterList) {
-                if (!lParameter.isConstant) {
-                    return false;
-                }
-            }
-
-            // Function is constant, parameters need to be to.
-            return true;
-        })();
-
-        // When one parameter is not a creation fixed then nothing is a creation fixed.
-        const lIsFixed: boolean = (() => {
-            for (const lParameter of this.mParameterList) {
-                if (!lParameter.isCreationFixed) {
-                    return false;
-                }
-            }
-
-            // Function is constant, parameters need to be to.
-            return true;
-        })();
-
-        return {
-            expression: {
-                isFixed: lIsFixed,
-                isStorage: false,
-                resolveType: this.mType,
-                isConstant: lIsConstant
-            },
-            data: null
-        };
+    protected override onTranspile(): string {
+        // Simply transpile the type and parameters without the new part.
+        return `${this.mType.transpile()}(${this.mParameterList.map(param => param.transpile()).join(", ")})`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate type.
+        this.mType.validate(pTrace);
+
+        // Validate parameters.
+        for (const lParameter of this.mParameterList) {
+            lParameter.validate(pTrace);
+        }
+
+        // Read attachment of type.
+        const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mType);
+
         // Must be fixed.
-        if (!this.mType.isFixed) {
-            throw new Exception(`New expression must be a length fixed type.`, this);
+        if (!lTypeAttachment.fixedFootprint) {
+            pTrace.pushError(`New expression must be a length fixed type.`, this.mType.meta, this);
         }
 
         // Must be constructable.
-        if (!this.mType.isConstructible) {
-            throw new Exception(`New expression must be a length fixed type.`, this);
+        if (!lTypeAttachment.constructible) {
+            pTrace.pushError(`New expression must be a constructible type.`, this.mType.meta, this);
         }
 
+        // Find the lowest fixed state of all parameters.
+        const lFixedState: PgslValueFixedState = (() => {
+            // Create default variables starting with the stiffest state.
+            let lFixedState: PgslValueFixedState = PgslValueFixedState.Constant;
+
+            for (const lParameter of this.mParameterList) {
+                // Read attachment of parameters.
+                const lParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(lParameter);
+
+                // Set the lowest fixed state.
+                if (lParameterAttachment.fixedState < lFixedState) {
+                    lFixedState = lParameterAttachment.fixedState;
+                }
+            }
+
+            // Function is constant, parameters need to be to.
+            return lFixedState;
+        })();
+
         // TODO: Validate function parameter and template.
+
+        return {
+            fixedState: lFixedState,
+            isStorage: false,
+            resolveType: this.mType,
+        };
     }
 }

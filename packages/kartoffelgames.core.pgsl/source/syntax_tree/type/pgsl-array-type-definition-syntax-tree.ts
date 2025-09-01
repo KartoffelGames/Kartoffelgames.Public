@@ -119,6 +119,14 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
         // TODO: Fixed length from const expressions are only valid on workgroup variables. ??? How.
         //       Do we need to split expressions into isConstant and isCompileConstant or so????
 
+        // Validate inner type.
+        this.mInnerType.validate(pValidationTrace);
+
+        // Validate length expression when set.
+        if (this.mLengthExpression) {
+            this.mLengthExpression.validate(pValidationTrace);
+        }
+
         // Read inner type attachment.
         const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
 

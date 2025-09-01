@@ -1,11 +1,13 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTree } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
+import { PgslVectorTypeDefinitionSyntaxTree } from "../../type/pgsl-vector-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
-export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeSetupData> {
+export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperatorName: string;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
@@ -15,15 +17,6 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      */
     public get leftExpression(): BasePgslExpressionSyntaxTree {
         return this.mLeftExpression;
-    }
-
-    /**
-     * Expression operator.
-     */
-    public get operator(): PgslOperator {
-        this.ensureSetup();
-
-        return this.setupData.data.operator;
     }
 
     /**
@@ -54,35 +47,26 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data.
+     * @returns WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslArithmeticExpressionSyntaxTreeSetupData> {
-        // Try to convert operator.
-        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
-        if (!lOperator) {
-            throw new Exception(`"${this.mOperatorName}" can't be used as a operator.`, this);
-        }
-
-        return {
-            expression: {
-                isFixed: this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed,
-                isStorage: false,
-                resolveType: this.mLeftExpression.resolveType,
-                isConstant: this.mLeftExpression.isConstant && this.mRightExpression.isConstant
-            },
-            data: {
-                operator: lOperator
-            }
-        };
+    protected override onTranspile(): string {
+        return `${this.mLeftExpression.transpile()} ${this.mOperatorName} ${this.mRightExpression.transpile()}`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate left and right expressions.
+        this.mLeftExpression.validate(pTrace);
+        this.mRightExpression.validate(pTrace);
+
+        // Try to convert operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
 
         // Create list of all arithmetic operations.
         const lComparisonList: Array<PgslOperator> = [
@@ -94,33 +78,39 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         ];
 
         // Validate.
-        if (!lComparisonList.includes(this.setupData.data.operator)) {
-            throw new Exception(`Operator "${this.setupData.data.operator}" can not used for bit operations.`, this);
+        if (!lComparisonList.includes(lOperator as PgslOperator)) {
+            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for arithmetic operations.`, this.meta, this);
         }
+
+        // Read left and right expression attachments.
+        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
+        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
 
         // TODO: Also matrix calculations :(
         // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type.
-        if (!this.mLeftExpression.resolveType.explicitCastable(this.mRightExpression.resolveType)) {
-            throw new Exception('Left and right side of arithmetic expression must be the same type.', this);
+        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pTrace, lLeftExpressionAttachment.resolveType, lRightExpressionAttachment.resolveType)) {
+            pTrace.pushError('Left and right side of arithmetic expression must be the same type.', this.meta, this);
         }
 
         // Validate vector inner values. 
-        if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
             // Validate left side vector type. Right ist the same type.
-            if (!(this.mLeftExpression.resolveType.innerType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-                throw new Exception('Left and right side of arithmetic expression must be a numeric vector value', this);
+            if (!(lLeftExpressionAttachment.resolveType.innerType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                pTrace.pushError('Left and right side of arithmetic expression must be a numeric vector value', this.meta, this);
             }
         } else {
             // Validate left side type. Right ist the same type.
-            if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-                throw new Exception('Left and right side of arithmetic expression must be a numeric value', this);
+            if (!(lLeftExpressionAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                pTrace.pushError('Left and right side of arithmetic expression must be a numeric value', this.meta, this);
             }
         }
+
+        return {
+            fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
+            isStorage: false,
+            resolveType: lLeftExpressionAttachment.resolveType,
+        };
     }
 }
-
-export type PgslArithmeticExpressionSyntaxTreeSetupData = {
-    operator: PgslOperator;
-};

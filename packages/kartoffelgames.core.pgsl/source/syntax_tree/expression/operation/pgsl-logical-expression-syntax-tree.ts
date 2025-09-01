@@ -1,13 +1,15 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, type PgslExpressionSyntaxTreeSetupData } from '../base-pgsl-expression-syntax-tree.ts';
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure for a logical expression between two values.
  */
-export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLogicalExpressionSyntaxTreeSetupData> {
+export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTree {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperatorName: string;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
@@ -17,15 +19,6 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     public get leftExpression(): BasePgslExpressionSyntaxTree {
         return this.mLeftExpression;
-    }
-
-    /**
-     * Expression operator.
-     */
-    public get operator(): PgslOperator {
-        this.ensureSetup();
-
-        return this.setupData.data.operator;
     }
 
     /**
@@ -56,35 +49,26 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     }
 
     /**
-     * Retrieve data of current structure.
+     * Transpile current expression to WGSL code.
      * 
-     * @returns setuped data.
+     * @returns WGSL code.
      */
-    protected override onSetup(): PgslExpressionSyntaxTreeSetupData<PgslLogicalExpressionSyntaxTreeSetupData> {
-        // Try to convert operator.
-        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
-        if (!lOperator) {
-            throw new Exception(`"${this.mOperatorName}" can't be used as a operator.`, this);
-        }
-
-        return {
-            expression: {
-                isFixed: this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed,
-                isStorage: false,
-                resolveType: this.mLeftExpression.resolveType,
-                isConstant: this.mLeftExpression.isConstant && this.mRightExpression.isConstant
-            },
-            data: {
-                operator: lOperator
-            }
-        };
+    protected override onTranspile(): string {
+        return `${this.mLeftExpression.transpile()} ${this.mOperatorName} ${this.mRightExpression.transpile()}`;
     }
 
     /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(): void {
-        this.ensureSetup();
+    protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+        // Validate left and right expressions.
+        this.mLeftExpression.validate(pTrace);
+        this.mRightExpression.validate(pTrace);
+
+        // Try to convert operator.
+        const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
 
         // Create list of all short circuit operations.
         const lShortCircuitOperationList: Array<PgslOperator> = [
@@ -92,23 +76,31 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
             PgslOperator.ShortCircuitAnd
         ];
 
-        // Validate
-        if (!lShortCircuitOperationList.includes(this.setupData.data.operator)) {
-            throw new Exception(`Operator "${this.setupData.data.operator}" can not used for logical expressions.`, this);
+        // Validate operator usable for logical expressions.
+        if (!lShortCircuitOperationList.includes(lOperator as PgslOperator)) {
+            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for logical expressions.`, this.meta, this);
         }
 
+        // Read left and right expression attachments.
+        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
+        const lLeftExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lLeftExpressionAttachment.resolveType);
+        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
+        const lRightExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lRightExpressionAttachment.resolveType);
+
         // Validate left side type.
-        if (this.mLeftExpression.resolveType.baseType !== PgslBaseTypeName.Boolean) {
-            throw new Exception('Left side of logical expression needs to be a boolean', this);
+        if (lLeftExpressionTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+            pTrace.pushError('Left side of logical expression needs to be a boolean', this.meta, this);
         }
 
         // Validate right side type.
-        if (this.mRightExpression.resolveType.baseType !== PgslBaseTypeName.Boolean) {
-            throw new Exception('Right side of logical expression needs to be a boolean', this);
+        if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+            pTrace.pushError('Right side of logical expression needs to be a boolean', this.meta, this);
         }
+
+        return {
+            fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
+            isStorage: false,
+            resolveType: lLeftExpressionAttachment.resolveType
+        };
     }
 }
-
-type PgslLogicalExpressionSyntaxTreeSetupData = {
-    operator: PgslOperator;
-};

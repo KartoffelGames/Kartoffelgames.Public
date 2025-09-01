@@ -33,6 +33,8 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslExpressionSyn
 
     /**
      * Transpile current expression to WGSL code.
+     * 
+     * @returns WGSL code of current expression.
      */
     protected override onTranspile(): string {
         return `(${this.mExpression.transpile()})`;

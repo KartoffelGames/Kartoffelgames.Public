@@ -13,6 +13,13 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     private readonly mName: string;
 
     /**
+     * Get the variable name of the expression.
+     */
+    public get variableName(): string {
+        return this.mName;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pName - Variable name.

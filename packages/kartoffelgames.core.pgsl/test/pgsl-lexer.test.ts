@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PgslLexer } from '../../../source/pgsl/parser/pgsl-lexer.ts';
-import { PgslToken } from '../../../source/pgsl/parser/pgsl-token.enum.ts';
 import type { LexerToken } from '@kartoffelgames/core-parser';
+import { PgslLexer } from "../source/parser/pgsl-lexer.ts";
+import { PgslToken } from "../source/parser/pgsl-token.enum.ts";
 
 const gPgslLexer: PgslLexer = new PgslLexer();
 

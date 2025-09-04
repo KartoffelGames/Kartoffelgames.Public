@@ -57,6 +57,17 @@ import { PgslSyntaxTreeValidationTrace } from '../syntax_tree/pgsl-syntax-tree-v
 
 export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
+    private mEnableValidation: boolean;
+
+    /**
+     * Enable validation in the parsing process. 
+     * Default: true.
+     */
+    public get enableValidation(): boolean {
+        return this.mEnableValidation;
+    } set enableValidation(pValue: boolean) {
+        this.mEnableValidation = pValue;
+    }
 
     /**
      * Constructor.
@@ -66,6 +77,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
 
         // Setup buffer.
         this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
+
+        // Set default configuration.
+        this.mEnableValidation = true;
 
         // Create empty core graph reference.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -121,10 +135,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         const lValidationScope: PgslSyntaxTreeValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Validate document.
-        lDocument.validate(lValidationScope);
+        if (this.mEnableValidation) {
+            lDocument.validate(lValidationScope);
 
-        if( lValidationScope.errors.length > 0) {
-            throw lValidationScope.errors[0];
+            if (lValidationScope.errors.length > 0) {
+                throw lValidationScope.errors[0];
+            }
         }
 
         // Clear old parsing buffers.
@@ -615,7 +631,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     lBitOperationExpressionGraph,
 
                     // Extending expressions. Extending a expression another expression.
-                    lFunctionCallExpressionGraph,  
+                    lFunctionCallExpressionGraph,
                     lIndexedValueExpressionGraph,
 
                     // Expression additives. Add something before after.

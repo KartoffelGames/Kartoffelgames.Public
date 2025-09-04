@@ -83,13 +83,20 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationStatementSyntaxTreeValidationAttachment {
         // TODO: Only valid in function scope.
 
+        // Push variable to current validation scope.
         pValidationTrace.pushScopedValue(this.mName, this);
+
+        // Validate type.
+        this.mTypeDeclaration.validate(pValidationTrace);
 
         // Expression value has a fixed byte size.
         let lFixedState: PgslValueFixedState = PgslValueFixedState.Variable;
 
         // Read expression attachment when a expression is present.
         if (this.mExpression) {
+            // Validate expression.
+            this.mExpression.validate(pValidationTrace);
+
             const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
             lFixedState = lExpressionAttachment.fixedState;
 

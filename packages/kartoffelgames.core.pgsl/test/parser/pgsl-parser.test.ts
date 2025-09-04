@@ -1,8 +1,9 @@
 import { CodeParserException } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
-import { PgslDeclarationType } from "../source/enum/pgsl-declaration-type.enum.ts";
-import { PgslParser } from "../source/parser/pgsl-parser.ts";
-import { PgslSyntaxDocument } from "../source/syntax_tree/pgsl-syntax-document.ts";
+import { PgslDeclarationType } from "../../source/enum/pgsl-declaration-type.enum.ts";
+import { PgslParser } from "../../source/parser/pgsl-parser.ts";
+import { PgslSyntaxDocument } from "../../source/syntax_tree/pgsl-syntax-document.ts";
+import { PgslVariableDeclarationSyntaxTree } from "../../source/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts";
 
 const gPgslParser: PgslParser = new PgslParser();
 
@@ -18,10 +19,10 @@ Deno.test('PgslParser.parse()', async (pContext) => {
 
                 // Process.
                 const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                // const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
 
-                // // Evaluation.
-                // expect(lResultDeclaration.name).toBe(lVariableName);
+                // Evaluation.
+                expect(lResultDeclaration.name).toBe(lVariableName);
             });
 
             await pContext.step('Correct declaration type', () => {
@@ -34,10 +35,10 @@ Deno.test('PgslParser.parse()', async (pContext) => {
 
                 // Process.
                 const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                // const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-                //
-                // // Evaluation.
-                // expect(lResultDeclaration.declarationType).toBe(lExpectedDeclarationType);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+                
+                // Evaluation.
+                expect(lResultDeclaration.type).toBe(lExpectedDeclarationType);
             });
 
             await pContext.step('Error: Wrong type assignment', () => {
@@ -65,11 +66,11 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                // const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                // const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-                //
-                // // Evaluation.
-                // expect(lResultDeclaration.isConstant).toBe(true);
+                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+                
+                // Evaluation.
+                expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
             });
 
             await pContext.step('Declaration with const expression', () => {
@@ -80,12 +81,12 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                     const ${lVariableName}: Integer = 10 * otherConst;
                 `;
 
-                //// Process.
-                //const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                //const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-                //
-                //// Evaluation.
-                //expect(lResultDeclaration.isConstant).toBe(true);
+                // Process.
+                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[1] as PgslVariableDeclarationSyntaxTree;
+                
+                // Evaluation.
+                expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
             });
 
             await pContext.step('Const declaration with attributes', () => {

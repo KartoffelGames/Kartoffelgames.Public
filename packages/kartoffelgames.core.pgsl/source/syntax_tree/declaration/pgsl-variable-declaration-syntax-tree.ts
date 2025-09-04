@@ -46,6 +46,14 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mTypeDeclaration: BasePgslTypeDefinitionSyntaxTree;
 
     /**
+     * Declaration type name.
+     */
+    public get declarationType(): PgslDeclarationType {
+        const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        return lDeclarationType ?? PgslDeclarationType.Private;
+    }
+
+    /**
      * Value initialization expression.
      */
     public get expression(): BasePgslExpressionSyntaxTree | null {
@@ -137,8 +145,9 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         // Push variable definition to current scope.
         pValidationTrace.pushScopedValue(this.mName, this);
 
-        // Validate attributes.
+        // Validate attributes and type declaration.
         this.attributes.validate(pValidationTrace);
+        this.mTypeDeclaration.validate(pValidationTrace);
 
         // Try to parse declaration type.
         const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);

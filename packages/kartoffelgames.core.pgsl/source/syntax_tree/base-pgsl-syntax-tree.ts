@@ -24,7 +24,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
     /**
      * Child nodes of the syntax tree.
      */
-    protected get childNodes(): ReadonlyArray<BasePgslSyntaxTree> {
+    public get childNodes(): ReadonlyArray<BasePgslSyntaxTree> {
         return this.mChildNodes;
     }
 

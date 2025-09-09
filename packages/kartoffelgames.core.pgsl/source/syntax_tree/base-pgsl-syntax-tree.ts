@@ -40,6 +40,17 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
     }
 
     /**
+     * Parent node of the syntax tree.
+     */
+    public get parent(): BasePgslSyntaxTree { 
+        if (!this.mParent) {
+            throw new Exception('PGSL-Structure not attached to any parent', this);
+        }
+
+        return this.mParent;
+    }
+
+    /**
      * Get syntax tree meta.
      */
     public get meta(): SyntaxTreeMeta {

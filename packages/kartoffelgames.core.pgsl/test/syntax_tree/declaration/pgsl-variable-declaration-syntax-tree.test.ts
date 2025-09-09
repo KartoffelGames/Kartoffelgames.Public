@@ -5,10 +5,11 @@ import { PgslVariableDeclarationSyntaxTree } from "../../../source/syntax_tree/d
 import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.enum.ts";
 import { BasePgslTypeDefinitionSyntaxTree } from "../../../source/syntax_tree/type/base-pgsl-type-definition-syntax-tree.ts";
 import { BasePgslExpressionSyntaxTree } from "../../../source/syntax_tree/expression/base-pgsl-expression-syntax-tree.ts";
+import { PgslSyntaxTreeValidationTrace } from "../../../source/syntax_tree/pgsl-syntax-tree-validation-trace.ts";
 
-// Create parser instance with enabled validation.
+// Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
-gPgslParser.enableValidation = true;
+gPgslParser.enableValidation = false;
 
 Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
     await pContext.step("Default", async () => {
@@ -18,11 +19,17 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         const lVariableType: string = "Float";
         const lVariableValue: string = "5.0";
 
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText);
+        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. No errors.
+        expect(lValidationTrace.errors).toHaveLength(0);
 
         // Validation. Correct number of child nodes.
         expect(lSyntaxTree.childNodes).toHaveLength(1);
@@ -38,9 +45,44 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpressionSyntaxTree as any);
     });
 
-    // TODO: Check for error when:
-    // - Using const without initialization expression.
-    // - Using const with non-constant expression.
+    await pContext.step("Error - Const without initialization expression", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text without initialization.
+        const lCodeText: string = "const testVariable: Float;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+        
+        // Validation. Error should mention const requiring initialization.
+        const lErrorMessages = lValidationTrace.errors.map(error => error.message);
+        expect(lErrorMessages.some(msg => msg.toLowerCase().includes("const") || msg.toLowerCase().includes("initialization"))).toBe(true);
+    });
+
+    await pContext.step("Error - Const with non-constant expression", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with non-constant expression (assuming variable access is non-constant).
+        const lCodeText: string = `
+            private otherVariable: Float = 3.0;
+            const testVariable: Float = otherVariable;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+        
+        // Validation. Error should mention const requiring constant expression.
+        const lErrorMessages = lValidationTrace.errors.map(error => error.message);
+        expect(lErrorMessages.some(msg => msg.toLowerCase().includes("const") || msg.toLowerCase().includes("constant"))).toBe(true);
+    });
 });
 
 Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {

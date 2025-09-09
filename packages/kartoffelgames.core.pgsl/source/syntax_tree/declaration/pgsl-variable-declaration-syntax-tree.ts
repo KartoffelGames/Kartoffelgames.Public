@@ -155,6 +155,11 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             throw new Exception(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this);
         }
 
+
+
+
+
+        
         // Const declaration types.
         const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
             PgslDeclarationType.Const,

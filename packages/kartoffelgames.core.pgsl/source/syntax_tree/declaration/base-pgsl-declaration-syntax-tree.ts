@@ -17,16 +17,17 @@ export abstract class BasePgslDeclarationSyntaxTree<TValidationAttachment extend
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
      */
     public constructor(pAttributeList: PgslAttributeListSyntaxTree, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
         this.mAttributeList = pAttributeList;
+
+        // Attach declaration to attribute list.
+        this.mAttributeList.attachToDeclaration(this);
 
         // Add attributes as declaration child.
         this.appendChild(pAttributeList);

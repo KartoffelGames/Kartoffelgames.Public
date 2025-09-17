@@ -67,7 +67,7 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             additional: undefined,
             baseType: PgslBaseTypeName.Boolean,
             storable: true,
-            hostSharable: false,
+            hostShareable: false,
             composite: false,
             constructible: true,
             fixedFootprint: true,

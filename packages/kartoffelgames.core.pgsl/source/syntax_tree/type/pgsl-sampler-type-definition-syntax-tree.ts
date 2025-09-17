@@ -87,7 +87,7 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             composite: false,
             indexable: false,
             storable: false,
-            hostSharable: false,
+            hostShareable: false,
             constructible: false,
             fixedFootprint: true,
         };

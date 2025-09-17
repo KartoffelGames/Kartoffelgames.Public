@@ -1,5 +1,5 @@
 export enum PgslBaseTypeName {
-    Numberic = '*Numeric*', // Should never be writen
+    Numeric = '*Numeric*', // Should never be writen
     Boolean = 'Boolean',
     Vector = '*Vector*', // Should never be writen
     Matrix = '*Matrix*', // Should never be writen

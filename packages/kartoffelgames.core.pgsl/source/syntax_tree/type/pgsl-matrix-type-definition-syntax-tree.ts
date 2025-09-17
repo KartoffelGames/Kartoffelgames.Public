@@ -179,7 +179,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
 
         // Must be scalar.
-        if (lInnerTypeAttachment.baseType !== PgslBaseTypeName.Numberic && lInnerTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+        if (lInnerTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lInnerTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
             pValidationTrace.pushError('Matrix type must be a scalar value', this.meta, this);
         }
 
@@ -195,7 +195,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
 
             // Copy of inner type attachment.
             storable: lInnerTypeAttachment.storable,
-            hostSharable: lInnerTypeAttachment.hostSharable,
+            hostShareable: lInnerTypeAttachment.hostShareable,
             constructible: lInnerTypeAttachment.constructible,
             fixedFootprint: lInnerTypeAttachment.fixedFootprint,
         };

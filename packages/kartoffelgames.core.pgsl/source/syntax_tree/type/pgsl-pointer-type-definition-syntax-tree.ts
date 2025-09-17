@@ -97,7 +97,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             composite: false,
             indexable: false,
             storable: true,
-            hostSharable: false,
+            hostShareable: false,
             constructible: false,
             fixedFootprint: false,
         };

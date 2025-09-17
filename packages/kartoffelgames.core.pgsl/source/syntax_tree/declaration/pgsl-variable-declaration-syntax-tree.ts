@@ -2,12 +2,13 @@ import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree.ts';
+import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
 import type { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition-syntax-tree.ts';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
+import { PgslBaseTypeName } from "../type/enum/pgsl-base-type-name.enum.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -27,18 +28,6 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 
         return lAddressSpaceMapping;
     })();
-
-    /**
-     * List of declaration types which can be used for variable declarations.
-     */
-    private static readonly mDeclarationTypeSet: Set<PgslDeclarationType> = new Set([
-        PgslDeclarationType.Const,
-        PgslDeclarationType.Storage,
-        PgslDeclarationType.Uniform,
-        PgslDeclarationType.Workgroup,
-        PgslDeclarationType.Private,
-        PgslDeclarationType.Param,
-    ]);
 
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
@@ -149,51 +138,124 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.attributes.validate(pValidationTrace);
         this.mTypeDeclaration.validate(pValidationTrace);
 
-        // Try to parse declaration type.
-        const lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
-        if (!lDeclarationType) {
-            throw new Exception(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this);
+        // Validate optional expression when set.
+        if (this.mExpression) {
+            this.mExpression.validate(pValidationTrace);
         }
 
+        // Try to parse declaration type.
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        if (!lDeclarationType) {
+            pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this.meta, this);
 
-
-
-
-        
-        // Const declaration types.
-        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
-            PgslDeclarationType.Const,
-            PgslDeclarationType.Param,
-        ];
+            // Set default declaration type to avoid further errors.
+            // Private is a good default as it has the least restrictions.
+            lDeclarationType = PgslDeclarationType.Private;
+        }
 
         // Read attachments of type declaration.
         const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mTypeDeclaration);
 
-        // Validate const type needs to be constructible.
-        if (lConstDeclarationTypeList.includes(lDeclarationType) && !lTypeAttachment.constructible) {
-            throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
+        // Read optional expression attachment.
+        let lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment | null = null;
+        if (this.mExpression) {
+            lExpressionAttachment = pValidationTrace.getAttachment(this.mExpression);
         }
 
-        // TODO: When const, param, must habe a initializer.
-        // TODO: private workgroup dont need a initializer
-        // TODO: Storage, Uniform shoulnt have a initializer.
+        // A bunch of specific validation function to easy build a validation for each declaration type.
+        const lMustBeConstructible = () => {
+            if (!lTypeAttachment.constructible) {
+                pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be constructible.`, this.meta, this);
+            }
+        };
+        const lMustBeScalar = () => {
+            if (lTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+                pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be a scalar type.`, this.meta, this);
+            }
+        };
+        const lMustHaveAnInitializer = () => {
+            if (!this.mExpression) {
+                pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" must have an initializer.`, this.meta, this);
+            }
+        };
+        const lMustNotHaveAnInitializer = () => {
+            if (this.mExpression) {
+                pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" must not have an initializer.`, this.meta, this);
+            }
+        };
+        const lMustBeHostShareable = () => {
+            if (!lTypeAttachment.hostShareable) {
+                pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be host shareable.`, this.meta, this);
+            }
+        };
+        const lMustHaveAFixedFootprint = () => {
+            if (!lTypeAttachment.fixedFootprint) {
+                pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must have a fixed footprint.`, this.meta, this);
+            }
+        };
+        const lExpressionMustBeConst = () => {
+            if (lExpressionAttachment && lExpressionAttachment.fixedState !== PgslValueFixedState.Constant) {
+                pValidationTrace.pushError(`The expression of declaration type "${this.mDeclarationTypeName}" must be a constant expression.`, this.meta, this);
+            }
+        };
+        const lMustBePlain = () => {
+            const lPlainTypes: Array<PgslBaseTypeName> = [ // TODO; Maybe add that information to each type definition.
+                PgslBaseTypeName.Boolean,
+                PgslBaseTypeName.Numeric,
+                PgslBaseTypeName.Struct,
+                PgslBaseTypeName.Array,
+                PgslBaseTypeName.Vector,
+                PgslBaseTypeName.Matrix
+            ];
 
-        // TODO: Storage value musst be host sharable.
-        // a numeric scalar type
-        // a numeric vector type
-        // a matrix type
-        // an atomic type
-        // a fixed-size array type, if it has creation-fixed footprint and its element type is host-shareable
-        // a runtime-sized array type, if its element type is host-shareable
-        // a structure type, if all its members are host-shareable
+            if (!lPlainTypes.includes(lTypeAttachment.baseType)) {
+                pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be a plain type.`, this.meta, this);
+                return;
+            }
+        };
 
-        // TODO: Validate if declaration type can store the type.
-        // TODO: Validate if declaration type allows any initialization expression.
+        switch (lDeclarationType) {
+            case PgslDeclarationType.Const: {
+                lMustBeConstructible();
+                lMustHaveAnInitializer();
+                lExpressionMustBeConst();
+                break;
+            }
+            case PgslDeclarationType.Storage: {
+                lMustNotHaveAnInitializer();
+                lMustBeHostShareable();
+                break;
+            }
+            case PgslDeclarationType.Uniform: {
+                lMustNotHaveAnInitializer();
+                lMustBeConstructible();
+                lMustBeHostShareable();
+                break;
+            }
+            case PgslDeclarationType.Workgroup: {
+                lMustHaveAFixedFootprint();
+                lMustBePlain();
+                break;
+            }
+            case PgslDeclarationType.Private: {
+                lMustBeConstructible();
+                break;
+            }
+            case PgslDeclarationType.Param: {
+                lMustBeConstructible();
+                lMustBeScalar();
+                lMustHaveAnInitializer();
+                break;
+            }
+            default: {
+                // Unknown declaration type.
+                pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this.meta, this);
+            }
+        }
+
         // TODO: Validate if expression fits declaration type.
-        // TODO: Validate if declaration is const when it is the expression part should be the same.
 
         // TODO: To fit all this into a readable mess: https://www.w3.org/TR/WGSL/#var-and-value
-        // Write a mapping for each declaration type.
 
         // Determine fixed state based on declaration type.
         const lFixedState: PgslValueFixedState = (() => {

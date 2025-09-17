@@ -138,7 +138,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             additional: lUnderlyingTypeAttachment.additional,
             baseType: lUnderlyingTypeAttachment.baseType,
             storable: lUnderlyingTypeAttachment.storable,
-            hostSharable: lUnderlyingTypeAttachment.hostSharable,
+            hostShareable: lUnderlyingTypeAttachment.hostShareable,
             composite: lUnderlyingTypeAttachment.composite,
             constructible: lUnderlyingTypeAttachment.constructible,
             fixedFootprint: lUnderlyingTypeAttachment.fixedFootprint,

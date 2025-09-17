@@ -239,7 +239,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             composite: false,
             indexable: false,
             storable: true,
-            hostSharable: true,
+            hostShareable: true, // TODO: Only true when all parameters are host shareable.
             constructible: true,
             fixedFootprint: false,
         };

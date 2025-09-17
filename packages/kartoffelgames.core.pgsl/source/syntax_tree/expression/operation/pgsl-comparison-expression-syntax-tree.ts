@@ -110,7 +110,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         const lValueTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lValueType);
 
         // Both values need to be numeric or boolean.
-        if (lValueTypeAttachment.baseType !== PgslBaseTypeName.Numberic && lValueTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+        if (lValueTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lValueTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
             pTrace.pushError(`None numeric or boolean values can't be compared`, this.meta, this);
         }
 

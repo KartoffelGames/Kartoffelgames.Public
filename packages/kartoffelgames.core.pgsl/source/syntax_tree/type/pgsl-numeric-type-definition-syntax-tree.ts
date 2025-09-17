@@ -105,9 +105,9 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
         return {
             additional: undefined,
-            baseType: PgslBaseTypeName.Numberic,
+            baseType: PgslBaseTypeName.Numeric,
             storable: true,
-            hostSharable: true,
+            hostShareable: true,
             composite: false,
             constructible: true,
             fixedFootprint: true,

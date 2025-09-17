@@ -67,7 +67,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
             additional: undefined,
             baseType: PgslBaseTypeName.Void,
             storable: false,
-            hostSharable: false,
+            hostShareable: false,
             composite: false,
             constructible: false,
             fixedFootprint: false,

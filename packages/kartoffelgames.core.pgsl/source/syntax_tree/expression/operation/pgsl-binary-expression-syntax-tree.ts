@@ -115,7 +115,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         // Validate that rigth expression of shift operator needs to be a signed integer.
         if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
             // Shift value must be numeric.
-            if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Numberic) {
+            if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
                 if (!lRightValueType || (<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
                     pTrace.pushError(`Right expression of a shift operation must be a unsigned integer.`, this.meta, this);
                 }

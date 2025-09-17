@@ -59,8 +59,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lValidationTrace.errors.length).toBeGreaterThan(0);
         
         // Validation. Error should mention const requiring initialization.
-        const lErrorMessages = lValidationTrace.errors.map(error => error.message);
-        expect(lErrorMessages.some(msg => msg.toLowerCase().includes("const") || msg.toLowerCase().includes("initialization"))).toBe(true);
+        expect(lValidationTrace.errors.some(error => error.message === 'Declaration type "const" must have an initializer.')).toBe(true);
     });
 
     await pContext.step("Error - Const with non-constant expression", async () => {
@@ -80,8 +79,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lValidationTrace.errors.length).toBeGreaterThan(0);
         
         // Validation. Error should mention const requiring constant expression.
-        const lErrorMessages = lValidationTrace.errors.map(error => error.message);
-        expect(lErrorMessages.some(msg => msg.toLowerCase().includes("const") || msg.toLowerCase().includes("constant"))).toBe(true);
+        expect(lValidationTrace.errors.some(error => error.message === 'The expression of declaration type "const" must be a constant expression.')).toBe(true);
     });
 });
 

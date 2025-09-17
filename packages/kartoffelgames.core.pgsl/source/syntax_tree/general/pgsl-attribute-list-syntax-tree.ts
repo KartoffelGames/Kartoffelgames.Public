@@ -10,9 +10,8 @@ import { PgslExpressionSyntaxTreeValidationAttachment, type BasePgslExpressionSy
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
 import type { PgslSyntaxTreeValidationTrace } from '../pgsl-syntax-tree-validation-trace.ts';
+import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslNumericTypeName } from "../type/enum/pgsl-numeric-type-name.enum.ts";
-import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition-syntax-tree.ts";
-import { PgslStringTypeDefinitionSyntaxTree } from "../type/pgsl-string-type-definition-syntax-tree.ts";
 import { PgslNumericTypeDefinitionSyntaxTree } from "../type/pgsl-numeric-type-definition-syntax-tree.ts";
 
 // TODO: Cooler validation system for attributes. 

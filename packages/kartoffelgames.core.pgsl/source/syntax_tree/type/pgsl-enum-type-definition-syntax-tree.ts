@@ -108,7 +108,7 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
                 composite: false,
                 indexable: false,
                 storable: false,
-                hostSharable: false,
+                hostShareable: false,
                 constructible: false,
                 fixedFootprint: false,
             };
@@ -125,7 +125,7 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
             composite: lAliasType.composite,
             indexable: lAliasType.indexable,
             storable: lAliasType.storable,
-            hostSharable: lAliasType.hostSharable,
+            hostShareable: lAliasType.hostShareable,
             constructible: lAliasType.constructible,
             fixedFootprint: lAliasType.fixedFootprint
         };

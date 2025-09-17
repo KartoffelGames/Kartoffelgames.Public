@@ -146,7 +146,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
             fixedFootprint: lIsFixed,
             constructible: lIsConstructible,
             storable: lInnerTypeAttachment.storable,
-            hostSharable: lInnerTypeAttachment.hostSharable
+            hostShareable: lInnerTypeAttachment.hostShareable
         };
     }
 }

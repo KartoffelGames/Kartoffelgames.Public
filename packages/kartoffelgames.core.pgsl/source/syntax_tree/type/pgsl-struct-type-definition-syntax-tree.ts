@@ -107,7 +107,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
                 composite: true,
                 indexable: false,
                 storable: true,
-                hostSharable: false,
+                hostShareable: false,
                 constructible: false,
                 fixedFootprint: false,
             };
@@ -127,7 +127,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
                 lConstructable &&= lPropertyTypeAttachment.constructible;
 
                 // Check if property is host sharable
-                lHostSharable &&= lPropertyTypeAttachment.hostSharable;   
+                lHostSharable &&= lPropertyTypeAttachment.hostShareable;   
 
                 // For fixed footprint: all properties except the last must be fixed
                 lFixedFootprint &&= lPropertyTypeAttachment.fixedFootprint;   
@@ -146,7 +146,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
             storable: true,
 
             // Only takes affect when all members are sharing the same property.
-            hostSharable: lHostSharable,
+            hostShareable: lHostSharable,
             constructible: lConstructable,
             fixedFootprint: lFixedFootprint,
         }

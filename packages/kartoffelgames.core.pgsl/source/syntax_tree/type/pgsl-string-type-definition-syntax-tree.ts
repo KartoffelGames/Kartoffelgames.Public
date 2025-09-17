@@ -67,7 +67,7 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
             additional: undefined,
             baseType: PgslBaseTypeName.String,
             storable: false,
-            hostSharable: false,
+            hostShareable: false,
             composite: false,
             constructible: false,
             fixedFootprint: false,

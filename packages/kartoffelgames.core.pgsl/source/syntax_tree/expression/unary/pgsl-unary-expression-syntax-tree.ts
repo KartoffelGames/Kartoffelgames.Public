@@ -68,7 +68,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numberic) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
                     pTrace.pushError(`Binary negation only valid for numeric type.`, this.meta, this);
                 }
 
@@ -76,7 +76,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
             }
             case PgslOperator.Minus: {
                 // TODO: Not unsigned int.
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numberic) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
                     pTrace.pushError(`Negation only valid for numeric or vector type.`, this.meta, this);
                 }
 

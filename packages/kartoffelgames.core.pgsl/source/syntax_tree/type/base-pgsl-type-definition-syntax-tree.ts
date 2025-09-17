@@ -31,7 +31,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         }
 
         // Same hostSharable definition.
-        if (lSourceAttachment.hostSharable !== lTargetAttachment.hostSharable) {
+        if (lSourceAttachment.hostShareable !== lTargetAttachment.hostShareable) {
             return false;
         }
 
@@ -155,7 +155,7 @@ export type BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional ext
     /**
      * Sharable with the host
      */
-    hostSharable: boolean;
+    hostShareable: boolean;
 
     /**
      * Declaration is a composite type.

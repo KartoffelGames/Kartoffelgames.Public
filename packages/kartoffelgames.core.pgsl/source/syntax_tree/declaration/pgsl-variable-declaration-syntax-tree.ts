@@ -116,15 +116,19 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         })();
 
         // Transpile attributes and type declaration.
-        const lAttributes: string = this.attributes.transpile();
+        let lAttributes: string = this.attributes.transpile();
+        if (lAttributes.length > 0) {
+            lAttributes += ' ';
+        }
+
         const lTypeDeclaration: string = this.mTypeDeclaration.transpile();
 
         // If no expression is given, return declaration without expression.
         if (!this.mExpression) {
-            return `${lAttributes} ${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
+            return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
         }
 
-        return `${lAttributes} ${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile()};`;
+        return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile()};`;
     }
 
     /**

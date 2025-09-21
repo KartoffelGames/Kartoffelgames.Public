@@ -45,7 +45,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
         lAttributes.set('AccessMode', {
             enforcedParentType: PgslVariableDeclarationSyntaxTree,
             parameterTypes: [
-                [{ values: ['read', 'write', 'read_write'] }]
+                [{ values: ['Read', 'Write', 'ReadWrite'] }]
             ],
             transpileInformation: {} // Only used for metadata information for declaration transpilation.
         });
@@ -146,7 +146,14 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
     })();
 
     private readonly mAttributeDefinitionList: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
-    private mAttachedDeclaration: BasePgslDeclarationSyntaxTree | null;;
+    private mAttachedDeclaration: BasePgslDeclarationSyntaxTree | null;
+
+    /**
+     * All attribute names defined in this list.
+     */
+    public get attributeNames(): ReadonlyArray<string> {
+        return Array.from(this.mAttributeDefinitionList.keys());
+    }
 
     /**
      * Constructor.
@@ -233,12 +240,12 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
                 }
 
                 // Transpile attribute name.
-                lResult += `@${lTranspileName}(${lTranspiledParameter.join(', ')})`;
+                lResult += ` @${lTranspileName}(${lTranspiledParameter.join(', ')})`;
             }
         }
 
         // Return result.
-        return lResult;
+        return lResult.trim();
     }
 
     /**
@@ -324,7 +331,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
             const lActualAttributeParameterType: BasePgslTypeDefinitionSyntaxTree = lActualAttributeParameterAttachment.resolveType;
 
             // Validate based on expected template type.
-            if('values' in lExpectedTemplateType) { // String or enum.
+            if ('values' in lExpectedTemplateType) { // String or enum.
                 // Not a string parameter.
                 if (!(lActualAttributeParameterAttachment instanceof PgslStringValueExpressionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                     pTrace.pushError(`Attribute parameter ${lIndex} must be a string.`, lActualAttributeParameter.meta, this);
@@ -335,7 +342,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
                 if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lActualAttributeParameterAttachment.value)) {
                     pTrace.pushError(`Attribute parameter ${lIndex} has an invalid value.`, lActualAttributeParameter.meta, this);
                 }
-            } else if('type' in lExpectedTemplateType) { // Number
+            } else if ('type' in lExpectedTemplateType) { // Number
                 // Not a number parameter.
                 if (!(lActualAttributeParameterType instanceof PgslNumericTypeDefinitionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                     pTrace.pushError(`Attribute parameter ${lIndex} must be a number.`, lActualAttributeParameter.meta, this);

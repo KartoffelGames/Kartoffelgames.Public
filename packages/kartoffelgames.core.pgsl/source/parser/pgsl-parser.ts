@@ -54,6 +54,7 @@ import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslSyntaxDocument } from '../syntax_tree/pgsl-syntax-document.ts';
 import { PgslSyntaxTreeValidationTrace } from '../syntax_tree/pgsl-syntax-tree-validation-trace.ts';
+import { PgslAccessModeEnumDeclaration } from "../buildin/pgsl-access-mode-enum-declaration.ts";
 
 export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
@@ -118,6 +119,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
     public override parse(pCodeText: string): PgslSyntaxDocument {
+        // Clear old parsing buffers.
+        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
         // TODO: On second layer only not the parser.
         // Insert imports. #IMPORT
@@ -132,6 +135,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         // Parse document structure.
         const lDocument: PgslSyntaxDocument = super.parse(pCodeText);
 
+        // Create, append and add predifinitions.
+        this.mTypeFactory.addEnumPredefinition(lDocument.addBuildInContent(new PgslAccessModeEnumDeclaration()).name);
+
         const lValidationScope: PgslSyntaxTreeValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Validate document.
@@ -142,9 +148,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 throw lValidationScope.errors[0];
             }
         }
-
-        // Clear old parsing buffers.
-        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
         return lDocument;
     }

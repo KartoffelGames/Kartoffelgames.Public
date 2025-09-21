@@ -1,5 +1,5 @@
 import { Dictionary, EnumUtil } from '@kartoffelgames/core';
-import { PgslAccessMode } from "../../enum/pgsl-access-mode.enum.ts";
+import { PgslAccessMode, PgslAccessModeEnumDeclaration } from "../../buildin/pgsl-access-mode-enum-declaration.ts";
 import { PgslTexelFormat } from "../../enum/pgsl-texel-format.enum.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { BasePgslExpressionSyntaxTree } from "../expression/base-pgsl-expression-syntax-tree.ts";
@@ -9,6 +9,8 @@ import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValid
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslTextureTypeName } from "./enum/pgsl-texture-type-name.enum.ts";
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';
+
+// TODO: Texture template validation is broken when using enums.
 
 export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private static readonly mTemplateMapping: Dictionary<PgslTextureTypeName, Array<typeof PgslNumericTypeDefinitionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree>> = (() => {
@@ -222,20 +224,25 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             if (lTextureTemplates.length === 1) {
                 lAdditionalAttachmentData.sampledType = lActualParameterValue as unknown as PgslNumericTypeDefinitionSyntaxTree;
             } else {
+                // We asume that is a string so we can read its value.
+                const lStringValueExpression: PgslStringValueExpressionSyntaxTree = lActualParameterValue as unknown as PgslStringValueExpressionSyntaxTree;
+
                 if (lTemplateIndex === 0) {
-                    const lFormatString: PgslTexelFormat | undefined = EnumUtil.cast<PgslTexelFormat>(PgslTexelFormat, (<PgslStringValueExpressionSyntaxTree>lActualParameterValue).value);
+                    const lFormatString: PgslTexelFormat | undefined = EnumUtil.cast<PgslTexelFormat>(PgslTexelFormat, lStringValueExpression.value);
                     if (!lFormatString) {
                         pValidationTrace.pushError(`Unknown texel format.`, this.meta, this);
                     }
 
                     lAdditionalAttachmentData.format = lFormatString ?? PgslTexelFormat.Bgra8unorm;
                 } else {
-                    const lAccessModeString: PgslAccessMode | undefined = EnumUtil.cast<PgslAccessMode>(PgslAccessMode, (<PgslStringValueExpressionSyntaxTree>lActualParameterValue).value);
-                    if (!lAccessModeString) {
+                    if (PgslAccessModeEnumDeclaration.containsValue(lStringValueExpression.value)) {
+                        lAdditionalAttachmentData.access = lStringValueExpression.value;
+                        
+                    } else {
+                        // Add error and default to read access.
                         pValidationTrace.pushError(`Unknown access mode.`, this.meta, this);
+                        lAdditionalAttachmentData.access = PgslAccessMode.Read;
                     }
-
-                    lAdditionalAttachmentData.access = lAccessModeString ?? PgslAccessMode.Read;
                 }
             }
         }

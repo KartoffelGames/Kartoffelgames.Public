@@ -135,6 +135,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
     });
 
+    await pContext.step("Error - Const with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [AccessMode(AccessMode.Read)]
+            const testVariable: Float = 5.0;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention const not allowing AccessMode attribute.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "const" does not allow attribute "AccessMode".'))).toBe(true);
+    });
+
     await pContext.step("Transpilation", async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = "const";
@@ -167,7 +187,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: ${lVariableType};
+        `;
 
         // Execute.
         const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -189,12 +212,71 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         expect(lDeclarationNode.expression).toBe(null);
     });
 
+    await pContext.step("Storage with optional AccessMode attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with optional AccessMode attribute.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            [AccessMode(AccessMode.Read)]
+            storage testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have no errors.
+        expect(lValidationTrace.errors.length).toBe(0);
+    });
+
+    await pContext.step("Error - Storage without required GroupBinding attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text without required GroupBinding.
+        const lCodeText: string = "storage testVariable: Float;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention missing GroupBinding requirement.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "storage" requires attribute "GroupBinding".'))).toBe(true);
+    });
+
+    await pContext.step("Error - Storage with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            [Vertex()]
+            storage testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention storage not allowing InvalidAttribute.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "storage" does not allow attribute "Vertex".'))).toBe(true);
+    });
+
     await pContext.step("Error - Storage with initialization expression", async () => {
         // Setup. Validation trace.
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text with initialization.
-        const lCodeText: string = "storage testVariable: Float = 5.0;";
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            storage testVariable: Float = 5.0;
+        `;
 
         // Execute.
         gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -211,7 +293,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text with non-host-shareable type.
-        const lCodeText: string = "storage testVariable: Sampler;";
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            storage testVariable: Sampler;
+        `;
 
         // Execute.
         gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -229,7 +314,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lVariableName: string = "testVariable";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: Float;
+        `;
 
         // Setup. Syntax tree.
         const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
@@ -239,7 +327,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
-        expect(lTranspilationResult).toBe(`var<storage, read_write> ${lVariableName}: f32;`);
+        expect(lTranspilationResult).toBe(`@group(0) @binding(0) var<storage, read> ${lVariableName}: f32;`);
     });
 });
 
@@ -254,7 +342,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: ${lVariableType};
+        `;
 
         // Execute.
         const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -276,12 +367,71 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         expect(lDeclarationNode.expression).toBe(null);
     });
 
+    await pContext.step("Uniform with optional AccessMode attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with optional AccessMode attribute.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            [AccessMode(AccessMode.ReadWrite)]
+            uniform testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have no errors.
+        expect(lValidationTrace.errors.length).toBe(0);
+    });
+
+    await pContext.step("Error - Uniform without required GroupBinding attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text without required GroupBinding.
+        const lCodeText: string = "uniform testVariable: Float;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention missing GroupBinding requirement.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "uniform" requires attribute "GroupBinding".'))).toBe(true);
+    });
+
+    await pContext.step("Error - Uniform with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            [Vertex()]
+            uniform testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention uniform not allowing Vertex.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "uniform" does not allow attribute "Vertex".'))).toBe(true);
+    });
+
     await pContext.step("Error - Uniform with initialization expression", async () => {
         // Setup. Validation trace.
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text with initialization.
-        const lCodeText: string = "uniform testVariable: Float = 5.0;";
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            uniform testVariable: Float = 5.0;
+        `;
 
         // Execute.
         gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -298,7 +448,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text with non-constructible type.
-        const lCodeText: string = "uniform testVariable: TextureDepth2d;";
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            uniform testVariable: TextureDepth2d;
+        `;
 
         // Execute.
         gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -315,7 +468,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lValidationTrace = new PgslSyntaxTreeValidationTrace();
 
         // Setup. Code text with non-host-shareable type.
-        const lCodeText: string = "uniform testVariable: TextureDepth2d;";
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            uniform testVariable: TextureDepth2d;
+        `;
 
         // Execute.
         gPgslParser.parse(lCodeText).validate(lValidationTrace);
@@ -327,13 +483,16 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         expect(lValidationTrace.errors.some(error => error.message.includes('The type of declaration type "uniform" must be host shareable.'))).toBe(true);
     });
 
-    await pContext.step("Transpilation", async () => {
+    await pContext.step("Transpilation - Float type", async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = "uniform";
         const lVariableName: string = "testVariable";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: Float;
+        `;
 
         // Setup. Syntax tree.
         const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
@@ -343,7 +502,51 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
-        expect(lTranspilationResult).toBe(`var<uniform> ${lVariableName}: f32;`);
+        expect(lTranspilationResult).toBe(`@group(0) @binding(0) var<uniform> ${lVariableName}: f32;`);
+    });
+
+    await pContext.step("Transpilation - Texture type", async () => {
+        // Setup. Code blocks.
+        const lDeclarationType: string = "uniform";
+        const lVariableName: string = "testTexture";
+
+        // Setup. Code text.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: TextureDepth2d;
+        `;
+
+        // Setup. Syntax tree.
+        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+
+        // Execute.
+        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lTranspilationResult: string = lDeclarationNode.transpile();
+
+        // Validation.
+        expect(lTranspilationResult).toBe(`@group(0) @binding(0) var ${lVariableName}: texture_depth_2d;`);
+    });
+
+    await pContext.step("Transpilation - Sampler type", async () => {
+        // Setup. Code blocks.
+        const lDeclarationType: string = "uniform";
+        const lVariableName: string = "testSampler";
+
+        // Setup. Code text.
+        const lCodeText: string = `
+            [GroupBinding("test_group", "test_binding")]
+            ${lDeclarationType} ${lVariableName}: Sampler;
+        `;
+
+        // Setup. Syntax tree.
+        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+
+        // Execute.
+        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lTranspilationResult: string = lDeclarationNode.transpile();
+
+        // Validation.
+        expect(lTranspilationResult).toBe(`@group(0) @binding(0) var ${lVariableName}: sampler;`);
     });
 });
 
@@ -454,6 +657,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
         // Validation. Error should mention type assignment issue.
         expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+    });
+
+    await pContext.step("Error - Workgroup with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [AccessMode(AccessMode.Read)]
+            workgroup testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention workgroup not allowing AccessMode attribute.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "workgroup" does not allow attribute "AccessMode".'))).toBe(true);
     });
 
     await pContext.step("Transpilation without initializer", async () => {
@@ -586,6 +809,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
         // Validation. Error should mention type assignment issue.
         expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+    });
+
+    await pContext.step("Error - Private with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [AccessMode(AccessMode.Read)]
+            private testVariable: Float;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention private not allowing AccessMode attribute.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "private" does not allow attribute "AccessMode".'))).toBe(true);
     });
 
     await pContext.step("Transpilation without initializer", async () => {
@@ -728,6 +971,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
         // Validation. Error should mention type assignment issue.
         expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+    });
+
+    await pContext.step("Error - Param with invalid attribute", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with invalid attribute.
+        const lCodeText: string = `
+            [AccessMode(AccessMode.Read)]
+            param testVariable: Float = 5.0;
+        `;
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention param not allowing AccessMode attribute.
+        expect(lValidationTrace.errors.some(error => error.message.includes('Declaration type "param" does not allow attribute "AccessMode".'))).toBe(true);
     });
 
     await pContext.step("Transpilation", async () => {

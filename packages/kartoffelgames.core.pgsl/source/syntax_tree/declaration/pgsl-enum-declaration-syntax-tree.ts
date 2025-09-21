@@ -72,17 +72,19 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 
         // Validate that the enum has no dublicate names.
         const lPropertyList: Dictionary<string, BasePgslExpressionSyntaxTree> = new Dictionary<string, BasePgslExpressionSyntaxTree>();
-        for (const lItem of this.mValues) {
-            // Validate dublicates.
-            if (lPropertyList.has(lItem.name)) {
-                pValidationTrace.pushError(`Value "${lItem.name}" was already added to enum "${this.mName}"`, this.meta, this);
-            }
-
-            lPropertyList.set(lItem.name, lItem.value);
-        }
 
         let lFirstPropertyType: typeof PgslLiteralValueExpressionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree | null = null;
         for (const lProperty of this.mValues) {
+            // Validate property.
+            lProperty.value.validate(pValidationTrace);
+
+            // Validate dublicates.
+            if (lPropertyList.has(lProperty.name)) {
+                pValidationTrace.pushError(`Value "${lProperty.name}" was already added to enum "${this.mName}"`, this.meta, this);
+            }
+
+            lPropertyList.set(lProperty.name, lProperty.value);
+
             // Only literals are allowed.
             if (!(lProperty.value instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty.value instanceof PgslStringValueExpressionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                 pValidationTrace.pushError(`Value on enum "${this.mName}" invalid. Only literal values are allowed.`, this.meta, this);

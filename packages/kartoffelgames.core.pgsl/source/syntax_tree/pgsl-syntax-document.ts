@@ -7,6 +7,8 @@ import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-d
 import { PgslSyntaxTreeValidationTrace } from "./pgsl-syntax-tree-validation-trace.ts";
 
 export class PgslSyntaxDocument extends BasePgslSyntaxTree {
+    private readonly mBuildInContent: Array<BasePgslSyntaxTree>;
+
     /**
      * Assoziated document of pgsl structure.
      */
@@ -27,8 +29,21 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
     public constructor(pMeta: BasePgslSyntaxTreeMeta, pContentList: Array<BasePgslSyntaxTree>) {
         super(pMeta);
 
+        // Initialize build in content list.
+        this.mBuildInContent = new Array<BasePgslSyntaxTree>();
+
         // All in one declaration list to setup in correct order.
         this.appendChild(...pContentList);
+    }
+
+    /**
+     * Add content to the build in list.
+     * 
+     * @param pContent - Content to add as build in.
+     */
+    public addBuildInContent<T extends BasePgslSyntaxTree>(pContent: T): T {
+        this.mBuildInContent.push(pContent);
+        return pContent;
     }
 
     /**
@@ -48,6 +63,11 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
     protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): void {
         // Create new scope.
         pTrace.newScope(this, () => {
+            // Validate documents build ins first.
+            for (const lBuildInContent of this.mBuildInContent) {
+                lBuildInContent.validate(pTrace);
+            }
+
             // Validate all child structures.
             for (const lChild of this.childNodes) {
                 // Module scope content must be a specific tree type.

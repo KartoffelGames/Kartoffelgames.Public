@@ -209,38 +209,84 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
                 return;
             }
         };
+        const lAllowedAttributes = (pAttributes: Array<{name: string, required: boolean}>) => {
+            // Sort into required and optional attributes.
+            const lRequiredAttributes: Set<string> = new Set<string>();
+            const lOptionalAttributes: Set<string> = new Set<string>();
+            for (const pAttribute of pAttributes) {
+                if (pAttribute.required) {
+                    lRequiredAttributes.add(pAttribute.name);
+                } else {
+                    lOptionalAttributes.add(pAttribute.name);
+                }
+            }
+
+            // Iterate over all attributes defined and check if they are allowed.
+            for (const lAttributeName of this.attributes.attributeNames) {
+                if (lRequiredAttributes.has(lAttributeName)) {
+                    // Required attribute is present.
+                    lRequiredAttributes.delete(lAttributeName);
+                } else if (lOptionalAttributes.has(lAttributeName)) {
+                    continue;
+                } else {
+                    // Unknown attribute is present.
+                    pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" does not allow attribute "${lAttributeName}".`, this.meta, this);
+                }
+            }
+
+            // Check if all required attributes are present.
+            for (const lRequiredAttributeName of lRequiredAttributes) {
+                pValidationTrace.pushError(`Declaration type "${this.mDeclarationTypeName}" requires attribute "${lRequiredAttributeName}".`, this.meta, this);
+            }
+        }
 
         switch (lDeclarationType) {
             case PgslDeclarationType.Const: {
                 lMustBeConstructible();
                 lMustHaveAnInitializer();
                 lExpressionMustBeConst();
+                lAllowedAttributes([]);
                 break;
             }
             case PgslDeclarationType.Storage: {
                 lMustNotHaveAnInitializer();
                 lMustBeHostShareable();
+
+                // Uniform require a [GroupBinding] attribute.
+                lAllowedAttributes([
+                    {name: 'GroupBinding', required: true},
+                    {name: 'AccessMode', required: false},
+                ]);
                 break;
             }
             case PgslDeclarationType.Uniform: {
                 lMustNotHaveAnInitializer();
                 lMustBeConstructible();
                 lMustBeHostShareable();
+
+                // Uniform require a [GroupBinding] attribute.
+                lAllowedAttributes([
+                    {name: 'GroupBinding', required: true},
+                    {name: 'AccessMode', required: false},
+                ]);
                 break;
             }
             case PgslDeclarationType.Workgroup: {
                 lMustHaveAFixedFootprint();
                 lMustBePlain();
+                lAllowedAttributes([]);
                 break;
             }
             case PgslDeclarationType.Private: {
                 lMustBeConstructible();
+                lAllowedAttributes([]);
                 break;
             }
             case PgslDeclarationType.Param: {
                 lMustBeConstructible();
                 lMustBeScalar();
                 lMustHaveAnInitializer();
+                lAllowedAttributes([]);
                 break;
             }
             default: {

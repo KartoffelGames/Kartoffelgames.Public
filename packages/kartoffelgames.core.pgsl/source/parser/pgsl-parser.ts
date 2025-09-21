@@ -132,11 +132,23 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // TODO: Replace comments with same amount of spaces ans newlines.
 
+        // Create all buildin enums.
+        const lBuildInEnumList: Array<PgslEnumDeclaration> = [
+            new PgslAccessModeEnumDeclaration()
+        ];
+
+        // Add buildin enums to type factory.
+        for (const lEnum of lBuildInEnumList) {
+            this.mTypeFactory.addEnumPredefinition(lEnum.name);
+        }
+
         // Parse document structure.
         const lDocument: PgslDocument = super.parse(pCodeText);
 
-        // Create, append and add predifinitions.
-        this.mTypeFactory.addEnumPredefinition(lDocument.addBuildInContent(new PgslAccessModeEnumDeclaration()).name);
+        // Append buildin enums to document.
+        for (const lEnum of lBuildInEnumList) {
+            lDocument.addBuildInContent(lEnum);
+        }
 
         const lValidationScope: PgslValidationTrace = new PgslValidationTrace();
 

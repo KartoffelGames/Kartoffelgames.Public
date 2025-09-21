@@ -32,15 +32,15 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
-        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
-        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+        const lThisAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lThisAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
             return false;
         }
 
         // Check inner type of aliased type for equality.
-        return PgslAliasedTypeDefinitionSyntaxTree.equals(pValidationTrace, lAliasedDefinition.type, pTarget);
+        return lThisAliasedDefinition.type.equals(pValidationTrace, pTarget);
     }
 
     /**
@@ -49,15 +49,15 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
-        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
-        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+        const lThisAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lThisAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
             return false;
         }
 
         // Check if aliased type is explicit castable into target type.
-        return PgslAliasedTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lAliasedDefinition.type, pTarget);
+        return lThisAliasedDefinition.type.isExplicitCastableInto(pValidationTrace, pTarget);
     }
 
     /**
@@ -66,15 +66,15 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
-        const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
-        if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
+        const lThisAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
+        if (!(lThisAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
             return false;
         }
 
         // Check if aliased type is explicit castable into target type.
-        return PgslAliasedTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lAliasedDefinition.type, pTarget);
+        return lThisAliasedDefinition.type.isImplicitCastableInto(pValidationTrace, pTarget);
     }
 
     /**

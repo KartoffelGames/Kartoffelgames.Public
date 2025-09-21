@@ -174,7 +174,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             }
         };
         const lMustBeScalar = () => {
-            if (lTypeAttachment.scalar) {
+            if (!lTypeAttachment.scalar) {
                 pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be a scalar type.`, this.meta, this);
             }
         };
@@ -250,7 +250,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         }
 
         // Validate if expression fits declaration type.
-        if(lExpressionAttachment && !BasePgslTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lExpressionAttachment.resolveType, this.mTypeDeclaration)) {
+        if(lExpressionAttachment && !lExpressionAttachment.resolveType.isImplicitCastableInto(pValidationTrace, this.mTypeDeclaration)) {
             // Read the attachment of the expression type.
             const lExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
 

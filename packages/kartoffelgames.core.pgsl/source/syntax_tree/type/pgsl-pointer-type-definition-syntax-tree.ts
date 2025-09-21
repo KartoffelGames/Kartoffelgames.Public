@@ -41,7 +41,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read attachments from target type.
         const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
 
@@ -53,7 +53,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         // Cast to pointer attachment as we now know it is one.
         const lPointerTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
-        return PgslPointerTypeDefinitionSyntaxTree.equals(pValidationTrace, this.referencedType, lPointerTargetAttachment.referencedType);
+        return this.referencedType.equals(pValidationTrace, lPointerTargetAttachment.referencedType);
     }
 
     /**
@@ -62,7 +62,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A pointer is never explicit nor implicit castable.
         return false;
     }
@@ -73,7 +73,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A pointer is never explicit nor implicit castable.
         return false;
     }

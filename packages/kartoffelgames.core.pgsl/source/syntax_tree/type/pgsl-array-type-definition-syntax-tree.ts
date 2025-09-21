@@ -55,10 +55,10 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read attachments from target type.
         const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
+
         // Must both be arrays.
         if (lTargetAttachment.baseType !== PgslBaseTypeName.Array) {
             return false;
@@ -68,7 +68,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
         const lArrayTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // Must have the same inner type.
-        if (!BasePgslTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mInnerType, lArrayTargetAttachment.innerType)) {
+        if (!this.mInnerType.equals(pValidationTrace, lArrayTargetAttachment.innerType)) {
             return false;
         }
 
@@ -94,36 +94,20 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // A array is never explicit.
+    public override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A array is never explicit castable.
         return false;
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param pValidationTrace - Validation trace.
-     * @param pTarget - Target type.
+     * @param _pValidationTrace - Validation trace.
+     * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // Must be fixed.
-        if (!this.mLengthExpression) {
-            return false;
-        }
-
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
-        // Must both be arrays.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Array) {
-            return false;
-        }
-
-        // Cast to array attachment as we now know it is one.
-        const lArrayTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
-        // When inner types are implicit castable.
-        return PgslArrayTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mInnerType, lArrayTargetAttachment.innerType);
+    public override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A array is never implicit castable.
+        return false;
     }
 
     /**

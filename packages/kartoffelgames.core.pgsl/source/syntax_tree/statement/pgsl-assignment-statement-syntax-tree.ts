@@ -1,11 +1,10 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil } from '@kartoffelgames/core';
 import { PgslAssignment } from '../../enum/pgsl-assignment.enum.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
-import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
+import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree.ts';
 
 /**
  * PGSL structure holding a assignment statement.
@@ -83,7 +82,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
         const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
 
         // Validate that it has the same value.
-        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lVariableAttachment.resolveType, lExpressionAttachment.resolveType)) {
+        if (!lExpressionAttachment.resolveType.isImplicitCastableInto(pValidationTrace, lVariableAttachment.resolveType)) {
             pValidationTrace.pushError(`Can't assign a different type to a variable`, this.meta, this);
         }
     }

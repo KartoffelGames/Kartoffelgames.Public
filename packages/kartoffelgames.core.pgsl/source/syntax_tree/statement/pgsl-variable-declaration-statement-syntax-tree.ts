@@ -101,7 +101,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
             lFixedState = lExpressionAttachment.fixedState;
 
             // Validate same type.
-            if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mTypeDeclaration, lExpressionAttachment.resolveType)) {
+            if (!lExpressionAttachment.resolveType.isImplicitCastableInto(pValidationTrace, this.mTypeDeclaration)) {
                 pValidationTrace.pushError(`Expression values type can't be converted to variables type.`, this.meta, this);
             }
         }

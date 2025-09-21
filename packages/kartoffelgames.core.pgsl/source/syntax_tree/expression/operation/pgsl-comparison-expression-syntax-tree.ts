@@ -91,8 +91,8 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
         const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
 
-        // Comparison needs to be the same type.
-        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pTrace, lLeftExpressionAttachment.resolveType, lRightExpressionAttachment.resolveType)) {
+        // Comparison needs to be the same type or implicitly castable.
+        if (!lRightExpressionAttachment.resolveType.isImplicitCastableInto(pTrace, lLeftExpressionAttachment.resolveType)) {
             pTrace.pushError(`Comparison can only be between values of the same type.`, this.meta, this);
         }
 

@@ -14,7 +14,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Void type is always equal to itself.
         return true;
     }
@@ -27,7 +27,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }
@@ -40,7 +40,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }

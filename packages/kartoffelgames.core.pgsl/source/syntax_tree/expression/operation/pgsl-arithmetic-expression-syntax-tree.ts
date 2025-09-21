@@ -2,7 +2,6 @@ import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTree } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
 import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
 import { PgslVectorTypeDefinitionSyntaxTree } from "../../type/pgsl-vector-type-definition-syntax-tree.ts";
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
@@ -89,8 +88,8 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         // TODO: Also matrix calculations :(
         // TODO: And Mixed vector calculation...
 
-        // Left and right need to be same type.
-        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pTrace, lLeftExpressionAttachment.resolveType, lRightExpressionAttachment.resolveType)) {
+        // Left and right need to be same type or implicitly castable.
+        if (!lRightExpressionAttachment.resolveType.isImplicitCastableInto(pTrace, lLeftExpressionAttachment.resolveType)) {
             pTrace.pushError('Left and right side of arithmetic expression must be the same type.', this.meta, this);
         }
 

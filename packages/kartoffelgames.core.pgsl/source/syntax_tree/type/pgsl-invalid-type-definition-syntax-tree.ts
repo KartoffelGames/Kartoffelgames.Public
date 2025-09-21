@@ -35,7 +35,7 @@ export class PgslInvalidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns always false.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         return false;
     }
 
@@ -47,7 +47,7 @@ export class PgslInvalidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns always false.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         return false;
     }
 
@@ -59,7 +59,7 @@ export class PgslInvalidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns always false.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         return false;
     }
 

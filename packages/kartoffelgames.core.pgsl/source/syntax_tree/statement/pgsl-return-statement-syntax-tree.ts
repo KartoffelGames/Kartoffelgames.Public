@@ -76,7 +76,7 @@ export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree {
             }
 
             // Validate that the return type matches the function declaration.
-            if(!BasePgslTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lReturnType, lFunctionDeclaration.returnType)) {
+            if(!lReturnType.isImplicitCastableInto(pValidationTrace, lFunctionDeclaration.returnType)) {
                 pValidationTrace.pushError(`Return type does not match function declaration.`, this.meta, this);
             }
         } else {

@@ -73,7 +73,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read attachments from target type.
         const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
 
@@ -86,12 +86,70 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // Inner type must be equal.
-        if (!PgslVectorTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mInnerType, lVectorTargetAttachment.innerType)) {
+        if (!this.mInnerType.equals(pValidationTrace, lVectorTargetAttachment.innerType)) {
             return false;
         }
 
         // Vector dimensions must be equal.
         return this.mVectorType === lVectorTargetAttachment.dimension;
+    }
+
+    /**
+     * Check if type is explicit castable into target type.
+     * 
+     * @param pValidationTrace - Validation trace.
+     * @param pTarget - Target type.
+     * 
+     * @returns true when type is explicit castable into target type.
+     */
+    public override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+
+        // Must both be a vector.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
+            return false;
+        }
+
+        // Cast to vector attachment as we now know it is one.
+        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
+        // If vector dimensions are not equal, it is not castable.
+        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
+            return false;
+        }
+
+        // It is when inner types are explicit castable.
+        return  this.mInnerType.isExplicitCastableInto(pValidationTrace, lVectorTargetAttachment.innerType);
+    }
+
+    /**
+     * Check if type is implicit castable into target type.
+     * 
+     * @param pValidationTrace - Validation trace.
+     * @param pTarget - Target type.
+     * 
+     * @returns true when type is implicit castable into target type.
+     */
+    public override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+
+        // Must both be a vector.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
+            return false;
+        }
+
+        // Cast to vector attachment as we now know it is one.
+        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
+        // If vector dimensions are not equal, it is not castable.
+        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
+            return false;
+        }
+
+        // It is when inner types are implicit castable.
+        return this.mInnerType.isImplicitCastableInto(pValidationTrace, lVectorTargetAttachment.innerType);
     }
 
     /**
@@ -114,64 +172,6 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
 
         // Insert inner type as template parameter.
         return `${lVectorDimensionName}<${this.mInnerType.transpile()}>`;
-    }
-
-    /**
-     * Check if type is explicit castable into target type.
-     * 
-     * @param pValidationTrace - Validation trace.
-     * @param pTarget - Target type.
-     * 
-     * @returns true when type is explicit castable into target type.
-     */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
-        // Must both be a vector.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
-            return false;
-        }
-
-        // Cast to vector attachment as we now know it is one.
-        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
-        // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
-            return false;
-        }
-
-        // It is when inner types are.
-        return PgslVectorTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mInnerType, lVectorTargetAttachment.innerType);
-    }
-
-    /**
-     * Check if type is implicit castable into target type.
-     * 
-     * @param pValidationTrace - Validation trace.
-     * @param pTarget - Target type.
-     * 
-     * @returns true when type is implicit castable into target type.
-     */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
-        // Must both be a vector.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
-            return false;
-        }
-
-        // Cast to vector attachment as we now know it is one.
-        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
-        // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
-            return false;
-        }
-
-        // It is when inner types are.
-        return PgslVectorTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mInnerType, lVectorTargetAttachment.innerType);
     }
 
     /**

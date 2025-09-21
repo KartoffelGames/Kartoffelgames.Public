@@ -55,9 +55,9 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check inner type of aliased type for equality.
-        return PgslBuildInTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mUnderlyingType, pTarget);
+        return this.mUnderlyingType.equals(pValidationTrace, pTarget);
     }
 
     /**
@@ -66,9 +66,9 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check if aliased type is explicit castable into target type.
-        return PgslBuildInTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mUnderlyingType, pTarget);
+        return this.mUnderlyingType.isExplicitCastableInto(pValidationTrace, pTarget);
     }
 
     /**
@@ -77,9 +77,9 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+    public override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check if aliased type is explicit castable into target type.
-        return PgslBuildInTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mUnderlyingType, pTarget);
+        return this.mUnderlyingType.isImplicitCastableInto(pValidationTrace, pTarget);
     }
 
     /**

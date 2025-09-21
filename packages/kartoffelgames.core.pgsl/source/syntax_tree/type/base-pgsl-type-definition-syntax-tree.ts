@@ -7,7 +7,7 @@ import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 /**
  * PGSL base type definition.
  */
-export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends object | undefined = undefined> extends BasePgslSyntaxTree<BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional>> {
+export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends object = {}> extends BasePgslSyntaxTree<BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional>> {
     /**
      * Check if set structure is equal to this structure.
      * 
@@ -20,8 +20,8 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         const lSourceAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<any> = pValidationTrace.getAttachment(pSource);
         const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<any> = pValidationTrace.getAttachment(pTarget);
 
-        // Same type.
-        if (pTarget.constructor !== pSource.constructor) {
+        // Same base type.
+        if (lSourceAttachment.baseType !== lTargetAttachment.baseType) {
             return false;
         }
 
@@ -55,7 +55,22 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
             return false;
         }
 
-        return true;
+        // Same concrete definition.
+        if (lSourceAttachment.concrete !== lTargetAttachment.concrete) {
+            return false;
+        }
+
+        // Same scalar definition.
+        if (lSourceAttachment.scalar !== lTargetAttachment.scalar) {
+            return false;
+        }
+
+        // Same plain definition.
+        if (lSourceAttachment.plain !== lTargetAttachment.plain) {
+            return false;
+        }
+
+        return pSource.equals(pValidationTrace, pTarget);
     }
 
     /**
@@ -67,11 +82,6 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         // When they are the same, they are castable.
         if (BasePgslTypeDefinitionSyntaxTree.equals(pValidationTrace, pFrom, pTo)) {
             return true;
-        }
-
-        // Should at least has the same base type.
-        if (pFrom.constructor !== pTo.constructor) { // TODO: Thats fucked up. Remove same constructor check.
-            return false;
         }
 
         return pFrom.isExplicitCastableInto(pValidationTrace, pTo);
@@ -89,7 +99,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
         }
 
         // When they are not explicit castable, they never be able to implicit cast.
-        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, pFrom, pTo)) {  // TODO: Thats fucked up. Remove same constructor check.
+        if (!BasePgslTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, pFrom, pTo)) {
             return false;
         }
 
@@ -113,7 +123,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
      * 
      * @returns true when both types describes the same type.
      */
-    protected abstract equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
+    protected abstract equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean;
 
     /**
      * Check if type is explicit castable into target type.
@@ -123,7 +133,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
      * 
      * @returns true when type is explicit castable into target type.
      */
-    protected abstract isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
+    protected abstract isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean;
 
     /**
      * Check if type is implicit castable into target type.
@@ -133,15 +143,10 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TAdditional extends objec
      * 
      * @returns true when type is implicit castable into target type.
      */
-    protected abstract isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean;
+    protected abstract isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean;
 }
 
-export type BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional extends object | undefined = undefined> = {
-    /**
-     * Types additional data.
-     */
-    additional: TAdditional;
-
+export type BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional extends object = {}> = TAdditional &{
     /**
      * Base type of the type definition.
      */
@@ -178,6 +183,20 @@ export type BasePgslTypeDefinitionSyntaxTreeValidationAttachment<TAdditional ext
      */
     indexable: boolean;
 
-    // TODO: Maybe a flag enum?
-    // TODO: plain type or concrete type
+    /**
+     * Type is concrete, meaning it is not abstract or does not contain an abstract type.
+     */
+    concrete: boolean;
+
+    /**
+     * Type is scalar.
+     * A scalar type is a type that has a single value.
+     */
+    scalar: boolean;
+
+    /**
+     * Type is plain.
+     * A plain type is either a scalar type, an atomic type, or a composite type.
+     */
+    plain: boolean;
 };

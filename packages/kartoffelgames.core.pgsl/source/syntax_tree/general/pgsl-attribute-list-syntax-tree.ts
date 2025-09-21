@@ -306,10 +306,10 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
 
             // Convert enum to literal or string. expression.
             let lActualAttributeParameter: BasePgslExpressionSyntaxTree = pParameterSourceList[lIndex];
-            if (lActualAttributeParameter instanceof PgslEnumValueExpressionSyntaxTree) {
+            if (lActualAttributeParameter instanceof PgslEnumValueExpressionSyntaxTree) { // TODO: Cant do this, as alias types could be that as well.
                 // Read enum from name.
                 const lEnum: BasePgslSyntaxTree = pTrace.getScopedValue(lActualAttributeParameter.name);
-                if (lEnum instanceof PgslEnumDeclarationSyntaxTree) {
+                if (lEnum instanceof PgslEnumDeclarationSyntaxTree) { // TODO: Cant do this, as alias types could be that as well.
                     // Read the attachment of the enum.
                     const lEnumAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lEnum);
                     if (lEnumAttachment.values.has(lActualAttributeParameter.name)) {
@@ -326,7 +326,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
             // Validate based on expected template type.
             if('values' in lExpectedTemplateType) { // String or enum.
                 // Not a string parameter.
-                if (!(lActualAttributeParameterAttachment instanceof PgslStringValueExpressionSyntaxTree)) {
+                if (!(lActualAttributeParameterAttachment instanceof PgslStringValueExpressionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                     pTrace.pushError(`Attribute parameter ${lIndex} must be a string.`, lActualAttributeParameter.meta, this);
                     continue;
                 }
@@ -337,7 +337,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree {
                 }
             } else if('type' in lExpectedTemplateType) { // Number
                 // Not a number parameter.
-                if (!(lActualAttributeParameterType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                if (!(lActualAttributeParameterType instanceof PgslNumericTypeDefinitionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                     pTrace.pushError(`Attribute parameter ${lIndex} must be a number.`, lActualAttributeParameter.meta, this);
                     continue;
                 }

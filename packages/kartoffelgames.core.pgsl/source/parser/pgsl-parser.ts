@@ -1332,6 +1332,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
      * Check if name is associated with any type.
      */
     private nameIsType(pName: string): boolean {
+        // TODO: Shit wont work you fucker.
         return EnumUtil.exists(PgslBaseTypeName, pName) ||
             EnumUtil.exists(PgslBuildInTypeName, pName) ||
             EnumUtil.exists(PgslMatrixTypeName, pName) ||

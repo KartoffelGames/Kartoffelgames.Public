@@ -5,7 +5,7 @@ import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 /**
  * Void type definition.
  */
-export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<undefined> {
+export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
     /**
      * Check if type is equal to target type.
      * 
@@ -14,7 +14,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Void type is always equal to itself.
         return true;
     }
@@ -27,7 +27,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }
@@ -40,7 +40,7 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A void is never explicit nor implicit castable.
         return false;
     }
@@ -62,9 +62,8 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * 
      * @returns validation attachment.
      */
-    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
+    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
-            additional: undefined,
             baseType: PgslBaseTypeName.Void,
             storable: false,
             hostShareable: false,
@@ -72,6 +71,9 @@ export class PgslVoidTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
             constructible: false,
             fixedFootprint: false,
             indexable: false,
+            concrete: false,
+            scalar: false,
+            plain: false
         };
     }
 }

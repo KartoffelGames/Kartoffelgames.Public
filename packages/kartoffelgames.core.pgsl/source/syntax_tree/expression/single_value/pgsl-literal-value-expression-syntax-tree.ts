@@ -126,7 +126,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
                 }
             }
 
-            return [PgslBaseTypeName.Numeric, lSuffixType, lNumber];
+            return [PgslBaseTypeName.Integer, lSuffixType, lNumber];
         }
 
         // Might be a float.
@@ -172,7 +172,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
                 }
             }
 
-            return [PgslBaseTypeName.Numeric, lSuffixType, lNumber];
+            return [PgslBaseTypeName.Float, lSuffixType, lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);

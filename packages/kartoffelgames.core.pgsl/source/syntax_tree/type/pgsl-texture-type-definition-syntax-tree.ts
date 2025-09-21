@@ -132,23 +132,30 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read attachments from this and target type.
-        const lThisAttachment: PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData = pValidationTrace.getAttachment(this).additional;
-        const lTargetAttachment: PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData = pValidationTrace.getAttachment(pTarget).additional;
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+
+        // Must both be a sampler.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Texture) {
+            return false;
+        }
+
+        const lThisTextureTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData> = pValidationTrace.getAttachment(this);
+        const lTargetTextureTypeAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // Access and format data must be equal.
-        if (lThisAttachment.access !== lTargetAttachment.access || lThisAttachment.format !== lTargetAttachment.format) {
+        if (lThisTextureTypeAttachment.access !== lTargetTextureTypeAttachment.access || lThisTextureTypeAttachment.format !== lTargetTextureTypeAttachment.format) {
             return false;
         }
 
         // Sampled type must be set equal to null.
-        if (lThisAttachment.sampledType === null && lTargetAttachment.sampledType !== null || lThisAttachment.sampledType !== null && lTargetAttachment.sampledType === null) {
+        if (lThisTextureTypeAttachment.sampledType === null && lTargetTextureTypeAttachment.sampledType !== null || lThisTextureTypeAttachment.sampledType !== null && lTargetTextureTypeAttachment.sampledType === null) {
             return false;
         }
 
         // Sampled type must be equal.
-        if (lTargetAttachment.sampledType !== null && !PgslTextureTypeDefinitionSyntaxTree.equals(pValidationTrace, lThisAttachment.sampledType!, lTargetAttachment.sampledType)) {
+        if (lTargetTextureTypeAttachment.sampledType !== null && !PgslTextureTypeDefinitionSyntaxTree.equals(pValidationTrace, lThisTextureTypeAttachment.sampledType!, lTargetTextureTypeAttachment.sampledType)) {
             return false;
         }
 
@@ -161,7 +168,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A texture is never explicit nor implicit castable.
         return false;
     }
@@ -172,7 +179,7 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A texture is never explicit nor implicit castable.
         return false;
     }
@@ -234,7 +241,6 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         }
 
         return {
-            additional: lAdditionalAttachmentData,
             baseType: PgslBaseTypeName.Texture,
             composite: false,
             indexable: false,
@@ -242,6 +248,12 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             hostShareable: false,
             constructible: false,
             fixedFootprint: false,
+            concrete: true,
+            scalar: false,
+            plain: false,
+
+            // Merge additional data.
+            ...lAdditionalAttachmentData,
         };
     }
 }

@@ -32,7 +32,7 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
         const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
         if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
@@ -49,7 +49,7 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
         const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
         if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
@@ -66,7 +66,7 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Resolve alias declaration.
         const lAliasedDefinition: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mAliasName);
         if (!(lAliasedDefinition instanceof PgslAliasDeclarationSyntaxTree)) {
@@ -96,30 +96,20 @@ export class PgslAliasedTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             pValidationTrace.pushError(`Name '${this.mAliasName}' is does not resolve to an alias declaration.`, this.meta, this);
 
             return {
-                additional: undefined,
-                baseType: PgslBaseTypeName.Alias,
+                baseType: PgslBaseTypeName.Invalid,
                 storable: false,
                 hostShareable: false,
                 composite: false,
                 constructible: false,
                 fixedFootprint: false,
-                indexable: false
+                indexable: false,
+                concrete: false,
+                scalar: false,
+                plain: false
             };
         }
 
-        // Read aliased type attachments.
-        const lAliasedTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lAliasedDefinition.type);
-
         // Simply copy anything from aliased type attachment.
-        return {
-            additional: lAliasedTypeAttachment.additional,
-            baseType: lAliasedTypeAttachment.baseType,
-            storable: lAliasedTypeAttachment.storable,
-            hostShareable: lAliasedTypeAttachment.hostShareable,
-            composite: lAliasedTypeAttachment.composite,
-            constructible: lAliasedTypeAttachment.constructible,
-            fixedFootprint: lAliasedTypeAttachment.fixedFootprint,
-            indexable: lAliasedTypeAttachment.indexable
-        };
+        return pValidationTrace.getAttachment(lAliasedDefinition.type);
     }
 }

@@ -96,11 +96,11 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         let lRightValueType: BasePgslTypeDefinitionSyntaxTree;
 
         // Validate vectors differently.
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {  // TODO: Cant do this, as alias types could be vectors as well.
             lLeftValueType = lLeftExpressionAttachment.resolveType.innerType;
 
             // Left and right must be a vector.
-            if (!(lRightExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree)) {
+            if (!(lRightExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree)) {  // TODO: Cant do this, as alias types could be vectors as well.
                 pTrace.pushError('Left and right side of bit expression must be the a vector type.', this.meta, this);
                 lRightValueType = lRightExpressionAttachment.resolveType
             } else {
@@ -114,16 +114,23 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
 
         // Validate that rigth expression of shift operator needs to be a signed integer.
         if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
+            // TODO: Must be variable.
+
+            // TODO: right must be assignable to unsigned integer.
+            // TODO: Left must be any integer.
+
+            // TODO: When left is vector, right must be vector of same size.
+
             // Shift value must be numeric.
-            if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
-                if (!lRightValueType || (<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
-                    pTrace.pushError(`Right expression of a shift operation must be a unsigned integer.`, this.meta, this);
-                }
-            }
+            // if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
+            //     if (!lRightValueType || (<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
+            //         pTrace.pushError(`Right expression of a shift operation must be a unsigned integer.`, this.meta, this);
+            //     }
+            // }
         }
 
         // Both values need to be numeric.
-        if (!(lLeftValueType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+        if (!(lLeftValueType instanceof PgslNumericTypeDefinitionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
             pTrace.pushError(`Binary operations can only be applied to numeric values.`, this.meta, this);
         }
 

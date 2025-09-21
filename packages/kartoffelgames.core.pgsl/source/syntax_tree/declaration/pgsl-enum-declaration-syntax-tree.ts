@@ -84,7 +84,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
         let lFirstPropertyType: typeof PgslLiteralValueExpressionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree | null = null;
         for (const lProperty of this.mValues) {
             // Only literals are allowed.
-            if (!(lProperty.value instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty.value instanceof PgslStringValueExpressionSyntaxTree)) {
+            if (!(lProperty.value instanceof PgslLiteralValueExpressionSyntaxTree) && !(lProperty.value instanceof PgslStringValueExpressionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                 pValidationTrace.pushError(`Value on enum "${this.mName}" invalid. Only literal values are allowed.`, this.meta, this);
             }
 
@@ -93,7 +93,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
                 // Read attachment of literal value.
                 const lPropertyAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lProperty.value);
 
-                if (lPropertyAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) {
+                if (lPropertyAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) { // TODO: Cant do this, as alias types could be that as well.
                     if (lPropertyAttachment.resolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
                         pValidationTrace.pushError(`Enum "${this.mName}" can only hold unsigned integer values.`, this.meta, this);
                     }
@@ -120,7 +120,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 
             // Create empty enum value.
             return {
-                type: new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, { range: [0, 0, 0, 0] }),
+                type: PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger),
                 values: lPropertyList
             };
         }

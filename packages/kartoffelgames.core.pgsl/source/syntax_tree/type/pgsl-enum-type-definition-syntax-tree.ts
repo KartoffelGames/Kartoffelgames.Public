@@ -1,7 +1,8 @@
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslEnumDeclarationSyntaxTree, PgslEnumDeclarationSyntaxTreeValidationAttachment } from "../declaration/pgsl-enum-declaration-syntax-tree.ts";
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslInvalidTypeDefinitionSyntaxTree } from "./pgsl-invalid-type-definition-syntax-tree.ts";
 
 /**
  * Enum type definition that aliases a plain type.
@@ -33,13 +34,24 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param _pValidationTrace - Validation trace.
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both share the same name.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
-        return this.mEnumName === pTarget.enumName;
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read enum type.
+        const lEnumSyntaxTree = pValidationTrace.getScopedValue(this.mEnumName);
+
+        // This enum name is not an enum so it can not be casted.
+        if (!(lEnumSyntaxTree instanceof PgslEnumDeclarationSyntaxTree)) {
+            return false;
+        }
+
+        // Read the enum attachment.
+        const lEnumDeclarationAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumSyntaxTree);
+        
+        return BasePgslTypeDefinitionSyntaxTree.equals(pValidationTrace, lEnumDeclarationAttachment.type, pTarget);
     }
 
     /**
@@ -48,17 +60,20 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read enum type.
-        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+        const lEnumSyntaxTree = pValidationTrace.getScopedValue(this.mEnumName);
 
-        // Read attachment from enum type.
-        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
+        // This enum name is not an enum so it can not be casted.
+        if (!(lEnumSyntaxTree instanceof PgslEnumDeclarationSyntaxTree)) {
             return false;
         }
 
+        // Read the enum attachment.
+        const lEnumDeclarationAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumSyntaxTree);
+
         // Compare enum inner type with target type.
-        return PgslEnumTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lEnumTypeDefinition, pTarget);
+        return PgslEnumTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, lEnumDeclarationAttachment.type, pTarget);
     }
 
     /**
@@ -67,17 +82,20 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Read enum type.
-        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+        const lEnumSyntaxTree = pValidationTrace.getScopedValue(this.mEnumName);
 
-        // Read attachment from enum type.
-        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
+        // This enum name is not an enum so it can not be casted.
+        if (!(lEnumSyntaxTree instanceof PgslEnumDeclarationSyntaxTree)) {
             return false;
         }
 
+        // Read the enum attachment.
+        const lEnumDeclarationAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumSyntaxTree);
+
         // Compare enum inner type with target type.
-        return PgslEnumTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lEnumTypeDefinition, pTarget);
+        return PgslEnumTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace,  lEnumDeclarationAttachment.type, pTarget);
     }
 
     /**
@@ -98,36 +116,18 @@ export class PgslEnumTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSynt
      */
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         // Read enum type.
-        const lEnumTypeDefinition = pValidationTrace.getScopedValue(this.mEnumName);
+        const lEnumSyntaxTree = pValidationTrace.getScopedValue(this.mEnumName);
 
         // Read attachment from enum type.
-        if (!(lEnumTypeDefinition instanceof BasePgslTypeDefinitionSyntaxTree)) {
-            return {
-                additional: undefined,
-                baseType: PgslBaseTypeName.Enum,
-                composite: false,
-                indexable: false,
-                storable: false,
-                hostShareable: false,
-                constructible: false,
-                fixedFootprint: false,
-            };
+        if (!(lEnumSyntaxTree instanceof PgslEnumDeclarationSyntaxTree)) {
+            // Create, validate and return attachment for an invalid type.
+            return pValidationTrace.getAttachment(PgslInvalidTypeDefinitionSyntaxTree.type(this.meta).validate(pValidationTrace));
         }
 
-        // Read enum type attachment.
-        const lAliasType: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumTypeDefinition);
+        // Read the enum attachment.
+        const lEnumDeclarationAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lEnumSyntaxTree);
 
-        return {
-            additional: undefined,
-            baseType: PgslBaseTypeName.Sampler,
-
-            // Copy of alias type attributes.
-            composite: lAliasType.composite,
-            indexable: lAliasType.indexable,
-            storable: lAliasType.storable,
-            hostShareable: lAliasType.hostShareable,
-            constructible: lAliasType.constructible,
-            fixedFootprint: lAliasType.fixedFootprint
-        };
+        // Read and return underlying enum type attachment.
+        return pValidationTrace.getAttachment(lEnumDeclarationAttachment.type);
     }
 }

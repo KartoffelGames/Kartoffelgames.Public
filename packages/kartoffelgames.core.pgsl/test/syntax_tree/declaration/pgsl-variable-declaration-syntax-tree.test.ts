@@ -118,6 +118,23 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lValidationTrace.errors.some(error => error.message.includes('The type of declaration type "const" must be constructible.'))).toBe(true);
     });
 
+    await pContext.step("Error - Const with type mismatch", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with type mismatch (Float variable with Boolean value).
+        const lCodeText: string = "const testVariable: Float = true;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention type assignment issue.
+        expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+    });
+
     await pContext.step("Transpilation", async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = "const";
@@ -422,6 +439,23 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         expect(lValidationTrace.errors.some(error => error.message.includes('The type of declaration type "workgroup" must be a plain type.'))).toBe(true);
     });
 
+    await pContext.step("Error - Workgroup with type mismatch", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with type mismatch (Float variable with Boolean value).
+        const lCodeText: string = "workgroup testVariable: Float = true;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention type assignment issue.
+        expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+    });
+
     await pContext.step("Transpilation without initializer", async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = "workgroup";
@@ -535,6 +569,23 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
         // Validation. Error should mention constructible requirement.
         expect(lValidationTrace.errors.some(error => error.message.includes('The type of declaration type "private" must be constructible.'))).toBe(true);
+    });
+
+    await pContext.step("Error - Private with type mismatch", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with type mismatch (Float variable with Boolean value).
+        const lCodeText: string = "private testVariable: Float = true;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention type assignment issue.
+        expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
     });
 
     await pContext.step("Transpilation without initializer", async () => {
@@ -660,6 +711,23 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
         // Validation. Error should mention scalar type requirement.
         expect(lValidationTrace.errors.some(error => error.message.includes('The type of declaration type "param" must be a scalar type.'))).toBe(true);
+    });
+
+    await pContext.step("Error - Param with type mismatch", async () => {
+        // Setup. Validation trace.
+        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+
+        // Setup. Code text with type mismatch (Float variable with Boolean value).
+        const lCodeText: string = "param testVariable: Float = true;";
+
+        // Execute.
+        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+
+        // Validation. Should have errors.
+        expect(lValidationTrace.errors.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention type assignment issue.
+        expect(lValidationTrace.errors.some(error => error.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
     });
 
     await pContext.step("Transpilation", async () => {

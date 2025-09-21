@@ -7,7 +7,7 @@ import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 /**
  * Pointer type definition.
  */
-export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mReferencedType: BasePgslTypeDefinitionSyntaxTree;
 
     /**
@@ -41,8 +41,19 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
-        return PgslPointerTypeDefinitionSyntaxTree.equals(pValidationTrace, this.referencedType, pTarget.referencedType);
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+
+        // Target type must be a pointer.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Pointer) {
+            return false;
+        }
+
+        // Cast to pointer attachment as we now know it is one.
+        const lPointerTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
+        return PgslPointerTypeDefinitionSyntaxTree.equals(pValidationTrace, this.referencedType, lPointerTargetAttachment.referencedType);
     }
 
     /**
@@ -51,7 +62,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A pointer is never explicit nor implicit castable.
         return false;
     }
@@ -62,7 +73,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A pointer is never explicit nor implicit castable.
         return false;
     }
@@ -80,7 +91,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
         // Read type attachment.
         const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mReferencedType);
 
@@ -89,10 +100,7 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             throw new Exception(`Referenced types of pointers need to be storable`, this);
         }
 
-        // TODO: Not on handle/texture or None address space.
-
         return {
-            additional: undefined,
             baseType: PgslBaseTypeName.Pointer,
             composite: false,
             indexable: false,
@@ -100,10 +108,16 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             hostShareable: false,
             constructible: false,
             fixedFootprint: false,
+            concrete: true,
+            scalar: false,
+            plain: false,
+
+            // Additional data.
+            referencedType: this.mReferencedType
         };
     }
 }
 
-export type PgslPointerTypeDefinitionSyntaxTreeStructureData = {
+export type PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
     referencedType: BasePgslTypeDefinitionSyntaxTree;
 };

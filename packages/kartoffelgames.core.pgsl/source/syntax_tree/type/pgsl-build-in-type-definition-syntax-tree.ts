@@ -1,16 +1,16 @@
-import { Exception } from '@kartoffelgames/core';
-import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
-import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree.ts';
-import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree.ts';
-import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';
-import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree.ts';
-import { PgslBuildInTypeName } from "./enum/pgsl-build-in-type-name.enum.ts";
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
-import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from "../expression/base-pgsl-expression-syntax-tree.ts";
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition-syntax-tree.ts';
+import { PgslBuildInTypeName } from "./enum/pgsl-build-in-type-name.enum.ts";
+import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
+import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
+import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree.ts';
+import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree.ts';
+import { PgslInvalidTypeDefinitionSyntaxTree } from "./pgsl-invalid-type-definition-syntax-tree.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree.ts';
+import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree.ts';
 
 /**
  * Build in type definition that aliases a plain type.
@@ -55,7 +55,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check inner type of aliased type for equality.
         return PgslBuildInTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mUnderlyingType, pTarget);
     }
@@ -66,7 +66,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check if aliased type is explicit castable into target type.
         return PgslBuildInTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mUnderlyingType, pTarget);
     }
@@ -77,7 +77,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Check if aliased type is explicit castable into target type.
         return PgslBuildInTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mUnderlyingType, pTarget);
     }
@@ -90,7 +90,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onTranspile(): string {
         // TODO: Add buildin attributes based on type.
 
-        return this.mUnderlyingType.transpile()
+        return this.mUnderlyingType.transpile();
     }
 
     /**
@@ -108,7 +108,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             if (this.mBuildInType === PgslBuildInTypeName.ClipDistances) {
                 // Template must be a expression.
                 if (!(this.mTemplate instanceof BasePgslExpressionSyntaxTree)) {
-                    pValidationTrace.pushError(`Clip distance buildin template value musst be a value expression.`, this.meta, this);
+                    pValidationTrace.pushError(`Clip distance buildin template value musst have a value expression.`, this.meta, this);
                     return;
                 }
 
@@ -120,30 +120,15 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     pValidationTrace.pushError(`Clip distance buildin template value musst be a constant.`, this.meta, this);
                 }
 
-                // Template needs to be a number expression.
-                if (!(lTemplateAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-                    pValidationTrace.pushError(`Clip distance buildin template value musst be a unassigned integer.`, this.meta, this);
-                    return;
-                }
-
                 // Template needs to be a unsigned integer.
-                if (lTemplateAttachment.resolveType.numericType !== PgslNumericTypeName.UnsignedInteger) { // TODO: Or needs to be implicit castable.
+                if (!PgslNumericTypeDefinitionSyntaxTree.IsCastable(pValidationTrace, "implicit", lTemplateAttachment.resolveType, PgslNumericTypeName.UnsignedInteger)) {
                     pValidationTrace.pushError(`Clip distance buildin template value musst be a unassigned integer.`, this.meta, this);
                 }
             }
         })();
 
         // Simply copy anything from aliased type attachment.
-        return {
-            additional: lUnderlyingTypeAttachment.additional,
-            baseType: lUnderlyingTypeAttachment.baseType,
-            storable: lUnderlyingTypeAttachment.storable,
-            hostShareable: lUnderlyingTypeAttachment.hostShareable,
-            composite: lUnderlyingTypeAttachment.composite,
-            constructible: lUnderlyingTypeAttachment.constructible,
-            fixedFootprint: lUnderlyingTypeAttachment.fixedFootprint,
-            indexable: lUnderlyingTypeAttachment.indexable
-        };
+        return lUnderlyingTypeAttachment;
     }
 
     /**
@@ -162,56 +147,57 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInTypeName.Position: {
-                return new PgslVectorTypeDefinitionSyntaxTree(PgslVectorTypeName.Vector4, new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.Float, lMetaInformation), lMetaInformation);
+                const lFloatType = PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.Float, this.meta);
+                return PgslVectorTypeDefinitionSyntaxTree.type(PgslVectorTypeName.Vector4, lFloatType, this.meta);
             }
             case PgslBuildInTypeName.LocalInvocationId: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.GlobalInvocationId: {
-                return new PgslVectorTypeDefinitionSyntaxTree(PgslVectorTypeName.Vector3, new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation), lMetaInformation);
+                const lUnsignedIntType = PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorTypeDefinitionSyntaxTree.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.WorkgroupId: {
-                return new PgslVectorTypeDefinitionSyntaxTree(PgslVectorTypeName.Vector3, new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation), lMetaInformation);
+                const lUnsignedIntType = PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorTypeDefinitionSyntaxTree.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.NumWorkgroups: {
-                return new PgslVectorTypeDefinitionSyntaxTree(PgslVectorTypeName.Vector3, new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation), lMetaInformation);
+                const lUnsignedIntType = PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorTypeDefinitionSyntaxTree.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.VertexIndex: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.InstanceIndex: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.FragDepth: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.Float, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.Float, this.meta);
             }
             case PgslBuildInTypeName.SampleIndex: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.SampleMask: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.LocalInvocationIndex: {
-                return new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.UnsignedInteger, lMetaInformation);
+                return PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.FrontFacing: {
-                return new PgslBooleanTypeDefinitionSyntaxTree(lMetaInformation);
+                return PgslBooleanTypeDefinitionSyntaxTree.type(this.meta);
             }
             case PgslBuildInTypeName.ClipDistances: {
-                // Must have a template.
-                if (!this.mTemplate) {
-                    throw new Exception(`Clip distance buildin must have a template value.`, this);
-                }
+                // When the template is a expression, we can use it, when not, we have to ignore it and let the validation handle the error.
+                const lTemplateExpression = this.mTemplate instanceof BasePgslExpressionSyntaxTree ? this.mTemplate : null;
 
-                // Template must be a expression.
-                if (!(this.mTemplate instanceof BasePgslExpressionSyntaxTree)) {
-                    throw new Exception(`Clip distance buildin template value musst be a value expression.`, this);
-                }
+                // Create a new float number type.
+                const lFloatType = PgslNumericTypeDefinitionSyntaxTree.type(PgslNumericTypeName.Float);
 
-                return new PgslArrayTypeDefinitionSyntaxTree(lMetaInformation, new PgslNumericTypeDefinitionSyntaxTree(PgslNumericTypeName.Float, lMetaInformation), this.mTemplate);
+                return new PgslArrayTypeDefinitionSyntaxTree(lMetaInformation, lFloatType, lTemplateExpression);
             }
             default: {
-                throw new Exception(`Build in type "${this.mBuildInType}" not defined.`, this);
+                // Invalid buildin type.
+                return PgslInvalidTypeDefinitionSyntaxTree.type(this.meta);
             }
         }
     }

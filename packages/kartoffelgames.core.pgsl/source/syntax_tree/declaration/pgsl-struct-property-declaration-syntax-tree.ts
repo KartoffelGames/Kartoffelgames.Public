@@ -1,7 +1,7 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTree } from "../type/base-pgsl-type-definition-syntax-tree.ts";
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition-syntax-tree.ts";
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 
 /**
@@ -44,6 +44,11 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
         this.appendChild(pType);
     }
 
+    /**
+     * Transpile current property declaration into a string.
+     * 
+     * @returns Transpiled code.
+     */
     protected override onTranspile(): string {
         // Transpile property type.
         const lType: string = this.mTypeDefinition.transpile();
@@ -62,7 +67,15 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
         this.mTypeDefinition.validate(pValidationTrace);
         this.attributes.validate(pValidationTrace);
 
-        // TODO: Must be plain type or concrete type. creation-fixed footprint Array
-        /// a structure type that has a creation-fixed footprint
+        // Get property type attachment.
+        const lPropertyTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment =  pValidationTrace.getAttachment( this.mTypeDefinition);
+
+        // Validate property type.
+        if (!lPropertyTypeAttachment.concrete) {
+            pValidationTrace.pushError(`Property type must be concrete.`, this.meta, this);
+        }
+        if(!lPropertyTypeAttachment.plain) {
+            pValidationTrace.pushError(`Property type must be plain.`, this.meta, this);
+        }
     }
 }

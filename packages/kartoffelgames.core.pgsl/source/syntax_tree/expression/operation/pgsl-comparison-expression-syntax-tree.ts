@@ -100,7 +100,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         let lValueType: BasePgslTypeDefinitionSyntaxTree;
 
         // Validate vectors differently.
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) { // TODO: Cant do this, as alias types could be vectors as well.
             lValueType = lLeftExpressionAttachment.resolveType.innerType;
         } else {
             lValueType = lLeftExpressionAttachment.resolveType;
@@ -109,8 +109,11 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         // Read value type attachment.
         const lValueTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lValueType);
 
+        // TODO: Values must be same type.
+        // TODO: Values must be scalar or same scalar vector type .
+
         // Both values need to be numeric or boolean.
-        if (lValueTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lValueTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+        if (lValueTypeAttachment.baseType !== PgslBaseTypeName.Float && lValueTypeAttachment.baseType !== PgslBaseTypeName.Integer && lValueTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
             pTrace.pushError(`None numeric or boolean values can't be compared`, this.meta, this);
         }
 
@@ -133,7 +136,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
             });
 
             // Wrap boolean into a vector when it is a vector expression.
-            if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {  // TODO: Cant do this, as alias types could be vectors as well.
                 return new PgslVectorTypeDefinitionSyntaxTree(lLeftExpressionAttachment.resolveType.vectorDimension, lBooleanDefinition, {
                     range: [
                         this.meta.position.start.line,

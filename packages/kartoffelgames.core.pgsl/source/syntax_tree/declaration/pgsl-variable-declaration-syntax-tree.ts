@@ -4,7 +4,7 @@ import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression-syntax-tree.ts';
 import type { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition-syntax-tree.ts';
+import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition-syntax-tree.ts';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
@@ -133,6 +133,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 
     /**
      * Validate data of current structure.
+     * https://www.w3.org/TR/WGSL/#var-and-value
      */
     protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): PgslVariableDeclarationSyntaxTreeValidationAttachment {
         // Push variable definition to current scope.
@@ -173,7 +174,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             }
         };
         const lMustBeScalar = () => {
-            if (lTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
+            if (lTypeAttachment.scalar) {
                 pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be a scalar type.`, this.meta, this);
             }
         };
@@ -203,16 +204,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             }
         };
         const lMustBePlain = () => {
-            const lPlainTypes: Array<PgslBaseTypeName> = [ // TODO; Maybe add that information to each type definition.
-                PgslBaseTypeName.Boolean,
-                PgslBaseTypeName.Numeric,
-                PgslBaseTypeName.Struct,
-                PgslBaseTypeName.Array,
-                PgslBaseTypeName.Vector,
-                PgslBaseTypeName.Matrix
-            ];
-
-            if (!lPlainTypes.includes(lTypeAttachment.baseType)) {
+            if (!lTypeAttachment.plain) {
                 pValidationTrace.pushError(`The type of declaration type "${this.mDeclarationTypeName}" must be a plain type.`, this.meta, this);
                 return;
             }
@@ -257,9 +249,14 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
             }
         }
 
-        // TODO: Validate if expression fits declaration type.
+        // Validate if expression fits declaration type.
+        if(lExpressionAttachment && !BasePgslTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, lExpressionAttachment.resolveType, this.mTypeDeclaration)) {
+            // Read the attachment of the expression type.
+            const lExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
 
-        // TODO: To fit all this into a readable mess: https://www.w3.org/TR/WGSL/#var-and-value
+            // Expression type is not castable into declaration type.
+            pValidationTrace.pushError(`Initializing value of type "${lExpressionTypeAttachment.baseType}" can't be assigned to "${lTypeAttachment.baseType}"`, this.meta, this);
+        }
 
         // Determine fixed state based on declaration type.
         const lFixedState: PgslValueFixedState = (() => {

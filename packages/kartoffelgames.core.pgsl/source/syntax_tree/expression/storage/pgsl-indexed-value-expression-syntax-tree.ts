@@ -1,14 +1,12 @@
-import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
-import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 import { PgslSyntaxTreeValidationTrace } from "../../pgsl-syntax-tree-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTree, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition-syntax-tree.ts";
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
 import { PgslArrayTypeDefinitionSyntaxTree } from "../../type/pgsl-array-type-definition-syntax-tree.ts";
 import { PgslMatrixTypeDefinitionSyntaxTree } from "../../type/pgsl-matrix-type-definition-syntax-tree.ts";
 import { PgslNumericTypeDefinitionSyntaxTree } from "../../type/pgsl-numeric-type-definition-syntax-tree.ts";
 import { PgslVectorTypeDefinitionSyntaxTree } from "../../type/pgsl-vector-type-definition-syntax-tree.ts";
+import { BasePgslExpressionSyntaxTree, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression-syntax-tree.ts';
 
 /**
  * PGSL structure holding a variable with index expression.
@@ -79,22 +77,22 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         const lIndexAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mIndex);
         const lIndexResolveType: BasePgslTypeDefinitionSyntaxTree = lIndexAttachment.resolveType;
 
-        // Value needs to be a unsigned numeric value.
-        if (!(lIndexResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lIndexResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+        // Value needs to be a unsigned numeric value. // TODO: Dont check for instance as Alias still can be a numeric type.
+        if (!(lIndexResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lIndexResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {  // TODO: Cant do this, as alias types could be that as well.
             pTrace.pushError('Index needs to be a unsigned numeric value.', this.mIndex.meta, this);
         }
 
         const lResolveType: BasePgslTypeDefinitionSyntaxTree = (() => {
             switch (true) {
-                case lValueAttachment.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
+                case lValueAttachment.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: { // TODO: Cant do this, as alias types could be that as well.
                     return lValueAttachment.resolveType.innerType;
                 }
 
-                case lValueAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                case lValueAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {  // TODO: Cant do this, as alias types could be that as well.
                     return lValueAttachment.resolveType.innerType;
                 }
 
-                case lValueAttachment.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
+                case lValueAttachment.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: { // TODO: Cant do this, as alias types could be that as well.
                     return lValueAttachment.resolveType.vectorType;
                 }
 

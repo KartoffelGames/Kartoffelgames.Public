@@ -35,13 +35,25 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param _pValidationTrace - Validation trace.
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
-        return this.mStructName === pTarget.mStructName;
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from this and target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+
+        // Must both be a sampler.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Texture) {
+            return false;
+        }
+
+        // Convert attachments to struct attachments as we now know both are structs.
+        const lThisStructTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData> = pValidationTrace.getAttachment(this);
+        const lTargetStructTypeAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
+        return lThisStructTypeAttachment.struct.name === lTargetStructTypeAttachment.struct.name;
     }
 
     /**
@@ -50,8 +62,8 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
-        // A texture is never explicit nor implicit castable.
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A struct is never explicit nor implicit castable.
         return false;
     }
 
@@ -61,8 +73,8 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
-        // A texture is never explicit nor implicit castable.
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A struct is never explicit nor implicit castable.
         return false;
     }
 
@@ -88,10 +100,7 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
             pValidationTrace.pushError(`Name '${this.mStructName}' is does not resolve to a struct declaration.`, this.meta, this);
 
             // Create empty meta.
-            const lEmptyMeta: BasePgslSyntaxTreeMeta = {
-                range: [0, 0, 0, 0],
-                buildIn: false
-            };
+            const lEmptyMeta: BasePgslSyntaxTreeMeta = BasePgslSyntaxTree.emptyMeta();
 
             // Create and validate empty struct.
             const lPlaceholderStruct: PgslStructDeclarationSyntaxTree = new PgslStructDeclarationSyntaxTree(this.mStructName, [], new PgslAttributeListSyntaxTree(lEmptyMeta, []), lEmptyMeta);
@@ -100,16 +109,22 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
             lPlaceholderStruct.validate(pValidationTrace);
 
             return {
-                additional: {
-                    struct: lPlaceholderStruct
-                },
+                // Default struct information.
                 baseType: PgslBaseTypeName.Struct,
                 composite: true,
                 indexable: false,
                 storable: true,
+                scalar: false,
+                concrete: true,
+                plain: true,
+
+                // Data normaly from struct properties.
                 hostShareable: false,
                 constructible: false,
                 fixedFootprint: false,
+
+                // Struct.
+                struct: lPlaceholderStruct,
             };
         }
 
@@ -127,29 +142,33 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
                 lConstructable &&= lPropertyTypeAttachment.constructible;
 
                 // Check if property is host sharable
-                lHostSharable &&= lPropertyTypeAttachment.hostShareable;   
+                lHostSharable &&= lPropertyTypeAttachment.hostShareable;
 
                 // For fixed footprint: all properties except the last must be fixed
-                lFixedFootprint &&= lPropertyTypeAttachment.fixedFootprint;   
+                lFixedFootprint &&= lPropertyTypeAttachment.fixedFootprint;
             }
 
             return [lConstructable, lHostSharable, lFixedFootprint];
         })();
 
         return {
-            additional: {
-                struct: lStruct
-            },
+            // Default struct information.
             baseType: PgslBaseTypeName.Struct,
             composite: true,
             indexable: false,
             storable: true,
+            scalar: false,
+            concrete: true,
+            plain: true,
 
             // Only takes affect when all members are sharing the same property.
             hostShareable: lHostSharable,
             constructible: lConstructable,
             fixedFootprint: lFixedFootprint,
-        }
+
+            // Struct.
+            struct: lStruct
+        };
     }
 }
 

@@ -14,7 +14,7 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // String type is always equal to itself.
         return true;
     }
@@ -27,7 +27,7 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A string is never explicit nor implicit castable.
         return false;
     }
@@ -40,7 +40,7 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // A string is never explicit nor implicit castable.
         return false;
     }
@@ -62,9 +62,8 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns validation attachment.
      */
-    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<undefined> {
+    protected override onValidateIntegrity(_pScope: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
-            additional: undefined,
             baseType: PgslBaseTypeName.String,
             storable: false,
             hostShareable: false,
@@ -72,6 +71,9 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
             constructible: false,
             fixedFootprint: false,
             indexable: false,
+            concrete: false,
+            scalar: false,
+            plain: false
         };
     }
 }

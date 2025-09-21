@@ -234,7 +234,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveArray(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve array type.
-        if (pRawName !== PgslBaseTypeName.Array) {
+        if (pRawName !== 'Array') { // TODO: Use some sort of constant.
             return null;
         }
 
@@ -279,7 +279,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveBoolean(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve boolean type.
-        if (pRawName !== PgslBaseTypeName.Boolean) {
+        if (pRawName !== 'Boolean') { // TODO: Use some sort of constant.
             return null;
         }
 
@@ -429,7 +429,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveString(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve string type.
-        if (pRawName !== PgslBaseTypeName.String) {
+        if (pRawName !== 'string') { // TODO: Use some sort of constant.
             return null;
         }
 
@@ -519,7 +519,7 @@ export class PgslTypeDeclarationSyntaxTreeFactory {
      */
     private resolveVoid(pRawName: string, pRawTemplate: PgslTypeTemplateList, pMeta: BasePgslSyntaxTreeMeta): BasePgslTypeDefinitionSyntaxTree | null {
         // Resolve void type.
-        if (pRawName !== PgslBaseTypeName.Void) {
+        if (pRawName !== 'void') { // TODO: Use some sort of constant.
             return null;
         }
 

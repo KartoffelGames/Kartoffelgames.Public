@@ -95,14 +95,14 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Validate vector inner values. 
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {  // TODO: Cant do this, as alias types could be vectors as well.
             // Validate left side vector type. Right ist the same type.
-            if (!(lLeftExpressionAttachment.resolveType.innerType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+            if (!(lLeftExpressionAttachment.resolveType.innerType instanceof PgslNumericTypeDefinitionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                 pTrace.pushError('Left and right side of arithmetic expression must be a numeric vector value', this.meta, this);
             }
         } else {
             // Validate left side type. Right ist the same type.
-            if (!(lLeftExpressionAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+            if (!(lLeftExpressionAttachment.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
                 pTrace.pushError('Left and right side of arithmetic expression must be a numeric value', this.meta, this);
             }
         }

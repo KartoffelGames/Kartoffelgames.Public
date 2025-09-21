@@ -56,7 +56,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
     protected override onValidateIntegrity(pTrace: PgslSyntaxTreeValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Catch undefined enum names.
         const lReferencedEnum: BasePgslSyntaxTree = pTrace.getScopedValue(this.mName);
-        if (!(lReferencedEnum instanceof PgslEnumDeclarationSyntaxTree)) {
+        if (!(lReferencedEnum instanceof PgslEnumDeclarationSyntaxTree)) { // TODO: Cant do this, as alias types could be that as well.
             pTrace.pushError(`Enum "${this.mName}" not defined.`, this.meta, this);
 
             return {

@@ -6,11 +6,13 @@ import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { PgslSyntaxTreeValidationTrace } from "../pgsl-syntax-tree-validation-trace.ts";
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslNumericTypeDefinitionSyntaxTree } from "./pgsl-numeric-type-definition-syntax-tree.ts";
+import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 
 /**
  * Matrix type definition.
  */
-export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     /**
      * Matrix type to underlying vector type mapping.
      */
@@ -121,14 +123,25 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when both types describes the same type.
      */
-    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+        
+        // Must both be a matrix.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+            return false;
+        }
+
+        // Cast to matrix attachment as we now know it is one.
+        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
         // Inner type must be equal.
-        if (!PgslMatrixTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mInnerType, pTarget.innerType)) {
+        if (!PgslMatrixTypeDefinitionSyntaxTree.equals(pValidationTrace, this.mInnerType, lMatrixTargetAttachment.innerType)) {
             return false;
         }
 
         // Vector dimensions must be equal.
-        return this.mMatrixType === pTarget.matrixDimension;
+        return this.mMatrixType === lMatrixTargetAttachment.dimension;
     }
 
     /**
@@ -139,14 +152,25 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when type is explicit castable into target type.
      */
-    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isExplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+        
+        // Must both be a matrix.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+            return false;
+        }
+
+        // Cast to matrix attachment as we now know it is one.
+        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
         // If matrix dimensions are not equal, it is not castable.
-        if (this.mMatrixType !== pTarget.matrixDimension) {
+        if (this.mMatrixType !== lMatrixTargetAttachment.dimension) {
             return false;
         }
 
         // It is when inner types are.
-        return PgslMatrixTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mInnerType, pTarget.innerType);
+        return PgslMatrixTypeDefinitionSyntaxTree.explicitCastable(pValidationTrace, this.mInnerType, lMatrixTargetAttachment.innerType);
     }
 
     /**
@@ -157,20 +181,31 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * 
      * @returns true when type is implicit castable into target type.
      */
-    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
+    protected override isImplicitCastableInto(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+        
+        // Must both be a matrix.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+            return false;
+        }
+
+        // Cast to matrix attachment as we now know it is one.
+        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
         // If matrix dimensions are not equal, it is not castable.
-        if (this.mMatrixType !== pTarget.matrixDimension) {
+        if (this.mMatrixType !== lMatrixTargetAttachment.dimension) {
             return false;
         }
 
         // It is when inner types are.
-        return PgslMatrixTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mInnerType, pTarget.innerType);
+        return PgslMatrixTypeDefinitionSyntaxTree.implicitCastable(pValidationTrace, this.mInnerType, lMatrixTargetAttachment.innerType);
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
         // Validate inner and vector type.
         this.mInnerType.validate(pValidationTrace);
         this.mVectorTypeDefinition.validate(pValidationTrace);
@@ -179,25 +214,34 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
         const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
 
         // Must be scalar.
-        if (lInnerTypeAttachment.baseType !== PgslBaseTypeName.Numeric && lInnerTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-            pValidationTrace.pushError('Matrix type must be a scalar value', this.meta, this);
+        if (PgslNumericTypeDefinitionSyntaxTree.IsCastable(pValidationTrace, "implicit", this.mInnerType, PgslNumericTypeName.Float)) {
+            pValidationTrace.pushError('Matrix type must be a Float', this.meta, this);
         }
 
-        // TODO: Inner type must be of type float. 
-
         return {
-            additional: undefined,
             baseType: PgslBaseTypeName.Matrix,
+            concrete: true,
+            scalar: false,
+            plain: true,
 
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
-
+            
             // Copy of inner type attachment.
             storable: lInnerTypeAttachment.storable,
             hostShareable: lInnerTypeAttachment.hostShareable,
             constructible: lInnerTypeAttachment.constructible,
             fixedFootprint: lInnerTypeAttachment.fixedFootprint,
+
+            // Additional data.
+            innerType: this.mInnerType,
+            dimension: this.mMatrixType,
         };
     }
 }
+
+export type PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
+    innerType: BasePgslTypeDefinitionSyntaxTree;
+    dimension: PgslMatrixTypeName;
+};

@@ -44,6 +44,11 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         this.appendChild(...pProperties);
     }
 
+    /**
+     * Transpile current struct declaration into a string.
+     * 
+     * @returns Transpiled code.
+     */
     protected override onTranspile(): string {
         // Transpile attribute list.
         const lAttributes: string = this.attributes.transpile();
@@ -68,8 +73,6 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
 
         // Create new scope for validation of properties.
         pValidationTrace.newScope(this, () => {
-            // Only types with fixed footprints.
-            // Only last property is allowed to be variable but then the struct is no longer fixed. // TODO: Maybe set this in validation.
             for (let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++) {
                 // Read property.
                 const lProperty: PgslStructPropertyDeclarationSyntaxTree = this.mProperties[lIndex];
@@ -86,6 +89,7 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
                 // This is used to check for duplicate property names.
                 lNameBuffer.add(lProperty.name);
 
+                // Only last property is allowed to be variable but then the struct is no longer fixed. // TODO: Maybe set this in validation.
                 // Skip for last property. 
                 if (lIndex !== this.mProperties.length - 1) {
                     // Read attachment of type.

@@ -101,7 +101,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<v
         const lExpressionResolveType: BasePgslTypeDefinitionSyntaxTree = lExpressionAttachment.resolveType;
 
         // Expression resolve type must be a unsigned integer.
-        if (!(lExpressionResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lExpressionResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+        if (!(lExpressionResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lExpressionResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) { // TODO: Cant do this, as alias types could be that as well.
             pValidationTrace.pushError('Switch expression must resolve into a unsigned integer.', this.mExpression.meta, this);
         }
 
@@ -122,7 +122,7 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<v
                 const lCaseValueResolveType: BasePgslTypeDefinitionSyntaxTree = lCaseValueAttachment.resolveType;
 
                 // Must be number type.
-                if (!(lCaseValueResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lCaseValueResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {
+                if (!(lCaseValueResolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || lCaseValueResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) { // TODO: Cant do this, as alias types could be that as well.
                     pValidationTrace.pushError('Case expression must be of a unsigned integer type.', lCaseValue.meta, this);
                 }
 

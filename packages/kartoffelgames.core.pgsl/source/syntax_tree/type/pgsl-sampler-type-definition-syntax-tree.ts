@@ -7,7 +7,7 @@ import { PgslSamplerTypeName } from "./enum/pgsl-sampler-build-name.enum.ts";
 /**
  * Sampler type definition.
  */
-export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree {
+export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mComparision!: boolean;
 
     /**
@@ -44,13 +44,24 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param _pValidationTrace - Validation trace.
+     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both share the same comparison type.
      */
-    protected override equals(_pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: this): boolean {
-        return this.mComparision === pTarget.comparison;
+    protected override equals(pValidationTrace: PgslSyntaxTreeValidationTrace, pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Read attachments from target type.
+        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+        
+        // Must both be a sampler.
+        if (lTargetAttachment.baseType !== PgslBaseTypeName.Sampler) {
+            return false;
+        }
+
+        // Cast to sampler attachment as we now know it is one.
+        const lSamplerTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
+
+        return this.mComparision === lSamplerTargetAttachment.comparison;
     }
 
     /**
@@ -59,8 +70,8 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
-        // A texture is never explicit nor implicit castable.
+    protected override isExplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A sampler is never explicit nor implicit castable.
         return false;
     }
 
@@ -70,8 +81,8 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: this): boolean {
-        // A texture is never explicit nor implicit castable.
+    protected override isImplicitCastableInto(_pValidationTrace: PgslSyntaxTreeValidationTrace, _pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // A sampler is never explicit nor implicit castable.
         return false;
     }
 
@@ -80,9 +91,8 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * 
      * @param _pValidationTrace - Validation trace to use.
      */
-    protected override onValidateIntegrity(_pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(_pValidationTrace: PgslSyntaxTreeValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
         return {
-            additional: undefined,
             baseType: PgslBaseTypeName.Sampler,
             composite: false,
             indexable: false,
@@ -90,6 +100,16 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             hostShareable: false,
             constructible: false,
             fixedFootprint: true,
+            concrete: true,
+            scalar: false,
+            plain: false,
+
+            // Additional data.
+            comparison: this.mComparision
         };
     }
 }
+
+export type PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
+    comparison: boolean;
+};

@@ -16,6 +16,36 @@ import type { PgslSyntaxTreeValidationTrace } from './pgsl-syntax-tree-validatio
  *    - onScopeBuild() is called on the current node. Append 
  */
 export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | void = void> {
+    /**
+     * Convert meta data to a syntax tree meta object.
+     * 
+     * @param pMeta - Meta data to convert.
+     * 
+     * @returns Converted meta data. 
+     */
+    public static convertMeta(pMeta: SyntaxTreeMeta): BasePgslSyntaxTreeMeta {
+        return {
+            range: [
+                pMeta.position.start.line,
+                pMeta.position.start.column,
+                pMeta.position.end.line,
+                pMeta.position.end.column,
+            ]
+        };
+    }
+
+    /**
+     * Create empty meta data.
+     * 
+     * @returns Empty meta data.
+     */
+    public static emptyMeta(): BasePgslSyntaxTreeMeta {
+        return {
+            range: [0, 0, 0, 0],
+            buildIn: true
+        };
+    }
+
     private readonly mBuildIn: boolean;
     private readonly mChildNodes: Array<BasePgslSyntaxTree>;
     private readonly mMeta: SyntaxTreeMeta;
@@ -42,7 +72,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
     /**
      * Parent node of the syntax tree.
      */
-    public get parent(): BasePgslSyntaxTree { 
+    public get parent(): BasePgslSyntaxTree {
         if (!this.mParent) {
             throw new Exception('PGSL-Structure not attached to any parent', this);
         }

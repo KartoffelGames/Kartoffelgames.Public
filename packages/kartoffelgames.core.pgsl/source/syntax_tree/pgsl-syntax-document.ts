@@ -52,11 +52,11 @@ export class PgslSyntaxDocument extends BasePgslSyntaxTree {
             for (const lChild of this.childNodes) {
                 // Module scope content must be a specific tree type.
                 switch (true) {
-                    case lChild instanceof PgslAliasDeclarationSyntaxTree: break;
-                    case lChild instanceof PgslEnumDeclarationSyntaxTree: break;
-                    case lChild instanceof PgslFunctionDeclarationSyntaxTree: break;
-                    case lChild instanceof PgslVariableDeclarationSyntaxTree: break;
-                    case lChild instanceof PgslStructDeclarationSyntaxTree: break;
+                    case lChild instanceof PgslAliasDeclarationSyntaxTree: break; // TODO: Cant do this, as alias types could be that as well.
+                    case lChild instanceof PgslEnumDeclarationSyntaxTree: break; // TODO: Cant do this, as alias types could be that as well.
+                    case lChild instanceof PgslFunctionDeclarationSyntaxTree: break; // TODO: Cant do this, as alias types could be that as well.
+                    case lChild instanceof PgslVariableDeclarationSyntaxTree: break; // TODO: Cant do this, as alias types could be that as well.
+                    case lChild instanceof PgslStructDeclarationSyntaxTree: break; // TODO: Cant do this, as alias types could be that as well.
                     default: {
                         pTrace.pushError(`Unknown module structure.`, lChild.meta, lChild);
                     }

@@ -56,19 +56,19 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
         let lValueType: BasePgslTypeDefinitionSyntaxTree;
 
         // Validate vectors differently.
-        if (lExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+        if (lExpressionAttachment.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {  // TODO: Cant do this, as alias types could be vectors as well.
             lValueType = lExpressionAttachment.resolveType.innerType;
         } else {
             lValueType = lExpressionAttachment.resolveType;
         }
 
         // Read expression resolve type attachment.
-        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lExpressionAttachment.resolveType);
+        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lValueType);
 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Integer && lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Float) {
                     pTrace.pushError(`Binary negation only valid for numeric type.`, this.meta, this);
                 }
 
@@ -76,7 +76,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree 
             }
             case PgslOperator.Minus: {
                 // TODO: Not unsigned int.
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
+                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Integer && lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Float) {
                     pTrace.pushError(`Negation only valid for numeric or vector type.`, this.meta, this);
                 }
 

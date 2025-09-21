@@ -1,11 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PgslParser } from "../../../source/parser/pgsl-parser.ts";
-import { PgslSyntaxDocument } from "../../../source/syntax_tree/pgsl-syntax-document.ts";
-import { PgslVariableDeclarationSyntaxTree } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts";
+import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
+import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.enum.ts";
-import { BasePgslTypeDefinitionSyntaxTree } from "../../../source/syntax_tree/type/base-pgsl-type-definition-syntax-tree.ts";
-import { BasePgslExpressionSyntaxTree } from "../../../source/syntax_tree/expression/base-pgsl-expression-syntax-tree.ts";
-import { PgslSyntaxTreeValidationTrace } from "../../../source/syntax_tree/pgsl-syntax-tree-validation-trace.ts";
+import { BasePgslTypeDefinition } from "../../../source/syntax_tree/type/base-pgsl-type-definition.ts";
+import { BasePgslExpression } from "../../../source/syntax_tree/expression/base-pgsl-expression.ts";
+import { PgslValidationTrace } from "../../../source/syntax_tree/pgsl-validation-trace.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
@@ -20,13 +20,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -35,19 +35,19 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpressionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
     });
 
     await pContext.step("Const must be assignable to another const", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with const assignment.
         const lCodeText: string = `
@@ -64,7 +64,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const without initialization expression", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text without initialization.
         const lCodeText: string = "const testVariable: Float;";
@@ -81,7 +81,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const with non-constant expression", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-constant expression (assuming variable access is non-constant).
         const lCodeText: string = `
@@ -101,7 +101,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const with non-constructible type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-constant expression (assuming variable access is non-constant).
         const lCodeText: string = `
@@ -120,7 +120,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const with type mismatch", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with type mismatch (Float variable with Boolean value).
         const lCodeText: string = "const testVariable: Float = true;";
@@ -137,7 +137,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -165,10 +165,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation. No errors.
@@ -184,7 +184,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lVariableType: string = "Float";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `
@@ -193,7 +193,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         `;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -202,19 +202,19 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
         expect(lDeclarationNode.expression).toBe(null);
     });
 
     await pContext.step("Storage with optional AccessMode attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with optional AccessMode attribute.
         const lCodeText: string = `
@@ -232,7 +232,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
     await pContext.step("Error - Storage without required GroupBinding attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text without required GroupBinding.
         const lCodeText: string = "storage testVariable: Float;";
@@ -249,7 +249,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
     await pContext.step("Error - Storage with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -270,7 +270,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
     await pContext.step("Error - Storage with initialization expression", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with initialization.
         const lCodeText: string = `
@@ -290,7 +290,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
     await pContext.step("Error - Storage with non-host-shareable type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-host-shareable type.
         const lCodeText: string = `
@@ -320,10 +320,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         `;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -339,7 +339,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lVariableType: string = "Float";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `
@@ -348,7 +348,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         `;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -357,19 +357,19 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
         expect(lDeclarationNode.expression).toBe(null);
     });
 
     await pContext.step("Uniform with optional AccessMode attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with optional AccessMode attribute.
         const lCodeText: string = `
@@ -387,7 +387,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform without required GroupBinding attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text without required GroupBinding.
         const lCodeText: string = "uniform testVariable: Float;";
@@ -404,7 +404,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -425,7 +425,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform with initialization expression", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with initialization.
         const lCodeText: string = `
@@ -445,7 +445,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform with non-constructible type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-constructible type.
         const lCodeText: string = `
@@ -465,7 +465,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform with non-host-shareable type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-host-shareable type.
         const lCodeText: string = `
@@ -495,10 +495,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         `;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -517,10 +517,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         `;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -539,10 +539,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         `;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -558,13 +558,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lVariableType: string = "Float";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -573,13 +573,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
         expect(lDeclarationNode.expression).toBe(null);
     });
 
@@ -591,26 +591,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
 
         // Validation. Correct structure.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpressionSyntaxTree as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
     });
 
     await pContext.step("Error - Workgroup with non-fixed-footprint type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-fixed-footprint type.
         const lCodeText: string = "workgroup testVariable: TextureDepth2d;";
@@ -627,7 +627,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
     await pContext.step("Error - Workgroup with non-plain type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-plain type.
         const lCodeText: string = "workgroup testVariable: TextureDepth2d;";
@@ -644,7 +644,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
     await pContext.step("Error - Workgroup with type mismatch", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with type mismatch (Float variable with Boolean value).
         const lCodeText: string = "workgroup testVariable: Float = true;";
@@ -661,7 +661,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
     await pContext.step("Error - Workgroup with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -688,10 +688,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -708,10 +708,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -727,13 +727,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lVariableType: string = "Float";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -742,13 +742,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
         expect(lDeclarationNode.expression).toBe(null);
     });
 
@@ -760,26 +760,26 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
 
         // Validation. Correct structure.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpressionSyntaxTree as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
     });
 
     await pContext.step("Error - Private with non-constructible type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-constructible type.
         const lCodeText: string = "private testVariable: TextureDepth2d;";
@@ -796,7 +796,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
     await pContext.step("Error - Private with type mismatch", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with type mismatch (Float variable with Boolean value).
         const lCodeText: string = "private testVariable: Float = true;";
@@ -813,7 +813,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
     await pContext.step("Error - Private with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -840,10 +840,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -860,10 +860,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.
@@ -880,13 +880,13 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
         // Execute.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(lValidationTrace);
 
         // Validation. No errors.
         expect(lValidationTrace.errors).toHaveLength(0);
@@ -895,19 +895,19 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         expect(lSyntaxTree.childNodes).toHaveLength(1);
 
         // Validation. Correct type of child node.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
-        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclarationSyntaxTree);
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
+        expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
 
         // Validation. Correct structure.
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
         expect(lDeclarationNode.name).toBe(lVariableName);
-        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinitionSyntaxTree as any);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpressionSyntaxTree as any);
+        expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
     });
 
     await pContext.step("Error - Param without initialization expression", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text without initialization.
         const lCodeText: string = "param testVariable: Float;";
@@ -924,7 +924,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param with non-constructible type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-constructible type.
         const lCodeText: string = "param testVariable: TextureDepth2d = 5.0;";
@@ -941,7 +941,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param with non-scalar type", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with non-scalar type.
         const lCodeText: string = "param testVariable: TextureDepth2d = true;";
@@ -958,7 +958,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param with type mismatch", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with type mismatch (Float variable with Boolean value).
         const lCodeText: string = "param testVariable: Float = true;";
@@ -975,7 +975,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param with invalid attribute", async () => {
         // Setup. Validation trace.
-        const lValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationTrace = new PgslValidationTrace();
 
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
@@ -1003,10 +1003,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
 
         // Setup. Syntax tree.
-        const lSyntaxTree: PgslSyntaxDocument = gPgslParser.parse(lCodeText).validate(new PgslSyntaxTreeValidationTrace());
+        const lSyntaxTree: PgslDocument = gPgslParser.parse(lCodeText).validate(new PgslValidationTrace());
 
         // Execute.
-        const lDeclarationNode: PgslVariableDeclarationSyntaxTree = lSyntaxTree.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+        const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         const lTranspilationResult: string = lDeclarationNode.transpile();
 
         // Validation.

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import type { PgslSyntaxDocument } from './pgsl-syntax-document.ts';
-import type { PgslSyntaxTreeValidationTrace } from './pgsl-syntax-tree-validation-trace.ts';
+import type { PgslDocument } from './pgsl-document.ts';
+import type { PgslValidationTrace } from './pgsl-validation-trace.ts';
 
 /**
  * Base pgsl syntax tree object.
@@ -61,7 +61,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
     /**
      * Assoziated document of pgsl structure.
      */
-    public get document(): PgslSyntaxDocument {
+    public get document(): PgslDocument {
         if (!this.mParent) {
             throw new Exception('PGSL-Structure not attached to any document', this);
         }
@@ -136,7 +136,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * 
      * @return this - Reference to the current syntax tree.
      */
-    public validate(pTrace: PgslSyntaxTreeValidationTrace): this {
+    public validate(pTrace: PgslValidationTrace): this {
         // Call structure validate function.
         const lValidationAttachment: TValidationAttachment = this.onValidateIntegrity(pTrace);
         if (typeof lValidationAttachment !== 'undefined') {
@@ -189,7 +189,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * Validate syntax tree.
      * Shouldn't throw. Errors should be added to the scope.
      */
-    protected abstract onValidateIntegrity(pScope: PgslSyntaxTreeValidationTrace): TValidationAttachment;
+    protected abstract onValidateIntegrity(pScope: PgslValidationTrace): TValidationAttachment;
 }
 
 

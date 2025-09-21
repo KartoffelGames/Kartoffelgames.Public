@@ -1,47 +1,47 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import type { BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
-import type { BasePgslDeclarationSyntaxTree } from '../syntax_tree/declaration/base-pgsl-declaration-syntax-tree.ts';
-import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-alias-declaration-syntax-tree.ts';
-import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-enum-declaration-syntax-tree.ts';
-import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-function-declaration-syntax-tree.ts';
-import { PgslStructDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-struct-declaration-syntax-tree.ts';
-import { PgslStructPropertyDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-struct-property-declaration-syntax-tree.ts';
-import { PgslVariableDeclarationSyntaxTree } from '../syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts';
-import type { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree.ts';
-import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree.ts';
-import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-binary-expression-syntax-tree.ts';
-import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression-syntax-tree.ts';
-import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression-syntax-tree.ts';
-import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-address-of-expression-syntax-tree.ts';
-import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree.ts';
-import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree.ts';
-import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree.ts';
-import { PgslNewCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-new-expression-syntax-tree.ts';
-import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree.ts';
-import { PgslStringValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree.ts';
-import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-indexed-value-expression-syntax-tree.ts';
-import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-pointer-expression-syntax-tree.ts';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-value-decomposition-expression-syntax-tree.ts';
-import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-variable-name-expression-syntax-tree.ts';
-import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree.ts';
-import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree.ts';
-import type { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree.ts';
-import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-do-while-statement-syntax-tree.ts';
-import { PgslForStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-for-statement-syntax-tree.ts';
-import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-if-statement-syntax-tree.ts';
-import { type PgslSwitchStatementSwitchCase, PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-switch-statement-syntax-tree.ts';
-import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branch/pgsl-while-statement-syntax-tree.ts';
-import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree.ts';
-import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree.ts';
-import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree.ts';
-import { PgslIncrementDecrementStatementSyntaxTree } from '../syntax_tree/statement/pgsl-increment-decrement-statement-syntax-tree.ts';
-import { PgslReturnStatementSyntaxTree } from '../syntax_tree/statement/pgsl-return-statement-syntax-tree.ts';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/statement/pgsl-variable-declaration-statement-syntax-tree.ts';
-import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree.ts';
-import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree.ts';
-import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree.ts';
-import type { BasePgslTypeDefinitionSyntaxTree } from '../syntax_tree/type/base-pgsl-type-definition-syntax-tree.ts';
+import type { BasePgslDeclaration } from '../syntax_tree/declaration/base-pgsl-declaration.ts';
+import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
+import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
+import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';
+import { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
+import { PgslStructPropertyDeclaration } from '../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import { PgslVariableDeclaration } from '../syntax_tree/declaration/pgsl-variable-declaration.ts';
+import type { BasePgslExpression } from '../syntax_tree/expression/base-pgsl-expression.ts';
+import { PgslArithmeticExpression } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression.ts';
+import { PgslBinaryExpression } from '../syntax_tree/expression/operation/pgsl-binary-expression.ts';
+import { PgslComparisonExpression } from '../syntax_tree/expression/operation/pgsl-comparison-expression.ts';
+import { PgslLogicalExpression } from '../syntax_tree/expression/operation/pgsl-logical-expression.ts';
+import { PgslAddressOfExpression } from '../syntax_tree/expression/single_value/pgsl-address-of-expression.ts';
+import { PgslEnumValueExpression } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression.ts';
+import { PgslFunctionCallExpression } from '../syntax_tree/expression/single_value/pgsl-function-call-expression.ts';
+import { PgslLiteralValueExpression } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression.ts';
+import { PgslNewCallExpression } from '../syntax_tree/expression/single_value/pgsl-new-expression.ts';
+import { PgslParenthesizedExpression } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression.ts';
+import { PgslStringValueExpression } from '../syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
+import { PgslIndexedValueExpression } from '../syntax_tree/expression/storage/pgsl-indexed-value-expression.ts';
+import { PgslPointerExpression } from '../syntax_tree/expression/storage/pgsl-pointer-expression.ts';
+import { PgslValueDecompositionExpression } from '../syntax_tree/expression/storage/pgsl-value-decomposition-expression.ts';
+import { PgslVariableNameExpression } from '../syntax_tree/expression/storage/pgsl-variable-name-expression.ts';
+import { PgslUnaryExpression } from '../syntax_tree/expression/unary/pgsl-unary-expression.ts';
+import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts';
+import type { BasePgslStatement } from '../syntax_tree/statement/base-pgsl-statement.ts';
+import { PgslDoWhileStatement } from '../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
+import { PgslForStatement } from '../syntax_tree/statement/branch/pgsl-for-statement.ts';
+import { PgslIfStatement } from '../syntax_tree/statement/branch/pgsl-if-statement.ts';
+import { type PgslSwitchStatementSwitchCase, PgslSwitchStatement } from '../syntax_tree/statement/branch/pgsl-switch-statement.ts';
+import { PgslWhileStatement } from '../syntax_tree/statement/branch/pgsl-while-statement.ts';
+import { PgslAssignmentStatement } from '../syntax_tree/statement/pgsl-assignment-statement.ts';
+import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement.ts';
+import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement.ts';
+import { PgslIncrementDecrementStatement } from '../syntax_tree/statement/pgsl-increment-decrement-statement.ts';
+import { PgslReturnStatement } from '../syntax_tree/statement/pgsl-return-statement.ts';
+import { PgslVariableDeclarationStatement } from '../syntax_tree/statement/pgsl-variable-declaration-statement.ts';
+import { PgslBreakStatement } from '../syntax_tree/statement/single/pgsl-break-statement.ts';
+import { PgslContinueStatement } from '../syntax_tree/statement/single/pgsl-continue-statement.ts';
+import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-discard-statement.ts';
+import type { BasePgslTypeDefinition } from '../syntax_tree/type/base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum.ts';
 import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum.ts';
@@ -52,11 +52,11 @@ import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-na
 import { PgslTypeDeclarationSyntaxTreeFactory } from './pgsl-type-definition-syntax-tree-factory.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslSyntaxDocument } from '../syntax_tree/pgsl-syntax-document.ts';
-import { PgslSyntaxTreeValidationTrace } from '../syntax_tree/pgsl-syntax-tree-validation-trace.ts';
+import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
+import { PgslValidationTrace } from '../syntax_tree/pgsl-validation-trace.ts';
 import { PgslAccessModeEnumDeclaration } from "../buildin/pgsl-access-mode-enum-declaration.ts";
 
-export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
+export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
     private mEnableValidation: boolean;
 
@@ -118,7 +118,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public override parse(pCodeText: string): PgslSyntaxDocument {
+    public override parse(pCodeText: string): PgslDocument {
         // Clear old parsing buffers.
         this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
 
@@ -133,12 +133,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         // TODO: Replace comments with same amount of spaces ans newlines.
 
         // Parse document structure.
-        const lDocument: PgslSyntaxDocument = super.parse(pCodeText);
+        const lDocument: PgslDocument = super.parse(pCodeText);
 
         // Create, append and add predifinitions.
         this.mTypeFactory.addEnumPredefinition(lDocument.addBuildInContent(new PgslAccessModeEnumDeclaration()).name);
 
-        const lValidationScope: PgslSyntaxTreeValidationTrace = new PgslSyntaxTreeValidationTrace();
+        const lValidationScope: PgslValidationTrace = new PgslValidationTrace();
 
         // Validate document.
         if (this.mEnableValidation) {
@@ -224,7 +224,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<ATTRIBUTE_ITEM><ATTRIBUTE_ITEM>"
          * ```
          */
-        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeListSyntaxTree>[1][number]>; }> = Graph.define(() => {
+        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeList>[1][number]>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lAttributeItemGraph)
                 .optional('list<-list', lAttributeListGraph); // Self reference
@@ -232,14 +232,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
 
         /**
          * Attribute list.
-         * Converts the internal attribute list into a {@link PgslAttributeListSyntaxTree}
+         * Converts the internal attribute list into a {@link PgslAttributeList}
          */
         const lAttributeListSyntaxTreeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .optional('list<-list', lAttributeListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeList => {
             // Create attribute list syntax tree.
-            return new PgslAttributeListSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
+            return new PgslAttributeList(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
         });
 
         /**
@@ -250,7 +250,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
          * ```
          */
-        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpressionSyntaxTree | BasePgslTypeDefinitionSyntaxTree>; }> = Graph.define(() => {
+        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpression | BasePgslTypeDefinition>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
                     pExpressionGraphs.expression,
@@ -270,7 +270,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
          * ```
          */
-        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, BasePgslTypeDefinitionSyntaxTree> = Graph.define(() => {
+        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, BasePgslTypeDefinition> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
@@ -279,15 +279,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
                 );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinitionSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinition => {
             // Define root structure of type definition syntax tree structure data and apply type name.
-            const lTemplateList: Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = pData.templateList ?? [];
+            const lTemplateList: Array<BasePgslTypeDefinition | BasePgslExpression> = pData.templateList ?? [];
 
             // Sometimes a variable name expression is a type definition :(
             // So we need to filter it.
             for (let lIndex: number = 0; lIndex < lTemplateList.length; lIndex++) {
-                const lParameter: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = lTemplateList[lIndex];
-                if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
+                const lParameter: BasePgslTypeDefinition | BasePgslExpression = lTemplateList[lIndex];
+                if (lParameter instanceof PgslVariableNameExpression) {
                     // Replace variable name expression with type expression.
                     if (this.nameIsType(lParameter.variableName)) {
                         // Replace variable name with a type definition of the same name.
@@ -326,7 +326,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION> || <EXPRESSION>"
          * ```
          */
-        const lLogicalExpressionGraph: Graph<PgslToken, object, PgslLogicalExpressionSyntaxTree> = Graph.define(() => {
+        const lLogicalExpressionGraph: Graph<PgslToken, object, PgslLogicalExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required('operation', [
@@ -334,8 +334,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.OperatorShortCircuitAnd
                 ])
                 .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLogicalExpressionSyntaxTree => {
-            return new PgslLogicalExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLogicalExpression => {
+            return new PgslLogicalExpression(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -348,7 +348,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION> % <EXPRESSION>"
          * ```
          */
-        const lArithmeticExpressionGraph: Graph<PgslToken, object, PgslArithmeticExpressionSyntaxTree> = Graph.define(() => {
+        const lArithmeticExpressionGraph: Graph<PgslToken, object, PgslArithmeticExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required('operation', [
@@ -359,8 +359,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.OperatorModulo
                 ])
                 .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslArithmeticExpressionSyntaxTree => {
-            return new PgslArithmeticExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslArithmeticExpression => {
+            return new PgslArithmeticExpression(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -374,7 +374,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION> >= <EXPRESSION>"
          * ```
          */
-        const lComparisonExpressionGraph: Graph<PgslToken, object, PgslComparisonExpressionSyntaxTree> = Graph.define(() => {
+        const lComparisonExpressionGraph: Graph<PgslToken, object, PgslComparisonExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required('comparison', [
@@ -386,8 +386,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.OperatorGreaterThanEqual
                 ])
                 .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslComparisonExpressionSyntaxTree => {
-            return new PgslComparisonExpressionSyntaxTree(pData.leftExpression, pData.comparison, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslComparisonExpression => {
+            return new PgslComparisonExpression(pData.leftExpression, pData.comparison, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -400,7 +400,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION> >> <EXPRESSION>"
          * ```
          */
-        const lBitOperationExpressionGraph: Graph<PgslToken, object, PgslBinaryExpressionSyntaxTree> = Graph.define(() => {
+        const lBitOperationExpressionGraph: Graph<PgslToken, object, PgslBinaryExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required('operation', [
@@ -411,8 +411,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.OperatorShiftRight
                 ])
                 .required('rightExpression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBinaryExpressionSyntaxTree => {
-            return new PgslBinaryExpressionSyntaxTree(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBinaryExpression => {
+            return new PgslBinaryExpression(pData.leftExpression, pData.operation, pData.rightExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -423,7 +423,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "!<EXPRESSION>"
          * ```
          */
-        const lUnaryExpressionGraph: Graph<PgslToken, object, PgslUnaryExpressionSyntaxTree> = Graph.define(() => {
+        const lUnaryExpressionGraph: Graph<PgslToken, object, PgslUnaryExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('prefix', [
                     PgslToken.OperatorBinaryNegate,
@@ -431,8 +431,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.OperatorNot
                 ])
                 .required('expression', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslUnaryExpressionSyntaxTree => {
-            return new PgslUnaryExpressionSyntaxTree(pData.expression, pData.prefix, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslUnaryExpression => {
+            return new PgslUnaryExpression(pData.expression, pData.prefix, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -441,11 +441,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<IDENTIFIER>"
          * ```
          */
-        const lVariableNameExpressionGraph: Graph<PgslToken, object, PgslVariableNameExpressionSyntaxTree> = Graph.define(() => {
+        const lVariableNameExpressionGraph: Graph<PgslToken, object, PgslVariableNameExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('name', PgslToken.Identifier);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
-            return new PgslVariableNameExpressionSyntaxTree(pData.name, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpression => {
+            return new PgslVariableNameExpression(pData.name, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -454,14 +454,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION>[<EXPRESSION>]"
          * ```
          */
-        const lIndexedValueExpressionGraph: Graph<PgslToken, object, PgslIndexedValueExpressionSyntaxTree> = Graph.define(() => {
+        const lIndexedValueExpressionGraph: Graph<PgslToken, object, PgslIndexedValueExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('value', lExpressionSyntaxTreeGraph)
                 .required(PgslToken.ListStart)
                 .required('indexExpression', lExpressionSyntaxTreeGraph)
                 .required(PgslToken.ListEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
-            return new PgslIndexedValueExpressionSyntaxTree(pData.value, pData.indexExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpression => {
+            return new PgslIndexedValueExpression(pData.value, pData.indexExpression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -471,24 +471,24 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION>.<IDENTIFIER>"
          * ```
          */
-        const lValueDecompositionExpressionGraph: Graph<PgslToken, object, PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree> = Graph.define(() => {
+        const lValueDecompositionExpressionGraph: Graph<PgslToken, object, PgslEnumValueExpression | PgslValueDecompositionExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required(PgslToken.MemberDelimiter)
                 .required('propertyName', PgslToken.Identifier);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpression | PgslValueDecompositionExpression => {
             // When left expression is a single name, it can be a enum value.
-            if (pData.leftExpression instanceof PgslVariableNameExpressionSyntaxTree) {
+            if (pData.leftExpression instanceof PgslVariableNameExpression) {
                 // Check variable name with the currently list of declared enums. 
                 const lVariableName: string = pData.leftExpression.variableName;
                 if (this.mTypeFactory.enumNames.has(lVariableName)) {
                     // Return enum value structure data instead.
-                    return new PgslEnumValueExpressionSyntaxTree(lVariableName, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
+                    return new PgslEnumValueExpression(lVariableName, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
                 }
             }
 
             // When not a enum than it can only be a decomposition.
-            return new PgslValueDecompositionExpressionSyntaxTree(pData.leftExpression, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslValueDecompositionExpression(pData.leftExpression, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -497,13 +497,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "(<EXPRESSION>)"
          * ```
          */
-        const lParenthesizedExpressionGraph: Graph<PgslToken, object, PgslParenthesizedExpressionSyntaxTree> = Graph.define(() => {
+        const lParenthesizedExpressionGraph: Graph<PgslToken, object, PgslParenthesizedExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.ParenthesesStart)
                 .required('expression', lExpressionSyntaxTreeGraph)
                 .required(PgslToken.ParenthesesEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
-            return new PgslParenthesizedExpressionSyntaxTree(pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpression => {
+            return new PgslParenthesizedExpression(pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -513,15 +513,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<LITERAL_BOOLEAN>"
          * ```
          */
-        const lLiteralValueExpressionGraph: Graph<PgslToken, object, PgslLiteralValueExpressionSyntaxTree> = Graph.define(() => {
+        const lLiteralValueExpressionGraph: Graph<PgslToken, object, PgslLiteralValueExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('value', [
                     PgslToken.LiteralFloat,
                     PgslToken.LiteralInteger,
                     PgslToken.LiteralBoolean
                 ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
-            return new PgslLiteralValueExpressionSyntaxTree(pData.value, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpression => {
+            return new PgslLiteralValueExpression(pData.value, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -530,11 +530,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<LITERAL_STRING>"
          * ```
          */
-        const lStringValueExpressionGraph: Graph<PgslToken, object, PgslStringValueExpressionSyntaxTree> = Graph.define(() => {
+        const lStringValueExpressionGraph: Graph<PgslToken, object, PgslStringValueExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('string', PgslToken.LiteralString);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
-            return new PgslStringValueExpressionSyntaxTree(pData.string, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpression => {
+            return new PgslStringValueExpression(pData.string, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -543,12 +543,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "&<EXPRESSION>"
          * ```
          */
-        const lAddressOfExpressionGraph: Graph<PgslToken, object, PgslAddressOfExpressionSyntaxTree> = Graph.define(() => {
+        const lAddressOfExpressionGraph: Graph<PgslToken, object, PgslAddressOfExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorBinaryAnd)
                 .required('variable', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
-            return new PgslAddressOfExpressionSyntaxTree(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpression => {
+            return new PgslAddressOfExpression(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -557,12 +557,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "*<EXPRESSION>"
          * ```
          */
-        const lPointerExpressionGraph: Graph<PgslToken, object, PgslPointerExpressionSyntaxTree> = Graph.define(() => {
+        const lPointerExpressionGraph: Graph<PgslToken, object, PgslPointerExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorMultiply)
                 .required('variable', lExpressionSyntaxTreeGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
-            return new PgslPointerExpressionSyntaxTree(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpression => {
+            return new PgslPointerExpression(pData.variable, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /** 
@@ -573,7 +573,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION>, <EXPRESSION>, <EXPRESSION>"
          * ```
          */
-        const lExpressionListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpressionSyntaxTree>; }> = Graph.define(() => {
+        const lExpressionListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpression>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lExpressionSyntaxTreeGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -589,15 +589,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION>(<EXPRESSION_LIST>)"
          * ```
          */
-        const lFunctionCallExpressionGraph: Graph<PgslToken, object, PgslFunctionCallExpressionSyntaxTree> = Graph.define(() => {
+        const lFunctionCallExpressionGraph: Graph<PgslToken, object, PgslFunctionCallExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('name', PgslToken.Identifier)
                 .required(PgslToken.ParenthesesStart)
                 .optional('parameters<-list', lExpressionListGraph)
                 .required(PgslToken.ParenthesesEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpression => {
             // Create function call expression syntax tree.
-            return new PgslFunctionCallExpressionSyntaxTree(pData.name, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslFunctionCallExpression(pData.name, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -607,23 +607,23 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "new <TYPE_DECLARATION>(<EXPRESSION_LIST>)"
          * ```
          */
-        const lNewExpressionGraph: Graph<PgslToken, object, PgslNewCallExpressionSyntaxTree> = Graph.define(() => {
+        const lNewExpressionGraph: Graph<PgslToken, object, PgslNewCallExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordNew)
                 .required('type', pCoreGraphs.typeDeclaration)
                 .required(PgslToken.ParenthesesStart)
                 .optional('parameters<-list', lExpressionListGraph)
                 .required(PgslToken.ParenthesesEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslNewCallExpressionSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslNewCallExpression => {
             // Create function call expression syntax tree.
-            return new PgslNewCallExpressionSyntaxTree(pData.type, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslNewCallExpression(pData.type, pData.parameters ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
          * Expression graph. 
          * Bundles the different expressions into a single graph.
          */
-        const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, BasePgslExpressionSyntaxTree> = Graph.define(() => {
+        const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, BasePgslExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', [
                     // Combination expressions, combining two expressions.
@@ -649,7 +649,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     lStringValueExpressionGraph,
                     lVariableNameExpressionGraph,
                 ]);
-        }).converter((pData): BasePgslExpressionSyntaxTree => {
+        }).converter((pData): BasePgslExpression => {
             return pData.expression;
         });
 
@@ -674,7 +674,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "if(<EXPRESSION>)<BLOCK> else <SELF>"
          * ```
          */
-        const lIfStatementGraph: Graph<PgslToken, object, PgslIfStatementSyntaxTree> = Graph.define(() => {
+        const lIfStatementGraph: Graph<PgslToken, object, PgslIfStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordIf)
                 .required(PgslToken.ParenthesesStart)
@@ -688,16 +688,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                         lIfStatementGraph // Self reference.
                     ])
                 );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatement => {
             // Create data.
-            const lData: ConstructorParameters<typeof PgslIfStatementSyntaxTree>[0] = {
+            const lData: ConstructorParameters<typeof PgslIfStatement>[0] = {
                 expression: pData.expression,
                 block: pData.block,
                 else: pData.elseBlock ?? null
             };
 
             // Create if statement syntax tree.
-            return new PgslIfStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslIfStatement(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -708,7 +708,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<STATEMENT><STATEMENT><STATEMENT>"
          * ```
          */
-        const lStatementListGraph: Graph<PgslToken, object, { list: Array<BasePgslStatementSyntaxTree>; }> = Graph.define(() => {
+        const lStatementListGraph: Graph<PgslToken, object, { list: Array<BasePgslStatement>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lStatementSyntaxTreeGraph)
                 .optional('list<-list', lStatementListGraph); // Self reference.
@@ -721,13 +721,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "{<STATEMENT_LIST>}"
          * ```
          */
-        const lBlockStatementGraph: Graph<PgslToken, object, PgslBlockStatementSyntaxTree> = Graph.define(() => {
+        const lBlockStatementGraph: Graph<PgslToken, object, PgslBlockStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.BlockStart)
                 .optional('statements<-list', lStatementListGraph)
                 .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
-            return new PgslBlockStatementSyntaxTree(pData.statements ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatement => {
+            return new PgslBlockStatement(pData.statements ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -763,7 +763,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "switch(<EXPRESSION>){<CASE_LIST> default <BLOCK>} "
          * '''
          */
-        const lSwitchStatementGraph: Graph<PgslToken, object, PgslSwitchStatementSyntaxTree> = Graph.define(() => {
+        const lSwitchStatementGraph: Graph<PgslToken, object, PgslSwitchStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordSwitch)
                 .required(PgslToken.ParenthesesStart)
@@ -776,9 +776,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     .required('block', lBlockStatementGraph)
                 )
                 .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSwitchStatement => {
             // Build switch data structure.
-            return new PgslSwitchStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken), {
+            return new PgslSwitchStatement(this.createTokenBoundParameter(pStartToken, pEndToken), {
                 expression: pData.expression,
                 cases: pData.cases ?? [],
                 default: pData.defaultBlock ?? null
@@ -791,15 +791,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "while(<EXPRESSION>)<BLOCK>"
          * ```
          */
-        const lWhileStatementGraph: Graph<PgslToken, object, PgslWhileStatementSyntaxTree> = Graph.define(() => {
+        const lWhileStatementGraph: Graph<PgslToken, object, PgslWhileStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordWhile)
                 .required(PgslToken.ParenthesesStart)
                 .required('expression', pExpressionGraphs.expression)
                 .required(PgslToken.ParenthesesEnd)
                 .required('block', lBlockStatementGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
-            return new PgslWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatement => {
+            return new PgslWhileStatement(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -808,7 +808,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "do <BLOCK> while(<EXPRESSION>)"
          * ```
          */
-        const lDoWhileStatementGraph: Graph<PgslToken, object, PgslDoWhileStatementSyntaxTree> = Graph.define(() => {
+        const lDoWhileStatementGraph: Graph<PgslToken, object, PgslDoWhileStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordDo)
                 .required('block', lBlockStatementGraph)
@@ -816,8 +816,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 .required(PgslToken.ParenthesesStart)
                 .required('expression', pExpressionGraphs.expression)
                 .required(PgslToken.ParenthesesEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
-            return new PgslDoWhileStatementSyntaxTree(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDoWhileStatement => {
+            return new PgslDoWhileStatement(pData.expression, pData.block, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -826,11 +826,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "break"
          * ```
          */
-        const lBreakStatementGraph: Graph<PgslToken, object, PgslBreakStatementSyntaxTree> = Graph.define(() => {
+        const lBreakStatementGraph: Graph<PgslToken, object, PgslBreakStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordBreak);
-        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
-            return new PgslBreakStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBreakStatement => {
+            return new PgslBreakStatement(this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -839,11 +839,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "continue"
          * ```
          */
-        const lContinueStatementGraph: Graph<PgslToken, object, PgslContinueStatementSyntaxTree> = Graph.define(() => {
+        const lContinueStatementGraph: Graph<PgslToken, object, PgslContinueStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordContinue);
-        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
-            return new PgslContinueStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslContinueStatement => {
+            return new PgslContinueStatement(this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -853,12 +853,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "return <EXPRESSION>"
          * ```
          */
-        const lReturnStatementGraph: Graph<PgslToken, object, PgslReturnStatementSyntaxTree> = Graph.define(() => {
+        const lReturnStatementGraph: Graph<PgslToken, object, PgslReturnStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordReturn)
                 .optional('expression', pExpressionGraphs.expression);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
-            return new PgslReturnStatementSyntaxTree(pData.expression ?? null, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslReturnStatement => {
+            return new PgslReturnStatement(pData.expression ?? null, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -867,11 +867,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "discard"
          * ```
          */
-        const lDiscardStatementGraph: Graph<PgslToken, object, PgslDiscardStatementSyntaxTree> = Graph.define(() => {
+        const lDiscardStatementGraph: Graph<PgslToken, object, PgslDiscardStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordDiscard);
-        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
-            return new PgslDiscardStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDiscardStatement => {
+            return new PgslDiscardStatement(this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -883,7 +883,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "const <IDENTIFIER>: <TYPE_DECLARATION> = <EXPRESSION>;"
          * ```
          */
-        const lVariableDeclarationStatementGraph: Graph<PgslToken, object, PgslVariableDeclarationStatementSyntaxTree> = Graph.define(() => {
+        const lVariableDeclarationStatementGraph: Graph<PgslToken, object, PgslVariableDeclarationStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('declarationType', [
                     PgslToken.KeywordDeclarationConst,
@@ -896,16 +896,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     .required(PgslToken.Assignment)
                     .required('expression', pExpressionGraphs.expression)
                 );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationStatement => {
             // Build variable declaration data structure.
-            const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
+            const lData: ConstructorParameters<typeof PgslVariableDeclarationStatement>[0] = {
                 declarationType: pData.declarationType,
                 name: pData.variableName,
                 type: pData.type,
                 expression: pData.initialExpression ?? null
             };
 
-            return new PgslVariableDeclarationStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslVariableDeclarationStatement(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -921,7 +921,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "for(;;<UPDATE>)<BLOCK>"
          * ```
          */
-        const lForStatementGraph: Graph<PgslToken, object, PgslForStatementSyntaxTree> = Graph.define(() => {
+        const lForStatementGraph: Graph<PgslToken, object, PgslForStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordFor)
                 .required(PgslToken.ParenthesesStart)
@@ -936,16 +936,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 ])
                 .required(PgslToken.ParenthesesEnd)
                 .required('block', lBlockStatementGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslForStatement => {
             // Build for statement data structure.
-            const lData: ConstructorParameters<typeof PgslForStatementSyntaxTree>[0] = {
+            const lData: ConstructorParameters<typeof PgslForStatement>[0] = {
                 block: pData.block,
                 init: pData.init ?? null,
                 expression: pData.expression ?? null,
                 update: pData.update ?? null
             };
 
-            return new PgslForStatementSyntaxTree(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslForStatement(lData, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -956,7 +956,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION> -= <EXPRESSION>"
          * ```
          */
-        const lAssignmentStatementGraph: Graph<PgslToken, object, PgslAssignmentStatementSyntaxTree> = Graph.define(() => {
+        const lAssignmentStatementGraph: Graph<PgslToken, object, PgslAssignmentStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('variable', pExpressionGraphs.expression)
                 .required('assignment', [
@@ -973,8 +973,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     PgslToken.AssignmentShiftLeft,
                 ])
                 .required('expression', pExpressionGraphs.expression);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
-            return new PgslAssignmentStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken), {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAssignmentStatement => {
+            return new PgslAssignmentStatement(this.createTokenBoundParameter(pStartToken, pEndToken), {
                 expression: pData.expression,
                 assignment: pData.assignment,
                 variable: pData.variable
@@ -988,15 +988,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<EXPRESSION>--"
          * ```
          */
-        const lIncrementDecrementStatementGraph: Graph<PgslToken, object, PgslIncrementDecrementStatementSyntaxTree> = Graph.define(() => {
+        const lIncrementDecrementStatementGraph: Graph<PgslToken, object, PgslIncrementDecrementStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', pExpressionGraphs.expression)
                 .required('operator', [
                     PgslToken.OperatorIncrement,
                     PgslToken.OperatorDecrement
                 ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
-            return new PgslIncrementDecrementStatementSyntaxTree(pData.operator, pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIncrementDecrementStatement => {
+            return new PgslIncrementDecrementStatement(pData.operator, pData.expression, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -1006,21 +1006,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<IDENTIFIER>(<EXPRESSION_LIST>)"
          * ```
          */
-        const lFunctionCallStatementGraph: Graph<PgslToken, object, PgslFunctionCallStatementSyntaxTree> = Graph.define(() => {
+        const lFunctionCallStatementGraph: Graph<PgslToken, object, PgslFunctionCallStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('name', PgslToken.Identifier)
                 .required(PgslToken.ParenthesesStart)
                 .optional('parameters<-list', pExpressionGraphs.expressionList)
                 .required(PgslToken.ParenthesesEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
-            return new PgslFunctionCallStatementSyntaxTree(this.createTokenBoundParameter(pStartToken, pEndToken), pData.name, pData.parameters ?? []);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallStatement => {
+            return new PgslFunctionCallStatement(this.createTokenBoundParameter(pStartToken, pEndToken), pData.name, pData.parameters ?? []);
         });
 
         /**
          * Statement graph. 
          * Bundles the different statements into a single graph.
          */
-        const lStatementSyntaxTreeGraph: Graph<PgslToken, object, BasePgslStatementSyntaxTree> = Graph.define(() => {
+        const lStatementSyntaxTreeGraph: Graph<PgslToken, object, BasePgslStatement> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('branch', [
                     GraphNode.new<PgslToken>().required('statement', lIfStatementGraph),
@@ -1038,7 +1038,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                     GraphNode.new<PgslToken>().required('statement', lFunctionCallStatementGraph).required(PgslToken.Semicolon),
                     GraphNode.new<PgslToken>().required('statement', lBlockStatementGraph)
                 ]);
-        }).converter((pData): BasePgslStatementSyntaxTree => {
+        }).converter((pData): BasePgslStatement => {
             return pData.branch.statement;
         });
 
@@ -1069,7 +1069,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<ATTRIBUTE_LIST> param <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
          * ```
          */
-        const lVariableDeclarationGraph: Graph<PgslToken, object, PgslVariableDeclarationSyntaxTree> = Graph.define(() => {
+        const lVariableDeclarationGraph: Graph<PgslToken, object, PgslVariableDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required('declarationType', [
@@ -1090,9 +1090,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                         .required('expression', pExpressionGraphs.expression)
                         .required(PgslToken.Semicolon)
                 ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclaration => {
             // Build data structure.
-            const lData: ConstructorParameters<typeof PgslVariableDeclarationSyntaxTree>[0] = {
+            const lData: ConstructorParameters<typeof PgslVariableDeclaration>[0] = {
                 name: pData.variableName,
                 type: pData.type,
                 declarationType: pData.declarationType
@@ -1103,7 +1103,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 lData.expression = pData.initialization.expression;
             }
 
-            return new PgslVariableDeclarationSyntaxTree(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslVariableDeclaration(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -1112,7 +1112,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "<ATTRIBUTE_LIST> alias <IDENTIFIER> = <TYPE>;"
          * ```
          */
-        const lAliasDeclarationGraph: Graph<PgslToken, object, PgslAliasDeclarationSyntaxTree> = Graph.define(() => {
+        const lAliasDeclarationGraph: Graph<PgslToken, object, PgslAliasDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required(PgslToken.KeywordAlias)
@@ -1120,12 +1120,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 .required(PgslToken.Assignment)
                 .required('type', pCoreGraphs.typeDeclaration)
                 .required(PgslToken.Semicolon);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclaration => {
             // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
             this.mTypeFactory.addAliasPredefinition(pData.name);
 
             // Create structure.
-            return new PgslAliasDeclarationSyntaxTree(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslAliasDeclaration(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -1134,21 +1134,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "[<ATTRIBUTES>] <IDENTIFIER>: <TYPE>"
          * ```
          */
-        const lStructPropertyDeclarationGraph: Graph<PgslToken, object, PgslStructPropertyDeclarationSyntaxTree> = Graph.define(() => {
+        const lStructPropertyDeclarationGraph: Graph<PgslToken, object, PgslStructPropertyDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required('name', PgslToken.Identifier)
                 .required(PgslToken.Colon)
                 .required('type', pCoreGraphs.typeDeclaration);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclaration => {
             // Create structure.
-            return new PgslStructPropertyDeclarationSyntaxTree(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslStructPropertyDeclaration(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
          * List of struct properties separated by comma.
          */
-        const lStructPropertyListGraph: Graph<PgslToken, object, { list: Array<PgslStructPropertyDeclarationSyntaxTree>; }> = Graph.define(() => {
+        const lStructPropertyListGraph: Graph<PgslToken, object, { list: Array<PgslStructPropertyDeclaration>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lStructPropertyDeclarationGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -1164,7 +1164,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "[<ATTRIBUTES>] struct <IDENTIFIER> { <PROPERTY_LIST> }"
          * ```
          */
-        const lStructDeclarationGraph: Graph<PgslToken, object, PgslStructDeclarationSyntaxTree> = Graph.define(() => {
+        const lStructDeclarationGraph: Graph<PgslToken, object, PgslStructDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required(PgslToken.KeywordStruct)
@@ -1172,12 +1172,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 .required(PgslToken.BlockStart)
                 .optional('properties<-list', lStructPropertyListGraph)
                 .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructDeclaration => {
             // Add struct name to struct buffer.
             this.mTypeFactory.addStructPredefinition(pData.name);
 
             // Create struct syntax tree.
-            return new PgslStructDeclarationSyntaxTree(pData.name, pData.properties ?? [], pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslStructDeclaration(pData.name, pData.properties ?? [], pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -1196,7 +1196,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         /**
          * List of enum values separated by comma.
          */
-        const lEnumValueListGraph: Graph<PgslToken, object, { list: Array<{ name: string; value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree; }>; }> = Graph.define(() => {
+        const lEnumValueListGraph: Graph<PgslToken, object, { list: Array<{ name: string; value: PgslLiteralValueExpression | PgslStringValueExpression; }>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lEnumValueGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -1211,7 +1211,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "[<ATTRIBUTES>] enum <IDENTIFIER> { <VALUE_LIST> }"
          * ```
          */
-        const lEnumDeclarationGraph: Graph<PgslToken, object, PgslEnumDeclarationSyntaxTree> = Graph.define(() => {
+        const lEnumDeclarationGraph: Graph<PgslToken, object, PgslEnumDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required(PgslToken.KeywordEnum)
@@ -1219,21 +1219,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 .required(PgslToken.BlockStart)
                 .optional('values<-list', lEnumValueListGraph)
                 .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumDeclaration => {
             // Add enum name to buffer.
             this.mTypeFactory.addEnumPredefinition(pData.name);
 
             // Process enum values - filter to only literal/string values
-            const lEnumValueList = new Array<{ name: string, value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree; }>();
+            const lEnumValueList = new Array<{ name: string, value: PgslLiteralValueExpression | PgslStringValueExpression; }>();
             if (pData.values) {
                 for (const lValue of pData.values) {
-                    if (lValue.value instanceof PgslLiteralValueExpressionSyntaxTree || lValue.value instanceof PgslStringValueExpressionSyntaxTree) {
+                    if (lValue.value instanceof PgslLiteralValueExpression || lValue.value instanceof PgslStringValueExpression) {
                         lEnumValueList.push({ name: lValue.name, value: lValue.value });
                     }
                 }
             }
 
-            return new PgslEnumDeclarationSyntaxTree(pData.name, lEnumValueList, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslEnumDeclaration(pData.name, lEnumValueList, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**
@@ -1249,7 +1249,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         /**
          * List of function parameters separated by comma.
          */
-        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: BasePgslTypeDefinitionSyntaxTree; }>; }> = Graph.define(() => {
+        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: BasePgslTypeDefinition; }>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lFunctionParameterGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -1265,7 +1265,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
          * - "[<ATTRIBUTES>] fn <IDENTIFIER>(<PARAMETER_LIST>): <TYPE> <BLOCK>"
          * ```
          */
-        const lFunctionDeclarationGraph: Graph<PgslToken, object, PgslFunctionDeclarationSyntaxTree> = Graph.define(() => {
+        const lFunctionDeclarationGraph: Graph<PgslToken, object, PgslFunctionDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('attributes', pCoreGraphs.attributeList)
                 .required(PgslToken.KeywordFunction)
@@ -1276,9 +1276,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 .required(PgslToken.Colon)
                 .required('returnType', pCoreGraphs.typeDeclaration)
                 .required('block', pStatementGraphs.blockStatement);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionDeclaration => {
             // Create base data.
-            const lData: ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0] = {
+            const lData: ConstructorParameters<typeof PgslFunctionDeclaration>[0] = {
                 name: pData.name,
                 parameter: pData.parameters ?? [],
                 returnType: pData.returnType,
@@ -1286,7 +1286,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
                 constant: false
             };
 
-            return new PgslFunctionDeclarationSyntaxTree(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslFunctionDeclaration(lData, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         return {
@@ -1301,14 +1301,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
     /**
      * Define root graph.
      */
-    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, PgslSyntaxDocument> {
+    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, PgslDocument> {
         /**
          * List of declaration graphs.
          */
-        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<BasePgslDeclarationSyntaxTree<any>>; }> = Graph.define(() => {
+        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<BasePgslDeclaration<any>>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
-                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, BasePgslDeclarationSyntaxTree>,
+                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, BasePgslDeclaration>,
                     pDeclarationGraphs.variableDeclaration,
                     pDeclarationGraphs.enumDeclaration,
                     pDeclarationGraphs.structDeclaration,
@@ -1323,8 +1323,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
         const lModuleScopeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list<-list', lModuleScopeDeclarationListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSyntaxDocument => {
-            return new PgslSyntaxDocument(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDocument => {
+            return new PgslDocument(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
         });
 
         // Return module scope graph.
@@ -1349,28 +1349,28 @@ export class PgslParser extends CodeParser<PgslToken, PgslSyntaxDocument> {
 }
 
 type PgslParserCoreGraphs = {
-    attributeList: Graph<PgslToken, object, PgslAttributeListSyntaxTree>;
-    typeDeclaration: Graph<PgslToken, object, BasePgslTypeDefinitionSyntaxTree>;
+    attributeList: Graph<PgslToken, object, PgslAttributeList>;
+    typeDeclaration: Graph<PgslToken, object, BasePgslTypeDefinition>;
 };
 
 type PgslParserExpressionGraphs = {
-    expression: Graph<PgslToken, object, BasePgslExpressionSyntaxTree>;
+    expression: Graph<PgslToken, object, BasePgslExpression>;
     expressionList: Graph<PgslToken, object, {
-        list: Array<BasePgslExpressionSyntaxTree>;
+        list: Array<BasePgslExpression>;
     }>;
-    literalExpression: Graph<PgslToken, object, PgslLiteralValueExpressionSyntaxTree>;
-    stringExpression: Graph<PgslToken, object, PgslStringValueExpressionSyntaxTree>;
+    literalExpression: Graph<PgslToken, object, PgslLiteralValueExpression>;
+    stringExpression: Graph<PgslToken, object, PgslStringValueExpression>;
 };
 
 type PgslParserStatementGraphs = {
-    statement: Graph<PgslToken, object, BasePgslStatementSyntaxTree>;
-    blockStatement: Graph<PgslToken, object, PgslBlockStatementSyntaxTree>;
+    statement: Graph<PgslToken, object, BasePgslStatement>;
+    blockStatement: Graph<PgslToken, object, PgslBlockStatement>;
 };
 
 type PgslParserDeclarationGraphs = {
-    variableDeclaration: Graph<PgslToken, object, PgslVariableDeclarationSyntaxTree>;
-    aliasDeclaration: Graph<PgslToken, object, PgslAliasDeclarationSyntaxTree>;
-    enumDeclaration: Graph<PgslToken, object, PgslEnumDeclarationSyntaxTree>;
-    structDeclaration: Graph<PgslToken, object, PgslStructDeclarationSyntaxTree>;
-    functionDeclaration: Graph<PgslToken, object, PgslFunctionDeclarationSyntaxTree>;
+    variableDeclaration: Graph<PgslToken, object, PgslVariableDeclaration>;
+    aliasDeclaration: Graph<PgslToken, object, PgslAliasDeclaration>;
+    enumDeclaration: Graph<PgslToken, object, PgslEnumDeclaration>;
+    structDeclaration: Graph<PgslToken, object, PgslStructDeclaration>;
+    functionDeclaration: Graph<PgslToken, object, PgslFunctionDeclaration>;
 };

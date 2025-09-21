@@ -8,7 +8,7 @@ import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 /**
  * Struct type definition.
  */
-export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinition<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslStructTypeDefinition extends BasePgslTypeDefinition<PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mStructName: string;
 
     /**

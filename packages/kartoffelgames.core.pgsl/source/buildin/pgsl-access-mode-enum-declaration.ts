@@ -1,6 +1,6 @@
-import { PgslEnumDeclarationSyntaxTree } from "../syntax_tree/declaration/pgsl-enum-declaration-syntax-tree.ts";
-import { PgslStringValueExpressionSyntaxTree } from "../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree.ts";
-import { PgslAttributeListSyntaxTree } from "../syntax_tree/general/pgsl-attribute-list-syntax-tree.ts";
+import { PgslEnumDeclaration } from "../syntax_tree/declaration/pgsl-enum-declaration.ts";
+import { PgslStringValueExpression } from "../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
+import { PgslAttributeList } from "../syntax_tree/general/pgsl-attribute-list.ts";
 
 /**
  * Access mode enum declaration.
@@ -11,7 +11,7 @@ export const PgslAccessMode = {
     ReadWrite: 'read_write'
 } as const;
 
-export class PgslAccessModeEnumDeclaration extends PgslEnumDeclarationSyntaxTree {
+export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
@@ -43,16 +43,16 @@ export class PgslAccessModeEnumDeclaration extends PgslEnumDeclarationSyntaxTree
         lEmptyMeta.buildIn = true;
 
         // Convert enum values into declaration values.
-        const lValues: Array<{ name: string; value: PgslStringValueExpressionSyntaxTree }> = new Array<{ name: string; value: PgslStringValueExpressionSyntaxTree }>();
+        const lValues: Array<{ name: string; value: PgslStringValueExpression }> = new Array<{ name: string; value: PgslStringValueExpression }>();
         for (const lKey in PgslAccessMode) {
             // Create enum name and values.
             const lEnumPropertyName = lKey;
             const lEnumPropertyValue = PgslAccessMode[lKey as keyof typeof PgslAccessMode];
 
-            lValues.push({ name: lEnumPropertyName, value: new PgslStringValueExpressionSyntaxTree(lEnumPropertyValue, lEmptyMeta) });
+            lValues.push({ name: lEnumPropertyName, value: new PgslStringValueExpression(lEnumPropertyValue, lEmptyMeta) });
         }
 
-        super('AccessMode', lValues, new PgslAttributeListSyntaxTree(lEmptyMeta, []), lEmptyMeta);
+        super('AccessMode', lValues, new PgslAttributeList(lEmptyMeta, []), lEmptyMeta);
     }
 }
 

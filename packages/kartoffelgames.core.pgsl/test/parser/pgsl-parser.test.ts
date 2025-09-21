@@ -2,8 +2,8 @@ import { CodeParserException } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
 import { PgslDeclarationType } from "../../source/enum/pgsl-declaration-type.enum.ts";
 import { PgslParser } from "../../source/parser/pgsl-parser.ts";
-import { PgslSyntaxDocument } from "../../source/syntax_tree/pgsl-syntax-document.ts";
-import { PgslVariableDeclarationSyntaxTree } from "../../source/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree.ts";
+import { PgslDocument } from "../../source/syntax_tree/pgsl-document.ts";
+import { PgslVariableDeclaration } from "../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 
 const gPgslParser: PgslParser = new PgslParser();
 
@@ -18,8 +18,8 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[0] as PgslVariableDeclaration;
 
                 // Evaluation.
                 expect(lResultDeclaration.name).toBe(lVariableName);
@@ -34,8 +34,8 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[0] as PgslVariableDeclaration;
                 
                 // Evaluation.
                 expect(lResultDeclaration.type).toBe(lExpectedDeclarationType);
@@ -66,8 +66,8 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[0] as PgslVariableDeclarationSyntaxTree;
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[0] as PgslVariableDeclaration;
                 
                 // Evaluation.
                 expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
@@ -82,8 +82,8 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.childNodes[1] as PgslVariableDeclarationSyntaxTree;
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[1] as PgslVariableDeclaration;
                 
                 // Evaluation.
                 expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
@@ -147,7 +147,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -161,7 +161,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -175,7 +175,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -221,7 +221,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -234,7 +234,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -247,7 +247,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -278,7 +278,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -324,7 +324,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -372,7 +372,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -387,7 +387,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -402,7 +402,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -467,7 +467,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             `;
 
             // Process.
-            const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+            const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
             // Evaluation.
             expect(lResult).toBeTruthy();
@@ -480,7 +480,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             `;
 
             // Process.
-            const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+            const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
             // Evaluation.
             expect(lResult).toBeTruthy();
@@ -493,7 +493,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
             `;
 
             // Process.
-            const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+            const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
             // Evaluation.
             expect(lResult).toBeTruthy();
@@ -513,7 +513,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -530,7 +530,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();
@@ -551,7 +551,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 `;
 
                 // Process.
-                const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
+                const lResult: PgslDocument = gPgslParser.parse(lSourceCode);
 
                 // Evaluation.
                 expect(lResult).toBeTruthy();

@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PgslDocument } from './pgsl-document.ts';
 import type { PgslValidationTrace } from './pgsl-validation-trace.ts';
+import { PgslTranspilationTrace } from "./pgsl-tranpilation-trace.ts";
 
 /**
  * Base pgsl syntax tree object.
@@ -189,7 +190,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * Validate syntax tree.
      * Shouldn't throw. Errors should be added to the scope.
      */
-    protected abstract onValidateIntegrity(pScope: PgslValidationTrace): TValidationAttachment;
+    protected abstract onValidateIntegrity(pTrace: PgslValidationTrace): TValidationAttachment;
 }
 
 

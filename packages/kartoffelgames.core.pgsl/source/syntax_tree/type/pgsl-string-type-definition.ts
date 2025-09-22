@@ -58,11 +58,11 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
     /**
      * Validate syntax tree integrity.
      * 
-     * @param _pScope - Validation scope.
+     * @param _pTrace - Validation trace.
      * 
      * @returns validation attachment.
      */
-    protected override onValidateIntegrity(_pScope: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
             baseType: PgslBaseTypeName.String,
             storable: false,

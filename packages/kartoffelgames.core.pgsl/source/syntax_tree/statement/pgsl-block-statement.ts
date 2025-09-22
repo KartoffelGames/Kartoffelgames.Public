@@ -44,13 +44,13 @@ export class PgslBlockStatement extends BasePgslStatement {
     /**
      * Validate data of current structure.
      * 
-     * @param pValidationTrace - Validation trace.
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pScope: PgslValidationTrace): void {
+    protected override onValidateIntegrity(pTrace: PgslValidationTrace): void {
         // Create new scope and validate all statements.
-        pScope.newScope(this, () => {
+        pTrace.newScope(this, () => {
             for (const statement of this.mStatementList) {
-                statement.validate(pScope);
+                statement.validate(pTrace);
             }
         });
     }

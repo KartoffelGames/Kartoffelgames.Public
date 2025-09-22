@@ -42,18 +42,18 @@ export class PgslVariableNameExpression extends BasePgslExpression {
     /**
      * Validate data of current structure.
      * 
-     * @param pScope - Validation scope.
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pScope: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
         // Check if variable is defined.
-        const lVariableDefinition: BasePgslSyntaxTree | undefined = pScope.getScopedValue(this.mName);
+        const lVariableDefinition: BasePgslSyntaxTree | undefined = pTrace.getScopedValue(this.mName);
         if (!lVariableDefinition) {
-            pScope.pushError(`Variable "${this.mName}" not defined.`, this.meta, this);
+            pTrace.pushError(`Variable "${this.mName}" not defined.`, this.meta, this);
         }
 
         if (lVariableDefinition instanceof PgslVariableDeclaration) {
             // Read variable definition attachment.
-            const lVariableDeclarationAttachment: PgslVariableDeclarationSyntaxTreeValidationAttachment = pScope.getAttachment(lVariableDefinition);
+            const lVariableDeclarationAttachment: PgslVariableDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableDefinition);
             return {
                 fixedState: lVariableDeclarationAttachment.fixedState,
                 isStorage: true,
@@ -64,7 +64,7 @@ export class PgslVariableNameExpression extends BasePgslExpression {
         // Must be a variable.
         if (lVariableDefinition instanceof PgslVariableDeclarationStatement) {
             // Read variable definition attachment.
-            const lVariableDeclarationAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pScope.getAttachment(lVariableDefinition);
+            const lVariableDeclarationAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableDefinition);
             return {
                 fixedState: lVariableDeclarationAttachment.fixedState,
                 isStorage: true,
@@ -73,7 +73,7 @@ export class PgslVariableNameExpression extends BasePgslExpression {
         }
 
         // Variable definition neither a declaration nor a statement.
-        pScope.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
+        pTrace.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
 
         return {
             fixedState: PgslValueFixedState.Variable,

@@ -179,11 +179,11 @@ export class PgslNumericTypeDefinition extends BasePgslTypeDefinition<PgslNumber
     /**
      * Validate syntax tree integrity.
      * 
-     * @param _pScope - Validation scope.
+     * @param _pTrace - Validation trace.
      * 
      * @returns validation attachment.
      */
-    protected override onValidateIntegrity(_pScope: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslNumberTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+    protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslNumberTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
         // Determine base type.
         const lBaseType: PgslBaseTypeName = (() => {
             switch (this.mNumericType) {

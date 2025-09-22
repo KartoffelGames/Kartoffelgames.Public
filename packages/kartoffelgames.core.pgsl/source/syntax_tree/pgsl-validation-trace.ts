@@ -224,6 +224,13 @@ class PgslSyntaxTreeValidationTraceScope {
         return this.mScopes[0] instanceof pScopeType;
     }
 
+    /**
+     * Get the scope of a specific type.
+     * 
+     * @param pScopeType - Scope type to get.
+     * 
+     * @returns The scope of the specified type. 
+     */
     public getScopeOf<T extends BasePgslSyntaxTree>(pScopeType: new (...args: any[]) => T): T {
         // Find scope tree of type.
         const lScopeTree = this.mScopes.find(scope => scope instanceof pScopeType) as T | undefined;

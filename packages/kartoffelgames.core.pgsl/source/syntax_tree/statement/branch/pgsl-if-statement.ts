@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
@@ -36,15 +37,17 @@ export class PgslIfStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
+     * Transpile the current structure to a if statement representation.
+     *
+     * @param pTrace - Transpilation trace.
+     *
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         if (!this.mElse) {
-            return `if (${this.mExpression.transpile()}) ${this.mBlock.transpile()}`;
+            return `if (${this.mExpression.transpile(pTrace)}) ${this.mBlock.transpile(pTrace)}`;
         } else {
-            return `if (${this.mExpression.transpile()}) ${this.mBlock.transpile()} else ${this.mElse.transpile()}`;
+            return `if (${this.mExpression.transpile(pTrace)}) ${this.mBlock.transpile(pTrace)} else ${this.mElse.transpile(pTrace)}`;
         }
     }
 

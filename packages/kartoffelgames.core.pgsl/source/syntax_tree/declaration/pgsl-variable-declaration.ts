@@ -8,6 +8,7 @@ import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -85,7 +86,14 @@ export class PgslVariableDeclaration extends BasePgslDeclaration<PgslVariableDec
         }
     }
 
-    protected override onTranspile(): string {
+    /**
+     * Transpile current variable declaration into a string.
+     * 
+     * @param pTrace - Transpilation trace.
+     * 
+     * @returns Transpiled code.
+     */
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Try to parse declaration type.
         let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
         if (!lDeclarationType) {
@@ -115,19 +123,19 @@ export class PgslVariableDeclaration extends BasePgslDeclaration<PgslVariableDec
         })();
 
         // Transpile attributes and type declaration.
-        let lAttributes: string = this.attributes.transpile();
+        let lAttributes: string = this.attributes.transpile(pTrace);
         if (lAttributes.length > 0) {
             lAttributes += ' ';
         }
 
-        const lTypeDeclaration: string = this.mTypeDeclaration.transpile();
+        const lTypeDeclaration: string = this.mTypeDeclaration.transpile(pTrace);
 
         // If no expression is given, return declaration without expression.
         if (!this.mExpression) {
             return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
         }
 
-        return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile()};`;
+        return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile(pTrace)};`;
     }
 
     /**

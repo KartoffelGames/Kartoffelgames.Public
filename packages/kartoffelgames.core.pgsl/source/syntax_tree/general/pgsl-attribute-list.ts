@@ -13,6 +13,7 @@ import type { PgslValidationTrace } from '../pgsl-validation-trace.ts';
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from "../type/enum/pgsl-numeric-type-name.enum.ts";
 import { PgslNumericTypeDefinition } from "../type/pgsl-numeric-type-definition.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 
 // TODO: Cooler validation system for attributes. 
 // - Required parent type (e.g. @vertex only on functions). (Requires parent set in base declaration syntax tree constructor)
@@ -211,8 +212,12 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
 
     /**
      * Transpile syntax tree to WGSL code.
+     * 
+     * @param pTrace - Transpilation trace.
+     * 
+     * @returns WGSL code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         let lResult: string = '';
 
         // Transpile each attribute.
@@ -235,7 +240,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
                         break;
                     }
 
-                    lTranspiledParameter.push(lAttributeParameter[lParameterIndex].transpile());
+                    lTranspiledParameter.push(lAttributeParameter[lParameterIndex].transpile(pTrace));
                 }
 
                 // Transpile attribute name.

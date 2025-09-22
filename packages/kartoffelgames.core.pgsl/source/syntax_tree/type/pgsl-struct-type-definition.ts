@@ -1,6 +1,7 @@
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { PgslStructDeclaration } from "../declaration/pgsl-struct-declaration.ts";
 import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -81,9 +82,11 @@ export class PgslStructTypeDefinition extends BasePgslTypeDefinition<PgslStructT
     /**
      * Transpile current type definition into a string.
      * 
+     * @param _pTrace - Transpilation scope.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
         return `${this.mStructName}`;
     }
 

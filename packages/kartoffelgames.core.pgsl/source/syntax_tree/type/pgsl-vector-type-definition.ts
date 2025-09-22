@@ -1,4 +1,5 @@
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -155,9 +156,11 @@ export class PgslVectorTypeDefinition extends BasePgslTypeDefinition<PgslVectorT
     /**
      * Transpile the syntax tree into wgsl.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled wgsl code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile vector type dimenstion.
         const lVectorDimensionName: string = (() => {
             switch (this.mVectorType) {
@@ -171,7 +174,7 @@ export class PgslVectorTypeDefinition extends BasePgslTypeDefinition<PgslVectorT
         })();
 
         // Insert inner type as template parameter.
-        return `${lVectorDimensionName}<${this.mInnerType.transpile()}>`;
+        return `${lVectorDimensionName}<${this.mInnerType.transpile(pTrace)}>`;
     }
 
     /**

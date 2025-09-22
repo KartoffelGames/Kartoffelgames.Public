@@ -1,4 +1,5 @@
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -66,9 +67,11 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
     /**
      * Transpile type definition.
      * 
+     * @param _pTrace - Transpilation scope.
+     * 
      * @returns transpiled code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
         return '##invalid##';
     }
 

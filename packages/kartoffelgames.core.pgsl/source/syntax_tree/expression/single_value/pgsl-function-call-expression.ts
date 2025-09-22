@@ -1,6 +1,7 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslFunctionDeclaration } from '../../declaration/pgsl-function-declaration.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslVoidTypeDefinition } from "../../type/pgsl-void-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
@@ -47,10 +48,12 @@ export class PgslFunctionCallExpression extends BasePgslExpression {
     /**
      * Transpiles the expression to a string representation.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
-        return `${this.mName}(${this.mParameterList.map(param => param.transpile()).join(', ')})`;
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+        return `${this.mName}(${this.mParameterList.map(param => param.transpile(pTrace)).join(', ')})`;
     }
 
     /**

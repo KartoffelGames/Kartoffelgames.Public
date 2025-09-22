@@ -118,16 +118,18 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * Transpile the syntax tree into wgsl.
      * If the structure is build in, it will return an empty string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns transpiled wgsl code.
      */
-    public transpile(): string {
+    public transpile(pTrace: PgslTranspilationTrace): string {
         // If build in, return empty string.
         if (this.mBuildIn) {
             return '';
         }
 
         // Call transpile function.
-        return this.onTranspile();
+        return this.onTranspile(pTrace);
     }
 
     /**
@@ -183,8 +185,12 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
 
     /**
      * Transpile the syntax tree into wgsl.
+     * 
+     * @param pTrace - Transpilation trace.
+     * 
+     * @returns transpiled wgsl code.
      */
-    protected abstract onTranspile(): string;
+    protected abstract onTranspile(pTrace: PgslTranspilationTrace): string;
 
     /**
      * Validate syntax tree.

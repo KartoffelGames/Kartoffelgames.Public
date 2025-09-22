@@ -1,4 +1,5 @@
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -35,9 +36,11 @@ export class PgslSamplerTypeDefinition extends BasePgslTypeDefinition<PgslSample
     /**
      * Transpile current type definition into a string.
      * 
+     * @param _pTrace - Transpilation scope.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
         return this.comparison ? "sampler_comparison" : "sampler";
     }
 

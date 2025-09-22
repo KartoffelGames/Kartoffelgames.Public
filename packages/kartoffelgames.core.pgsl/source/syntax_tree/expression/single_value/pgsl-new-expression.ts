@@ -4,6 +4,7 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
@@ -47,11 +48,13 @@ export class PgslNewCallExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code of current expression.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Simply transpile the type and parameters without the new part.
-        return `${this.mType.transpile()}(${this.mParameterList.map(param => param.transpile()).join(", ")})`;
+        return `${this.mType.transpile(pTrace)}(${this.mParameterList.map(param => param.transpile(pTrace)).join(", ")})`;
     }
 
     /**

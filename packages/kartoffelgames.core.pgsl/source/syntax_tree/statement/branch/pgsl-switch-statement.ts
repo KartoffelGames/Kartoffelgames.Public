@@ -8,6 +8,7 @@ import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 
 // TODO: Needs a slight rework.
 // Unfortunately, the current implementation is wrong.
@@ -45,15 +46,17 @@ export class PgslSwitchStatement extends BasePgslStatement<void> {
     /**
      * Transpile the current structure to a string representation.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Open switch.
-        let lResult: string = `switch (${this.mExpression.transpile()}) {`
+        let lResult: string = `switch (${this.mExpression.transpile(pTrace)}) {`
 
         // Append each case.
         for(const lCase of this.mCases) {
-            lResult += `case ${lCase.cases.map((lTree)=> {return lTree.transpile()}).join(', ')}: ${lCase.block.transpile()}`
+            lResult += `case ${lCase.cases.map((lTree)=> {return lTree.transpile(pTrace)}).join(', ')}: ${lCase.block.transpile(pTrace)}`
         }
 
         // Close switch.

@@ -8,6 +8,7 @@ import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslNumericTypeDefinition } from "./pgsl-numeric-type-definition.ts";
 import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 
 /**
  * Matrix type definition.
@@ -84,9 +85,11 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
     /**
      * Transpile the syntax tree into wgsl.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled wgsl code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile matrix type dimension.
         const lMatrixDimensionName: string = (() => {
             switch (this.mMatrixType) {
@@ -112,7 +115,7 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
         })();
 
         // Insert inner type as template parameter.
-        return `${lMatrixDimensionName}<${this.mInnerType.transpile()}>`;
+        return `${lMatrixDimensionName}<${this.mInnerType.transpile(pTrace)}>`;
     }
 
     /**

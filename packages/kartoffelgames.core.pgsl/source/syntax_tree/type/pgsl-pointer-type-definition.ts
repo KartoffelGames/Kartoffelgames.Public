@@ -3,6 +3,7 @@ import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 
 /**
  * Pointer type definition.
@@ -81,11 +82,13 @@ export class PgslPointerTypeDefinition extends BasePgslTypeDefinition<PgslPointe
     /**
      * Transpile current type definition into a string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile pointer type. // TODO: This must be autoed or give the user a way to specify it (private, read_write, etc.).
-        return `ptr<private, ${this.mReferencedType.transpile()}, read_write>`;
+        return `ptr<private, ${this.mReferencedType.transpile(pTrace)}, read_write>`;
     }
 
     /**

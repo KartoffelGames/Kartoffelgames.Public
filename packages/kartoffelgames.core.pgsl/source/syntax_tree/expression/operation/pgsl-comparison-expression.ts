@@ -7,6 +7,7 @@ import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment, } from '../base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 
 /**
  * PGSL structure for a comparison expression between two values.
@@ -53,10 +54,12 @@ export class PgslComparisonExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code.
      */
-    protected override onTranspile(): string {
-        return `${this.mLeftExpression.transpile()} ${this.mOperatorName} ${this.mRightExpression.transpile()}`;
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+        return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
     }
 
     /**

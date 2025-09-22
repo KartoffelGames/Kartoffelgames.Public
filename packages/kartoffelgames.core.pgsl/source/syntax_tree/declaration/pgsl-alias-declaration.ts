@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
@@ -47,14 +48,16 @@ export class PgslAliasDeclaration extends BasePgslDeclaration {
     /**
      * Transpile current alias declaration into a string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile attribute list.
-        let lResult: string = this.attributes.transpile();
+        let lResult: string = this.attributes.transpile(pTrace);
 
         // Create a alias declaration for the type.
-        lResult += `alias ${this.mName} = ${this.mTypeDefinition.transpile()};\n`;
+        lResult += `alias ${this.mName} = ${this.mTypeDefinition.transpile(pTrace)};\n`;
 
         return lResult;
     }

@@ -7,6 +7,7 @@ import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from "./base-pgsl-statement.ts";
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
@@ -63,9 +64,11 @@ export class PgslVariableDeclarationStatement extends BasePgslStatement<PgslVari
     /**
      * Transpile current declaration statement into a string.
      * 
+     * @param _pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
         // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let. But only when not used as a pointer.
 
         // Depending on the expression presence, create the declaration with or without an initialization value.

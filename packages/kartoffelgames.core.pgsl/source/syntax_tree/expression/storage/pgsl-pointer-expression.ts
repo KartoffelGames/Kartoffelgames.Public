@@ -3,6 +3,7 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
@@ -36,10 +37,12 @@ export class PgslPointerExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code.
      */
-    protected override onTranspile(): string {
-      return `*${this.mExpression.transpile()}`;
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+      return `*${this.mExpression.transpile(pTrace)}`;
     }
 
     /**

@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
@@ -48,10 +49,12 @@ export class PgslWhileStatement extends BasePgslStatement {
     /**
      * Transpile the current structure to a string representation.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
-        return `loop { if !(${this.mExpression.transpile()}) { break; } ${this.mBlock.transpile()} }`;
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+        return `loop { if !(${this.mExpression.transpile(pTrace)}) { break; } ${this.mBlock.transpile(pTrace)} }`;
     }
 
     /**

@@ -1,6 +1,7 @@
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
@@ -78,15 +79,17 @@ export class PgslForStatement extends BasePgslStatement {
 
     /**
      * Transpile the current structure to a string representation.
-     * 
+     *
+     * @param pTrace - Transpilation trace.
+     *
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         let lResult: string = '';
 
         // Transpile init value when set.
         if (this.mInit) {
-            lResult += this.mInit.transpile();
+            lResult += this.mInit.transpile(pTrace);
         }
 
         // Create a loop.
@@ -94,15 +97,15 @@ export class PgslForStatement extends BasePgslStatement {
 
         // When a expression is set define it as exit.
         if (this.mExpression) {
-            lResult += `if !(${this.mExpression.transpile()}) { break; }`;
+            lResult += `if !(${this.mExpression.transpile(pTrace)}) { break; }`;
         }
 
         // Append the actual body.
-        lResult += this.mBlock.transpile();
+        lResult += this.mBlock.transpile(pTrace);
 
         // Set the update expression when defined.
         if (this.mUpdate) {
-            lResult += `${this.mUpdate.transpile()};`;
+            lResult += `${this.mUpdate.transpile(pTrace)};`;
         }
 
         // And close the loop.

@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
@@ -47,14 +48,16 @@ export class PgslStructPropertyDeclaration extends BasePgslDeclaration {
     /**
      * Transpile current property declaration into a string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile property type.
-        const lType: string = this.mTypeDefinition.transpile();
+        const lType: string = this.mTypeDefinition.transpile(pTrace);
 
         // Transpile attribute list.
-        const lAttributes: string = this.attributes.transpile();
+        const lAttributes: string = this.attributes.transpile(pTrace);
 
         return `${lAttributes} ${this.mName}: ${lType},`;
     }

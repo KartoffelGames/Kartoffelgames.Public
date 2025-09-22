@@ -1,4 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
 
@@ -34,10 +35,12 @@ export class PgslParenthesizedExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code of current expression.
      */
-    protected override onTranspile(): string {
-        return `(${this.mExpression.transpile()})`;
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+        return `(${this.mExpression.transpile(pTrace)})`;
     }
 
     /**

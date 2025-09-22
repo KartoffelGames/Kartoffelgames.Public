@@ -1,6 +1,7 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslVariableDeclaration, PgslVariableDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-variable-declaration.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import type { PgslValidationTrace } from '../../pgsl-validation-trace.ts';
 import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement.ts';
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
@@ -34,8 +35,12 @@ export class PgslVariableNameExpression extends BasePgslExpression {
 
     /**
      * Transpile current expression to WGSL code.
+     * 
+     * @param _pTrace - Transpilation trace.
+     * 
+     * @returns WGSL code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
         return this.mName;
     }
 

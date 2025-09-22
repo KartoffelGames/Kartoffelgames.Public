@@ -1,4 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
 
@@ -34,11 +35,13 @@ export class PgslBlockStatement extends BasePgslStatement {
     /**
      * Transpile current alias declaration into a string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile all statements.
-        return `{\n${this.mStatementList.map(statement => statement.transpile()).join('\n')}\n}`;
+        return `{\n${this.mStatementList.map(statement => statement.transpile(pTrace)).join('\n')}\n}`;
     }
 
     /**

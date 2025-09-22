@@ -1,6 +1,7 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslStructPropertyDeclaration } from '../../declaration/pgsl-struct-property-declaration.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import type { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../../type/base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "../../type/enum/pgsl-base-type-name.enum.ts";
@@ -52,11 +53,13 @@ export class PgslValueDecompositionExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code of current expression.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile value and property.
-        return `${this.mValue.transpile()}.${this.mProperty}`;
+        return `${this.mValue.transpile(pTrace)}.${this.mProperty}`;
     }
 
     /**

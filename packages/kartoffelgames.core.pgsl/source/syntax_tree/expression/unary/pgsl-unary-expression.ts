@@ -1,5 +1,6 @@
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import type { BasePgslTypeDefinition } from '../../type/base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
@@ -34,11 +35,13 @@ export class PgslUnaryExpression extends BasePgslExpression {
     /**
      * Transpile current expression to WGSL code.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns WGSL code.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile expression.
-        const lExpression: string = this.mExpression.transpile();
+        const lExpression: string = this.mExpression.transpile(pTrace);
         return `${this.mOperator}${lExpression}`;
     }
 

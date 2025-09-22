@@ -1,6 +1,7 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression } from '../expression/base-pgsl-expression.ts';
 import { PgslFunctionCallExpression } from '../expression/single_value/pgsl-function-call-expression.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
 
@@ -37,10 +38,12 @@ export class PgslFunctionCallStatement extends BasePgslStatement {
     /**
      * Transpiles the statement to a string representation.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
-        return this.mFunctionExpression.transpile() + ';';
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+        return this.mFunctionExpression.transpile(pTrace) + ';';
     }
 
     /**

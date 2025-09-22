@@ -1,5 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
@@ -82,19 +83,21 @@ export class PgslFunctionDeclaration extends BasePgslDeclaration {
     /**
      * Transpile current alias declaration into a string.
      * 
+     * @param pTrace - Transpilation trace.
+     * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(): string {
+    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
         // Transpile return type.
-        const lReturnType: string = this.mReturnType.transpile();
+        const lReturnType: string = this.mReturnType.transpile(pTrace);
 
         // Transpile function parameter list.
         const lParameterList: string = this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
-            return ` ${pParameter.name}: ${pParameter.type.transpile()}`;
+            return ` ${pParameter.name}: ${pParameter.type.transpile(pTrace)}`;
         }).join(', ');
 
         // Transpile attribute list.
-        let lResult: string = this.attributes.transpile();
+        let lResult: string = this.attributes.transpile(pTrace);
 
         // Create function declaration head without return type.
         lResult += `fn ${this.mName}(${lParameterList})`;
@@ -105,7 +108,7 @@ export class PgslFunctionDeclaration extends BasePgslDeclaration {
         }
 
         // Add function block.
-        lResult += this.mBlock.transpile();
+        lResult += this.mBlock.transpile(pTrace);
 
         return lResult;
     }

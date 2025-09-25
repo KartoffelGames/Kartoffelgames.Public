@@ -1,23 +1,16 @@
 import { PgslEnumDeclaration } from "../syntax_tree/declaration/pgsl-enum-declaration.ts";
 import { PgslStringValueExpression } from "../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
 import { PgslAttributeList } from "../syntax_tree/general/pgsl-attribute-list.ts";
+import { PgslAccessMode } from "./pgsl-access-mode.enum.ts";
 
-/**
- * Access mode enum declaration.
- */
-export const PgslAccessMode = {
-    Read: 'read',
-    Write: 'write',
-    ReadWrite: 'read_write'
-} as const;
 
 export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
-    private static mValidValues: Set<string> = (()=>{
+    private static mValidValues: Set<string> = (() => {
         const lSet = new Set<string>();
-        for(const lKey in PgslAccessMode) {
+        for (const lKey in PgslAccessMode) {
             lSet.add(PgslAccessMode[lKey as keyof typeof PgslAccessMode]);
         }
         return lSet;
@@ -43,7 +36,7 @@ export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
         lEmptyMeta.buildIn = true;
 
         // Convert enum values into declaration values.
-        const lValues: Array<{ name: string; value: PgslStringValueExpression }> = new Array<{ name: string; value: PgslStringValueExpression }>();
+        const lValues: Array<{ name: string; value: PgslStringValueExpression; }> = new Array<{ name: string; value: PgslStringValueExpression; }>();
         for (const lKey in PgslAccessMode) {
             // Create enum name and values.
             const lEnumPropertyName = lKey;
@@ -55,5 +48,3 @@ export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
         super('AccessMode', lValues, new PgslAttributeList(lEmptyMeta, []), lEmptyMeta);
     }
 }
-
-export type PgslAccessMode = (typeof PgslAccessMode)[keyof typeof PgslAccessMode];

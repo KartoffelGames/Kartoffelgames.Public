@@ -1,15 +1,16 @@
 import { Dictionary, EnumUtil } from '@kartoffelgames/core';
-import { PgslAccessMode, PgslAccessModeEnumDeclaration } from "../../buildin/pgsl-access-mode-enum-declaration.ts";
+import { PgslAccessModeEnumDeclaration } from "../../buildin/pgsl-access-mode-enum-declaration.ts";
+import { PgslAccessMode } from "../../buildin/pgsl-access-mode.enum.ts";
 import { PgslTexelFormat } from "../../enum/pgsl-texel-format.enum.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { BasePgslExpression } from "../expression/base-pgsl-expression.ts";
 import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslTextureTypeName } from "./enum/pgsl-texture-type-name.enum.ts";
 import { PgslNumericTypeDefinition } from './pgsl-numeric-type-definition.ts';
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 // TODO: Texture template validation is broken when using enums.
 
@@ -240,7 +241,7 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
                 } else {
                     if (PgslAccessModeEnumDeclaration.containsValue(lStringValueExpression.value)) {
                         lAdditionalAttachmentData.access = lStringValueExpression.value;
-                        
+
                     } else {
                         // Add error and default to read access.
                         pValidationTrace.pushError(`Unknown access mode.`, this.meta, this);

@@ -9,7 +9,7 @@ import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
-import { PgslAccessMode } from "../../buildin/pgsl-access-mode-enum-declaration.ts";
+import { PgslAccessMode } from "../../buildin/pgsl-access-mode.enum.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.

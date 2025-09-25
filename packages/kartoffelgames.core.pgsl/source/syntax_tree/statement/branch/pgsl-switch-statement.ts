@@ -8,7 +8,7 @@ import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 
 // TODO: Needs a slight rework.
 // Unfortunately, the current implementation is wrong.
@@ -50,7 +50,7 @@ export class PgslSwitchStatement extends BasePgslStatement<void> {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Open switch.
         let lResult: string = `switch (${this.mExpression.transpile(pTrace)}) {`
 

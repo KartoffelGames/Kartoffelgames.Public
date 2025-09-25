@@ -4,7 +4,7 @@ import { PgslEnumDeclaration } from './declaration/pgsl-enum-declaration.ts';
 import { PgslFunctionDeclaration } from './declaration/pgsl-function-declaration.ts';
 import { PgslStructDeclaration } from './declaration/pgsl-struct-declaration.ts';
 import { PgslVariableDeclaration } from './declaration/pgsl-variable-declaration.ts';
-import { PgslTranspilationTrace } from "./pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "./pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "./pgsl-validation-trace.ts";
 
 export class PgslDocument extends BasePgslSyntaxTree {
@@ -54,7 +54,7 @@ export class PgslDocument extends BasePgslSyntaxTree {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Transpile all childs.
         return this.childNodes
             .reduce((pCurrentValue: string, pChild: BasePgslSyntaxTree) => {

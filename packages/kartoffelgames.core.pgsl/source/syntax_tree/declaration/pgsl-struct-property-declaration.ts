@@ -1,6 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
@@ -52,7 +52,7 @@ export class PgslStructPropertyDeclaration extends BasePgslDeclaration {
      * 
      * @returns Transpiled code.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Transpile property type.
         const lType: string = this.mTypeDefinition.transpile(pTrace);
 

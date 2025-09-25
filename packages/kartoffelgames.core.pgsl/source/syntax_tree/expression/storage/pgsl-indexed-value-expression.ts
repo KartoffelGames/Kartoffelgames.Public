@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
@@ -55,7 +55,7 @@ export class PgslIndexedValueExpression extends BasePgslExpression {
      * 
      * @returns WGSL code of current expression.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
       return `${this.mValue.transpile(pTrace)}[${this.mIndex.transpile(pTrace)}]`;
     }
 

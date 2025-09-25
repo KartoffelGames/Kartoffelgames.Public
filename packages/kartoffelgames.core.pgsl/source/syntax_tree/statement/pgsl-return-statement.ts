@@ -1,7 +1,7 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslVoidTypeDefinition } from "../type/pgsl-void-type-definition.ts";
@@ -45,7 +45,7 @@ export class PgslReturnStatement extends BasePgslStatement {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         if (!this.mExpression) {
             return `return;`;
         }

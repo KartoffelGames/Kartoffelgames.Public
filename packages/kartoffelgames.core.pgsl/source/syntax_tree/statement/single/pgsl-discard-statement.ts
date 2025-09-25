@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
@@ -23,7 +23,7 @@ export class PgslDiscardStatement extends BasePgslStatement {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         return `discard;`;
     }
 

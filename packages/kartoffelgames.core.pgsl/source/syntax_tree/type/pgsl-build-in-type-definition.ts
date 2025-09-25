@@ -1,7 +1,7 @@
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from "../expression/base-pgsl-expression.ts";
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBuildInTypeName } from "./enum/pgsl-build-in-type-name.enum.ts";
@@ -90,7 +90,7 @@ export class PgslBuildInTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // TODO: Add buildin attributes based on type.
 
         return this.mUnderlyingType.transpile(pTrace);

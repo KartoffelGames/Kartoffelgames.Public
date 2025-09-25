@@ -1,7 +1,7 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-enum-declaration.ts';
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
@@ -49,7 +49,7 @@ export class PgslEnumValueExpression extends BasePgslExpression {
      * 
      * @returns WGSL code.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         return `ENUM__${this.mName}__${this.mProperty}`;
     }
 

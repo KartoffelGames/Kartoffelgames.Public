@@ -1,5 +1,5 @@
 import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -80,7 +80,7 @@ export class PgslBooleanTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns transpiled code.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         // Boolean type is not transpiled.
         return 'bool';
     }

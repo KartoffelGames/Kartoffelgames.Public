@@ -5,10 +5,11 @@ import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslAccessMode } from "../../buildin/pgsl-access-mode-enum-declaration.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -93,49 +94,98 @@ export class PgslVariableDeclaration extends BasePgslDeclaration<PgslVariableDec
      * 
      * @returns Transpiled code.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Try to parse declaration type.
         let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
         if (!lDeclarationType) {
             lDeclarationType = PgslDeclarationType.Private;
         }
 
-        const lDeclarationTypeString: string = (() => {
+        // Access mode attribute is optional and only used for meta.
+        let lAccessMode: PgslAccessMode = ((): PgslAccessMode => {
+            // Default access mode is read.
+            if (!this.attributes.hasAttribute('AccessMode')) {
+                return PgslAccessMode.Read;
+            }
+
+            // Read attribute parameters group binding attribute must have one parameter.
+            const lAttributeParameter: Array<BasePgslExpression> = this.attributes.getAttributeParameter('AccessMode')!;
+            if (lAttributeParameter.length !== 1) {
+                return PgslAccessMode.Read;
+            }
+
+            // Transpile attribute parameters. We assume the transpiled value is valid here as it was validated before.
+            return lAttributeParameter[0].transpile(pTrace) as PgslAccessMode;
+        })();
+
+        // Get type, resolving any aliases.
+        const [lDeclarationTypeString, lBindingType] = ((): [string, PgslFileMetaInformationBindingType] => {
             // TODO: Needs some better handling for texture and sampler types.
 
             switch (lDeclarationType) {
                 case PgslDeclarationType.Const:
-                    return 'const';
-                case PgslDeclarationType.Storage:
-                    // TODO: when read write attribute is set use another accessmode.
-                    return 'var<storage, read_write>';
-                case PgslDeclarationType.Uniform:
-                    return 'var<uniform>';
+                    return ['const', 'uniform'];
+                case PgslDeclarationType.Storage: {
+                    // Dependent on the access mode, set correct binding type.
+                    // Cast back to string, as lAccessMode can be outside of enum values.
+                    switch (lAccessMode as string) {
+                        case PgslAccessMode.Read:
+                            return [`var<storage, ${lAccessMode}>`, 'read-storage'];
+                        case PgslAccessMode.Write:
+                            return [`var<storage, ${lAccessMode}>`, 'write-storage'];
+                        case PgslAccessMode.ReadWrite:
+                            return [`var<storage, ${lAccessMode}>`, 'read-write-storage'];
+                    }
+
+                    return [`var<storage, ${lAccessMode}>`, 'write-storage'];
+                }
                 case PgslDeclarationType.Workgroup:
-                    return 'var<workgroup>';
+                    return ['var<workgroup>', 'uniform'];
                 case PgslDeclarationType.Private:
-                    return 'var<private>';
+                    return ['var<private>', 'uniform'];
                 case PgslDeclarationType.Param:
-                    return 'override';
+                    return ['override', 'uniform'];
+                case PgslDeclarationType.Uniform: {
+                    return ['var<uniform>', 'uniform'];
+                }
             }
 
-            return 'var<private>';
+            return ['var<private>', 'uniform'];
         })();
 
-        // Transpile attributes and type declaration.
-        let lAttributes: string = this.attributes.transpile(pTrace);
-        if (lAttributes.length > 0) {
-            lAttributes += ' ';
-        }
+        // Transpile binding attribute.
+        const lBindingAttribute: string = (() => {
+            // If no group binding attribute is present, return empty string.
+            if (!this.attributes.hasAttribute('GroupBinding')) {
+                return '';
+            }
 
+            // Read attribute parameters group binding attribute must have two parameters.
+            const lAttributeParameter: Array<BasePgslExpression> = this.attributes.getAttributeParameter('GroupBinding')!;
+            if (lAttributeParameter.length !== 2) {
+                return '';
+            }
+
+            // Transpile attribute parameters.
+            const lGroupName: string = lAttributeParameter[0].transpile(pTrace);
+            const lBindingName: string = lAttributeParameter[1].transpile(pTrace);
+
+            // Resolve binding location.
+            const lBindingLocation: { bindGroup: number; binding: number; } = pTrace.setBinding(lGroupName, lBindingName, this.mTypeDeclaration, lBindingType);
+
+            return this.attributes.transpileAttributeWithParameter('GroupBinding', [lBindingLocation.bindGroup.toString(), lBindingLocation.binding.toString()]);
+        })();
+
+        // Transpile declaration parts to fit spaces correctly.
         const lTypeDeclaration: string = this.mTypeDeclaration.transpile(pTrace);
+        const lAttributeString: string = lBindingAttribute.length > 0 ? `${lBindingAttribute} ` : '';
 
         // If no expression is given, return declaration without expression.
         if (!this.mExpression) {
-            return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
+            return `${lAttributeString}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration};`;
         }
 
-        return `${lAttributes}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile(pTrace)};`;
+        return `${lAttributeString}${lDeclarationTypeString} ${this.mName}: ${lTypeDeclaration} = ${this.mExpression.transpile(pTrace)};`;
     }
 
     /**

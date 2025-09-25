@@ -8,7 +8,7 @@ import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum
 import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
@@ -37,7 +37,7 @@ export class PgslLiteralValueExpression extends BasePgslExpression {
      * 
      * @returns WGSL code.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         // Basically does nothing to the value.
         return this.mTextValue;
     }

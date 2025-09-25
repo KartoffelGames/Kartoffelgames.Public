@@ -13,13 +13,7 @@ import type { PgslValidationTrace } from '../pgsl-validation-trace.ts';
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from "../type/enum/pgsl-numeric-type-name.enum.ts";
 import { PgslNumericTypeDefinition } from "../type/pgsl-numeric-type-definition.ts";
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
-
-// TODO: Cooler validation system for attributes. 
-// - Required parent type (e.g. @vertex only on functions). (Requires parent set in base declaration syntax tree constructor)
-// - Automatic validation in declaration syntax tree. (after parent tree validation) so childs need another validation method. 
-// - Set parameter requirements by syntax tree type. [IntegerExpression...]
-// - Extended validation function that checks the parameter values (eg. for enums).
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * Generic attribute list.
@@ -263,7 +257,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * 
      * @returns WGSL code.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         throw new Exception(`Attribute list cannot be transpiled directly.`, this);
     }
 

@@ -6,7 +6,7 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 
 export class PgslBinaryExpression extends BasePgslExpression {
     private readonly mLeftExpression: BasePgslExpression;
@@ -56,7 +56,7 @@ export class PgslBinaryExpression extends BasePgslExpression {
      * 
      * @returns WGSL code.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
     }
 

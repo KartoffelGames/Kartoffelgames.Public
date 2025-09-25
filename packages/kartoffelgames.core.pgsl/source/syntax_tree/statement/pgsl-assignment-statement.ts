@@ -5,7 +5,7 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * PGSL structure holding a assignment statement.
@@ -54,7 +54,7 @@ export class PgslAssignmentStatement extends BasePgslStatement {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
       return `${this.mVariable.transpile(pTrace)} ${this.mAssignmentName} ${this.mExpression.transpile(pTrace)};`;
     }
 

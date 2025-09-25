@@ -5,7 +5,7 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * PGSL structure holding a increment or decrement statement.
@@ -49,7 +49,7 @@ export class PgslIncrementDecrementStatement extends BasePgslStatement<PgslIncre
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // TODO: Maybe the semicolon should be handled differently. Loops like the for loop dont need them.
         return `${this.mExpression.transpile(pTrace)}${this.mOperatorName};`;
     }

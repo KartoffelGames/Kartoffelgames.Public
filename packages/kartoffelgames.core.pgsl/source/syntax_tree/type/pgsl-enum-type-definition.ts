@@ -1,6 +1,6 @@
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment } from "../declaration/pgsl-enum-declaration.ts";
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslInvalidTypeDefinition } from "./pgsl-invalid-type-definition.ts";
@@ -106,7 +106,7 @@ export class PgslEnumTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(_pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
         // A transpiled enum is allways a u32 type.
         // String values can not be used to be transpiled.
         return `u32`;

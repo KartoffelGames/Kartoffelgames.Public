@@ -9,7 +9,7 @@ import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum.ts';
 import { PgslNumericTypeDefinition } from "../type/pgsl-numeric-type-definition.ts";
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -52,7 +52,7 @@ export class PgslEnumDeclaration extends BasePgslDeclaration<PgslEnumDeclaration
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Transpile attribute list.
         let lResult: string = this.attributes.transpile(pTrace);
 

@@ -1,6 +1,6 @@
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from "../expression/base-pgsl-expression.ts";
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
@@ -118,7 +118,7 @@ export class PgslArrayTypeDefinition extends BasePgslTypeDefinition<PgslArrayTyp
      * 
      * @returns Transpiled string.
      */
-    public override onTranspile(pTrace: PgslTranspilationTrace): string {
+    public override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Transpile array type with fixed length.
         if (this.mLengthExpression) {
             return `array<${this.mInnerType.toString()}, ${this.mLengthExpression.transpile(pTrace)}>`;

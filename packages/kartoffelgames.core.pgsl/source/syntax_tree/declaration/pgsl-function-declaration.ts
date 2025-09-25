@@ -1,6 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
@@ -87,7 +87,7 @@ export class PgslFunctionDeclaration extends BasePgslDeclaration {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         // Transpile return type.
         const lReturnType: string = this.mReturnType.transpile(pTrace);
 

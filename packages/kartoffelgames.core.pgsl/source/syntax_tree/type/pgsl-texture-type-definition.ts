@@ -9,7 +9,7 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslTextureTypeName } from "./enum/pgsl-texture-type-name.enum.ts";
 import { PgslNumericTypeDefinition } from './pgsl-numeric-type-definition.ts';
-import { PgslTranspilationTrace } from "../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 // TODO: Texture template validation is broken when using enums.
 
@@ -76,7 +76,7 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
      * 
      * @returns Transpiled wgsl code.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         const lTextureTypeName: string = (() => {
             switch (this.mTextureType) {
                 case PgslTextureTypeName.Texture1d:

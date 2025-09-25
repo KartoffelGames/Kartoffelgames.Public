@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PgslDocument } from './pgsl-document.ts';
 import type { PgslValidationTrace } from './pgsl-validation-trace.ts';
-import { PgslTranspilationTrace } from "./pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "./pgsl-file-meta-information.ts";
 
 /**
  * Base pgsl syntax tree object.
@@ -122,7 +122,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * 
      * @returns transpiled wgsl code.
      */
-    public transpile(pTrace: PgslTranspilationTrace): string {
+    public transpile(pTrace: PgslFileMetaInformation): string {
         // If build in, return empty string.
         if (this.mBuildIn) {
             return '';
@@ -190,7 +190,7 @@ export abstract class BasePgslSyntaxTree<TValidationAttachment extends object | 
      * 
      * @returns transpiled wgsl code.
      */
-    protected abstract onTranspile(pTrace: PgslTranspilationTrace): string;
+    protected abstract onTranspile(pTrace: PgslFileMetaInformation): string;
 
     /**
      * Validate syntax tree.

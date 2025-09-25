@@ -6,7 +6,7 @@ import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.
 import { BasePgslTypeDefinition } from "../../../source/syntax_tree/type/base-pgsl-type-definition.ts";
 import { BasePgslExpression } from "../../../source/syntax_tree/expression/base-pgsl-expression.ts";
 import { PgslValidationTrace } from "../../../source/syntax_tree/pgsl-validation-trace.ts";
-import { PgslTranspilationTrace } from "../../../source/syntax_tree/pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-file-meta-information.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
@@ -170,7 +170,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation. No errors.
         expect(lTranspilationResult).toBe(`${lDeclarationType} ${lVariableName}: f32 = ${lVariableValue};`);
@@ -325,7 +325,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`@group(0) @binding(0) var<storage, read> ${lVariableName}: f32;`);
@@ -500,7 +500,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`@group(0) @binding(0) var<uniform> ${lVariableName}: f32;`);
@@ -522,7 +522,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`@group(0) @binding(0) var ${lVariableName}: texture_depth_2d;`);
@@ -544,7 +544,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`@group(0) @binding(0) var ${lVariableName}: sampler;`);
@@ -693,7 +693,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`var<workgroup> ${lVariableName}: f32;`);
@@ -713,7 +713,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`var<workgroup> ${lVariableName}: f32 = ${lVariableValue};`);
@@ -845,7 +845,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`var<private> ${lVariableName}: f32;`);
@@ -865,7 +865,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`var<private> ${lVariableName}: f32 = ${lVariableValue};`);
@@ -1008,7 +1008,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
         // Execute.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
-        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslTranspilationTrace());
+        const lTranspilationResult: string = lDeclarationNode.transpile(new PgslFileMetaInformation());
 
         // Validation.
         expect(lTranspilationResult).toBe(`override ${lVariableName}: f32 = ${lVariableValue};`);

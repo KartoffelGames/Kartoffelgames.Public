@@ -6,7 +6,7 @@ import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslTranspilationTrace } from "../../pgsl-tranpilation-trace.ts";
+import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
 
 /**
  * PGSL structure for a do while statement.
@@ -54,7 +54,7 @@ export class PgslDoWhileStatement extends BasePgslStatement {
      * 
      * @returns Transpiled string.
      */
-    protected override onTranspile(pTrace: PgslTranspilationTrace): string {
+    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
         return `loop { ${this.mBlock.transpile(pTrace)} if !(${this.mExpression.transpile(pTrace)}) { break; } }`;
     }
 

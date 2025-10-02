@@ -5,11 +5,20 @@ import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
+// TODO: Should not exist. Any alias should be resolved to its inner type definition.
+
 /**
  * Aliased type definition that aliases a plain type.
  */
 export class PgslAliasedTypeDefinition extends BasePgslTypeDefinition {
     private readonly mAliasName: string;
+
+    /**
+     * Alias name.
+     */
+    public get aliasName(): string {
+        return this.mAliasName;
+    }
 
     /**
      * Constructor.

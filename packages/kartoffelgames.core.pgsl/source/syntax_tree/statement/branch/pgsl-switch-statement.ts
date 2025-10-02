@@ -8,7 +8,7 @@ import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 // TODO: Needs a slight rework.
 // Unfortunately, the current implementation is wrong.

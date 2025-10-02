@@ -3,7 +3,7 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a variable name used as a pointer value.

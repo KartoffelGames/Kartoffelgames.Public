@@ -1,7 +1,7 @@
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';

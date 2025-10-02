@@ -1,8 +1,8 @@
-import { PgslEnumDeclaration } from "../syntax_tree/declaration/pgsl-enum-declaration.ts";
-import { PgslStringValueExpression } from "../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
-import { PgslAttributeList } from "../syntax_tree/general/pgsl-attribute-list.ts";
-import { PgslAccessMode } from "./pgsl-access-mode.enum.ts";
 
+import { PgslEnumDeclaration } from "../declaration/pgsl-enum-declaration.ts";
+import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
+import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
+import { PgslAccessMode } from "./pgsl-access-mode.enum.ts";
 
 export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     /**
@@ -33,7 +33,6 @@ export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     public constructor() {
         // Create empty meta and set as built-in.
         const lEmptyMeta = PgslAccessModeEnumDeclaration.emptyMeta();
-        lEmptyMeta.buildIn = true;
 
         // Convert enum values into declaration values.
         const lValues: Array<{ name: string; value: PgslStringValueExpression; }> = new Array<{ name: string; value: PgslStringValueExpression; }>();

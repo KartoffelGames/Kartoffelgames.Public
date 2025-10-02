@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';

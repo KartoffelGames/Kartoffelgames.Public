@@ -4,9 +4,9 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
- * Void type definition.
+ * Boolean type definition.
  */
-export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
+export class PgslStringType extends BasePgslTypeDefinition {
     /**
      * Check if type is equal to target type.
      * 
@@ -16,7 +16,7 @@ export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
      * @returns true when both types describes the same type.
      */
     public override equals(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // Void type is always equal to itself.
+        // String type is always equal to itself.
         return true;
     }
 
@@ -29,7 +29,7 @@ export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
      * @returns true when type is explicit castable into target type.
      */
     public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // A void is never explicit nor implicit castable.
+        // A string is never explicit nor implicit castable.
         return false;
     }
 
@@ -42,7 +42,7 @@ export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
      * @returns true when type is implicit castable into target type.
      */
     public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // A void is never explicit nor implicit castable.
+        // A string is never explicit nor implicit castable.
         return false;
     }
 
@@ -54,8 +54,8 @@ export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
      * @returns transpiled code.
      */
     protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        // Void type is not transpiled.
-        return '';
+        // String type is not transpiled.
+        return 'string';
     }
 
     /**
@@ -67,7 +67,7 @@ export class PgslVoidTypeDefinition extends BasePgslTypeDefinition {
      */
     protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
-            baseType: PgslBaseTypeName.Void,
+            baseType: PgslBaseTypeName.String,
             storable: false,
             hostShareable: false,
             composite: false,

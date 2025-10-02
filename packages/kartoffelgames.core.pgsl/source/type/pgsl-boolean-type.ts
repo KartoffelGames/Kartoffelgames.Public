@@ -5,17 +5,17 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
- * Invalid type definition.
+ * Boolean type definition.
  */
-export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
+export class PgslBooleanType extends BasePgslTypeDefinition {
     /**
-     * Create a new instance of the invalid type definition syntax tree.
+     * Create a boolean type definition syntax tree.
      * 
      * @param pMeta - Optional existing meta data.
      * 
-     * @returns A new instance of the invalid type definition syntax tree.
+     * @returns Boolean type definition syntax tree. 
      */
-    public static type(pMeta?: SyntaxTreeMeta): PgslInvalidTypeDefinition {
+    public static type(pMeta?: SyntaxTreeMeta): PgslBooleanType {
         // Create or convert existing metadata.
         let lTreeMetaData: BasePgslSyntaxTreeMeta = BasePgslSyntaxTree.emptyMeta();
         if (pMeta) {
@@ -25,19 +25,26 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
             };
         }
 
-        return new PgslInvalidTypeDefinition(lTreeMetaData);
+        return new PgslBooleanType(lTreeMetaData);
     }
 
     /**
      * Check if type is equal to target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
-     * @param _pTarget - Target type.
+     * @param pValidationTrace - Validation trace to use.
+     * @param pTarget - Target type.
      * 
-     * @returns always false.
+     * @returns true when both types describes the same type.
      */
-    public override equals(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        return false;
+    public override equals(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
+        // Read attachments from target type and check if it is a boolean type.
+        const lTargetAttachments: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
+        if (lTargetAttachments.baseType !== PgslBaseTypeName.Boolean) {
+            return false;
+        }
+
+        // Boolean type is always equal to itself.
+        return true;
     }
 
     /**
@@ -46,9 +53,10 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
      * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
-     * @returns always false.
+     * @returns true when type is explicit castable into target type.
      */
     public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+        // A boolean is never explicit nor implicit castable.
         return false;
     }
 
@@ -58,9 +66,10 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
      * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
-     * @returns always false.
+     * @returns true when type is implicit castable into target type.
      */
     public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+        // A boolean is never explicit nor implicit castable.
         return false;
     }
 
@@ -72,7 +81,8 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
      * @returns transpiled code.
      */
     protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return '##invalid##';
+        // Boolean type is not transpiled.
+        return 'bool';
     }
 
     /**
@@ -84,16 +94,17 @@ export class PgslInvalidTypeDefinition extends BasePgslTypeDefinition {
      */
     protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
-            baseType: PgslBaseTypeName.Invalid,
-            storable: false,
+            baseType: PgslBaseTypeName.Boolean,
+            storable: true,
             hostShareable: false,
             composite: false,
-            constructible: false,
-            fixedFootprint: false,
+            constructible: true,
+            fixedFootprint: true,
             indexable: false,
-            concrete: false,
-            scalar: false,
-            plain: false
+
+            concrete: true,
+            scalar: true,
+            plain: true
         };
     }
 }

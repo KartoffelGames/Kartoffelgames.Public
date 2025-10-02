@@ -8,7 +8,7 @@ import { PgslSamplerTypeName } from "./enum/pgsl-sampler-build-name.enum.ts";
 /**
  * Sampler type definition.
  */
-export class PgslSamplerTypeDefinition extends BasePgslTypeDefinition<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslSamplerType extends BasePgslTypeDefinition<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mComparision!: boolean;
 
     /**

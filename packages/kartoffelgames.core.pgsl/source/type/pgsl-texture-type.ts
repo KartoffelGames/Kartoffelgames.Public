@@ -10,23 +10,23 @@ import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslTextureTypeName } from "./enum/pgsl-texture-type-name.enum.ts";
-import { PgslNumericTypeDefinition } from './pgsl-numeric-type-definition.ts';
+import { PgslNumericType } from './pgsl-numeric-type.ts';
 
 // TODO: Texture template validation is broken when using enums.
 
-export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-    private static readonly mTemplateMapping: Dictionary<PgslTextureTypeName, Array<typeof PgslNumericTypeDefinition | typeof PgslStringValueExpression>> = (() => {
+export class PgslTextureType extends BasePgslTypeDefinition<PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+    private static readonly mTemplateMapping: Dictionary<PgslTextureTypeName, Array<typeof PgslNumericType | typeof PgslStringValueExpression>> = (() => {
         // Create mapping for all texture types.
-        const lMapping: Dictionary<PgslTextureTypeName, Array<typeof PgslNumericTypeDefinition | typeof PgslStringValueExpression>> = new Dictionary<PgslTextureTypeName, Array<typeof PgslNumericTypeDefinition | typeof PgslStringValueExpression>>();
+        const lMapping: Dictionary<PgslTextureTypeName, Array<typeof PgslNumericType | typeof PgslStringValueExpression>> = new Dictionary<PgslTextureTypeName, Array<typeof PgslNumericType | typeof PgslStringValueExpression>>();
 
         // Textures.
-        lMapping.set(PgslTextureTypeName.Texture1d, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.Texture2d, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.Texture2dArray, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.Texture3d, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.TextureCube, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.TextureCubeArray, [PgslNumericTypeDefinition]);
-        lMapping.set(PgslTextureTypeName.TextureMultisampled2d, [PgslNumericTypeDefinition]);
+        lMapping.set(PgslTextureTypeName.Texture1d, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.Texture2d, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.Texture2dArray, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.Texture3d, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.TextureCube, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.TextureCubeArray, [PgslNumericType]);
+        lMapping.set(PgslTextureTypeName.TextureMultisampled2d, [PgslNumericType]);
 
         // External
         lMapping.set(PgslTextureTypeName.TextureExternal, []);
@@ -201,7 +201,7 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
             lTemplate.validate(pValidationTrace);
         }
 
-        const lTextureTemplates: Array<typeof PgslNumericTypeDefinition | typeof PgslStringValueExpression> = PgslTextureTypeDefinition.mTemplateMapping.get(this.mTextureType)!;
+        const lTextureTemplates: Array<typeof PgslNumericType | typeof PgslStringValueExpression> = PgslTextureType.mTemplateMapping.get(this.mTextureType)!;
 
         // Ensure same length.
         if (lTextureTemplates.length !== this.mTemplateList.length) {
@@ -216,7 +216,7 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
 
         // Validate templates.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
-            const lExpectedParameterType: typeof PgslNumericTypeDefinition | typeof PgslStringValueExpression = lTextureTemplates[lTemplateIndex];
+            const lExpectedParameterType: typeof PgslNumericType | typeof PgslStringValueExpression = lTextureTemplates[lTemplateIndex];
             const lActualParameterValue: BasePgslTypeDefinition | BasePgslExpression = this.mTemplateList[lTemplateIndex];
 
             // Validate parameter type.
@@ -226,7 +226,7 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
 
             // One parameter is allways a type, two parameters allways a string.
             if (lTextureTemplates.length === 1) {
-                lAdditionalAttachmentData.sampledType = lActualParameterValue as unknown as PgslNumericTypeDefinition;
+                lAdditionalAttachmentData.sampledType = lActualParameterValue as unknown as PgslNumericType;
             } else {
                 // We asume that is a string so we can read its value.
                 const lStringValueExpression: PgslStringValueExpression = lActualParameterValue as unknown as PgslStringValueExpression;
@@ -272,5 +272,5 @@ export class PgslTextureTypeDefinition extends BasePgslTypeDefinition<PgslTextur
 export type PgslTextureTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
     access: PgslAccessMode | null;
     format: PgslTexelFormat | null;
-    sampledType: PgslNumericTypeDefinition | null;
+    sampledType: PgslNumericType | null;
 };

@@ -5,7 +5,7 @@ import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 export class PgslArithmeticExpression extends BasePgslExpression {
     private readonly mLeftExpression: BasePgslExpression;

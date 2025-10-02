@@ -9,7 +9,7 @@ import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../type/enum/pgsl-numeric-type-name.enum.ts';
 import { PgslNumericTypeDefinition } from "../type/pgsl-numeric-type-definition.ts";
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 
 /**
  * PGSL syntax tree of a enum declaration.

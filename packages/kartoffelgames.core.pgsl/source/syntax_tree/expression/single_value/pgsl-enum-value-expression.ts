@@ -1,15 +1,17 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-enum-declaration.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
 
+// TODO: Remove and merge with value decomposition expression. As it technically is one.
+
 /**
  * PGSL structure holding single enum value.
  */
-export class PgslEnumValueExpression extends BasePgslExpression {
+export class PgslEnumValueExpression___ extends BasePgslExpression {
     private readonly mName: string;
     private readonly mProperty: string;
 

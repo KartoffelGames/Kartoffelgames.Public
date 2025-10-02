@@ -8,7 +8,7 @@ import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 /**
  * Pointer type definition.
  */
-export class PgslPointerTypeDefinition extends BasePgslTypeDefinition<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslPointerType extends BasePgslTypeDefinition<PgslPointerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mReferencedType: BasePgslTypeDefinition;
 
     /**

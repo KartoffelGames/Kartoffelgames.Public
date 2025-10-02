@@ -10,7 +10,7 @@ import { PgslNumericTypeDefinition } from "./pgsl-numeric-type-definition.ts";
 /**
  * Array type definition.
  */
-export class PgslArrayTypeDefinition extends BasePgslTypeDefinition<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     private readonly mInnerType: BasePgslTypeDefinition;
     private readonly mLengthExpression: BasePgslExpression | null;
 

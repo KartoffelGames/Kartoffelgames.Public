@@ -6,7 +6,7 @@ import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.
 import { BasePgslTypeDefinition } from "../../../source/syntax_tree/type/base-pgsl-type-definition.ts";
 import { BasePgslExpression } from "../../../source/syntax_tree/expression/base-pgsl-expression.ts";
 import { PgslValidationTrace } from "../../../source/syntax_tree/pgsl-validation-trace.ts";
-import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-build-result.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();

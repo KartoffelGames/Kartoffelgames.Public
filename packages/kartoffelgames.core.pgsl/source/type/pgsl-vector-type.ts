@@ -8,7 +8,7 @@ import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
 /**
  * Vector type definition.
  */
-export class PgslVectorTypeDefinition extends BasePgslTypeDefinition<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslVectorType extends BasePgslTypeDefinition<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     /**
      * Create a vector type definition syntax tree.
      * 
@@ -18,7 +18,7 @@ export class PgslVectorTypeDefinition extends BasePgslTypeDefinition<PgslVectorT
      * 
      * @returns Vector type definition syntax tree. 
      */
-    public static type(pVectorType: PgslVectorTypeName, pInnerType: BasePgslTypeDefinition, pMeta?: SyntaxTreeMeta): PgslVectorTypeDefinition {
+    public static type(pVectorType: PgslVectorTypeName, pInnerType: BasePgslTypeDefinition, pMeta?: SyntaxTreeMeta): PgslVectorType {
         // Create or convert existing metadata.
         let lTreeMetaData: BasePgslSyntaxTreeMeta = BasePgslSyntaxTree.emptyMeta();
         if (pMeta) {
@@ -28,7 +28,7 @@ export class PgslVectorTypeDefinition extends BasePgslTypeDefinition<PgslVectorT
             };
         }
 
-        return new PgslVectorTypeDefinition(pVectorType, pInnerType, lTreeMetaData);
+        return new PgslVectorType(pVectorType, pInnerType, lTreeMetaData);
     }
 
     private readonly mInnerType: BasePgslTypeDefinition;

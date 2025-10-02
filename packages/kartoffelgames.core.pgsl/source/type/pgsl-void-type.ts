@@ -1,12 +1,11 @@
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
+
+import { PgslType } from "./pgsl-type.ts";
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 
 /**
- * Boolean type definition.
+ * Void type definition.
  */
-export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
+export class PgslVoidType extends PgslType {
     /**
      * Check if type is equal to target type.
      * 
@@ -15,8 +14,8 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // String type is always equal to itself.
+    public override equals(_pTarget: PgslType): boolean {
+        // Void type is always equal to itself.
         return true;
     }
 
@@ -28,8 +27,8 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // A string is never explicit nor implicit castable.
+    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+        // A void is never explicit nor implicit castable.
         return false;
     }
 
@@ -41,8 +40,8 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // A string is never explicit nor implicit castable.
+    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+        // A void is never explicit nor implicit castable.
         return false;
     }
 
@@ -54,8 +53,8 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
      * @returns transpiled code.
      */
     protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        // String type is not transpiled.
-        return 'string';
+        // Void type is not transpiled.
+        return '';
     }
 
     /**
@@ -67,7 +66,7 @@ export class PgslStringTypeDefinition extends BasePgslTypeDefinition {
      */
     protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
         return {
-            baseType: PgslBaseTypeName.String,
+            baseType: PgslBaseTypeName.Void,
             storable: false,
             hostShareable: false,
             composite: false,

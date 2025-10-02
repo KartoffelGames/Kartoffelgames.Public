@@ -5,7 +5,7 @@ import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
 import { BasePgslDeclaration } from './base-pgsl-declaration.ts';

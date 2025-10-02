@@ -3,12 +3,12 @@ import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment 
 import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslInvalidTypeDefinition } from "./pgsl-invalid-type-definition.ts";
+import { PgslInvalidType } from "./pgsl-invalid-type.ts";
 
 /**
  * Enum type definition that aliases a plain type.
  */
-export class PgslEnumTypeDefinition extends BasePgslTypeDefinition {
+export class PgslEnumType extends BasePgslTypeDefinition {
     private readonly mEnumName: string;
 
     /**
@@ -124,7 +124,7 @@ export class PgslEnumTypeDefinition extends BasePgslTypeDefinition {
         // Read attachment from enum type.
         if (!(lEnumSyntaxTree instanceof PgslEnumDeclaration)) {
             // Create, validate and return attachment for an invalid type.
-            return pValidationTrace.getAttachment(PgslInvalidTypeDefinition.type(this.meta).validate(pValidationTrace));
+            return pValidationTrace.getAttachment(PgslInvalidType.type(this.meta).validate(pValidationTrace));
         }
 
         // Read the enum attachment.

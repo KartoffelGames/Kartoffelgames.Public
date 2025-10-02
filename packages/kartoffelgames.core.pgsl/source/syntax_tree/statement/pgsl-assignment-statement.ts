@@ -5,7 +5,7 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a assignment statement.

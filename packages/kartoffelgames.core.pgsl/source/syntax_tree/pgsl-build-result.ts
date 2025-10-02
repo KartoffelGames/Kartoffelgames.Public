@@ -2,6 +2,8 @@ import type { PgslAliasDeclaration } from "./declaration/pgsl-alias-declaration.
 import type { PgslEnumDeclaration } from "./declaration/pgsl-enum-declaration.ts";
 import type { PgslFunctionDeclaration } from "./declaration/pgsl-function-declaration.ts";
 import type { BasePgslTypeDefinition } from "./type/base-pgsl-type-definition.ts";
+import { PgslAliasedTypeDefinition } from "./type/pgsl-aliased-type-definition.ts";
+import { PgslInvalidTypeDefinition } from "./type/pgsl-invalid-type-definition.ts";
 
 export class PgslFileMetaInformation {
     private readonly mBindGroups: Map<string, PgslFileMetaInformationBindGroup>;
@@ -21,18 +23,16 @@ export class PgslFileMetaInformation {
     /**
      * Resolves the binding for a given bind group and binding name.
      * 
-     * @param pBindGroupName The name of the bind group.
-     * @param pBindingName The name of the binding.
-     * @param pType The type of the binding.
-     * @param pDeclaration The declaration type of the binding.
+     * @param pBindGroupName - The name of the bind group.
+     * @param pBindingName - The name of the binding.
+     * @param pType - The type of the binding.
+     * @param pDeclaration - The declaration type of the binding.
      * 
      * @returns The resolved binding information.
      */
     public setBinding(pBindGroupName: string, pBindingName: string, pType: BasePgslTypeDefinition, pDeclaration: PgslFileMetaInformationBindingType): PgslFileMetaInformationResolvedBinding {
-        // Try to get existing bind group
+        // Try to get existing bind group and create bind group if it doesn't exist
         let lBindGroup = this.mBindGroups.get(pBindGroupName);
-
-        // Create bind group if it doesn't exist
         if (!lBindGroup) {
             lBindGroup = {
                 name: pBindGroupName,
@@ -42,15 +42,13 @@ export class PgslFileMetaInformation {
             this.mBindGroups.set(pBindGroupName, lBindGroup);
         }
 
-        // Try to get existing binding
+        // Try to get existing binding and create binding if it doesn't exist
         let lBinding = lBindGroup.bindings.get(pBindingName);
-
-        // Create binding if it doesn't exist
         if (!lBinding) {
             lBinding = {
                 name: pBindingName,
                 index: lBindGroup.bindings.size,
-                type: pType,
+                type: this.resolveAlias(pType),
                 declaration: pDeclaration
             };
             lBindGroup.bindings.set(pBindingName, lBinding);
@@ -63,9 +61,25 @@ export class PgslFileMetaInformation {
         };
     }
 
+    /**
+     * Resolves the alias for a given type.
+     *
+     * @param pType - Type to resolve.
+     * 
+     * @returns Resolved type or original type if no alias is found.
+     */
+    public resolveAlias(pType: BasePgslTypeDefinition): BasePgslTypeDefinition {
+        if (!(pType instanceof PgslAliasedTypeDefinition)) {
+            return pType;
+        }
 
-    private resolveAlias(_pAliasName: string): BasePgslTypeDefinition {
-        return null as unknown as BasePgslTypeDefinition;
+        // Resolve alias recursively.
+        const lAlias = this.mAliases.get(pType.aliasName);
+        if (lAlias) {
+            return this.resolveAlias(lAlias.type);
+        }
+
+        return PgslInvalidTypeDefinition.type();
     }
 }
 

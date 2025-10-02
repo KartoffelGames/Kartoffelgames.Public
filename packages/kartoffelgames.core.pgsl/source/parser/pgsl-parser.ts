@@ -1,6 +1,7 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
-import type { BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import { PgslAccessModeEnumDeclaration } from "../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts";
 import type { BasePgslDeclaration } from '../syntax_tree/declaration/base-pgsl-declaration.ts';
 import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
@@ -14,7 +15,6 @@ import { PgslBinaryExpression } from '../syntax_tree/expression/operation/pgsl-b
 import { PgslComparisonExpression } from '../syntax_tree/expression/operation/pgsl-comparison-expression.ts';
 import { PgslLogicalExpression } from '../syntax_tree/expression/operation/pgsl-logical-expression.ts';
 import { PgslAddressOfExpression } from '../syntax_tree/expression/single_value/pgsl-address-of-expression.ts';
-import { PgslEnumValueExpression } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression.ts';
 import { PgslFunctionCallExpression } from '../syntax_tree/expression/single_value/pgsl-function-call-expression.ts';
 import { PgslLiteralValueExpression } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression.ts';
 import { PgslNewCallExpression } from '../syntax_tree/expression/single_value/pgsl-new-expression.ts';
@@ -26,11 +26,13 @@ import { PgslValueDecompositionExpression } from '../syntax_tree/expression/stor
 import { PgslVariableNameExpression } from '../syntax_tree/expression/storage/pgsl-variable-name-expression.ts';
 import { PgslUnaryExpression } from '../syntax_tree/expression/unary/pgsl-unary-expression.ts';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts';
+
+import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
 import type { BasePgslStatement } from '../syntax_tree/statement/base-pgsl-statement.ts';
 import { PgslDoWhileStatement } from '../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
 import { PgslForStatement } from '../syntax_tree/statement/branch/pgsl-for-statement.ts';
 import { PgslIfStatement } from '../syntax_tree/statement/branch/pgsl-if-statement.ts';
-import { type PgslSwitchStatementSwitchCase, PgslSwitchStatement } from '../syntax_tree/statement/branch/pgsl-switch-statement.ts';
+import { PgslSwitchStatement, type PgslSwitchStatementSwitchCase } from '../syntax_tree/statement/branch/pgsl-switch-statement.ts';
 import { PgslWhileStatement } from '../syntax_tree/statement/branch/pgsl-while-statement.ts';
 import { PgslAssignmentStatement } from '../syntax_tree/statement/pgsl-assignment-statement.ts';
 import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement.ts';
@@ -41,46 +43,18 @@ import { PgslVariableDeclarationStatement } from '../syntax_tree/statement/pgsl-
 import { PgslBreakStatement } from '../syntax_tree/statement/single/pgsl-break-statement.ts';
 import { PgslContinueStatement } from '../syntax_tree/statement/single/pgsl-continue-statement.ts';
 import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-discard-statement.ts';
-import type { BasePgslTypeDefinition } from '../syntax_tree/type/base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from '../syntax_tree/type/enum/pgsl-base-type-name.enum.ts';
-import { PgslBuildInTypeName } from '../syntax_tree/type/enum/pgsl-build-in-type-name.enum.ts';
-import { PgslMatrixTypeName } from '../syntax_tree/type/enum/pgsl-matrix-type-name.enum.ts';
-import { PgslNumericTypeName } from '../syntax_tree/type/enum/pgsl-numeric-type-name.enum.ts';
-import { PgslSamplerTypeName } from '../syntax_tree/type/enum/pgsl-sampler-build-name.enum.ts';
-import { PgslTextureTypeName } from '../syntax_tree/type/enum/pgsl-texture-type-name.enum.ts';
-import { PgslVectorTypeName } from '../syntax_tree/type/enum/pgsl-vector-type-name.enum.ts';
-import { PgslTypeDeclarationSyntaxTreeFactory } from './pgsl-type-definition-syntax-tree-factory.ts';
-import { PgslLexer } from './pgsl-lexer.ts';
-import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
-import { PgslValidationTrace } from '../syntax_tree/pgsl-validation-trace.ts';
-import { PgslAccessModeEnumDeclaration } from "../buildin/pgsl-access-mode-enum-declaration.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslLexer } from '../lexer/pgsl-lexer.ts';
+import { PgslToken } from '../lexer/pgsl-token.enum.ts';
+import { PgslTypeDefinition } from "../syntax_tree/general/pgsl-type-definition.ts";
+
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
-    private mTypeFactory: PgslTypeDeclarationSyntaxTreeFactory;
-    private mEnableValidation: boolean;
-
-    /**
-     * Enable validation in the parsing process. 
-     * Default: true.
-     */
-    public get enableValidation(): boolean {
-        return this.mEnableValidation;
-    } set enableValidation(pValue: boolean) {
-        this.mEnableValidation = pValue;
-    }
-
     /**
      * Constructor.
      */
     public constructor() {
         super(new PgslLexer());
-
-        // Setup buffer.
-        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
-
-        // Set default configuration.
-        this.mEnableValidation = true;
 
         // Create empty core graph reference.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -119,9 +93,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
     public override parse(pCodeText: string): PgslDocument {
-        // Clear old parsing buffers.
-        this.mTypeFactory = new PgslTypeDeclarationSyntaxTreeFactory();
-
         // TODO: On second layer only not the parser.
         // Insert imports. #IMPORT
         // Fill in buffers with imported declarations.
@@ -132,34 +103,27 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // TODO: Replace comments with same amount of spaces ans newlines.
 
-        // Create all buildin enums.
+        // Define buildin enums.
         const lBuildInEnumList: Array<PgslEnumDeclaration> = [
             new PgslAccessModeEnumDeclaration()
         ];
 
-        // Add buildin enums to type factory.
-        for (const lEnum of lBuildInEnumList) {
-            this.mTypeFactory.addEnumPredefinition(lEnum.name);
-        }
-
         // Parse document structure.
-        const lDocument: PgslDocument = super.parse(pCodeText);
+        // We know the internal parse returns a document, so we cast it, even if TS said no :(
+        const lDocument: PgslDocument = super.parse(pCodeText) as PgslDocument; // TODO: Should be changed to to PgslBuildResult or some other named shit.
+
+        // Create new empty trace.
+        const lTrace: PgslTrace = new PgslTrace();
 
         // Append buildin enums to document.
         for (const lEnum of lBuildInEnumList) {
             lDocument.addBuildInContent(lEnum);
         }
 
-        const lValidationScope: PgslValidationTrace = new PgslValidationTrace();
+        // Trace document structure.
+        lDocument.trace(lTrace);
 
-        // Validate document.
-        if (this.mEnableValidation) {
-            lDocument.validate(lValidationScope);
-
-            if (lValidationScope.errors.length > 0) {
-                throw lValidationScope.errors[0];
-            }
-        }
+        // TODO: Build PgslBuildResult
 
         return lDocument;
     }
@@ -262,7 +226,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "<EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>, <EXPRESSION|TYPE_DECLARATION>"
          * ```
          */
-        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpression | BasePgslTypeDefinition>; }> = Graph.define(() => {
+        const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslSyntaxTree>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
                     pExpressionGraphs.expression,
@@ -282,7 +246,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
          * ```
          */
-        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, BasePgslTypeDefinition> = Graph.define(() => {
+        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, PgslTypeDefinition> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
@@ -291,32 +255,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
                 );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): BasePgslTypeDefinition => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDefinition => {
             // Define root structure of type definition syntax tree structure data and apply type name.
-            const lTemplateList: Array<BasePgslTypeDefinition | BasePgslExpression> = pData.templateList ?? [];
-
-            // Sometimes a variable name expression is a type definition :(
-            // So we need to filter it.
-            for (let lIndex: number = 0; lIndex < lTemplateList.length; lIndex++) {
-                const lParameter: BasePgslTypeDefinition | BasePgslExpression = lTemplateList[lIndex];
-                if (lParameter instanceof PgslVariableNameExpression) {
-                    // Replace variable name expression with type expression.
-                    if (this.nameIsType(lParameter.variableName)) {
-                        // Replace variable name with a type definition of the same name.
-                        lTemplateList[lIndex] = this.mTypeFactory.generate(lParameter.variableName, false, [], {
-                            range: [
-                                lParameter.meta.position.start.line,
-                                lParameter.meta.position.start.column,
-                                lParameter.meta.position.end.line,
-                                lParameter.meta.position.end.column,
-                            ]
-                        });
-                    }
-                }
-            }
+            const lTemplateList: Array<BasePgslSyntaxTree> = pData.templateList ?? [];
 
             // Create type definition syntax tree.
-            return this.mTypeFactory.generate(pData.name, !!pData.pointer, lTemplateList, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslTypeDefinition(pData.name, lTemplateList, !!pData.pointer, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         return {
@@ -483,23 +427,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "<EXPRESSION>.<IDENTIFIER>"
          * ```
          */
-        const lValueDecompositionExpressionGraph: Graph<PgslToken, object, PgslEnumValueExpression | PgslValueDecompositionExpression> = Graph.define(() => {
+        const lValueDecompositionExpressionGraph: Graph<PgslToken, object, PgslValueDecompositionExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
                 .required(PgslToken.MemberDelimiter)
                 .required('propertyName', PgslToken.Identifier);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpression | PgslValueDecompositionExpression => {
-            // When left expression is a single name, it can be a enum value.
-            if (pData.leftExpression instanceof PgslVariableNameExpression) {
-                // Check variable name with the currently list of declared enums. 
-                const lVariableName: string = pData.leftExpression.variableName;
-                if (this.mTypeFactory.enumNames.has(lVariableName)) {
-                    // Return enum value structure data instead.
-                    return new PgslEnumValueExpression(lVariableName, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
-                }
-            }
-
-            // When not a enum than it can only be a decomposition.
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslValueDecompositionExpression => {
             return new PgslValueDecompositionExpression(pData.leftExpression, pData.propertyName, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
@@ -1133,10 +1066,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .required('type', pCoreGraphs.typeDeclaration)
                 .required(PgslToken.Semicolon);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclaration => {
-            // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
-            this.mTypeFactory.addAliasPredefinition(pData.name);
-
-            // Create structure.
             return new PgslAliasDeclaration(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
@@ -1185,10 +1114,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .optional('properties<-list', lStructPropertyListGraph)
                 .required(PgslToken.BlockEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructDeclaration => {
-            // Add struct name to struct buffer.
-            this.mTypeFactory.addStructPredefinition(pData.name);
-
-            // Create struct syntax tree.
             return new PgslStructDeclaration(pData.name, pData.properties ?? [], pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
@@ -1232,9 +1157,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .optional('values<-list', lEnumValueListGraph)
                 .required(PgslToken.BlockEnd);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumDeclaration => {
-            // Add enum name to buffer.
-            this.mTypeFactory.addEnumPredefinition(pData.name);
-
             // Process enum values - filter to only literal/string values
             const lEnumValueList = new Array<{ name: string, value: PgslLiteralValueExpression | PgslStringValueExpression; }>();
             if (pData.values) {
@@ -1261,7 +1183,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         /**
          * List of function parameters separated by comma.
          */
-        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: BasePgslTypeDefinition; }>; }> = Graph.define(() => {
+        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: PgslTypeDefinition; }>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lFunctionParameterGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -1317,10 +1239,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         /**
          * List of declaration graphs.
          */
-        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<BasePgslDeclaration<any>>; }> = Graph.define(() => {
+        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<BasePgslSyntaxTree>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
-                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, BasePgslDeclaration>,
+                    pDeclarationGraphs.aliasDeclaration,
                     pDeclarationGraphs.variableDeclaration,
                     pDeclarationGraphs.enumDeclaration,
                     pDeclarationGraphs.structDeclaration,
@@ -1342,27 +1264,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         // Return module scope graph.
         return lModuleScopeGraph;
     }
-
-    /**
-     * Check if name is associated with any type.
-     */
-    private nameIsType(pName: string): boolean {
-        // TODO: Shit wont work you fucker.
-        return EnumUtil.exists(PgslBaseTypeName, pName) ||
-            EnumUtil.exists(PgslBuildInTypeName, pName) ||
-            EnumUtil.exists(PgslMatrixTypeName, pName) ||
-            EnumUtil.exists(PgslNumericTypeName, pName) ||
-            EnumUtil.exists(PgslSamplerTypeName, pName) ||
-            EnumUtil.exists(PgslTextureTypeName, pName) ||
-            EnumUtil.exists(PgslVectorTypeName, pName) ||
-            this.mTypeFactory.enumNames.has(pName) ||
-            this.mTypeFactory.structNames.has(pName);
-    }
 }
 
 type PgslParserCoreGraphs = {
     attributeList: Graph<PgslToken, object, PgslAttributeList>;
-    typeDeclaration: Graph<PgslToken, object, BasePgslTypeDefinition>;
+    typeDeclaration: Graph<PgslToken, object, PgslTypeDefinition>;
 };
 
 type PgslParserExpressionGraphs = {

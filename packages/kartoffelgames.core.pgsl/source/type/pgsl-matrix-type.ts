@@ -1,19 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslVectorTypeDefinition } from './pgsl-vector-type-definition.ts';
+import { PgslVectorType } from './pgsl-vector-type.ts';
 import { PgslMatrixTypeName } from "./enum/pgsl-matrix-type-name.enum.ts";
 import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
 import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
-import { PgslNumericTypeDefinition } from "./pgsl-numeric-type-definition.ts";
+import { PgslNumericType } from "./pgsl-numeric-type.ts";
 import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * Matrix type definition.
  */
-export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslMatrixType extends BasePgslTypeDefinition<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     /**
      * Matrix type to underlying vector type mapping.
      */
@@ -35,7 +35,7 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
 
     private readonly mInnerType: BasePgslTypeDefinition;
     private readonly mMatrixType: PgslMatrixTypeName;
-    private readonly mVectorTypeDefinition: PgslVectorTypeDefinition;
+    private readonly mVectorTypeDefinition: PgslVectorType;
 
     /**
      * Inner type of matrix.
@@ -54,7 +54,7 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
     /**
      * Inner vector type.
      */
-    public get vectorType(): PgslVectorTypeDefinition {
+    public get vectorType(): PgslVectorType {
         return this.mVectorTypeDefinition;
     }
 
@@ -76,7 +76,7 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
         this.appendChild(this.mInnerType);
 
         // Create underlying vector type.
-        this.mVectorTypeDefinition = new PgslVectorTypeDefinition(PgslMatrixTypeDefinition.mVectorTypeMapping.get(this.mMatrixType)!, this.mInnerType, pMeta);
+        this.mVectorTypeDefinition = new PgslVectorType(PgslMatrixType.mVectorTypeMapping.get(this.mMatrixType)!, this.mInnerType, pMeta);
 
         // Set vector type as child syntax.
         this.appendChild(this.mVectorTypeDefinition);
@@ -217,7 +217,7 @@ export class PgslMatrixTypeDefinition extends BasePgslTypeDefinition<PgslMatrixT
         const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
 
         // Must be scalar.
-        if (PgslNumericTypeDefinition.IsCastable(pValidationTrace, "implicit", this.mInnerType, PgslNumericTypeName.Float)) {
+        if (PgslNumericType.IsCastable(pValidationTrace, "implicit", this.mInnerType, PgslNumericTypeName.Float)) {
             pValidationTrace.pushError('Matrix type must be a Float', this.meta, this);
         }
 

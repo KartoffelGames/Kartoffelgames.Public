@@ -1,6 +1,6 @@
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslStringTypeDefinition } from "../../type/pgsl-string-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';

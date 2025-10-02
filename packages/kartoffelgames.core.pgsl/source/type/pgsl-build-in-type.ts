@@ -7,16 +7,16 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslBuildInTypeName } from "./enum/pgsl-build-in-type-name.enum.ts";
 import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
-import { PgslArrayTypeDefinition } from './pgsl-array-type-definition.ts';
-import { PgslBooleanTypeDefinition } from './pgsl-boolean-type-definition.ts';
-import { PgslInvalidTypeDefinition } from "./pgsl-invalid-type-definition.ts";
-import { PgslNumericTypeDefinition } from './pgsl-numeric-type-definition.ts';
-import { PgslVectorTypeDefinition } from './pgsl-vector-type-definition.ts';
+import { PgslArrayType } from './pgsl-array-type.ts';
+import { PgslBooleanType } from './pgsl-boolean-type.ts';
+import { PgslInvalidType } from "./pgsl-invalid-type.ts";
+import { PgslNumericType } from './pgsl-numeric-type.ts';
+import { PgslVectorType } from './pgsl-vector-type.ts';
 
 /**
  * Build in type definition that aliases a plain type.
  */
-export class PgslBuildInTypeDefinition extends BasePgslTypeDefinition {
+export class PgslBuildInType extends BasePgslTypeDefinition {
     private readonly mBuildInType: PgslBuildInTypeName;
     private readonly mTemplate!: BuildInTypeTemplate;
     private readonly mUnderlyingType: BasePgslTypeDefinition;
@@ -124,7 +124,7 @@ export class PgslBuildInTypeDefinition extends BasePgslTypeDefinition {
                 }
 
                 // Template needs to be a unsigned integer.
-                if (!PgslNumericTypeDefinition.IsCastable(pValidationTrace, "implicit", lTemplateAttachment.resolveType, PgslNumericTypeName.UnsignedInteger)) {
+                if (!PgslNumericType.IsCastable(pValidationTrace, "implicit", lTemplateAttachment.resolveType, PgslNumericTypeName.UnsignedInteger)) {
                     pValidationTrace.pushError(`Clip distance buildin template value musst be a unassigned integer.`, this.meta, this);
                 }
             }
@@ -150,57 +150,57 @@ export class PgslBuildInTypeDefinition extends BasePgslTypeDefinition {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInTypeName.Position: {
-                const lFloatType = PgslNumericTypeDefinition.type(PgslNumericTypeName.Float, this.meta);
-                return PgslVectorTypeDefinition.type(PgslVectorTypeName.Vector4, lFloatType, this.meta);
+                const lFloatType = PgslNumericType.type(PgslNumericTypeName.Float, this.meta);
+                return PgslVectorType.type(PgslVectorTypeName.Vector4, lFloatType, this.meta);
             }
             case PgslBuildInTypeName.LocalInvocationId: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.GlobalInvocationId: {
-                const lUnsignedIntType = PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
-                return PgslVectorTypeDefinition.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
+                const lUnsignedIntType = PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorType.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.WorkgroupId: {
-                const lUnsignedIntType = PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
-                return PgslVectorTypeDefinition.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
+                const lUnsignedIntType = PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorType.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.NumWorkgroups: {
-                const lUnsignedIntType = PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
-                return PgslVectorTypeDefinition.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
+                const lUnsignedIntType = PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslVectorType.type(PgslVectorTypeName.Vector3, lUnsignedIntType, this.meta);
             }
             case PgslBuildInTypeName.VertexIndex: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.InstanceIndex: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.FragDepth: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.Float, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.Float, this.meta);
             }
             case PgslBuildInTypeName.SampleIndex: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.SampleMask: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.LocalInvocationIndex: {
-                return PgslNumericTypeDefinition.type(PgslNumericTypeName.UnsignedInteger, this.meta);
+                return PgslNumericType.type(PgslNumericTypeName.UnsignedInteger, this.meta);
             }
             case PgslBuildInTypeName.FrontFacing: {
-                return PgslBooleanTypeDefinition.type(this.meta);
+                return PgslBooleanType.type(this.meta);
             }
             case PgslBuildInTypeName.ClipDistances: {
                 // When the template is a expression, we can use it, when not, we have to ignore it and let the validation handle the error.
                 const lTemplateExpression = this.mTemplate instanceof BasePgslExpression ? this.mTemplate : null;
 
                 // Create a new float number type.
-                const lFloatType = PgslNumericTypeDefinition.type(PgslNumericTypeName.Float);
+                const lFloatType = PgslNumericType.type(PgslNumericTypeName.Float);
 
-                return new PgslArrayTypeDefinition(lMetaInformation, lFloatType, lTemplateExpression);
+                return new PgslArrayType(lMetaInformation, lFloatType, lTemplateExpression);
             }
             default: {
                 // Invalid buildin type.
-                return PgslInvalidTypeDefinition.type(this.meta);
+                return PgslInvalidType.type(this.meta);
             }
         }
     }

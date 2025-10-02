@@ -8,7 +8,7 @@ import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
 /**
  * Numeric type definition.
  */
-export class PgslNumericTypeDefinition extends BasePgslTypeDefinition<PgslNumberTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslNumericType extends BasePgslTypeDefinition<PgslNumberTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
     /**
      * Create a numeric type definition syntax tree.
      * 
@@ -17,10 +17,10 @@ export class PgslNumericTypeDefinition extends BasePgslTypeDefinition<PgslNumber
      * 
      * @returns Numeric type definition syntax tree. 
      */
-    public static type(pNumericType: PgslNumericTypeName, pMeta?: SyntaxTreeMeta): PgslNumericTypeDefinition {
+    public static type(pNumericType: PgslNumericTypeName, pMeta?: SyntaxTreeMeta): PgslNumericType {
         // Create or convert existing metadata.
         const lTreeMetaData: BasePgslSyntaxTreeMeta = pMeta ? BasePgslSyntaxTree.convertMeta(pMeta) : BasePgslSyntaxTree.emptyMeta();
-        return new PgslNumericTypeDefinition(pNumericType, lTreeMetaData);
+        return new PgslNumericType(pNumericType, lTreeMetaData);
     }
 
     /**
@@ -35,7 +35,7 @@ export class PgslNumericTypeDefinition extends BasePgslTypeDefinition<PgslNumber
      */
     public static IsCastable(pValidationTrace: PgslValidationTrace, pMode: "implicit" | "explicit", pFromType: BasePgslTypeDefinition, pToType: PgslNumericTypeName): boolean {
         // Create and validate temporary numeric type.
-        const lToNumberType: PgslNumericTypeDefinition = PgslNumericTypeDefinition.type(pToType).validate(pValidationTrace);
+        const lToNumberType: PgslNumericType = PgslNumericType.type(pToType).validate(pValidationTrace);
 
         // Check castability.
         switch (pMode) {

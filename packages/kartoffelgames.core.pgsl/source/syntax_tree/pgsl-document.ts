@@ -1,24 +1,8 @@
+import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
-import { PgslAliasDeclaration } from './declaration/pgsl-alias-declaration.ts';
-import { PgslEnumDeclaration } from './declaration/pgsl-enum-declaration.ts';
-import { PgslFunctionDeclaration } from './declaration/pgsl-function-declaration.ts';
-import { PgslStructDeclaration } from './declaration/pgsl-struct-declaration.ts';
-import { PgslVariableDeclaration } from './declaration/pgsl-variable-declaration.ts';
-import { PgslFileMetaInformation } from "./pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "./pgsl-validation-trace.ts";
 
 export class PgslDocument extends BasePgslSyntaxTree {
     private readonly mBuildInContent: Array<BasePgslSyntaxTree>;
-
-    /**
-     * Assoziated document of pgsl structure.
-     */
-    public override get document(): PgslDocument {
-        return this;
-    }
-
-    // TODO: There was something with const. (Setable on Pipline creation).
-    // TODO: Fast access bindings.
 
     /**
      * Constructor.
@@ -48,47 +32,22 @@ export class PgslDocument extends BasePgslSyntaxTree {
     }
 
     /**
-     * Transpile syntax tree to WGSL code.
+     * Trace syntax tree for validation and transpilation.
+     * Wraps all child nodes into a global scope.
      * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
+     * @param pTrace - Trace instance.
      */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile all childs.
-        return this.childNodes
-            .reduce((pCurrentValue: string, pChild: BasePgslSyntaxTree) => {
-                return pCurrentValue + pChild.transpile(pTrace);
-            }, '');
-    }
-
-    /**
-     * Validate syntax tree.
-     */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): void {
-        // Create new scope.
-        pTrace.newScope(this, () => {
-            // Validate documents build ins first.
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Create new scope for the current node.
+        pTrace.newScope("global", () => {
+            // Trace documents build-ins first.
             for (const lBuildInContent of this.mBuildInContent) {
-                lBuildInContent.validate(pTrace);
+                lBuildInContent.trace(pTrace);
             }
 
-            // Validate all child structures.
+            // Trace all child structures.
             for (const lChild of this.childNodes) {
-                // Module scope content must be a specific tree type.
-                switch (true) {
-                    case lChild instanceof PgslAliasDeclaration: break; // TODO: Cant do this, as alias types could be that as well.
-                    case lChild instanceof PgslEnumDeclaration: break; // TODO: Cant do this, as alias types could be that as well.
-                    case lChild instanceof PgslFunctionDeclaration: break; // TODO: Cant do this, as alias types could be that as well.
-                    case lChild instanceof PgslVariableDeclaration: break; // TODO: Cant do this, as alias types could be that as well.
-                    case lChild instanceof PgslStructDeclaration: break; // TODO: Cant do this, as alias types could be that as well.
-                    default: {
-                        pTrace.pushError(`Unknown module structure.`, lChild.meta, lChild);
-                    }
-                }
-
-                // Validate child structure.
-                lChild.validate(pTrace);
+                lChild.trace(pTrace);
             }
         });
     }

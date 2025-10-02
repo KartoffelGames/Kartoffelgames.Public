@@ -7,7 +7,7 @@ import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from "./base-pgsl-statement.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a variable declaration for a function scope variable.

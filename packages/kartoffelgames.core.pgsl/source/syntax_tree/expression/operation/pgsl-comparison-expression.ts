@@ -7,7 +7,7 @@ import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
 import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment, } from '../base-pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-file-meta-information.ts";
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure for a comparison expression between two values.

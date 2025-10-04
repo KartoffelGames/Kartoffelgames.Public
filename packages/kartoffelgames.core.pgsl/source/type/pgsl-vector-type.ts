@@ -7,7 +7,8 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
  */
 export class PgslVectorType extends PgslType {
     /**
-     * Type names.
+     * Type names for vector types.
+     * Maps vector type names to their string representations.
      */
     public static get typeName() {
         return {
@@ -21,25 +22,29 @@ export class PgslVectorType extends PgslType {
     private readonly mVectorDimension: number;
 
     /**
-     * Inner type of vector.
+     * Gets the inner element type of the vector.
+     * 
+     * @returns The type of elements stored in the vector.
      */
     public get innerType(): PgslType {
         return this.mInnerType;
     }
 
     /**
-     * Vector dimension.
+     * Gets the dimension (number of components) of the vector.
+     * 
+     * @returns The vector dimension (2, 3, or 4).
      */
     public get dimension(): number {
         return this.mVectorDimension;
     }
 
     /**
-     * Constructor.
+     * Constructor for vector type.
      * 
-     * @param pTrace - The trace context.
-     * @param pVectorDimension - Concrete vector dimension.
-     * @param pInnerType - Inner type of vector.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pVectorDimension - The vector dimension (2, 3, or 4).
+     * @param pInnerType - The inner element type of the vector.
      */
     public constructor(pTrace: PgslTrace, pVectorDimension: number, pInnerType: PgslType) {
         super(pTrace);
@@ -55,11 +60,12 @@ export class PgslVectorType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this vector type with a target type for equality.
+     * Two vector types are equal if they have the same dimension and inner type.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when both types have the same dimension and inner type.
      */
     public override equals(pTarget: PgslType): boolean {
         // Must both be a vector.
@@ -77,11 +83,12 @@ export class PgslVectorType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this vector type is explicitly castable into the target type.
+     * Vector types can be explicitly cast if they have the same dimension and compatible inner types.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
      * 
-     * @returns true when type is explicit castable into target type.
+     * @returns True when explicit casting is allowed, false otherwise.
      */
     public override isExplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a vector.
@@ -99,11 +106,12 @@ export class PgslVectorType extends PgslType {
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this vector type is implicitly castable into the target type.
+     * Vector types can be implicitly cast if they have the same dimension and compatible inner types.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
      * 
-     * @returns true when type is implicit castable into target type.
+     * @returns True when implicit casting is allowed, false otherwise.
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a vector.
@@ -121,11 +129,12 @@ export class PgslVectorType extends PgslType {
     }
 
     /**
-     * Collect type properties for vector type.
+     * Collect type properties for vector types.
+     * Validates that the inner type is scalar and copies relevant properties.
      * 
-     * @param pTrace - Trace context.
+     * @param pTrace - Trace context for validation and error reporting.
      * 
-     * @returns Type properties for vector type.
+     * @returns Type properties for vector types.
      */
     protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
         // Must be scalar.

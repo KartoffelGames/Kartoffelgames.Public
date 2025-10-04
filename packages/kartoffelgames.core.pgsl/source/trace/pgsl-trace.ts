@@ -61,7 +61,7 @@ export class PgslTrace {
         this.mTreeScopes = new Map<BasePgslSyntaxTree, PgslTraceScope>();
         this.mScopeList = new Stack<PgslTraceScope>();
         this.mFunctions = new Map<string, PgslFunctionTrace>();
-        this.mExpressions = new Map<string, PgslExpressionTrace>();
+        this.mExpressions = new Map<BasePgslExpression, PgslExpressionTrace>();
         this.mIncidents = new Array<PgslTraceIncident>();
     }
 

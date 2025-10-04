@@ -3,10 +3,13 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Numeric type definition.
+ * Represents all numeric types in PGSL including integers, floats, and abstract numeric types.
+ * Handles type casting rules between different numeric types.
  */
 export class PgslNumericType extends PgslType {
     /**
-     * Type names.
+     * Type names for all available numeric types.
+     * Maps numeric type names to their string representations.
      */
     public static get typeName() {
         return {
@@ -14,25 +17,27 @@ export class PgslNumericType extends PgslType {
             unsignedInteger: 'uint',
             float16: 'float16',
             float32: 'float',
-            abstractFloat: '*AbstractFloat*', // Should never be writen
-            abstractInteger: '*AbstractInteger*' // Should never be writen
+            abstractFloat: '*AbstractFloat*', // Should never be written
+            abstractInteger: '*AbstractInteger*' // Should never be written
         } as const;
     }
 
     private readonly mNumericType: PgslNumericTypeName;
 
     /**
-     * Explicit numeric type.
+     * Gets the specific numeric type variant.
+     * 
+     * @returns The numeric type name.
      */
     public get numericTypeName(): PgslNumericTypeName {
         return this.mNumericType;
     }
 
     /**
-     * Constructor.
+     * Constructor for numeric type.
      * 
-     * @param pTrace - The trace context.
-     * @param pReferenceType - References type of pointer.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pNumericType - The specific numeric type variant.
      */
     public constructor(pTrace: PgslTrace, pNumericType: PgslNumericTypeName) {
         super(pTrace);
@@ -42,14 +47,15 @@ export class PgslNumericType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this numeric type with a target type for equality.
+     * Two numeric types are equal if they have the same numeric type variant.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when both types have the same numeric type.
      */
     public override equals(pTarget: PgslType): boolean {
-        // Must both the same numeric type.
+        // Must both be the same numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;
         }
@@ -59,20 +65,26 @@ export class PgslNumericType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this numeric type is explicitly castable into the target type.
+     * All numeric types can be explicitly cast to any other numeric type.
      * 
-     * @param pValidationTrace - Validation trace.
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
+     * 
+     * @returns True if target is a numeric type, false otherwise.
      */
     public override isExplicitCastableInto(pTarget: PgslType): boolean {
-        // All numberic values are explicit castable into another numeric type.
+        // All numeric values are explicit castable into another numeric type.
         return pTarget instanceof PgslNumericType;
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this numeric type is implicitly castable into the target type.
+     * Implements PGSL's implicit casting rules for numeric types.
+     * Abstract types have special casting rules.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
+     * 
+     * @returns True when implicit casting is allowed, false otherwise.
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Target type must be a numeric type.
@@ -81,37 +93,40 @@ export class PgslNumericType extends PgslType {
         }
 
         switch (this.mNumericType) {
-            // An abstract float is castable into all all types.
+            // An abstract float is castable into all numeric types.
             case PgslNumericType.typeName.abstractFloat: {
                 return true;
             }
             
-            // An abstract int is only castable into all integer types.
+            // An abstract int is only castable into integer types and abstract float.
             case PgslNumericType.typeName.abstractInteger: {
                 // List of all integer types.
                 const lIntegerTypes: Array<PgslNumericTypeName> = [
                     PgslNumericType.typeName.abstractInteger,
+                    PgslNumericType.typeName.abstractFloat,
                     PgslNumericType.typeName.signedInteger,
                     PgslNumericType.typeName.unsignedInteger
                 ];
 
-                // To be more readable the target type of checking if it is an integer type, is done in a separate if block.
+                // Check if target type is an integer type.
                 if (lIntegerTypes.includes(pTarget.numericTypeName)) {
                     return true;
                 }
             }
         }
 
-        // Any other non abstract numeric type is only castable when they are the same type.
+        // Any other non-abstract numeric type is only castable when they are the same type.
         return this.equals(pTarget);
     }
 
     /**
-     * Collect type properties for pointer type.
+     * Collect type properties for numeric types.
+     * Numeric types are scalar, storable, and mostly host-shareable.
+     * Abstract types are not concrete.
      * 
-     * @param _pTrace - Trace context.
+     * @param _pTrace - Trace context (unused for numeric types).
      * 
-     * @returns type properties for numeric type.
+     * @returns Type properties for numeric types.
      */
     protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         // A concrete numeric type is any type that is not abstract.
@@ -133,4 +148,8 @@ export class PgslNumericType extends PgslType {
     }
 }
 
+/**
+ * Type representing all available numeric type names.
+ * Derived from the static typeName getter for type safety.
+ */
 type PgslNumericTypeName = (typeof PgslNumericType.typeName)[keyof typeof PgslNumericType.typeName];

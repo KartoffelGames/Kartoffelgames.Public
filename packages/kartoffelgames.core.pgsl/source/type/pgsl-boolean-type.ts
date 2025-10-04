@@ -7,7 +7,8 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
  */
 export class PgslBooleanType extends PgslType {
     /**
-     * Type names.
+     * Type names for boolean types.
+     * Maps boolean type names to their string representations.
      */
     public static get typeName() {
         return {

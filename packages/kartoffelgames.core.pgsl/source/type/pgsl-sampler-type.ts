@@ -7,7 +7,8 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
  */
 export class PgslSamplerType extends PgslType {
     /**
-     * Type names.
+     * Type names for sampler types.
+     * Maps sampler type names to their string representations.
      */
     public static get typeName() {
         return {
@@ -20,16 +21,19 @@ export class PgslSamplerType extends PgslType {
 
     /**
      * If sampler is a comparison sampler.
+     * Comparison samplers are used for depth comparison operations.
+     * 
+     * @returns True if this is a comparison sampler, false otherwise.
      */
     public get comparison(): boolean {
         return this.mComparision;
     }
 
     /**
-     * Constructor.
+     * Constructor for sampler type.
      * 
-     * @param pTrace - The trace context.
-     * @param pComparison - The sampler type variant.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pComparison - Whether this is a comparison sampler.
      */
     public constructor(pTrace: PgslTrace, pComparison: boolean) {
         super(pTrace);
@@ -39,11 +43,12 @@ export class PgslSamplerType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this sampler type with a target type for equality.
+     * Two sampler types are equal if they have the same comparison mode.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both share the same comparison type.
+     * @returns True when both samplers have the same comparison mode.
      */
     public override equals(pTarget: PgslType): boolean {
         // Must both be a sampler.
@@ -55,9 +60,12 @@ export class PgslSamplerType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this sampler type is explicitly castable into the target type.
+     * Sampler types are never castable to other types.
      * 
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - samplers cannot be cast.
      */
     public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A sampler is never explicit nor implicit castable.
@@ -65,9 +73,12 @@ export class PgslSamplerType extends PgslType {
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this sampler type is implicitly castable into the target type.
+     * Sampler types are never castable to other types.
      * 
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - samplers cannot be cast.
      */
     public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A sampler is never explicit nor implicit castable.
@@ -75,11 +86,12 @@ export class PgslSamplerType extends PgslType {
     }
 
     /**
-     * Collect type properties for sampler type.
+     * Collect type properties for sampler types.
+     * Samplers have fixed footprints and are concrete but not storable or constructible.
      * 
-     * @param _pTrace - Trace context.
+     * @param _pTrace - Trace context (unused for sampler properties).
      * 
-     * @returns Type properties for sampler type.
+     * @returns Type properties for sampler types.
      */
     protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         return {

@@ -5,11 +5,13 @@ import { PgslNumericType } from "./pgsl-numeric-type.ts";
 
 /**
  * Matrix type definition.
- * Represents a matrix type with a specific dimension and inner type.
+ * Represents a matrix type with specific row and column dimensions and inner numeric type.
+ * Matrices are composite types used for linear algebra operations in graphics programming.
  */
 export class PgslMatrixType extends PgslType {
     /**
-     * Type names.
+     * Type names for all available matrix dimensions.
+     * Maps matrix type names to their string representations.
      */
     public static get typeName() {
         return {
@@ -31,39 +33,47 @@ export class PgslMatrixType extends PgslType {
     private readonly mColumnCount: number;
 
     /**
-     * Inner type of matrix.
+     * Gets the inner element type of the matrix.
+     * 
+     * @returns The type of elements stored in the matrix.
      */
     public get innerType(): PgslType {
         return this.mInnerType;
     }
 
     /**
-     * Matrix row count.
+     * Gets the number of rows in the matrix.
+     * 
+     * @returns The row count.
      */
     public get rowCount(): number {
         return this.mRowCount;
     }
 
     /**
-     * Matrix column count.
+     * Gets the number of columns in the matrix.
+     * 
+     * @returns The column count.
      */
     public get columnCount(): number {
         return this.mColumnCount;
     }
 
     /**
-     * Inner vector type.
+     * Gets the underlying vector type used for matrix columns.
+     * 
+     * @returns The vector type representing matrix columns.
      */
     public get vectorType(): PgslVectorType {
         return this.mVectorTypeDefinition;
     }
 
     /**
-     * Constructor.
+     * Constructor for matrix type.
      * 
-     * @param pTrace - The trace context.
-     * @param pMatrixType - Matrix dimension type.
-     * @param pInnerType - Inner type of matrix.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pMatrixType - The specific matrix dimension type.
+     * @param pInnerType - The inner element type of the matrix.
      */
     public constructor(pTrace: PgslTrace, pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
         super(pTrace);
@@ -79,11 +89,12 @@ export class PgslMatrixType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this matrix type with a target type for equality.
+     * Two matrix types are equal if they have the same dimensions and inner type.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when both types have the same dimensions and inner type.
      */
     public override equals(pTarget: PgslType): boolean {
         // Must both be a matrix.
@@ -101,11 +112,12 @@ export class PgslMatrixType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this matrix type is explicitly castable into the target type.
+     * Matrix types can be explicitly cast if they have the same dimensions and compatible inner types.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
      * 
-     * @returns true when type is explicit castable into target type.
+     * @returns True when explicit casting is allowed, false otherwise.
      */
     public override isExplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a matrix.
@@ -123,11 +135,12 @@ export class PgslMatrixType extends PgslType {
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this matrix type is implicitly castable into the target type.
+     * Matrix types can be implicitly cast if they have the same dimensions and compatible inner types.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target type to check castability to.
      * 
-     * @returns true when type is implicit castable into target type.
+     * @returns True when implicit casting is allowed, false otherwise.
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a matrix.
@@ -145,11 +158,12 @@ export class PgslMatrixType extends PgslType {
     }
 
     /**
-     * Collect type properties for matrix type.
+     * Collect type properties for matrix types.
+     * Validates that the inner type is appropriate for matrices and copies relevant properties.
      * 
-     * @param pTrace - Trace context.
+     * @param pTrace - Trace context for validation and error reporting.
      * 
-     * @returns Type properties for matrix type.
+     * @returns Type properties for matrix types.
      */
     protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
         // Must be Float.
@@ -177,9 +191,9 @@ export class PgslMatrixType extends PgslType {
     /**
      * Gets the matrix dimensions for a given matrix type.
      * 
-     * @param pMatrixType - The matrix type to get matrix dimensions for.
+     * @param pMatrixType - The matrix type to get dimensions for.
      * 
-     * @returns The matrix dimensions (rows, columns).
+     * @returns The matrix dimensions as [rows, columns].
      */
     private getMatrixDimensions(pMatrixType: PgslMatrixTypeName): [rows: number, columns: number] {
         switch (pMatrixType) {
@@ -198,4 +212,8 @@ export class PgslMatrixType extends PgslType {
     }
 }
 
+/**
+ * Type representing all available matrix type names.
+ * Derived from the static typeName getter for type safety.
+ */
 type PgslMatrixTypeName = (typeof PgslMatrixType.typeName)[keyof typeof PgslMatrixType.typeName];

@@ -5,23 +5,26 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Pointer type definition.
- * Represents a pointer type that references another type.
+ * Represents a pointer type that references another type in memory.
+ * Pointers allow indirect access to values and are used for referencing data.
  */
 export class PgslPointerType extends PgslType {
     private readonly mReferencedType: PgslType;
 
     /**
-     * Referenced type of pointer.
+     * Gets the type that this pointer references.
+     * 
+     * @returns The referenced type.
      */
     public get referencedType(): PgslType {
         return this.mReferencedType;
     }
 
     /**
-     * Constructor.
+     * Constructor for pointer type.
      * 
-     * @param pTrace - The trace context.
-     * @param pReferenceType - References type of pointer.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pReferenceType - The type that this pointer references.
      */
     public constructor(pTrace: PgslTrace, pReferenceType: PgslType) {
         super(pTrace);
@@ -31,11 +34,12 @@ export class PgslPointerType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this pointer type with a target type for equality.
+     * Two pointer types are equal if they reference the same type.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both share the same comparison type.
+     * @returns True when both pointers reference the same type.
      */
     public override equals(pTarget: PgslType): boolean {
         // Target type must be a pointer.
@@ -47,9 +51,12 @@ export class PgslPointerType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this pointer type is explicitly castable into the target type.
+     * Pointer types are never castable to other types.
      * 
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - pointers cannot be cast.
      */
     public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A pointer is never explicit nor implicit castable.
@@ -57,9 +64,12 @@ export class PgslPointerType extends PgslType {
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this pointer type is implicitly castable into the target type.
+     * Pointer types are never castable to other types.
      * 
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - pointers cannot be cast.
      */
     public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A pointer is never explicit nor implicit castable.
@@ -67,11 +77,12 @@ export class PgslPointerType extends PgslType {
     }
 
     /**
-     * Collect type properties for pointer type.
+     * Collect type properties for pointer types.
+     * Validates that the referenced type is storable and defines pointer characteristics.
      * 
-     * @param pTrace - Trace context.
+     * @param pTrace - Trace context for validation and error reporting.
      * 
-     * @returns Type properties for pointer type.
+     * @returns Type properties for pointer types.
      */
     protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
         // Only storable types can be referenced by pointers.

@@ -4,21 +4,26 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Struct type definition.
+ * Represents a user-defined struct type that contains multiple named fields.
+ * Struct types are composite types that can be used to group related data.
  */
 export class PgslStructType extends PgslType {
     private readonly mStructName: string;
 
     /**
-     * Struct name.
+     * Gets the name of the struct type.
+     * 
+     * @returns The struct name.
      */
     public get structName(): string {
         return this.mStructName;
     }
 
     /**
-     * Constructor.
+     * Constructor for struct type.
      * 
-     * @param pStructName - name of struct.
+     * @param pTrace - The trace context for validation and error reporting.
+     * @param pStructName - The name of the struct type.
      */
     public constructor(pTrace: PgslTrace, pStructName: string) {
         super(pTrace);
@@ -28,11 +33,12 @@ export class PgslStructType extends PgslType {
     }
 
     /**
-     * Compare this type with a target type for equality.
+     * Compare this struct type with a target type for equality.
+     * Two struct types are equal if they have the same struct name.
      * 
      * @param pTarget - Target comparison type. 
      * 
-     * @returns true when both types describes the same type.
+     * @returns True when both types have the same struct name.
      */
     public override equals(pTarget: PgslType): boolean {
         // Must both be a struct.
@@ -44,9 +50,12 @@ export class PgslStructType extends PgslType {
     }
 
     /**
-     * Check if type is explicit castable into target type.
+     * Check if this struct type is explicitly castable into the target type.
+     * Struct types are never castable to other types.
      * 
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - structs cannot be cast.
      */
     public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A struct is never explicit nor implicit castable.
@@ -54,10 +63,12 @@ export class PgslStructType extends PgslType {
     }
 
     /**
-     * Check if type is implicit castable into target type.
+     * Check if this struct type is implicitly castable into the target type.
+     * Struct types are never castable to other types.
      * 
-     * @param _pValidationTrace - Validation trace.
-     * @param _pTarget - Target type.
+     * @param _pTarget - Target type to check castability to.
+     * 
+     * @returns Always false - structs cannot be cast.
      */
     public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A struct is never explicit nor implicit castable.
@@ -65,16 +76,19 @@ export class PgslStructType extends PgslType {
     }
 
     /**
-     * Validate data of current structure.
+     * Collect type properties for struct types.
+     * Validates that the struct exists and aggregates properties from all struct fields.
      * 
-     * @param pValidationTrace - Validation trace to use.
+     * @param pTrace - Trace context for validation and error reporting.
+     * 
+     * @returns Type properties aggregated from struct fields.
      */
     protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
-        // Read aliased type.
+        // Read struct trace information.
         const lStruct: PgslStructTrace | undefined = pTrace.getStruct(this.mStructName);
 
         if (!lStruct) {
-            pTrace.pushIncident(`Name '${this.mStructName}' is does not resolve to a struct declaration.`);
+            pTrace.pushIncident(`Name '${this.mStructName}' does not resolve to a struct declaration.`);
 
             return {
                 // Default struct information.
@@ -85,32 +99,32 @@ export class PgslStructType extends PgslType {
                 concrete: true,
                 plain: true,
 
-                // Data normaly from struct properties.
+                // Data normally from struct properties.
                 hostShareable: false,
                 constructible: false,
                 fixedFootprint: false,
             };
         }
 
-        // Check properties for constructable, host sharable, and fixed footprint characteristics
-        const [lConstructable, lHostSharable, lFixedFootprint]: [boolean, boolean, boolean] = (() => {
-            let lConstructable = true;
-            let lHostSharable = true;
+        // Check properties for constructible, host shareable, and fixed footprint characteristics
+        const [lConstructible, lHostShareable, lFixedFootprint]: [boolean, boolean, boolean] = (() => {
+            let lConstructible = true;
+            let lHostShareable = true;
             let lFixedFootprint = true;
 
-            // Check all properties except the last one for fixed footprint
+            // Check all properties for their characteristics
             for (const lProperty of lStruct.properties) {
                 // Check if property is constructible
-                lConstructable &&= lProperty.type.constructible;
+                lConstructible &&= lProperty.type.constructible;
 
-                // Check if property is host sharable
-                lHostSharable &&= lProperty.type.hostShareable;
+                // Check if property is host shareable
+                lHostShareable &&= lProperty.type.hostShareable;
 
-                // For fixed footprint: all properties except the last must be fixed
+                // For fixed footprint: all properties must be fixed
                 lFixedFootprint &&= lProperty.type.fixedFootprint;
             }
 
-            return [lConstructable, lHostSharable, lFixedFootprint];
+            return [lConstructible, lHostShareable, lFixedFootprint];
         })();
 
         return {
@@ -122,9 +136,9 @@ export class PgslStructType extends PgslType {
             concrete: true,
             plain: true,
 
-            // Only takes affect when all members are sharing the same property.
-            hostShareable: lHostSharable,
-            constructible: lConstructable,
+            // Only takes effect when all members share the same property.
+            hostShareable: lHostShareable,
+            constructible: lConstructible,
             fixedFootprint: lFixedFootprint,
         };
     }

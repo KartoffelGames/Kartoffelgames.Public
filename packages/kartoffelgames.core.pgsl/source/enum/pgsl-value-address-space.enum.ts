@@ -27,10 +27,5 @@ export enum PgslValueAddressSpace {
     /**
      * Texture address space.
      */
-    Texture = 'Texture',
-
-    /**
-     * No address space.
-     */
-    None = 'None'
+    Texture = 'Texture'
 }

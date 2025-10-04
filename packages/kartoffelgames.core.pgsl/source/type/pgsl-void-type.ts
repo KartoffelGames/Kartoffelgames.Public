@@ -1,28 +1,35 @@
-
-import { PgslType } from "./pgsl-type.ts";
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Void type definition.
+ * Represents the absence of a value, typically used as function return type.
  */
 export class PgslVoidType extends PgslType {
     /**
+     * Type names.
+     */
+    public static get typeName() {
+        return {
+            void: 'void'
+        } as const;
+    }
+
+    /**
      * Check if type is equal to target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
-     * @param _pTarget - Target type.
+     * @param pTarget - Target type.
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(_pTarget: PgslType): boolean {
-        // Void type is always equal to itself.
-        return true;
+    public override equals(pTarget: PgslType): boolean {
+        // Void type is only equal to other void types.
+        return pTarget instanceof PgslVoidType;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns true when type is explicit castable into target type.
@@ -35,7 +42,6 @@ export class PgslVoidType extends PgslType {
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns true when type is implicit castable into target type.
@@ -46,27 +52,14 @@ export class PgslVoidType extends PgslType {
     }
 
     /**
-     * Transpile type definition.
+     * Collect type properties for void type.
      * 
-     * @param _pTrace - Transpilation scope.
+     * @param _pTrace - Trace context.
      * 
-     * @returns transpiled code.
+     * @returns Type properties for void type.
      */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        // Void type is not transpiled.
-        return '';
-    }
-
-    /**
-     * Validate syntax tree integrity.
-     * 
-     * @param _pTrace - Validation trace.
-     * 
-     * @returns validation attachment.
-     */
-    protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         return {
-            baseType: PgslBaseTypeName.Void,
             storable: false,
             hostShareable: false,
             composite: false,

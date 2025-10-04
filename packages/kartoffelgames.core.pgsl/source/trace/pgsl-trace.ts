@@ -6,6 +6,7 @@ import { PgslExpressionTrace } from "./pgsl-expression-trace.ts";
 import { PgslFunctionTrace } from "./pgsl-function-trace.ts";
 import { PgslStructTrace } from "./pgsl-struct-trace.ts";
 import { PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
+import { BasePgslExpression } from "../syntax_tree/expression/base-pgsl-expression.ts";
 
 /**
  * Main trace class for PGSL syntax tree analysis and transpilation.
@@ -17,9 +18,10 @@ export class PgslTrace {
     private readonly mEnums: Map<string, PgslEnumTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
     private readonly mFunctions: Map<string, PgslFunctionTrace>;
-    private readonly mExpressions: Map<string, PgslExpressionTrace>;
+    private readonly mExpressions: Map<BasePgslExpression, PgslExpressionTrace>;
     private readonly mTreeScopes: Map<BasePgslSyntaxTree, PgslTraceScope>;
     private readonly mScopeList: Stack<PgslTraceScope>;
+    private readonly mIncidents: Array<PgslTraceIncident>;
 
     /**
      * Gets whether this trace has been sealed.
@@ -40,6 +42,15 @@ export class PgslTrace {
     }
 
     /**
+     * Gets the list of incidents that have been recorded in this trace.
+     * 
+     * @returns A readonly array of trace incidents.
+     */
+    public get incidents(): ReadonlyArray<PgslTraceIncident> {
+        return this.mIncidents;
+    }
+
+    /**
      * Creates a new syntax tree trace.
      */
     public constructor() {
@@ -51,6 +62,7 @@ export class PgslTrace {
         this.mScopeList = new Stack<PgslTraceScope>();
         this.mFunctions = new Map<string, PgslFunctionTrace>();
         this.mExpressions = new Map<string, PgslExpressionTrace>();
+        this.mIncidents = new Array<PgslTraceIncident>();
     }
 
     /**
@@ -99,6 +111,27 @@ export class PgslTrace {
         } finally {
             this.mScopeList.pop();
         }
+    }
+
+    /**
+     * Gets the expression trace for a specific expression.
+     * 
+     * @param pExpression - The expression to get the trace for.
+     * 
+     * @returns The expression trace if found, undefined otherwise.
+     */
+    public getExpression(pExpression: BasePgslExpression): PgslExpressionTrace | undefined {
+        return this.mExpressions.get(pExpression);
+    }
+
+    /**
+     * Sets the expression trace for a specific expression.
+     * 
+     * @param pExpression - The expression to set the trace for.
+     */
+    public setExpression(pExpression: BasePgslExpression, pTrace: PgslExpressionTrace): void {
+        this.assertNotSealed();
+        this.mExpressions.set(pExpression, pTrace);
     }
 
     /**
@@ -198,6 +231,19 @@ export class PgslTrace {
     }
 
     /**
+     * Pushes an incident to the trace for later analysis or reporting.
+     * 
+     * @param pMessage - The message describing the incident.
+     * @param pSyntaxTree - Optional syntax tree node associated with the incident.
+     * 
+     * @throws Error if the trace is sealed.
+     */
+    public pushIncident(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree): void {
+        this.assertNotSealed();
+        this.mIncidents.push(new PgslTraceIncident(pMessage, pSyntaxTree));
+    }
+
+    /**
      * Assert that the trace is not sealed.
      * 
      * @throws Error if the trace is sealed.
@@ -206,5 +252,43 @@ export class PgslTrace {
         if (this.mSealed) {
             throw new Error('Trace is sealed.');
         }
+    }
+}
+
+/**
+ * Represents an incident that occurred during PGSL syntax tree tracing.
+ * Contains information about issues found during analysis or processing.
+ */
+export class PgslTraceIncident {
+    private readonly mMessage: string;
+    private readonly mSyntaxTree: BasePgslSyntaxTree | undefined;
+
+    /**
+     * Gets the message describing the incident.
+     * 
+     * @returns The incident message.
+     */
+    public get message(): string {
+        return this.mMessage;
+    }
+
+    /**
+     * Gets the syntax tree node associated with the incident, if any.
+     * 
+     * @returns The associated syntax tree node or undefined if none.
+     */
+    public get syntaxTree(): BasePgslSyntaxTree | undefined {
+        return this.mSyntaxTree;
+    }
+
+    /**
+     * Creates a new trace incident.
+     * 
+     * @param pMessage - The message describing the incident.
+     * @param pSyntaxTree - Optional syntax tree node associated with the incident.
+     */
+    public constructor(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree) {
+        this.mMessage = pMessage;
+        this.mSyntaxTree = pSyntaxTree;
     }
 }

@@ -1,5 +1,10 @@
 import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
+import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
+import { PgslAliasDeclaration } from "./declaration/pgsl-alias-declaration.ts";
+import { PgslEnumDeclaration } from "./declaration/pgsl-enum-declaration.ts";
+import { PgslFunctionDeclaration } from "./declaration/pgsl-function-declaration.ts";
+import { PgslStructDeclaration } from "./declaration/pgsl-struct-declaration.ts";
+import { PgslVariableDeclaration } from "./declaration/pgsl-variable-declaration.ts";
 
 export class PgslDocument extends BasePgslSyntaxTree {
     private readonly mBuildInContent: Array<BasePgslSyntaxTree>;
@@ -38,15 +43,29 @@ export class PgslDocument extends BasePgslSyntaxTree {
      * @param pTrace - Trace instance.
      */
     protected override onTrace(pTrace: PgslTrace): void {
+        const lValidChilds = new Set<PgslSyntaxTreeConstructor>([
+            PgslAliasDeclaration, PgslEnumDeclaration, PgslFunctionDeclaration, PgslVariableDeclaration, PgslStructDeclaration
+        ]);
+
         // Create new scope for the current node.
         pTrace.newScope("global", () => {
             // Trace documents build-ins first.
             for (const lBuildInContent of this.mBuildInContent) {
+                // Validate build-in structure.
+                if (!lValidChilds.has(lBuildInContent.constructor as PgslSyntaxTreeConstructor)) {
+                    pTrace.pushIncident(`Invalid build-in structure in document. Expected declaration but found '${lBuildInContent.constructor.name}'.`, lBuildInContent);
+                }
+
                 lBuildInContent.trace(pTrace);
             }
 
             // Trace all child structures.
             for (const lChild of this.childNodes) {
+                // Validate child structure.
+                if (!lValidChilds.has(lChild.constructor as PgslSyntaxTreeConstructor)) {
+                    pTrace.pushIncident(`Invalid child structure in document. Expected declaration but found '${lChild.constructor.name}'.`, lChild);
+                }
+
                 lChild.trace(pTrace);
             }
         });

@@ -1,200 +1,139 @@
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
-import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Vector type definition.
+ * Represents a vector type with a specific dimension and inner type.
  */
-export class PgslVectorType extends BasePgslTypeDefinition<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslVectorType extends PgslType {
     /**
-     * Create a vector type definition syntax tree.
-     * 
-     * @param pVectorType - Concreate vector dimension.
-     * @param pInnerType - Inner type of vector.
-     * @param pMeta - Optional existing meta data.
-     * 
-     * @returns Vector type definition syntax tree. 
+     * Type names.
      */
-    public static type(pVectorType: PgslVectorTypeName, pInnerType: BasePgslTypeDefinition, pMeta?: SyntaxTreeMeta): PgslVectorType {
-        // Create or convert existing metadata.
-        let lTreeMetaData: BasePgslSyntaxTreeMeta = BasePgslSyntaxTree.emptyMeta();
-        if (pMeta) {
-            lTreeMetaData = {
-                range: [pMeta.position.start.line, pMeta.position.start.column, pMeta.position.end.line, pMeta.position.end.column],
-                buildIn: false
-            };
-        }
-
-        return new PgslVectorType(pVectorType, pInnerType, lTreeMetaData);
+    public static get typeName() {
+        return {
+            vector2: 'Vector2',
+            vector3: 'Vector3',
+            vector4: 'Vector4'
+        } as const;
     }
 
-    private readonly mInnerType: BasePgslTypeDefinition;
-    private readonly mVectorType: PgslVectorTypeName;
+    private readonly mInnerType: PgslType;
+    private readonly mVectorDimension: number;
 
     /**
      * Inner type of vector.
      */
-    public get innerType(): BasePgslTypeDefinition {
+    public get innerType(): PgslType {
         return this.mInnerType;
     }
 
     /**
      * Vector dimension.
      */
-    public get vectorDimension(): PgslVectorTypeName {
-        return this.mVectorType;
+    public get dimension(): number {
+        return this.mVectorDimension;
     }
 
     /**
      * Constructor.
      * 
-     * @param pVectorType - Concreate vector dimension.
+     * @param pTrace - The trace context.
+     * @param pVectorDimension - Concrete vector dimension.
      * @param pInnerType - Inner type of vector.
-     * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pVectorType: PgslVectorTypeName, pInnerType: BasePgslTypeDefinition, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+    public constructor(pTrace: PgslTrace, pVectorDimension: number, pInnerType: PgslType) {
+        super(pTrace);
+
+        // Validate vector dimension.
+        if (pVectorDimension < 2 || pVectorDimension > 4) {
+            pTrace.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
+        }
 
         // Set data.
         this.mInnerType = pInnerType;
-        this.mVectorType = pVectorType;
-
-        // Append inner type to child list.
-        this.appendChild(this.mInnerType);
+        this.mVectorDimension = pVectorDimension;
     }
 
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
+    public override equals(pTarget: PgslType): boolean {
         // Must both be a vector.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
+        if (!(pTarget instanceof PgslVectorType)) {
             return false;
         }
 
-        // Cast to vector attachment as we now know it is one.
-        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
         // Inner type must be equal.
-        if (!this.mInnerType.equals(pValidationTrace, lVectorTargetAttachment.innerType)) {
+        if (!this.mInnerType.equals(pTarget.mInnerType)) {
             return false;
         }
 
         // Vector dimensions must be equal.
-        return this.mVectorType === lVectorTargetAttachment.dimension;
+        return this.mVectorDimension === pTarget.mVectorDimension;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
+    public override isExplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a vector.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
+        if (!(pTarget instanceof PgslVectorType)) {
             return false;
         }
 
-        // Cast to vector attachment as we now know it is one.
-        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
         // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
+        if (this.mVectorDimension !== pTarget.mVectorDimension) {
             return false;
         }
 
         // It is when inner types are explicit castable.
-        return  this.mInnerType.isExplicitCastableInto(pValidationTrace, lVectorTargetAttachment.innerType);
+        return this.mInnerType.isExplicitCastableInto(pTarget.mInnerType);
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a vector.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Vector) {
+        if (!(pTarget instanceof PgslVectorType)) {
             return false;
         }
 
-        // Cast to vector attachment as we now know it is one.
-        const lVectorTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
         // If vector dimensions are not equal, it is not castable.
-        if (this.mVectorType !== lVectorTargetAttachment.dimension) {
+        if (this.mVectorDimension !== pTarget.mVectorDimension) {
             return false;
         }
 
         // It is when inner types are implicit castable.
-        return this.mInnerType.isImplicitCastableInto(pValidationTrace, lVectorTargetAttachment.innerType);
+        return this.mInnerType.isImplicitCastableInto(pTarget.mInnerType);
     }
 
     /**
-     * Transpile the syntax tree into wgsl.
+     * Collect type properties for vector type.
      * 
-     * @param pTrace - Transpilation trace.
+     * @param pTrace - Trace context.
      * 
-     * @returns Transpiled wgsl code.
+     * @returns Type properties for vector type.
      */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile vector type dimenstion.
-        const lVectorDimensionName: string = (() => {
-            switch (this.mVectorType) {
-                case PgslVectorTypeName.Vector2:
-                    return 'vec2';
-                case PgslVectorTypeName.Vector3:
-                    return 'vec3';
-                case PgslVectorTypeName.Vector4:
-                    return 'vec4';
-            }
-        })();
-
-        // Insert inner type as template parameter.
-        return `${lVectorDimensionName}<${this.mInnerType.transpile(pTrace)}>`;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-        // Validate inner type.
-        this.mInnerType.validate(pValidationTrace);
-
-        // Read attachments from inner type.
-        const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
-
+    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
         // Must be scalar.
-        if (!lInnerTypeAttachment.scalar) {
-            pValidationTrace.pushError('Vector type must be a scalar value', this.meta, this);
+        if (!this.mInnerType.scalar) {
+            pTrace.pushIncident('Vector type must have a scalar inner type');
         }
 
         return {
-            baseType: PgslBaseTypeName.Vector,
-
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
@@ -202,20 +141,11 @@ export class PgslVectorType extends BasePgslTypeDefinition<PgslVectorTypeDefinit
             plain: true,
             concrete: true,
 
-            // Copy of inner type attachment.
-            storable: lInnerTypeAttachment.storable,
-            hostShareable: lInnerTypeAttachment.hostShareable,
-            constructible: lInnerTypeAttachment.constructible,
-            fixedFootprint: lInnerTypeAttachment.fixedFootprint,
-
-            // Additional vector data.
-            innerType: this.mInnerType,
-            dimension: this.mVectorType
+            // Copy of inner type properties.
+            storable: this.mInnerType.storable,
+            hostShareable: this.mInnerType.hostShareable,
+            constructible: this.mInnerType.constructible,
+            fixedFootprint: this.mInnerType.fixedFootprint
         };
     }
 }
-
-export type PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
-    innerType: BasePgslTypeDefinition;
-    dimension: PgslVectorTypeName;
-};

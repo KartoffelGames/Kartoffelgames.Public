@@ -1,54 +1,54 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 import { PgslVectorType } from './pgsl-vector-type.ts';
-import { PgslMatrixTypeName } from "./enum/pgsl-matrix-type-name.enum.ts";
-import { PgslVectorTypeName } from "./enum/pgsl-vector-type-name.enum.ts";
-import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
 import { PgslNumericType } from "./pgsl-numeric-type.ts";
-import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
 
 /**
  * Matrix type definition.
+ * Represents a matrix type with a specific dimension and inner type.
  */
-export class PgslMatrixType extends BasePgslTypeDefinition<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+export class PgslMatrixType extends PgslType {
     /**
-     * Matrix type to underlying vector type mapping.
+     * Type names.
      */
-    private static readonly mVectorTypeMapping: Dictionary<PgslMatrixTypeName, PgslVectorTypeName> = (() => {
-        // Create mapping for matrix type to vector type.
-        const lMatrixToVectorMapping: Dictionary<PgslMatrixTypeName, PgslVectorTypeName> = new Dictionary<PgslMatrixTypeName, PgslVectorTypeName>();
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix22, PgslVectorTypeName.Vector2);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix23, PgslVectorTypeName.Vector3);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix24, PgslVectorTypeName.Vector4);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix32, PgslVectorTypeName.Vector2);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix33, PgslVectorTypeName.Vector3);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix34, PgslVectorTypeName.Vector4);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix42, PgslVectorTypeName.Vector2);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix43, PgslVectorTypeName.Vector3);
-        lMatrixToVectorMapping.set(PgslMatrixTypeName.Matrix44, PgslVectorTypeName.Vector4);
+    public static get typeName() {
+        return {
+            matrix22: 'Matrix22',
+            matrix23: 'Matrix23',
+            matrix24: 'Matrix24',
+            matrix32: 'Matrix32',
+            matrix33: 'Matrix33',
+            matrix34: 'Matrix34',
+            matrix42: 'Matrix42',
+            matrix43: 'Matrix43',
+            matrix44: 'Matrix44'
+        } as const;
+    }
 
-        return lMatrixToVectorMapping;
-    })();
-
-    private readonly mInnerType: BasePgslTypeDefinition;
-    private readonly mMatrixType: PgslMatrixTypeName;
+    private readonly mInnerType: PgslType;
     private readonly mVectorTypeDefinition: PgslVectorType;
+    private readonly mRowCount: number;
+    private readonly mColumnCount: number;
 
     /**
      * Inner type of matrix.
      */
-    public get innerType(): BasePgslTypeDefinition {
+    public get innerType(): PgslType {
         return this.mInnerType;
     }
 
     /**
-     * Matrix dimension type.
+     * Matrix row count.
      */
-    public get matrixDimension(): PgslMatrixTypeName {
-        return this.mMatrixType;
+    public get rowCount(): number {
+        return this.mRowCount;
+    }
+
+    /**
+     * Matrix column count.
+     */
+    public get columnCount(): number {
+        return this.mColumnCount;
     }
 
     /**
@@ -61,168 +61,103 @@ export class PgslMatrixType extends BasePgslTypeDefinition<PgslMatrixTypeDefinit
     /**
      * Constructor.
      * 
-     * @param pMatixType - Matrix dimension type.
+     * @param pTrace - The trace context.
+     * @param pMatrixType - Matrix dimension type.
      * @param pInnerType - Inner type of matrix.
-     * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pMatixType: PgslMatrixTypeName, pInnerType: BasePgslTypeDefinition, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+    public constructor(pTrace: PgslTrace, pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
+        super(pTrace);
 
         // Set data.
         this.mInnerType = pInnerType;
-        this.mMatrixType = pMatixType;
 
-        // Append inner type to child list.
-        this.appendChild(this.mInnerType);
+        // Get matrix dimensions.
+        [this.mRowCount, this.mColumnCount] = this.getMatrixDimensions(pMatrixType);
 
-        // Create underlying vector type.
-        this.mVectorTypeDefinition = new PgslVectorType(PgslMatrixType.mVectorTypeMapping.get(this.mMatrixType)!, this.mInnerType, pMeta);
-
-        // Set vector type as child syntax.
-        this.appendChild(this.mVectorTypeDefinition);
-    }
-
-    /**
-     * Transpile the syntax tree into wgsl.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled wgsl code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile matrix type dimension.
-        const lMatrixDimensionName: string = (() => {
-            switch (this.mMatrixType) {
-                case PgslMatrixTypeName.Matrix22:
-                    return 'mat2x2';
-                case PgslMatrixTypeName.Matrix23:
-                    return 'mat2x3';
-                case PgslMatrixTypeName.Matrix24:
-                    return 'mat2x4';
-                case PgslMatrixTypeName.Matrix32:
-                    return 'mat3x2';
-                case PgslMatrixTypeName.Matrix33:
-                    return 'mat3x3';
-                case PgslMatrixTypeName.Matrix34:
-                    return 'mat3x4';
-                case PgslMatrixTypeName.Matrix42:
-                    return 'mat4x2';
-                case PgslMatrixTypeName.Matrix43:
-                    return 'mat4x3';
-                case PgslMatrixTypeName.Matrix44:
-                    return 'mat4x4';
-            }
-        })();
-
-        // Insert inner type as template parameter.
-        return `${lMatrixDimensionName}<${this.mInnerType.transpile(pTrace)}>`;
+        // Create underlying vector type based on matrix type.
+        this.mVectorTypeDefinition = new PgslVectorType(pTrace, this.mColumnCount, pInnerType);
     }
 
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
+    public override equals(pTarget: PgslType): boolean {
         // Must both be a matrix.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+        if (!(pTarget instanceof PgslMatrixType)) {
             return false;
         }
-
-        // Cast to matrix attachment as we now know it is one.
-        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // Inner type must be equal.
-        if (!this.mInnerType.equals(pValidationTrace, lMatrixTargetAttachment.innerType)) {
+        if (!this.mInnerType.equals(pTarget.innerType)) {
             return false;
         }
 
-        // Vector dimensions must be equal.
-        return this.mMatrixType === lMatrixTargetAttachment.dimension;
+        // Matrix dimensions must be equal.
+        return this.mRowCount === pTarget.rowCount && this.mColumnCount === pTarget.columnCount;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
+    public override isExplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a matrix.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+        if (!(pTarget instanceof PgslMatrixType)) {
             return false;
         }
-
-        // Cast to matrix attachment as we now know it is one.
-        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // If matrix dimensions are not equal, it is not castable.
-        if (this.mMatrixType !== lMatrixTargetAttachment.dimension) {
+        if (this.mRowCount !== pTarget.rowCount || this.mColumnCount !== pTarget.columnCount) {
             return false;
         }
 
-        // It is when inner types are.
-        return this.mInnerType.isExplicitCastableInto(pValidationTrace, lMatrixTargetAttachment.innerType);
+        // It is when inner types are explicit castable.
+        return this.mInnerType.isExplicitCastableInto(pTarget.innerType);
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target type.
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Must both be a matrix.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Matrix) {
+        if (!(pTarget instanceof PgslMatrixType)) {
             return false;
         }
-
-        // Cast to matrix attachment as we now know it is one.
-        const lMatrixTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
 
         // If matrix dimensions are not equal, it is not castable.
-        if (this.mMatrixType !== lMatrixTargetAttachment.dimension) {
+        if (this.mRowCount !== pTarget.rowCount || this.mColumnCount !== pTarget.columnCount) {
             return false;
         }
 
-        // It is when inner types are.
-        return this.mInnerType.isImplicitCastableInto(pValidationTrace, lMatrixTargetAttachment.innerType);
+        // It is when inner types are implicit castable.
+        return this.mInnerType.isImplicitCastableInto(pTarget.innerType);
     }
 
     /**
-     * Validate data of current structure.
+     * Collect type properties for matrix type.
+     * 
+     * @param pTrace - Trace context.
+     * 
+     * @returns Type properties for matrix type.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-        // Validate inner and vector type.
-        this.mInnerType.validate(pValidationTrace);
-        this.mVectorTypeDefinition.validate(pValidationTrace);
-
-        // Read attachments from inner type.
-        const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
-
-        // Must be scalar.
-        if (PgslNumericType.IsCastable(pValidationTrace, "implicit", this.mInnerType, PgslNumericTypeName.Float)) {
-            pValidationTrace.pushError('Matrix type must be a Float', this.meta, this);
+    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+        // Must be Float.
+        if (this.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
+            pTrace.pushIncident('Matrix type must be a Float32');
         }
 
         return {
-            baseType: PgslBaseTypeName.Matrix,
             concrete: true,
             scalar: false,
             plain: true,
@@ -230,21 +165,37 @@ export class PgslMatrixType extends BasePgslTypeDefinition<PgslMatrixTypeDefinit
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
-            
-            // Copy of inner type attachment.
-            storable: lInnerTypeAttachment.storable,
-            hostShareable: lInnerTypeAttachment.hostShareable,
-            constructible: lInnerTypeAttachment.constructible,
-            fixedFootprint: lInnerTypeAttachment.fixedFootprint,
 
-            // Additional data.
-            innerType: this.mInnerType,
-            dimension: this.mMatrixType,
+            // Copy of inner type properties.
+            storable: this.mInnerType.storable,
+            hostShareable: this.mInnerType.hostShareable,
+            constructible: this.mInnerType.constructible,
+            fixedFootprint: this.mInnerType.fixedFootprint
         };
+    }
+
+    /**
+     * Gets the matrix dimensions for a given matrix type.
+     * 
+     * @param pMatrixType - The matrix type to get matrix dimensions for.
+     * 
+     * @returns The matrix dimensions (rows, columns).
+     */
+    private getMatrixDimensions(pMatrixType: PgslMatrixTypeName): [rows: number, columns: number] {
+        switch (pMatrixType) {
+            case PgslMatrixType.typeName.matrix22: return [2, 2];
+            case PgslMatrixType.typeName.matrix32: return [3, 2];
+            case PgslMatrixType.typeName.matrix42: return [4, 2];
+            case PgslMatrixType.typeName.matrix23: return [2, 3];
+            case PgslMatrixType.typeName.matrix33: return [3, 3];
+            case PgslMatrixType.typeName.matrix43: return [4, 3];
+            case PgslMatrixType.typeName.matrix24: return [2, 4];
+            case PgslMatrixType.typeName.matrix34: return [3, 4];
+            case PgslMatrixType.typeName.matrix44: return [4, 4];
+            default:
+                return [2, 2]; // Default fallback
+        }
     }
 }
 
-export type PgslMatrixTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
-    innerType: BasePgslTypeDefinition;
-    dimension: PgslMatrixTypeName;
-};
+type PgslMatrixTypeName = (typeof PgslMatrixType.typeName)[keyof typeof PgslMatrixType.typeName];

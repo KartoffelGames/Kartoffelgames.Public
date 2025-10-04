@@ -1,15 +1,22 @@
-import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
-import { PgslSamplerTypeName } from "./enum/pgsl-sampler-build-name.enum.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Sampler type definition.
+ * Represents a sampler resource used for texture sampling operations.
  */
-export class PgslSamplerType extends BasePgslTypeDefinition<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-    private readonly mComparision!: boolean;
+export class PgslSamplerType extends PgslType {
+    /**
+     * Type names.
+     */
+    public static get typeName() {
+        return {
+            sampler: 'Sampler',
+            samplerComparison: 'SamplerComparison'
+        } as const;
+    }
+
+    private readonly mComparision: boolean;
 
     /**
      * If sampler is a comparison sampler.
@@ -21,59 +28,38 @@ export class PgslSamplerType extends BasePgslTypeDefinition<PgslSamplerTypeDefin
     /**
      * Constructor.
      * 
-     * @param pData - Initial data.
-     * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
+     * @param pTrace - The trace context.
+     * @param pComparison - The sampler type variant.
      */
-    public constructor(pSamplerType: PgslSamplerTypeName, pMeta: BasePgslSyntaxTreeMeta) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pMeta);
+    public constructor(pTrace: PgslTrace, pComparison: boolean) {
+        super(pTrace);
 
         // Set data.
-        this.mComparision = pSamplerType === PgslSamplerTypeName.SamplerComparison;
-    }
-
-    /**
-     * Transpile current type definition into a string.
-     * 
-     * @param _pTrace - Transpilation scope.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return this.comparison ? "sampler_comparison" : "sampler";
+        this.mComparision = pComparison;
     }
 
     /**
      * Compare this type with a target type for equality.
      * 
-     * @param pValidationTrace - Validation trace.
      * @param pTarget - Target comparison type. 
      * 
      * @returns true when both share the same comparison type.
      */
-    public override equals(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-        
+    public override equals(pTarget: PgslType): boolean {
         // Must both be a sampler.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Sampler) {
+        if (!(pTarget instanceof PgslSamplerType)) {
             return false;
         }
 
-        // Cast to sampler attachment as we now know it is one.
-        const lSamplerTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
-        return this.mComparision === lSamplerTargetAttachment.comparison;
+        return this.mComparision === pTarget.mComparision;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A sampler is never explicit nor implicit castable.
         return false;
     }
@@ -81,38 +67,31 @@ export class PgslSamplerType extends BasePgslTypeDefinition<PgslSamplerTypeDefin
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A sampler is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Validate data of current structure.
+     * Collect type properties for sampler type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
+     * @param _pTrace - Trace context.
+     * 
+     * @returns Type properties for sampler type.
      */
-    protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
+    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         return {
-            baseType: PgslBaseTypeName.Sampler,
-            composite: false,
-            indexable: false,
             storable: false,
             hostShareable: false,
             constructible: false,
             fixedFootprint: true,
+            composite: false,
+            indexable: false,
             concrete: true,
             scalar: false,
-            plain: false,
-
-            // Additional data.
-            comparison: this.mComparision
+            plain: false
         };
     }
 }
-
-export type PgslSamplerTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
-    comparison: boolean;
-};

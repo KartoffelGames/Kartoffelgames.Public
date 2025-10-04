@@ -10,4 +10,8 @@ export class PgslEnumTrace {
     // - Underlying type information
     // - Usage tracking
     // - Value resolution
+
+    public get underlyingType(): PgslType {
+        return this.mUnderlyingType;
+    }
 }

@@ -1,5 +1,5 @@
 /**
- * Access mode enum declaration.
+ * Access mode enum.
  */
 export const PgslAccessMode = {
     Read: 'read',

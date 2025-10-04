@@ -5,14 +5,14 @@ import type { BasePgslTypeDefinition } from '../type/base-pgsl-type-definition.t
 /**
  * PGSL base expression.
  */
-export abstract class BasePgslExpression extends BasePgslSyntaxTree<PgslExpressionSyntaxTreeValidationAttachment> {
+export abstract class BasePgslExpression extends BasePgslSyntaxTree {
     /**
      * Constructor.
      * 
      * @param pMeta - Syntax tree meta data.
      * @param pState - Expression syntax tree state.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
     }
 }

@@ -10,4 +10,8 @@ export class PgslAliasTrace {
     // - Circular reference detection
     // - Type substitution information
     // - Resolution context
+
+    public get underlyingType(): PgslType {
+        return this.mUnderlyingType;
+    }
 }

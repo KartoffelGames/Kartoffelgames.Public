@@ -1,3 +1,4 @@
+import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 
 /**
@@ -104,6 +105,11 @@ export abstract class BasePgslSyntaxTree {
     protected abstract onTrace(pTrace: PgslTrace): void;
 }
 
+/**
+ * Type representing a constructor function for PGSL syntax tree nodes.
+ * Used as a key in the validation processor map to associate constructors with their corresponding validation logic.
+ */
+export type PgslSyntaxTreeConstructor = IAnyParameterConstructor<BasePgslSyntaxTree>;
 
 export type BasePgslSyntaxTreeMeta = {
     range: [number, number, number, number],

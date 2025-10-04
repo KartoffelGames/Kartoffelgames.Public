@@ -25,7 +25,7 @@ export class PgslStringValueExpression extends BasePgslExpression {
      * @param pTextValue - Text value.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pTextValue: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pTextValue: string, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

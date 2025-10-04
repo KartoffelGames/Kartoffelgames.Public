@@ -1,31 +1,39 @@
-import { BasePgslSyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from "../expression/base-pgsl-expression.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
-import { PgslNumericTypeName } from "./enum/pgsl-numeric-type-name.enum.ts";
-import { PgslNumericTypeDefinition } from "./pgsl-numeric-type-definition.ts";
+import { PgslValueFixedState } from "../enum/pgsl-value-fixed-state.ts";
+import { BasePgslExpression } from "../syntax_tree/expression/base-pgsl-expression.ts";
+import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslNumericType } from "./pgsl-numeric-type.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Array type definition.
  */
-export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-    private readonly mInnerType: BasePgslTypeDefinition;
+export class PgslArrayType extends PgslType {
+    /**
+     * Type names.
+     */
+    public static get typeName() {
+        return {
+            array: 'Array'
+        } as const;
+    }
+
+    private readonly mInnerType: PgslType;
+    private readonly mLength: number | null;
     private readonly mLengthExpression: BasePgslExpression | null;
 
     /**
      * Inner type of array.
      */
-    public get innerType(): BasePgslTypeDefinition {
+    public get innerType(): PgslType {
         return this.mInnerType;
     }
 
     /**
      * Length expression of array.
      */
-    public get length(): BasePgslExpression | null {
-        return this.mLengthExpression;
+    public get length(): number | null {
+        return this.mLength;
     }
 
     /**
@@ -35,16 +43,18 @@ export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitio
      * @param pLengthExpression - Length expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pType: BasePgslTypeDefinition, pLengthExpression: BasePgslExpression | null) {
-        super(pMeta);
+    public constructor(pTrace: PgslTrace, pType: PgslType, pLengthExpression: BasePgslExpression | null) {
+        super(pTrace);
 
-        this.mLengthExpression = pLengthExpression ?? null;
         this.mInnerType = pType;
+        this.mLengthExpression = pLengthExpression;
 
-        // Append inner type to child list.
-        this.appendChild(this.mInnerType);
-        if (this.mLengthExpression) {
-            this.appendChild(this.mLengthExpression);
+        // Read length expression as number.
+        if (pLengthExpression) {
+            const lExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(pLengthExpression);
+            this.mLength = lExpressionTrace?.constantValue ?? null;
+        } else {
+            this.mLength = null;
         }
     }
 
@@ -56,37 +66,24 @@ export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitio
      * 
      * @returns true when both share the same comparison type.
      */
-    public override equals(pValidationTrace: PgslValidationTrace, pTarget: BasePgslTypeDefinition): boolean {
-        // Read attachments from target type.
-        const lTargetAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(pTarget);
-
+    public override equals(pTarget: PgslType): boolean {
         // Must both be arrays.
-        if (lTargetAttachment.baseType !== PgslBaseTypeName.Array) {
+        if (!(pTarget instanceof PgslArrayType)) {
             return false;
         }
 
-        // Cast to array attachment as we now know it is one.
-        const lArrayTargetAttachment = lTargetAttachment as BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData>;
-
         // Must have the same inner type.
-        if (!this.mInnerType.equals(pValidationTrace, lArrayTargetAttachment.innerType)) {
+        if (!this.mInnerType.equals(pTarget.innerType)) {
             return false;
         }
 
         // Runtime sized arrays are always equal.
-        if (!this.mLengthExpression && !lArrayTargetAttachment.lengthExpression) {
+        if (this.mLength === null && pTarget.length === null) {
             return true;
         }
 
-        // Must both be fixed or runtime sized.
-        if (!this.mLengthExpression || !lArrayTargetAttachment.lengthExpression) {
-            return false;
-        }
-
-        // TODO: How to compare expressions?
-        // TODO: They are both fixed-sized with element counts specified as identifiers resolving to the same declaration of a pipeline-overridable constant.
-
-        return true;
+        // Must both be the same length.
+        return this.mLength === pTarget.length;
     }
 
     /**
@@ -95,7 +92,7 @@ export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitio
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A array is never explicit castable.
         return false;
     }
@@ -106,67 +103,50 @@ export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitio
      * @param _pValidationTrace - Validation trace.
      * @param _pTarget - Target type.
      */
-    public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A array is never implicit castable.
         return false;
     }
 
     /**
-     * Transpile current type definition into a string.
+     * Collect type properties for array type.
      * 
-     * @param pTrace - Transpilation trace.
+     * @param pTrace - Trace context.
      * 
-     * @returns Transpiled string.
+     * @returns Type properties for array type.
      */
-    public override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile array type with fixed length.
-        if (this.mLengthExpression) {
-            return `array<${this.mInnerType.toString()}, ${this.mLengthExpression.transpile(pTrace)}>`;
-        }
-
-        // Transpile array type without fixed length.
-        return `array<${this.mInnerType.toString()}>`;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment<PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData> {
-        // TODO: Fixed length from const expressions are only valid on workgroup variables. ??? How.
-        //       Do we need to split expressions into isConstant and isCompileConstant or so????
-
-        // Validate inner type.
-        this.mInnerType.validate(pValidationTrace);
-
+    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
         // Validate length expression when set.
         if (this.mLengthExpression) {
-            this.mLengthExpression.validate(pValidationTrace);
-
             // Read expressions attachments.
-            const lLengthExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mLengthExpression);
+            const lLengthExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(this.mLengthExpression);
+            if (!lLengthExpressionTrace) {
+                throw new Error(`Missing expression trace for array length expression.`);
+            }
+
+            // Length expression must be constant.
+            if (lLengthExpressionTrace.fixedState < PgslValueFixedState.Constant) {
+                pTrace.pushIncident(`Array length expression must be a constant expression.`, this.mLengthExpression);
+            }
 
             // Length expression must be an unsigned integer scalar.
-            if (!PgslNumericTypeDefinition.IsCastable(pValidationTrace, "implicit", lLengthExpressionAttachment.resolveType, PgslNumericTypeName.AbstractInteger)) {
-                pValidationTrace.pushError(`Array length expression must be of unsigned integer type.`, this.mLengthExpression.meta, this.mLengthExpression);
+            if (!lLengthExpressionTrace.resolveType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))) {
+                pTrace.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }
 
-        // Read inner type attachment.
-        const lInnerTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInnerType);
-
         // Inner type must be plain.
-        if (!lInnerTypeAttachment.plain) {
-            pValidationTrace.pushError(`Array type must be a plain type.`, this.mInnerType.meta, this.mInnerType);
+        if (!this.mInnerType.plain) {
+            pTrace.pushIncident(`Array type must be a plain type.`);
         }
 
         // Is fixed when length expression is set and inner type is fixed.
-        const lIsFixed: boolean = (!this.mLengthExpression) ? false : lInnerTypeAttachment.fixedFootprint;
+        const lIsFixed: boolean = (!this.mLengthExpression) ? false : this.mInnerType.fixedFootprint;
 
         // Is constructible when inner type is constructible and array is fixed.
-        const lIsConstructible: boolean = (!lIsFixed) ? false : lInnerTypeAttachment.constructible;
+        const lIsConstructible: boolean = (!lIsFixed) ? false : this.mInnerType.constructible;
 
         return {
-            baseType: PgslBaseTypeName.Array,
             composite: false,
             indexable: true,
             plain: true,
@@ -176,17 +156,8 @@ export class PgslArrayType extends BasePgslTypeDefinition<PgslArrayTypeDefinitio
             // Copy of inner type attachment.
             fixedFootprint: lIsFixed,
             constructible: lIsConstructible,
-            storable: lInnerTypeAttachment.storable,
-            hostShareable: lInnerTypeAttachment.hostShareable,
-
-            // Inner type of array.
-            innerType: this.mInnerType,
-            lengthExpression: this.mLengthExpression,
+            storable: this.mInnerType.storable,
+            hostShareable: this.mInnerType.hostShareable,
         };
     }
 }
-
-export type PgslArrayTypeDefinitionSyntaxTreeAdditionalAttachmentData = {
-    innerType: BasePgslTypeDefinition;
-    lengthExpression: BasePgslExpression | null;
-};

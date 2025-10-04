@@ -136,11 +136,11 @@ export abstract class PgslType {
      * Collects and returns the type properties for this type.
      * This method is called by derived classes to define the characteristics of their type.
      * 
-     * @param pValidationTrace - The validation trace context for property collection.
+     * @param pTrace - The trace context for property collection.
      * 
      * @returns The type properties that define this type's characteristics.
      */
-    protected abstract onTypePropertyCollection(pValidationTrace: PgslTrace): PgslTypeProperties;
+    protected abstract onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties;
 
     /**
      * Gets the type properties, initializing them if necessary.

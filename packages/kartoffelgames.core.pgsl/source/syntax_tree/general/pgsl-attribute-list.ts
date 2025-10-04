@@ -7,12 +7,6 @@ import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaratio
 import { PgslStructPropertyDeclaration } from "../declaration/pgsl-struct-property-declaration.ts";
 import { PgslVariableDeclaration } from "../declaration/pgsl-variable-declaration.ts";
 import { PgslExpressionSyntaxTreeValidationAttachment, type BasePgslExpression } from '../expression/base-pgsl-expression.ts';
-import { PgslEnumValueExpression } from '../expression/single_value/pgsl-enum-value-expression.ts';
-import { PgslStringValueExpression } from '../expression/single_value/pgsl-string-value-expression.ts';
-import type { PgslValidationTrace } from '../pgsl-validation-trace.ts';
-import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
-import { PgslNumericTypeName } from "../type/enum/pgsl-numeric-type-name.enum.ts";
-import { PgslNumericTypeDefinition } from "../type/pgsl-numeric-type-definition.ts";
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 
 /**
@@ -155,7 +149,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @param pMeta - Syntax tree meta data.
      * @param pAttributes - Attribute list.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>) {
+    public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Init empty attribute list.

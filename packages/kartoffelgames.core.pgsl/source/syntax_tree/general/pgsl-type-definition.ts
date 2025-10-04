@@ -1,19 +1,9 @@
-import { EnumUtil, Exception } from "@kartoffelgames/core";
+import { Exception } from "@kartoffelgames/core";
 import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslVoidType } from "../../type/pgsl-void-type.ts";
-import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
-import { PgslBuildInTypeName } from "../../type/enum/pgsl-build-in-type-name.enum.ts";
-import { PgslMatrixTypeName } from "../../type/enum/pgsl-matrix-type-name.enum.ts";
-import { PgslNumericTypeName } from "../../type/enum/pgsl-numeric-type-name.enum.ts";
-import { PgslSamplerTypeName } from "../../type/enum/pgsl-sampler-build-name.enum.ts";
-import { PgslTextureTypeName } from "../../type/enum/pgsl-texture-type-name.enum.ts";
-import { PgslVectorTypeName } from "../../type/enum/pgsl-vector-type-name.enum.ts";
 import { PgslArrayType } from "../../type/pgsl-array-type.ts";
 import { PgslBooleanType } from "../../type/pgsl-boolean-type.ts";
 import { PgslBuildInType } from "../../type/pgsl-build-in-type.ts";
-import { PgslEnumType } from "../../type/pgsl-enum-type.ts";
+import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
 import { PgslMatrixType } from "../../type/pgsl-matrix-type.ts";
 import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
 import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
@@ -21,9 +11,11 @@ import { PgslSamplerType } from "../../type/pgsl-sampler-type.ts";
 import { PgslStringType } from "../../type/pgsl-string-type.ts";
 import { PgslStructType } from "../../type/pgsl-struct-type.ts";
 import { PgslTextureType } from "../../type/pgsl-texture-type.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
+import { PgslVoidType } from "../../type/pgsl-void-type.ts";
+import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { BasePgslExpression } from "../expression/base-pgsl-expression.ts";
-
-// TODO: There are types that should not be transpiled, how do we handle them?
 
 /**
  * PGSL base type definition.
@@ -32,6 +24,18 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
     private readonly mTypeName: string;
     private readonly mTemplate: Array<BasePgslSyntaxTree>;
     private readonly mIsPointer: boolean;
+    private mResolvedType: PgslType | null;
+
+    /**
+     * Get type of definition.
+     */
+    public get type(): PgslType {
+        if (this.mResolvedType === null) {
+            throw new Exception(`Type definition not traced yet.`, this);
+        }
+
+        return this.mResolvedType;
+    }
 
     /**
      * Constructor.
@@ -49,6 +53,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
         this.mTypeName = pTypeName;
         this.mTemplate = pTemplate;
         this.mIsPointer = pIsPointer;
+        this.mResolvedType = null;
     }
 
     /**
@@ -58,7 +63,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      * 
      * @returns Resolved type.
      */
-    public resolveType(pTrace: PgslTrace): PgslType {
+    private resolveType(pTrace: PgslTrace): PgslType {
         // Type to pointer.
         if (this.mIsPointer) {
             return this.resolvePointer(pTrace, this.mTypeName, this.mTemplate);
@@ -144,6 +149,9 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
         for (const lTemplate of this.mTemplate) {
             lTemplate.trace(pTrace);
         }
+
+        // Resolve type.
+        this.mResolvedType = this.resolveType(pTrace);
     }
 
     /**
@@ -155,16 +163,17 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveAlias(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve alias
-        if (!this.mTypePredefinition.aliasNames.has(pRawName)) {
+        const lAlias = pTrace.getAlias(pRawName);
+        if (!lAlias) {
             return null;
         }
 
-        // No templares allowed.
+        // No templates allowed.
         if (pRawTemplate.length > 0) {
             throw new Exception(`Alias can't have templates values.`, this);
         }
 
-        return new PgslAliasedType(pMeta, pRawName);
+        return lAlias.underlyingType;
     }
 
     /**
@@ -176,32 +185,35 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveArray(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve array type.
-        if (pRawName !== 'Array') { // TODO: Use some sort of constant.
+        if (pRawName !== PgslArrayType.typeName.array) {
             return null;
         }
 
         // Arrays need at least one type parameter.
         if (!pRawTemplate || pRawTemplate.length < 1) {
-            throw new Exception(`Arrays need at least one template parameter`, this);
+            pTrace.pushIncident(`Arrays need at least one template parameter`, this);
         }
 
         // But not more than two parameter.
         if (pRawTemplate.length > 2) {
-            throw new Exception(`Arrays supports only two template parameter.`, this);
+            pTrace.pushIncident(`Arrays supports only two template parameter.`, this);
         }
 
         // First template needs to be a type.
-        const lTypeTemplate: PgslType | BasePgslExpression = pRawTemplate[0];
-        if (!(lTypeTemplate instanceof PgslType)) {
-            throw new Exception(`First array template parameter must be a type.`, this);
+        const lTypeTemplate: BasePgslSyntaxTree | undefined = pRawTemplate[0];
+        if (!(lTypeTemplate instanceof PgslTypeDefinition)) {
+            pTrace.pushIncident(`First array template parameter must be a type.`, this);
+
+            // Fallback to invalid type.
+            return new PgslInvalidType(pTrace);
         }
 
         // Second length parameter.
         let lLengthParameter: BasePgslExpression | null = null;
         if (pRawTemplate.length > 1) {
-            const lLengthTemplate: PgslType | BasePgslExpression = pRawTemplate[1];
+            const lLengthTemplate: BasePgslSyntaxTree = pRawTemplate[1];
             if (!(lLengthTemplate instanceof BasePgslExpression)) {
-                throw new Exception(`Arra length template parameter cant be a type.`, this);
+                pTrace.pushIncident(`Array length template must be a expression.`, this);
             }
 
             // Set optional length expression.
@@ -209,7 +221,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
         }
 
         // Build BuildInType definition.
-        return new PgslArrayType(pMeta, lTypeTemplate, lLengthParameter);
+        return new PgslArrayType(pTrace, lTypeTemplate.type, lLengthParameter);
     }
 
     /**
@@ -221,16 +233,16 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveBoolean(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve boolean type.
-        if (pRawName !== 'Boolean') { // TODO: Use some sort of constant.
+        if (pRawName !== PgslBooleanType.typeName.boolean) {
             return null;
         }
 
         // Boolean should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Boolean can't have templates values.`, this);
+            pTrace.pushIncident(`Boolean can't have templates values.`, this);
         }
 
-        return new PgslBooleanType(pMeta);
+        return new PgslBooleanType(pTrace);
     }
 
     /**
@@ -242,13 +254,12 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveBuildIn(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslBuildInTypeName | undefined = EnumUtil.cast(PgslBuildInTypeName, pRawName);
-        if (!lTypeName) {
+        if (!Object.values(PgslBuildInType.typeName).includes(pRawName as any)) {
             return null;
         }
 
         // Build BuildInType definition.
-        return new PgslBuildInType(pMeta, lTypeName, pRawTemplate[0] ?? null);
+        return new PgslBuildInType(pTrace, pRawName as any, pRawTemplate[0] ?? null);
     }
 
     /**
@@ -260,16 +271,17 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveEnum(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve enum.
-        if (!this.mTypePredefinition.enumNames.has(pRawName)) {
+        const lEnum = pTrace.getEnum(pRawName);
+        if (!lEnum) {
             return null;
         }
 
         // Enums should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Enum can't have templates values.`, this);
+            pTrace.pushIncident(`Enum can't have templates values.`, this);
         }
 
-        return new PgslEnumType(pRawName, pMeta);
+        return lEnum.underlyingType;
     }
 
     /**
@@ -281,24 +293,24 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveMatrix(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslMatrixTypeName | undefined = EnumUtil.cast(PgslMatrixTypeName, pRawName);
-        if (!lTypeName) {
+        if (!Object.values(PgslMatrixType.typeName).includes(pRawName as any)) {
             return null;
         }
 
         // Validate matrix type.
         if (!pRawTemplate || pRawTemplate.length !== 1) {
-            throw new Exception(`Matrix types need a single template type.`, this);
+            pTrace.pushIncident(`Matrix types need a single template type.`, this);
         }
 
         // Validate template parameter.
-        const lMatrixInnerTypeTemplate: PgslType | BasePgslExpression = pRawTemplate[0];
-        if (!(lMatrixInnerTypeTemplate instanceof PgslType)) {
-            throw new Exception(`Matrix template parameter needs to be a type definition.`, this);
+        const lInnerTypeDefinition: BasePgslSyntaxTree = pRawTemplate[0];
+        if (!(lInnerTypeDefinition instanceof PgslTypeDefinition)) {
+            pTrace.pushIncident(`Matrix template parameter needs to be a type definition.`, this);
+            return new PgslInvalidType(pTrace);
         }
 
         // Build matrix definition.
-        return new PgslMatrixType(lTypeName, lMatrixInnerTypeTemplate, pMeta);
+        return new PgslMatrixType(pTrace, pRawName as any, lInnerTypeDefinition.type);
     }
 
     /**
@@ -310,18 +322,17 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveNumeric(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslNumericTypeName | undefined = EnumUtil.cast(PgslNumericTypeName, pRawName);
-        if (!lTypeName) {
+        if (!Object.values(PgslNumericType.typeName).includes(pRawName as any)) {
             return null;
         }
 
         // Numerics should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Numeric can't have templates values.`, this);
+            pTrace.pushIncident(`Numeric can't have templates values.`, this);
         }
 
         // Build numeric definition.
-        return new PgslNumericType(lTypeName, pMeta);
+        return new PgslNumericType(pTrace, pRawName as any);
     }
 
     /**
@@ -332,11 +343,15 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      * @param pMeta - Type definition meta data.
      */
     private resolvePointer(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType {
-        // Parse type again but this time without pointer.
-        const lTypeDeclaration: PgslType = this.resolveType(pRawName, false, pRawTemplate);
+        // Create a new type declaration without pointer.
+        const lInnerTypeDeclaration: PgslTypeDefinition = new PgslTypeDefinition(pRawName, pRawTemplate, false);
+        lInnerTypeDeclaration.trace(pTrace);
+
+        // Resolve inner type.
+        const lTypeDeclaration: PgslType = lInnerTypeDeclaration.type;
 
         // Build pointer type definition.
-        return new PgslPointerType(pMeta, lTypeDeclaration);
+        return new PgslPointerType(pTrace, lTypeDeclaration);
     }
 
     /**
@@ -348,18 +363,17 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveSampler(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslSamplerTypeName | undefined = EnumUtil.cast(PgslSamplerTypeName, pRawName);
-        if (!lTypeName) {
+        if (pRawName !== PgslSamplerType.typeName.sampler && pRawName !== PgslSamplerType.typeName.samplerComparison) {
             return null;
         }
 
         // Sampler should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Numeric can't have templates values.`, this);
+            pTrace.pushIncident(`Sampler type can't have template parameters.`, this);
         }
 
         // Build numeric definition.
-        return new PgslSamplerType(lTypeName, pMeta);
+        return new PgslSamplerType(pTrace, pRawName === PgslSamplerType.typeName.samplerComparison);
     }
 
     /**
@@ -371,16 +385,19 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveString(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve string type.
-        if (pRawName !== 'string') { // TODO: Use some sort of constant.
+        if (pRawName !== PgslStringType.typeName.string) {
             return null;
         }
 
         // String should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`String can't have templates values.`, this);
+            pTrace.pushIncident(`String type can't have template parameters.`, this);
         }
 
-        return new PgslStringType(pMeta);
+        // String should never be used directly.
+        pTrace.pushIncident(`String type can't be explicit defined.`, this);
+
+        return new PgslStringType(pTrace);
     }
 
     /**
@@ -392,17 +409,17 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveStruct(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve struct
-        if (!this.structNames.has(pRawName)) {
+        if (!pTrace.getStruct(pRawName)) {
             return null;
         }
 
         // Structs should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Structs can't have templates values.`, this);
+            pTrace.pushIncident(`Structs can't have templates values.`, this);
         }
 
         // Create new struct type definition.
-        return new PgslStructType(pRawName, pMeta);
+        return new PgslStructType(pTrace, pRawName);
     }
 
     /**
@@ -414,13 +431,12 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveTexture(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslTextureTypeName | undefined = EnumUtil.cast(PgslTextureTypeName, pRawName);
-        if (!lTypeName) {
+        if (!Object.values(PgslTextureType.typeName).includes(pRawName as any)) {
             return null;
         }
 
         // Build texture type definition.
-        return new PgslTextureType(lTypeName, pRawTemplate, pMeta);
+        return new PgslTextureType(pTrace, pRawName as any, pRawTemplate);
     }
 
     /**
@@ -432,24 +448,43 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveVector(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Try to resolve type name.
-        const lTypeName: PgslVectorTypeName | undefined = EnumUtil.cast(PgslVectorTypeName, pRawName);
-        if (!lTypeName) {
+        if (!Object.values(PgslVectorType.typeName).includes(pRawName as any)) {
             return null;
         }
 
-        // Validate vector type.
-        if (!pRawTemplate || pRawTemplate.length !== 1) {
-            throw new Exception(`Vector types need a single template type.`, this);
-        }
+        const lVectorDimension: number = (() => {
+            switch (pRawName) {
+                case PgslVectorType.typeName.vector2: return 2;
+                case PgslVectorType.typeName.vector3: return 3;
+                case PgslVectorType.typeName.vector4: return 4;
+                default: return 2; // Should never happen.
+            }
+        })();
 
-        // Validate template parameter.
-        const lVectorInnerTypeTemplate: PgslType | BasePgslExpression = pRawTemplate[0];
-        if (!(lVectorInnerTypeTemplate instanceof PgslType)) {
-            throw new Exception(`Vector template parameter needs to be a type definition.`, this);
+        let lInnerType: PgslType | null = (() => {
+            // Vector needs a single template parameter.
+            if (!pRawTemplate || pRawTemplate.length < 1) {
+                pTrace.pushIncident(`Vector types need a single template type.`, this);
+                return null;
+            }
+
+            // First template must to be a type definition.
+            const lVectorInnerTypeTemplate: BasePgslSyntaxTree = pRawTemplate[0];
+            if (!(lVectorInnerTypeTemplate instanceof PgslTypeDefinition)) {
+                pTrace.pushIncident(`Vector template parameter needs to be a type definition.`, this);
+                return null;
+            }
+
+            return lVectorInnerTypeTemplate.resolveType(pTrace);
+        })();
+
+        // Fallback to invalid type.
+        if (lInnerType === null) {
+            lInnerType = new PgslInvalidType(pTrace);
         }
 
         // Build vector definition.
-        return new PgslVectorType(lTypeName, lVectorInnerTypeTemplate);
+        return new PgslVectorType(pTrace, lVectorDimension, lInnerType);
     }
 
     /**
@@ -461,15 +496,28 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolveVoid(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
         // Resolve void type.
-        if (pRawName !== 'void') { // TODO: Use some sort of constant.
+        if (pRawName !== PgslVoidType.typeName.void) {
             return null;
         }
 
         // Void should not have any templates.
         if (pRawTemplate.length > 0) {
-            throw new Exception(`Void can't have templates values.`, this);
+            pTrace.pushIncident(`Void type can't have template parameters.`, this);
         }
 
-        return new PgslVoidType();
+        return new PgslVoidType(pTrace);
     }
+
+    // /**
+    //  * Transpile current type definition into a string.
+    //  * 
+    //  * @param pTrace - Transpilation trace.
+    //  * 
+    //  * @returns Transpiled string.
+    //  */
+    // protected override onTranspile(pTrace: PgslFileMetaInformation): string {
+    //     // Transpile pointer type. // TODO: This must be autoed or give the user a way to specify it (private, read_write, etc.).
+    //     return `ptr<private, ${this.mReferencedType.transpile(pTrace)}, read_write>`;
+    // }
+
 }

@@ -32,7 +32,7 @@ export class PgslEnumDeclaration extends BasePgslDeclaration<PgslEnumDeclaration
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pName: string, pValue: PgslEnumDeclarationSyntaxTreeValues, pAttributes: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pValue: PgslEnumDeclarationSyntaxTreeValues, pAttributes: PgslAttributeList, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pAttributes, pMeta);
 
         // Set data.

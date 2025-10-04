@@ -2,29 +2,29 @@
 import { PgslEnumDeclaration } from "../declaration/pgsl-enum-declaration.ts";
 import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
 import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
-import { PgslAccessMode } from "./pgsl-access-mode.enum.ts";
+import { PgslTexelFormat } from "./pgsl-texel-format.enum.ts";
 
-export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
+export class PgslTexelFormatEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
     private static mValidValues: Set<string> = (() => {
         const lSet = new Set<string>();
-        for (const lKey in PgslAccessMode) {
-            lSet.add(PgslAccessMode[lKey as keyof typeof PgslAccessMode]);
+        for (const lKey in PgslTexelFormat) {
+            lSet.add(PgslTexelFormat[lKey as keyof typeof PgslTexelFormat]);
         }
         return lSet;
     })();
 
     /**
-     * Check if the given value is a valid access mode.
+     * Check if the given value is a valid texel format.
      * 
      * @param pValue - Value to check.
      * 
      * @returns True if the value is valid, false otherwise.
      */
-    public static containsValue(pValue: string): pValue is PgslAccessMode {
-        return PgslAccessModeEnumDeclaration.mValidValues.has(pValue);
+    public static containsValue(pValue: string): pValue is PgslTexelFormat {
+        return PgslTexelFormatEnumDeclaration.mValidValues.has(pValue);
     }
 
     /**
@@ -33,14 +33,14 @@ export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     public constructor() {
         // Convert enum values into declaration values.
         const lValues: Array<{ name: string; value: PgslStringValueExpression; }> = new Array<{ name: string; value: PgslStringValueExpression; }>();
-        for (const lKey in PgslAccessMode) {
+        for (const lKey in PgslTexelFormat) {
             // Create enum name and values.
             const lEnumPropertyName = lKey;
-            const lEnumPropertyValue = PgslAccessMode[lKey as keyof typeof PgslAccessMode];
+            const lEnumPropertyValue = PgslTexelFormat[lKey as keyof typeof PgslTexelFormat];
 
             lValues.push({ name: lEnumPropertyName, value: new PgslStringValueExpression(lEnumPropertyValue) });
         }
 
-        super('AccessMode', lValues, new PgslAttributeList([]));
+        super('TexelFormat', lValues, new PgslAttributeList([]));
     }
 }

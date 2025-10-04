@@ -1,34 +1,40 @@
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
- * Boolean type definition.
+ * String type definition.
+ * Represents a string value used for text data.
  */
-export class PgslStringType extends BasePgslTypeDefinition {
+export class PgslStringType extends PgslType {
+    /**
+     * Type names.
+     */
+    public static get typeName() {
+        return {
+            string: 'string'
+        } as const;
+    }
+
     /**
      * Check if type is equal to target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
-     * @param _pTarget - Target type.
+     * @param pTarget - Target type.
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
-        // String type is always equal to itself.
-        return true;
+    public override equals(pTarget: PgslType): boolean {
+        // String type is only equal to other string types.
+        return pTarget instanceof PgslStringType;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         // A string is never explicit nor implicit castable.
         return false;
     }
@@ -36,38 +42,24 @@ export class PgslStringType extends BasePgslTypeDefinition {
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         // A string is never explicit nor implicit castable.
         return false;
     }
 
     /**
-     * Transpile type definition.
+     * Collect type properties for string type.
      * 
-     * @param _pTrace - Transpilation scope.
+     * @param _pTrace - Trace context.
      * 
-     * @returns transpiled code.
+     * @returns Type properties for string type.
      */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        // String type is not transpiled.
-        return 'string';
-    }
-
-    /**
-     * Validate syntax tree integrity.
-     * 
-     * @param _pTrace - Validation trace.
-     * 
-     * @returns validation attachment.
-     */
-    protected override onValidateIntegrity(_pTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         return {
-            baseType: PgslBaseTypeName.String,
             storable: false,
             hostShareable: false,
             composite: false,

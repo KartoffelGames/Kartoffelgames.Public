@@ -1,90 +1,53 @@
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta, SyntaxTreeMeta } from "../base-pgsl-syntax-tree.ts";
-import { PgslFileMetaInformation } from "../pgsl-file-meta-information.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from './base-pgsl-type-definition.ts';
-import { PgslBaseTypeName } from "./enum/pgsl-base-type-name.enum.ts";
+import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
 /**
  * Invalid type definition.
+ * Represents an invalid or erroneous type that cannot be used in normal operations.
  */
-export class PgslInvalidType extends BasePgslTypeDefinition {
-    /**
-     * Create a new instance of the invalid type definition syntax tree.
-     * 
-     * @param pMeta - Optional existing meta data.
-     * 
-     * @returns A new instance of the invalid type definition syntax tree.
-     */
-    public static type(pMeta?: SyntaxTreeMeta): PgslInvalidType {
-        // Create or convert existing metadata.
-        let lTreeMetaData: BasePgslSyntaxTreeMeta = BasePgslSyntaxTree.emptyMeta();
-        if (pMeta) {
-            lTreeMetaData = {
-                range: [pMeta.position.start.line, pMeta.position.start.column, pMeta.position.end.line, pMeta.position.end.column],
-                buildIn: false
-            };
-        }
-
-        return new PgslInvalidType(lTreeMetaData);
-    }
-
+export class PgslInvalidType extends PgslType {
     /**
      * Check if type is equal to target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns always false.
      */
-    public override equals(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override equals(_pTarget: PgslType): boolean {
         return false;
     }
 
     /**
      * Check if type is explicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns always false.
      */
-    public override isExplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
         return false;
     }
 
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param _pValidationTrace - Validation trace to use.
      * @param _pTarget - Target type.
      * 
      * @returns always false.
      */
-    public override isImplicitCastableInto(_pValidationTrace: PgslValidationTrace, _pTarget: BasePgslTypeDefinition): boolean {
+    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
         return false;
     }
 
     /**
-     * Transpile type definition.
+     * Collect type properties for invalid type.
      * 
-     * @param _pTrace - Transpilation scope.
+     * @param _pTrace - Trace context.
      * 
-     * @returns transpiled code.
+     * @returns Type properties for invalid type.
      */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return '##invalid##';
-    }
-
-    /**
-     * Validate syntax tree integrity.
-     * 
-     * @param _pValidationTrace - Validation scope.
-     * 
-     * @returns validation attachment.
-     */
-    protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): BasePgslTypeDefinitionSyntaxTreeValidationAttachment {
+    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
         return {
-            baseType: PgslBaseTypeName.Invalid,
             storable: false,
             hostShareable: false,
             composite: false,

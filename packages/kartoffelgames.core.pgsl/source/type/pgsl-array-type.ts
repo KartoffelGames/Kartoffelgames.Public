@@ -67,7 +67,16 @@ export class PgslArrayType extends PgslType {
         // Read length expression as number.
         if (pLengthExpression) {
             const lExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(pLengthExpression);
-            this.mLength = lExpressionTrace?.constantValue ?? null;
+            if(!lExpressionTrace) {
+                throw new Error(`Length expression is not traced.`);
+            }
+
+            if(typeof lExpressionTrace.constantValue === 'number') {
+                this.mLength = lExpressionTrace.constantValue;
+            } else {
+                pTrace.pushIncident(`Array length expression must be a constant integer.`, pLengthExpression);
+                this.mLength = null;
+            }
         } else {
             this.mLength = null;
         }

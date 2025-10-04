@@ -1,20 +1,16 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import { PgslNumericType, PgslNumericTypeName } from "../../type/pgsl-numeric-type.ts";
+import { PgslStringType } from "../../type/pgsl-string-type.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
 import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslDeclaration } from "../declaration/pgsl-declaration.ts";
-import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment } from "../declaration/pgsl-enum-declaration.ts";
 import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
 import { PgslStructPropertyDeclaration } from "../declaration/pgsl-struct-property-declaration.ts";
 import { PgslVariableDeclaration } from "../declaration/pgsl-variable-declaration.ts";
-import { PgslExpressionSyntaxTreeValidationAttachment, type BasePgslExpression } from '../expression/base-pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
-import { PgslTypeDefinition } from "./pgsl-type-definition.ts";
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { PgslStringType } from "../../type/pgsl-string-type.ts";
-import { PgslNumericType, PgslNumericTypeName } from "../../type/pgsl-numeric-type.ts";
+import { type BasePgslExpression } from '../expression/base-pgsl-expression.ts';
 
 /**
  * Generic attribute list.
@@ -49,7 +45,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         lAttributes.set('Align', {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
-                [{ type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }]
+                [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
             ],
             transpiledAttributes: {
                 'align': [0]
@@ -93,7 +89,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         lAttributes.set('Size', {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
-                [{ type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant }]
+                [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
             ],
             transpiledAttributes: {
                 'size': [0]

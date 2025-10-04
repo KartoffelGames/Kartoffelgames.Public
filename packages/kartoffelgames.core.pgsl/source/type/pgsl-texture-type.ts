@@ -323,4 +323,4 @@ type PgslTextureTypeParameter = {
  * Type representing all available texture type names.
  * Derived from the static typeName getter for type safety.
  */
-type PgslTextureTypeName = (typeof PgslTextureType.typeName)[keyof typeof PgslTextureType.typeName];
+export type PgslTextureTypeName = (typeof PgslTextureType.typeName)[keyof typeof PgslTextureType.typeName];

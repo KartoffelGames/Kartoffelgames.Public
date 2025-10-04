@@ -7,7 +7,7 @@ export enum PgslValueAddressSpace {
     /**
      * Module scope read write variables.
      */
-    Private = 'Private',
+    Module = 'Private',
 
     /**
      * Workgroup variables. Only address space that is able to handle creation fixed length arrays.

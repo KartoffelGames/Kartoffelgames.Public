@@ -6,15 +6,13 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
-import { PgslAccessMode } from "../../buildin/pgsl-access-mode.enum.ts";
+
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclaration extends PgslDeclaration<PgslVariableDeclarationSyntaxTreeValidationAttachment> {
+export class PgslVariableDeclaration extends PgslDeclaration {
     /**
      * Mapping of declaration type to address space.
      */
@@ -23,9 +21,9 @@ export class PgslVariableDeclaration extends PgslDeclaration<PgslVariableDeclara
         lAddressSpaceMapping.set(PgslDeclarationType.Storage, PgslValueAddressSpace.Storage);
         lAddressSpaceMapping.set(PgslDeclarationType.Uniform, PgslValueAddressSpace.Uniform);
         lAddressSpaceMapping.set(PgslDeclarationType.Workgroup, PgslValueAddressSpace.Workgroup);
-        lAddressSpaceMapping.set(PgslDeclarationType.Private, PgslValueAddressSpace.Private);
-        lAddressSpaceMapping.set(PgslDeclarationType.Const, PgslValueAddressSpace.Private);
-        lAddressSpaceMapping.set(PgslDeclarationType.Param, PgslValueAddressSpace.Private);
+        lAddressSpaceMapping.set(PgslDeclarationType.Private, PgslValueAddressSpace.Module);
+        lAddressSpaceMapping.set(PgslDeclarationType.Const, PgslValueAddressSpace.Module);
+        lAddressSpaceMapping.set(PgslDeclarationType.Param, PgslValueAddressSpace.Module);
 
         return lAddressSpaceMapping;
     })();

@@ -1,3 +1,4 @@
+import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../enum/pgsl-value-fixed-state.ts";
 import { PgslType } from "../type/pgsl-type.ts";
 
@@ -29,6 +30,7 @@ export class PgslExpressionTrace {
      */
     resolveType: PgslType;
 
+    constantValue: number | string | null;
 
-    constantValue: number | null;
+    storageAddressSpace: PgslValueAddressSpace; 
 }

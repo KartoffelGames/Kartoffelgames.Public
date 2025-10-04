@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
 import { PgslAccessModeEnumDeclaration } from "../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts";
-import type { BasePgslDeclaration } from '../syntax_tree/declaration/base-pgsl-declaration.ts';
+import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
 import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';

@@ -3,13 +3,13 @@ import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
-import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
+import { PgslDeclaration } from './pgsl-declaration.ts';
 import type { PgslStructPropertyDeclaration } from './pgsl-struct-property-declaration.ts';
 
 /**
  * PGSL syntax tree for a struct declaration.
  */
-export class PgslStructDeclaration extends BasePgslDeclaration {
+export class PgslStructDeclaration extends PgslDeclaration {
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclaration>;
 

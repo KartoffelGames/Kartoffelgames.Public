@@ -9,6 +9,15 @@ export abstract class PgslType {
     private mTypeProperties: PgslTypeProperties | null;
 
     /**
+     * Gets the trace context associated with this type.
+     * 
+     * @returns The trace context for type analysis and validation.
+     */
+    protected get trace(): PgslTrace {
+        return this.mTrace;
+    }
+
+    /**
      * Gets whether this type value is storable in a variable.
      * 
      * @returns True if the value can be stored in a variable, false otherwise.

@@ -141,10 +141,7 @@ export class PgslArrayType extends PgslType {
         // Validate length expression when set.
         if (this.mLengthExpression) {
             // Read expressions attachments.
-            const lLengthExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(this.mLengthExpression);
-            if (!lLengthExpressionTrace) {
-                throw new Error(`Missing expression trace for array length expression.`);
-            }
+            const lLengthExpressionTrace: PgslExpressionTrace  = pTrace.getExpression(this.mLengthExpression);
 
             // Length expression must be constant.
             if (lLengthExpressionTrace.fixedState < PgslValueFixedState.Constant) {

@@ -1,29 +1,23 @@
+import { PgslAliasTrace } from "../../trace/pgsl-alias-trace.ts";
+import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
-import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
+import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
+import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslAliasDeclaration extends BasePgslDeclaration {
+export class PgslAliasDeclaration extends PgslDeclaration {
     private readonly mName: string;
-    private readonly mTypeDefinition: BasePgslTypeDefinition;
+    private readonly mTypeDefinition: PgslTypeDefinition;
 
     /**
      * Alias name.
      */
     public get name(): string {
         return this.mName;
-    }
-
-    /**
-     * Alias type definition.
-     */
-    public get type(): BasePgslTypeDefinition {
-        return this.mTypeDefinition;
     }
 
     /**
@@ -34,7 +28,7 @@ export class PgslAliasDeclaration extends BasePgslDeclaration {
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pName: string, pType: BasePgslTypeDefinition, pAttributeList: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pType: PgslTypeDefinition, pAttributeList: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
         super(pAttributeList, pMeta);
 
         // Set data.
@@ -46,30 +40,22 @@ export class PgslAliasDeclaration extends BasePgslDeclaration {
     }
 
     /**
-     * Transpile current alias declaration into a string.
+     * Trace the declaration.
      * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
+     * @param pTrace - Trace context.
      */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile attribute list.
-        let lResult: string = this.attributes.transpile(pTrace);
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Trace attributes and type definition.
+        this.attributes.trace(pTrace);
+        this.mTypeDefinition.trace(pTrace);
 
-        // Create a alias declaration for the type.
-        lResult += `alias ${this.mName} = ${this.mTypeDefinition.transpile(pTrace)};\n`;
+        // Read type of type definition.
+        const lType: PgslType = this.mTypeDefinition.type;
 
-        return lResult;
-    }
+        // Create alias trace.
+        const lAliasTrace: PgslAliasTrace = new PgslAliasTrace(this.mName, lType);
 
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        pValidationTrace.pushScopedValue(this.mName, this);
-
-        // Validate type definition and attributes.
-        this.mTypeDefinition.validate(pValidationTrace);
-        this.attributes.validate(pValidationTrace);
+        // Register alias.
+        pTrace.registerAlias(lAliasTrace);
     }
 }

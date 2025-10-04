@@ -1,3 +1,4 @@
+import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
@@ -10,6 +11,18 @@ import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
  */
 export class PgslPointerType extends PgslType {
     private readonly mReferencedType: PgslType;
+    private mAssignedAddressSpace: PgslValueAddressSpace | null;
+
+    /**
+     * Gets the assigned address space for this pointer.
+     * The address space defines where the pointer points to (e.g., function, module, etc.).
+     * Defaults to a private address space.
+     * 
+     * @returns The assigned address space, or null if not yet assigned.
+     */
+    public get assignedAddressSpace(): PgslValueAddressSpace {
+        return this.mAssignedAddressSpace ?? PgslValueAddressSpace.Private;
+    }
 
     /**
      * Gets the type that this pointer references.
@@ -31,6 +44,19 @@ export class PgslPointerType extends PgslType {
 
         // Set data.
         this.mReferencedType = pReferenceType;
+
+        // No address space assigned yet.
+        this.mAssignedAddressSpace = null;
+    }
+
+    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace) {
+        // When a address space is already assigned and the new one is different, report an error.
+        if (this.mAssignedAddressSpace !== null && this.mAssignedAddressSpace !== pAddressSpace) {
+            this.trace.pushIncident('Pointer address space is already assigned and cannot be changed');
+            return;
+        }
+
+        this.mAssignedAddressSpace = pAddressSpace;
     }
 
     /**

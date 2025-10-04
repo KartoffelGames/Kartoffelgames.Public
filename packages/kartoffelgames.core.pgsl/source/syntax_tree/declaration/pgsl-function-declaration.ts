@@ -4,12 +4,12 @@ import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
-import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
+import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslFunctionDeclaration extends BasePgslDeclaration {
+export class PgslFunctionDeclaration extends PgslDeclaration {
     private readonly mBlock: PgslBlockStatement;
     private readonly mConstant: boolean;
     private readonly mName: string;

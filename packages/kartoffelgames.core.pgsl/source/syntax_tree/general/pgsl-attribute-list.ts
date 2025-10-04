@@ -1,13 +1,20 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { BasePgslDeclaration } from "../declaration/base-pgsl-declaration.ts";
+import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import { PgslDeclaration } from "../declaration/pgsl-declaration.ts";
 import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment } from "../declaration/pgsl-enum-declaration.ts";
 import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
 import { PgslStructPropertyDeclaration } from "../declaration/pgsl-struct-property-declaration.ts";
 import { PgslVariableDeclaration } from "../declaration/pgsl-variable-declaration.ts";
 import { PgslExpressionSyntaxTreeValidationAttachment, type BasePgslExpression } from '../expression/base-pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
+import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
+import { PgslTypeDefinition } from "./pgsl-type-definition.ts";
+import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslStringType } from "../../type/pgsl-string-type.ts";
+import { PgslNumericType, PgslNumericTypeName } from "../../type/pgsl-numeric-type.ts";
 
 /**
  * Generic attribute list.
@@ -42,7 +49,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         lAttributes.set('Align', {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
-                [{ type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant }]
+                [{ type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }]
             ],
             transpiledAttributes: {
                 'align': [0]
@@ -112,16 +119,16 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             enforcedParentType: PgslFunctionDeclaration,
             parameterTypes: [ // Parameters for workgroup size.
                 [
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant }
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
                 ],
                 [
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant },
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant }
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
                 ],
                 [
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant },
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant },
-                    { type: PgslNumericTypeName.Integer, state: PgslValueFixedState.Constant }
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
+                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
                 ]
             ],
             transpiledAttributes: {
@@ -134,7 +141,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
     })();
 
     private readonly mAttributeDefinitionList: Dictionary<string, Array<BasePgslExpression>>;
-    private mAttachedDeclaration: BasePgslDeclaration | null;
+    private mAttachedDeclaration: PgslDeclaration | null;
 
     /**
      * All attribute names defined in this list.
@@ -172,7 +179,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * 
      * @param pDeclaration - Declaration to attach to.
      */
-    public attachToDeclaration(pDeclaration: BasePgslDeclaration): void {
+    public attachToDeclaration(pDeclaration: PgslDeclaration): void {
         // Only attach once.
         if (this.mAttachedDeclaration) {
             throw new Exception(`Attribute list is already attached to a declaration.`, this);
@@ -245,23 +252,12 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
     }
 
     /**
-     * Transpile syntax tree to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        throw new Exception(`Attribute list cannot be transpiled directly.`, this);
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): void {
+    protected override onTrace(pTrace: PgslTrace): void {
         // Must be attached to a declaration.
         if (!this.mAttachedDeclaration) {
-            pTrace.pushError(`Attribute list is not attached to a declaration.`, this.meta, this);
+            pTrace.pushIncident(`Attribute list is not attached to a declaration.`, this);
             return;
         }
 
@@ -269,7 +265,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
             // Check if attribute has a definition.
             if (!PgslAttributeList.mValidAttributes.has(lAttributeName as PgslAttributeName)) {
-                pTrace.pushError(`Attribute "${lAttributeName}" is not a valid attribute.`, this.meta, this);
+                pTrace.pushIncident(`Attribute "${lAttributeName}" is not a valid attribute.`, this);
                 continue;
             }
 
@@ -279,7 +275,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             // Check if parent type is correct.
             if (lAttributeDefinition.enforcedParentType) {
                 if (!(this.mAttachedDeclaration instanceof lAttributeDefinition.enforcedParentType)) {
-                    pTrace.pushError(`Attribute "${lAttributeName}" is not attached to a valid parent type.`, this.meta, this);
+                    pTrace.pushIncident(`Attribute "${lAttributeName}" is not attached to a valid parent type.`, this);
                 }
             }
 
@@ -289,7 +285,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
                 // Find a parameter definition that matches the given parameter count.
                 const lFoundParameterDefinition = lAttributeDefinition.parameterTypes.find(pEntry => pEntry.length === lAttributeParameter.length);
                 if (!lFoundParameterDefinition) {
-                    pTrace.pushError(`Attribute "${lAttributeName}" has invalid number of parameters.`, this.meta, this);
+                    pTrace.pushIncident(`Attribute "${lAttributeName}" has invalid number of parameters.`, this);
                     continue;
                 }
                 lParameterDefinition = lFoundParameterDefinition ?? [];
@@ -297,7 +293,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
 
             // Validate integrity of each parameter.
             for (const lParameter of lAttributeParameter) {
-                lParameter.validate(pTrace);
+                lParameter.trace(pTrace);
             }
 
             // Validate parameter.
@@ -313,57 +309,55 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @param pParameterSourceList - List of parameters to validate.
      * @param pValidationParameterList - List of parameter definitions to validate against.
      */
-    private validateParameter(pTrace: PgslValidationTrace, pParameterSourceList: Array<BasePgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
+    private validateParameter(pTrace: PgslTrace, pParameterSourceList: Array<BasePgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
-            // Convert enum to literal or string. expression.
+            // Read and get the trace of the actual attribute parameter.
             let lActualAttributeParameter: BasePgslExpression = pParameterSourceList[lIndex];
-            if (lActualAttributeParameter instanceof PgslEnumValueExpression) { // TODO: Cant do this, as alias types could be that as well.
-                // Read enum from name.
-                const lEnum: BasePgslSyntaxTree = pTrace.getScopedValue(lActualAttributeParameter.name);
-                if (lEnum instanceof PgslEnumDeclaration) {
-                    // Read the attachment of the enum.
-                    const lEnumAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lEnum);
-                    if (lEnumAttachment.values.has(lActualAttributeParameter.name)) {
-                        // Set value of enums property as actual attribute parameter.
-                        lActualAttributeParameter = lEnumAttachment.values.get(lActualAttributeParameter.name)!;
-                    }
-                }
-            }
-
-            // Read the attachment of the actual attribute parameter.
-            const lActualAttributeParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(lActualAttributeParameter);
-            const lActualAttributeParameterType: BasePgslTypeDefinition = lActualAttributeParameterAttachment.resolveType;
+            const lActualAttributeParameterTrace: PgslExpressionTrace = pTrace.getExpression(lActualAttributeParameter);
+            const lActualAttributeParameterType: PgslType = lActualAttributeParameterTrace.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.
+                // String parameter must be constants.
+                if (lActualAttributeParameterTrace.fixedState < PgslValueFixedState.Constant) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a constant expression.`, lActualAttributeParameter);
+                    continue;
+                }
+
                 // Not a string parameter.
-                if (!(lActualAttributeParameterAttachment instanceof PgslStringValueExpression)) { // TODO: Cant do this, as alias types could be that as well.
-                    pTrace.pushError(`Attribute parameter ${lIndex} must be a string.`, lActualAttributeParameter.meta, this);
+                if (!(lActualAttributeParameterType instanceof PgslStringType)) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a string.`, lActualAttributeParameter);
+                    continue;
+                }
+
+                // Not a constant string parameter.
+                if (typeof lActualAttributeParameterTrace.constantValue !== 'string') {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a constant string.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Check if parameter value matches one of the expected values, if any are defined.
-                if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lActualAttributeParameterAttachment.value)) {
-                    pTrace.pushError(`Attribute parameter ${lIndex} has an invalid value.`, lActualAttributeParameter.meta, this);
+                if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lActualAttributeParameterTrace.constantValue)) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} has an invalid value.`, lActualAttributeParameter);
                 }
             } else if ('type' in lExpectedTemplateType) { // Number
                 // Not a number parameter.
-                if (!(lActualAttributeParameterType instanceof PgslNumericTypeDefinition)) { // TODO: Cant do this, as alias types could be that as well.
-                    pTrace.pushError(`Attribute parameter ${lIndex} must be a number.`, lActualAttributeParameter.meta, this);
+                if (!(lActualAttributeParameterType instanceof PgslNumericType)) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a number.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Check if parameter type matches expected type.
-                if (lActualAttributeParameterType.numericType !== lExpectedTemplateType.type) { // TODO: Allow implicit casts
-                    pTrace.pushError(`Attribute parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lActualAttributeParameter.meta, this);
+                if (!lActualAttributeParameterType.isImplicitCastableInto(new PgslNumericType(pTrace, lExpectedTemplateType.type))) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lActualAttributeParameter);
                 }
 
                 // Check fixed state is same or higher than expected.
-                if (lActualAttributeParameterAttachment.fixedState < lExpectedTemplateType.state) {
-                    pTrace.pushError(`Attribute parameter ${lIndex} has the wrong fixed state.`, lActualAttributeParameter.meta, this);
+                if (lActualAttributeParameterTrace.fixedState < lExpectedTemplateType.state) {
+                    pTrace.pushIncident(`Attribute parameter ${lIndex} has the wrong fixed state.`, lActualAttributeParameter);
                 }
             }
         }
@@ -376,8 +370,6 @@ export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
     name: string,
     parameter?: Array<BasePgslExpression>;
 };
-
-type PgslSyntaxTreeType<T extends BasePgslSyntaxTree<any>> = new (...pArgs: Array<any>) => T;
 
 type AttributeDefinitionNumberParameter = {
     type: PgslNumericTypeName;
@@ -392,7 +384,7 @@ type AttributeDefinitionInformation = {
     /**
      * Enforced parent type. If not set, any parent type is valid.
      */
-    enforcedParentType?: PgslSyntaxTreeType<BasePgslSyntaxTree<any>>;
+    enforcedParentType?: PgslSyntaxTreeConstructor;
 
     /**
      * Name: Valid parameter types.

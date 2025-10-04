@@ -35,7 +35,7 @@ export class PgslTranspilation {
         // Read processor for the instance.
         const lProcessor: IPgslTranspilerProcessor<BasePgslSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
         if (!lProcessor) {
-            return '';
+            throw new Error(`No transpilation processor found for syntax tree of type '${pInstance.constructor.name}'.`);
         }
 
         // Create callbacks.

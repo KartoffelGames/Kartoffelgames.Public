@@ -152,4 +152,4 @@ export class PgslNumericType extends PgslType {
  * Type representing all available numeric type names.
  * Derived from the static typeName getter for type safety.
  */
-type PgslNumericTypeName = (typeof PgslNumericType.typeName)[keyof typeof PgslNumericType.typeName];
+export type PgslNumericTypeName = (typeof PgslNumericType.typeName)[keyof typeof PgslNumericType.typeName];

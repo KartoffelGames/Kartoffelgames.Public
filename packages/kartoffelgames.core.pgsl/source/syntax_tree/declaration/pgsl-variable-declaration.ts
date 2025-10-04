@@ -8,13 +8,13 @@ import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslFileMetaInformation, PgslFileMetaInformationBindingType } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from '../type/base-pgsl-type-definition.ts';
-import { BasePgslDeclaration } from './base-pgsl-declaration.ts';
+import { PgslDeclaration } from './pgsl-declaration.ts';
 import { PgslAccessMode } from "../../buildin/pgsl-access-mode.enum.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclaration extends BasePgslDeclaration<PgslVariableDeclarationSyntaxTreeValidationAttachment> {
+export class PgslVariableDeclaration extends PgslDeclaration<PgslVariableDeclarationSyntaxTreeValidationAttachment> {
     /**
      * Mapping of declaration type to address space.
      */

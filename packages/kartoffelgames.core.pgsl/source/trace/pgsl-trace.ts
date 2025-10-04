@@ -120,8 +120,12 @@ export class PgslTrace {
      * 
      * @returns The expression trace if found, undefined otherwise.
      */
-    public getExpression(pExpression: BasePgslExpression): PgslExpressionTrace | undefined {
-        return this.mExpressions.get(pExpression);
+    public getExpression(pExpression: BasePgslExpression): PgslExpressionTrace {
+        if(!this.mExpressions.has(pExpression)) {
+            throw new Error('Expression is not traced.');
+        }
+        
+        return this.mExpressions.get(pExpression)!;
     }
 
     /**
@@ -153,9 +157,9 @@ export class PgslTrace {
      * 
      * @throws Error if the trace is sealed.
      */
-    public setAlias(pName: string, pTrace: PgslAliasTrace): void {
+    public registerAlias(pTrace: PgslAliasTrace): void {
         this.assertNotSealed();
-        this.mAliases.set(pName, pTrace);
+        this.mAliases.set(pTrace.aliasName, pTrace);
     }
 
     /**

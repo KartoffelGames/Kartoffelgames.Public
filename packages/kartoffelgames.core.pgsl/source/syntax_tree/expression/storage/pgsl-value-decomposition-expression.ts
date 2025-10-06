@@ -9,14 +9,14 @@ import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum.t
 import { PgslInvalidTypeDefinition } from "../../type/pgsl-invalid-type-definition.ts";
 import { PgslStructTypeDefinitionSyntaxTreeAdditionalAttachmentData } from '../../type/pgsl-struct-type-definition.ts';
 import { PgslVectorTypeDefinition, PgslVectorTypeDefinitionSyntaxTreeAdditionalAttachmentData } from '../../type/pgsl-vector-type-definition.ts';
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
  */
-export class PgslValueDecompositionExpression extends BasePgslExpression {
+export class PgslValueDecompositionExpression extends PgslExpression {
     private readonly mProperty: string;
-    private readonly mValue: BasePgslExpression;
+    private readonly mValue: PgslExpression;
 
     /**
      * Index expression of variable index expression.
@@ -28,7 +28,7 @@ export class PgslValueDecompositionExpression extends BasePgslExpression {
     /**
      * Value reference.
      */
-    public get value(): BasePgslExpression {
+    public get value(): PgslExpression {
         return this.mValue;
     }
 
@@ -39,7 +39,7 @@ export class PgslValueDecompositionExpression extends BasePgslExpression {
      * @param pProperty - Property of decompostion.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pValue: BasePgslExpression, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pValue: PgslExpression, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

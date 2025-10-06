@@ -4,14 +4,14 @@ import { PgslFunctionDeclaration } from '../../declaration/pgsl-function-declara
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslVoidTypeDefinition } from "../../type/pgsl-void-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpression extends BasePgslExpression {
+export class PgslFunctionCallExpression extends PgslExpression {
     private readonly mName: string;
-    private readonly mParameterList: Array<BasePgslExpression>;
+    private readonly mParameterList: Array<PgslExpression>;
 
     /**
      * Function name.
@@ -23,7 +23,7 @@ export class PgslFunctionCallExpression extends BasePgslExpression {
     /**
      * Function parameter.
      */
-    public get parameter(): Array<BasePgslExpression> {
+    public get parameter(): Array<PgslExpression> {
         return this.mParameterList;
     }
 
@@ -34,7 +34,7 @@ export class PgslFunctionCallExpression extends BasePgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pName: string, pParameterList: Array<BasePgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

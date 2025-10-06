@@ -2,7 +2,7 @@ import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../type/enum/pgsl-base-type-name.enum.ts';
@@ -14,14 +14,14 @@ import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
  */
 export class PgslVariableDeclarationStatement extends BasePgslStatement<PgslVariableDeclarationStatementSyntaxTreeValidationAttachment> {
     private readonly mDeclarationTypeName: string;
-    private readonly mExpression: BasePgslExpression | null;
+    private readonly mExpression: PgslExpression | null;
     private readonly mName: string;
     private readonly mTypeDeclaration: BasePgslTypeDefinition;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslExpression | null {
+    public get expression(): PgslExpression | null {
         return this.mExpression;
     }
 
@@ -166,5 +166,5 @@ export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
     declarationType: string;
     name: string;
     type: BasePgslTypeDefinition;
-    expression: BasePgslExpression | null;
+    expression: PgslExpression | null;
 };

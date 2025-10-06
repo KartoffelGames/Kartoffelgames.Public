@@ -1,6 +1,6 @@
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
@@ -17,7 +17,7 @@ import type { PgslVariableDeclarationStatement, PgslVariableDeclarationStatement
  */
 export class PgslForStatement extends BasePgslStatement {
     private readonly mBlock: PgslBlockStatement;
-    private readonly mExpression: BasePgslExpression | null;
+    private readonly mExpression: PgslExpression | null;
     private readonly mInit: PgslVariableDeclarationStatement | null;
     private readonly mUpdate: BasePgslStatement | null;
 
@@ -31,7 +31,7 @@ export class PgslForStatement extends BasePgslStatement {
     /**
      * Compare expression reference.
      */
-    public get expression(): BasePgslExpression | null {
+    public get expression(): PgslExpression | null {
         return this.mExpression;
     }
 
@@ -172,7 +172,7 @@ export class PgslForStatement extends BasePgslStatement {
 
 type PgslForStatementSyntaxTreeConstructorParameter = {
     init: PgslVariableDeclarationStatement | null;
-    expression: BasePgslExpression | null;
+    expression: PgslExpression | null;
     update: BasePgslStatement | null;
     block: PgslBlockStatement;
 };

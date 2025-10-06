@@ -1,3 +1,7 @@
+/**
+ * Declaration name. Used by module and function variables.
+ * Because it is used by both, it cant be specified more strictly or inside a syntax tree demself.
+ */
 export enum PgslDeclarationType {
     Let = 'let', // Only for function variables.
     Var = 'var', // Only for function variables.

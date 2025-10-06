@@ -66,13 +66,13 @@ export class PgslStructType extends PgslType {
      * Check if this struct type is implicitly castable into the target type.
      * Struct types are never castable to other types.
      * 
-     * @param _pTarget - Target type to check castability to.
+     * @param pTarget - Target type to check castability to.
      * 
      * @returns Always false - structs cannot be cast.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // A struct is never explicit nor implicit castable.
-        return false;
+        return this.equals(pTarget);
     }
 
     /**

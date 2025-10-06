@@ -20,7 +20,7 @@ export abstract class PgslDeclaration extends BasePgslSyntaxTree {
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pAttributeList: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pAttributeList: PgslAttributeList, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

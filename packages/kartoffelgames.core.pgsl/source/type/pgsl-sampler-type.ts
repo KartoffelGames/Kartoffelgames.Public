@@ -76,13 +76,13 @@ export class PgslSamplerType extends PgslType {
      * Check if this sampler type is implicitly castable into the target type.
      * Sampler types are never castable to other types.
      * 
-     * @param _pTarget - Target type to check castability to.
+     * @param pTarget - Target type to check castability to.
      * 
      * @returns Always false - samplers cannot be cast.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // A sampler is never explicit nor implicit castable.
-        return false;
+        return this.equals(pTarget);
     }
 
     /**

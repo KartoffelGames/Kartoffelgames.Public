@@ -1,6 +1,6 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
@@ -11,12 +11,12 @@ import { BasePgslStatement } from './base-pgsl-statement.ts';
  * PGSL structure holding a return statement with an optional expression.
  */
 export class PgslReturnStatement extends BasePgslStatement {
-    private readonly mExpression: BasePgslExpression | null;
+    private readonly mExpression: PgslExpression | null;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslExpression | null {
+    public get expression(): PgslExpression | null {
         return this.mExpression;
     }
 
@@ -26,7 +26,7 @@ export class PgslReturnStatement extends BasePgslStatement {
      * @param pExpression - Return expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: BasePgslExpression | null, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: PgslExpression | null, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

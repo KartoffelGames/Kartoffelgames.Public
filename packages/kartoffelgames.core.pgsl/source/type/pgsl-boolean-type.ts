@@ -43,13 +43,13 @@ export class PgslBooleanType extends PgslType {
     /**
      * Check if type is implicit castable into target type.
      * 
-     * @param _pTarget - Target type.
+     * @param pTarget - Target type.
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // A boolean is never explicit nor implicit castable.
-        return false;
+        return this.equals(pTarget);
     }
 
     /**

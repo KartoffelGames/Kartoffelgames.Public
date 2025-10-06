@@ -2,7 +2,7 @@ import { PgslAccessModeEnumDeclaration } from "../syntax_tree/buildin/pgsl-acces
 import { PgslAccessMode } from "../syntax_tree/buildin/pgsl-access-mode.enum.ts";
 import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts";
 import { PgslTexelFormat } from "../syntax_tree/buildin/pgsl-texel-format.enum.ts";
-import { BasePgslExpression } from "../syntax_tree/expression/base-pgsl-expression.ts";
+import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
 import { PgslStringValueExpression } from "../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
 import { PgslTypeDefinition } from "../syntax_tree/general/pgsl-type-definition.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
@@ -94,7 +94,7 @@ export class PgslTextureType extends PgslType {
         } as const;
     }
 
-    private readonly mTemplateList: Array<BasePgslExpression | PgslTypeDefinition>;
+    private readonly mTemplateList: Array<PgslExpression | PgslTypeDefinition>;
     private readonly mTextureType: PgslTextureTypeName;
     private readonly mAccess: PgslAccessMode;
     private readonly mFormat: PgslTexelFormat;
@@ -143,7 +143,7 @@ export class PgslTextureType extends PgslType {
      * @param pTextureType - The specific texture type variant.
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
-    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<BasePgslExpression | PgslTypeDefinition>) {
+    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<PgslExpression | PgslTypeDefinition>) {
         super(pTrace);
 
         // Set data.
@@ -212,13 +212,13 @@ export class PgslTextureType extends PgslType {
      * Check if this texture type is implicitly castable into the target type.
      * Texture types are never castable to other types.
      * 
-     * @param _pTarget - Target type to check castability to.
+     * @param pTarget - Target type to check castability to.
      * 
      * @returns Always false - textures cannot be cast.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // A texture is never explicit nor implicit castable.
-        return false;
+        return this.equals(pTarget);
     }
 
     /**
@@ -269,7 +269,7 @@ export class PgslTextureType extends PgslType {
         // Validate and parse each template parameter.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
             const lExpectedParameterType: typeof PgslTypeDefinition | typeof PgslStringValueExpression = lTextureTemplates[lTemplateIndex];
-            const lActualParameterValue: PgslTypeDefinition | BasePgslExpression = this.mTemplateList[lTemplateIndex];
+            const lActualParameterValue: PgslTypeDefinition | PgslExpression = this.mTemplateList[lTemplateIndex];
 
             // Validate parameter type matches expected type.
             if (!(lActualParameterValue instanceof lExpectedParameterType)) {

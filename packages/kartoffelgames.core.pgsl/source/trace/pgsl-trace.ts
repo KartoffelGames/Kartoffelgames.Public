@@ -1,12 +1,13 @@
 import { Stack } from "@kartoffelgames/core";
 import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
+import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
 import { PgslAliasTrace } from "./pgsl-alias-trace.ts";
 import { PgslEnumTrace } from "./pgsl-enum-trace.ts";
 import { PgslExpressionTrace } from "./pgsl-expression-trace.ts";
 import { PgslFunctionTrace } from "./pgsl-function-trace.ts";
 import { PgslStructTrace } from "./pgsl-struct-trace.ts";
 import { PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
-import { BasePgslExpression } from "../syntax_tree/expression/base-pgsl-expression.ts";
+import { PgslValueTrace } from "./pgsl-value-trace.ts";
 
 /**
  * Main trace class for PGSL syntax tree analysis and transpilation.
@@ -18,10 +19,12 @@ export class PgslTrace {
     private readonly mEnums: Map<string, PgslEnumTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
     private readonly mFunctions: Map<string, PgslFunctionTrace>;
-    private readonly mExpressions: Map<BasePgslExpression, PgslExpressionTrace>;
+    private readonly mExpressions: Map<PgslExpression, PgslExpressionTrace>;
     private readonly mTreeScopes: Map<BasePgslSyntaxTree, PgslTraceScope>;
     private readonly mScopeList: Stack<PgslTraceScope>;
     private readonly mIncidents: Array<PgslTraceIncident>;
+    private readonly mNameResolutions: PgslTraceNameResolutions;
+    private readonly mVariableDeclarations: Map<string, PgslValueTrace>;
 
     /**
      * Gets whether this trace has been sealed.
@@ -37,8 +40,12 @@ export class PgslTrace {
      * 
      * @returns The current scope or undefined if no scope is active.
      */
-    public get currentScope(): PgslTraceScope | undefined {
-        return this.mScopeList.top;
+    public get currentScope(): PgslTraceScope {
+        if (this.mScopeList.size === 0) {
+            throw new Error('No active scope.');
+        }
+
+        return this.mScopeList.top!;
     }
 
     /**
@@ -61,8 +68,12 @@ export class PgslTrace {
         this.mTreeScopes = new Map<BasePgslSyntaxTree, PgslTraceScope>();
         this.mScopeList = new Stack<PgslTraceScope>();
         this.mFunctions = new Map<string, PgslFunctionTrace>();
-        this.mExpressions = new Map<BasePgslExpression, PgslExpressionTrace>();
+        this.mExpressions = new Map<PgslExpression, PgslExpressionTrace>();
         this.mIncidents = new Array<PgslTraceIncident>();
+        this.mVariableDeclarations = new Map<string, PgslValueTrace>();
+        this.mNameResolutions = {
+            groupResolution: new Map<string, { index: number; locations: Map<string, number>; }>()
+        };
     }
 
     /**
@@ -83,7 +94,7 @@ export class PgslTrace {
      * @throws Error if the tree is not traced.
      */
     public scopeOf<T extends BasePgslSyntaxTree>(pTree: T): PgslTraceScope {
-        if(!this.mTreeScopes.has(pTree)) {
+        if (!this.mTreeScopes.has(pTree)) {
             throw new Error('Tree is not traced.');
         }
 
@@ -120,11 +131,11 @@ export class PgslTrace {
      * 
      * @returns The expression trace if found, undefined otherwise.
      */
-    public getExpression(pExpression: BasePgslExpression): PgslExpressionTrace {
-        if(!this.mExpressions.has(pExpression)) {
+    public getExpression(pExpression: PgslExpression): PgslExpressionTrace {
+        if (!this.mExpressions.has(pExpression)) {
             throw new Error('Expression is not traced.');
         }
-        
+
         return this.mExpressions.get(pExpression)!;
     }
 
@@ -133,9 +144,35 @@ export class PgslTrace {
      * 
      * @param pExpression - The expression to set the trace for.
      */
-    public setExpression(pExpression: BasePgslExpression, pTrace: PgslExpressionTrace): void {
+    public setExpression(pExpression: PgslExpression, pTrace: PgslExpressionTrace): void {
         this.assertNotSealed();
         this.mExpressions.set(pExpression, pTrace);
+    }
+
+    /**
+     * Gets a module-level variable declaration.
+     * 
+     * @param pName - The name of the variable.
+     */
+    public getModuleValue(pName: string): PgslValueTrace | undefined {
+        return this.mVariableDeclarations.get(pName);
+    }
+
+    /**
+     * Registers a module-level variable declaration.
+     * 
+     * @param pValue - The value of the variable.
+     */
+    public registerModuleValue(pValue: PgslValueTrace): void {
+        this.assertNotSealed();
+
+        // Create resolved bindings if value is a resource.
+        if (pValue.bindingInformation) {
+            const lBinding: PgslTraceBinding = this.resolveBinding(pValue.bindingInformation.bindGroupName, pValue.bindingInformation.bindLocationName);
+            pValue.resolveBindingIndices(lBinding.bindGroup, lBinding.binding);
+        }
+
+        this.mVariableDeclarations.set(pValue.name, pValue);
     }
 
     /**
@@ -176,14 +213,13 @@ export class PgslTrace {
     /**
      * Sets an enum trace.
      * 
-     * @param pName - The name of the enum.
      * @param pTrace - The enum trace information.
      * 
      * @throws Error if the trace is sealed.
      */
-    public setEnum(pName: string, pTrace: PgslEnumTrace): void {
+    public registerEnum(pTrace: PgslEnumTrace): void {
         this.assertNotSealed();
-        this.mEnums.set(pName, pTrace);
+        this.mEnums.set(pTrace.name, pTrace);
     }
 
     /**
@@ -224,14 +260,13 @@ export class PgslTrace {
     /**
      * Sets a function trace.
      * 
-     * @param pName - The name of the function.
      * @param pTrace - The function trace information.
      * 
      * @throws Error if the trace is sealed.
      */
-    public setFunction(pName: string, pTrace: PgslFunctionTrace): void {
+    public registerFunction(pTrace: PgslFunctionTrace): void {
         this.assertNotSealed();
-        this.mFunctions.set(pName, pTrace);
+        this.mFunctions.set(pTrace.name, pTrace);
     }
 
     /**
@@ -245,6 +280,51 @@ export class PgslTrace {
     public pushIncident(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree): void {
         this.assertNotSealed();
         this.mIncidents.push(new PgslTraceIncident(pMessage, pSyntaxTree));
+    }
+
+    /**
+     * Resolves the binding for a given bind group and binding name.
+     * 
+     * @param pBindGroupName - The name of the bind group.
+     * @param pBindingName - The name of the binding.
+     * 
+     * @returns The resolved binding information.
+     */
+    public resolveBinding(pBindGroupName: string, pBindingName: string): PgslTraceBinding {
+        let lBindGroupIndex: number = -1;
+
+        // Check if bind group exists.
+        if (!this.mNameResolutions.groupResolution.has(pBindGroupName)) {
+            // Use the current size as new bind group index.
+            lBindGroupIndex = this.mNameResolutions.groupResolution.size;
+
+            // Create new entry for the bind group.
+            this.mNameResolutions.groupResolution.set(pBindGroupName, {
+                index: lBindGroupIndex,
+                locations: new Map<string, number>(),
+            });
+        } else {
+            // Read Bind group index of bind group name.
+            lBindGroupIndex = this.mNameResolutions.groupResolution.get(pBindGroupName)!.index;
+        }
+
+        // Read the binding names map of the current bind group.
+        const lBindGroupLocations: Map<string, number> = this.mNameResolutions.groupResolution.get(pBindGroupName)!.locations;
+
+        // Check if bindgroup binding exists.
+        if (!lBindGroupLocations.has(pBindingName)) {
+            // Read the current bind group binding index of the current bind group and increment them by one.
+            const lNextBindGroupBindingIndex: number = lBindGroupLocations.size;
+
+            // Save the increment.
+            lBindGroupLocations.set(pBindingName, lNextBindGroupBindingIndex);
+        }
+
+        // Return the binding location.
+        return {
+            bindGroup: lBindGroupIndex,
+            binding: lBindGroupLocations.get(pBindingName)!,
+        };
     }
 
     /**
@@ -296,3 +376,31 @@ export class PgslTraceIncident {
         this.mSyntaxTree = pSyntaxTree;
     }
 }
+
+/**
+ * Represents binding information for transpilation.
+ */
+export type PgslTraceBinding = {
+    /**
+     * The bind group index.
+     */
+    bindGroup: number;
+
+    /**
+     * The binding index within the bind group.
+     */
+    binding: number;
+};
+
+/**
+ * Keeps track of bind groups and bindings during transpilation.
+ */
+type PgslTraceNameResolutions = {
+    /**
+     * Bind group resolution mapping.
+     */
+    groupResolution: Map<string, {
+        index: number;
+        locations: Map<string, number>;
+    }>;
+};

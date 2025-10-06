@@ -7,13 +7,13 @@ import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
 import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpression extends BasePgslExpression {
+export class PgslLiteralValueExpression extends PgslExpression {
     private readonly mTextValue: string;
 
     /**

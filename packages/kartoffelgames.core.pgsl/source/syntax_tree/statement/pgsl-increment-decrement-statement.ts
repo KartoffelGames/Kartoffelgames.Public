@@ -2,7 +2,7 @@ import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
@@ -11,13 +11,13 @@ import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
  * PGSL structure holding a increment or decrement statement.
  */
 export class PgslIncrementDecrementStatement extends BasePgslStatement<PgslIncrementDecrementStatementSyntaxTreeAttachmentData> {
-    private readonly mExpression: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
     private readonly mOperatorName: string;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -28,7 +28,7 @@ export class PgslIncrementDecrementStatement extends BasePgslStatement<PgslIncre
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pOperator: string, pExpression: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pOperator: string, pExpression: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
         super(pMeta);
 

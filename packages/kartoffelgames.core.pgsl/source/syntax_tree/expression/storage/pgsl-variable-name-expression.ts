@@ -5,12 +5,12 @@ import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import type { PgslValidationTrace } from '../../pgsl-validation-trace.ts';
 import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement.ts';
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding single variable name.
  */
-export class PgslVariableNameExpression extends BasePgslExpression {
+export class PgslVariableNameExpression extends PgslExpression {
     private readonly mName: string;
 
     /**

@@ -9,7 +9,7 @@ import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-functio
 import { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
 import { PgslStructPropertyDeclaration } from '../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
 import { PgslVariableDeclaration } from '../syntax_tree/declaration/pgsl-variable-declaration.ts';
-import type { BasePgslExpression } from '../syntax_tree/expression/base-pgsl-expression.ts';
+import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression.ts';
 import { PgslBinaryExpression } from '../syntax_tree/expression/operation/pgsl-binary-expression.ts';
 import { PgslComparisonExpression } from '../syntax_tree/expression/operation/pgsl-comparison-expression.ts';
@@ -518,7 +518,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "<EXPRESSION>, <EXPRESSION>, <EXPRESSION>"
          * ```
          */
-        const lExpressionListGraph: Graph<PgslToken, object, { list: Array<BasePgslExpression>; }> = Graph.define(() => {
+        const lExpressionListGraph: Graph<PgslToken, object, { list: Array<PgslExpression>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lExpressionSyntaxTreeGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -568,7 +568,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * Expression graph. 
          * Bundles the different expressions into a single graph.
          */
-        const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, BasePgslExpression> = Graph.define(() => {
+        const lExpressionSyntaxTreeGraph: Graph<PgslToken, object, PgslExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('expression', [
                     // Combination expressions, combining two expressions.
@@ -594,7 +594,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     lStringValueExpressionGraph,
                     lVariableNameExpressionGraph,
                 ]);
-        }).converter((pData): BasePgslExpression => {
+        }).converter((pData): PgslExpression => {
             return pData.expression;
         });
 
@@ -1272,9 +1272,9 @@ type PgslParserCoreGraphs = {
 };
 
 type PgslParserExpressionGraphs = {
-    expression: Graph<PgslToken, object, BasePgslExpression>;
+    expression: Graph<PgslToken, object, PgslExpression>;
     expressionList: Graph<PgslToken, object, {
-        list: Array<BasePgslExpression>;
+        list: Array<PgslExpression>;
     }>;
     literalExpression: Graph<PgslToken, object, PgslLiteralValueExpression>;
     stringExpression: Graph<PgslToken, object, PgslStringValueExpression>;

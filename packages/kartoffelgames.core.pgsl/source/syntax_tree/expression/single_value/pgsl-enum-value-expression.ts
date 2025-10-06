@@ -4,14 +4,14 @@ import { PgslEnumDeclaration, PgslEnumDeclarationSyntaxTreeValidationAttachment 
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 // TODO: Remove and merge with value decomposition expression. As it technically is one.
 
 /**
  * PGSL structure holding single enum value.
  */
-export class PgslEnumValueExpression___ extends BasePgslExpression {
+export class PgslEnumValueExpression___ extends PgslExpression {
     private readonly mName: string;
     private readonly mProperty: string;
 
@@ -75,7 +75,7 @@ export class PgslEnumValueExpression___ extends BasePgslExpression {
         const lEnumAttachment: PgslEnumDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lReferencedEnum);
 
         // Catch undefined enum properties.
-        const lProperty: BasePgslExpression | undefined = lEnumAttachment.values.get(this.mProperty);
+        const lProperty: PgslExpression | undefined = lEnumAttachment.values.get(this.mProperty);
         if (!lProperty) {
             pTrace.pushError(`Enum property "${this.mName}.${this.mProperty}" not defined.`, this.meta, this);
 

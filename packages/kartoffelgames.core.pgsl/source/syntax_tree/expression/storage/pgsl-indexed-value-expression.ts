@@ -7,26 +7,26 @@ import { PgslArrayTypeDefinition } from "../../type/pgsl-array-type-definition.t
 import { PgslMatrixTypeDefinition } from "../../type/pgsl-matrix-type-definition.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a variable with index expression.
  */
-export class PgslIndexedValueExpression extends BasePgslExpression {
-    private readonly mIndex: BasePgslExpression;
-    private readonly mValue: BasePgslExpression;
+export class PgslIndexedValueExpression extends PgslExpression {
+    private readonly mIndex: PgslExpression;
+    private readonly mValue: PgslExpression;
 
     /**
      * Index expression of variable index expression.
      */
-    public get index(): BasePgslExpression {
+    public get index(): PgslExpression {
         return this.mIndex;
     }
 
     /**
      * Value reference.
      */
-    public get value(): BasePgslExpression {
+    public get value(): PgslExpression {
         return this.mValue;
     }
 
@@ -37,7 +37,7 @@ export class PgslIndexedValueExpression extends BasePgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pValue: BasePgslExpression, pIndex: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pValue: PgslExpression, pIndex: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

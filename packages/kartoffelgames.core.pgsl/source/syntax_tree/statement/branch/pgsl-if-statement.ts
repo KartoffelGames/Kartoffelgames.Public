@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
@@ -13,7 +13,7 @@ import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
 export class PgslIfStatement extends BasePgslStatement {
     private readonly mBlock: PgslBlockStatement;
     private readonly mElse: PgslIfStatement | PgslBlockStatement | null;
-    private readonly mExpression: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
 
     /**
      * If block.
@@ -32,7 +32,7 @@ export class PgslIfStatement extends BasePgslStatement {
     /**
      * If boolean expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -103,7 +103,7 @@ export class PgslIfStatement extends BasePgslStatement {
 }
 
 type PgslIfStatementSyntaxTreeConstructorParameter = {
-    expression: BasePgslExpression,
+    expression: PgslExpression,
     block: PgslBlockStatement;
     else: PgslBlockStatement | PgslIfStatement | null;
 };

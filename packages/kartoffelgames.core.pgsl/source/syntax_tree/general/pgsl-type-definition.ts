@@ -15,7 +15,7 @@ import { PgslType } from "../../type/pgsl-type.ts";
 import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
 import { PgslVoidType } from "../../type/pgsl-void-type.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { BasePgslExpression } from "../expression/base-pgsl-expression.ts";
+import { PgslExpression } from "../expression/pgsl-expression.ts";
 
 /**
  * PGSL base type definition.
@@ -209,10 +209,10 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
         }
 
         // Second length parameter.
-        let lLengthParameter: BasePgslExpression | null = null;
+        let lLengthParameter: PgslExpression | null = null;
         if (pRawTemplate.length > 1) {
             const lLengthTemplate: BasePgslSyntaxTree = pRawTemplate[1];
-            if (!(lLengthTemplate instanceof BasePgslExpression)) {
+            if (!(lLengthTemplate instanceof PgslExpression)) {
                 pTrace.pushIncident(`Array length template must be a expression.`, this);
             }
 

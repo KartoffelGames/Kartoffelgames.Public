@@ -5,13 +5,13 @@ import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import type { BasePgslTypeDefinition } from '../../type/base-pgsl-type-definition.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslVectorTypeDefinition } from '../../type/pgsl-vector-type-definition.ts';
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
  */
-export class PgslUnaryExpression extends BasePgslExpression {
-    private readonly mExpression: BasePgslExpression;
+export class PgslUnaryExpression extends PgslExpression {
+    private readonly mExpression: PgslExpression;
     private readonly mOperator: string;
 
     /**
@@ -21,7 +21,7 @@ export class PgslUnaryExpression extends BasePgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pExpression: BasePgslExpression, pOperator: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: PgslExpression, pOperator: string, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

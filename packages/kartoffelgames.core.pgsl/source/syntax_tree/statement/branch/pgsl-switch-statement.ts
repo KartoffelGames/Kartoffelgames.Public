@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition } from "../../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
@@ -20,7 +20,7 @@ import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 export class PgslSwitchStatement extends BasePgslStatement<void> {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatement | null;
-    private readonly mExpression: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
 
     /**
      * Switch cases.
@@ -39,7 +39,7 @@ export class PgslSwitchStatement extends BasePgslStatement<void> {
     /**
      * Switch boolean expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -144,12 +144,12 @@ export class PgslSwitchStatement extends BasePgslStatement<void> {
 }
 
 export type PgslSwitchStatementSwitchCase = {
-    readonly cases: Array<BasePgslExpression>,
+    readonly cases: Array<PgslExpression>,
     readonly block: PgslBlockStatement;
 };
 
 export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
-    expression: BasePgslExpression,
+    expression: PgslExpression,
     cases: Array<PgslSwitchStatementSwitchCase>;
     default: PgslBlockStatement | null;
 };

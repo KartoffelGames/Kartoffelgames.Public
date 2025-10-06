@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
@@ -13,7 +13,7 @@ import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
  */
 export class PgslDoWhileStatement extends BasePgslStatement {
     private readonly mBlock: PgslBlockStatement;
-    private readonly mExpression: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
 
     /**
      * If block.
@@ -25,7 +25,7 @@ export class PgslDoWhileStatement extends BasePgslStatement {
     /**
      * If boolean expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -36,7 +36,7 @@ export class PgslDoWhileStatement extends BasePgslStatement {
      * @param pBlock - Looped block.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: BasePgslExpression, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: PgslExpression, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

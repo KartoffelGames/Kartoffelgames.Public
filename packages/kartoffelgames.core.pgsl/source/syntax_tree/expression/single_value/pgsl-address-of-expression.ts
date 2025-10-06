@@ -2,18 +2,18 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a variable name used to get the address.
  */
-export class PgslAddressOfExpression extends BasePgslExpression {
-    private readonly mVariable: BasePgslExpression;
+export class PgslAddressOfExpression extends PgslExpression {
+    private readonly mVariable: PgslExpression;
 
     /**
      * Variable reference.
      */
-    public get variable(): BasePgslExpression {
+    public get variable(): PgslExpression {
         return this.mVariable;
     }
 
@@ -24,7 +24,7 @@ export class PgslAddressOfExpression extends BasePgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pVariable: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pVariable: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

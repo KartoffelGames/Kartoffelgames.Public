@@ -6,28 +6,28 @@ import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttac
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment, } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment, } from '../pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure for a comparison expression between two values.
  */
-export class PgslComparisonExpression extends BasePgslExpression {
-    private readonly mLeftExpression: BasePgslExpression;
+export class PgslComparisonExpression extends PgslExpression {
+    private readonly mLeftExpression: PgslExpression;
     private readonly mOperatorName: string;
-    private readonly mRightExpression: BasePgslExpression;
+    private readonly mRightExpression: PgslExpression;
 
     /**
      * Left expression reference.
      */
-    public get leftExpression(): BasePgslExpression {
+    public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
     }
 
     /**
      * Right expression reference.
      */
-    public get rightExpression(): BasePgslExpression {
+    public get rightExpression(): PgslExpression {
         return this.mRightExpression;
     }
 
@@ -39,7 +39,7 @@ export class PgslComparisonExpression extends BasePgslExpression {
      * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pLeft: BasePgslExpression, pOperator: string, pRight: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pLeft: PgslExpression, pOperator: string, pRight: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

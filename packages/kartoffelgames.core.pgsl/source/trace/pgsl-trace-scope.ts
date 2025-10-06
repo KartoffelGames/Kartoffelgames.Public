@@ -71,13 +71,31 @@ export class PgslTraceScope {
      * 
      * @throws Error if the value already exists in this scope.
      */
-    public setValue(pName: string, pValue: PgslValueTrace): void {
+    public addValue(pName: string, pValue: PgslValueTrace): void {
         if (this.mValues.has(pName)) {
             throw new Error(`Value '${pName}' already exists in current scope.`);
         }
 
         this.mValues.set(pName, pValue);
     }
+
+    /**
+     * Checks if the current scope or any parent scope is of the specified type.
+     * 
+     * @param pScopeType - Scope type to check for.
+     * 
+     * @returns True if the scope type matches, false otherwise.
+     */
+    public hasScope(pScopeType: PgslSyntaxTreeTraceScopeType): boolean {
+        if (this.mType === pScopeType) {
+            return true;
+        }
+        if (this.mParent) {
+            return this.mParent.hasScope(pScopeType);
+        }
+        return false;
+    }
+
 }
 
 /**

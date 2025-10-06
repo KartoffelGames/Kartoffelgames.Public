@@ -3,20 +3,20 @@ import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
  */
-export class PgslNewCallExpression extends BasePgslExpression {
-    private readonly mParameterList: Array<BasePgslExpression>;
+export class PgslNewCallExpression extends PgslExpression {
+    private readonly mParameterList: Array<PgslExpression>;
     private readonly mType: BasePgslTypeDefinition;
 
     /**
      * Function parameter.
      */
-    public get parameter(): Array<BasePgslExpression> {
+    public get parameter(): Array<PgslExpression> {
         return this.mParameterList;
     }
 
@@ -34,7 +34,7 @@ export class PgslNewCallExpression extends BasePgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pType: BasePgslTypeDefinition, pParameterList: Array<BasePgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pType: BasePgslTypeDefinition, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

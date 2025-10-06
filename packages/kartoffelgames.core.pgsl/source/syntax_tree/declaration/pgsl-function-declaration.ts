@@ -1,9 +1,11 @@
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { PgslFunctionTrace, PgslFunctionTraceEntryPoint } from "../../trace/pgsl-function-trace.ts";
+import { PgslTrace } from "../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
+import { PgslExpression } from "../expression/pgsl-expression.ts";
+import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
 import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
-import { BasePgslTypeDefinition } from "../type/base-pgsl-type-definition.ts";
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**
@@ -14,7 +16,7 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     private readonly mConstant: boolean;
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
-    private readonly mReturnType: BasePgslTypeDefinition;
+    private readonly mReturnType: PgslTypeDefinition;
 
     /**
      * Function block.
@@ -40,14 +42,14 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     /**
      * Function parameter list.
      */
-    public get parameter(): Array<PgslFunctionDeclarationParameter> {
-        return [...this.mParameter];
+    public get parameter(): ReadonlyArray<PgslFunctionDeclarationParameter> {
+        return this.mParameter;
     }
 
     /**
      * Function return type.
      */
-    public get returnType(): BasePgslTypeDefinition {
+    public get returnType(): PgslTypeDefinition {
         return this.mReturnType;
     }
 
@@ -68,8 +70,6 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
         this.mParameter = pParameter.parameter;
         this.mReturnType = pParameter.returnType;
 
-        // TODO: Push parameter values to block scope.
-
         // Add function child trees.
         this.appendChild(pParameter.block);
         this.appendChild(pParameter.returnType);
@@ -81,80 +81,103 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     }
 
     /**
-     * Transpile current alias declaration into a string.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile return type.
-        const lReturnType: string = this.mReturnType.transpile(pTrace);
-
-        // Transpile function parameter list.
-        const lParameterList: string = this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
-            return ` ${pParameter.name}: ${pParameter.type.transpile(pTrace)}`;
-        }).join(', ');
-
-        // Transpile attribute list.
-        let lResult: string = this.attributes.transpile(pTrace);
-
-        // Create function declaration head without return type.
-        lResult += `fn ${this.mName}(${lParameterList})`;
-
-        // Add return type when it is not void/empty.
-        if (lReturnType !== '') {
-            lResult += ` -> ${lReturnType}`;
-        }
-
-        // Add function block.
-        lResult += this.mBlock.transpile(pTrace);
-
-        return lResult;
-    }
-
-    /**
      * Validate data of current structure.
      * 
-     * @param pValidationTrace - Validation trace.
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        pValidationTrace.pushScopedValue(this.mName, this);
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Trace attributes.
+        this.attributes.trace(pTrace);
 
-        // Validate attributes.
-        this.attributes.validate(pValidationTrace);
-
-        // Validate return type.
-        this.mReturnType.validate(pValidationTrace);
+        // Trace return type.
+        this.mReturnType.trace(pTrace);
 
         // Create a new scope to combine all parameters with the function block.
-        pValidationTrace.newScope(this, () => {
+        pTrace.newScope('function', () => {
             // Validate each parameters and add them to the validation scope.
             for (const lParameter of this.mParameter) {
                 // Validate.
-                lParameter.type.validate(pValidationTrace);
-
-                // Push parameter as scoped value.
-                pValidationTrace.pushScopedValue(lParameter.name, lParameter.type);
+                lParameter.type.trace(pTrace);
             }
 
             // Validate function block.
-            this.mBlock.validate(pValidationTrace);
+            this.mBlock.trace(pTrace);
         });
 
-        // TODO: Dont know what but maaaaybe need some validation return data.
+        // Find entry point.
+        const lEntryPoint: PgslFunctionTraceEntryPoint | null = (() => {
+            switch (true) {
+                case this.attributes.hasAttribute(PgslAttributeList.attributeNames.vertex): {
+                    return { stage: 'vertex' };
+                }
+                case this.attributes.hasAttribute(PgslAttributeList.attributeNames.fragment): {
+                    return { stage: 'fragment' };
+                }
+                case this.attributes.hasAttribute(PgslAttributeList.attributeNames.compute): {
+                    const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.compute);
+
+                    // Check parameter count.
+                    if (lAttributeParameter.length !== 3) {
+                        pTrace.pushIncident(`Compute attribute needs exactly three constant parameters for work group size declaration.`, this.attributes);
+                        return null;
+                    }
+
+                    // Get expression traces.
+                    const lWorkGroupSizeXTrace = pTrace.getExpression(lAttributeParameter[0]);
+                    const lWorkGroupSizeYTrace = pTrace.getExpression(lAttributeParameter[1]);
+                    const lWorkGroupSizeZTrace = pTrace.getExpression(lAttributeParameter[2]);
+
+                    // Check if all parameters are constants.
+                    if (lWorkGroupSizeXTrace.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeYTrace.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeZTrace.fixedState === PgslValueFixedState.Constant) {
+                        pTrace.pushIncident(`All compute attribute parameters need to be constant expressions.`, this.attributes);
+                        return null;
+                    }
+
+                    // Get constant values.
+                    const lWorkGroupSizeX: string | number | null = lWorkGroupSizeXTrace.constantValue;
+                    const lWorkGroupSizeY: string | number | null = lWorkGroupSizeYTrace.constantValue;
+                    const lWorkGroupSizeZ: string | number | null = lWorkGroupSizeZTrace.constantValue;
+
+                    // Check if all parameters are numbers.
+                    if (typeof lWorkGroupSizeX !== 'number' || typeof lWorkGroupSizeY !== 'number' || typeof lWorkGroupSizeZ !== 'number') {
+                        pTrace.pushIncident(`All compute attribute parameters need to be constant number expressions.`, this.attributes);
+                        return null;
+                    }
+
+                    return { stage: 'compute', workGroupSize: [lWorkGroupSizeX, lWorkGroupSizeY, lWorkGroupSizeZ] };
+                }
+                default: {
+                    return null;
+                }
+            }
+        })();
+
+        // Check for return type.
+        if (this.mBlock.returnType.isImplicitCastableInto(this.mReturnType.type)) {
+            pTrace.pushIncident(`Function block return type does not match the declared return type.`, this.mBlock);
+        }
+
+        // Register function.
+        pTrace.registerFunction(new PgslFunctionTrace({
+            name: this.mName,
+            returnType: this.mReturnType.type,
+            parameters: this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
+                return { name: pParameter.name, type: pParameter.type.type };
+            }),
+            entryPoint: lEntryPoint
+        }));
     }
 }
 
 type PgslFunctionDeclarationParameter = {
-    readonly type: BasePgslTypeDefinition;
+    readonly type: PgslTypeDefinition;
     readonly name: string;
 };
 
 export type PgslFunctionDeclarationSyntaxTreeConstructorParameter = {
     name: string;
     parameter: Array<PgslFunctionDeclarationParameter>;
-    returnType: BasePgslTypeDefinition;
+    returnType: PgslTypeDefinition;
     block: PgslBlockStatement;
     constant: boolean;
 };

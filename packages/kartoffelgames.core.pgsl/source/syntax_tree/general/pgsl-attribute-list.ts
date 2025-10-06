@@ -10,12 +10,31 @@ import { PgslDeclaration } from "../declaration/pgsl-declaration.ts";
 import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
 import { PgslStructPropertyDeclaration } from "../declaration/pgsl-struct-property-declaration.ts";
 import { PgslVariableDeclaration } from "../declaration/pgsl-variable-declaration.ts";
-import { type BasePgslExpression } from '../expression/base-pgsl-expression.ts';
+import { type PgslExpression } from '../expression/pgsl-expression.ts';
 
 /**
  * Generic attribute list.
  */
 export class PgslAttributeList extends BasePgslSyntaxTree {
+    /**
+     * All possible attribute names.
+     */
+    public static get attributeNames() {
+        return {
+            groupBinding: 'GroupBinding',
+            accessMode: 'AccessMode',
+            align: 'Align',
+            blendSource: 'BlendSource',
+            interpolate: 'Interpolate',
+            invariant: 'Invariant',
+            location: 'Location',
+            size: 'Size',
+            vertex: 'Vertex',
+            fragment: 'Fragment',
+            compute: 'Compute'
+        } as const;
+    }
+
     /**
      * All valid attributes.
      */
@@ -23,95 +42,66 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         const lAttributes: Dictionary<PgslAttributeName, AttributeDefinitionInformation> = new Dictionary<PgslAttributeName, AttributeDefinitionInformation>();
 
         // Function and declaration config.
-        lAttributes.set('GroupBinding', {
+        lAttributes.set(PgslAttributeList.attributeNames.groupBinding, {
             enforcedParentType: PgslVariableDeclaration,
             parameterTypes: [
                 [{ values: [] }, { values: [] }]
-            ],
-            transpiledAttributes: {
-                'group': [0], // TODO: Some global way of converting names into numbers.
-                'binding': [1] // TODO: Some global way of converting names into numbers.
-            }
+            ]
         });
-        lAttributes.set('AccessMode', {
+        lAttributes.set(PgslAttributeList.attributeNames.accessMode, {
             enforcedParentType: PgslVariableDeclaration,
             parameterTypes: [
                 [{ values: ['Read', 'Write', 'ReadWrite'] }]
-            ],
-            transpiledAttributes: {} // Only used for metadata information for declaration transpilation.
+            ]
         });
 
         // Struct type.
-        lAttributes.set('Align', {
+        lAttributes.set(PgslAttributeList.attributeNames.align, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
-            ],
-            transpiledAttributes: {
-                'align': [0]
-            }
+            ]
         });
-        lAttributes.set('BlendSource', {
+        lAttributes.set(PgslAttributeList.attributeNames.blendSource, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ values: [] }] // Location output.
-            ],
-            transpiledAttributes: {
-                'blend_src': [0] // TODO: Some global way of converting names into numbers.
-            }
+            ]
         });
-        lAttributes.set('Interpolate', {
+        lAttributes.set(PgslAttributeList.attributeNames.interpolate, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ values: ['perspective', 'linear', 'flat'] }],
                 [{ values: ['perspective', 'linear', 'flat'] }, { values: ['centroid', 'sample', 'first', 'either'] }]
-            ],
-            transpiledAttributes: {
-                'interpolate': [0, 1],
-            }
+            ]
         });
-        lAttributes.set('Invariant', {
+        lAttributes.set(PgslAttributeList.attributeNames.invariant, {
             enforcedParentType: PgslStructPropertyDeclaration,
-            parameterTypes: [],
-            transpiledAttributes: {
-                'invariant': []
-            }
+            parameterTypes: []
         });
-        lAttributes.set('Location', {
+        lAttributes.set(PgslAttributeList.attributeNames.location, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ values: [] }]
-            ],
-            transpiledAttributes: {
-                'location': [0] // TODO: Some global way of converting names into numbers.
-            }
+            ]
         });
-        lAttributes.set('Size', {
+        lAttributes.set(PgslAttributeList.attributeNames.size, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
-            ],
-            transpiledAttributes: {
-                'size': [0]
-            }
+            ]
         });
 
         // Entry points.
-        lAttributes.set('Vertex', {
+        lAttributes.set(PgslAttributeList.attributeNames.vertex, {
             enforcedParentType: PgslFunctionDeclaration,
-            parameterTypes: [],
-            transpiledAttributes: {
-                'vertex': []
-            }
+            parameterTypes: []
         });
-        lAttributes.set('Fragment', {
+        lAttributes.set(PgslAttributeList.attributeNames.fragment, {
             enforcedParentType: PgslFunctionDeclaration,
-            parameterTypes: [],
-            transpiledAttributes: {
-                'fragment': []
-            }
+            parameterTypes: []
         });
-        lAttributes.set('Compute', {
+        lAttributes.set(PgslAttributeList.attributeNames.compute, {
             enforcedParentType: PgslFunctionDeclaration,
             parameterTypes: [ // Parameters for workgroup size.
                 [
@@ -126,17 +116,13 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
                 ]
-            ],
-            transpiledAttributes: {
-                'compute': [],
-                'workgroup_size': [0, 1, 2],
-            }
+            ]
         });
 
         return lAttributes;
     })();
 
-    private readonly mAttributeDefinitionList: Dictionary<string, Array<BasePgslExpression>>;
+    private readonly mAttributeDefinitionList: Dictionary<string, Array<PgslExpression>>;
     private mAttachedDeclaration: PgslDeclaration | null;
 
     /**
@@ -156,12 +142,12 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         super(pMeta);
 
         // Init empty attribute list.
-        this.mAttributeDefinitionList = new Dictionary<string, Array<BasePgslExpression>>();
+        this.mAttributeDefinitionList = new Dictionary<string, Array<PgslExpression>>();
         this.mAttachedDeclaration = null;
 
         // Convert and add each attribute to list.
         for (const lAttribute of pAttributes) {
-            const lAttributeParameterList: Array<BasePgslExpression> = lAttribute.parameter ?? [];
+            const lAttributeParameterList: Array<PgslExpression> = lAttribute.parameter ?? [];
             // Add attribute to syntax tree.
             this.appendChild(...lAttributeParameterList);
 
@@ -202,49 +188,14 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * 
      * @returns all attribute parameters 
      */
-    public getAttributeParameter(pName: PgslAttributeName): Array<BasePgslExpression> {
+    public getAttributeParameter(pName: PgslAttributeName): Array<PgslExpression> {
         // Try to read attribute parameters.
-        const lAttributeParameter: Array<BasePgslExpression> | undefined = this.mAttributeDefinitionList.get(pName);
+        const lAttributeParameter: Array<PgslExpression> | undefined = this.mAttributeDefinitionList.get(pName);
         if (!lAttributeParameter) {
             throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
         }
 
         return lAttributeParameter;
-    }
-
-    /**
-     * Transpile an attribute with its parameters.
-     * 
-     * @param pName - Attribute name.
-     * @param pAttributeParameterList - Transpiled attribute parameter list.
-     * 
-     * @returns Transpiled attribute string.
-     */
-    public transpileAttributeWithParameter(pName: PgslAttributeName, pAttributeParameterList: Array<string>): string {
-        // Read attribute definition.
-        const lAttributeDefinition: AttributeDefinitionInformation = PgslAttributeList.mValidAttributes.get(pName)!;
-
-        let lResult: string = '';
-
-        // Output each attribute in transpile information.
-        for (const [lTranspileName, lTranspileParameterIndices] of Object.entries(lAttributeDefinition.transpiledAttributes)) {
-            // Transpile all parameters.
-            const lTranspiledParameter: Array<string> = new Array<string>();
-            for (const lParameterIndex of lTranspileParameterIndices) {
-                // Check if attribute has enough parameters. Exit when not.
-                if (lParameterIndex >= pAttributeParameterList.length) {
-                    break;
-                }
-
-                lTranspiledParameter.push(pAttributeParameterList[lParameterIndex]);
-            }
-
-            // Transpile attribute name.
-            lResult += ` @${lTranspileName}(${lTranspiledParameter.join(', ')})`;
-        }
-
-        // Return result.
-        return lResult.trim();
     }
 
     /**
@@ -305,13 +256,13 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @param pParameterSourceList - List of parameters to validate.
      * @param pValidationParameterList - List of parameter definitions to validate against.
      */
-    private validateParameter(pTrace: PgslTrace, pParameterSourceList: Array<BasePgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
+    private validateParameter(pTrace: PgslTrace, pParameterSourceList: Array<PgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
             // Read and get the trace of the actual attribute parameter.
-            let lActualAttributeParameter: BasePgslExpression = pParameterSourceList[lIndex];
+            let lActualAttributeParameter: PgslExpression = pParameterSourceList[lIndex];
             const lActualAttributeParameterTrace: PgslExpressionTrace = pTrace.getExpression(lActualAttributeParameter);
             const lActualAttributeParameterType: PgslType = lActualAttributeParameterTrace.resolveType;
 
@@ -360,11 +311,11 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
     }
 }
 
-export type PgslAttributeName = 'GroupBinding' | 'AccessMode' | 'Align' | 'BlendSource' | 'Interpolate' | 'Invariant' | 'Location' | 'Size' | 'Vertex' | 'Fragment' | 'Compute';
+export type PgslAttributeName = typeof PgslAttributeList.attributeNames[keyof typeof PgslAttributeList.attributeNames];
 
 export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
     name: string,
-    parameter?: Array<BasePgslExpression>;
+    parameter?: Array<PgslExpression>;
 };
 
 type AttributeDefinitionNumberParameter = {
@@ -389,9 +340,4 @@ type AttributeDefinitionInformation = {
     parameterTypes: Array<
         Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>
     >;
-
-    /**
-     * Name: Used parameter indices.
-     */
-    transpiledAttributes: Record<string, Array<number>>;
 };

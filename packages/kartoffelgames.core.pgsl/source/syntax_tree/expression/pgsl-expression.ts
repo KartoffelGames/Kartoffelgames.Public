@@ -1,11 +1,12 @@
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslTypeDefinition } from '../type/base-pgsl-type-definition.ts';
+
 
 /**
  * PGSL base expression.
  */
-export abstract class BasePgslExpression extends BasePgslSyntaxTree {
+export abstract class PgslExpression extends BasePgslSyntaxTree {
     /**
      * Constructor.
      * 
@@ -32,5 +33,5 @@ export type PgslExpressionSyntaxTreeValidationAttachment = {
     /**
      * Type the expression will resolve into.
      */
-    resolveType: BasePgslTypeDefinition;
+    resolveType: PgslType;
 };

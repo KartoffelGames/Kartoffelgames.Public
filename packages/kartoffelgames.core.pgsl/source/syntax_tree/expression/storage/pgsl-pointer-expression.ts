@@ -2,19 +2,19 @@ import { Exception } from '@kartoffelgames/core';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
  */
-export class PgslPointerExpression extends BasePgslExpression {
-    private readonly mExpression: BasePgslExpression;
+export class PgslPointerExpression extends PgslExpression {
+    private readonly mExpression: PgslExpression;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -24,7 +24,7 @@ export class PgslPointerExpression extends BasePgslExpression {
      * @param pVariable - Pointered variable.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pVariable: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pVariable: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

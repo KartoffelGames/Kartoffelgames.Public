@@ -1,5 +1,9 @@
 import { PgslTranspilation } from "../pgsl-transpilation.ts";
+import { PgslEnumDeclarationTranspilerProcessor } from "./declaration/pgsl-enum-declaration-transpiler-processor.ts";
+import { PgslFunctionDeclarationTranspilerProcessor } from "./declaration/pgsl-function-declaration-transpiler-processor.ts";
+import { PgslVariableDeclarationTranspilerProcessor } from "./declaration/pgsl-variable-declaration-transpiler-processor.ts";
 import { PgslDocumentTranspilerProcessor } from "./pgsl-document-transpiler-processor.ts";
+import { PgslTypeDefinitionTranspilerProcessor } from "./pgsl-type-definition-transpiler-processor.ts";
 
 /**
  * WGSL (WebGPU Shading Language) transpiler for PGSL syntax trees.
@@ -16,5 +20,15 @@ export class WgslTranspiler extends PgslTranspilation {
 
         // Define transpilation processors for all node types.
         this.addProcessor(new PgslDocumentTranspilerProcessor());
+
+        // Declarations
+        this.addProcessor(new PgslVariableDeclarationTranspilerProcessor());
+        // Alias has no transpilation processor, it is only used during trace.
+        this.addProcessor(new PgslEnumDeclarationTranspilerProcessor());
+        this.addProcessor(new PgslFunctionDeclarationTranspilerProcessor());
+
+        // General
+        this.addProcessor(new PgslTypeDefinitionTranspilerProcessor());
+        // Attributes have no transpilation processor, they are only used during trace.
     }
 }

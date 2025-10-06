@@ -93,13 +93,13 @@ export class PgslPointerType extends PgslType {
      * Check if this pointer type is implicitly castable into the target type.
      * Pointer types are never castable to other types.
      * 
-     * @param _pTarget - Target type to check castability to.
+     * @param pTarget - Target type to check castability to.
      * 
      * @returns Always false - pointers cannot be cast.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // A pointer is never explicit nor implicit castable.
-        return false;
+        return this.equals(pTarget);
     }
 
     /**

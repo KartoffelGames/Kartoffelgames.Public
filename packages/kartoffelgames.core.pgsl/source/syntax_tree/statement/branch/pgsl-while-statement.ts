@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
@@ -12,7 +12,7 @@ import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
  */
 export class PgslWhileStatement extends BasePgslStatement {
     private readonly mBlock: PgslBlockStatement;
-    private readonly mExpression: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
 
     /**
      * If block.
@@ -24,7 +24,7 @@ export class PgslWhileStatement extends BasePgslStatement {
     /**
      * If boolean expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
@@ -35,7 +35,7 @@ export class PgslWhileStatement extends BasePgslStatement {
      * @param pBlock - Branched
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: BasePgslExpression, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: PgslExpression, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

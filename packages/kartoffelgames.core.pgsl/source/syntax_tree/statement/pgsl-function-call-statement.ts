@@ -1,5 +1,5 @@
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression } from '../expression/base-pgsl-expression.ts';
+import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import { PgslFunctionCallExpression } from '../expression/single_value/pgsl-function-call-expression.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
@@ -25,7 +25,7 @@ export class PgslFunctionCallStatement extends BasePgslStatement {
      * @param pName - Function name.
      * @param pParameterList - Function parameters.
      */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pName: string, pParameterList: Array<BasePgslExpression>) {
+    public constructor(pMeta: BasePgslSyntaxTreeMeta, pName: string, pParameterList: Array<PgslExpression>) {
         super(pMeta);
 
         // Create and validate expression instead.

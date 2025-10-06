@@ -4,7 +4,7 @@ import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
 import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.enum.ts";
 import { BasePgslTypeDefinition } from "../../../source/syntax_tree/type/base-pgsl-type-definition.ts";
-import { BasePgslExpression } from "../../../source/syntax_tree/expression/base-pgsl-expression.ts";
+import { PgslExpression } from "../../../source/syntax_tree/expression/pgsl-expression.ts";
 import { PgslValidationTrace } from "../../../source/syntax_tree/pgsl-validation-trace.ts";
 import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-build-result.ts";
 
@@ -43,7 +43,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
         expect(lDeclarationNode.name).toBe(lVariableName);
         expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(PgslExpression as any);
     });
 
     await pContext.step("Const must be assignable to another const", async () => {
@@ -606,7 +606,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         // Validation. Correct structure.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(PgslExpression as any);
     });
 
     await pContext.step("Error - Workgroup with non-fixed-footprint type", async () => {
@@ -775,7 +775,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         // Validation. Correct structure.
         const lDeclarationNode: PgslVariableDeclaration = lSyntaxTree.childNodes[0] as PgslVariableDeclaration;
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(PgslExpression as any);
     });
 
     await pContext.step("Error - Private with non-constructible type", async () => {
@@ -903,7 +903,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
         expect(lDeclarationNode.name).toBe(lVariableName);
         expect(lDeclarationNode.type).toBeInstanceOf(BasePgslTypeDefinition as any);
-        expect(lDeclarationNode.expression).toBeInstanceOf(BasePgslExpression as any);
+        expect(lDeclarationNode.expression).toBeInstanceOf(PgslExpression as any);
     });
 
     await pContext.step("Error - Param without initialization expression", async () => {

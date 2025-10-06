@@ -3,12 +3,12 @@ import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../../base-pgsl
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslStringTypeDefinition } from "../../type/pgsl-string-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
-export class PgslStringValueExpression extends BasePgslExpression {
+export class PgslStringValueExpression extends PgslExpression {
     private readonly mValue: string;
     private readonly mType: PgslStringTypeDefinition;
 

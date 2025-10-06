@@ -2,7 +2,7 @@ import { EnumUtil } from '@kartoffelgames/core';
 import { PgslAssignment } from '../../enum/pgsl-assignment.enum.ts';
 import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/base-pgsl-expression.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
 import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
 import { BasePgslStatement } from './base-pgsl-statement.ts';
 import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
@@ -12,20 +12,20 @@ import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
  */
 export class PgslAssignmentStatement extends BasePgslStatement {
     private readonly mAssignmentName: string;
-    private readonly mExpression: BasePgslExpression;
-    private readonly mVariable: BasePgslExpression;
+    private readonly mExpression: PgslExpression;
+    private readonly mVariable: PgslExpression;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslExpression {
+    public get expression(): PgslExpression {
         return this.mExpression;
     }
 
     /**
      * Expression reference.
      */
-    public get variable(): BasePgslExpression {
+    public get variable(): PgslExpression {
         return this.mVariable;
     }
 
@@ -97,6 +97,6 @@ type PgslAssignmentStatementSyntaxTreeSetupData = {
 
 export type PgslAssignmentStatementSyntaxTreeConstructorParameter = {
     assignment: string;
-    variable: BasePgslExpression;
-    expression: BasePgslExpression;
+    variable: PgslExpression;
+    expression: PgslExpression;
 };

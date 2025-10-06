@@ -4,25 +4,25 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { BasePgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../base-pgsl-expression.ts';
+import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
-export class PgslArithmeticExpression extends BasePgslExpression {
-    private readonly mLeftExpression: BasePgslExpression;
+export class PgslArithmeticExpression extends PgslExpression {
+    private readonly mLeftExpression: PgslExpression;
     private readonly mOperatorName: string;
-    private readonly mRightExpression: BasePgslExpression;
+    private readonly mRightExpression: PgslExpression;
 
     /**
      * Left expression reference.
      */
-    public get leftExpression(): BasePgslExpression {
+    public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
     }
 
     /**
      * Right expression reference.
      */
-    public get rightExpression(): BasePgslExpression {
+    public get rightExpression(): PgslExpression {
         return this.mRightExpression;
     }
 
@@ -34,7 +34,7 @@ export class PgslArithmeticExpression extends BasePgslExpression {
      * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pLeft: BasePgslExpression, pOperator: string, pRight: BasePgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pLeft: PgslExpression, pOperator: string, pRight: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

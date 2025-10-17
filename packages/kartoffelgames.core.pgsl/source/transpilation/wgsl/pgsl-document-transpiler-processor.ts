@@ -1,6 +1,6 @@
 import { PgslDocument } from "../../syntax_tree/pgsl-document.ts";
 import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<PgslDocument> {
     /**
@@ -17,10 +17,14 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
      * @param _pTrace - The syntax tree trace for context.
      * @param pSendResult - The function to call with transpilation results.
      */
-    public process(pInstance: PgslDocument, _pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslDocument, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+        let lResult: string = '';
+
         // Transpile the document by processing all child nodes.
         for (const lChild of pInstance.childNodes) {
-            pSendResult(pTranspile(lChild));
+            lResult += pTranspile(lChild);
         }
+
+        return lResult;
     }
 }

@@ -38,7 +38,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[0] as PgslVariableDeclaration;
                 
                 // Evaluation.
-                expect(lResultDeclaration.type).toBe(lExpectedDeclarationType);
+                expect(lResultDeclaration.declarationType).toBe(lExpectedDeclarationType);
             });
 
             await pContext.step('Error: Wrong type assignment', () => {
@@ -70,7 +70,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[0] as PgslVariableDeclaration;
                 
                 // Evaluation.
-                expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
+                expect(lResultDeclaration.declarationType).toBe(PgslDeclarationType.Const);
             });
 
             await pContext.step('Declaration with const expression', () => {
@@ -86,7 +86,7 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 const lResultDeclaration: PgslVariableDeclaration = lResult.childNodes[1] as PgslVariableDeclaration;
                 
                 // Evaluation.
-                expect(lResultDeclaration.type).toBe(PgslDeclarationType.Const);
+                expect(lResultDeclaration.declarationType).toBe(PgslDeclarationType.Const);
             });
 
             await pContext.step('Const declaration with attributes', () => {

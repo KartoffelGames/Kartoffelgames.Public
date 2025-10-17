@@ -46,7 +46,7 @@ import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-disca
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslLexer } from '../lexer/pgsl-lexer.ts';
 import { PgslToken } from '../lexer/pgsl-token.enum.ts';
-import { PgslTypeDefinition } from "../syntax_tree/general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../syntax_tree/general/pgsl-type-declaration.ts";
 import { PgslParserResult } from "./pgsl-parser-result.ts";
 import { PgslTranspilation, PgslTranspilationResult } from "../transpilation/pgsl-transpilation.ts";
 
@@ -206,7 +206,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "<ATTRIBUTE_ITEM><ATTRIBUTE_ITEM>"
          * ```
          */
-        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeList>[1][number]>; }> = Graph.define(() => {
+        const lAttributeListGraph: Graph<PgslToken, object, { list: Array<ConstructorParameters<typeof PgslAttributeList>[0][number]>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lAttributeItemGraph)
                 .optional('list<-list', lAttributeListGraph); // Self reference
@@ -252,7 +252,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
          * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
          * ```
          */
-        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, PgslTypeDefinition> = Graph.define(() => {
+        const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, PgslTypeDeclaration> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
@@ -261,12 +261,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
                 );
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDefinition => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclaration => {
             // Define root structure of type definition syntax tree structure data and apply type name.
             const lTemplateList: Array<BasePgslSyntaxTree> = pData.templateList ?? [];
 
             // Create type definition syntax tree.
-            return new PgslTypeDefinition(pData.name, lTemplateList, !!pData.pointer, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslTypeDeclaration(pData.name, lTemplateList, !!pData.pointer, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         return {
@@ -1189,7 +1189,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         /**
          * List of function parameters separated by comma.
          */
-        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: PgslTypeDefinition; }>; }> = Graph.define(() => {
+        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<{ name: string; type: PgslTypeDeclaration; }>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', lFunctionParameterGraph)
                 .optional('list<-list', GraphNode.new<PgslToken>()
@@ -1274,7 +1274,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
 type PgslParserCoreGraphs = {
     attributeList: Graph<PgslToken, object, PgslAttributeList>;
-    typeDeclaration: Graph<PgslToken, object, PgslTypeDefinition>;
+    typeDeclaration: Graph<PgslToken, object, PgslTypeDeclaration>;
 };
 
 type PgslParserExpressionGraphs = {

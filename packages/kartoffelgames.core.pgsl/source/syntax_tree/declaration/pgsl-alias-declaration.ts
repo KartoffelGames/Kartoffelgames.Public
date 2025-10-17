@@ -3,7 +3,7 @@ import { PgslTrace } from "../../trace/pgsl-trace.ts";
 import { PgslType } from "../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**
@@ -11,7 +11,7 @@ import { PgslDeclaration } from './pgsl-declaration.ts';
  */
 export class PgslAliasDeclaration extends PgslDeclaration {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDefinition;
+    private readonly mTypeDefinition: PgslTypeDeclaration;
 
     /**
      * Alias name.
@@ -28,7 +28,7 @@ export class PgslAliasDeclaration extends PgslDeclaration {
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pName: string, pType: PgslTypeDefinition, pAttributeList: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pType: PgslTypeDeclaration, pAttributeList: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
         super(pAttributeList, pMeta);
 
         // Set data.

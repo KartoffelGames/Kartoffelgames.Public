@@ -4,7 +4,7 @@ import { PgslStructPropertyDeclaration } from "../../../syntax_tree/declaration/
 import { PgslStructPropertyTrace } from "../../../trace/pgsl-struct-property-trace.ts";
 import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import { PgslBuildInType } from "../../../type/pgsl-build-in-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslStructPropertyDeclaration> {
     /**
@@ -22,44 +22,47 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
      * @param pSendResult - Function to send the result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: PgslStructPropertyDeclaration, pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslStructPropertyDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile property type.
         const lTypeTranspilation: string = pTranspile(pInstance.type);
 
         // Get the trace of the struct property.
         const lPropertyTrace: PgslStructPropertyTrace = pTrace.getStructProperty(pInstance);
 
+        // Create result array.
+        const lResultParts: Array<string> = new Array<string>();
+
         // Builtin types handling. Adding required attribute metadata.
         if (pInstance.type.type instanceof PgslBuildInType) {
             switch (pInstance.type.type.buildInType) {
-                case PgslBuildInType.typeName.vertexIndex: pSendResult(`@builtin(vertex_index)`); break;
-                case PgslBuildInType.typeName.instanceIndex: pSendResult(`@builtin(instance_index)`); break;
-                case PgslBuildInType.typeName.position: pSendResult(`@builtin(position)`); break;
-                case PgslBuildInType.typeName.frontFacing: pSendResult(`@builtin(front_facing)`); break;
-                case PgslBuildInType.typeName.fragDepth: pSendResult(`@builtin(frag_depth)`); break;
-                case PgslBuildInType.typeName.sampleIndex: pSendResult(`@builtin(sample_index)`); break;
-                case PgslBuildInType.typeName.sampleMask: pSendResult(`@builtin(sample_mask)`); break;
-                case PgslBuildInType.typeName.localInvocationId: pSendResult(`@builtin(local_invocation_id)`); break;
-                case PgslBuildInType.typeName.localInvocationIndex: pSendResult(`@builtin(local_invocation_index)`); break;
-                case PgslBuildInType.typeName.globalInvocationId: pSendResult(`@builtin(global_invocation_id)`); break;
-                case PgslBuildInType.typeName.workgroupId: pSendResult(`@builtin(workgroup_id)`); break;
-                case PgslBuildInType.typeName.numWorkgroups: pSendResult(`@builtin(num_workgroups)`); break;
-                case PgslBuildInType.typeName.clipDistances: pSendResult(`@builtin(clip_distances)`); break;
+                case PgslBuildInType.typeName.vertexIndex: lResultParts.push(`@builtin(vertex_index)`); break;
+                case PgslBuildInType.typeName.instanceIndex: lResultParts.push(`@builtin(instance_index)`); break;
+                case PgslBuildInType.typeName.position: lResultParts.push(`@builtin(position)`); break;
+                case PgslBuildInType.typeName.frontFacing: lResultParts.push(`@builtin(front_facing)`); break;
+                case PgslBuildInType.typeName.fragDepth: lResultParts.push(`@builtin(frag_depth)`); break;
+                case PgslBuildInType.typeName.sampleIndex: lResultParts.push(`@builtin(sample_index)`); break;
+                case PgslBuildInType.typeName.sampleMask: lResultParts.push(`@builtin(sample_mask)`); break;
+                case PgslBuildInType.typeName.localInvocationId: lResultParts.push(`@builtin(local_invocation_id)`); break;
+                case PgslBuildInType.typeName.localInvocationIndex: lResultParts.push(`@builtin(local_invocation_index)`); break;
+                case PgslBuildInType.typeName.globalInvocationId: lResultParts.push(`@builtin(global_invocation_id)`); break;
+                case PgslBuildInType.typeName.workgroupId: lResultParts.push(`@builtin(workgroup_id)`); break;
+                case PgslBuildInType.typeName.numWorkgroups: lResultParts.push(`@builtin(num_workgroups)`); break;
+                case PgslBuildInType.typeName.clipDistances: lResultParts.push(`@builtin(clip_distances)`); break;
             }
         }
 
         // Transpile attribute list based on set meta data.
         if (typeof lPropertyTrace.meta.alignment !== 'undefined') {
-            pSendResult(`@align(${lPropertyTrace.meta.alignment})`);
+            lResultParts.push(`@align(${lPropertyTrace.meta.alignment})`);
         }
         if (typeof lPropertyTrace.meta.blendSrc !== 'undefined') {
-            pSendResult(`@blend_src(${lPropertyTrace.meta.blendSrc})`);
+            lResultParts.push(`@blend_src(${lPropertyTrace.meta.blendSrc})`);
         }
         if (typeof lPropertyTrace.meta.locationIndex !== 'undefined') {
-            pSendResult(`@location(${lPropertyTrace.meta.locationIndex})`);
+            lResultParts.push(`@location(${lPropertyTrace.meta.locationIndex})`);
         }
         if (typeof lPropertyTrace.meta.size !== 'undefined') {
-            pSendResult(`@size(${lPropertyTrace.meta.size})`);
+            lResultParts.push(`@size(${lPropertyTrace.meta.size})`);
         }
         if (typeof lPropertyTrace.meta.interpolation !== 'undefined') {
             // Convert interpolation type to string.
@@ -82,9 +85,11 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
                 }
             })();
 
-            pSendResult(`@interpolate(${lInterpolationTypeString}, ${lSamplingTypeString})`);
+            lResultParts.push(`@interpolate(${lInterpolationTypeString}, ${lSamplingTypeString})`);
         }
 
-        pSendResult(`${pInstance.name}: ${lTypeTranspilation}`);
+        lResultParts.push(`${pInstance.name}: ${lTypeTranspilation}`);
+
+        return lResultParts.join(' ');
     }
 }

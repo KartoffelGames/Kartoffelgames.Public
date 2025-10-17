@@ -59,8 +59,9 @@ export class PgslParserResult {
     }
 
     private readFromTrace(pTrace: PgslTrace): PgslParserResultMeta {
-
-        return {};
+        return {
+            incidents: [...pTrace.incidents],
+        };
     }
 }
 

@@ -4,7 +4,7 @@ import { PgslTrace } from "../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from "../expression/pgsl-expression.ts";
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
 import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
@@ -16,7 +16,7 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     private readonly mConstant: boolean;
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
-    private readonly mReturnType: PgslTypeDefinition;
+    private readonly mReturnType: PgslTypeDeclaration;
 
     /**
      * Function block.
@@ -49,7 +49,7 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     /**
      * Function return type.
      */
-    public get returnType(): PgslTypeDefinition {
+    public get returnType(): PgslTypeDeclaration {
         return this.mReturnType;
     }
 
@@ -170,14 +170,14 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
 }
 
 type PgslFunctionDeclarationParameter = {
-    readonly type: PgslTypeDefinition;
+    readonly type: PgslTypeDeclaration;
     readonly name: string;
 };
 
 export type PgslFunctionDeclarationSyntaxTreeConstructorParameter = {
     name: string;
     parameter: Array<PgslFunctionDeclarationParameter>;
-    returnType: PgslTypeDefinition;
+    returnType: PgslTypeDeclaration;
     block: PgslBlockStatement;
     constant: boolean;
 };

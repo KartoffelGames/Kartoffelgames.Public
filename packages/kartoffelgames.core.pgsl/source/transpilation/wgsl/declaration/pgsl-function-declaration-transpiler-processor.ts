@@ -1,6 +1,6 @@
 import { PgslFunctionDeclaration } from "../../../syntax_tree/declaration/pgsl-function-declaration.ts";
 import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslFunctionDeclaration> {
     /**
@@ -22,7 +22,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
      * 
      * @returns Transpiled string.
      */
-    public process(pInstance: PgslFunctionDeclaration, _pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslFunctionDeclaration, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile return type.
         const lReturnType: string = pTranspile(pInstance.returnType);
 
@@ -45,6 +45,6 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
         // Add function block.
         lResult += pTranspile(pInstance.block);
 
-        pSendResult(lResult);
+        return lResult;
     }
 }

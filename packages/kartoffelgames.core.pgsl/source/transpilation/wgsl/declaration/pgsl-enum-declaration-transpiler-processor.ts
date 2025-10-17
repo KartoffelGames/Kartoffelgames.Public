@@ -2,7 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import { PgslEnumDeclaration } from "../../../syntax_tree/declaration/pgsl-enum-declaration.ts";
 import { PgslEnumTrace } from "../../../trace/pgsl-enum-trace.ts";
 import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslEnumDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslEnumDeclaration> {
     /**
@@ -22,7 +22,7 @@ export class PgslEnumDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * @param pSendResult - Callback to send transpiled WGSL code.
      * @param pTranspile - Callback to transpile nested expressions.
      */
-    public process(pInstance: PgslEnumDeclaration, pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslEnumDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Get trace information for the enum.
         const lTrace: PgslEnumTrace | undefined = pTrace.getEnum(pInstance.name);
         if (!lTrace) {
@@ -30,8 +30,11 @@ export class PgslEnumDeclarationTranspilerProcessor implements IPgslTranspilerPr
         }
 
         // Create a const declaration for each enum value.
+        let lResult: string = '';
         for (const [lPropertyName, lPropertyValueExpression] of lTrace.values) {
-            pSendResult(`const ENUM__${lTrace.name}__${lPropertyName}: u32 = ${pTranspile(lPropertyValueExpression)};\n`);
+            lResult += `const ENUM__${lTrace.name}__${lPropertyName}: u32 = ${pTranspile(lPropertyValueExpression)};\n`;
         }
+
+        return lResult;
     }
 }

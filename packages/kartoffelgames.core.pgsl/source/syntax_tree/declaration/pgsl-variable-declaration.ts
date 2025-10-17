@@ -12,7 +12,7 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslAccessMode } from "../buildin/pgsl-access-mode.enum.ts";
 import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 
@@ -37,7 +37,14 @@ export class PgslVariableDeclaration extends PgslDeclaration {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: PgslExpression | null;
     private readonly mName: string;
-    private readonly mTypeDeclaration: PgslTypeDefinition;
+    private readonly mTypeDeclaration: PgslTypeDeclaration;
+
+    /**
+     * Declaration type.
+     */
+    public get declarationType(): PgslVariableDeclarationType {
+        return EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName) ?? PgslDeclarationType.Private;
+    }
 
     /**
      * Value initialization expression.
@@ -56,7 +63,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
     /**
      * Type declaration.
      */
-    public get typeDeclaration(): PgslTypeDefinition {
+    public get typeDeclaration(): PgslTypeDeclaration {
         return this.mTypeDeclaration;
     }
 
@@ -380,6 +387,6 @@ export type PgslVariableDeclarationType = (typeof PgslVariableDeclaration.declar
 export type PgslVariableDeclarationConstructorParameter = {
     declarationType: string;
     name: string;
-    type: PgslTypeDefinition;
+    type: PgslTypeDeclaration;
     expression?: PgslExpression;
 };

@@ -20,7 +20,7 @@ import { PgslExpression } from "../expression/pgsl-expression.ts";
 /**
  * PGSL base type definition.
  */
-export class PgslTypeDefinition extends BasePgslSyntaxTree {
+export class PgslTypeDeclaration extends BasePgslSyntaxTree {
     private readonly mTypeName: string;
     private readonly mTemplate: Array<BasePgslSyntaxTree>;
     private readonly mIsPointer: boolean;
@@ -201,7 +201,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
 
         // First template needs to be a type.
         const lTypeTemplate: BasePgslSyntaxTree | undefined = pRawTemplate[0];
-        if (!(lTypeTemplate instanceof PgslTypeDefinition)) {
+        if (!(lTypeTemplate instanceof PgslTypeDeclaration)) {
             pTrace.pushIncident(`First array template parameter must be a type.`, this);
 
             // Fallback to invalid type.
@@ -304,7 +304,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
 
         // Validate template parameter.
         const lInnerTypeDefinition: BasePgslSyntaxTree = pRawTemplate[0];
-        if (!(lInnerTypeDefinition instanceof PgslTypeDefinition)) {
+        if (!(lInnerTypeDefinition instanceof PgslTypeDeclaration)) {
             pTrace.pushIncident(`Matrix template parameter needs to be a type definition.`, this);
             return new PgslInvalidType(pTrace);
         }
@@ -344,7 +344,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
      */
     private resolvePointer(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType {
         // Create a new type declaration without pointer.
-        const lInnerTypeDeclaration: PgslTypeDefinition = new PgslTypeDefinition(pRawName, pRawTemplate, false);
+        const lInnerTypeDeclaration: PgslTypeDeclaration = new PgslTypeDeclaration(pRawName, pRawTemplate, false);
         lInnerTypeDeclaration.trace(pTrace);
 
         // Resolve inner type.
@@ -470,7 +470,7 @@ export class PgslTypeDefinition extends BasePgslSyntaxTree {
 
             // First template must to be a type definition.
             const lVectorInnerTypeTemplate: BasePgslSyntaxTree = pRawTemplate[0];
-            if (!(lVectorInnerTypeTemplate instanceof PgslTypeDefinition)) {
+            if (!(lVectorInnerTypeTemplate instanceof PgslTypeDeclaration)) {
                 pTrace.pushIncident(`Vector template parameter needs to be a type definition.`, this);
                 return null;
             }

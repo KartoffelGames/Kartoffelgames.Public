@@ -4,7 +4,7 @@ import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texe
 import { PgslTexelFormat } from "../syntax_tree/buildin/pgsl-texel-format.enum.ts";
 import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
 import { PgslStringValueExpression } from "../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
-import { PgslTypeDefinition } from "../syntax_tree/general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../syntax_tree/general/pgsl-type-declaration.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslNumericType } from "./pgsl-numeric-type.ts";
 import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
@@ -31,18 +31,18 @@ export class PgslTextureType extends PgslType {
      * Static mapping of texture types to their expected template parameter types.
      * Used for validation during texture type construction.
      */
-    private static readonly mTemplateMapping: Map<PgslTextureTypeName, Array<typeof PgslTypeDefinition | typeof PgslStringValueExpression>> = (() => {
+    private static readonly mTemplateMapping: Map<PgslTextureTypeName, Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression>> = (() => {
         // Create mapping for all texture types.
-        const lMapping: Map<PgslTextureTypeName, Array<typeof PgslTypeDefinition | typeof PgslStringValueExpression>> = new Map<PgslTextureTypeName, Array<typeof PgslTypeDefinition | typeof PgslStringValueExpression>>();
+        const lMapping: Map<PgslTextureTypeName, Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression>> = new Map<PgslTextureTypeName, Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression>>();
 
         // Regular textures - require a sampled type parameter.
-        lMapping.set(PgslTextureType.typeName.Texture1d, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.Texture2d, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.Texture2dArray, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.Texture3d, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.TextureCube, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.TextureCubeArray, [PgslTypeDefinition]);
-        lMapping.set(PgslTextureType.typeName.TextureMultisampled2d, [PgslTypeDefinition]);
+        lMapping.set(PgslTextureType.typeName.Texture1d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.Texture2d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.Texture2dArray, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.Texture3d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.TextureCube, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.TextureCubeArray, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.TextureMultisampled2d, [PgslTypeDeclaration]);
 
         // External texture - no parameters.
         lMapping.set(PgslTextureType.typeName.TextureExternal, []);
@@ -94,7 +94,7 @@ export class PgslTextureType extends PgslType {
         } as const;
     }
 
-    private readonly mTemplateList: Array<PgslExpression | PgslTypeDefinition>;
+    private readonly mTemplateList: Array<PgslExpression | PgslTypeDeclaration>;
     private readonly mTextureType: PgslTextureTypeName;
     private readonly mAccess: PgslAccessMode;
     private readonly mFormat: PgslTexelFormat;
@@ -143,7 +143,7 @@ export class PgslTextureType extends PgslType {
      * @param pTextureType - The specific texture type variant.
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
-    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<PgslExpression | PgslTypeDefinition>) {
+    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<PgslExpression | PgslTypeDeclaration>) {
         super(pTrace);
 
         // Set data.
@@ -252,7 +252,7 @@ export class PgslTextureType extends PgslType {
      * @returns Parsed texture parameters with defaults for missing values.
      */
     private parseTextureParameter(pTrace: PgslTrace): PgslTextureTypeParameter {
-        const lTextureTemplates: Array<typeof PgslTypeDefinition | typeof PgslStringValueExpression> = PgslTextureType.mTemplateMapping.get(this.mTextureType)!;
+        const lTextureTemplates: Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression> = PgslTextureType.mTemplateMapping.get(this.mTextureType)!;
 
         // Ensure template parameter count matches expected count.
         if (lTextureTemplates.length !== this.mTemplateList.length) {
@@ -268,8 +268,8 @@ export class PgslTextureType extends PgslType {
 
         // Validate and parse each template parameter.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
-            const lExpectedParameterType: typeof PgslTypeDefinition | typeof PgslStringValueExpression = lTextureTemplates[lTemplateIndex];
-            const lActualParameterValue: PgslTypeDefinition | PgslExpression = this.mTemplateList[lTemplateIndex];
+            const lExpectedParameterType: typeof PgslTypeDeclaration | typeof PgslStringValueExpression = lTextureTemplates[lTemplateIndex];
+            const lActualParameterValue: PgslTypeDeclaration | PgslExpression = this.mTemplateList[lTemplateIndex];
 
             // Validate parameter type matches expected type.
             if (!(lActualParameterValue instanceof lExpectedParameterType)) {
@@ -280,7 +280,7 @@ export class PgslTextureType extends PgslType {
             // One parameter is always a type, two parameters are always strings.
             if (lTextureTemplates.length === 1) {
                 // Single parameter: sampled type for regular textures.
-                const lTypeDefinition: PgslTypeDefinition = lActualParameterValue as PgslTypeDefinition;
+                const lTypeDefinition: PgslTypeDeclaration = lActualParameterValue as PgslTypeDeclaration;
                 lTypeParameter.sampledType = lTypeDefinition.type;
             } else {
                 // Two parameters: format and access mode strings for storage textures.

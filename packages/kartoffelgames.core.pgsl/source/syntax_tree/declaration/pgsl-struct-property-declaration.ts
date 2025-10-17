@@ -3,7 +3,7 @@ import { PgslTrace } from "../../trace/pgsl-trace.ts";
 import { PgslType } from "../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDefinition } from "../general/pgsl-type-definition.ts";
+import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
 import { PgslDeclaration } from './pgsl-declaration.ts';
 import { PgslStructDeclaration } from "./pgsl-struct-declaration.ts";
 import { PgslStructPropertyTrace, PgslStructPropertyTraceConstructorParameter } from "../../trace/pgsl-struct-property-trace.ts";
@@ -17,7 +17,7 @@ import { PgslInterpolateSamplingEnumDeclaration } from "../buildin/pgsl-interpol
  */
 export class PgslStructPropertyDeclaration extends PgslDeclaration {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDefinition;
+    private readonly mTypeDefinition: PgslTypeDeclaration;
     private mStruct: PgslStructDeclaration | null = null;
 
     /**
@@ -30,7 +30,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
     /**
      * Property type.
      */
-    public get type(): PgslTypeDefinition {
+    public get type(): PgslTypeDeclaration {
         return this.mTypeDefinition;
     }
 
@@ -53,7 +53,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
      * @param pAttributeList - Declaration attribute list.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pName: string, pType: PgslTypeDefinition, pAttributes: PgslAttributeList, pMeta?: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pType: PgslTypeDeclaration, pAttributes: PgslAttributeList, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pAttributes, pMeta);
 
         // Set data.

@@ -1,7 +1,7 @@
 import { PgslStructDeclaration } from "../../../syntax_tree/declaration/pgsl-struct-declaration.ts";
 import { PgslStructPropertyDeclaration } from "../../../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
 import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslStructDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslStructDeclaration> {
     /**
@@ -19,10 +19,10 @@ export class PgslStructDeclarationTranspilerProcessor implements IPgslTranspiler
      * @param pSendResult - Function to send the result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: PgslStructDeclaration, _pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslStructDeclaration, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile properties.
         const lProperties: string = pInstance.properties.map((pProperty: PgslStructPropertyDeclaration) => pTranspile(pProperty)).join(',\n');
 
-        pSendResult(`struct ${pInstance.name} {\n${lProperties}\n}\n`);
+        return `struct ${pInstance.name} {\n${lProperties}\n}\n`;
     }
 }

@@ -5,7 +5,7 @@ import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
 import { PgslSamplerType } from "../../../type/pgsl-sampler-type.ts";
 import { PgslTextureType } from "../../../type/pgsl-texture-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableDeclaration> {
     /**
@@ -25,7 +25,7 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
      * @param pSendResult - The function to send the transpiled result.
      * @param pTranspile - The function to transpile expressions.
      */
-    public process(pInstance: PgslVariableDeclaration, pTrace: PgslTrace, pSendResult: PgslTranspilerProcessorSendResult, pTranspile: PgslTranspilerProcessorTranspile): void {
+    public process(pInstance: PgslVariableDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Read trace of declaration.
         const lValueTrace: PgslValueTrace | undefined = pTrace.getModuleValue(pInstance.name);
         if (!lValueTrace) {
@@ -83,9 +83,9 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
 
         // If no expression is given, return declaration without expression.
         if (!pInstance.expression) {
-            pSendResult(`${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration};`);
+            return `${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration};`;
         } else {
-            pSendResult(`${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration} = ${pTranspile(pInstance.expression)};`);
+            return `${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration} = ${pTranspile(pInstance.expression)};`;
         }
     }
 } 

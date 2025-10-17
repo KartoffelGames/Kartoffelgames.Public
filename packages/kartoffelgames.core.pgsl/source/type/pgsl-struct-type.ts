@@ -1,3 +1,4 @@
+import { PgslStructPropertyTrace } from "../trace/pgsl-struct-property-trace.ts";
 import { PgslStructTrace } from "../trace/pgsl-struct-trace.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
@@ -113,15 +114,17 @@ export class PgslStructType extends PgslType {
             let lFixedFootprint = true;
 
             // Check all properties for their characteristics
-            for (const lProperty of lStruct.properties) {
+            for (const lPropertyDeclaration of lStruct.declaration.properties) {
+                const lPropertyTrace: PgslStructPropertyTrace = pTrace.getStructProperty(lPropertyDeclaration);
+
                 // Check if property is constructible
-                lConstructible &&= lProperty.type.constructible;
+                lConstructible &&= lPropertyTrace.type.constructible;
 
                 // Check if property is host shareable
-                lHostShareable &&= lProperty.type.hostShareable;
+                lHostShareable &&= lPropertyTrace.type.hostShareable;
 
                 // For fixed footprint: all properties must be fixed
-                lFixedFootprint &&= lProperty.type.fixedFootprint;
+                lFixedFootprint &&= lPropertyTrace.type.fixedFootprint;
             }
 
             return [lConstructible, lHostShareable, lFixedFootprint];

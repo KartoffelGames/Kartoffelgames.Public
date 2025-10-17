@@ -59,7 +59,7 @@ export class PgslStructDeclaration extends PgslDeclaration {
         const lNameBuffer: Set<string> = new Set<string>();
 
         // Create new struct trace and register struct before tracing as the properties need to be able to reference the struct itself.
-        const lStructTrace = new PgslStructTrace(this.mName);
+        const lStructTrace = new PgslStructTrace(this.mName, this);
         pTrace.registerStruct(lStructTrace);
 
         // Create new scope for validation of properties.

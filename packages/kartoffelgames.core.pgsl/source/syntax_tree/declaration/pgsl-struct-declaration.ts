@@ -1,8 +1,7 @@
+import { PgslStructTrace } from "../../trace/pgsl-struct-trace.ts";
+import { PgslTrace } from "../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../type/base-pgsl-type-definition.ts";
 import { PgslDeclaration } from './pgsl-declaration.ts';
 import type { PgslStructPropertyDeclaration } from './pgsl-struct-property-declaration.ts';
 
@@ -41,66 +40,53 @@ export class PgslStructDeclaration extends PgslDeclaration {
         this.mName = pName;
         this.mProperties = pProperties;
 
-        // Add all properties as child.
-        this.appendChild(...pProperties);
+        // Add all properties as child and set this struct as parent.
+        for (const lProperty of pProperties) {
+            lProperty.setContainingStruct(this);
+
+            // Add property as child.
+            this.appendChild(lProperty);
+        }
     }
 
     /**
-     * Transpile current struct declaration into a string.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled code.
+     * Trace data of current structure.
      */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile attribute list.
-        const lAttributes: string = this.attributes.transpile(pTrace);
-
-        // Transpile properties.
-        const lProperties: string = this.mProperties.map((pProperty: PgslStructPropertyDeclaration) => pProperty.transpile(pTrace)).join(' ');
-
-        return `${lAttributes} struct ${this.mName} {\n${lProperties}\n}\n`;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        // Push struct declaration as scoped value.
-        pValidationTrace.pushScopedValue(this.mName, this);
-
-        // Validate attributes.
-        this.attributes.validate(pValidationTrace);
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Trace attributes.
+        this.attributes.trace(pTrace);
 
         const lNameBuffer: Set<string> = new Set<string>();
 
+        // Create new struct trace and register struct before tracing as the properties need to be able to reference the struct itself.
+        const lStructTrace = new PgslStructTrace(this.mName);
+        pTrace.registerStruct(lStructTrace);
+
         // Create new scope for validation of properties.
-        pValidationTrace.newScope(this, () => {
+        pTrace.newScope('global', () => {
+            // Validate properties.
             for (let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++) {
                 // Read property.
                 const lProperty: PgslStructPropertyDeclaration = this.mProperties[lIndex];
 
                 // Validate property. Type validation is in property syntax tree.
-                lProperty.validate(pValidationTrace);
+                lProperty.trace(pTrace);
 
                 // Validate property name.
                 if (lNameBuffer.has(lProperty.name)) {
-                    pValidationTrace.pushError(`Property name '${lProperty.name}' is already used in struct '${this.mName}'.`, lProperty.meta, this);
+                    pTrace.pushIncident(`Property name '${lProperty.name}' is already used in struct '${this.mName}'.`, lProperty);
                 }
 
                 // Add property name to buffer.
                 // This is used to check for duplicate property names.
                 lNameBuffer.add(lProperty.name);
 
-                // Only last property is allowed to be variable but then the struct is no longer fixed. // TODO: Maybe set this in validation.
+                // Only last property is allowed to be variable but then the struct is no longer fixed.
                 // Skip for last property. 
                 if (lIndex !== this.mProperties.length - 1) {
-                    // Read attachment of type.
-                    const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lProperty.type);
-
                     // Validate if properties dont have fixed length.
-                    if (!lTypeAttachment.fixedFootprint) {
-                        pValidationTrace.pushError('Only the last property of a struct can have a variable length.', lProperty.meta, this);
+                    if (!lProperty.type.type.fixedFootprint) {
+                        pTrace.pushIncident('Only the last property of a struct can have a variable length.', lProperty);
                     }
                 }
             }
@@ -108,7 +94,7 @@ export class PgslStructDeclaration extends PgslDeclaration {
 
         // Must have at least one property.
         if (this.mProperties.length === 0) {
-            pValidationTrace.pushError('Struct must have at least one property.', this.meta, this);
+            pTrace.pushIncident('Struct must have at least one property.', this);
         }
     }
 }

@@ -6,7 +6,7 @@ import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
 import { PgslStringType } from "../../type/pgsl-string-type.ts";
 import { PgslType } from "../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
+import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 

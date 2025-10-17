@@ -1,7 +1,9 @@
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
 import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorSendResult, PgslTranspilerProcessorTranspile } from "./i-pgsl-transpiler-processor.interface.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "./i-pgsl-transpiler-processor.interface.ts";
+
+// TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
 
 /**
  * Transpiles PGSL syntax trees into target language code.
@@ -29,9 +31,7 @@ export class PgslTranspilation {
      * 
      * @returns The transpiled code as a string.
      */
-    public transpile(pInstance: BasePgslSyntaxTree, pTrace: PgslTrace): string {
-        const lTranspilationResults: Array<string> = [];
-
+    public transpile(pInstance: BasePgslSyntaxTree, pTrace: PgslTrace): PgslTranspilationResult {
         // Read processor for the instance.
         const lProcessor: IPgslTranspilerProcessor<BasePgslSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
         if (!lProcessor) {
@@ -39,18 +39,15 @@ export class PgslTranspilation {
         }
 
         // Create callbacks.
-        const lSendResult: PgslTranspilerProcessorSendResult = (pResult: string) => {
-            lTranspilationResults.push(pResult);
-        };
         const lTranspile: PgslTranspilerProcessorTranspile = (pInstance: BasePgslSyntaxTree): string => {
-            return this.transpile(pInstance, pTrace);
+            return this.transpile(pInstance, pTrace).code;
         };
 
-        // Validate instance.
-        lProcessor.process(pInstance, pTrace, lSendResult, lTranspile);
-
-        // Return the joined transpilation results.
-        return lTranspilationResults.join('');
+        // Create result.
+        return {
+            code: lProcessor.process(pInstance, pTrace, lTranspile),
+            sourceMap: null
+        };
     }
 
     /**
@@ -74,3 +71,9 @@ export class PgslTranspilation {
  * with their corresponding transpilation logic.
  */
 type PgslSyntaxTreeConstructor = IAnyParameterConstructor<BasePgslSyntaxTree>;
+
+
+export type PgslTranspilationResult = {
+    code: string;
+    sourceMap: null;
+};

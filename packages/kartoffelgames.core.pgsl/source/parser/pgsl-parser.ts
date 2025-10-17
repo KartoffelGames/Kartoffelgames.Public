@@ -47,6 +47,8 @@ import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslLexer } from '../lexer/pgsl-lexer.ts';
 import { PgslToken } from '../lexer/pgsl-token.enum.ts';
 import { PgslTypeDefinition } from "../syntax_tree/general/pgsl-type-definition.ts";
+import { PgslParserResult } from "./pgsl-parser-result.ts";
+import { PgslTranspilation, PgslTranspilationResult } from "../transpilation/pgsl-transpilation.ts";
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
@@ -76,7 +78,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         const lDeclarationGraphs: PgslParserDeclarationGraphs = this.defineDeclarationGraphs(lCoreGraphs, lExpressionGraphs, lStatementGraphs);
 
         // Set root.
-        const lModuleScopeGraph = this.defineModuleScopeGraph(lDeclarationGraphs);
+        const lModuleScopeGraph: Graph<PgslToken, object, PgslDocument> = this.defineModuleScopeGraph(lDeclarationGraphs);
 
         // Set root.
         this.setRootGraph(lModuleScopeGraph);
@@ -99,8 +101,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
         // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
-        // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
-
         // TODO: Replace comments with same amount of spaces ans newlines.
 
         // Define buildin enums.
@@ -109,23 +109,29 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         ];
 
         // Parse document structure.
-        // We know the internal parse returns a document, so we cast it, even if TS said no :(
-        const lDocument: PgslDocument = super.parse(pCodeText) as PgslDocument; // TODO: Should be changed to to PgslBuildResult or some other named shit.
-
-        // Create new empty trace.
-        const lTrace: PgslTrace = new PgslTrace();
+        const lDocument: PgslDocument = super.parse(pCodeText) as PgslDocument;
 
         // Append buildin enums to document.
         for (const lEnum of lBuildInEnumList) {
             lDocument.addBuildInContent(lEnum);
         }
 
-        // Trace document structure.
-        lDocument.trace(lTrace);
-
-        // TODO: Build PgslBuildResult
-
+        // Build and return PgslParserResult.
         return lDocument;
+    }
+
+    public transpile(pCodeText: string, pTranspiler: PgslTranspilation): PgslParserResult {
+        // Parse document structure.
+        const lDocument: PgslDocument = this.parse(pCodeText);
+
+        // Create and execute document trace.
+        const lTrace: PgslTrace = lDocument.trace();
+
+        // Start transpilation process.
+        const lTranspilationResult: PgslTranspilationResult = pTranspiler.transpile(lDocument, lTrace);
+
+        // Build and return PgslParserResult.
+        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument, lTrace);
     }
 
     /**
@@ -215,7 +221,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .optional('list<-list', lAttributeListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeList => {
             // Create attribute list syntax tree.
-            return new PgslAttributeList(this.createTokenBoundParameter(pStartToken, pEndToken), pData.list ?? []);
+            return new PgslAttributeList(pData.list ?? [], this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**

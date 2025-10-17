@@ -8,6 +8,8 @@ import { PgslFunctionTrace } from "./pgsl-function-trace.ts";
 import { PgslStructTrace } from "./pgsl-struct-trace.ts";
 import { PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
 import { PgslValueTrace } from "./pgsl-value-trace.ts";
+import { PgslStructPropertyTrace } from "./pgsl-struct-property-trace.ts";
+import { PgslStructPropertyDeclaration } from "../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
 
 /**
  * Main trace class for PGSL syntax tree analysis and transpilation.
@@ -18,12 +20,14 @@ export class PgslTrace {
     private readonly mAliases: Map<string, PgslAliasTrace>;
     private readonly mEnums: Map<string, PgslEnumTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
+    private readonly mStructProperties: Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>;
     private readonly mFunctions: Map<string, PgslFunctionTrace>;
     private readonly mExpressions: Map<PgslExpression, PgslExpressionTrace>;
     private readonly mTreeScopes: Map<BasePgslSyntaxTree, PgslTraceScope>;
     private readonly mScopeList: Stack<PgslTraceScope>;
     private readonly mIncidents: Array<PgslTraceIncident>;
-    private readonly mNameResolutions: PgslTraceNameResolutions;
+    private readonly mBindingNameResolutions: PgslTraceBindingNameResolutions;
+    private readonly mLocationNameResolutions: PgslTraceLocationNameResolutions;
     private readonly mVariableDeclarations: Map<string, PgslValueTrace>;
 
     /**
@@ -65,15 +69,17 @@ export class PgslTrace {
         this.mAliases = new Map<string, PgslAliasTrace>();
         this.mEnums = new Map<string, PgslEnumTrace>();
         this.mStructs = new Map<string, PgslStructTrace>();
+        this.mStructProperties = new Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>();
         this.mTreeScopes = new Map<BasePgslSyntaxTree, PgslTraceScope>();
         this.mScopeList = new Stack<PgslTraceScope>();
         this.mFunctions = new Map<string, PgslFunctionTrace>();
         this.mExpressions = new Map<PgslExpression, PgslExpressionTrace>();
         this.mIncidents = new Array<PgslTraceIncident>();
         this.mVariableDeclarations = new Map<string, PgslValueTrace>();
-        this.mNameResolutions = {
+        this.mBindingNameResolutions = {
             groupResolution: new Map<string, { index: number; locations: Map<string, number>; }>()
         };
+        this.mLocationNameResolutions = new Map<string, Map<string, number>>();
     }
 
     /**
@@ -115,7 +121,7 @@ export class PgslTrace {
         this.assertNotSealed();
 
         // Create scope and push to stack.
-        this.mScopeList.push(new PgslTraceScope(this, pType, this.mScopeList.top ?? null));
+        this.mScopeList.push(new PgslTraceScope(pType, this.mScopeList.top ?? null));
 
         try {
             pScopeAction();
@@ -169,7 +175,7 @@ export class PgslTrace {
         // Create resolved bindings if value is a resource.
         if (pValue.bindingInformation) {
             const lBinding: PgslTraceBinding = this.resolveBinding(pValue.bindingInformation.bindGroupName, pValue.bindingInformation.bindLocationName);
-            pValue.resolveBindingIndices(lBinding.bindGroup, lBinding.binding);
+            pValue.resolveBindingIndices(lBinding.bindGroupIndex, lBinding.bindingIndex);
         }
 
         this.mVariableDeclarations.set(pValue.name, pValue);
@@ -241,9 +247,40 @@ export class PgslTrace {
      * 
      * @throws Error if the trace is sealed.
      */
-    public setStruct(pName: string, pTrace: PgslStructTrace): void {
+    public registerStruct(pTrace: PgslStructTrace): void {
         this.assertNotSealed();
-        this.mStructs.set(pName, pTrace);
+        this.mStructs.set(pTrace.name, pTrace);
+    }
+
+    /**
+     * Sets a struct property trace.
+     *
+     * @param pProperty - The struct property declaration.
+     * @param pTrace - The struct property trace information.
+     * 
+     * @throws Error if the trace is sealed.
+     */
+    public registerStructProperty(pProperty: PgslStructPropertyDeclaration, pTrace: PgslStructPropertyTrace) {
+        this.assertNotSealed();
+
+        // TODO: Resolve location name to a location index.
+
+        this.mStructProperties.set(pProperty, pTrace);
+    }
+
+    /**
+     * Gets a struct property trace by its declaration.
+     * 
+     * @param pProperty - The struct property declaration.
+     * 
+     * @returns The struct property trace.
+     */
+    public getStructProperty(pProperty: PgslStructPropertyDeclaration): PgslStructPropertyTrace  {
+        if (!this.mStructProperties.has(pProperty)) {
+            throw new Error('Struct property is not traced.');
+        }
+
+        return this.mStructProperties.get(pProperty)!;
     }
 
     /**
@@ -294,22 +331,22 @@ export class PgslTrace {
         let lBindGroupIndex: number = -1;
 
         // Check if bind group exists.
-        if (!this.mNameResolutions.groupResolution.has(pBindGroupName)) {
+        if (!this.mBindingNameResolutions.groupResolution.has(pBindGroupName)) {
             // Use the current size as new bind group index.
-            lBindGroupIndex = this.mNameResolutions.groupResolution.size;
+            lBindGroupIndex = this.mBindingNameResolutions.groupResolution.size;
 
             // Create new entry for the bind group.
-            this.mNameResolutions.groupResolution.set(pBindGroupName, {
+            this.mBindingNameResolutions.groupResolution.set(pBindGroupName, {
                 index: lBindGroupIndex,
                 locations: new Map<string, number>(),
             });
         } else {
             // Read Bind group index of bind group name.
-            lBindGroupIndex = this.mNameResolutions.groupResolution.get(pBindGroupName)!.index;
+            lBindGroupIndex = this.mBindingNameResolutions.groupResolution.get(pBindGroupName)!.index;
         }
 
         // Read the binding names map of the current bind group.
-        const lBindGroupLocations: Map<string, number> = this.mNameResolutions.groupResolution.get(pBindGroupName)!.locations;
+        const lBindGroupLocations: Map<string, number> = this.mBindingNameResolutions.groupResolution.get(pBindGroupName)!.locations;
 
         // Check if bindgroup binding exists.
         if (!lBindGroupLocations.has(pBindingName)) {
@@ -322,9 +359,34 @@ export class PgslTrace {
 
         // Return the binding location.
         return {
-            bindGroup: lBindGroupIndex,
-            binding: lBindGroupLocations.get(pBindingName)!,
+            bindGroupIndex: lBindGroupIndex,
+            bindingIndex: lBindGroupLocations.get(pBindingName)!,
         };
+    }
+
+    /**
+     * Resolves a location index for a given struct and location name.
+     * If the location name does not exist for the struct, it will be created.
+     * 
+     * @param pStructName - The name of the struct.
+     * @param pLocationName - The name of the location.
+     * 
+     * @return The resolved location index.
+     */
+    public resolveLocation(pStructName: string, pLocationName: string): number {
+        // Initialize location map for struct if not existing.
+        if (!this.mLocationNameResolutions.has(pStructName)) {
+            this.mLocationNameResolutions.set(pStructName, new Map<string, number>());
+        }
+
+        // When location does not exist, create it.
+        const lStructLocations: Map<string, number> | undefined = this.mLocationNameResolutions.get(pStructName)!;
+        if (!lStructLocations.has(pLocationName)) {
+            lStructLocations.set(pLocationName, lStructLocations.size);
+        }
+
+        // Return the location index.
+        return lStructLocations.get(pLocationName)!;
     }
 
     /**
@@ -384,18 +446,18 @@ export type PgslTraceBinding = {
     /**
      * The bind group index.
      */
-    bindGroup: number;
+    bindGroupIndex: number;
 
     /**
      * The binding index within the bind group.
      */
-    binding: number;
+    bindingIndex: number;
 };
 
 /**
  * Keeps track of bind groups and bindings during transpilation.
  */
-type PgslTraceNameResolutions = {
+type PgslTraceBindingNameResolutions = {
     /**
      * Bind group resolution mapping.
      */
@@ -404,3 +466,5 @@ type PgslTraceNameResolutions = {
         locations: Map<string, number>;
     }>;
 };
+
+type PgslTraceLocationNameResolutions = Map<string, Map<string, number>>;

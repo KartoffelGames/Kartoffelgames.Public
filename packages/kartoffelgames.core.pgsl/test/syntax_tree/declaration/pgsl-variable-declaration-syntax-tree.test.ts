@@ -1,16 +1,15 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PgslParser } from "../../../source/parser/pgsl-parser.ts";
-import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
-import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 import { PgslDeclarationType } from "../../../source/enum/pgsl-declaration-type.enum.ts";
-import { BasePgslTypeDefinition } from "../../../source/syntax_tree/type/base-pgsl-type-definition.ts";
+import { PgslParserResult } from "../../../source/parser/pgsl-parser-result.ts";
+import { PgslParser } from "../../../source/parser/pgsl-parser.ts";
+import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 import { PgslExpression } from "../../../source/syntax_tree/expression/pgsl-expression.ts";
-import { PgslValidationTrace } from "../../../source/syntax_tree/pgsl-validation-trace.ts";
 import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-build-result.ts";
+import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
+import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
-gPgslParser.enableValidation = false;
 
 Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
     await pContext.step("Default", async () => {
@@ -47,9 +46,6 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
     });
 
     await pContext.step("Const must be assignable to another const", async () => {
-        // Setup. Validation trace.
-        const lValidationTrace = new PgslValidationTrace();
-
         // Setup. Code text with const assignment.
         const lCodeText: string = `
             const testVariable: Float = 3.0;
@@ -57,10 +53,10 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         `;
 
         // Execute.
-        gPgslParser.parse(lCodeText).validate(lValidationTrace);
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation. Should have no errors.
-        expect(lValidationTrace.errors.length).toBe(0);
+        expect(lTranspilationResult.incidents.length).toBe(0);
     });
 
     await pContext.step("Error - Const without initialization expression", async () => {

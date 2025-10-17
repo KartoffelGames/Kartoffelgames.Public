@@ -6,7 +6,6 @@ import type { PgslValueTrace } from "./pgsl-value-trace.ts";
  * Manages variable visibility, scope hierarchy, and value tracking within a specific scope context.
  */
 export class PgslTraceScope {
-    private readonly mTrace: PgslTrace;
     private readonly mType: PgslSyntaxTreeTraceScopeType;
     private readonly mParent: PgslTraceScope | null;
     private readonly mValues: Map<string, PgslValueTrace>;
@@ -36,8 +35,7 @@ export class PgslTraceScope {
      * @param pType - Type of scope.
      * @param pParent - Parent scope, or null for root scope.
      */
-    public constructor(pTrace: PgslTrace, pType: PgslSyntaxTreeTraceScopeType, pParent: PgslTraceScope | null) {
-        this.mTrace = pTrace;
+    public constructor(pType: PgslSyntaxTreeTraceScopeType, pParent: PgslTraceScope | null) {
         this.mType = pType;
         this.mParent = pParent;
         this.mValues = new Map<string, PgslValueTrace>();

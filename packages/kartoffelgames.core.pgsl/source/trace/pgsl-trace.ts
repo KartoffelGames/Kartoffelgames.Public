@@ -150,7 +150,7 @@ export class PgslTrace {
      * 
      * @param pExpression - The expression to set the trace for.
      */
-    public setExpression(pExpression: PgslExpression, pTrace: PgslExpressionTrace): void {
+    public registerExpression(pExpression: PgslExpression, pTrace: PgslExpressionTrace): void {
         this.assertNotSealed();
         this.mExpressions.set(pExpression, pTrace);
     }

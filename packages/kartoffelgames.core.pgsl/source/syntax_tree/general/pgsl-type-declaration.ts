@@ -214,10 +214,10 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
             const lLengthTemplate: BasePgslSyntaxTree = pRawTemplate[1];
             if (!(lLengthTemplate instanceof PgslExpression)) {
                 pTrace.pushIncident(`Array length template must be a expression.`, this);
+            } else {
+                // Set optional length expression.
+                lLengthParameter = lLengthTemplate;
             }
-
-            // Set optional length expression.
-            lLengthParameter = lLengthTemplate;
         }
 
         // Build BuildInType definition.
@@ -258,8 +258,21 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
             return null;
         }
 
-        // Build BuildInType definition.
-        return new PgslBuildInType(pTrace, pRawName as any, pRawTemplate[0] ?? null);
+        // Validate build in type with template.
+        if (pRawTemplate.length > 1) {
+            // Build in types support only a single expression parameter.
+            const lTemplateExpression: BasePgslSyntaxTree = pRawTemplate[0];
+            if (!(lTemplateExpression instanceof PgslExpression)) {
+                pTrace.pushIncident(`Array length template must be a expression.`, this);
+                return new PgslInvalidType(pTrace);
+            }
+
+            // Build BuildInType definition with template. 
+            return new PgslBuildInType(pTrace, pRawName as any, lTemplateExpression);
+        }
+
+        // Build BuildInType definition without template.
+        return new PgslBuildInType(pTrace, pRawName as any, null);
     }
 
     /**
@@ -435,8 +448,15 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
             return null;
         }
 
+        // Validate texture templates, that they are eighter a PgslExpression or PgslTypeDeclaration.
+        for (const lTemplate of pRawTemplate) {
+            if (!(lTemplate instanceof PgslExpression) && !(lTemplate instanceof PgslTypeDeclaration)) {
+                pTrace.pushIncident(`Texture template parameters must be either a type definition or an expression.`, this);
+            }
+        }
+
         // Build texture type definition.
-        return new PgslTextureType(pTrace, pRawName as any, pRawTemplate);
+        return new PgslTextureType(pTrace, pRawName as any, pRawTemplate as Array<PgslTypeDeclaration | PgslExpression>);
     }
 
     /**

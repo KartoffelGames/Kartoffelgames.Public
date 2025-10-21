@@ -527,17 +527,4 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
 
         return new PgslVoidType(pTrace);
     }
-
-    // /**
-    //  * Transpile current type definition into a string.
-    //  * 
-    //  * @param pTrace - Transpilation trace.
-    //  * 
-    //  * @returns Transpiled string.
-    //  */
-    // protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-    //     // Transpile pointer type. // TODO: This must be autoed or give the user a way to specify it (private, read_write, etc.).
-    //     return `ptr<private, ${this.mReferencedType.transpile(pTrace)}, read_write>`;
-    // }
-
 }

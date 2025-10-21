@@ -1,6 +1,13 @@
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
@@ -8,6 +15,20 @@ import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '..
 export class PgslUnaryExpression extends PgslExpression {
     private readonly mExpression: PgslExpression;
     private readonly mOperator: string;
+
+    /**
+     * Get expression.
+     */
+    public get expression(): PgslExpression {
+        return this.mExpression;
+    }
+
+    /**
+     * Get operator.
+     */
+    public get operator(): string {
+        return this.mOperator;
+    }
 
     /**
      * Constructor.
@@ -28,75 +49,89 @@ export class PgslUnaryExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile expression.
-        const lExpression: string = this.mExpression.transpile(pTrace);
-        return `${this.mOperator}${lExpression}`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate child expression.
-        this.mExpression.validate(pTrace);
+        this.mExpression.trace(pTrace);
 
         // Read attached value of expression.
-        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
+        const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
         // Type buffer for validating the processed types.
-        let lValueType: BasePgslTypeDefinition;
+        let lValueType: PgslType;
 
         // Validate vectors differently.
-        if (lExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition) {  // TODO: Cant do this, as alias types could be vectors as well.
-            lValueType = lExpressionAttachment.resolveType.innerType;
+        if (lExpressionTrace.resolveType instanceof PgslVectorType) {
+            lValueType = lExpressionTrace.resolveType.innerType;
         } else {
-            lValueType = lExpressionAttachment.resolveType;
+            lValueType = lExpressionTrace.resolveType;
         }
 
-        // Read expression resolve type attachment.
-        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lValueType);
+        const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean): boolean => {
+            if (pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float16))) {
+                return true;
+            }
+
+            if (pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
+                return true;
+            }
+
+            if (pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))) {
+                return true;
+            }
+
+            if (pIncludeUnsigned && pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger))) {
+                return true;
+            }
+
+            return false;
+        };
+
+        let lResolveType: PgslType = lExpressionTrace.resolveType;
 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Integer && lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Float) {
-                    pTrace.pushError(`Binary negation only valid for numeric type.`, this.meta, this);
+                if (lCastableIntoNumeric(lValueType, true)) {
+                    pTrace.pushIncident(`Binary negation only valid for numeric type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Minus: {
-                // TODO: Not unsigned int.
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Integer && lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Float) {
-                    pTrace.pushError(`Negation only valid for numeric or vector type.`, this.meta, this);
+                if (lCastableIntoNumeric(lValueType, false)) {
+                    pTrace.pushIncident(`Negation only valid for numeric or vector type.`, this);
+                    break;
+                }
+
+                // Convert an abstract integer into a signed integer.
+                if (lResolveType instanceof PgslNumericType && lResolveType.numericTypeName === PgslNumericType.typeName.abstractInteger) {
+                    lResolveType = new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
-                if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-                    pTrace.pushError(`Boolean negation only valid for boolean type.`, this.meta, this);
+                if (!(lValueType instanceof PgslBooleanType)) {
+                    pTrace.pushIncident(`Boolean negation only valid for boolean type.`, this);
                 }
 
                 break;
             }
             default: {
-                pTrace.pushError(`Unknown unary operator "${this.mOperator}".`, this.meta, this);
+                pTrace.pushIncident(`Unknown unary operator "${this.mOperator}".`, this);
             }
         }
 
         // TODO: Resolved integer type changes when value is negative.
-        return {
-            fixedState: lExpressionAttachment.fixedState,
+
+        return new PgslExpressionTrace({
+            fixedState: PgslValueFixedState.Variable,
             isStorage: false,
-            resolveType: lExpressionAttachment.resolveType,
-        };
+            resolveType: lResolveType,
+            constantValue: lExpressionTrace.constantValue,
+            storageAddressSpace: lExpressionTrace.storageAddressSpace,
+        });
     }
 }

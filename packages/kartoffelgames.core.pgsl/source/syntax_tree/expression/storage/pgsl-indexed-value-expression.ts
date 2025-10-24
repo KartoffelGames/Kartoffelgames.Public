@@ -1,13 +1,13 @@
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslArrayType } from "../../../type/pgsl-array-type.ts";
+import { PgslMatrixType } from "../../../type/pgsl-matrix-type.ts";
+import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
-import { PgslArrayTypeDefinition } from "../../type/pgsl-array-type-definition.ts";
-import { PgslMatrixTypeDefinition } from "../../type/pgsl-matrix-type-definition.ts";
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a variable with index expression.
@@ -49,71 +49,60 @@ export class PgslIndexedValueExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code of current expression.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-      return `${this.mValue.transpile(pTrace)}[${this.mIndex.transpile(pTrace)}]`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate index and value expressions.
-        this.mIndex.validate(pTrace);
-        this.mValue.validate(pTrace);
+        this.mIndex.trace(pTrace);
+        this.mValue.trace(pTrace);
 
         // Read the attachments from the value expression.
-        const lValueAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mValue);
-        const lValueResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lValueAttachment.resolveType);
+        const lValueTrace: PgslExpressionTrace = pTrace.getExpression(this.mValue);
 
         // Value needs to be indexable.
-        if (!lValueResolveTypeAttachment.indexable) {
-            pTrace.pushError('Value of index expression needs to be a indexable composite value.', this.mValue.meta, this);
+        if (!lValueTrace.resolveType.indexable) {
+            pTrace.pushIncident('Value of index expression needs to be a indexable composite value.', this.mValue);
         }
 
         // Read the attachments from the index expression.
-        const lIndexAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mIndex);
-        const lIndexResolveType: BasePgslTypeDefinition = lIndexAttachment.resolveType;
+        const lIndexTrace: PgslExpressionTrace = pTrace.getExpression(this.mIndex);
 
-        // Value needs to be a unsigned numeric value. // TODO: Dont check for instance as Alias still can be a numeric type.
-        if (!(lIndexResolveType instanceof PgslNumericTypeDefinition) || lIndexResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) {  // TODO: Cant do this, as alias types could be that as well.
-            pTrace.pushError('Index needs to be a unsigned numeric value.', this.mIndex.meta, this);
+        // Value needs to be a unsigned numeric value.
+        if (!lIndexTrace.resolveType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))) {
+            pTrace.pushIncident('Index needs to be a unsigned numeric value.', this.mIndex);
         }
 
-        const lResolveType: BasePgslTypeDefinition = (() => {
+        const lResolveType: PgslType = (() => {
             switch (true) {
-                case lValueAttachment.resolveType instanceof PgslArrayTypeDefinition: { // TODO: Cant do this, as alias types could be that as well.
-                    return lValueAttachment.resolveType.innerType;
+                case lValueTrace.resolveType instanceof PgslArrayType: {
+                    return lValueTrace.resolveType.innerType;
                 }
 
-                case lValueAttachment.resolveType instanceof PgslVectorTypeDefinition: {  // TODO: Cant do this, as alias types could be that as well.
-                    return lValueAttachment.resolveType.innerType;
+                case lValueTrace.resolveType instanceof PgslVectorType: {
+                    return lValueTrace.resolveType.innerType;
                 }
 
-                case lValueAttachment.resolveType instanceof PgslMatrixTypeDefinition: { // TODO: Cant do this, as alias types could be that as well.
-                    return lValueAttachment.resolveType.vectorType;
+                case lValueTrace.resolveType instanceof PgslMatrixType: {
+                    return lValueTrace.resolveType.vectorType;
                 }
 
                 default: {
-                    pTrace.pushError('Type does not support a index signature', this.mValue.meta,this);
+                    pTrace.pushIncident('Type does not support a index signature', this);
 
                     // Somehow could have the same type.
-                    return lValueAttachment.resolveType;
+                    return lValueTrace.resolveType;
                 }
             }
         })();
 
-        return {
-            fixedState: Math.min(lValueAttachment.fixedState, lIndexAttachment.fixedState),
+        return new PgslExpressionTrace({
+            fixedState: PgslValueFixedState.Variable,
             isStorage: true,
-            resolveType: lResolveType
-        };
+            resolveType: lResolveType,
+            constantValue: null,
+            storageAddressSpace: lValueTrace.storageAddressSpace
+        });
     }
 }

@@ -1,11 +1,15 @@
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslEnumTrace } from "../../../trace/pgsl-enum-trace.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
+import { PgslEnumType } from "../../../type/pgsl-enum-type.ts";
+import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslVariableDeclaration, PgslVariableDeclarationSyntaxTreeValidationAttachment } from '../../declaration/pgsl-variable-declaration.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import type { PgslValidationTrace } from '../../pgsl-validation-trace.ts';
+import { PgslVariableDeclaration } from '../../declaration/pgsl-variable-declaration.ts';
 import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement.ts';
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding single variable name.
@@ -34,56 +38,43 @@ export class PgslVariableNameExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param _pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return this.mName;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Check if variable is defined.
-        const lVariableDefinition: BasePgslSyntaxTree | undefined = pTrace.getScopedValue(this.mName);
+        const lVariableDefinition: PgslValueTrace | null = pTrace.currentScope.getValue(this.mName);
         if (!lVariableDefinition) {
-            pTrace.pushError(`Variable "${this.mName}" not defined.`, this.meta, this);
+            pTrace.pushIncident(`Variable "${this.mName}" not defined.`, this);
+
+            return new PgslExpressionTrace({
+                fixedState: PgslValueFixedState.Variable,
+                isStorage: false,
+                resolveType: new PgslInvalidType(pTrace),
+                constantValue: null,
+                storageAddressSpace: PgslValueAddressSpace.Function
+            });
         }
 
-        if (lVariableDefinition instanceof PgslVariableDeclaration) {
-            // Read variable definition attachment.
-            const lVariableDeclarationAttachment: PgslVariableDeclarationSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableDefinition);
-            return {
-                fixedState: lVariableDeclarationAttachment.fixedState,
-                isStorage: true,
-                resolveType: lVariableDeclarationAttachment.type
-            };
+        // If it was not a variable, check if it is an enum.
+        const lEnumDefinition: PgslEnumTrace | undefined = pTrace.getEnum(this.mName);
+        if (lEnumDefinition) {
+            return new PgslExpressionTrace({
+                fixedState: PgslValueFixedState.Variable,
+                isStorage: false,
+                resolveType: new PgslEnumType(pTrace, lEnumDefinition.name),
+                constantValue: null,
+                storageAddressSpace: PgslValueAddressSpace.Module
+            });
         }
 
-        // Must be a variable.
-        if (lVariableDefinition instanceof PgslVariableDeclarationStatement) {
-            // Read variable definition attachment.
-            const lVariableDeclarationAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableDefinition);
-            return {
-                fixedState: lVariableDeclarationAttachment.fixedState,
-                isStorage: true,
-                resolveType: lVariableDeclarationAttachment.type
-            };
-        }
-
-        // Variable definition neither a declaration nor a statement.
-        pTrace.pushError(`Name "${this.mName}" does not refer to a variable.`, this.meta, this);
-
-        return {
-            fixedState: PgslValueFixedState.Variable,
-            isStorage: false,
-            resolveType: null as unknown as PgslNumericTypeDefinition // TODO: Maybe use a unknown type here?
-        };
+        return new PgslExpressionTrace({
+            fixedState: lVariableDefinition?.fixedState,
+            isStorage: true,
+            resolveType: lVariableDefinition.type,
+            constantValue: lVariableDefinition.constantValue,
+            storageAddressSpace: lVariableDefinition.addressSpace
+        });
     }
 }

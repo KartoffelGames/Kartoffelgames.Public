@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslPointerType } from "../../../type/pgsl-pointer-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
@@ -35,40 +35,30 @@ export class PgslPointerExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-      return `*${this.mExpression.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
+     * 
+     * @param pTrace - Trace to use for validation.
+     * 
+     * @returns Expression trace data.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate child expression.
-        this.mExpression.validate(pTrace);
+        this.mExpression.trace(pTrace);
 
         // Read attached value of expression.
-        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
-
-        // Read expression resolve type attachment.
-        const lExpressionResolveTypeAttachment = pTrace.getAttachment(lExpressionAttachment.resolveType);
+        const lExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Pointer) {
+        if (!(lExpressionAttachment.resolveType instanceof PgslPointerType)) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
 
-        // TODO: Somehow must save the address space.
-
-        return {
+        return new PgslExpressionTrace({
             fixedState: lExpressionAttachment.fixedState,
             isStorage: true,
-            resolveType: lExpressionAttachment.resolveType,
-        };
+            resolveType: lExpressionAttachment.resolveType.referencedType,
+            constantValue: lExpressionAttachment.constantValue,
+            storageAddressSpace: lExpressionAttachment.storageAddressSpace
+        });
     }
 }

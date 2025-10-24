@@ -179,6 +179,9 @@ export class PgslTrace {
         }
 
         this.mVariableDeclarations.set(pValue.name, pValue);
+
+        // Register value also registered in current scope.
+        this.currentScope.addValue(pValue.name, pValue);
     }
 
     /**

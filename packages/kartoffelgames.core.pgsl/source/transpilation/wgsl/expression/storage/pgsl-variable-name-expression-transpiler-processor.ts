@@ -1,6 +1,9 @@
+import { Exception } from "@kartoffelgames/core";
 import { PgslVariableNameExpression } from "../../../../syntax_tree/expression/storage/pgsl-variable-name-expression.ts";
+import { PgslExpressionTrace } from "../../../../trace/pgsl-expression-trace.ts";
 import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
 import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslEnumType } from "../../../../type/pgsl-enum-type.ts";
 
 export class PgslVariableNameExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableNameExpression> {
     /**
@@ -15,11 +18,19 @@ export class PgslVariableNameExpressionTranspilerProcessor implements IPgslTrans
      * 
      * @param pInstance - Processor syntax tree instance.
      * @param pTrace - Transpilation trace.
-     * @param pTranspile - Transpile function.
+     * @param _pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslVariableNameExpression, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        throw new Error("Method not implemented.");
+    public process(pInstance: PgslVariableNameExpression, pTrace: PgslTrace, _pTranspile: PgslTranspilerProcessorTranspile): string {
+        // Read expression trace.
+        const lTrace: PgslExpressionTrace = pTrace.getExpression(pInstance);
+
+        // Throw when resolve type is an enum.
+        if (lTrace.resolveType instanceof PgslEnumType) {
+            throw new Exception(`Cannot transpile variable name expression for enum type "${lTrace.resolveType.enumName}".`, this);
+        }
+
+        return pInstance.variableName;
     }
 }

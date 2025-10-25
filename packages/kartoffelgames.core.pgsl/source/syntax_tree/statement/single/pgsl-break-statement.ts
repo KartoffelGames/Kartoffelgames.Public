@@ -1,6 +1,5 @@
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
 /**
@@ -17,20 +16,12 @@ export class PgslBreakStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return `break;`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): void {
-        // TODO: Only in Loops and switch.
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Only in Loops and switch.
+        if (!pTrace.currentScope.hasScope('loop') && !pTrace.currentScope.hasScope('switch')) {
+            pTrace.pushIncident('Break statement can only be used within loops or switch statements.', this);
+        }
     }
 }

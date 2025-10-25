@@ -1,15 +1,15 @@
 import { Stack } from "@kartoffelgames/core";
 import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
+import { PgslStructPropertyDeclaration } from "../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
 import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
 import { PgslAliasTrace } from "./pgsl-alias-trace.ts";
 import { PgslEnumTrace } from "./pgsl-enum-trace.ts";
 import { PgslExpressionTrace } from "./pgsl-expression-trace.ts";
 import { PgslFunctionTrace } from "./pgsl-function-trace.ts";
-import { PgslStructTrace } from "./pgsl-struct-trace.ts";
-import { PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
-import { PgslValueTrace } from "./pgsl-value-trace.ts";
 import { PgslStructPropertyTrace } from "./pgsl-struct-property-trace.ts";
-import { PgslStructPropertyDeclaration } from "../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
+import { PgslStructTrace } from "./pgsl-struct-trace.ts";
+import { PgslSyntaxTreeTraceScopeScopeOwner, PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
+import { PgslValueTrace } from "./pgsl-value-trace.ts";
 
 /**
  * Main trace class for PGSL syntax tree analysis and transpilation.
@@ -117,11 +117,11 @@ export class PgslTrace {
      * 
      * @throws Error if the trace is sealed.
      */
-    public newScope(pType: PgslSyntaxTreeTraceScopeType, pScopeAction: () => void): void {
+    public newScope<T extends PgslSyntaxTreeTraceScopeType>(pType: T, pScopeAction: () => void, pOwner: PgslSyntaxTreeTraceScopeScopeOwner<T>): void {
         this.assertNotSealed();
 
         // Create scope and push to stack.
-        this.mScopeList.push(new PgslTraceScope(pType, this.mScopeList.top ?? null));
+        this.mScopeList.push(new PgslTraceScope(pType, pOwner, this.mScopeList.top ?? null));
 
         try {
             pScopeAction();
@@ -278,7 +278,7 @@ export class PgslTrace {
      * 
      * @returns The struct property trace.
      */
-    public getStructProperty(pProperty: PgslStructPropertyDeclaration): PgslStructPropertyTrace  {
+    public getStructProperty(pProperty: PgslStructPropertyDeclaration): PgslStructPropertyTrace {
         if (!this.mStructProperties.has(pProperty)) {
             throw new Error('Struct property is not traced.');
         }

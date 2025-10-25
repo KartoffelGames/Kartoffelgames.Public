@@ -68,6 +68,6 @@ export class PgslDocument extends BasePgslSyntaxTree {
 
                 lChild.trace(pTrace);
             }
-        });
+        }, this);
     }
 }

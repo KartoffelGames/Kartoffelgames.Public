@@ -1,6 +1,5 @@
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
 /**
@@ -17,20 +16,12 @@ export class PgslContinueStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-      return `continue;`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): void {
-        // TODO: Only in Loops
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Only in Loops
+        if (!pTrace.currentScope.hasScope('loop')) {
+            pTrace.pushIncident('Continue statement can only be used within loops.', this);
+        }
     }
 }

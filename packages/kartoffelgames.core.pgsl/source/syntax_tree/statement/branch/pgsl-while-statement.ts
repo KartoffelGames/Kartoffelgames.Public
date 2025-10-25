@@ -5,7 +5,7 @@ import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
+import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
 /**
  * PGSL structure for a while statement.

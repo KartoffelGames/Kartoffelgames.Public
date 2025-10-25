@@ -3,7 +3,7 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
+import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";

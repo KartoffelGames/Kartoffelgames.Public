@@ -1,3 +1,10 @@
+import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
+import { PgslFunctionDeclaration } from "../syntax_tree/declaration/pgsl-function-declaration.ts";
+import { PgslDocument } from "../syntax_tree/pgsl-document.ts";
+import { PgslDoWhileStatement } from "../syntax_tree/statement/branch/pgsl-do-while-statement.ts";
+import { PgslForStatement } from "../syntax_tree/statement/branch/pgsl-for-statement.ts";
+import { PgslSwitchStatement } from "../syntax_tree/statement/branch/pgsl-switch-statement.ts";
+import { PgslWhileStatement } from "../syntax_tree/statement/branch/pgsl-while-statement.ts";
 import type { PgslTrace } from "./pgsl-trace.ts";
 import type { PgslValueTrace } from "./pgsl-value-trace.ts";
 
@@ -9,6 +16,7 @@ export class PgslTraceScope {
     private readonly mType: PgslSyntaxTreeTraceScopeType;
     private readonly mParent: PgslTraceScope | null;
     private readonly mValues: Map<string, PgslValueTrace>;
+    private readonly mOwner: BasePgslSyntaxTree;
 
     /**
      * Gets the type of this scope.
@@ -29,16 +37,26 @@ export class PgslTraceScope {
     }
 
     /**
+     * Gets the owner syntax tree of this scope.
+     * 
+     * @returns The owning PGSL syntax tree.
+     */
+    public get owner(): BasePgslSyntaxTree {
+        return this.mOwner;
+    }
+
+    /**
      * Creates a new syntax tree trace scope.
      * 
      * @param pTrace - The parent trace instance.
      * @param pType - Type of scope.
      * @param pParent - Parent scope, or null for root scope.
      */
-    public constructor(pType: PgslSyntaxTreeTraceScopeType, pParent: PgslTraceScope | null) {
+    public constructor(pType: PgslSyntaxTreeTraceScopeType, pOwner: BasePgslSyntaxTree, pParent: PgslTraceScope | null) {
         this.mType = pType;
         this.mParent = pParent;
         this.mValues = new Map<string, PgslValueTrace>();
+        this.mOwner = pOwner;
     }
 
     /**
@@ -84,17 +102,28 @@ export class PgslTraceScope {
      * 
      * @returns True if the scope type matches, false otherwise.
      */
-    public hasScope(pScopeType: PgslSyntaxTreeTraceScopeType): boolean {
+    public hasScope<T extends PgslSyntaxTreeTraceScopeType>(pScopeType: T): PgslSyntaxTreeTraceScopeScopeOwner<T> | null {
+        // Return owner if scope type matches.
         if (this.mType === pScopeType) {
-            return true;
+            return this.mOwner as PgslSyntaxTreeTraceScopeScopeOwner<T>;
         }
+
+        // Check parent scope if it exists.
         if (this.mParent) {
             return this.mParent.hasScope(pScopeType);
         }
-        return false;
+
+        return null;
     }
 
 }
+
+export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScopeType> = 
+    T extends 'function' ? PgslFunctionDeclaration :
+    T extends 'global' ? PgslDocument:
+    T extends 'loop' ? (PgslDoWhileStatement | PgslForStatement | PgslWhileStatement) :
+    T extends 'switch' ? PgslSwitchStatement :
+    T extends 'inherit' ? BasePgslSyntaxTree : never;
 
 /**
  * Type representing different kinds of scopes in PGSL syntax tree tracing.
@@ -104,4 +133,4 @@ export class PgslTraceScope {
  * - `loop`: Loop body scope (for, while, etc.)
  * - `inherit`: Scope that inherits from parent without creating new variable binding level
  */
-export type PgslSyntaxTreeTraceScopeType = 'global' | 'function' | 'loop' | 'inherit';
+export type PgslSyntaxTreeTraceScopeType = 'global' | 'function' | 'loop' | 'switch' | 'inherit';

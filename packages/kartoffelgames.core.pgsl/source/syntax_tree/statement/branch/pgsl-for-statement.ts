@@ -6,11 +6,11 @@ import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
 import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import { PgslAssignmentStatement } from '../pgsl-assignment-statement.ts';
-import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
-import { PgslFunctionCallStatement } from '../pgsl-function-call-statement.ts';
-import { PgslIncrementDecrementStatement } from '../pgsl-increment-decrement-statement.ts';
-import type { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../pgsl-variable-declaration-statement.ts';
+import { PgslAssignmentStatement } from '../execution/pgsl-assignment-statement.ts';
+import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
+import { PgslFunctionCallStatement } from '../execution/pgsl-function-call-statement.ts';
+import { PgslIncrementDecrementStatement } from '../execution/pgsl-increment-decrement-statement.ts';
+import type { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../execution/pgsl-variable-declaration-statement.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.

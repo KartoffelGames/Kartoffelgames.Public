@@ -1,6 +1,5 @@
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
 /**
@@ -17,20 +16,9 @@ export class PgslDiscardStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return `discard;`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(_pValidationTrace: PgslValidationTrace): void {
+    protected override onTrace(_pTrace: PgslTrace): void {
         // Nothing really to validate.
     }
 }

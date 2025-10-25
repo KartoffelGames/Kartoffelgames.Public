@@ -8,7 +8,7 @@ import { PgslEnumType } from "../../../type/pgsl-enum-type.ts";
 import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslVariableDeclaration } from '../../declaration/pgsl-variable-declaration.ts';
-import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/pgsl-variable-declaration-statement.ts';
+import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/execution/pgsl-variable-declaration-statement.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 
 /**

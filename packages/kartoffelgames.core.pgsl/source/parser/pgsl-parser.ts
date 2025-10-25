@@ -34,12 +34,12 @@ import { PgslForStatement } from '../syntax_tree/statement/branch/pgsl-for-state
 import { PgslIfStatement } from '../syntax_tree/statement/branch/pgsl-if-statement.ts';
 import { PgslSwitchStatement, type PgslSwitchStatementSwitchCase } from '../syntax_tree/statement/branch/pgsl-switch-statement.ts';
 import { PgslWhileStatement } from '../syntax_tree/statement/branch/pgsl-while-statement.ts';
-import { PgslAssignmentStatement } from '../syntax_tree/statement/pgsl-assignment-statement.ts';
-import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement.ts';
-import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement.ts';
-import { PgslIncrementDecrementStatement } from '../syntax_tree/statement/pgsl-increment-decrement-statement.ts';
-import { PgslReturnStatement } from '../syntax_tree/statement/pgsl-return-statement.ts';
-import { PgslVariableDeclarationStatement } from '../syntax_tree/statement/pgsl-variable-declaration-statement.ts';
+import { PgslAssignmentStatement } from '../syntax_tree/statement/execution/pgsl-assignment-statement.ts';
+import { PgslBlockStatement } from '../syntax_tree/statement/execution/pgsl-block-statement.ts';
+import { PgslFunctionCallStatement } from '../syntax_tree/statement/execution/pgsl-function-call-statement.ts';
+import { PgslIncrementDecrementStatement } from '../syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
+import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
+import { PgslVariableDeclarationStatement } from '../syntax_tree/statement/execution/pgsl-variable-declaration-statement.ts';
 import { PgslBreakStatement } from '../syntax_tree/statement/single/pgsl-break-statement.ts';
 import { PgslContinueStatement } from '../syntax_tree/statement/single/pgsl-continue-statement.ts';
 import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-discard-statement.ts';

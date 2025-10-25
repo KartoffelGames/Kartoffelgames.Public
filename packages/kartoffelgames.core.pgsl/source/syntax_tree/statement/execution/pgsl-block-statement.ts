@@ -1,12 +1,12 @@
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { PgslVoidType } from "../../type/pgsl-void-type.ts";
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
-import { BasePgslStatement } from './base-pgsl-statement.ts';
-import { PgslReturnStatement } from "./pgsl-return-statement.ts";
-import { PgslBreakStatement } from "./single/pgsl-break-statement.ts";
-import { PgslContinueStatement } from "./single/pgsl-continue-statement.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslReturnStatement } from "../single/pgsl-return-statement.ts";
+import { PgslBreakStatement } from "../single/pgsl-break-statement.ts";
+import { PgslContinueStatement } from "../single/pgsl-continue-statement.ts";
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.

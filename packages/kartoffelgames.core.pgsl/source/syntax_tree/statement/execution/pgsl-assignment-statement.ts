@@ -1,11 +1,11 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { PgslAssignment } from '../../enum/pgsl-assignment.enum.ts';
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../expression/pgsl-expression.ts';
-import { PgslValidationTrace } from "../pgsl-validation-trace.ts";
-import { BasePgslStatement } from './base-pgsl-statement.ts';
-import { PgslFileMetaInformation } from "../pgsl-build-result.ts";
+import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
+import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
+import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a assignment statement.

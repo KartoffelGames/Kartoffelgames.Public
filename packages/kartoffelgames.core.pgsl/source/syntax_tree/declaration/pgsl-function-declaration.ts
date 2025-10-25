@@ -5,7 +5,7 @@ import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from "../expression/pgsl-expression.ts";
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
-import type { PgslBlockStatement } from '../statement/pgsl-block-statement.ts';
+import type { PgslBlockStatement } from '../statement/execution/pgsl-block-statement.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**
@@ -102,7 +102,7 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
 
             // Validate function block.
             this.mBlock.trace(pTrace);
-        });
+        }, this);
 
         // Find entry point.
         const lEntryPoint: PgslFunctionTraceEntryPoint | null = (() => {

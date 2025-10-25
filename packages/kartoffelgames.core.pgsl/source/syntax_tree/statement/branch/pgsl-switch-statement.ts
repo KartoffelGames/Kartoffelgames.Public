@@ -5,7 +5,7 @@ import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslTypeDefinition } from "../../type/base-pgsl-type-definition.ts";
 import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import type { PgslBlockStatement } from '../pgsl-block-statement.ts';
+import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
 import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
 import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";

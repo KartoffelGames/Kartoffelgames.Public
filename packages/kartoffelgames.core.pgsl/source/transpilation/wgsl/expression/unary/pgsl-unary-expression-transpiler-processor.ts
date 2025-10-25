@@ -19,7 +19,7 @@ export class PgslUnaryExpressionTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslUnaryExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: PgslUnaryExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile expression.
         const lExpression: string = pTranspile(pInstance.expression);
         return `${pInstance.operator}${lExpression}`;

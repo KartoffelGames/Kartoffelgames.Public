@@ -14,12 +14,13 @@ export class PgslLiteralValueExpressionTranspilerProcessor implements IPgslTrans
      * Transpiles a PGSL literal value expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTrace - Transpilation trace.
-     * @param pTranspile - Transpile function.
+     * @param _pTrace - Transpilation trace.
+     * @param _pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslLiteralValueExpression, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        throw new Error("Method not implemented.");
+    public process(pInstance: PgslLiteralValueExpression, _pTrace: PgslTrace, _pTranspile: PgslTranspilerProcessorTranspile): string {
+        // Basically does nothing to the value.
+        return pInstance.value;
     }
 }

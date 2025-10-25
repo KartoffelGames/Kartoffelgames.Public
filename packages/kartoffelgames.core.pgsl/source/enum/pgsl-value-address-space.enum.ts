@@ -27,5 +27,10 @@ export enum PgslValueAddressSpace {
     /**
      * Texture address space.
      */
-    Texture = 'Texture'
+    Texture = 'Texture',
+
+    /**
+     * No specific address space.
+     */
+    Inherit = 'Inherit',
 }

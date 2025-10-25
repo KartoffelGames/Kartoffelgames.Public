@@ -164,7 +164,8 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
             parameters: this.mParameter.map((pParameter: PgslFunctionDeclarationParameter) => {
                 return { name: pParameter.name, type: pParameter.type.type };
             }),
-            entryPoint: lEntryPoint
+            entryPoint: lEntryPoint,
+            constant: this.mConstant
         }));
     }
 }

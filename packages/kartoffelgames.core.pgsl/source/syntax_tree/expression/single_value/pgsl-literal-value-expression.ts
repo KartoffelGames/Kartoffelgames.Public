@@ -1,20 +1,26 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import { PgslNumericType, PgslNumericTypeName } from "../../../type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition } from "../../type/base-pgsl-type-definition.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
-import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
 export class PgslLiteralValueExpression extends PgslExpression {
     private readonly mTextValue: string;
+
+    /**
+     * Value of literal.
+     */
+    public get value(): string {
+        return this.mTextValue;
+    }
 
     /**
      * Constructor.
@@ -31,61 +37,21 @@ export class PgslLiteralValueExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param _pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        // Basically does nothing to the value.
-        return this.mTextValue;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Convert value.
-        const [lBaseType, lScalarType, lValue] = this.convertData(this.mTextValue);
+        const [lResolveType, lValue] = this.convertData(pTrace, this.mTextValue);
 
-        const lResolveType: BasePgslTypeDefinition = (() => {
-            // Literal is a boolean value.
-            if (lBaseType === PgslBaseTypeName.Boolean) {
-                return new PgslBooleanTypeDefinition({
-                    range: [
-                        this.meta.position.start.line,
-                        this.meta.position.start.column,
-                        this.meta.position.end.line,
-                        this.meta.position.end.column,
-                    ]
-                });
-            }
-
-            // Create numeric type declaration.
-            return new PgslNumericTypeDefinition(lScalarType, {
-                range: [
-                    this.meta.position.start.line,
-                    this.meta.position.start.column,
-                    this.meta.position.end.line,
-                    this.meta.position.end.column,
-                ]
-            });
-        })();
-
-        // Add resolve type as child tree.
-        this.appendChild(lResolveType);
-
-        // Validate child type.
-        lResolveType.validate(pTrace);
-
-        return {
+        return new PgslExpressionTrace({
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
-            resolveType: lResolveType
-        };
+            resolveType: lResolveType,
+            constantValue: lValue,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 
     /**
@@ -97,13 +63,13 @@ export class PgslLiteralValueExpression extends PgslExpression {
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pTextValue: string): [PgslBaseTypeName, PgslNumericTypeName, number] {
+    private convertData(pTrace: PgslTrace, pTextValue: string): [PgslType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [PgslBaseTypeName.Boolean, PgslNumericTypeName.Integer, 1];
+            return [new PgslBooleanType(pTrace), 1];
         }
         if (pTextValue === 'false') {
-            return [PgslBaseTypeName.Boolean, PgslNumericTypeName.Integer, 0];
+            return [new PgslBooleanType(pTrace), 0];
         }
 
         // Might be a integer.
@@ -116,20 +82,20 @@ export class PgslLiteralValueExpression extends PgslExpression {
             let lSuffixType: PgslNumericTypeName;
             switch (lIntegerMatch.groups!['suffix']) {
                 case 'u': {
-                    lSuffixType = PgslNumericTypeName.UnsignedInteger;
+                    lSuffixType = PgslNumericType.typeName.unsignedInteger;
                     break;
                 }
                 case 'i': {
-                    lSuffixType = PgslNumericTypeName.Integer;
+                    lSuffixType = PgslNumericType.typeName.signedInteger;
                     break;
                 }
                 default: {
-                    lSuffixType = PgslNumericTypeName.AbstractInteger;
+                    lSuffixType = PgslNumericType.typeName.abstractInteger;
                     break;
                 }
             }
 
-            return [PgslBaseTypeName.Integer, lSuffixType, lNumber];
+            return [new PgslNumericType(pTrace, lSuffixType), lNumber];
         }
 
         // Might be a float.
@@ -162,20 +128,20 @@ export class PgslLiteralValueExpression extends PgslExpression {
             let lSuffixType: PgslNumericTypeName;
             switch (lFloatMatch.groups!['suffix']) {
                 case 'f': {
-                    lSuffixType = PgslNumericTypeName.Float;
+                    lSuffixType = PgslNumericType.typeName.float32;
                     break;
                 }
                 case 'h': {
-                    lSuffixType = PgslNumericTypeName.Float16;
+                    lSuffixType = PgslNumericType.typeName.float16;
                     break;
                 }
                 default: {
-                    lSuffixType = PgslNumericTypeName.AbstractFloat;
+                    lSuffixType = PgslNumericType.typeName.abstractFloat;
                     break;
                 }
             }
 
-            return [PgslBaseTypeName.Float, lSuffixType, lNumber];
+            return [new PgslNumericType(pTrace, lSuffixType), lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);

@@ -1,8 +1,9 @@
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslPointerType } from "../../../type/pgsl-pointer-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a variable name used to get the address.
@@ -32,48 +33,38 @@ export class PgslAddressOfExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `&${this.mVariable.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate variable.
-        this.mVariable.validate(pTrace);
+        this.mVariable.trace(pTrace);
 
         // Read attachment of inner expression.
-        const lVariableAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mVariable);
+        const lVariableTrace: PgslExpressionTrace = pTrace.getExpression(this.mVariable);
 
         // Type of expression needs to be storable.
-        if (!lVariableAttachment.isStorage) {
-            pTrace.pushError(`Target of address needs to a stored value`, this.mVariable.meta, this);
+        if (!lVariableTrace.isStorage) {
+            pTrace.pushIncident(`Target of address needs to a stored value`, this);
         }
 
         // Read type attachment of variable.
-        const lVariableResolveType: BasePgslTypeDefinition = lVariableAttachment.resolveType;
-        const lVariableResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lVariableResolveType);
+        const lVariableResolveType: PgslType = lVariableTrace.resolveType;
 
         // Type of expression needs to be storable.
-        if (!lVariableResolveTypeAttachment.storable) {
-            pTrace.pushError(`Target of address needs to storable`, this.mVariable.meta, this);
+        if (!lVariableResolveType.storable) {
+            pTrace.pushIncident(`Target of address needs to storable`, this);
         }
 
         // TODO: No vector item.
 
-        return {
-            fixedState: lVariableAttachment.fixedState,
+        return new PgslExpressionTrace({
+            fixedState: lVariableTrace.fixedState,
             isStorage: false,
-            resolveType: lVariableResolveType
-        };
+            resolveType: new PgslPointerType(pTrace, lVariableResolveType),
+            constantValue: null,
+            storageAddressSpace: lVariableTrace.storageAddressSpace
+        });
     }
 }

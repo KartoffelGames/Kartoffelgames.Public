@@ -14,12 +14,13 @@ export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspiler
      * Transpiles a PGSL new call expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTrace - Transpilation trace.
+     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslNewCallExpression, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        throw new Error("Method not implemented.");
+    public process(pInstance: PgslNewCallExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+        // Simply transpile the type and parameters without the new part.
+        return `${pTranspile(pInstance.type)}(${pInstance.parameter.map(param => pTranspile(param)).join(", ")})`;
     }
 }

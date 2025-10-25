@@ -1,17 +1,18 @@
-import { Exception } from '@kartoffelgames/core';
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslTypeDeclaration } from "../../general/pgsl-type-declaration.ts";
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
  */
 export class PgslNewCallExpression extends PgslExpression {
     private readonly mParameterList: Array<PgslExpression>;
-    private readonly mType: BasePgslTypeDefinition;
+    private readonly mType: PgslTypeDeclaration;
 
     /**
      * Function parameter.
@@ -23,7 +24,7 @@ export class PgslNewCallExpression extends PgslExpression {
     /**
      * Type of new call.
      */
-    public get type(): BasePgslTypeDefinition {
+    public get type(): PgslTypeDeclaration {
         return this.mType;
     }
 
@@ -34,7 +35,7 @@ export class PgslNewCallExpression extends PgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pType: BasePgslTypeDefinition, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pType: PgslTypeDeclaration, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
@@ -46,42 +47,30 @@ export class PgslNewCallExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code of current expression.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Simply transpile the type and parameters without the new part.
-        return `${this.mType.transpile(pTrace)}(${this.mParameterList.map(param => param.transpile(pTrace)).join(", ")})`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate type.
-        this.mType.validate(pTrace);
+        this.mType.trace(pTrace);
 
         // Validate parameters.
         for (const lParameter of this.mParameterList) {
-            lParameter.validate(pTrace);
+            lParameter.trace(pTrace);
         }
 
         // Read attachment of type.
-        const lTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mType);
+        const lType: PgslType = this.mType.type
 
         // Must be fixed.
-        if (!lTypeAttachment.fixedFootprint) {
-            pTrace.pushError(`New expression must be a length fixed type.`, this.mType.meta, this);
+        if (!lType.fixedFootprint) {
+            pTrace.pushIncident(`New expression must be a length fixed type.`, this);
         }
 
         // Must be constructable.
-        if (!lTypeAttachment.constructible) {
-            pTrace.pushError(`New expression must be a constructible type.`, this.mType.meta, this);
+        if (!lType.constructible) {
+            pTrace.pushIncident(`New expression must be a constructible type.`, this);
         }
 
         // Find the lowest fixed state of all parameters.
@@ -91,7 +80,7 @@ export class PgslNewCallExpression extends PgslExpression {
 
             for (const lParameter of this.mParameterList) {
                 // Read attachment of parameters.
-                const lParameterAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(lParameter);
+                const lParameterAttachment: PgslExpressionTrace = pTrace.getExpression(lParameter);
 
                 // Set the lowest fixed state.
                 if (lParameterAttachment.fixedState < lFixedState) {
@@ -105,10 +94,12 @@ export class PgslNewCallExpression extends PgslExpression {
 
         // TODO: Validate function parameter and template.
 
-        return {
+        return new PgslExpressionTrace({
             fixedState: lFixedState,
             isStorage: false,
-            resolveType: this.mType,
-        };
+            resolveType: lType,
+            constantValue: null, // TODO: Maybe on simple convertions for f32, i32, etc.
+            storageAddressSpace: PgslValueAddressSpace.Inherit,
+        });
     }
 }

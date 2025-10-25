@@ -14,12 +14,12 @@ export class PgslAddressOfExpressionTranspilerProcessor implements IPgslTranspil
      * Transpiles a PGSL address-of expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTrace - Transpilation trace.
+     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslAddressOfExpression, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        throw new Error("Method not implemented.");
+    public process(pInstance: PgslAddressOfExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+        return `&${pTranspile(pInstance.variable)}`;
     }
 }

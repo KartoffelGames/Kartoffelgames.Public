@@ -1,10 +1,11 @@
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFunctionDeclaration } from '../../declaration/pgsl-function-declaration.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { PgslVoidTypeDefinition } from "../../type/pgsl-void-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslFunctionTrace } from "../../../trace/pgsl-function-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
+import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
@@ -46,34 +47,41 @@ export class PgslFunctionCallExpression extends PgslExpression {
     }
 
     /**
-     * Transpiles the expression to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `${this.mName}(${this.mParameterList.map(param => param.transpile(pTrace)).join(', ')})`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
-        const lFunctionDeclaration: BasePgslSyntaxTree = pValidationTrace.getScopedValue(this.mName);
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
+        const lFunctionDeclaration: PgslFunctionTrace | undefined = pTrace.getFunction(this.mName);
 
         // Should be a function declaration otherwise it cant be validated further.
-        if (!(lFunctionDeclaration instanceof PgslFunctionDeclaration)) {
-            pValidationTrace.pushError(`Function '${this.mName}' is not defined.`, this.meta, this);
+        if (!lFunctionDeclaration) {
+            pTrace.pushIncident(`Function '${this.mName}' is not defined.`, this);
 
-            return {
+            return new PgslExpressionTrace({
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslVoidTypeDefinition(BasePgslSyntaxTree.emptyMeta())
-            };
+                resolveType: new PgslInvalidType(pTrace),
+                constantValue: null,
+                storageAddressSpace: PgslValueAddressSpace.Inherit
+            });
         }
 
-        // TODO: Validate function parameter.
+        // Validate function parameter.
+        for (let lParameterIndex = 0; lParameterIndex < this.mParameterList.length; lParameterIndex++) {
+            const lParameterExpression: PgslExpression = this.mParameterList[lParameterIndex];
+            const lParameterExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lParameterExpression);
+            const lFunctionParameterDeclaration = lFunctionDeclaration.parameters[lParameterIndex];
+
+            // Validate parameter expression.
+            if (!lParameterExpressionTrace) {
+                pTrace.pushIncident(`Parameter ${lParameterIndex} of function '${this.mName}' is not defined.`, this);
+                continue;
+            }
+
+            // Check if parameter type matches function declaration.
+            if (!lParameterExpressionTrace.resolveType.isImplicitCastableInto(lFunctionParameterDeclaration.type)) {
+                pTrace.pushIncident(`Parameter ${lParameterIndex} of function '${this.mName}' has invalid type.`, this);
+            }
+        }
 
         // Check properties for constructable, host sharable, and fixed footprint characteristics
         const lFixedState: PgslValueFixedState = (() => {
@@ -86,21 +94,23 @@ export class PgslFunctionCallExpression extends PgslExpression {
 
             // Check all parameter.
             for (const lParameter of this.mParameterList) {
-                const lParameterTypeAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lParameter);
+                const lParameterExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lParameter);
 
                 // Save the minimum fixed state
-                if(lParameterTypeAttachment.fixedState < lFixedState) {
-                    lFixedState = lParameterTypeAttachment.fixedState;
+                if (lParameterExpressionTrace.fixedState < lFixedState) {
+                    lFixedState = lParameterExpressionTrace.fixedState;
                 }
             }
 
             return lFixedState;
         })();
 
-        return {
+        return new PgslExpressionTrace({
             fixedState: lFixedState,
             isStorage: false,
-            resolveType: lFunctionDeclaration.returnType
-        };
+            resolveType: lFunctionDeclaration.returnType,
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

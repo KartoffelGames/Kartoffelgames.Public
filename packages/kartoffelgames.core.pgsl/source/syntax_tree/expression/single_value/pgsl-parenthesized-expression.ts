@@ -1,7 +1,7 @@
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a expression surrounded with parentheses.
@@ -33,32 +33,23 @@ export class PgslParenthesizedExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code of current expression.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `(${this.mExpression.transpile(pTrace)})`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate inner expression.
-        this.mExpression.validate(pTrace);
+        this.mExpression.trace(pTrace);
 
         // Read attachment of inner expression.
-        const lAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mExpression);
+        const lAttachment: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
-        return {
+        return new PgslExpressionTrace({
             fixedState: lAttachment.fixedState,
-            isStorage: false,
-            resolveType: lAttachment.resolveType
-        };
+            isStorage: lAttachment.isStorage,
+            resolveType: lAttachment.resolveType,
+            constantValue: lAttachment.constantValue,
+            storageAddressSpace: lAttachment.storageAddressSpace
+        });
     }
 }

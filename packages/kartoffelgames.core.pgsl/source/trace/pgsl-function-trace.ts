@@ -9,6 +9,7 @@ export class PgslFunctionTrace {
     private readonly mReturnType: PgslType;
     private readonly mParameters: Array<PgslFunctionTraceParameter>;
     private readonly mEntryPoint: PgslFunctionTraceEntryPoint | null;
+    private readonly mConstant: boolean;
 
     /**
      * Gets the name of the function.
@@ -17,6 +18,15 @@ export class PgslFunctionTrace {
      */
     public get name(): string {
         return this.mName;
+    }
+
+    /**
+     * Gets whether the function is constant.
+     * 
+     * @returns True if the function is constant, false otherwise.
+     */
+    public get isConstant(): boolean {
+        return this.mConstant;
     }
 
     /**
@@ -65,6 +75,7 @@ export class PgslFunctionTrace {
         this.mReturnType = pConstructorData.returnType;
         this.mParameters = [...pConstructorData.parameters];
         this.mEntryPoint = pConstructorData.entryPoint ? { ...pConstructorData.entryPoint } : null;
+        this.mConstant = pConstructorData.constant;
     }
 }
 
@@ -92,6 +103,11 @@ export type PgslFunctionTraceConstructorParameter = {
      * Optional entry point information
      */
     entryPoint: PgslFunctionTraceEntryPoint | null;
+
+    /**
+     * Whether the function is constant
+     */
+    constant: boolean;
 };
 
 /**

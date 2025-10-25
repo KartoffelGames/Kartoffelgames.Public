@@ -1,16 +1,16 @@
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { PgslStringTypeDefinition } from "../../type/pgsl-string-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslStringType } from "../../../type/pgsl-string-type.ts";
+import { type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
 export class PgslStringValueExpression extends PgslExpression {
     private readonly mValue: string;
-    private readonly mType: PgslStringTypeDefinition;
 
     /**
      * Value of literal.
@@ -30,23 +30,6 @@ export class PgslStringValueExpression extends PgslExpression {
 
         // Set data.
         this.mValue = pTextValue.substring(1, pTextValue.length - 1);
-
-        // Create type declaration.
-        this.mType = new PgslStringTypeDefinition(BasePgslSyntaxTree.convertMeta(this.meta));
-
-        // Append type as child.
-        this.appendChild(this.mType);
-    }
-
-    /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param _pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code of current expression.
-     */
-    protected override onTranspile(_pTrace: PgslFileMetaInformation): string {
-        return this.mValue;
     }
 
     /**
@@ -54,13 +37,13 @@ export class PgslStringValueExpression extends PgslExpression {
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
-        this.mType.validate(pTrace);
-
-        return {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
+        return new PgslExpressionTrace({
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
-            resolveType: this.mType
-        };
+            resolveType: new PgslStringType(pTrace),
+            constantValue: this.mValue,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

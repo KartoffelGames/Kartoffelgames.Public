@@ -212,6 +212,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
                 case PgslValueAddressSpace.Uniform: return 'uniform';
                 case PgslValueAddressSpace.Storage: return 'storage';
                 case PgslValueAddressSpace.Texture: return 'handle';
+                case PgslValueAddressSpace.Inherit: return '__UNKNOWN__'
             }
         })();
 

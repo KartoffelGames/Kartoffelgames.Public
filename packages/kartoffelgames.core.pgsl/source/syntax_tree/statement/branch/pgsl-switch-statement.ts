@@ -1,25 +1,19 @@
-import { Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition } from "../../type/base-pgsl-type-definition.ts";
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum.ts';
+import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-
-// TODO: Needs a slight rework.
-// Unfortunately, the current implementation is wrong.
-// A switch statement must have a default. And that can be in any case block.
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
 export class PgslSwitchStatement extends BasePgslStatement {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
-    private readonly mDefault: PgslBlockStatement | null;
+    private readonly mDefault: PgslBlockStatement;
     private readonly mExpression: PgslExpression;
 
     /**
@@ -32,7 +26,7 @@ export class PgslSwitchStatement extends BasePgslStatement {
     /**
      * Default block.
      */
-    public get default(): PgslBlockStatement | null {
+    public get default(): PgslBlockStatement {
         return this.mDefault;
     }
 
@@ -41,26 +35,6 @@ export class PgslSwitchStatement extends BasePgslStatement {
      */
     public get expression(): PgslExpression {
         return this.mExpression;
-    }
-
-    /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Open switch.
-        let lResult: string = `switch (${this.mExpression.transpile(pTrace)}) {`
-
-        // Append each case.
-        for(const lCase of this.mCases) {
-            lResult += `case ${lCase.cases.map((lTree)=> {return lTree.transpile(pTrace)}).join(', ')}: ${lCase.block.transpile(pTrace)}`
-        }
-
-        // Close switch.
-        return lResult + '}';
     }
 
     /**
@@ -80,9 +54,7 @@ export class PgslSwitchStatement extends BasePgslStatement {
 
         // Add data as child tree.
         this.appendChild(this.mExpression);
-        if (this.mDefault) {
-            this.appendChild(this.mDefault);
-        }
+        this.appendChild(this.mDefault);
 
         // Add each case as 
         for (const lCase of this.mCases) {
@@ -91,55 +63,64 @@ export class PgslSwitchStatement extends BasePgslStatement {
     }
 
     /**
-     * Validate data of current structure.
+     * Trace data of current structure.
+     * 
+     * @param pTrace - Current trace context.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        // Validate expression.
-        this.mExpression.validate(pValidationTrace);
+    protected override onTrace(pTrace: PgslTrace): void {
+        // Trace expression.
+        this.mExpression.trace(pTrace);
 
-        // Read attachments of expression.
-        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+        // Read trace of expression.
+        const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
-        // Expression resolve type needed to 
-        const lExpressionResolveType: BasePgslTypeDefinition = lExpressionAttachment.resolveType;
+        const lCastableIntoInteger = (pType: PgslType) => {
+            return pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)) || pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger));
+        };
 
         // Expression resolve type must be a unsigned integer.
-        if (!(lExpressionResolveType instanceof PgslNumericTypeDefinition) || lExpressionResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) { // TODO: Cant do this, as alias types could be that as well.
-            pValidationTrace.pushError('Switch expression must resolve into a unsigned integer.', this.mExpression.meta, this);
+        if (!lCastableIntoInteger(lExpressionTrace.resolveType)) {
+            pTrace.pushIncident('Switch expression must resolve into a unsigned integer.', this.mExpression);
         }
+
+        const lSelectorValues: Set<number> = new Set<number>();
 
         // Validate each case.
         for (const lCase of this.mCases) {
             // Validate case block.
-            lCase.block.validate(pValidationTrace);
+            lCase.block.trace(pTrace);
 
             // Validate any case value.
             for (const lCaseValue of lCase.cases) {
                 // Validate case value.
-                lCaseValue.validate(pValidationTrace);
+                lCaseValue.trace(pTrace);
 
-                // Read attachment of case value.
-                const lCaseValueAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lCaseValue);
+                // Read trace of case value.
+                const lCaseValueTrace: PgslExpressionTrace = pTrace.getExpression(lCaseValue);
 
-                // Case value resolve type needed to 
-                const lCaseValueResolveType: BasePgslTypeDefinition = lCaseValueAttachment.resolveType;
+                // Check for duplicate case values.
+                if (typeof lCaseValueTrace.constantValue === 'number') {
+                    if (lSelectorValues.has(lCaseValueTrace.constantValue)) {
+                        pTrace.pushIncident('Duplicate case value found.', lCaseValue);
+                    }
+
+                    lSelectorValues.add(lCaseValueTrace.constantValue);
+                }
 
                 // Must be number type.
-                if (!(lCaseValueResolveType instanceof PgslNumericTypeDefinition) || lCaseValueResolveType.numericType !== PgslNumericTypeName.UnsignedInteger) { // TODO: Cant do this, as alias types could be that as well.
-                    pValidationTrace.pushError('Case expression must be of a unsigned integer type.', lCaseValue.meta, this);
+                if (!lCastableIntoInteger(lCaseValueTrace.resolveType)) {
+                    pTrace.pushIncident('Case expression must be of a unsigned integer type.', lCaseValue);
                 }
 
                 // Cases must be constant.
-                if (lCaseValueAttachment.fixedState !== PgslValueFixedState.Constant) {
-                    pValidationTrace.pushError('Case expression must be a constant.', lCaseValue.meta, this);
+                if (lCaseValueTrace.fixedState !== PgslValueFixedState.Constant) {
+                    pTrace.pushIncident('Case expression must be a constant.', lCaseValue);
                 }
             }
         }
 
-        // When set, validate default block.
-        if (this.mDefault) {
-            this.mDefault.validate(pValidationTrace);
-        }
+        // Trace default block.
+        this.mDefault.trace(pTrace);
     }
 }
 
@@ -151,5 +132,5 @@ export type PgslSwitchStatementSwitchCase = {
 export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
     expression: PgslExpression,
     cases: Array<PgslSwitchStatementSwitchCase>;
-    default: PgslBlockStatement | null;
+    default: PgslBlockStatement;
 };

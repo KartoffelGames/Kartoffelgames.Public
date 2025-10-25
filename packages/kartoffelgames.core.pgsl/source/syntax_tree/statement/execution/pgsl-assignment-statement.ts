@@ -16,6 +16,13 @@ export class PgslAssignmentStatement extends BasePgslStatement {
     private readonly mVariable: PgslExpression;
 
     /**
+     * Assignment name.
+     */
+    public get assignmentName(): string {
+        return this.mAssignmentName;
+    }
+
+    /**
      * Expression reference.
      */
     public get expression(): PgslExpression {

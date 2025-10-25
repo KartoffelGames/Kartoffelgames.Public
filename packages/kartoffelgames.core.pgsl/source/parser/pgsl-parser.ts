@@ -684,15 +684,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         /**
          * Single case of a switch statement graph. Containing a case with a list of expressions devided by comma and a block.
          * ```
-         * - "case <EXPRESSION> <BLOCK>"
-         * - "case <EXPRESSION>, <EXPRESSION> <BLOCK>"
-         * - "case <EXPRESSION>, <EXPRESSION>, <EXPRESSION> <BLOCK>"
+         * - "case <EXPRESSION>: <BLOCK>"
+         * - "case <EXPRESSION>, <EXPRESSION>: <BLOCK>"
+         * - "case <EXPRESSION>, <EXPRESSION>, <EXPRESSION>: <BLOCK>"
          * ```
          */
         const lSwitchCaseStatementGraph: Graph<PgslToken, object, PgslSwitchStatementSwitchCase> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordCase)
                 .required('cases<-list', pExpressionGraphs.expressionList)
+                .required(PgslToken.MemberDelimiter)
                 .required('block', lBlockStatementGraph);
         });
 
@@ -722,7 +723,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .required(PgslToken.ParenthesesEnd)
                 .required(PgslToken.BlockStart)
                 .optional('cases<-list', lSwitchCaseStatementListGraph)
-                .optional('defaultBlock<-block', GraphNode.new<PgslToken>()
+                .required('defaultBlock<-block', GraphNode.new<PgslToken>()
                     .required(PgslToken.KeywordDefault)
                     .required('block', lBlockStatementGraph)
                 )
@@ -732,7 +733,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             return new PgslSwitchStatement(this.createTokenBoundParameter(pStartToken, pEndToken), {
                 expression: pData.expression,
                 cases: pData.cases ?? [],
-                default: pData.defaultBlock ?? null
+                default: pData.defaultBlock
             });
         });
 

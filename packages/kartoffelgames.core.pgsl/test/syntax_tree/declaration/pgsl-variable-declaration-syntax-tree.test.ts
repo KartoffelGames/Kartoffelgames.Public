@@ -4,10 +4,8 @@ import { PgslParserResult } from "../../../source/parser/pgsl-parser-result.ts";
 import { PgslParser } from "../../../source/parser/pgsl-parser.ts";
 import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
 import { PgslExpression } from "../../../source/syntax_tree/expression/pgsl-expression.ts";
-import { PgslFileMetaInformation } from "../../../source/syntax_tree/pgsl-build-result.ts";
-import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
-import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 import { PgslTypeDeclaration } from "../../../source/syntax_tree/general/pgsl-type-declaration.ts";
+import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();

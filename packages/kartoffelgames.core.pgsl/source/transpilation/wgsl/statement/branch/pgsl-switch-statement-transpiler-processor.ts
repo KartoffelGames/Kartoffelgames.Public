@@ -28,6 +28,9 @@ export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerPr
             lResult += `case ${lCase.cases.map((lTree)=> {return pTranspile(lTree)}).join(', ')}: ${pTranspile(lCase.block)}`
         }
 
+        // Append default case.
+        lResult += `default: ${pTranspile(pInstance.default)}`
+
         // Close switch.
         return lResult + '}';
     }

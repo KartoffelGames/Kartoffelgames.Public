@@ -1,16 +1,16 @@
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import { PgslExpression } from "../../expression/pgsl-expression.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import { PgslAssignmentStatement } from '../execution/pgsl-assignment-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 import { PgslFunctionCallStatement } from '../execution/pgsl-function-call-statement.ts';
 import { PgslIncrementDecrementStatement } from '../execution/pgsl-increment-decrement-statement.ts';
-import type { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../execution/pgsl-variable-declaration-statement.ts';
+import type { PgslVariableDeclarationStatement } from '../execution/pgsl-variable-declaration-statement.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.
@@ -78,95 +78,61 @@ export class PgslForStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     *
-     * @param pTrace - Transpilation trace.
-     *
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        let lResult: string = '';
-
-        // Transpile init value when set.
-        if (this.mInit) {
-            lResult += this.mInit.transpile(pTrace);
-        }
-
-        // Create a loop.
-        lResult += 'loop {';
-
-        // When a expression is set define it as exit.
-        if (this.mExpression) {
-            lResult += `if !(${this.mExpression.transpile(pTrace)}) { break; }`;
-        }
-
-        // Append the actual body.
-        lResult += this.mBlock.transpile(pTrace);
-
-        // Set the update expression when defined.
-        if (this.mUpdate) {
-            lResult += `${this.mUpdate.transpile(pTrace)};`;
-        }
-
-        // And close the loop.
-        return lResult + '}';
-    }
-
-    /**
      * Validate data of current structure.
      * 
-     * @param pValidationTrace - Validation trace.
+     * @param pTrace - Validation trace.
      */
-    protected onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        // Validate init first to add value to block scope. 
-        if (this.mInit) {
-            // Validate init declaration.
-            this.mInit.validate(pValidationTrace);
+    protected onTrace(pTrace: PgslTrace): void {
+        // Create new loop scope and trace child trees.
+        pTrace.newScope('loop', () => {
+            // Trace optional init declaration. Do it first to make variable available in expression and update traces.
+            if (this.mInit) {
+                this.mInit.trace(pTrace);
 
-            // Push value to scope.
-            pValidationTrace.pushScopedValue(this.mInit.name, this.mInit);
-
-            // Read attachment of init declaration.
-            const lInitAttachment: PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mInit);
-
-            // Variable must be a let
-            if (lInitAttachment.declarationType !== PgslDeclarationType.Let) {
-                pValidationTrace.pushError('Initial of for loops must be a let declaration.', this.mInit.meta, this);
-            }
-        }
-
-        // Validate block.
-        this.mBlock.validate(pValidationTrace);
-
-        // Validate expression.
-        if (this.mExpression) {
-            this.mExpression.validate(pValidationTrace);
-
-            // Read attachments of expression.
-            const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
-
-            // Read attachment of expression resolve type.
-            const lExpressionResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
-
-            // Expression must be a boolean.
-            if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-                pValidationTrace.pushError('Expression of while loops must resolve into a boolean.', this.mExpression.meta, this);
-            }
-        }
-
-        // Validate update statement.
-        if (this.mUpdate !== null) {
-            switch (true) {
-                case this.mUpdate instanceof PgslAssignmentStatement:
-                case this.mUpdate instanceof PgslIncrementDecrementStatement:
-                case this.mUpdate instanceof PgslFunctionCallStatement: {
-                    break;
-                }
-                default: {
-                    pValidationTrace.pushError('For update statement must be either an assignment, increment or function statement.', this.mUpdate.meta, this);
+                // Read value trace of init declaration.
+                const lInitAttachment: PgslValueTrace | null = pTrace.currentScope.getValue(this.mInit.name);
+                if (!lInitAttachment) {
+                    pTrace.pushIncident('Unable to find for loop init declaration in scope.', this.mInit);
+                } else {
+                    // Variable must be a let
+                    if (lInitAttachment.declarationType !== PgslDeclarationType.Let) {
+                        pTrace.pushIncident('Initial of for loops must be a let declaration.', this.mInit);
+                    }
                 }
             }
-        }
+
+            // Validate optional expression.
+            if (this.mExpression) {
+                this.mExpression.trace(pTrace);
+
+                // Read attachments of expression.
+                const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
+
+                // Expression must be a boolean.
+                if (lExpressionTrace.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
+                    pTrace.pushIncident('Expression of while loops must resolve into a boolean.', this.mExpression);
+                }
+            }
+
+            // Validate optional update statement.
+            if (this.mUpdate) {
+                this.mUpdate.trace(pTrace);
+
+                switch (true) {
+                    case this.mUpdate instanceof PgslAssignmentStatement:
+                    case this.mUpdate instanceof PgslIncrementDecrementStatement:
+                    case this.mUpdate instanceof PgslFunctionCallStatement: {
+                        break;
+                    }
+                    default: {
+                        pTrace.pushIncident('For update statement must be either an assignment, increment or function statement.', this.mUpdate);
+                    }
+                }
+            }
+
+            // Trace block.
+            this.mBlock.trace(pTrace);
+        }, this);
     }
 }
 

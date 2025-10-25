@@ -17,7 +17,7 @@ import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class PgslSwitchStatement extends BasePgslStatement<void> {
+export class PgslSwitchStatement extends BasePgslStatement {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatement | null;
     private readonly mExpression: PgslExpression;

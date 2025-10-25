@@ -1,9 +1,8 @@
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
+import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
@@ -47,37 +46,25 @@ export class PgslWhileStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `loop { if !(${this.mExpression.transpile(pTrace)}) { break; } ${this.mBlock.transpile(pTrace)} }`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
-     * @param pValidationTrace - Validation trace.
+     * @param pTrace - Validation trace.
      */
-    protected onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        // Validate expression.
-        this.mExpression.validate(pValidationTrace);
+    protected onTrace(pTrace: PgslTrace): void {
+        // Trace expression.
+        this.mExpression.trace(pTrace);
 
-        // Validate block.
-        this.mBlock.validate(pValidationTrace);
+        // Trace block in own loop scope.
+        pTrace.newScope('loop', () => {
+            this.mBlock.trace(pTrace);
+        }, this);
 
         // Read attachments of expression.
-        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
-
-        // Read attachment of expression resolve type.
-        const lExpressionResolveTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(lExpressionAttachment.resolveType);
+        const lExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
         // Expression must be a boolean.
-        if (lExpressionResolveTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-            pValidationTrace.pushError('Expression of while loops must resolve into a boolean.', this.expression.meta, this);
+        if (!lExpressionAttachment.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
+            pTrace.pushIncident('Expression of while loops must resolve into a boolean.', this.mExpression);
         }
     }
 }

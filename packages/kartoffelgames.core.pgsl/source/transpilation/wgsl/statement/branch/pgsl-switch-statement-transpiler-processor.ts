@@ -1,6 +1,6 @@
-import { PgslSwitchStatement } from "../../../syntax_tree/statement/branch/pgsl-switch-statement.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslSwitchStatement } from "../../../../syntax_tree/statement/branch/pgsl-switch-statement.ts";
+import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
+import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
 
 export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslSwitchStatement> {
     /**

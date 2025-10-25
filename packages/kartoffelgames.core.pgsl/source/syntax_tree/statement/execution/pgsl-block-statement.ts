@@ -2,11 +2,10 @@ import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import { PgslType } from "../../../type/pgsl-type.ts";
 import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import { PgslReturnStatement } from "../single/pgsl-return-statement.ts";
 import { PgslBreakStatement } from "../single/pgsl-break-statement.ts";
 import { PgslContinueStatement } from "../single/pgsl-continue-statement.ts";
+import { PgslReturnStatement } from "../single/pgsl-return-statement.ts";
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
@@ -77,18 +76,6 @@ export class PgslBlockStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile current alias declaration into a string.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        // Transpile all statements.
-        return `{\n${this.mStatementList.map(statement => statement.transpile(pTrace)).join('\n')}\n}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
@@ -123,6 +110,6 @@ export class PgslBlockStatement extends BasePgslStatement {
                     continue;
                 }
             }
-        });
+        }, this);
     }
 }

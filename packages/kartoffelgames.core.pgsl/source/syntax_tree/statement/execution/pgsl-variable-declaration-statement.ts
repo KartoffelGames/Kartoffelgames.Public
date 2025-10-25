@@ -12,7 +12,7 @@ import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class PgslVariableDeclarationStatement extends BasePgslStatement<PgslVariableDeclarationStatementSyntaxTreeValidationAttachment> {
+export class PgslVariableDeclarationStatement extends BasePgslStatement {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: PgslExpression | null;
     private readonly mName: string;

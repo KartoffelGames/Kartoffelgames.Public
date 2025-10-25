@@ -1,11 +1,11 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
 import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../../expression/pgsl-expression.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
+import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
 
 /**
  * PGSL structure holding a assignment statement.
@@ -48,52 +48,37 @@ export class PgslAssignmentStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpile the current structure to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-      return `${this.mVariable.transpile(pTrace)} ${this.mAssignmentName} ${this.mExpression.transpile(pTrace)};`;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
+    protected override onTrace(pTrace: PgslTrace): void {
         // Try to parse assignment.
         const lAssignment: PgslAssignment | undefined = EnumUtil.cast(PgslAssignment, this.mAssignmentName);
         if (!lAssignment) {
-            pValidationTrace.pushError(`Operation "${this.mAssignmentName}" can not used for assignment statements.`, this.meta, this);
+            pTrace.pushIncident(`Operation "${this.mAssignmentName}" can not used for assignment statements.`, this);
         }
 
         // Read variable attachments.
-        const lVariableAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mVariable);
+        const lVariableTrace: PgslExpressionTrace = pTrace.getExpression(this.mVariable);
 
         // Must be a storage.
-        if (!lVariableAttachment.isStorage) {
-            pValidationTrace.pushError('Assignment statement must be applied to a storage expression', this.meta, this);
+        if (!lVariableTrace.isStorage) {
+            pTrace.pushIncident('Assignment statement must be applied to a storage expression', this.mVariable);
         }
 
         // Validate that it is not a constant.
-        if (lVariableAttachment.fixedState !== PgslValueFixedState.Variable) {
-            pValidationTrace.pushError('Assignment statement must be applied to a variable', this.meta, this);
+        if (lVariableTrace.fixedState !== PgslValueFixedState.Variable) {
+            pTrace.pushIncident('Assignment statement must be applied to a variable', this.mVariable);
         }
 
         // Read expression attachments.
-        const lExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pValidationTrace.getAttachment(this.mExpression);
+        const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
         // Validate that it has the same value.
-        if (!lExpressionAttachment.resolveType.isImplicitCastableInto(pValidationTrace, lVariableAttachment.resolveType)) {
-            pValidationTrace.pushError(`Can't assign a different type to a variable`, this.meta, this);
+        if (!lExpressionTrace.resolveType.isImplicitCastableInto(lVariableTrace.resolveType)) {
+            pTrace.pushIncident(`Can't assign a different type to a variable`, this.mExpression);
         }
     }
 }
-
-type PgslAssignmentStatementSyntaxTreeSetupData = {
-    assignment: PgslAssignment;
-};
 
 export type PgslAssignmentStatementSyntaxTreeConstructorParameter = {
     assignment: string;

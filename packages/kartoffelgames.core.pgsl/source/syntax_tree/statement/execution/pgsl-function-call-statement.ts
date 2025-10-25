@@ -1,8 +1,7 @@
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { PgslFunctionCallExpression } from '../../expression/single_value/pgsl-function-call-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
 /**
@@ -36,22 +35,11 @@ export class PgslFunctionCallStatement extends BasePgslStatement {
     }
 
     /**
-     * Transpiles the statement to a string representation.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns Transpiled string.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return this.mFunctionExpression.transpile(pTrace) + ';';
-    }
-
-    /**
      * Validate data of current structure.
      * 
-     * @param pValidationTrace - Validation trace.
+     * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pValidationTrace: PgslValidationTrace): void {
-        this.mFunctionExpression.validate(pValidationTrace);
+    protected override onTrace(pTrace: PgslTrace): void {
+        this.mFunctionExpression.trace(pTrace);
     }
 }

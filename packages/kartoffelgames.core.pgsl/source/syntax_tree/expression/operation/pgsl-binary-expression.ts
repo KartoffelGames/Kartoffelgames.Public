@@ -1,12 +1,13 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpression } from "../pgsl-expression.ts";
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 
 export class PgslBinaryExpression extends PgslExpression {
     private readonly mLeftExpression: PgslExpression;
@@ -18,6 +19,13 @@ export class PgslBinaryExpression extends PgslExpression {
      */
     public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
+    }
+
+    /**
+     * Operator name.
+     */
+    public get operatorName(): string {
+        return this.mOperatorName;
     }
 
     /**
@@ -50,25 +58,14 @@ export class PgslBinaryExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate left and right expressions.
-        this.mLeftExpression.validate(pTrace);
-        this.mRightExpression.validate(pTrace);
+        this.mLeftExpression.trace(pTrace);
+        this.mRightExpression.trace(pTrace);
 
         // Try to convert operator.
         const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
@@ -84,61 +81,69 @@ export class PgslBinaryExpression extends PgslExpression {
 
         // Validate operator usable for bit operations.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for bit operations.`, this.meta, this);
+            pTrace.pushIncident(`Operator "${this.mOperatorName}" can not used for bit operations.`, this);
         }
 
-        // Read left and right expression attachments.
-        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
-        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
-        const lRightExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lRightExpressionAttachment.resolveType);
+        // Read left and right expression traces.
+        const lLeftExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mLeftExpression);
+        const lRightExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mRightExpression);
 
         // Type buffer for validating the processed types.
-        let lLeftValueType: BasePgslTypeDefinition;
-        let lRightValueType: BasePgslTypeDefinition;
+        let lLeftValueType: PgslType;
+        let lRightValueType: PgslType;
 
         // Validate vectors differently.
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition) {  // TODO: Cant do this, as alias types could be vectors as well.
-            lLeftValueType = lLeftExpressionAttachment.resolveType.innerType;
+        if (lLeftExpressionTrace.resolveType instanceof PgslVectorType) {
+            lLeftValueType = lLeftExpressionTrace.resolveType.innerType;
 
             // Left and right must be a vector.
-            if (!(lRightExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition)) {  // TODO: Cant do this, as alias types could be vectors as well.
-                pTrace.pushError('Left and right side of bit expression must be the a vector type.', this.meta, this);
-                lRightValueType = lRightExpressionAttachment.resolveType
+            if (lRightExpressionTrace.resolveType instanceof PgslVectorType) {
+                lRightValueType = lRightExpressionTrace.resolveType.innerType;
+
+                // Validate that both vectors are of same size.
+                if (lLeftExpressionTrace.resolveType.dimension !== lRightExpressionTrace.resolveType.dimension) {
+                    pTrace.pushIncident('Left and right side of bit expression must be of the same vector size.', this);
+                }
             } else {
-                lRightValueType = lRightExpressionAttachment.resolveType.innerType;
+                pTrace.pushIncident('Left and right side of bit expression must be the a vector type.', this);
+                lRightValueType = lRightExpressionTrace.resolveType;
             }
         } else {
             // Expression types are the processed types.
-            lLeftValueType = lLeftExpressionAttachment.resolveType;
-            lRightValueType = lRightExpressionAttachment.resolveType;
+            lLeftValueType = lLeftExpressionTrace.resolveType;
+            lRightValueType = lRightExpressionTrace.resolveType;
         }
 
-        // Validate that rigth expression of shift operator needs to be a signed integer.
+        const lUnsignedInteger: PgslNumericType = new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+        const lSignedInteger: PgslNumericType = new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger);
+
+        // Left value need to be a integer numeric.
+        if (!lLeftValueType.isImplicitCastableInto(lUnsignedInteger) && !lLeftValueType.isImplicitCastableInto(lSignedInteger)) {
+            pTrace.pushIncident(`Binary operations can only be applied to integer types.`, this.mLeftExpression);
+        }
+        if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger) && !lRightValueType.isImplicitCastableInto(lSignedInteger)) {
+            pTrace.pushIncident(`Binary operations can only be applied to integer types.`, this.mRightExpression);
+        }
+
+        // Validate that right expression of shift operator needs to be a signed integer.
         if (lOperator === PgslOperator.ShiftLeft || lOperator === PgslOperator.ShiftRight) {
-            // TODO: Must be variable.
+            // Left must be variable.
+            if (!lLeftExpressionTrace.isStorage) {
+                pTrace.pushIncident(`Left expression of a shift operation must be a variable that can store a value.`, this.mLeftExpression);
+            }
 
-            // TODO: right must be assignable to unsigned integer.
-            // TODO: Left must be any integer.
-
-            // TODO: When left is vector, right must be vector of same size.
-
-            // Shift value must be numeric.
-            // if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Numeric) {
-            //     if (!lRightValueType || (<PgslNumericTypeDefinitionSyntaxTree>lRightValueType).numericType !== PgslNumericTypeName.UnsignedInteger) {
-            //         pTrace.pushError(`Right expression of a shift operation must be a unsigned integer.`, this.meta, this);
-            //     }
-            // }
+            // Right must be assignable to unsigned integer.
+            if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger)) {
+                pTrace.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this.mRightExpression);
+            }
         }
 
-        // Both values need to be numeric.
-        if (!(lLeftValueType instanceof PgslNumericTypeDefinition)) { // TODO: Cant do this, as alias types could be that as well.
-            pTrace.pushError(`Binary operations can only be applied to numeric values.`, this.meta, this);
-        }
-
-        return {
-            fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
+        return new PgslExpressionTrace({
+            fixedState: Math.min(lLeftExpressionTrace.fixedState, lRightExpressionTrace.fixedState),
             isStorage: false,
-            resolveType: lLeftExpressionAttachment.resolveType
-        };
+            resolveType: lLeftExpressionTrace.resolveType,
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

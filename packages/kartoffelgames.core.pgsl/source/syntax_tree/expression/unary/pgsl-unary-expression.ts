@@ -68,12 +68,12 @@ export class PgslUnaryExpression extends PgslExpression {
             lValueType = lExpressionTrace.resolveType;
         }
 
-        const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean): boolean => {
-            if (pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float16))) {
+        const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
+            if (pIncludeFloat && pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float16))) {
                 return true;
             }
 
-            if (pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
+            if (pIncludeFloat && pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
                 return true;
             }
 
@@ -93,14 +93,14 @@ export class PgslUnaryExpression extends PgslExpression {
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                if (lCastableIntoNumeric(lValueType, true)) {
+                if (lCastableIntoNumeric(lValueType, true, false)) {
                     pTrace.pushIncident(`Binary negation only valid for numeric type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Minus: {
-                if (lCastableIntoNumeric(lValueType, false)) {
+                if (lCastableIntoNumeric(lValueType, false, true)) {
                     pTrace.pushIncident(`Negation only valid for numeric or vector type.`, this);
                     break;
                 }

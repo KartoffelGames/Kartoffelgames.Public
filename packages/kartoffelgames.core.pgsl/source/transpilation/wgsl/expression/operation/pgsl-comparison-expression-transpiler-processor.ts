@@ -14,12 +14,12 @@ export class PgslComparisonExpressionTranspilerProcessor implements IPgslTranspi
      * Transpiles a PGSL comparison expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTrace - Transpilation trace.
+     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslComparisonExpression, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        throw new Error("Method not implemented.");
+    public process(pInstance: PgslComparisonExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+        return `${pTranspile(pInstance.leftExpression)} ${pInstance.operatorName} ${pTranspile(pInstance.rightExpression)}`;
     }
 }

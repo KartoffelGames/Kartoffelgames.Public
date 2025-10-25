@@ -1,11 +1,11 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import { PgslExpression } from "../pgsl-expression.ts";
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 
 /**
  * PGSL structure for a logical expression between two values.
@@ -20,6 +20,13 @@ export class PgslLogicalExpression extends PgslExpression {
      */
     public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
+    }
+
+    /**
+     * Operator name reference.
+     */
+    public get operatorName(): string {
+        return this.mOperatorName;
     }
 
     /**
@@ -50,25 +57,14 @@ export class PgslLogicalExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate left and right expressions.
-        this.mLeftExpression.validate(pTrace);
-        this.mRightExpression.validate(pTrace);
+        this.mLeftExpression.trace(pTrace);
+        this.mRightExpression.trace(pTrace);
 
         // Try to convert operator.
         const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
@@ -81,29 +77,29 @@ export class PgslLogicalExpression extends PgslExpression {
 
         // Validate operator usable for logical expressions.
         if (!lShortCircuitOperationList.includes(lOperator as PgslOperator)) {
-            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for logical expressions.`, this.meta, this);
+            pTrace.pushIncident(`Operator "${this.mOperatorName}" can not used for logical expressions.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
-        const lLeftExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lLeftExpressionAttachment.resolveType);
-        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
-        const lRightExpressionTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lRightExpressionAttachment.resolveType);
+        const lLeftExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mLeftExpression);
+        const lRightExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mRightExpression);
 
         // Validate left side type.
-        if (lLeftExpressionTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-            pTrace.pushError('Left side of logical expression needs to be a boolean', this.meta, this);
+        if (!lLeftExpressionAttachment.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
+            pTrace.pushIncident('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (lRightExpressionTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-            pTrace.pushError('Right side of logical expression needs to be a boolean', this.meta, this);
+        if (!lRightExpressionAttachment.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
+            pTrace.pushIncident('Right side of logical expression needs to be a boolean', this);
         }
 
-        return {
+        return new PgslExpressionTrace({
             fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
             isStorage: false,
-            resolveType: lLeftExpressionAttachment.resolveType
-        };
+            resolveType: new PgslBooleanType(pTrace),
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

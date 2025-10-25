@@ -1,13 +1,13 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { BasePgslTypeDefinition, BasePgslTypeDefinitionSyntaxTreeValidationAttachment } from "../../type/base-pgsl-type-definition.ts";
-import { PgslBaseTypeName } from '../../type/enum/pgsl-base-type-name.enum.ts';
-import { PgslBooleanTypeDefinition } from "../../type/pgsl-boolean-type-definition.ts";
-import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment, } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpression, } from '../pgsl-expression.ts';
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
 
 /**
  * PGSL structure for a comparison expression between two values.
@@ -22,6 +22,13 @@ export class PgslComparisonExpression extends PgslExpression {
      */
     public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
+    }
+
+    /**
+     * Operator name.
+     */
+    public get operatorName(): string {
+        return this.mOperatorName;
     }
 
     /**
@@ -52,25 +59,14 @@ export class PgslComparisonExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate left and right expressions.
-        this.mLeftExpression.validate(pTrace);
-        this.mRightExpression.validate(pTrace);
+        this.mLeftExpression.trace(pTrace);
+        this.mRightExpression.trace(pTrace);
 
         // Try to convert operator.
         const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
@@ -87,76 +83,56 @@ export class PgslComparisonExpression extends PgslExpression {
 
         // Validate operator usable for comparisons.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for comparisons.`, this.meta, this);
+            pTrace.pushIncident(`Operator "${this.mOperatorName}" can not used for comparisons.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
-        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
+        const lLeftExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mLeftExpression);
+        const lRightExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mRightExpression);
 
         // Comparison needs to be the same type or implicitly castable.
-        if (!lRightExpressionAttachment.resolveType.isImplicitCastableInto(pTrace, lLeftExpressionAttachment.resolveType)) {
-            pTrace.pushError(`Comparison can only be between values of the same type.`, this.meta, this);
+        if (!lRightExpressionTrace.resolveType.isImplicitCastableInto(lLeftExpressionTrace.resolveType)) {
+            pTrace.pushIncident(`Comparison can only be between values of the same type.`, this);
         }
 
         // Type buffer for validating the processed types.
-        let lValueType: BasePgslTypeDefinition;
+        let lValueType: PgslType;
 
         // Validate vectors differently.
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition) { // TODO: Cant do this, as alias types could be vectors as well.
-            lValueType = lLeftExpressionAttachment.resolveType.innerType;
+        if (lLeftExpressionTrace.resolveType instanceof PgslVectorType) {
+            lValueType = lLeftExpressionTrace.resolveType.innerType;
         } else {
-            lValueType = lLeftExpressionAttachment.resolveType;
+            lValueType = lLeftExpressionTrace.resolveType;
         }
 
-        // Read value type attachment.
-        const lValueTypeAttachment: BasePgslTypeDefinitionSyntaxTreeValidationAttachment = pTrace.getAttachment(lValueType);
-
-        // TODO: Values must be same type.
-        // TODO: Values must be scalar or same scalar vector type .
-
         // Both values need to be numeric or boolean.
-        if (lValueTypeAttachment.baseType !== PgslBaseTypeName.Float && lValueTypeAttachment.baseType !== PgslBaseTypeName.Integer && lValueTypeAttachment.baseType !== PgslBaseTypeName.Boolean) {
-            pTrace.pushError(`None numeric or boolean values can't be compared`, this.meta, this);
+        if (!lValueType.scalar) {
+            pTrace.pushIncident(`Comparison can only be between scalar values.`, this);
         }
 
         // Validate boolean compare.
-        if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(lOperator as PgslOperator)) {
-            if (lValueTypeAttachment.baseType === PgslBaseTypeName.Boolean) {
-                pTrace.pushError(`Boolean can only be compares with "NotEqual" or "Equal"`, this.meta, this);
-            }
+        if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(lOperator as PgslOperator) && lValueType instanceof PgslBooleanType) {
+            pTrace.pushIncident(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
         }
 
         // Any value is converted into a boolean type.
-        const lResolveType: BasePgslTypeDefinition = (() => {
-            const lBooleanDefinition: PgslBooleanTypeDefinition = new PgslBooleanTypeDefinition({
-                range: [
-                    this.meta.position.start.line,
-                    this.meta.position.start.column,
-                    this.meta.position.end.line,
-                    this.meta.position.end.column,
-                ]
-            });
+        const lResolveType: PgslType = (() => {
+            const lBooleanDefinition: PgslBooleanType = new PgslBooleanType(pTrace);
 
             // Wrap boolean into a vector when it is a vector expression.
-            if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition) {  // TODO: Cant do this, as alias types could be vectors as well.
-                return new PgslVectorTypeDefinition(lLeftExpressionAttachment.resolveType.vectorDimension, lBooleanDefinition, {
-                    range: [
-                        this.meta.position.start.line,
-                        this.meta.position.start.column,
-                        this.meta.position.end.line,
-                        this.meta.position.end.column,
-                    ]
-                });
+            if (lLeftExpressionTrace.resolveType instanceof PgslVectorType) {
+                return new PgslVectorType(pTrace, lLeftExpressionTrace.resolveType.dimension, lBooleanDefinition);
             }
 
             return lBooleanDefinition;
         })();
 
-        return {
-            fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
+        return new PgslExpressionTrace({
+            fixedState: Math.min(lLeftExpressionTrace.fixedState, lRightExpressionTrace.fixedState),
             isStorage: false,
-            resolveType: lResolveType
-        };
+            resolveType: lResolveType,
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

@@ -1,11 +1,12 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
+import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
+import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
+import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslValidationTrace } from "../../pgsl-validation-trace.ts";
-import { PgslNumericTypeDefinition } from "../../type/pgsl-numeric-type-definition.ts";
-import { PgslVectorTypeDefinition } from "../../type/pgsl-vector-type-definition.ts";
-import { PgslExpression, PgslExpressionSyntaxTreeValidationAttachment } from '../pgsl-expression.ts';
-import { PgslFileMetaInformation } from "../../pgsl-build-result.ts";
+import { PgslExpression } from "../pgsl-expression.ts";
 
 export class PgslArithmeticExpression extends PgslExpression {
     private readonly mLeftExpression: PgslExpression;
@@ -17,6 +18,13 @@ export class PgslArithmeticExpression extends PgslExpression {
      */
     public get leftExpression(): PgslExpression {
         return this.mLeftExpression;
+    }
+
+    /**
+     * Operator name.
+     */
+    public get operatorName(): string {
+        return this.mOperatorName;
     }
 
     /**
@@ -47,25 +55,14 @@ export class PgslArithmeticExpression extends PgslExpression {
     }
 
     /**
-     * Transpile current expression to WGSL code.
-     * 
-     * @param pTrace - Transpilation trace.
-     * 
-     * @returns WGSL code.
-     */
-    protected override onTranspile(pTrace: PgslFileMetaInformation): string {
-        return `${this.mLeftExpression.transpile(pTrace)} ${this.mOperatorName} ${this.mRightExpression.transpile(pTrace)}`;
-    }
-
-    /**
      * Validate data of current structure.
      * 
      * @param pTrace - Validation trace.
      */
-    protected override onValidateIntegrity(pTrace: PgslValidationTrace): PgslExpressionSyntaxTreeValidationAttachment {
+    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Validate left and right expressions.
-        this.mLeftExpression.validate(pTrace);
-        this.mRightExpression.validate(pTrace);
+        this.mLeftExpression.trace(pTrace);
+        this.mRightExpression.trace(pTrace);
 
         // Try to convert operator.
         const lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.mOperatorName);
@@ -81,38 +78,40 @@ export class PgslArithmeticExpression extends PgslExpression {
 
         // Validate.
         if (!lComparisonList.includes(lOperator as PgslOperator)) {
-            pTrace.pushError(`Operator "${this.mOperatorName}" can not used for arithmetic operations.`, this.meta, this);
+            pTrace.pushIncident(`Operator "${this.mOperatorName}" can not used for arithmetic operations.`, this);
         }
 
         // Read left and right expression attachments.
-        const lLeftExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mLeftExpression);
-        const lRightExpressionAttachment: PgslExpressionSyntaxTreeValidationAttachment = pTrace.getAttachment(this.mRightExpression);
+        const lLeftExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mLeftExpression);
+        const lRightExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mRightExpression);
 
         // TODO: Also matrix calculations :(
         // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type or implicitly castable.
-        if (!lRightExpressionAttachment.resolveType.isImplicitCastableInto(pTrace, lLeftExpressionAttachment.resolveType)) {
-            pTrace.pushError('Left and right side of arithmetic expression must be the same type.', this.meta, this);
+        if (!lRightExpressionTrace.resolveType.isImplicitCastableInto(lLeftExpressionTrace.resolveType)) {
+            pTrace.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
         // Validate vector inner values. 
-        if (lLeftExpressionAttachment.resolveType instanceof PgslVectorTypeDefinition) {  // TODO: Cant do this, as alias types could be vectors as well.
+        if (lLeftExpressionTrace.resolveType instanceof PgslVectorType) {
             // Validate left side vector type. Right ist the same type.
-            if (!(lLeftExpressionAttachment.resolveType.innerType instanceof PgslNumericTypeDefinition)) { // TODO: Cant do this, as alias types could be that as well.
-                pTrace.pushError('Left and right side of arithmetic expression must be a numeric vector value', this.meta, this);
+            if (!(lLeftExpressionTrace.resolveType.innerType instanceof PgslNumericType)) {
+                pTrace.pushIncident('Left and right side of arithmetic expression must be a numeric vector value', this);
             }
         } else {
             // Validate left side type. Right ist the same type.
-            if (!(lLeftExpressionAttachment.resolveType instanceof PgslNumericTypeDefinition)) { // TODO: Cant do this, as alias types could be that as well.
-                pTrace.pushError('Left and right side of arithmetic expression must be a numeric value', this.meta, this);
+            if (!(lLeftExpressionTrace.resolveType instanceof PgslNumericType)) {
+                pTrace.pushIncident('Left and right side of arithmetic expression must be a numeric value', this);
             }
         }
 
-        return {
-            fixedState: Math.min(lLeftExpressionAttachment.fixedState, lRightExpressionAttachment.fixedState),
+        return new PgslExpressionTrace({
+            fixedState: Math.min(lLeftExpressionTrace.fixedState, lRightExpressionTrace.fixedState),
             isStorage: false,
-            resolveType: lLeftExpressionAttachment.resolveType,
-        };
+            resolveType: lLeftExpressionTrace.resolveType,
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Inherit
+        });
     }
 }

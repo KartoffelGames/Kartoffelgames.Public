@@ -2,18 +2,17 @@ import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
 import { PgslAccessModeEnumDeclaration } from "../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts";
-import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
 import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';
 import { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
 import { PgslStructPropertyDeclaration } from '../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
 import { PgslVariableDeclaration } from '../syntax_tree/declaration/pgsl-variable-declaration.ts';
-import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression.ts';
 import { PgslBinaryExpression } from '../syntax_tree/expression/operation/pgsl-binary-expression.ts';
 import { PgslComparisonExpression } from '../syntax_tree/expression/operation/pgsl-comparison-expression.ts';
 import { PgslLogicalExpression } from '../syntax_tree/expression/operation/pgsl-logical-expression.ts';
+import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
 import { PgslAddressOfExpression } from '../syntax_tree/expression/single_value/pgsl-address-of-expression.ts';
 import { PgslFunctionCallExpression } from '../syntax_tree/expression/single_value/pgsl-function-call-expression.ts';
 import { PgslLiteralValueExpression } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression.ts';
@@ -27,6 +26,10 @@ import { PgslVariableNameExpression } from '../syntax_tree/expression/storage/pg
 import { PgslUnaryExpression } from '../syntax_tree/expression/unary/pgsl-unary-expression.ts';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts';
 
+import { PgslLexer } from '../lexer/pgsl-lexer.ts';
+import { PgslToken } from '../lexer/pgsl-token.enum.ts';
+import { PgslDeclaration } from "../syntax_tree/declaration/pgsl-declaration.ts";
+import { PgslTypeDeclaration } from "../syntax_tree/general/pgsl-type-declaration.ts";
 import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
 import type { BasePgslStatement } from '../syntax_tree/statement/base-pgsl-statement.ts';
 import { PgslDoWhileStatement } from '../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
@@ -38,17 +41,14 @@ import { PgslAssignmentStatement } from '../syntax_tree/statement/execution/pgsl
 import { PgslBlockStatement } from '../syntax_tree/statement/execution/pgsl-block-statement.ts';
 import { PgslFunctionCallStatement } from '../syntax_tree/statement/execution/pgsl-function-call-statement.ts';
 import { PgslIncrementDecrementStatement } from '../syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
-import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
 import { PgslVariableDeclarationStatement } from '../syntax_tree/statement/execution/pgsl-variable-declaration-statement.ts';
 import { PgslBreakStatement } from '../syntax_tree/statement/single/pgsl-break-statement.ts';
 import { PgslContinueStatement } from '../syntax_tree/statement/single/pgsl-continue-statement.ts';
 import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-discard-statement.ts';
+import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
 import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslLexer } from '../lexer/pgsl-lexer.ts';
-import { PgslToken } from '../lexer/pgsl-token.enum.ts';
-import { PgslTypeDeclaration } from "../syntax_tree/general/pgsl-type-declaration.ts";
-import { PgslParserResult } from "./pgsl-parser-result.ts";
 import { PgslTranspilation, PgslTranspilationResult } from "../transpilation/pgsl-transpilation.ts";
+import { PgslParserResult } from "./pgsl-parser-result.ts";
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
@@ -236,7 +236,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
                     pExpressionGraphs.expression,
-                    lTypeDeclarationSyntaxTreeGraph
+                    lTypeDeclarationSyntaxTreeGraph as Graph<PgslToken, object, BasePgslSyntaxTree>
                 ]).optional('list<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.Comma)
                     .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.
@@ -1245,14 +1245,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         /**
          * List of declaration graphs.
          */
-        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<BasePgslSyntaxTree>; }> = Graph.define(() => {
+        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<PgslDeclaration>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
-                    pDeclarationGraphs.aliasDeclaration,
-                    pDeclarationGraphs.variableDeclaration,
-                    pDeclarationGraphs.enumDeclaration,
-                    pDeclarationGraphs.structDeclaration,
-                    pDeclarationGraphs.functionDeclaration
+                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, PgslDeclaration>,
+                    pDeclarationGraphs.variableDeclaration as Graph<PgslToken, object, PgslDeclaration>,
+                    pDeclarationGraphs.enumDeclaration as Graph<PgslToken, object, PgslDeclaration>,
+                    pDeclarationGraphs.structDeclaration as Graph<PgslToken, object, PgslDeclaration>,
+                    pDeclarationGraphs.functionDeclaration as Graph<PgslToken, object, PgslDeclaration>
                 ])
                 .optional('list<-list', lModuleScopeDeclarationListGraph); // Self reference.
         });

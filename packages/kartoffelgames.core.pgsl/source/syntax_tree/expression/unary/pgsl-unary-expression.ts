@@ -124,8 +124,6 @@ export class PgslUnaryExpression extends PgslExpression {
             }
         }
 
-        // TODO: Resolved integer type changes when value is negative.
-
         return new PgslExpressionTrace({
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,

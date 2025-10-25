@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
 import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from "../enum/pgsl-value-fixed-state.ts";
@@ -127,12 +128,12 @@ export class PgslValueTrace {
      */
     public resolveBindingIndices(pBindGroupIndex: number, pBindLocationIndex: number): void {
         if (!this.mBindingInformation) {
-            return;
+            throw new Exception(`Value '${this.mName}' has no binding information to resolve.`, this);
         }
 
         // Throw if binding is already resolved.
         if (this.mBindingInformation.bindGroupIndex !== -1 || this.mBindingInformation.bindLocationIndex !== -1) {
-            throw new Error(`Binding for value '${this.mName}' is already resolved.`);
+            throw new Exception(`Binding for value '${this.mName}' is already resolved.`, this);
         }
 
         this.mBindingInformation.bindGroupIndex = pBindGroupIndex;

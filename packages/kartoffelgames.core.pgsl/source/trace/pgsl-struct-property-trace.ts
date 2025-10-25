@@ -1,6 +1,7 @@
-import { PgslType } from "../type/pgsl-type.ts";
+import { Exception } from "../../../kartoffelgames.core/source/exception/exception.ts";
 import { PgslInterpolateSampling } from "../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts";
 import { PgslInterpolateType } from "../syntax_tree/buildin/pgsl-interpolate-type.enum.ts";
+import { PgslType } from "../type/pgsl-type.ts";
 
 /**
  * Trace information for PGSL struct property declarations.
@@ -46,10 +47,30 @@ export class PgslStructPropertyTrace {
     public constructor(pConstructorData: PgslStructPropertyTraceConstructorParameter) {
         this.mName = pConstructorData.name;
         this.mType = pConstructorData.type;
-        this.mMeta = { ...pConstructorData.meta };
+
+        // Set up meta.
+        this.mMeta = {
+            ...pConstructorData.meta,
+            locationIndex: -1
+        };
     }
 
-    
+    /**
+     * Set resolved location index for the property.
+     * 
+     * @param pIndex - Resolved location index.
+     */
+    public resolveLocationIndex(pIndex: number): void {
+        if (!this.mMeta.locationName) {
+            throw new Exception(`Property '${this.mName}' has no location name to resolve.`, this);
+        }
+
+        if (this.mMeta.locationIndex !== -1) {
+            throw new Exception(`Location index for property '${this.mName}' is already resolved.`, this);
+        }
+
+        this.mMeta.locationIndex = pIndex;
+    }
 }
 
 /**
@@ -70,10 +91,10 @@ export type PgslStructPropertyTraceConstructorParameter = {
     /**
      * Metadata for the property
      */
-    meta?: {
+    meta: {
         /**
-     * Memory alignment requirement in bytes
-     */
+         * Memory alignment requirement in bytes
+         */
         alignment?: number;
 
         /**
@@ -123,7 +144,7 @@ export type PgslStructTracePropertyMeta = {
     /**
      * Location index for vertex to fragment or texture location data
      */
-    locationIndex?: number;
+    locationIndex: number;
 
     /**
      * Interpolation mode for vertex to fragment data

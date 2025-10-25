@@ -19,6 +19,13 @@ export class PgslVariableDeclarationStatement extends BasePgslStatement {
     private readonly mTypeDeclaration: BasePgslTypeDefinition;
 
     /**
+     * Declaration type name.
+     */
+    public get declarationType(): string {
+        return this.mDeclarationTypeName;
+    }
+
+    /**
      * Expression reference.
      */
     public get expression(): PgslExpression | null {

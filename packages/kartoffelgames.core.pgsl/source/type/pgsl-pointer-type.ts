@@ -2,8 +2,6 @@ import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts"
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
 
-// TODO: Rework pointer to be used as Pointer<Type, AddressSpace.Module>  ... Na i do it the way i intend to use it for now.
-
 /**
  * Pointer type definition.
  * Represents a pointer type that references another type in memory.

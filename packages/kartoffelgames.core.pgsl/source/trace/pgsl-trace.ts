@@ -266,7 +266,11 @@ export class PgslTrace {
     public registerStructProperty(pProperty: PgslStructPropertyDeclaration, pTrace: PgslStructPropertyTrace) {
         this.assertNotSealed();
 
-        // TODO: Resolve location name to a location index.
+        // Resolve location name to a location index.
+        if (pTrace.meta.locationName) {
+            const lLocationIndex: number = this.resolveLocation(pProperty.struct.name, pTrace.meta.locationName);
+            pTrace.resolveLocationIndex(lLocationIndex);
+        }
 
         this.mStructProperties.set(pProperty, pTrace);
     }
@@ -330,7 +334,7 @@ export class PgslTrace {
      * 
      * @returns The resolved binding information.
      */
-    public resolveBinding(pBindGroupName: string, pBindingName: string): PgslTraceBinding {
+    private resolveBinding(pBindGroupName: string, pBindingName: string): PgslTraceBinding {
         let lBindGroupIndex: number = -1;
 
         // Check if bind group exists.
@@ -376,7 +380,7 @@ export class PgslTrace {
      * 
      * @return The resolved location index.
      */
-    public resolveLocation(pStructName: string, pLocationName: string): number {
+    private resolveLocation(pStructName: string, pLocationName: string): number {
         // Initialize location map for struct if not existing.
         if (!this.mLocationNameResolutions.has(pStructName)) {
             this.mLocationNameResolutions.set(pStructName, new Map<string, number>());

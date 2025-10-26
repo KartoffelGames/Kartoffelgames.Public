@@ -52,6 +52,12 @@ export class PgslAliasDeclaration extends PgslDeclaration {
         // Read type of type definition.
         const lType: PgslType = this.mTypeDefinition.type;
 
+        // Check if alias with same name already exists.
+        if (pTrace.getAlias(this.mName)) {
+            pTrace.pushIncident(`Alias with name "${this.mName}" already defined.`, this);
+            return;
+        }
+
         // Create alias trace.
         const lAliasTrace: PgslAliasTrace = new PgslAliasTrace(this.mName, lType);
 

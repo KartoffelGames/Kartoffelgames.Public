@@ -8,10 +8,12 @@ import { PgslTypeDeclaration } from '../../../source/syntax_tree/general/pgsl-ty
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
 
+// TODO: Check PgslParserResult for registered bindings.
+
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Const', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'const';
@@ -67,7 +69,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const requiring initialization.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "const" must have an initializer.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "const" must have an initializer.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Const with non-constant expression', async () => {
@@ -84,7 +88,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const requiring constant expression.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The expression of declaration type "const" must be a constant expression.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The expression of declaration type "const" must be a constant expression.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Const with non-constructible type', async () => {
@@ -100,7 +106,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const requiring constant expression.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "const" must be constructible.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "const" must be constructible.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Const with type mismatch', async () => {
@@ -114,7 +122,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Initializing value has incompatible type.`)
+        )).toBe(true);
     });
 
     await pContext.step('Error - Const with invalid attribute', async () => {
@@ -131,7 +141,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const not allowing AccessMode attribute.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "const" does not allow attribute "AccessMode".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "const" does not allow attribute "AccessMode".')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation', async () => {
@@ -151,7 +163,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'storage';
@@ -210,7 +222,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention missing GroupBinding requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "storage" requires attribute "GroupBinding".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "storage" requires attribute "GroupBinding".')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Storage with invalid attribute', async () => {
@@ -228,7 +242,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention storage not allowing InvalidAttribute.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "storage" does not allow attribute "Vertex".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "storage" does not allow attribute "Vertex".')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Storage with initialization expression', async () => {
@@ -245,7 +261,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention storage not allowing initializer.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "storage" must not have an initializer.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "storage" must not have an initializer.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Storage with non-host-shareable type', async () => {
@@ -262,7 +280,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention host shareable requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "storage" must be host shareable.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "storage" must be host shareable.')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation', async () => {
@@ -284,7 +304,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'uniform';
@@ -343,7 +363,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention missing GroupBinding requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "uniform" requires attribute "GroupBinding".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "uniform" requires attribute "GroupBinding".')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Uniform with invalid GroupBinding attributes', async () => {
@@ -360,7 +382,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention missing GroupBinding requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Attribute "GroupBinding" must have two constant string parameters.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Attribute "GroupBinding" must have two constant string parameters.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Uniform with invalid attribute', async () => {
@@ -378,7 +402,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention uniform not allowing Vertex.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "uniform" does not allow attribute "Vertex".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "uniform" does not allow attribute "Vertex".')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Uniform with initialization expression', async () => {
@@ -395,7 +421,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention uniform not allowing initializer.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "uniform" must not have an initializer.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "uniform" must not have an initializer.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Uniform with non-constructible type', async () => {
@@ -412,7 +440,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention constructible requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "uniform" must be constructible.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "uniform" must be constructible.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Uniform with non-host-shareable type', async () => {
@@ -429,7 +459,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention host shareable requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "uniform" must be host shareable.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "uniform" must be host shareable.')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation - Float type', async () => {
@@ -487,7 +519,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Workgroup', async (pContext) => {
     await pContext.step('Default without initializer', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'workgroup';
@@ -550,7 +582,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention fixed footprint requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "workgroup" must have a fixed footprint.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "workgroup" must have a fixed footprint.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Workgroup with non-plain type', async () => {
@@ -564,7 +598,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention plain type requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "workgroup" must be a plain type.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "workgroup" must be a plain type.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Workgroup with type mismatch', async () => {
@@ -578,7 +614,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Initializing value has incompatible type.`)
+        )).toBe(true);
     });
 
     await pContext.step('Error - Workgroup with invalid attribute', async () => {
@@ -595,7 +633,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention workgroup not allowing AccessMode attribute.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "workgroup" does not allow attribute "AccessMode".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "workgroup" does not allow attribute "AccessMode".')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation without initializer', async () => {
@@ -630,7 +670,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Private', async (pContext) => {
     await pContext.step('Default without initializer', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'private';
@@ -693,7 +733,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention constructible requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "private" must be constructible.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "private" must be constructible.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Private with type mismatch', async () => {
@@ -707,7 +749,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Initializing value has incompatible type.`)
+        )).toBe(true);
     });
 
     await pContext.step('Error - Private with invalid attribute', async () => {
@@ -724,7 +768,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention private not allowing AccessMode attribute.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "private" does not allow attribute "AccessMode".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "private" does not allow attribute "AccessMode".')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation without initializer', async () => {
@@ -759,7 +805,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Param', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup. Code blocks.
         const lDeclarationType: string = 'param';
@@ -801,7 +847,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention param requiring initialization.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "param" must have an initializer.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "param" must have an initializer.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Param with non-constructible type', async () => {
@@ -815,7 +863,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention constructible requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "param" must be constructible.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "param" must be constructible.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Param with non-scalar type', async () => {
@@ -829,7 +879,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention scalar type requirement.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('The type of declaration type "param" must be a scalar type.'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('The type of declaration type "param" must be a scalar type.')
+        )).toBe(true);
     });
 
     await pContext.step('Error - Param with type mismatch', async () => {
@@ -843,7 +895,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Initializing value has incompatible type.`)
+        )).toBe(true);
     });
 
     await pContext.step('Error - Param with invalid attribute', async () => {
@@ -860,7 +914,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention param not allowing AccessMode attribute.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "param" does not allow attribute "AccessMode".'))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Declaration type "param" does not allow attribute "AccessMode".')
+        )).toBe(true);
     });
 
     await pContext.step('Transpilation', async () => {
@@ -881,7 +937,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
 });
 
 
-Deno.test('PgslVariableDeclarationSyntaxTree - Errors', async (pContext) => {
+Deno.test('PgslVariableDeclaration - Errors', async (pContext) => {
     await pContext.step('Error - Unsupported declaration type', async () => {
         // Setup. Code text without initialization.
         const lCodeText: string = `let testVariable: ${PgslNumericType.typeName.float32};`;
@@ -893,7 +949,9 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Errors', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const requiring initialization.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Declaration type "let" can not be used for module scope variable declarations.`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Declaration type "let" can not be used for module scope variable declarations.`)
+        )).toBe(true);
     });
 
     await pContext.step('Error - Unsupported declaration type', async () => {
@@ -907,6 +965,32 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Errors', async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention const requiring initialization.
-        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Unable to determine address space for declaration type "let".`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Unable to determine address space for declaration type "let".`)
+        )).toBe(true);
+    });
+
+    await pContext.step('Error - Duplicate variable names', async () => {
+        // Setup. Code blocks.
+        const lVariableName: string = 'testDuplicateVariable';
+        const lFirstVariableType: string = PgslNumericType.typeName.float32;
+        const lSecondVariableType: string = PgslNumericType.typeName.signedInteger;
+
+        // Setup. Code text.
+        const lCodeText: string = `
+                const ${lVariableName}: ${lFirstVariableType} = 5.0;
+                private ${lVariableName}: ${lSecondVariableType};
+            `;
+
+        // Execute.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Validation. Should have errors.
+        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention duplicate variable.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Variable with name "${lVariableName}" already defined.`)
+        )).toBe(true);
     });
 });

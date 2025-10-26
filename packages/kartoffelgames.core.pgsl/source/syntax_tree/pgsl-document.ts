@@ -43,9 +43,9 @@ export class PgslDocument extends BasePgslSyntaxTree {
      * @param pTrace - Trace instance.
      */
     protected override onTrace(pTrace: PgslTrace): void {
-        const lValidChilds = new Set<PgslSyntaxTreeConstructor>([
+        const lValidChilds: Array<PgslSyntaxTreeConstructor> = [
             PgslAliasDeclaration, PgslEnumDeclaration, PgslFunctionDeclaration, PgslVariableDeclaration, PgslStructDeclaration
-        ]);
+        ];
         const lIsValidChild = (pChild: BasePgslSyntaxTree): boolean => {
             for (const lValidChild of lValidChilds) {
                 if (pChild instanceof lValidChild) {

@@ -102,6 +102,12 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             this.mExpression.trace(pTrace);
         }
 
+        // Check if variable with same name already exists in scope.
+        if (pTrace.getModuleValue(this.mName)) {
+            pTrace.pushIncident(`Variable with name "${this.mName}" already defined.`, this);
+            return;
+        }
+
         // Try to parse declaration type.
         let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
         if (!lDeclarationType) {

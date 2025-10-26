@@ -136,7 +136,9 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
             return lType;
         }
 
-        throw new Exception(`Typename "${this.mTypeName}" not defined`, this);
+        // Type not found.
+        pTrace.pushIncident(`Typename "${this.mTypeName}" not defined.`, this);
+        return new PgslInvalidType(pTrace);
     }
 
     /**

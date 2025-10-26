@@ -94,7 +94,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
         }
 
         // Call the transpiler function.
-        return lTranspiler(pType, pTrace, pDefinition, pTranspile);
+        return lTranspiler.apply(this, [pType, pTrace, pDefinition, pTranspile]);
     }
 
     /**

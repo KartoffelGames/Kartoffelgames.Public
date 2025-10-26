@@ -235,8 +235,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslSyntaxTree>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
-                    pExpressionGraphs.expression,
-                    lTypeDeclarationSyntaxTreeGraph as Graph<PgslToken, object, BasePgslSyntaxTree>
+                    lTypeDeclarationSyntaxTreeGraph as Graph<PgslToken, object, BasePgslSyntaxTree>,
+                    pExpressionGraphs.expression
                 ]).optional('list<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.Comma)
                     .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.

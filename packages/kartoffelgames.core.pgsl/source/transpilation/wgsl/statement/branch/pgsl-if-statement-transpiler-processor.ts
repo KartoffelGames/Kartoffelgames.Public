@@ -1,6 +1,6 @@
-import { PgslIfStatement } from "../../../../syntax_tree/statement/branch/pgsl-if-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslIfStatement } from '../../../../syntax_tree/statement/branch/pgsl-if-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslIfStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslIfStatement> {
     /**

@@ -1,4 +1,4 @@
-import { PgslStructDeclaration } from "../syntax_tree/declaration/pgsl-struct-declaration.ts";
+import type { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
 
 /**
  * Trace information for PGSL struct declarations and usage.

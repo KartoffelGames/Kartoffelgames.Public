@@ -1,12 +1,12 @@
-import { PgslValueFixedState } from "../enum/pgsl-value-fixed-state.ts";
-import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
-import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
+import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
+import { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
-import { PgslInvalidType } from "./pgsl-invalid-type.ts";
+import { PgslInvalidType } from './pgsl-invalid-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 
 /**

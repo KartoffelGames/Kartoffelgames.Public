@@ -1,10 +1,10 @@
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
-import { PgslAliasDeclaration } from "./declaration/pgsl-alias-declaration.ts";
-import { PgslEnumDeclaration } from "./declaration/pgsl-enum-declaration.ts";
-import { PgslFunctionDeclaration } from "./declaration/pgsl-function-declaration.ts";
-import { PgslStructDeclaration } from "./declaration/pgsl-struct-declaration.ts";
-import { PgslVariableDeclaration } from "./declaration/pgsl-variable-declaration.ts";
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { BasePgslSyntaxTree, type PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from './base-pgsl-syntax-tree.ts';
+import { PgslAliasDeclaration } from './declaration/pgsl-alias-declaration.ts';
+import { PgslEnumDeclaration } from './declaration/pgsl-enum-declaration.ts';
+import { PgslFunctionDeclaration } from './declaration/pgsl-function-declaration.ts';
+import { PgslStructDeclaration } from './declaration/pgsl-struct-declaration.ts';
+import { PgslVariableDeclaration } from './declaration/pgsl-variable-declaration.ts';
 
 export class PgslDocument extends BasePgslSyntaxTree {
     private readonly mBuildInContent: Array<BasePgslSyntaxTree>;
@@ -56,7 +56,7 @@ export class PgslDocument extends BasePgslSyntaxTree {
         };
 
         // Create new scope for the current node.
-        pTrace.newScope("global", () => {
+        pTrace.newScope('global', () => {
             // Trace documents build-ins first.
             for (const lBuildInContent of this.mBuildInContent) {
                 // Validate build-in structure.

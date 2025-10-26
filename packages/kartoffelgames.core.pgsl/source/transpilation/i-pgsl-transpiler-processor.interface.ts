@@ -1,6 +1,6 @@
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { BasePgslSyntaxTree } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
 
 export interface IPgslTranspilerProcessor<TTarget extends BasePgslSyntaxTree> {
     /**

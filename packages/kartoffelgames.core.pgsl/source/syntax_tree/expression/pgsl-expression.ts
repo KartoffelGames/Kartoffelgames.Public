@@ -1,5 +1,5 @@
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 
 /**

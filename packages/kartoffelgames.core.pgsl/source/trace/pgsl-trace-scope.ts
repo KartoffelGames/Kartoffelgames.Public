@@ -1,12 +1,11 @@
-import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
-import { PgslFunctionDeclaration } from "../syntax_tree/declaration/pgsl-function-declaration.ts";
-import { PgslDocument } from "../syntax_tree/pgsl-document.ts";
-import { PgslDoWhileStatement } from "../syntax_tree/statement/branch/pgsl-do-while-statement.ts";
-import { PgslForStatement } from "../syntax_tree/statement/branch/pgsl-for-statement.ts";
-import { PgslSwitchStatement } from "../syntax_tree/statement/branch/pgsl-switch-statement.ts";
-import { PgslWhileStatement } from "../syntax_tree/statement/branch/pgsl-while-statement.ts";
-import type { PgslTrace } from "./pgsl-trace.ts";
-import type { PgslValueTrace } from "./pgsl-value-trace.ts";
+import type { BasePgslSyntaxTree } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';
+import type { PgslDocument } from '../syntax_tree/pgsl-document.ts';
+import type { PgslDoWhileStatement } from '../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
+import type { PgslForStatement } from '../syntax_tree/statement/branch/pgsl-for-statement.ts';
+import type { PgslSwitchStatement } from '../syntax_tree/statement/branch/pgsl-switch-statement.ts';
+import type { PgslWhileStatement } from '../syntax_tree/statement/branch/pgsl-while-statement.ts';
+import type { PgslValueTrace } from './pgsl-value-trace.ts';
 
 /**
  * Represents a scope within the PGSL syntax tree trace.

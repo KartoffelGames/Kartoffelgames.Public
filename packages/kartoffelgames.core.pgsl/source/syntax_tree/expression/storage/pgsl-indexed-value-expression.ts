@@ -1,11 +1,11 @@
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslArrayType } from "../../../type/pgsl-array-type.ts";
-import { PgslMatrixType } from "../../../type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslArrayType } from '../../../type/pgsl-array-type.ts';
+import { PgslMatrixType } from '../../../type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 

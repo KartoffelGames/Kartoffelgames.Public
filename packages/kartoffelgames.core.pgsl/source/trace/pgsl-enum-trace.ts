@@ -1,5 +1,5 @@
-import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
-import { PgslType } from "../type/pgsl-type.ts";
+import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 
 /**
  * Trace information for PGSL enum declarations and usage.
@@ -47,7 +47,7 @@ export class PgslEnumTrace {
         this.mUnderlyingType = pUnderlyingType;
 
         // Convert array of values to a map for efficient lookup.
-        this.mValues = new Map<string, PgslExpression>(pValues.map(item => [item.name, item.value]));
+        this.mValues = new Map<string, PgslExpression>(pValues.map(pItem => [pItem.name, pItem.value]));
     }
 }
 

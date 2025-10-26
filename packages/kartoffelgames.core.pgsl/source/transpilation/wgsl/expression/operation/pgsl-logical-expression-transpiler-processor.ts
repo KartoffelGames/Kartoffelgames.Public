@@ -1,6 +1,6 @@
-import { PgslLogicalExpression } from "../../../../syntax_tree/expression/operation/pgsl-logical-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslLogicalExpression } from '../../../../syntax_tree/expression/operation/pgsl-logical-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslLogicalExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslLogicalExpression> {
     /**

@@ -1,4 +1,4 @@
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 

@@ -1,6 +1,6 @@
-import { PgslArithmeticExpression } from "../../../../syntax_tree/expression/operation/pgsl-arithmetic-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslArithmeticExpression } from '../../../../syntax_tree/expression/operation/pgsl-arithmetic-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslArithmeticExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslArithmeticExpression> {
     /**

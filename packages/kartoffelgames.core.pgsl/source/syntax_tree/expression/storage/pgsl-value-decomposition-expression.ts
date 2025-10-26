@@ -1,17 +1,17 @@
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslEnumTrace } from "../../../trace/pgsl-enum-trace.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslStructTrace } from "../../../trace/pgsl-struct-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslEnumType } from "../../../type/pgsl-enum-type.ts";
-import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
-import { PgslStructType } from "../../../type/pgsl-struct-type.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
-import { type BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { PgslEnumTrace } from '../../../trace/pgsl-enum-trace.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslStructTrace } from '../../../trace/pgsl-struct-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
+import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
+import { PgslStructType } from '../../../type/pgsl-struct-type.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslStructPropertyDeclaration } from '../../declaration/pgsl-struct-property-declaration.ts';
-import { PgslExpression } from "../pgsl-expression.ts";
+import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.

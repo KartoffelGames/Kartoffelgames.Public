@@ -1,9 +1,9 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../enum/pgsl-value-fixed-state.ts";
-import { PgslAccessMode } from "../syntax_tree/buildin/pgsl-access-mode.enum.ts";
-import { PgslType } from "../type/pgsl-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
+import type { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
+import type { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
+import type { PgslAccessMode } from '../syntax_tree/buildin/pgsl-access-mode.enum.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 
 /**
  * Trace information for PGSL variable declarations.

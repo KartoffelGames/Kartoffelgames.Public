@@ -1,6 +1,6 @@
-import { PgslEnumTrace } from "../trace/pgsl-enum-trace.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import type { PgslEnumTrace } from '../trace/pgsl-enum-trace.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
  * Enum type.

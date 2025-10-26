@@ -1,15 +1,15 @@
-import { Stack } from "@kartoffelgames/core";
-import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
-import { PgslStructPropertyDeclaration } from "../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
-import { PgslExpression } from "../syntax_tree/expression/pgsl-expression.ts";
-import { PgslAliasTrace } from "./pgsl-alias-trace.ts";
-import { PgslEnumTrace } from "./pgsl-enum-trace.ts";
-import { PgslExpressionTrace } from "./pgsl-expression-trace.ts";
-import { PgslFunctionTrace } from "./pgsl-function-trace.ts";
-import { PgslStructPropertyTrace } from "./pgsl-struct-property-trace.ts";
-import { PgslStructTrace } from "./pgsl-struct-trace.ts";
-import { PgslSyntaxTreeTraceScopeScopeOwner, PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from "./pgsl-trace-scope.ts";
-import { PgslValueTrace } from "./pgsl-value-trace.ts";
+import { Stack } from '@kartoffelgames/core';
+import type { BasePgslSyntaxTree } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { PgslStructPropertyDeclaration } from '../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { PgslAliasTrace } from './pgsl-alias-trace.ts';
+import type { PgslEnumTrace } from './pgsl-enum-trace.ts';
+import type { PgslExpressionTrace } from './pgsl-expression-trace.ts';
+import type { PgslFunctionTrace } from './pgsl-function-trace.ts';
+import type { PgslStructPropertyTrace } from './pgsl-struct-property-trace.ts';
+import type { PgslStructTrace } from './pgsl-struct-trace.ts';
+import { type PgslSyntaxTreeTraceScopeScopeOwner, PgslTraceScope, type PgslSyntaxTreeTraceScopeType } from './pgsl-trace-scope.ts';
+import type { PgslValueTrace } from './pgsl-value-trace.ts';
 
 /**
  * Main trace class for PGSL syntax tree analysis and transpilation.

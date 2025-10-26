@@ -1,21 +1,21 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslArrayType } from "../../type/pgsl-array-type.ts";
-import { PgslBooleanType } from "../../type/pgsl-boolean-type.ts";
-import { PgslBuildInType } from "../../type/pgsl-build-in-type.ts";
-import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
-import { PgslMatrixType } from "../../type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
-import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
-import { PgslSamplerType } from "../../type/pgsl-sampler-type.ts";
-import { PgslStringType } from "../../type/pgsl-string-type.ts";
-import { PgslStructType } from "../../type/pgsl-struct-type.ts";
-import { PgslTextureType } from "../../type/pgsl-texture-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
-import { PgslVoidType } from "../../type/pgsl-void-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import { PgslArrayType } from '../../type/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslBuildInType } from '../../type/pgsl-build-in-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
+import { PgslSamplerType } from '../../type/pgsl-sampler-type.ts';
+import { PgslStringType } from '../../type/pgsl-string-type.ts';
+import { PgslStructType } from '../../type/pgsl-struct-type.ts';
+import { PgslTextureType } from '../../type/pgsl-texture-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../type/pgsl-void-type.ts';
 import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from "../expression/pgsl-expression.ts";
+import { PgslExpression } from '../expression/pgsl-expression.ts';
 
 /**
  * PGSL base type definition.

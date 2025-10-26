@@ -1,10 +1,10 @@
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslTypeDeclaration } from "../../general/pgsl-type-declaration.ts";
+import type { PgslTypeDeclaration } from '../../general/pgsl-type-declaration.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 
 /**
@@ -61,7 +61,7 @@ export class PgslNewCallExpression extends PgslExpression {
         }
 
         // Read attachment of type.
-        const lType: PgslType = this.mType.type
+        const lType: PgslType = this.mType.type;
 
         // Must be fixed.
         if (!lType.fixedFootprint) {

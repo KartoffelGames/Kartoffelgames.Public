@@ -211,7 +211,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
 
         // Test for keeping information on resize.
         lImageTexture.width = lImageTexture.width * 2;
-        lImageTexture.native;
+        const _ = lImageTexture.native; // Force recreate.
         lImageTexture.width = lImageTexture.width / 2;
     })();
 

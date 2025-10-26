@@ -1,11 +1,11 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslExpression } from "../../../../syntax_tree/expression/pgsl-expression.ts";
-import { PgslValueDecompositionExpression } from "../../../../syntax_tree/expression/storage/pgsl-value-decomposition-expression.ts";
-import { PgslEnumTrace } from "../../../../trace/pgsl-enum-trace.ts";
-import { PgslExpressionTrace } from "../../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { PgslEnumType } from "../../../../type/pgsl-enum-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslExpression } from '../../../../syntax_tree/expression/pgsl-expression.ts';
+import { PgslValueDecompositionExpression } from '../../../../syntax_tree/expression/storage/pgsl-value-decomposition-expression.ts';
+import type { PgslEnumTrace } from '../../../../trace/pgsl-enum-trace.ts';
+import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { PgslEnumType } from '../../../../type/pgsl-enum-type.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslValueDecompositionExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslValueDecompositionExpression> {
     /**

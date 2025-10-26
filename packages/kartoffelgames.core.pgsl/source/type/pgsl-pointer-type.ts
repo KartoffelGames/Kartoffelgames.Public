@@ -1,6 +1,6 @@
-import { PgslValueAddressSpace } from "../enum/pgsl-value-address-space.enum.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
  * Pointer type definition.

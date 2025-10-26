@@ -1,10 +1,10 @@
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
-import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
+import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from "../../expression/pgsl-expression.ts";
+import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 import { PgslAssignmentStatement } from '../execution/pgsl-assignment-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';

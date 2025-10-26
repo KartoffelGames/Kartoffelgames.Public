@@ -1,6 +1,6 @@
-import { PgslContinueStatement } from "../../../../syntax_tree/statement/single/pgsl-continue-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslContinueStatement } from '../../../../syntax_tree/statement/single/pgsl-continue-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslContinueStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslContinueStatement> {
     /**

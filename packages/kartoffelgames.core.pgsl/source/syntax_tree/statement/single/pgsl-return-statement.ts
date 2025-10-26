@@ -1,10 +1,10 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslFunctionTrace } from "../../../trace/pgsl-function-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslFunctionTrace } from '../../../trace/pgsl-function-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslFunctionDeclaration } from "../../declaration/pgsl-function-declaration.ts";
+import type { PgslFunctionDeclaration } from '../../declaration/pgsl-function-declaration.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
 
@@ -59,7 +59,7 @@ export class PgslReturnStatement extends BasePgslStatement {
             }
 
             // Determine the return type of the return statement.
-            let lReturnType: PgslType = (() => {
+            const lReturnType: PgslType = (() => {
                 if (this.mExpression) {
                     // Read expression attachment to resolve the type.
                     return pTrace.getExpression(this.mExpression).resolveType;

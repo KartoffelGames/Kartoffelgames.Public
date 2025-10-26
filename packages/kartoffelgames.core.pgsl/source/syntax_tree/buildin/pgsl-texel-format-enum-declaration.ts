@@ -1,14 +1,14 @@
 
-import { PgslEnumDeclaration } from "../declaration/pgsl-enum-declaration.ts";
-import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
-import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
-import { PgslTexelFormat } from "./pgsl-texel-format.enum.ts";
+import { PgslEnumDeclaration } from '../declaration/pgsl-enum-declaration.ts';
+import { PgslStringValueExpression } from '../expression/single_value/pgsl-string-value-expression.ts';
+import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslTexelFormat } from './pgsl-texel-format.enum.ts';
 
 export class PgslTexelFormatEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
-    private static mValidValues: Set<string> = (() => {
+    private static readonly mValidValues: Set<string> = (() => {
         const lSet = new Set<string>();
         for (const lKey in PgslTexelFormat) {
             lSet.add(PgslTexelFormat[lKey as keyof typeof PgslTexelFormat]);

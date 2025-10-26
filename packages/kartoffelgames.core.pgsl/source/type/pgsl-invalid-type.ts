@@ -1,5 +1,5 @@
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
  * Invalid type definition.

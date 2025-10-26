@@ -1,11 +1,11 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
-import { PgslExpression } from "../pgsl-expression.ts";
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
+import { PgslExpression } from '../pgsl-expression.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 
 /**
  * PGSL structure for a logical expression between two values.

@@ -1,5 +1,5 @@
-import { PgslDocument } from "../syntax_tree/pgsl-document.ts";
-import { PgslTrace, PgslTraceIncident } from "../trace/pgsl-trace.ts";
+import type { PgslDocument } from '../syntax_tree/pgsl-document.ts';
+import type { PgslTrace, PgslTraceIncident } from '../trace/pgsl-trace.ts';
 
 export class PgslParserResult {
     private readonly mSource: string;

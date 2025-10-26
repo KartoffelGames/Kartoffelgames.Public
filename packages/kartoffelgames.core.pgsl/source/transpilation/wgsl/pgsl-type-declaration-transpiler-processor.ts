@@ -1,24 +1,24 @@
-import { IAnyParameterConstructor } from "../../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
-import { PgslAccessMode } from "../../syntax_tree/buildin/pgsl-access-mode.enum.ts";
-import { PgslTexelFormat } from "../../syntax_tree/buildin/pgsl-texel-format.enum.ts";
-import { PgslTypeDeclaration } from "../../syntax_tree/general/pgsl-type-declaration.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslArrayType } from "../../type/pgsl-array-type.ts";
-import { PgslBooleanType } from "../../type/pgsl-boolean-type.ts";
-import { PgslBuildInType } from "../../type/pgsl-build-in-type.ts";
-import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
-import { PgslMatrixType } from "../../type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
-import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
-import { PgslSamplerType } from "../../type/pgsl-sampler-type.ts";
-import { PgslStringType } from "../../type/pgsl-string-type.ts";
-import { PgslStructType } from "../../type/pgsl-struct-type.ts";
-import { PgslTextureType, PgslTextureTypeName } from "../../type/pgsl-texture-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
-import { PgslVoidType } from "../../type/pgsl-void-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../i-pgsl-transpiler-processor.interface.ts";
+import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
+import { PgslAccessMode } from '../../syntax_tree/buildin/pgsl-access-mode.enum.ts';
+import { PgslTexelFormat } from '../../syntax_tree/buildin/pgsl-texel-format.enum.ts';
+import { PgslTypeDeclaration } from '../../syntax_tree/general/pgsl-type-declaration.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import { PgslArrayType } from '../../type/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslBuildInType } from '../../type/pgsl-build-in-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
+import { PgslSamplerType } from '../../type/pgsl-sampler-type.ts';
+import { PgslStringType } from '../../type/pgsl-string-type.ts';
+import { PgslStructType } from '../../type/pgsl-struct-type.ts';
+import { PgslTextureType, type PgslTextureTypeName } from '../../type/pgsl-texture-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../type/pgsl-void-type.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
 
 /**
  * Function type for transpiling PGSL types to WGSL.
@@ -212,7 +212,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
                 case PgslValueAddressSpace.Uniform: return 'uniform';
                 case PgslValueAddressSpace.Storage: return 'storage';
                 case PgslValueAddressSpace.Texture: return 'handle';
-                case PgslValueAddressSpace.Inherit: return '__UNKNOWN__'
+                case PgslValueAddressSpace.Inherit: return '__UNKNOWN__';
             }
         })();
 

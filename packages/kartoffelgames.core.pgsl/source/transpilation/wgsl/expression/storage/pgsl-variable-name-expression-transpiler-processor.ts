@@ -1,9 +1,9 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslVariableNameExpression } from "../../../../syntax_tree/expression/storage/pgsl-variable-name-expression.ts";
-import { PgslExpressionTrace } from "../../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
-import { PgslEnumType } from "../../../../type/pgsl-enum-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import { PgslVariableNameExpression } from '../../../../syntax_tree/expression/storage/pgsl-variable-name-expression.ts';
+import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import { PgslEnumType } from '../../../../type/pgsl-enum-type.ts';
 
 export class PgslVariableNameExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableNameExpression> {
     /**

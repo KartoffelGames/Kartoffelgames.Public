@@ -1,14 +1,14 @@
 
-import { PgslEnumDeclaration } from "../declaration/pgsl-enum-declaration.ts";
-import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
-import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
-import { PgslAccessMode } from "./pgsl-access-mode.enum.ts";
+import { PgslEnumDeclaration } from '../declaration/pgsl-enum-declaration.ts';
+import { PgslStringValueExpression } from '../expression/single_value/pgsl-string-value-expression.ts';
+import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslAccessMode } from './pgsl-access-mode.enum.ts';
 
 export class PgslAccessModeEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
-    private static mValidValues: Set<string> = (() => {
+    private static readonly mValidValues: Set<string> = (() => {
         const lSet = new Set<string>();
         for (const lKey in PgslAccessMode) {
             lSet.add(PgslAccessMode[lKey as keyof typeof PgslAccessMode]);

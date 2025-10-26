@@ -1,11 +1,11 @@
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';
-import { PgslBreakStatement } from "../single/pgsl-break-statement.ts";
-import { PgslContinueStatement } from "../single/pgsl-continue-statement.ts";
-import { PgslReturnStatement } from "../single/pgsl-return-statement.ts";
+import { PgslBreakStatement } from '../single/pgsl-break-statement.ts';
+import { PgslContinueStatement } from '../single/pgsl-continue-statement.ts';
+import { PgslReturnStatement } from '../single/pgsl-return-statement.ts';
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
@@ -21,7 +21,7 @@ export class PgslBlockStatement extends BasePgslStatement {
      */
     public get isContinuing(): boolean {
         if (this.mIsContinuing === null) {
-            throw new Error("Block statement not traced yet.");
+            throw new Error('Block statement not traced yet.');
         }
 
         return this.mIsContinuing;
@@ -32,7 +32,7 @@ export class PgslBlockStatement extends BasePgslStatement {
      */
     public get isBreaking(): boolean {
         if (this.mIsBreaking === null) {
-            throw new Error("Block statement not traced yet.");
+            throw new Error('Block statement not traced yet.');
         }
 
         return this.mIsBreaking;
@@ -43,7 +43,7 @@ export class PgslBlockStatement extends BasePgslStatement {
      */
     public get returnType(): PgslType {
         if (this.mReturnType === null) {
-            throw new Error("Block statement not traced yet.");
+            throw new Error('Block statement not traced yet.');
         }
 
         return this.mReturnType;

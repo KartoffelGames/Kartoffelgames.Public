@@ -1,8 +1,8 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslEnumDeclaration } from "../../../syntax_tree/declaration/pgsl-enum-declaration.ts";
-import { PgslEnumTrace } from "../../../trace/pgsl-enum-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { Exception } from '@kartoffelgames/core';
+import { PgslEnumDeclaration } from '../../../syntax_tree/declaration/pgsl-enum-declaration.ts';
+import type { PgslEnumTrace } from '../../../trace/pgsl-enum-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslEnumDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslEnumDeclaration> {
     /**

@@ -1,6 +1,6 @@
-import { PgslFunctionCallExpression } from "../../../../syntax_tree/expression/single_value/pgsl-function-call-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslFunctionCallExpression } from '../../../../syntax_tree/expression/single_value/pgsl-function-call-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslFunctionCallExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslFunctionCallExpression> {
     /**
@@ -20,6 +20,6 @@ export class PgslFunctionCallExpressionTranspilerProcessor implements IPgslTrans
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: PgslFunctionCallExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pInstance.name}(${pInstance.parameter.map(param => pTranspile(param)).join(', ')})`;
+        return `${pInstance.name}(${pInstance.parameter.map(pParam => pTranspile(pParam)).join(', ')})`;
     }
 }

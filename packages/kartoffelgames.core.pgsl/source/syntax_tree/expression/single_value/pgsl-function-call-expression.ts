@@ -1,10 +1,10 @@
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslFunctionTrace } from "../../../trace/pgsl-function-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
-import { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslFunctionTrace } from '../../../trace/pgsl-function-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 
 /**

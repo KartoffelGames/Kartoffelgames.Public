@@ -1,16 +1,16 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
+import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
-import { PgslStructDeclaration } from "./pgsl-struct-declaration.ts";
-import { PgslStructPropertyTrace, PgslStructPropertyTraceConstructorParameter } from "../../trace/pgsl-struct-property-trace.ts";
-import { PgslExpression } from "../expression/pgsl-expression.ts";
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslInterpolateTypeEnumDeclaration } from "../buildin/pgsl-interpolate-type-enum-declaration.ts";
-import { PgslInterpolateSamplingEnumDeclaration } from "../buildin/pgsl-interpolate-sampling-enum-declaration.ts";
+import type { PgslStructDeclaration } from './pgsl-struct-declaration.ts';
+import { PgslStructPropertyTrace, type PgslStructPropertyTraceConstructorParameter } from '../../trace/pgsl-struct-property-trace.ts';
+import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
+import { PgslInterpolateTypeEnumDeclaration } from '../buildin/pgsl-interpolate-type-enum-declaration.ts';
+import { PgslInterpolateSamplingEnumDeclaration } from '../buildin/pgsl-interpolate-sampling-enum-declaration.ts';
 
 /**
  * PGSL syntax tree for a struct property declaration.
@@ -111,16 +111,16 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                 }
 
                 // Read expression trace.
-                const pExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+                const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
 
                 // Expression must have a constant value.
-                if (typeof pExpressionTrace.constantValue !== 'string') {
+                if (typeof lExpressionTrace.constantValue !== 'string') {
                     pTrace.pushIncident(`Location attribute parameter must be a constant string.`, this);
                     return;
                 }
 
                 // Set location name to meta.
-                lMeta.locationName = pExpressionTrace.constantValue;
+                lMeta.locationName = lExpressionTrace.constantValue;
             }
         })();
 
@@ -135,22 +135,22 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                 }
 
                 // Read expression trace.
-                const pExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+                const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
 
                 // Expression must have a constant value.
-                if (typeof pExpressionTrace.constantValue !== 'number') {
+                if (typeof lExpressionTrace.constantValue !== 'number') {
                     pTrace.pushIncident(`Size attribute parameter must be a constant number.`, this);
                     return;
                 }
 
                 // Value must be a positive integer.
-                if (!Number.isInteger(pExpressionTrace.constantValue) || pExpressionTrace.constantValue <= 0) {
+                if (!Number.isInteger(lExpressionTrace.constantValue) || lExpressionTrace.constantValue <= 0) {
                     pTrace.pushIncident(`Size attribute parameter must be a positive integer.`, this);
                     return;
                 }
 
                 // Set size to meta.
-                lMeta.size = pExpressionTrace.constantValue;
+                lMeta.size = lExpressionTrace.constantValue;
             }
         })();
 
@@ -165,28 +165,28 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                 }
 
                 // Read expression trace.
-                const pExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+                const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
 
                 // Expression must have a constant value.
-                if (typeof pExpressionTrace.constantValue !== 'number') {
+                if (typeof lExpressionTrace.constantValue !== 'number') {
                     pTrace.pushIncident(`Align attribute parameter must be a constant number.`, this);
                     return;
                 }
 
                 // Number must be a positive integer.
-                if (!Number.isInteger(pExpressionTrace.constantValue) || pExpressionTrace.constantValue <= 0) {
+                if (!Number.isInteger(lExpressionTrace.constantValue) || lExpressionTrace.constantValue <= 0) {
                     pTrace.pushIncident(`Align attribute parameter must be a positive integer.`, this);
                     return;
                 }
 
                 // Number must be a power of two.
-                if ((pExpressionTrace.constantValue & (pExpressionTrace.constantValue - 1)) !== 0) {
+                if ((lExpressionTrace.constantValue & (lExpressionTrace.constantValue - 1)) !== 0) {
                     pTrace.pushIncident(`Align attribute parameter must be a power of two.`, this);
                     return;
                 }
 
                 // Set align to meta.
-                lMeta.alignment = pExpressionTrace.constantValue;
+                lMeta.alignment = lExpressionTrace.constantValue;
             }
         })();
 
@@ -207,22 +207,22 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                 }
 
                 // Read expression trace.
-                const pExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+                const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
 
                 // Expression must have a constant value.
-                if (typeof pExpressionTrace.constantValue !== 'number') {
+                if (typeof lExpressionTrace.constantValue !== 'number') {
                     pTrace.pushIncident(`Blend source attribute parameter must be a constant number.`, this);
                     return;
                 }
 
                 // Number must be either a zero or one.
-                if (pExpressionTrace.constantValue !== 0 && pExpressionTrace.constantValue !== 1) {
+                if (lExpressionTrace.constantValue !== 0 && lExpressionTrace.constantValue !== 1) {
                     pTrace.pushIncident(`Blend source attribute parameter must be either zero or one.`, this);
                     return;
                 }
 
                 // Set blend source to meta.
-                lMeta.blendSrc = pExpressionTrace.constantValue;
+                lMeta.blendSrc = lExpressionTrace.constantValue;
             }
         })();
 
@@ -243,33 +243,33 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                 }
 
                 // Read expression trace.
-                const pExpressionTraceType: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
-                const pExpressionTraceSampling: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[1]);
+                const lExpressionTraceType: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+                const lExpressionTraceSampling: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[1]);
 
                 // Both expressions must have a constant value.
-                if (typeof pExpressionTraceType.constantValue !== 'string') {
+                if (typeof lExpressionTraceType.constantValue !== 'string') {
                     pTrace.pushIncident(`First interpolate attribute parameter must be a constant string.`, this);
                     return;
                 }
-                if (typeof pExpressionTraceSampling.constantValue !== 'string') {
+                if (typeof lExpressionTraceSampling.constantValue !== 'string') {
                     pTrace.pushIncident(`Second interpolate attribute parameter must be a constant string.`, this);
                     return;
                 }
 
                 // Both constant values must be valid enum values.
-                if (!PgslInterpolateTypeEnumDeclaration.containsValue(pExpressionTraceType.constantValue)) {
+                if (!PgslInterpolateTypeEnumDeclaration.containsValue(lExpressionTraceType.constantValue)) {
                     pTrace.pushIncident(`First interpolate attribute parameter is not a valid interpolate type.`, this);
                     return;
                 }
-                if (!PgslInterpolateSamplingEnumDeclaration.containsValue(pExpressionTraceSampling.constantValue)) {
+                if (!PgslInterpolateSamplingEnumDeclaration.containsValue(lExpressionTraceSampling.constantValue)) {
                     pTrace.pushIncident(`Second interpolate attribute parameter is not a valid interpolate sampling.`, this);
                     return;
                 }
                 
                 // Set interpolation to meta.
                 lMeta.interpolation = {
-                    type: pExpressionTraceType.constantValue,
-                    sampling: pExpressionTraceSampling.constantValue,
+                    type: lExpressionTraceType.constantValue,
+                    sampling: lExpressionTraceSampling.constantValue,
                 };
             }
         })();

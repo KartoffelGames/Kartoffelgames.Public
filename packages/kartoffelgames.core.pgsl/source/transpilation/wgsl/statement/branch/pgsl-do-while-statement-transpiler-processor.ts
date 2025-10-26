@@ -1,6 +1,6 @@
-import { PgslDoWhileStatement } from "../../../../syntax_tree/statement/branch/pgsl-do-while-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslDoWhileStatement } from '../../../../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslDoWhileStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslDoWhileStatement> {
     /**

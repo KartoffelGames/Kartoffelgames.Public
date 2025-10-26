@@ -1,6 +1,6 @@
-import { PgslNewCallExpression } from "../../../../syntax_tree/expression/single_value/pgsl-new-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslNewCallExpression } from '../../../../syntax_tree/expression/single_value/pgsl-new-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslNewCallExpression> {
     /**
@@ -21,6 +21,6 @@ export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspiler
      */
     public process(pInstance: PgslNewCallExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Simply transpile the type and parameters without the new part.
-        return `${pTranspile(pInstance.type)}(${pInstance.parameter.map(param => pTranspile(param)).join(", ")})`;
+        return `${pTranspile(pInstance.type)}(${pInstance.parameter.map(pParam => pTranspile(pParam)).join(', ')})`;
     }
 }

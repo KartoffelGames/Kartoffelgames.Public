@@ -1,5 +1,5 @@
-import { PgslStructTrace } from "../../trace/pgsl-struct-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import { PgslStructTrace } from '../../trace/pgsl-struct-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';

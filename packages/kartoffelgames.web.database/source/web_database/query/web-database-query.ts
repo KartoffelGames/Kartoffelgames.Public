@@ -7,7 +7,7 @@
  * @typeParam TTableType - The table type this query operates on.
  */
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import type { WebDatabaseTableLayoutTableLayoutIndex, WebDatabaseTableType, WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
+import type { WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName, WebDatabaseTableLayoutTableLayoutIndex, WebDatabaseTableType } from '../web-database-table-layout.ts';
 import type { WebDatabaseTable } from '../web-database-table.ts';
 import { WebDatabaseQueryAction, type WebDatabaseQueryActionBoundRange } from './web-database-query-action.ts';
 
@@ -135,7 +135,7 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
         if (this.mQueryList.length === 0) {
             throw new Exception('No queries specified.', this);
         }
-        
+
         // Devide queries into "AND" blocks.
         const lQueryBlockList: Array<Array<WebDatabaseQueryPart<TTableType>>> = this.groupQueryBlock(this.mQueryList);
 
@@ -184,35 +184,6 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
     }
 
     /**
-     * Group queries into blocks.
-     * A block is a set of queries that are linked with "AND".
-     * 
-     * @param pQueryList - Query list.
-     * 
-     * @returns Query blocks.
-     */
-    private groupQueryBlock(pQueryList: Array<WebDatabaseQueryPart<TTableType>>): Array<WebDatabaseQueryBlock<TTableType>> {
-        // Devide queries into "AND" blocks.
-        const lQueryBlockList: Array<WebDatabaseQueryBlock<TTableType>> = new Array<WebDatabaseQueryBlock<TTableType>>();
-
-        // Add first block.
-        lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
-
-        // Assign every query into a block.
-        for (const lQuery of pQueryList) {
-            // Create new block on any or chain.
-            if (lQuery.link === 'OR') {
-                lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
-            }
-
-            // Add query to latest block.
-            lQueryBlockList.at(-1)!.push(lQuery);
-        }
-
-        return lQueryBlockList;
-    }
-
-    /**
      * Generate a single key range for a query block.
      * When no index exists for the block, it returns null.
      * 
@@ -241,8 +212,8 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
 
         // Read all used properties of the block.
         const lBlockPropertyList: Map<WebDatabaseTableLayoutFieldName<TTableType>, WebDatabaseQueryActionBoundRange> = new Map<WebDatabaseTableLayoutFieldName<TTableType>, WebDatabaseQueryActionBoundRange>();
-        for (const pQuery of pBlock) {
-            lBlockPropertyList.set(pQuery.property, pQuery.action!);
+        for (const lQuery of pBlock) {
+            lBlockPropertyList.set(lQuery.property, lQuery.action!);
         }
 
         // Iterate each table index and check if it matches the block.
@@ -296,6 +267,35 @@ export class WebDatabaseQuery<TTableType extends WebDatabaseTableType> {
             indexName: lMatchingIndex.name,
             keyRange: IDBKeyRange.bound(lLowerFilterValueList, lUpperFilterValueList, false, false)
         };
+    }
+
+    /**
+     * Group queries into blocks.
+     * A block is a set of queries that are linked with "AND".
+     * 
+     * @param pQueryList - Query list.
+     * 
+     * @returns Query blocks.
+     */
+    private groupQueryBlock(pQueryList: Array<WebDatabaseQueryPart<TTableType>>): Array<WebDatabaseQueryBlock<TTableType>> {
+        // Devide queries into "AND" blocks.
+        const lQueryBlockList: Array<WebDatabaseQueryBlock<TTableType>> = new Array<WebDatabaseQueryBlock<TTableType>>();
+
+        // Add first block.
+        lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
+
+        // Assign every query into a block.
+        for (const lQuery of pQueryList) {
+            // Create new block on any or chain.
+            if (lQuery.link === 'OR') {
+                lQueryBlockList.push(new Array<WebDatabaseQueryPart<TTableType>>());
+            }
+
+            // Add query to latest block.
+            lQueryBlockList.at(-1)!.push(lQuery);
+        }
+
+        return lQueryBlockList;
     }
 
     /**

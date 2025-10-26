@@ -1,7 +1,7 @@
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { BasePgslSyntaxTree } from "../syntax_tree/base-pgsl-syntax-tree.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "./i-pgsl-transpiler-processor.interface.ts";
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { BasePgslSyntaxTree } from '../syntax_tree/base-pgsl-syntax-tree.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-pgsl-transpiler-processor.interface.ts';
 
 // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
 

@@ -1,6 +1,6 @@
-import { PgslBreakStatement } from "../../../../syntax_tree/statement/single/pgsl-break-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslBreakStatement } from '../../../../syntax_tree/statement/single/pgsl-break-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslBreakStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslBreakStatement> {
     /**

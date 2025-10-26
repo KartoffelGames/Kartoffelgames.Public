@@ -1,16 +1,16 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslNumericType, PgslNumericTypeName } from "../../type/pgsl-numeric-type.ts";
-import { PgslStringType } from "../../type/pgsl-string-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslDeclaration } from "../declaration/pgsl-declaration.ts";
-import { PgslFunctionDeclaration } from "../declaration/pgsl-function-declaration.ts";
-import { PgslStructPropertyDeclaration } from "../declaration/pgsl-struct-property-declaration.ts";
-import { PgslVariableDeclaration } from "../declaration/pgsl-variable-declaration.ts";
-import { type PgslExpression } from '../expression/pgsl-expression.ts';
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
+import { PgslStringType } from '../../type/pgsl-string-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
+import { BasePgslSyntaxTree, type PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import type { PgslDeclaration } from '../declaration/pgsl-declaration.ts';
+import { PgslFunctionDeclaration } from '../declaration/pgsl-function-declaration.ts';
+import { PgslStructPropertyDeclaration } from '../declaration/pgsl-struct-property-declaration.ts';
+import { PgslVariableDeclaration } from '../declaration/pgsl-variable-declaration.ts';
+import type { PgslExpression } from '../expression/pgsl-expression.ts';
 
 /**
  * Generic attribute list.
@@ -262,7 +262,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
             // Read and get the trace of the actual attribute parameter.
-            let lActualAttributeParameter: PgslExpression = pParameterSourceList[lIndex];
+            const lActualAttributeParameter: PgslExpression = pParameterSourceList[lIndex];
             const lActualAttributeParameterTrace: PgslExpressionTrace = pTrace.getExpression(lActualAttributeParameter);
             const lActualAttributeParameterType: PgslType = lActualAttributeParameterTrace.resolveType;
 

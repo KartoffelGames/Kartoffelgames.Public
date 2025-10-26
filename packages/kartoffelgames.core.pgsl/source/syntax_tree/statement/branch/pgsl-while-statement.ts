@@ -1,6 +1,6 @@
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
+import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { BasePgslStatement } from '../base-pgsl-statement.ts';

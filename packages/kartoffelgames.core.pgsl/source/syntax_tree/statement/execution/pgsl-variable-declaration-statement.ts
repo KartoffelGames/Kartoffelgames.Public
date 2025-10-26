@@ -1,16 +1,16 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
-import { PgslPointerType } from "../../../type/pgsl-pointer-type.ts";
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
+import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslAccessMode } from "../../buildin/pgsl-access-mode.enum.ts";
+import { PgslAccessMode } from '../../buildin/pgsl-access-mode.enum.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { PgslTypeDeclaration } from "../../general/pgsl-type-declaration.ts";
-import { BasePgslStatement } from "../base-pgsl-statement.ts";
+import type { PgslTypeDeclaration } from '../../general/pgsl-type-declaration.ts';
+import { BasePgslStatement } from '../base-pgsl-statement.ts';
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */

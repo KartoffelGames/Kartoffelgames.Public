@@ -1,13 +1,13 @@
-import { PgslEnumDeclaration } from "../declaration/pgsl-enum-declaration.ts";
-import { PgslStringValueExpression } from "../expression/single_value/pgsl-string-value-expression.ts";
-import { PgslAttributeList } from "../general/pgsl-attribute-list.ts";
-import { PgslInterpolateType } from "./pgsl-interpolate-type.enum.ts";
+import { PgslEnumDeclaration } from '../declaration/pgsl-enum-declaration.ts';
+import { PgslStringValueExpression } from '../expression/single_value/pgsl-string-value-expression.ts';
+import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
+import { PgslInterpolateType } from './pgsl-interpolate-type.enum.ts';
 
 export class PgslInterpolateTypeEnumDeclaration extends PgslEnumDeclaration {
     /**
      * Valid values set.
      */
-    private static mValidValues: Set<string> = (() => {
+    private static readonly mValidValues: Set<string> = (() => {
         const lSet = new Set<string>();
         for (const lKey in PgslInterpolateType) {
             lSet.add(PgslInterpolateType[lKey as keyof typeof PgslInterpolateType]);

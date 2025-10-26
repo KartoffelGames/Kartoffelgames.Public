@@ -1981,9 +1981,6 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
 });
 
 Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
-    type TypedTokenType = 'item1' | 'item2' | 'item3';
-    type TypedBaseObject = { a: 'a'; };
-
     type ExtractGraphResultType<T> = T extends Graph<any, any, infer TGraphResult> ? TGraphResult : never;
 
     await pContext.step('Required single value', () => {

@@ -1,6 +1,6 @@
-import { PgslDocument } from "../../syntax_tree/pgsl-document.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../i-pgsl-transpiler-processor.interface.ts";
+import { PgslDocument } from '../../syntax_tree/pgsl-document.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<PgslDocument> {
     /**

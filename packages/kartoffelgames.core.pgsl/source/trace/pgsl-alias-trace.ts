@@ -1,4 +1,4 @@
-import { PgslType } from "../type/pgsl-type.ts";
+import type { PgslType } from '../type/pgsl-type.ts';
 
 /**
  * Trace information for PGSL type alias declarations and resolution.

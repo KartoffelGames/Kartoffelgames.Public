@@ -1,14 +1,12 @@
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslEnumTrace } from "../../../trace/pgsl-enum-trace.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
-import { PgslEnumType } from "../../../type/pgsl-enum-type.ts";
-import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
-import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslVariableDeclaration } from '../../declaration/pgsl-variable-declaration.ts';
-import { PgslVariableDeclarationStatement, PgslVariableDeclarationStatementSyntaxTreeValidationAttachment } from '../../statement/execution/pgsl-variable-declaration-statement.ts';
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { PgslEnumTrace } from '../../../trace/pgsl-enum-trace.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
+import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
+import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 
 /**

@@ -1,11 +1,11 @@
-import { PgslDeclarationType } from "../../../enum/pgsl-declaration-type.enum.ts";
-import { PgslAccessMode } from "../../../syntax_tree/buildin/pgsl-access-mode.enum.ts";
-import { PgslVariableDeclaration } from "../../../syntax_tree/declaration/pgsl-variable-declaration.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslValueTrace } from "../../../trace/pgsl-value-trace.ts";
-import { PgslSamplerType } from "../../../type/pgsl-sampler-type.ts";
-import { PgslTextureType } from "../../../type/pgsl-texture-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
+import { PgslAccessMode } from '../../../syntax_tree/buildin/pgsl-access-mode.enum.ts';
+import { PgslVariableDeclaration } from '../../../syntax_tree/declaration/pgsl-variable-declaration.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
+import { PgslSamplerType } from '../../../type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../../type/pgsl-texture-type.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableDeclaration> {
     /**

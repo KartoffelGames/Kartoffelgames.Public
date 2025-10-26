@@ -1,6 +1,6 @@
-import { PgslSwitchStatement } from "../../../../syntax_tree/statement/branch/pgsl-switch-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslSwitchStatement } from '../../../../syntax_tree/statement/branch/pgsl-switch-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslSwitchStatement> {
     /**
@@ -21,15 +21,15 @@ export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerPr
      */
     public process(pInstance: PgslSwitchStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Open switch.
-        let lResult: string = `switch (${pTranspile(pInstance.expression)}) {`
+        let lResult: string = `switch (${pTranspile(pInstance.expression)}) {`;
 
         // Append each case.
         for(const lCase of pInstance.cases) {
-            lResult += `case ${lCase.cases.map((lTree)=> {return pTranspile(lTree)}).join(', ')}: ${pTranspile(lCase.block)}`
+            lResult += `case ${lCase.cases.map((pTree)=> {return pTranspile(pTree);}).join(', ')}: ${pTranspile(lCase.block)}`;
         }
 
         // Append default case.
-        lResult += `default: ${pTranspile(pInstance.default)}`
+        lResult += `default: ${pTranspile(pInstance.default)}`;
 
         // Close switch.
         return lResult + '}';

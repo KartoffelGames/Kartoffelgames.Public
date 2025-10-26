@@ -1,9 +1,9 @@
 import { CodeParserException } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
-import { PgslDeclarationType } from "../../source/enum/pgsl-declaration-type.enum.ts";
-import { PgslParser } from "../../source/parser/pgsl-parser.ts";
-import { PgslDocument } from "../../source/syntax_tree/pgsl-document.ts";
-import { PgslVariableDeclaration } from "../../source/syntax_tree/declaration/pgsl-variable-declaration.ts";
+import { PgslDeclarationType } from '../../source/enum/pgsl-declaration-type.enum.ts';
+import { PgslParser } from '../../source/parser/pgsl-parser.ts';
+import type { PgslDocument } from '../../source/syntax_tree/pgsl-document.ts';
+import type { PgslVariableDeclaration } from '../../source/syntax_tree/declaration/pgsl-variable-declaration.ts';
 
 const gPgslParser: PgslParser = new PgslParser();
 
@@ -87,24 +87,6 @@ Deno.test('PgslParser.parse()', async (pContext) => {
                 
                 // Evaluation.
                 expect(lResultDeclaration.declarationType).toBe(PgslDeclarationType.Const);
-            });
-
-            await pContext.step('Const declaration with attributes', () => {
-                // Setup.
-                const lVariableName: string = 'testVariable';
-                const lAttributeName: string = 'CustomAttribute';
-                const lSourceCode: string = `
-                    [${lAttributeName}()]
-                    const ${lVariableName}: Integer = 10;
-                `;
-
-                // Process.
-                // const lResult: PgslSyntaxDocument = gPgslParser.parse(lSourceCode);
-                // const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getScopedValue(lVariableName) as PgslVariableDeclarationSyntaxTree;
-                // const lAttribute = lResultDeclaration.attributes.getAttribute(lAttributeName);
-                // 
-                // // Evaluation.
-                // expect(lAttribute).not.toBeNull();
             });
 
             await pContext.step('Error: Const declaration with non-const assignment', () => {

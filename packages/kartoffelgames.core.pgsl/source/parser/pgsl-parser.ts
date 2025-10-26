@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
-import { PgslAccessModeEnumDeclaration } from "../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts";
+import { PgslAccessModeEnumDeclaration } from '../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts';
 import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';
@@ -28,8 +28,8 @@ import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts
 
 import { PgslLexer } from '../lexer/pgsl-lexer.ts';
 import { PgslToken } from '../lexer/pgsl-token.enum.ts';
-import { PgslDeclaration } from "../syntax_tree/declaration/pgsl-declaration.ts";
-import { PgslTypeDeclaration } from "../syntax_tree/general/pgsl-type-declaration.ts";
+import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
+import { PgslTypeDeclaration } from '../syntax_tree/general/pgsl-type-declaration.ts';
 import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
 import type { BasePgslStatement } from '../syntax_tree/statement/base-pgsl-statement.ts';
 import { PgslDoWhileStatement } from '../syntax_tree/statement/branch/pgsl-do-while-statement.ts';
@@ -46,9 +46,9 @@ import { PgslBreakStatement } from '../syntax_tree/statement/single/pgsl-break-s
 import { PgslContinueStatement } from '../syntax_tree/statement/single/pgsl-continue-statement.ts';
 import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-discard-statement.ts';
 import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslTranspilation, PgslTranspilationResult } from "../transpilation/pgsl-transpilation.ts";
-import { PgslParserResult } from "./pgsl-parser-result.ts";
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import type { PgslTranspilation, PgslTranspilationResult } from '../transpilation/pgsl-transpilation.ts';
+import { PgslParserResult } from './pgsl-parser-result.ts';
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {

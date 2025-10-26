@@ -1,7 +1,7 @@
-import { PgslStructPropertyTrace } from "../trace/pgsl-struct-property-trace.ts";
-import { PgslStructTrace } from "../trace/pgsl-struct-trace.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import type { PgslStructPropertyTrace } from '../trace/pgsl-struct-property-trace.ts';
+import type { PgslStructTrace } from '../trace/pgsl-struct-trace.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
  * Struct type definition.

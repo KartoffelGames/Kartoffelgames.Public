@@ -1,12 +1,12 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
-import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from "../pgsl-expression.ts";
+import { PgslExpression } from '../pgsl-expression.ts';
 
 export class PgslArithmeticExpression extends PgslExpression {
     private readonly mLeftExpression: PgslExpression;

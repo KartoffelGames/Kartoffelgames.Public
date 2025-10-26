@@ -1,7 +1,7 @@
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslPointerType } from "../../../type/pgsl-pointer-type.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 

@@ -1,10 +1,10 @@
-import { PgslInterpolateSampling } from "../../../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts";
-import { PgslInterpolateType } from "../../../syntax_tree/buildin/pgsl-interpolate-type.enum.ts";
-import { PgslStructPropertyDeclaration } from "../../../syntax_tree/declaration/pgsl-struct-property-declaration.ts";
-import { PgslStructPropertyTrace } from "../../../trace/pgsl-struct-property-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslBuildInType } from "../../../type/pgsl-build-in-type.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslInterpolateSampling } from '../../../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
+import { PgslInterpolateType } from '../../../syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
+import { PgslStructPropertyDeclaration } from '../../../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import type { PgslStructPropertyTrace } from '../../../trace/pgsl-struct-property-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslBuildInType } from '../../../type/pgsl-build-in-type.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslStructPropertyDeclaration> {
     /**

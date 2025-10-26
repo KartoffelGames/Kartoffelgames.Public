@@ -1,4 +1,4 @@
-import { PgslTrace } from "../trace/pgsl-trace.ts";
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
 
 /**
  * Abstract base class for all PGSL types.

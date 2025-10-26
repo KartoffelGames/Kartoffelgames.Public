@@ -1,18 +1,18 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslDeclarationType } from "../../enum/pgsl-declaration-type.enum.ts";
+import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslValueTrace } from "../../trace/pgsl-value-trace.ts";
-import { PgslSamplerType } from "../../type/pgsl-sampler-type.ts";
-import { PgslTextureType } from "../../type/pgsl-texture-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import { PgslValueTrace } from '../../trace/pgsl-value-trace.ts';
+import { PgslSamplerType } from '../../type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../type/pgsl-texture-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslAccessMode } from "../buildin/pgsl-access-mode.enum.ts";
+import { PgslAccessMode } from '../buildin/pgsl-access-mode.enum.ts';
 import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
+import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 
@@ -147,7 +147,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                 pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be host shareable.`, this);
             }
         };
-        const lMustHaveAFixedFootprint = () => {
+        const lMustHaveFixedFootprint = () => {
             if (!lType.fixedFootprint) {
                 pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must have a fixed footprint.`, this);
             }
@@ -167,11 +167,11 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             // Sort into required and optional attributes.
             const lRequiredAttributes: Set<string> = new Set<string>();
             const lOptionalAttributes: Set<string> = new Set<string>();
-            for (const pAttribute of pAttributes) {
-                if (pAttribute.required) {
-                    lRequiredAttributes.add(pAttribute.name);
+            for (const lAttribute of pAttributes) {
+                if (lAttribute.required) {
+                    lRequiredAttributes.add(lAttribute.name);
                 } else {
-                    lOptionalAttributes.add(pAttribute.name);
+                    lOptionalAttributes.add(lAttribute.name);
                 }
             }
 
@@ -226,7 +226,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                 break;
             }
             case PgslDeclarationType.Workgroup: {
-                lMustHaveAFixedFootprint();
+                lMustHaveFixedFootprint();
                 lMustBePlain();
                 lAllowedAttributes([]);
                 break;
@@ -281,20 +281,20 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             }
 
             // Read expression trace.
-            const pExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+            const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
 
             // Expression must have a constant value.
-            if (typeof pExpressionTrace.constantValue !== 'string') {
+            if (typeof lExpressionTrace.constantValue !== 'string') {
                 return PgslAccessMode.Read;
             }
 
             // If value is not part of enum, return default.
-            if (!Object.values(PgslAccessMode).includes(pExpressionTrace.constantValue as PgslAccessMode)) {
+            if (!Object.values(PgslAccessMode).includes(lExpressionTrace.constantValue as PgslAccessMode)) {
                 return PgslAccessMode.Read;
             }
 
             // Transpile attribute parameters. We assume the transpiled value is valid here as it was validated before.
-            return pExpressionTrace.constantValue as PgslAccessMode;
+            return lExpressionTrace.constantValue as PgslAccessMode;
         })();
 
         const lAddressSpace: PgslValueAddressSpace = (() => {

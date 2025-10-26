@@ -1,7 +1,7 @@
-import { Exception } from "../../../kartoffelgames.core/source/exception/exception.ts";
-import { PgslInterpolateSampling } from "../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts";
-import { PgslInterpolateType } from "../syntax_tree/buildin/pgsl-interpolate-type.enum.ts";
-import { PgslType } from "../type/pgsl-type.ts";
+import { Exception } from '../../../kartoffelgames.core/source/exception/exception.ts';
+import type { PgslInterpolateSampling } from '../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
+import type { PgslInterpolateType } from '../syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 
 /**
  * Trace information for PGSL struct property declarations.

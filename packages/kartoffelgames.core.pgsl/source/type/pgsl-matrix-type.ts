@@ -1,7 +1,7 @@
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslType, PgslTypeProperties } from "./pgsl-type.ts";
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
-import { PgslNumericType } from "./pgsl-numeric-type.ts";
+import { PgslNumericType } from './pgsl-numeric-type.ts';
 
 /**
  * Matrix type definition.

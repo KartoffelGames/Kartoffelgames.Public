@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslValueAddressSpace } from "../../../enum/pgsl-value-address-space.enum.ts";
-import { PgslValueFixedState } from "../../../enum/pgsl-value-fixed-state.ts";
-import { PgslExpressionTrace } from "../../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../../trace/pgsl-trace.ts";
-import { PgslBooleanType } from "../../../type/pgsl-boolean-type.ts";
-import { PgslNumericType, PgslNumericTypeName } from "../../../type/pgsl-numeric-type.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../../type/pgsl-numeric-type.ts';
+import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslExpression } from '../pgsl-expression.ts';
 
@@ -147,7 +147,3 @@ export class PgslLiteralValueExpression extends PgslExpression {
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);
     }
 }
-
-type PgslLiteralValueExpressionSyntaxTreeSetupData = {
-    value: number;
-};

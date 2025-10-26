@@ -1,6 +1,6 @@
-import { PgslStringValueExpression } from "../../../../syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslStringValueExpression } from '../../../../syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslStringValueExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslStringValueExpression> {
     /**

@@ -1,6 +1,6 @@
-import { PgslBlockStatement } from "../../../../syntax_tree/statement/execution/pgsl-block-statement.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslBlockStatement } from '../../../../syntax_tree/statement/execution/pgsl-block-statement.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslBlockStatement> {
     /**
@@ -21,6 +21,6 @@ export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerPro
      */
     public process(pInstance: PgslBlockStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile all statements.
-        return `{\n${pInstance.statements.map(statement => pTranspile(statement)).join('\n')}\n}`;
+        return `{\n${pInstance.statements.map(pStatement => pTranspile(pStatement)).join('\n')}\n}`;
     }
 }

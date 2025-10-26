@@ -1,10 +1,10 @@
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { PgslFunctionTrace, PgslFunctionTraceEntryPoint } from "../../trace/pgsl-function-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import { PgslFunctionTrace, type PgslFunctionTraceEntryPoint } from '../../trace/pgsl-function-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from "../expression/pgsl-expression.ts";
+import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
+import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import type { PgslBlockStatement } from '../statement/execution/pgsl-block-statement.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
@@ -123,20 +123,20 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
                     }
 
                     // Get expression traces.
-                    const lWorkGroupSizeXTrace = pTrace.getExpression(lAttributeParameter[0]);
-                    const lWorkGroupSizeYTrace = pTrace.getExpression(lAttributeParameter[1]);
-                    const lWorkGroupSizeZTrace = pTrace.getExpression(lAttributeParameter[2]);
+                    const lWorkGroupSizeTraceX = pTrace.getExpression(lAttributeParameter[0]);
+                    const lWorkGroupSizeTraceY = pTrace.getExpression(lAttributeParameter[1]);
+                    const lWorkGroupSizeTraceZ = pTrace.getExpression(lAttributeParameter[2]);
 
                     // Check if all parameters are constants.
-                    if (lWorkGroupSizeXTrace.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeYTrace.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeZTrace.fixedState === PgslValueFixedState.Constant) {
+                    if (lWorkGroupSizeTraceX.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeTraceY.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeTraceZ.fixedState === PgslValueFixedState.Constant) {
                         pTrace.pushIncident(`All compute attribute parameters need to be constant expressions.`, this.attributes);
                         return null;
                     }
 
                     // Get constant values.
-                    const lWorkGroupSizeX: string | number | null = lWorkGroupSizeXTrace.constantValue;
-                    const lWorkGroupSizeY: string | number | null = lWorkGroupSizeYTrace.constantValue;
-                    const lWorkGroupSizeZ: string | number | null = lWorkGroupSizeZTrace.constantValue;
+                    const lWorkGroupSizeX: string | number | null = lWorkGroupSizeTraceX.constantValue;
+                    const lWorkGroupSizeY: string | number | null = lWorkGroupSizeTraceY.constantValue;
+                    const lWorkGroupSizeZ: string | number | null = lWorkGroupSizeTraceZ.constantValue;
 
                     // Check if all parameters are numbers.
                     if (typeof lWorkGroupSizeX !== 'number' || typeof lWorkGroupSizeY !== 'number' || typeof lWorkGroupSizeZ !== 'number') {

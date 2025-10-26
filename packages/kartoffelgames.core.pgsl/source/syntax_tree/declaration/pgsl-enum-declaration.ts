@@ -1,10 +1,10 @@
-import { PgslEnumTrace, PgslEnumTraceValues } from "../../trace/pgsl-enum-trace.ts";
-import { PgslExpressionTrace } from "../../trace/pgsl-expression-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
-import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
-import { PgslStringType } from "../../type/pgsl-string-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslEnumTrace, type PgslEnumTraceValues } from '../../trace/pgsl-enum-trace.ts';
+import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import { PgslStringType } from '../../type/pgsl-string-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../expression/pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
@@ -39,8 +39,8 @@ export class PgslEnumDeclaration extends PgslDeclaration {
         this.mValues = pValue;
 
         // Add all values as child.
-        for (const pItem of pValue) {
-            this.appendChild(pItem.value);
+        for (const lItem of pValue) {
+            this.appendChild(lItem.value);
         }
     }
 
@@ -70,7 +70,7 @@ export class PgslEnumDeclaration extends PgslDeclaration {
             // Read attachment of literal value.
             const lPropertyValueTrace: PgslExpressionTrace = pTrace.getExpression(lProperty.value);
 
-            const lIsNumeric: boolean = lPropertyValueTrace.resolveType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))
+            const lIsNumeric: boolean = lPropertyValueTrace.resolveType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger));
             const lIsString: boolean = lPropertyValueTrace.resolveType.isImplicitCastableInto(new PgslStringType(pTrace));
 
             // All values need to be string or integer.
@@ -97,8 +97,8 @@ export class PgslEnumDeclaration extends PgslDeclaration {
         }
 
         // Convert properties to trace values.
-        const lTraceValues: PgslEnumTraceValues = Array.from(lPropertyList.entries()).map(([name, value]) => {
-            return { name: name, value: value };
+        const lTraceValues: PgslEnumTraceValues = Array.from(lPropertyList.entries()).map(([pName, pValue]) => {
+            return { name: pName, value: pValue };
         });
 
         // Register enum.

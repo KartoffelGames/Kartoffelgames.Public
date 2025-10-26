@@ -1,9 +1,9 @@
-import { PgslAliasTrace } from "../../trace/pgsl-alias-trace.ts";
-import { PgslTrace } from "../../trace/pgsl-trace.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslAliasTrace } from '../../trace/pgsl-alias-trace.ts';
+import type { PgslTrace } from '../../trace/pgsl-trace.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslTypeDeclaration } from "../general/pgsl-type-declaration.ts";
+import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
 /**

@@ -10,7 +10,7 @@ import { Graph } from '../source/parser/graph/graph.ts';
  * @param pStartToken - LexerToken<string> | null
  * @param pEndToken - LexerToken<string> | null
  */
-const generateState = (pStartToken?: LexerToken<string>, pEndToken?: LexerToken<string>): CodeParserProcessState<string> => {
+const gGenerateState = (pStartToken?: LexerToken<string>, pEndToken?: LexerToken<string>): CodeParserProcessState<string> => {
     // Generate a mock state that simulates the behavior of a code parser process state.
     return new (class {
         public getGraphBoundingToken(): [LexerToken<string> | undefined, LexerToken<string> | undefined] {
@@ -73,7 +73,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
+        const lResult = lGraph.convert(lRawData, gGenerateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toBe(lRawData);
@@ -86,7 +86,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
+        const lResult = lGraph.convert(lRawData, gGenerateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toHaveProperty('key', 'value');
@@ -101,7 +101,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
+        const lResult = lGraph.convert(lRawData, gGenerateState(undefined, undefined));
 
         // Evaluation.
         expect(lResult).toHaveProperty('key', 'value');
@@ -117,7 +117,7 @@ Deno.test('Graph.convert()', async (pContext) => {
         const lRawData = { key: 'value' };
 
         // Process.
-        const lResult = lGraph.convert(lRawData, generateState(undefined, undefined));
+        const lResult = lGraph.convert(lRawData, gGenerateState(undefined, undefined));
 
         // Evaluation.
         expect(typeof lResult).toBe('symbol');
@@ -135,7 +135,7 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(undefined, undefined));
+        lGraph.convert({}, gGenerateState(undefined, undefined));
 
         // Evaluation.
         expect(lPassedStartToken).toBeUndefined();
@@ -155,7 +155,7 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(undefined, lReceivedEndToken));
+        lGraph.convert({}, gGenerateState(undefined, lReceivedEndToken));
 
         // Evaluation.
         expect(lPassedStartToken).toBe(lReceivedEndToken);
@@ -175,7 +175,7 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(lReceivedStartToken, undefined));
+        lGraph.convert({}, gGenerateState(lReceivedStartToken, undefined));
 
         // Evaluation.
         expect(lPassedStartToken).toBe(lReceivedStartToken);
@@ -196,7 +196,7 @@ Deno.test('Graph.convert()', async (pContext) => {
                 lPassedEndToken = pEndToken;
                 return pData;
             });
-        lGraph.convert({}, generateState(lReceivedStartToken, lReceivedEndToken));
+        lGraph.convert({}, gGenerateState(lReceivedStartToken, lReceivedEndToken));
 
         // Evaluation.
         expect(lPassedStartToken).toBe(lReceivedStartToken);
@@ -214,7 +214,7 @@ Deno.test('Graph.converter()', async (pContext) => {
 
         // Evaluation.
         expect(lNewGraph).not.toBe(lGraph);
-        expect(lNewGraph.convert({ key: 'value' }, generateState(undefined, undefined))).toHaveProperty('extra', 'added');
+        expect(lNewGraph.convert({ key: 'value' }, gGenerateState(undefined, undefined))).toHaveProperty('extra', 'added');
     });
 
     await pContext.step('Preserve existing converters when adding new one', () => {
@@ -226,7 +226,7 @@ Deno.test('Graph.converter()', async (pContext) => {
         const lNewGraph = lGraph.converter((pData) => ({ ...pData, step2: true }));
 
         // Evaluation.
-        const lResult = lNewGraph.convert({ key: 'value' }, generateState(undefined, undefined));
+        const lResult = lNewGraph.convert({ key: 'value' }, gGenerateState(undefined, undefined));
         expect(lResult).toHaveProperty('step1', true);
         expect(lResult).toHaveProperty('step2', true);
     });

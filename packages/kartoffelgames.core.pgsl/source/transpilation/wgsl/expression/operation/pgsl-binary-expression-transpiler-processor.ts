@@ -1,6 +1,6 @@
-import { PgslBinaryExpression } from "../../../../syntax_tree/expression/operation/pgsl-binary-expression.ts";
-import { PgslTrace } from "../../../../trace/pgsl-trace.ts";
-import { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from "../../../i-pgsl-transpiler-processor.interface.ts";
+import { PgslBinaryExpression } from '../../../../syntax_tree/expression/operation/pgsl-binary-expression.ts';
+import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslBinaryExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslBinaryExpression> {
     /**

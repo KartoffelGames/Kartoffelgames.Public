@@ -93,7 +93,7 @@ export class PgslEnumType extends PgslType {
 
         return {
             // Default enum information.
-            composite: false,
+            composite: true,
             indexable: false,
             storable: false,
             scalar: false,
@@ -101,7 +101,7 @@ export class PgslEnumType extends PgslType {
             plain: false,
             hostShareable: false,
             constructible: false,
-            fixedFootprint: false,
+            fixedFootprint: true,
         };
     }
 }

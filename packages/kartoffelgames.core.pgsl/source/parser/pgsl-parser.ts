@@ -485,7 +485,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             return GraphNode.new<PgslToken>()
                 .required('string', PgslToken.LiteralString);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpression => {
-            return new PgslStringValueExpression(pData.string, this.createTokenBoundParameter(pStartToken, pEndToken));
+            return new PgslStringValueExpression(pData.string.substring(1, pData.string.length - 1), this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
         /**

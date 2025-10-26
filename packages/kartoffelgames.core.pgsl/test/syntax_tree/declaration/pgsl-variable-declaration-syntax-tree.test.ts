@@ -114,7 +114,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
     });
 
     await pContext.step("Error - Const with invalid attribute", async () => {
@@ -561,7 +561,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
     });
 
     await pContext.step("Error - Workgroup with invalid attribute", async () => {
@@ -690,7 +690,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
     });
 
     await pContext.step("Error - Private with invalid attribute", async () => {

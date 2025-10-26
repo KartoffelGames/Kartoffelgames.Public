@@ -29,7 +29,7 @@ export class PgslStringValueExpression extends PgslExpression {
         super(pMeta);
 
         // Set data.
-        this.mValue = pTextValue.substring(1, pTextValue.length - 1);
+        this.mValue = pTextValue;
     }
 
     /**

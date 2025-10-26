@@ -58,6 +58,13 @@ export class PgslParserResult {
         this.mMeta = this.readFromTrace(pTrace);
     }
 
+    /**
+     * Reads metadata from the provided trace.
+     * 
+     * @param pTrace - The trace to read from.
+     * 
+     * @returns The extracted metadata.
+     */
     private readFromTrace(pTrace: PgslTrace): PgslParserResultMeta {
         return {
             incidents: [...pTrace.incidents],

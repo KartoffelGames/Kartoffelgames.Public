@@ -46,13 +46,21 @@ export class PgslDocument extends BasePgslSyntaxTree {
         const lValidChilds = new Set<PgslSyntaxTreeConstructor>([
             PgslAliasDeclaration, PgslEnumDeclaration, PgslFunctionDeclaration, PgslVariableDeclaration, PgslStructDeclaration
         ]);
+        const lIsValidChild = (pChild: BasePgslSyntaxTree): boolean => {
+            for (const lValidChild of lValidChilds) {
+                if (pChild instanceof lValidChild) {
+                    return true;
+                }
+            }
+            return false;
+        };
 
         // Create new scope for the current node.
         pTrace.newScope("global", () => {
             // Trace documents build-ins first.
             for (const lBuildInContent of this.mBuildInContent) {
                 // Validate build-in structure.
-                if (!lValidChilds.has(lBuildInContent.constructor as PgslSyntaxTreeConstructor)) {
+                if (!lIsValidChild(lBuildInContent)) {
                     pTrace.pushIncident(`Invalid build-in structure in document. Expected declaration but found '${lBuildInContent.constructor.name}'.`, lBuildInContent);
                 }
 
@@ -62,7 +70,7 @@ export class PgslDocument extends BasePgslSyntaxTree {
             // Trace all child structures.
             for (const lChild of this.childNodes) {
                 // Validate child structure.
-                if (!lValidChilds.has(lChild.constructor as PgslSyntaxTreeConstructor)) {
+                if (!lIsValidChild(lChild)) {
                     pTrace.pushIncident(`Invalid child structure in document. Expected declaration but found '${lChild.constructor.name}'.`, lChild);
                 }
 

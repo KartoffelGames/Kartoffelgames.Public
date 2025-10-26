@@ -45,15 +45,13 @@ export class PgslVariableNameExpression extends PgslExpression {
     protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
         // Check if variable is defined.
         const lVariableDefinition: PgslValueTrace | null = pTrace.currentScope.getValue(this.mName);
-        if (!lVariableDefinition) {
-            pTrace.pushIncident(`Variable "${this.mName}" not defined.`, this);
-
+        if (lVariableDefinition) {
             return new PgslExpressionTrace({
-                fixedState: PgslValueFixedState.Variable,
-                isStorage: false,
-                resolveType: new PgslInvalidType(pTrace),
-                constantValue: null,
-                storageAddressSpace: PgslValueAddressSpace.Function
+                fixedState: lVariableDefinition?.fixedState,
+                isStorage: true,
+                resolveType: lVariableDefinition.type,
+                constantValue: lVariableDefinition.constantValue,
+                storageAddressSpace: lVariableDefinition.addressSpace
             });
         }
 
@@ -69,12 +67,14 @@ export class PgslVariableNameExpression extends PgslExpression {
             });
         }
 
+        pTrace.pushIncident(`Variable "${this.mName}" not defined.`, this);
+
         return new PgslExpressionTrace({
-            fixedState: lVariableDefinition?.fixedState,
-            isStorage: true,
-            resolveType: lVariableDefinition.type,
-            constantValue: lVariableDefinition.constantValue,
-            storageAddressSpace: lVariableDefinition.addressSpace
+            fixedState: PgslValueFixedState.Variable,
+            isStorage: false,
+            resolveType: new PgslInvalidType(pTrace),
+            constantValue: null,
+            storageAddressSpace: PgslValueAddressSpace.Function
         });
     }
 }

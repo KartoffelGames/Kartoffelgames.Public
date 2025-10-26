@@ -51,7 +51,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         lAttributes.set(PgslAttributeList.attributeNames.accessMode, {
             enforcedParentType: PgslVariableDeclaration,
             parameterTypes: [
-                [{ values: ['Read', 'Write', 'ReadWrite'] }]
+                [{ values: ['read', 'write', 'read_write'] }]
             ]
         });
 
@@ -244,7 +244,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             }
 
             // Validate parameter.
-            this.validateParameter(pTrace, lAttributeParameter, lParameterDefinition);
+            this.validateParameter(pTrace, lAttributeName, lAttributeParameter, lParameterDefinition);
         }
     }
 
@@ -256,7 +256,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @param pParameterSourceList - List of parameters to validate.
      * @param pValidationParameterList - List of parameter definitions to validate against.
      */
-    private validateParameter(pTrace: PgslTrace, pParameterSourceList: Array<PgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
+    private validateParameter(pTrace: PgslTrace, pAttributeName: string, pParameterSourceList: Array<PgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
@@ -270,41 +270,41 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             if ('values' in lExpectedTemplateType) { // String or enum.
                 // String parameter must be constants.
                 if (lActualAttributeParameterTrace.fixedState < PgslValueFixedState.Constant) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a constant expression.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant expression.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Not a string parameter.
                 if (!(lActualAttributeParameterType instanceof PgslStringType)) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a string.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a string.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Not a constant string parameter.
                 if (typeof lActualAttributeParameterTrace.constantValue !== 'string') {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a constant string.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant string.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Check if parameter value matches one of the expected values, if any are defined.
                 if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lActualAttributeParameterTrace.constantValue)) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} has an invalid value.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has an invalid value.`, lActualAttributeParameter);
                 }
             } else if ('type' in lExpectedTemplateType) { // Number
                 // Not a number parameter.
                 if (!(lActualAttributeParameterType instanceof PgslNumericType)) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be a number.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a number.`, lActualAttributeParameter);
                     continue;
                 }
 
                 // Check if parameter type matches expected type.
                 if (!lActualAttributeParameterType.isImplicitCastableInto(new PgslNumericType(pTrace, lExpectedTemplateType.type))) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lActualAttributeParameter);
                 }
 
                 // Check fixed state is same or higher than expected.
                 if (lActualAttributeParameterTrace.fixedState < lExpectedTemplateType.state) {
-                    pTrace.pushIncident(`Attribute parameter ${lIndex} has the wrong fixed state.`, lActualAttributeParameter);
+                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has the wrong fixed state.`, lActualAttributeParameter);
                 }
             }
         }

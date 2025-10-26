@@ -1,5 +1,4 @@
 import { PgslTranspilation } from '../pgsl-transpilation.ts';
-import { PgslEnumDeclarationTranspilerProcessor } from './declaration/pgsl-enum-declaration-transpiler-processor.ts';
 import { PgslFunctionDeclarationTranspilerProcessor } from './declaration/pgsl-function-declaration-transpiler-processor.ts';
 import { PgslStructDeclarationTranspilerProcessor } from './declaration/pgsl-struct-declaration-transpiler-processor.ts';
 import { PgslStructPropertyDeclarationTranspilerProcessor } from './declaration/pgsl-struct-property-declaration-transpiler-processor.ts';
@@ -54,7 +53,6 @@ export class WgslTranspiler extends PgslTranspilation {
 
         // Declarations. Alias has no transpilation processor, it is only used during trace.
         this.addProcessor(new PgslVariableDeclarationTranspilerProcessor());
-        this.addProcessor(new PgslEnumDeclarationTranspilerProcessor());
         this.addProcessor(new PgslFunctionDeclarationTranspilerProcessor());
         this.addProcessor(new PgslStructDeclarationTranspilerProcessor());
         this.addProcessor(new PgslStructPropertyDeclarationTranspilerProcessor());

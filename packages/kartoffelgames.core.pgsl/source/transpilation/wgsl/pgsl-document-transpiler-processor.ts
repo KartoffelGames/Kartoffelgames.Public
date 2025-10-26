@@ -1,3 +1,4 @@
+import { PgslEnumDeclaration } from "../../syntax_tree/declaration/pgsl-enum-declaration.ts";
 import { PgslDocument } from '../../syntax_tree/pgsl-document.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
@@ -22,6 +23,11 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
 
         // Transpile the document by processing all child nodes.
         for (const lChild of pInstance.childNodes) {
+            // Ignore enum declarations as their values gets inlined.
+            if (lChild instanceof PgslEnumDeclaration) {
+                continue;
+            }
+
             lResult += pTranspile(lChild);
         }
 

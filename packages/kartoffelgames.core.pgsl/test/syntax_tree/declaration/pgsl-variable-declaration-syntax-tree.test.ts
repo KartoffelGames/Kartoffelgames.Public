@@ -147,7 +147,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Const', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation. No errors.
-        expect(lTranspilationResult.source).toContain(`${lDeclarationType} ${lVariableName}: f32 = ${lVariableValue};`);
+        expect(lTranspilationResult.source).toBe(`${lDeclarationType} ${lVariableName}: f32 = ${lVariableValue};`);
     });
 });
 
@@ -280,7 +280,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Storage', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`@group(0) @binding(0) var<storage, read> ${lVariableName}: f32;`);
+        expect(lTranspilationResult.source).toBe(`@group(0) @binding(0) var<storage, read> ${lVariableName}: f32;`);
     });
 });
 
@@ -344,6 +344,23 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
 
         // Validation. Error should mention missing GroupBinding requirement.
         expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Declaration type "uniform" requires attribute "GroupBinding".'))).toBe(true);
+    });
+
+    await pContext.step('Error - Uniform with invalid GroupBinding attributes', async () => {
+        // Setup. Code text with invalid attribute GroupBinding attributes.
+        const lCodeText: string = `
+            [GroupBinding("test_group", 1)]
+            uniform testVariable: ${PgslNumericType.typeName.float32};
+        `;
+
+        // Execute.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Validation. Should have errors.
+        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention missing GroupBinding requirement.
+        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes('Attribute "GroupBinding" must have two constant string parameters.'))).toBe(true);
     });
 
     await pContext.step('Error - Uniform with invalid attribute', async () => {
@@ -430,7 +447,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`@group(0) @binding(0) var<uniform> ${lVariableName}: f32;`);
+        expect(lTranspilationResult.source).toBe(`@group(0) @binding(0) var<uniform> ${lVariableName}: f32;`);
     });
 
     await pContext.step('Transpilation - Texture type', async () => {
@@ -448,7 +465,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`@group(0) @binding(0) var ${lVariableName}: texture_depth_2d;`);
+        expect(lTranspilationResult.source).toBe(`@group(0) @binding(0) var ${lVariableName}: texture_depth_2d;`);
     });
 
     await pContext.step('Transpilation - Sampler type', async () => {
@@ -466,7 +483,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Uniform', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`@group(0) @binding(0) var ${lVariableName}: sampler;`);
+        expect(lTranspilationResult.source).toBe(`@group(0) @binding(0) var ${lVariableName}: sampler;`);
     });
 });
 
@@ -593,7 +610,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`var<workgroup> ${lVariableName}: f32;`);
+        expect(lTranspilationResult.source).toBe(`var<workgroup> ${lVariableName}: f32;`);
     });
 
     await pContext.step('Transpilation with initializer', async () => {
@@ -609,7 +626,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Workgroup', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`var<workgroup> ${lVariableName}: f32 = ${lVariableValue};`);
+        expect(lTranspilationResult.source).toBe(`var<workgroup> ${lVariableName}: f32 = ${lVariableValue};`);
     });
 });
 
@@ -722,7 +739,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: f32;`);
+        expect(lTranspilationResult.source).toBe(`var<private> ${lVariableName}: f32;`);
     });
 
     await pContext.step('Transpilation with initializer', async () => {
@@ -738,7 +755,7 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Private', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: f32 = ${lVariableValue};`);
+        expect(lTranspilationResult.source).toBe(`var<private> ${lVariableName}: f32 = ${lVariableValue};`);
     });
 });
 
@@ -859,6 +876,37 @@ Deno.test('PgslVariableDeclarationSyntaxTree - Param', async (pContext) => {
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Validation.
-        expect(lTranspilationResult.source).toContain(`override ${lVariableName}: f32 = ${lVariableValue};`);
+        expect(lTranspilationResult.source).toBe(`override ${lVariableName}: f32 = ${lVariableValue};`);
+    });
+});
+
+
+Deno.test('PgslVariableDeclarationSyntaxTree - Errors', async (pContext) => {
+    await pContext.step('Error - Unsupported declaration type', async () => {
+        // Setup. Code text without initialization.
+        const lCodeText: string = `let testVariable: ${PgslNumericType.typeName.float32};`;
+
+        // Execute.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Validation. Should have errors.
+        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention const requiring initialization.
+        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Declaration type "let" can not be used for module scope variable declarations.`))).toBe(true);
+    });
+
+    await pContext.step('Error - Unsupported declaration type', async () => {
+        // Setup. Code text without initialization.
+        const lCodeText: string = `let testVariable: ${PgslNumericType.typeName.float32};`;
+
+        // Execute.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Validation. Should have errors.
+        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+
+        // Validation. Error should mention const requiring initialization.
+        expect(lTranspilationResult.incidents.some(pIncident => pIncident.message.includes(`Unable to determine address space for declaration type "let".`))).toBe(true);
     });
 });

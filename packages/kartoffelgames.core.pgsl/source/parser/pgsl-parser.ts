@@ -1030,7 +1030,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     PgslToken.KeywordDeclarationWorkgroup,
                     PgslToken.KeywordDeclarationPrivate,
                     PgslToken.KeywordDeclarationConst,
-                    PgslToken.KeywordDeclarationParam
+                    PgslToken.KeywordDeclarationParam,
+                    PgslToken.KeywordDeclarationLet,
+                    PgslToken.KeywordDeclarationVar
                 ])
                 .required('variableName', PgslToken.Identifier)
                 .required(PgslToken.Colon)

@@ -6,6 +6,7 @@ import { PgslVariableDeclaration } from "../../../source/syntax_tree/declaration
 import { PgslExpression } from "../../../source/syntax_tree/expression/pgsl-expression.ts";
 import { PgslTypeDeclaration } from "../../../source/syntax_tree/general/pgsl-type-declaration.ts";
 import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
+import { PgslNumericType } from "../../../source/type/pgsl-numeric-type.ts";
 
 // Create parser instance with disabled validation.
 const gPgslParser: PgslParser = new PgslParser();
@@ -15,7 +16,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "const";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
@@ -44,8 +45,8 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
     await pContext.step("Const must be assignable to another const", async () => {
         // Setup. Code text with const assignment.
         const lCodeText: string = `
-            const testVariable: Float = 3.0;
-            const anotherVariable: Float = testVariable;
+            const testVariable: ${PgslNumericType.typeName.float32} = 3.0;
+            const anotherVariable: ${PgslNumericType.typeName.float32} = testVariable;
         `;
 
         // Execute.
@@ -57,7 +58,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const without initialization expression", async () => {
         // Setup. Code text without initialization.
-        const lCodeText: string = "const testVariable: Float;";
+        const lCodeText: string = `const testVariable: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -72,8 +73,8 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
     await pContext.step("Error - Const with non-constant expression", async () => {
         // Setup. Code text with non-constant expression (assuming variable access is non-constant).
         const lCodeText: string = `
-            private otherVariable: Float = 3.0;
-            const testVariable: Float = otherVariable;
+            private otherVariable: ${PgslNumericType.typeName.float32} = 3.0;
+            const testVariable: ${PgslNumericType.typeName.float32} = otherVariable;
         `;
 
         // Execute.
@@ -104,7 +105,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
 
     await pContext.step("Error - Const with type mismatch", async () => {
         // Setup. Code text with type mismatch (Float variable with Boolean value).
-        const lCodeText: string = "const testVariable: Float = true;";
+        const lCodeText: string = `const testVariable: ${PgslNumericType.typeName.float32} = true;`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -113,14 +114,14 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
     });
 
     await pContext.step("Error - Const with invalid attribute", async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
             [AccessMode(AccessMode.Read)]
-            const testVariable: Float = 5.0;
+            const testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
         // Execute.
@@ -140,7 +141,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Const", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32} = ${lVariableValue};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -155,7 +156,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "storage";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
 
         // Setup. Code text.
         const lCodeText: string = `
@@ -188,7 +189,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
             [AccessMode(AccessMode.Read)]
-            storage testVariable: Float;
+            storage testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -200,7 +201,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
 
     await pContext.step("Error - Storage without required GroupBinding attribute", async () => {
         // Setup. Code text without required GroupBinding.
-        const lCodeText: string = "storage testVariable: Float;";
+        const lCodeText: string = `storage testVariable: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -217,7 +218,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
             [Vertex()]
-            storage testVariable: Float;
+            storage testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -234,7 +235,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         // Setup. Code text with initialization.
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
-            storage testVariable: Float = 5.0;
+            storage testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
         // Execute.
@@ -272,7 +273,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Storage", async (pContext) => {
         // Setup. Code text.
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
-            ${lDeclarationType} ${lVariableName}: Float;
+            ${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -288,7 +289,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "uniform";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
 
         // Setup. Code text.
         const lCodeText: string = `
@@ -321,7 +322,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
             [AccessMode(AccessMode.ReadWrite)]
-            uniform testVariable: Float;
+            uniform testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -333,7 +334,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
 
     await pContext.step("Error - Uniform without required GroupBinding attribute", async () => {
         // Setup. Code text without required GroupBinding.
-        const lCodeText: string = "uniform testVariable: Float;";
+        const lCodeText: string = `uniform testVariable: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -350,7 +351,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
             [Vertex()]
-            uniform testVariable: Float;
+            uniform testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -367,7 +368,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         // Setup. Code text with initialization.
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
-            uniform testVariable: Float = 5.0;
+            uniform testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
         // Execute.
@@ -422,7 +423,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Uniform", async (pContext) => {
         // Setup. Code text.
         const lCodeText: string = `
             [GroupBinding("test_group", "test_binding")]
-            ${lDeclarationType} ${lVariableName}: Float;
+            ${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -474,7 +475,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "workgroup";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
@@ -503,7 +504,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "workgroup";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
@@ -551,7 +552,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
 
     await pContext.step("Error - Workgroup with type mismatch", async () => {
         // Setup. Code text with type mismatch (Float variable with Boolean value).
-        const lCodeText: string = "workgroup testVariable: Float = true;";
+        const lCodeText: string = `workgroup testVariable: ${PgslNumericType.typeName.float32} = true;`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -560,14 +561,14 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
     });
 
     await pContext.step("Error - Workgroup with invalid attribute", async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
             [AccessMode(AccessMode.Read)]
-            workgroup testVariable: Float;
+            workgroup testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -586,7 +587,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lVariableName: string = "testVariable";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -602,7 +603,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Workgroup", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32} = ${lVariableValue};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -617,7 +618,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "private";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
 
         // Setup. Code text.
         const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType};`;
@@ -646,7 +647,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "private";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
@@ -680,7 +681,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
 
     await pContext.step("Error - Private with type mismatch", async () => {
         // Setup. Code text with type mismatch (Float variable with Boolean value).
-        const lCodeText: string = "private testVariable: Float = true;";
+        const lCodeText: string = `private testVariable: ${PgslNumericType.typeName.float32} = true;`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -689,14 +690,14 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "${PgslNumericType.typeName.float32}"`))).toBe(true);
     });
 
     await pContext.step("Error - Private with invalid attribute", async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
             [AccessMode(AccessMode.Read)]
-            private testVariable: Float;
+            private testVariable: ${PgslNumericType.typeName.float32};
         `;
 
         // Execute.
@@ -715,7 +716,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lVariableName: string = "testVariable";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float;`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -731,7 +732,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Private", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32} = ${lVariableValue};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -746,7 +747,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         // Setup. Code blocks.
         const lDeclarationType: string = "param";
         const lVariableName: string = "testVariable";
-        const lVariableType: string = "Float";
+        const lVariableType: string = PgslNumericType.typeName.float32;
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
@@ -774,7 +775,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param without initialization expression", async () => {
         // Setup. Code text without initialization.
-        const lCodeText: string = "param testVariable: Float;";
+        const lCodeText: string = `param testVariable: ${PgslNumericType.typeName.float32};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -816,7 +817,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
 
     await pContext.step("Error - Param with type mismatch", async () => {
         // Setup. Code text with type mismatch (Float variable with Boolean value).
-        const lCodeText: string = "param testVariable: Float = true;";
+        const lCodeText: string = `param testVariable: ${PgslNumericType.typeName.float32} = true;`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
@@ -825,14 +826,14 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
         // Validation. Error should mention type assignment issue.
-        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value of type "Boolean" can't be assigned to "Float"`))).toBe(true);
+        expect(lTranspilationResult.incidents.some(incident => incident.message.includes(`Initializing value has incompatible type.`))).toBe(true);
     });
 
     await pContext.step("Error - Param with invalid attribute", async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
             [AccessMode(AccessMode.Read)]
-            param testVariable: Float = 5.0;
+            param testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
         // Execute.
@@ -852,7 +853,7 @@ Deno.test("PgslVariableDeclarationSyntaxTree - Param", async (pContext) => {
         const lVariableValue: string = "5.0";
 
         // Setup. Code text.
-        const lCodeText: string = `${lDeclarationType} ${lVariableName}: Float = ${lVariableValue};`;
+        const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32} = ${lVariableValue};`;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());

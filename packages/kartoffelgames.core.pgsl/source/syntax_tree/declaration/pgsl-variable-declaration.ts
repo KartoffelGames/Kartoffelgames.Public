@@ -252,7 +252,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
         // Validate if expression fits declaration type.
         if (lExpressionTrace && !lExpressionTrace.resolveType.isImplicitCastableInto(this.mTypeDeclaration.type)) {
             // Expression type is not castable into declaration type.
-            pTrace.pushIncident(`Initializing value of type "${lExpressionTrace.resolveType.constructor.name}" can't be assigned to "${lType.constructor.name}"`, this);
+            pTrace.pushIncident(`Initializing value has incompatible type.`, this);
         }
 
         // Determine fixed state based on declaration type.

@@ -7,6 +7,8 @@ import { PgslExpression } from '../../../source/syntax_tree/expression/pgsl-expr
 import { PgslTypeDeclaration } from '../../../source/syntax_tree/general/pgsl-type-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
+import { PgslAttributeList } from "../../../source/syntax_tree/general/pgsl-attribute-list.ts";
+import { PgslAccessMode } from "../../../source/syntax_tree/buildin/pgsl-access-mode.enum.ts";
 
 // TODO: Check PgslParserResult for registered bindings.
 
@@ -130,7 +132,7 @@ Deno.test('PgslVariableDeclaration - Const', async (pContext) => {
     await pContext.step('Error - Const with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [AccessMode(AccessMode.Read)]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
             const testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
@@ -172,7 +174,7 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: ${lVariableType};
         `;
 
@@ -199,8 +201,8 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
     await pContext.step('Storage with optional AccessMode attribute', async () => {
         // Setup. Code text with optional AccessMode attribute.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
-            [AccessMode(AccessMode.Read)]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
             storage testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -230,8 +232,8 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
     await pContext.step('Error - Storage with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
-            [Vertex()]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.vertex}()]
             storage testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -250,7 +252,7 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
     await pContext.step('Error - Storage with initialization expression', async () => {
         // Setup. Code text with initialization.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             storage testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
@@ -269,7 +271,7 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
     await pContext.step('Error - Storage with non-host-shareable type', async () => {
         // Setup. Code text with non-host-shareable type.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             storage testVariable: Sampler;
         `;
 
@@ -292,7 +294,7 @@ Deno.test('PgslVariableDeclaration - Storage', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};
         `;
 
@@ -313,7 +315,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: ${lVariableType};
         `;
 
@@ -340,8 +342,8 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Uniform with optional AccessMode attribute', async () => {
         // Setup. Code text with optional AccessMode attribute.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
-            [AccessMode(AccessMode.ReadWrite)]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.ReadWrite)]
             uniform testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -371,7 +373,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Error - Uniform with invalid GroupBinding attributes', async () => {
         // Setup. Code text with invalid attribute GroupBinding attributes.
         const lCodeText: string = `
-            [GroupBinding("test_group", 1)]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", 1)]
             uniform testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -390,8 +392,8 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Error - Uniform with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
-            [Vertex()]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.vertex}()]
             uniform testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -410,7 +412,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Error - Uniform with initialization expression', async () => {
         // Setup. Code text with initialization.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             uniform testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
@@ -429,7 +431,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Error - Uniform with non-constructible type', async () => {
         // Setup. Code text with non-constructible type.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             uniform testVariable: TextureDepth2d;
         `;
 
@@ -448,7 +450,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
     await pContext.step('Error - Uniform with non-host-shareable type', async () => {
         // Setup. Code text with non-host-shareable type.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             uniform testVariable: TextureDepth2d;
         `;
 
@@ -471,7 +473,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: ${PgslNumericType.typeName.float32};
         `;
 
@@ -489,7 +491,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: TextureDepth2d;
         `;
 
@@ -507,7 +509,7 @@ Deno.test('PgslVariableDeclaration - Uniform', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-            [GroupBinding("test_group", "test_binding")]
+            [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
             ${lDeclarationType} ${lVariableName}: Sampler;
         `;
 
@@ -622,7 +624,7 @@ Deno.test('PgslVariableDeclaration - Workgroup', async (pContext) => {
     await pContext.step('Error - Workgroup with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [AccessMode(AccessMode.Read)]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
             workgroup testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -757,7 +759,7 @@ Deno.test('PgslVariableDeclaration - Private', async (pContext) => {
     await pContext.step('Error - Private with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [AccessMode(AccessMode.Read)]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
             private testVariable: ${PgslNumericType.typeName.float32};
         `;
 
@@ -903,7 +905,7 @@ Deno.test('PgslVariableDeclaration - Param', async (pContext) => {
     await pContext.step('Error - Param with invalid attribute', async () => {
         // Setup. Code text with invalid attribute.
         const lCodeText: string = `
-            [AccessMode(AccessMode.Read)]
+            [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
             param testVariable: ${PgslNumericType.typeName.float32} = 5.0;
         `;
 
@@ -978,9 +980,9 @@ Deno.test('PgslVariableDeclaration - Errors', async (pContext) => {
 
         // Setup. Code text.
         const lCodeText: string = `
-                const ${lVariableName}: ${lFirstVariableType} = 5.0;
-                private ${lVariableName}: ${lSecondVariableType};
-            `;
+            const ${lVariableName}: ${lFirstVariableType} = 5.0;
+            private ${lVariableName}: ${lSecondVariableType};
+        `;
 
         // Execute.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());

@@ -43,6 +43,8 @@ export class PgslValueDecompositionExpressionTranspilerProcessor implements IPgs
 
             // Add incident when property not found.
             pTrace.pushIncident(`Enum "${lPgslEnumTrace.name}" does not contain a value for property "${pInstance.property}".`, pInstance);
+
+            return "0";
         }
 
         // Transpile value and property.

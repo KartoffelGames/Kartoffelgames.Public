@@ -54,6 +54,11 @@ export class PgslEnumDeclaration extends PgslDeclaration {
         // Validate that the enum has no dublicate names.
         const lPropertyList: Map<string, PgslExpression> = new Map<string, PgslExpression>();
 
+        // Check if enum is already defined.
+        if (pTrace.getEnum(this.mName)) {
+            pTrace.pushIncident(`Enum "${this.mName}" is already defined.`, this);
+        }
+
         let lFirstPropertyType: PgslType | null = null;
         for (const lProperty of this.mValues) {
             // Validate property.

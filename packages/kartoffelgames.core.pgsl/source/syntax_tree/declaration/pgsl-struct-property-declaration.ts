@@ -104,7 +104,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.location)) {
                 // Read attribute parameterk, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.accessMode)!;
+                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.location)!;
                 if (lAttributeParameter.length !== 1) {
                     pTrace.pushIncident(`Location attribute must have exactly one parameter.`, this);
                     return;

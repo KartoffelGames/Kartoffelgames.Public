@@ -3,6 +3,8 @@ import type { PgslInterpolateSampling } from '../syntax_tree/buildin/pgsl-interp
 import type { PgslInterpolateType } from '../syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
 
+// TODO: Calculate size and alignment based on type.
+
 /**
  * Trace information for PGSL struct property declarations.
  * Tracks property types, metadata, and usage contexts within structs.

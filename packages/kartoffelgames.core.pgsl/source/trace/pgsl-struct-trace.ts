@@ -1,5 +1,7 @@
 import type { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
 
+// TODO: Dynamically calculate size and alignment based on type.
+
 /**
  * Trace information for PGSL struct declarations and usage.
  * Tracks properties, their types, and struct instantiation contexts.

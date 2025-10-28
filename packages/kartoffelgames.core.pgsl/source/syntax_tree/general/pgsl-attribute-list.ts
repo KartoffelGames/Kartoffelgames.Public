@@ -65,14 +65,14 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         lAttributes.set(PgslAttributeList.attributeNames.blendSource, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
-                [{ values: [] }] // Location output.
+                [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }] // Location output.
             ]
         });
         lAttributes.set(PgslAttributeList.attributeNames.interpolate, {
             enforcedParentType: PgslStructPropertyDeclaration,
             parameterTypes: [
                 [{ values: ['perspective', 'linear', 'flat'] }],
-                [{ values: ['perspective', 'linear', 'flat'] }, { values: ['centroid', 'sample', 'first', 'either'] }]
+                [{ values: ['perspective', 'linear', 'flat'] }, { values: ['center', 'centroid', 'sample', 'first', 'either'] }]
             ]
         });
         lAttributes.set(PgslAttributeList.attributeNames.invariant, {

@@ -49,6 +49,9 @@ import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import type { PgslTranspilation, PgslTranspilationResult } from '../transpilation/pgsl-transpilation.ts';
 import { PgslParserResult } from './pgsl-parser-result.ts';
+import { PgslInterpolateSamplingEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-sampling-enum-declaration.ts";
+import { PgslInterpolateTypeEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-type-enum-declaration.ts";
+import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts";
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
@@ -105,7 +108,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Define buildin enums.
         const lBuildInEnumList: Array<PgslEnumDeclaration> = [
-            new PgslAccessModeEnumDeclaration()
+            new PgslAccessModeEnumDeclaration(),
+            new PgslInterpolateSamplingEnumDeclaration(),
+            new PgslInterpolateTypeEnumDeclaration(),
+            new PgslTexelFormatEnumDeclaration()
         ];
 
         // Parse document structure.

@@ -168,6 +168,11 @@ export class PgslArrayType extends PgslType {
             pTrace.pushIncident(`Array inner type must be a plain type.`);
         }
 
+        // Inner type must be fixed.
+        if( !this.mInnerType.fixedFootprint) {
+            pTrace.pushIncident(`Array inner type must have a fixed footprint.`);
+        }
+
         // Is fixed when length expression is set and inner type is fixed.
         const lIsFixed: boolean = (!this.mLengthExpression) ? false : this.mInnerType.fixedFootprint;
 

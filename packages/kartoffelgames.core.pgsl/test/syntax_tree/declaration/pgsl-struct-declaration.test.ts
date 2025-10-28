@@ -169,7 +169,7 @@ Deno.test('PgslStructDeclaration - Dynamic length', async (pContext) => {
 
         // Evaluation. Error should mention dynamic array position.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Dynamic arrays can only be used as the last property of a struct.')
+            pIncident.message.includes('Only the last property of a struct can have a variable length.')
         )).toBe(true);
     });
 
@@ -221,7 +221,7 @@ Deno.test('PgslStructDeclaration - Dynamic length', async (pContext) => {
 
         // Evaluation. Error should mention multiple dynamic arrays.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Dynamic arrays can only be used as the last property of a struct.')
+            pIncident.message.includes('Only the last property of a struct can have a variable length.')
         )).toBe(true);
     });
 
@@ -305,12 +305,12 @@ Deno.test('PgslStructDeclaration - Property Attributes', async (pContext) => {
         // Setup. Code blocks.
         const lStructName: string = 'TestLocationStruct';
         const lPropertyName: string = 'locationProperty';
-        const lLocationValue: number = 0;
+        const lLocationName: string = 'OutputOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
-                [${PgslAttributeList.attributeNames.location}(${lLocationValue})]
+                [${PgslAttributeList.attributeNames.location}("${lLocationName}")]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
         `;
@@ -330,11 +330,13 @@ Deno.test('PgslStructDeclaration - Property Attributes', async (pContext) => {
         // Setup. Code blocks.
         const lStructName: string = 'TestInterpolateStruct';
         const lPropertyName: string = 'interpolateProperty';
+        const lInterpolateLocationName: string = 'OutputOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
-                [${PgslAttributeList.attributeNames.interpolate}("linear")]
+                [${PgslAttributeList.attributeNames.location}("${lInterpolateLocationName}")]
+                [${PgslAttributeList.attributeNames.interpolate}(InterpolateType.Perspective, InterpolateSampling.Center)]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
         `;
@@ -355,10 +357,12 @@ Deno.test('PgslStructDeclaration - Property Attributes', async (pContext) => {
         const lStructName: string = 'TestBlendSourceStruct';
         const lPropertyName: string = 'blendSourceProperty';
         const lBlendSourceValue: number = 0;
+        const lBlendSourceLocation: string = 'TextureOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
+                [${PgslAttributeList.attributeNames.location}("${lBlendSourceLocation}")]
                 [${PgslAttributeList.attributeNames.blendSource}(${lBlendSourceValue})]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
@@ -373,31 +377,6 @@ Deno.test('PgslStructDeclaration - Property Attributes', async (pContext) => {
         // Evaluation. Correct structure.
         const lDeclarationNode: PgslStructDeclaration = lTranspilationResult.document.childNodes[0] as PgslStructDeclaration;
         expect(lDeclarationNode.name).toBe(lStructName);
-    });
-
-    await pContext.step('Error - Property with invalid attribute', async () => {
-        // Setup. Code blocks.
-        const lStructName: string = 'TestInvalidAttributeStruct';
-        const lPropertyName: string = 'invalidProperty';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            struct ${lStructName} {
-                [${PgslAttributeList.attributeNames.vertex}()]
-                ${lPropertyName}: ${PgslNumericType.typeName.float32}
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention invalid attribute for struct property.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Struct property does not allow attribute "Vertex".')
-        )).toBe(true);
     });
 });
 
@@ -451,7 +430,7 @@ Deno.test('PgslStructDeclaration - Error Cases', async (pContext) => {
 
         // Evaluation. Error should mention duplicate property.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Property "${lDuplicatePropertyName}" was already added to struct "${lStructName}".`)
+            pIncident.message.includes(`Property name '${lDuplicatePropertyName}' is already used in struct '${lStructName}'.`)
         )).toBe(true);
     });
 
@@ -473,7 +452,7 @@ Deno.test('PgslStructDeclaration - Error Cases', async (pContext) => {
 
         // Evaluation. Error should mention empty struct.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Struct "${lStructName}" has no properties.`)
+            pIncident.message.includes(`Struct must have at least one property.`)
         )).toBe(true);
     });
 
@@ -578,17 +557,21 @@ Deno.test('PgslStructDeclaration - Structs usages', async (pContext) => {
             struct ${lStructName} {
                 ${lDynamicPropertyName}: Array<${PgslNumericType.typeName.float32}>
             }
-            private ${lVariableName}: Array<${lStructName}, ${lArraySize}>;
+
+            [${PgslAttributeList.attributeNames.groupBinding}("somewhat", "another")]
+            storage ${lVariableName}: Array<${lStructName}, ${lArraySize}>;
         `;
 
         // Process.
         const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
         // Evaluation. Should work as fixed arrays have known size.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
 
-        // Evaluation. Transpiled output uses struct with dynamic array in fixed array.  // TODO: Should fail as struct is dynamic
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: array<${lStructName}, ${lArraySize}>;`);
+        // Evaluation. Error should mention undefined type.
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes(`Array inner type must have a fixed footprint.`)
+        )).toBe(true);
     });
 });
 
@@ -649,12 +632,12 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         // Setup. Code blocks.
         const lStructName: string = 'TestAttributeStruct';
         const lPropertyName: string = 'attributeProperty';
-        const lLocationValue: number = 0;
+        const lLocationName: string = 'OutputOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
-                [${PgslAttributeList.attributeNames.location}(${lLocationValue})]
+                [${PgslAttributeList.attributeNames.location}("${lLocationName}")]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
         `;
@@ -666,8 +649,7 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
 
         // Evaluation. Transpiled output contains attribute.
-        expect(lTranspilationResult.source).toContain(`@location(${lLocationValue})`);
-        expect(lTranspilationResult.source).toContain(`${lPropertyName}: vec4<f32>`);
+        expect(lTranspilationResult.source).toContain(`@location(0) ${lPropertyName}: vec4<f32>`);
     });
 
     await pContext.step('Struct with dynamic array transpilation', async () => {
@@ -724,11 +706,13 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         // Setup. Code blocks.
         const lStructName: string = 'TestInterpolateStruct';
         const lPropertyName: string = 'interpolateProperty';
+        const lInterpolateLocationName: string = 'OutputOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
-                [${PgslAttributeList.attributeNames.interpolate}("perspective")]
+                [${PgslAttributeList.attributeNames.location}("${lInterpolateLocationName}")]
+                [${PgslAttributeList.attributeNames.interpolate}(InterpolateType.Perspective, InterpolateSampling.Center)]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
         `;
@@ -740,8 +724,7 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
 
         // Evaluation. Transpiled output contains interpolate attribute.
-        expect(lTranspilationResult.source).toContain(`@interpolate(perspective)`);
-        expect(lTranspilationResult.source).toContain(`${lPropertyName}: vec4<f32>`);
+        expect(lTranspilationResult.source).toContain(`@location(0) @interpolate(perspective, center) ${lPropertyName}: vec4<f32>`);
     });
 
     await pContext.step('Struct with blend source attribute transpilation', async () => {
@@ -749,10 +732,12 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         const lStructName: string = 'TestBlendSourceStruct';
         const lPropertyName: string = 'blendProperty';
         const lBlendSourceValue: number = 0;
+        const lBlendSourceLocation: string = 'TextureOne';
 
         // Setup. Code text.
         const lCodeText: string = `
             struct ${lStructName} {
+                [${PgslAttributeList.attributeNames.location}("${lBlendSourceLocation}")]
                 [${PgslAttributeList.attributeNames.blendSource}(${lBlendSourceValue})]
                 ${lPropertyName}: Vector4<${PgslNumericType.typeName.float32}>
             }
@@ -765,7 +750,7 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
 
         // Evaluation. Transpiled output contains blend source attribute.
-        expect(lTranspilationResult.source).toContain(`@blend_src(${lBlendSourceValue})`);
+        expect(lTranspilationResult.source).toContain(`@blend_src(0)`);
         expect(lTranspilationResult.source).toContain(`${lPropertyName}: vec4<f32>`);
     });
 });

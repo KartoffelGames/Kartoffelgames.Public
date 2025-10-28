@@ -56,6 +56,11 @@ export class PgslStructDeclaration extends PgslDeclaration {
         // Trace attributes.
         this.attributes.trace(pTrace);
 
+        // Check if struct is already defined.
+        if (pTrace.getStruct(this.mName)) {
+            pTrace.pushIncident(`Struct "${this.mName}" is already defined.`, this);
+        }
+
         const lNameBuffer: Set<string> = new Set<string>();
 
         // Create new struct trace and register struct before tracing as the properties need to be able to reference the struct itself.

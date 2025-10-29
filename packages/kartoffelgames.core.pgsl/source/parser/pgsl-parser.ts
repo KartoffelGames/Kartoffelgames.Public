@@ -26,8 +26,8 @@ import { PgslVariableNameExpression } from '../syntax_tree/expression/storage/pg
 import { PgslUnaryExpression } from '../syntax_tree/expression/unary/pgsl-unary-expression.ts';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts';
 
-import { PgslLexer } from '../lexer/pgsl-lexer.ts';
-import { PgslToken } from '../lexer/pgsl-token.enum.ts';
+import { PgslLexer } from './pgsl-lexer.ts';
+import { PgslToken } from './pgsl-token.enum.ts';
 import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
 import { PgslTypeDeclaration } from '../syntax_tree/general/pgsl-type-declaration.ts';
 import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
@@ -48,7 +48,7 @@ import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-disca
 import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import type { PgslTranspilation, PgslTranspilationResult } from '../transpilation/pgsl-transpilation.ts';
-import { PgslParserResult } from './pgsl-parser-result.ts';
+import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
 import { PgslInterpolateSamplingEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-sampling-enum-declaration.ts";
 import { PgslInterpolateTypeEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-type-enum-declaration.ts";
 import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts";
@@ -137,7 +137,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         const lTranspilationResult: PgslTranspilationResult = pTranspiler.transpile(lDocument, lTrace);
 
         // Build and return PgslParserResult.
-        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument, lTrace);
+        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lTrace);
     }
 
     /**

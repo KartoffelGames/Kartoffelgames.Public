@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import type { PgslParserResult } from '../../../source/parser/pgsl-parser-result.ts';
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslStructDeclaration } from '../../../source/syntax_tree/declaration/pgsl-struct-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';

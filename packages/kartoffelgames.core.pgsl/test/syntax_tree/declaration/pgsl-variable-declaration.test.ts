@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PgslDeclarationType } from '../../../source/enum/pgsl-declaration-type.enum.ts';
-import type { PgslParserResult } from '../../../source/parser/pgsl-parser-result.ts';
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslVariableDeclaration } from '../../../source/syntax_tree/declaration/pgsl-variable-declaration.ts';
 import { PgslExpression } from '../../../source/syntax_tree/expression/pgsl-expression.ts';

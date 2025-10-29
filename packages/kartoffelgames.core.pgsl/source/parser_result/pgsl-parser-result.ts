@@ -5,16 +5,6 @@ export class PgslParserResult {
     private readonly mSource: string;
     private readonly mSourceMap: string | null;
     private readonly mMeta: PgslParserResultMeta;
-    private readonly mDocument: PgslDocument;
-
-    /**
-     * Gets the PGSL document representation.
-     * 
-     * @returns The PgslDocument instance.
-     */
-    public get document(): PgslDocument {
-        return this.mDocument;
-    }
 
     /**
      * Gets the list of trace incidents encountered during parsing.
@@ -51,10 +41,9 @@ export class PgslParserResult {
      * @param pDocument - The PGSL document representation.
      * @param pTrace - The trace information for debugging.
      */
-    public constructor(pSource: string, pSourceMap: string | null, pDocument: PgslDocument, pTrace: PgslTrace) {
+    public constructor(pSource: string, pSourceMap: string | null, pTrace: PgslTrace) {
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
-        this.mDocument = pDocument;
         this.mMeta = this.readFromTrace(pTrace);
     }
 

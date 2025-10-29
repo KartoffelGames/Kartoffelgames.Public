@@ -1,6 +1,6 @@
 import { Dictionary, Stack } from '@kartoffelgames/core';
 import { Lexer, type LexerPattern, type LexerPatternType, type LexerToken } from '@kartoffelgames/core-parser';
-import { PgslToken } from './pgsl-token.enum.ts';
+import { PgslToken } from '../parser/pgsl-token.enum.ts';
 
 export class PgslLexer extends Lexer<PgslToken> {
     /**

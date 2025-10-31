@@ -1,5 +1,5 @@
-import type { PgslDocument } from '../syntax_tree/pgsl-document.ts';
 import type { PgslTrace, PgslTraceIncident } from '../trace/pgsl-trace.ts';
+import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
 
 export class PgslParserResult {
     private readonly mSource: string;
@@ -57,10 +57,25 @@ export class PgslParserResult {
     private readFromTrace(pTrace: PgslTrace): PgslParserResultMeta {
         return {
             incidents: [...pTrace.incidents],
+            bindings: this.readBindingsFromTrace(pTrace)
         };
+    }
+
+    private readBindingsFromTrace(pTrace: PgslTrace): Array<PgslParserResultBinding> {
+        const lBindings: Array<PgslParserResultBinding> = [];
+        for (const lBinding of pTrace.valueDeclarations) {
+            // Skip non-binding values.
+            if(lBinding.bindingInformation === null) {
+                continue;
+            }
+
+            lBindings.push(null); // TODO:
+        }
+        return lBindings;
     }
 }
 
 type PgslParserResultMeta = {
     incidents: Array<PgslTraceIncident>;
+    bindings: Array<PgslParserResultBinding>;
 };

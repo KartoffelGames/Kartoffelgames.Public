@@ -75,6 +75,7 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
         // Ensure setup is called.
         this.ensureSetup();
 
+        // Read and validate entry point.
         const lEntryPoint: ShaderModuleEntryPointCompute | undefined = this.mEntryPoints.compute.get(pEntryName);
         if (!lEntryPoint) {
             throw new Exception(`Compute entry point "${pEntryName}" does not exists.`, this);

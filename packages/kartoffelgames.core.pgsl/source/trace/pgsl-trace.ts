@@ -16,7 +16,6 @@ import type { PgslValueTrace } from './pgsl-value-trace.ts';
  * Coordinates all tracing activities including scoping, type resolution, and code generation context.
  */
 export class PgslTrace {
-    private mSealed: boolean;
     private readonly mAliases: Map<string, PgslAliasTrace>;
     private readonly mEnums: Map<string, PgslEnumTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
@@ -31,12 +30,12 @@ export class PgslTrace {
     private readonly mVariableDeclarations: Map<string, PgslValueTrace>;
 
     /**
-     * Gets whether this trace has been sealed.
+     * Gets the list of module-level variable declarations.
      * 
-     * @returns True if sealed, false otherwise.
+     * @returns A readonly array of variable declarations.
      */
-    public get isSealed(): boolean {
-        return this.mSealed;
+    public get valueDeclarations(): ReadonlyArray<PgslValueTrace> {
+        return Array.from(this.mVariableDeclarations.values());
     }
 
     /**
@@ -65,7 +64,6 @@ export class PgslTrace {
      * Creates a new syntax tree trace.
      */
     public constructor() {
-        this.mSealed = false;
         this.mAliases = new Map<string, PgslAliasTrace>();
         this.mEnums = new Map<string, PgslEnumTrace>();
         this.mStructs = new Map<string, PgslStructTrace>();
@@ -80,14 +78,6 @@ export class PgslTrace {
             groupResolution: new Map<string, { index: number; locations: Map<string, number>; }>()
         };
         this.mLocationNameResolutions = new Map<string, Map<string, number>>();
-    }
-
-    /**
-     * Seal the trace to prevent further modifications.
-     * Once sealed, no new scopes can be created and no new trace information can be added.
-     */
-    public seal(): void {
-        this.mSealed = true;
     }
 
     /**
@@ -118,8 +108,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public newScope<T extends PgslSyntaxTreeTraceScopeType>(pType: T, pScopeAction: () => void, pOwner: PgslSyntaxTreeTraceScopeScopeOwner<T>): void {
-        this.assertNotSealed();
-
         // Create scope and push to stack.
         this.mScopeList.push(new PgslTraceScope(pType, pOwner, this.mScopeList.top ?? null));
 
@@ -151,7 +139,6 @@ export class PgslTrace {
      * @param pExpression - The expression to set the trace for.
      */
     public registerExpression(pExpression: PgslExpression, pTrace: PgslExpressionTrace): void {
-        this.assertNotSealed();
         this.mExpressions.set(pExpression, pTrace);
     }
 
@@ -170,8 +157,6 @@ export class PgslTrace {
      * @param pValue - The value of the variable.
      */
     public registerModuleValue(pValue: PgslValueTrace): void {
-        this.assertNotSealed();
-
         // Create resolved bindings if value is a resource.
         if (pValue.bindingInformation) {
             const lBinding: PgslTraceBinding = this.resolveBinding(pValue.bindingInformation.bindGroupName, pValue.bindingInformation.bindLocationName);
@@ -204,7 +189,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public registerAlias(pTrace: PgslAliasTrace): void {
-        this.assertNotSealed();
         this.mAliases.set(pTrace.aliasName, pTrace);
     }
 
@@ -227,7 +211,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public registerEnum(pTrace: PgslEnumTrace): void {
-        this.assertNotSealed();
         this.mEnums.set(pTrace.name, pTrace);
     }
 
@@ -251,7 +234,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public registerStruct(pTrace: PgslStructTrace): void {
-        this.assertNotSealed();
         this.mStructs.set(pTrace.name, pTrace);
     }
 
@@ -264,8 +246,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public registerStructProperty(pProperty: PgslStructPropertyDeclaration, pTrace: PgslStructPropertyTrace) {
-        this.assertNotSealed();
-
         // Resolve location name to a location index.
         if (pTrace.meta.locationName) {
             const lLocationIndex: number = this.resolveLocation(pProperty.struct.name, pTrace.meta.locationName);
@@ -309,7 +289,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public registerFunction(pTrace: PgslFunctionTrace): void {
-        this.assertNotSealed();
         this.mFunctions.set(pTrace.name, pTrace);
     }
 
@@ -322,7 +301,6 @@ export class PgslTrace {
      * @throws Error if the trace is sealed.
      */
     public pushIncident(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree): void {
-        this.assertNotSealed();
         this.mIncidents.push(new PgslTraceIncident(pMessage, pSyntaxTree));
     }
 
@@ -394,17 +372,6 @@ export class PgslTrace {
 
         // Return the location index.
         return lStructLocations.get(pLocationName)!;
-    }
-
-    /**
-     * Assert that the trace is not sealed.
-     * 
-     * @throws Error if the trace is sealed.
-     */
-    private assertNotSealed(): void {
-        if (this.mSealed) {
-            throw new Error('Trace is sealed.');
-        }
     }
 }
 

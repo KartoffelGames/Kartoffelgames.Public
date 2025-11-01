@@ -63,11 +63,37 @@ export class MyClass {
 
     /**
      * Description of what the method does.
+     * Additional details if needed.
+     *
      * @param pParameter - Description of the parameter.
+     * @param pSecondParam - Description of another parameter.
+     *
      * @returns Description of the return value.
+     *
      * @throws {ErrorType} Description of when this error is thrown.
+     * @throws {AnotherError} Description of another error condition.
+     *
+     * @example
+     * ```typescript
+     * const result = myClass.myMethod('input');
+     * ```
      */
-    public myMethod(pParameter: string): boolean {
+    public myMethod(pParameter: string, pSecondParam: number): boolean {
+        // Implementation
+    }
+
+    /**
+     * Generic method example showing type parameter documentation.
+     *
+     * @typeParam T - The type of items to process.
+     * @typeParam U - The return type after processing.
+     *
+     * @param pItems - Array of items to process.
+     * @param pProcessor - Function to process each item.
+     *
+     * @returns Array of processed items.
+     */
+    public processItems<T, U>(pItems: Array<T>, pProcessor: (item: T) => U): Array<U> {
         // Implementation
     }
 }
@@ -79,6 +105,47 @@ export class MyClass {
 - **Properties:** Purpose, expected values, constraints
 - **Enums:** Purpose and usage context
 - **Interfaces:** Purpose and intended usage
+
+### Documentation Formatting Rules
+Follow these strict formatting guidelines for all TSDoc documentation:
+
+**Spacing Requirements:**
+- Always include an empty line between the description text and the first tag
+- Add empty lines between different types of tags (but not between same tag types)
+- Group same tag types together without empty lines between them
+
+**Tag Order (Strictly Enforced):**
+1. Description text
+2. `@typeParam` tags (for generic type parameters)
+3. `@param` tags (for function/method parameters) 
+4. `@returns` tag (for return value description)
+5. `@throws` tags (for exception documentation)
+6. `@example` tags (for usage examples)
+7. Other tags (`@since`, `@deprecated`, etc.)
+
+**Example of proper spacing:**
+```typescript
+/**
+ * Method description goes here.
+ * Additional description details.
+ *
+ * @typeParam T - First type parameter.
+ * @typeParam U - Second type parameter.
+ *
+ * @param pFirstParam - First parameter description.
+ * @param pSecondParam - Second parameter description.
+ *
+ * @returns Description of return value.
+ *
+ * @throws {Error} When first error condition occurs.
+ * @throws {ValidationError} When validation fails.
+ *
+ * @example
+ * ```typescript
+ * const result = myMethod('input', 42);
+ * ```
+ */
+```
 
 ## Code Structure and Organization
 
@@ -302,8 +369,11 @@ export class TextProcessor {
 
     /**
      * Processes the input text according to configured options.
+     *
      * @param pInput - The text content to process.
+     *
      * @returns The processed text result.
+     *
      * @throws {Error} When input text exceeds maximum length.
      */
     public processText(pInput: string): string {
@@ -323,7 +393,9 @@ export class TextProcessor {
 
     /**
      * Normalizes text content by removing extra whitespace and standardizing format.
+     *
      * @param pText - The text to normalize.
+     *
      * @returns The normalized text.
      */
     private normalizeText(pText: string): string {
@@ -347,12 +419,14 @@ export class TextProcessor {
 export interface ISerializable {
     /**
      * Serializes the object to a string representation.
+     *
      * @returns The serialized string data.
      */
     serialize(): string;
 
     /**
      * Deserializes string data back into the object.
+     *
      * @param pData - The serialized string data.
      */
     deserialize(pData: string): void;

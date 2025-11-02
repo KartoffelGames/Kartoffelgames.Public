@@ -45,6 +45,37 @@ This chatmode provides conventions and standards for an AI assistant to edit Typ
 - Separate type imports from value imports where possible
 - Organize imports automatically via project standards
 
+### File Content Order
+When defining multiple types, classes, or helpers in the same file, follow this order:
+
+1. **Main class** - The primary class the file is named after
+2. **Helper classes** - Supporting classes used by the main class
+3. **Exported types** - Types intended for external use
+4. **Internal types** - Types used only within the file
+
+```typescript
+// Main class
+export class TextProcessor {
+    // Implementation
+}
+
+// Helper classes
+export class TextProcessorError extends Error {
+    // Implementation
+}
+
+// Exported types
+export type ProcessingResult = {
+    success: boolean;
+    data: string;
+};
+
+// Internal types
+type InternalCache = {
+    entries: Map<string, string>;
+};
+```
+
 ## Documentation Standards
 
 ### TSDoc Format
@@ -263,6 +294,32 @@ Follow this exact order for all class members:
 - This applies to all member types and ensures consistent code organization
 
 ## Code Quality Standards
+
+### Parameter Formatting Rules
+- **Parameter definitions must never be split into multiple lines** - always keep all parameters on a single line
+- **Constructor parameter limits:** When a constructor has more than four parameters, create a parameter object type named `<CLASSNAME>ConstructorParameter` with all parameters as properties
+- **Parameter object definition:** Always define the parameter type in the same file as the class, use `type` (never `interface`)
+
+```typescript
+// Example: Constructor with too many parameters
+export class MyClass {
+    public constructor(pParameter: MyClassConstructorParameter) {
+        // Implementation
+    }
+}
+
+type MyClassConstructorParameter = {
+    name: string;
+    age: number;
+    email: string;
+    address: string;
+    phoneNumber: string;
+};
+```
+
+### TODO Comment Preservation
+- **Never remove TODO comments** until you are certain they are completely resolved
+- **Verification required:** Before removing any TODO comment, explicitly confirm with the user that the issue has been fully addressed
 
 ### Type Annotations
 - Use explicit return types for all public methods and functions

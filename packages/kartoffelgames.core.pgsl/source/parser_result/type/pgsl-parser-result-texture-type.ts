@@ -1,0 +1,64 @@
+import { PgslParserResultType } from './pgsl-parser-result-type.ts';
+
+/**
+ * Represents a texture type in PGSL parser results with dimension, data type, and format information.
+ * Textures are opaque types in WGSL and do not have meaningful size/alignment for buffer layout.
+ */
+export class PgslParserResultTextureType extends PgslParserResultType {
+    private readonly mDimension: PgslParserResultTextureDimensionType;
+    private readonly mTextureType: PgslParserResultTextureDataType;
+    private readonly mTextureFormat: string;
+
+    /**
+     * Gets the texture dimension (1D, 2D, 3D, etc.).
+     *
+     * @returns The texture dimension type.
+     */
+    public get dimension(): PgslParserResultTextureDimensionType {
+        return this.mDimension;
+    }
+
+    /**
+     * Gets the texture data type (float, integer, unsigned integer).
+     *
+     * @returns The texture data type.
+     */
+    public get textureType(): PgslParserResultTextureDataType {
+        return this.mTextureType;
+    }
+
+    /**
+     * Gets the texture format specification.
+     *
+     * @returns The texture format string.
+     */
+    public get textureFormat(): string {
+        return this.mTextureFormat;
+    }
+
+    /**
+     * Creates a new PGSL parser result texture type.
+     *
+     * @param pDimension - The texture dimension.
+     * @param pTextureType - The texture data type.
+     * @param pTextureFormat - The texture format specification.
+     */
+    public constructor(pDimension: PgslParserResultTextureDimensionType, pTextureType: PgslParserResultTextureDataType, pTextureFormat: string) {
+        // Textures are always packed alignment.
+        super('texture', 'packed');
+
+        this.mDimension = pDimension;
+        this.mTextureType = pTextureType;
+        this.mTextureFormat = pTextureFormat; // TODO: set format based on an enum.
+    }
+}
+
+/**
+ * Texture dimension types supported in WGSL.
+ */
+export type PgslParserResultTextureDimensionType = '1d' | '2d' | '2d-array' | '3d' | 'cube' | 'cube-array';
+
+/**
+ * Texture data types indicating the format of data stored in the texture.
+ */
+export type PgslParserResultTextureDataType = 'float' | 'integer' | 'unsigned-integer';

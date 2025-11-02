@@ -119,6 +119,8 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
                     return;
                 }
 
+                // TODO: type must be a numeric scalar, or numeric vector.
+
                 // Set location name to meta.
                 lMeta.locationName = lExpressionTrace.constantValue;
             }

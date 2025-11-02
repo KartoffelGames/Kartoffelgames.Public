@@ -1,5 +1,8 @@
+import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
 import type { PgslTrace, PgslTraceIncident } from '../trace/pgsl-trace.ts';
 import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
+import { PgslParserResultParameter } from "./pgsl-parser-result-parameter.ts";
+import { PgslParserResultType } from "./type/pgsl-parser-result-type.ts";
 
 export class PgslParserResult {
     private readonly mSource: string;
@@ -57,7 +60,9 @@ export class PgslParserResult {
     private readFromTrace(pTrace: PgslTrace): PgslParserResultMeta {
         return {
             incidents: [...pTrace.incidents],
-            bindings: this.readBindingsFromTrace(pTrace)
+            bindings: this.readBindingsFromTrace(pTrace),
+            parameters: this.readParametersFromTrace(pTrace),
+            // TODO: entry points
         };
     }
 
@@ -65,17 +70,33 @@ export class PgslParserResult {
         const lBindings: Array<PgslParserResultBinding> = [];
         for (const lBinding of pTrace.valueDeclarations) {
             // Skip non-binding values.
-            if(lBinding.bindingInformation === null) {
+            if (lBinding.bindingInformation === null) {
                 continue;
             }
 
-            lBindings.push(null); // TODO:
+            // Create a new parser result binding.
+            lBindings.push(new PgslParserResultBinding(lBinding));
         }
         return lBindings;
+    }
+
+    private readParametersFromTrace(pTrace: PgslTrace): Array<PgslParserResultParameter> {
+        const lParameters: Array<PgslParserResultParameter> = [];
+        for (const lValue of pTrace.valueDeclarations) {
+            // Skip non-parameter values.
+            if (lValue.declarationType !== PgslDeclarationType.Param) {
+                continue;
+            }
+
+            // Map parameter names to their types.
+            lParameters.push(new PgslParserResultParameter(lValue));
+        }
+        return lParameters;
     }
 }
 
 type PgslParserResultMeta = {
     incidents: Array<PgslTraceIncident>;
     bindings: Array<PgslParserResultBinding>;
+    parameters: Array<PgslParserResultParameter>;
 };

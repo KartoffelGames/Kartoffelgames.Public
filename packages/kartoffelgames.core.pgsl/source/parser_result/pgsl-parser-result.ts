@@ -1,21 +1,26 @@
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import type { PgslTrace, PgslTraceIncident } from '../trace/pgsl-trace.ts';
+import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
 import { PgslParserResultParameter } from "./pgsl-parser-result-parameter.ts";
-import { PgslParserResultType } from "./type/pgsl-parser-result-type.ts";
+import { PgslParserResultIncident } from "./pgsl-parser-result.incident.ts";
 
+/**
+ * Represents the result of parsing PGSL source code, including transpiled code,
+ * source maps, metadata, and any incidents encountered during parsing.
+ */
 export class PgslParserResult {
     private readonly mSource: string;
     private readonly mSourceMap: string | null;
     private readonly mMeta: PgslParserResultMeta;
+    private readonly mIncidents: Array<PgslParserResultIncident>;
 
     /**
      * Gets the list of trace incidents encountered during parsing.
      * 
      * @returns A readonly array of PgslTraceIncident instances.
      */
-    public get incidents(): ReadonlyArray<PgslTraceIncident> {
-        return this.mMeta.incidents;
+    public get incidents(): ReadonlyArray<PgslParserResultIncident> {
+        return this.mIncidents;
     }
 
     /**
@@ -47,26 +52,47 @@ export class PgslParserResult {
     public constructor(pSource: string, pSourceMap: string | null, pTrace: PgslTrace) {
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
-        this.mMeta = this.readFromTrace(pTrace);
+        this.mIncidents = this.convertIncidents(pTrace);
+
+        // Skip metadata extraction if there are incidents.
+        if (pTrace.incidents.length > 0) {
+            // Set empty metadata on incidents.
+            this.mMeta = {
+                bindings: [],
+                parameters: [],
+            };
+        } else {
+            this.mMeta = {
+                bindings: this.convertBindings(pTrace),
+                parameters: this.convertShaderParameter(pTrace),
+                // TODO: entry points
+            }
+        }
     }
 
     /**
-     * Reads metadata from the provided trace.
+     * Converts trace incidents to parser result incidents.
      * 
-     * @param pTrace - The trace to read from.
+     * @param pTrace - The trace containing incidents. 
      * 
-     * @returns The extracted metadata.
+     * @returns An array of parser result incidents.
      */
-    private readFromTrace(pTrace: PgslTrace): PgslParserResultMeta {
-        return {
-            incidents: [...pTrace.incidents],
-            bindings: this.readBindingsFromTrace(pTrace),
-            parameters: this.readParametersFromTrace(pTrace),
-            // TODO: entry points
-        };
+    private convertIncidents(pTrace: PgslTrace): Array<PgslParserResultIncident> {
+        return pTrace.incidents.map(incident => new PgslParserResultIncident(
+            incident.message,
+            incident.syntaxTree?.meta.position.start.line ?? 0,
+            incident.syntaxTree?.meta.position.end.column ?? 0
+        ));
     }
 
-    private readBindingsFromTrace(pTrace: PgslTrace): Array<PgslParserResultBinding> {
+    /**
+     * Converts trace bindings to parser result bindings.
+     * 
+     * @param pTrace - Parser trace.
+     * 
+     * @returns Array of parser result bindings. 
+     */
+    private convertBindings(pTrace: PgslTrace): Array<PgslParserResultBinding> {
         const lBindings: Array<PgslParserResultBinding> = [];
         for (const lBinding of pTrace.valueDeclarations) {
             // Skip non-binding values.
@@ -80,7 +106,14 @@ export class PgslParserResult {
         return lBindings;
     }
 
-    private readParametersFromTrace(pTrace: PgslTrace): Array<PgslParserResultParameter> {
+    /**
+     * Converts trace shader parameters to parser result parameters.
+     * 
+     * @param pTrace - Parser trace.
+     * 
+     * @returns Array of parser result parameters. 
+     */
+    private convertShaderParameter(pTrace: PgslTrace): Array<PgslParserResultParameter> {
         const lParameters: Array<PgslParserResultParameter> = [];
         for (const lValue of pTrace.valueDeclarations) {
             // Skip non-parameter values.
@@ -96,7 +129,6 @@ export class PgslParserResult {
 }
 
 type PgslParserResultMeta = {
-    incidents: Array<PgslTraceIncident>;
     bindings: Array<PgslParserResultBinding>;
     parameters: Array<PgslParserResultParameter>;
 };

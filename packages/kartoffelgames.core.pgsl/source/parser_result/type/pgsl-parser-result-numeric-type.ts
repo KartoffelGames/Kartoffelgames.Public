@@ -4,7 +4,7 @@ import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-
  * Represents a numeric type in PGSL parser results with calculated size and alignment.
  * Supports both floating-point and integer types with proper WGSL memory layout.
  */
-export class PgslParserResultNumberType extends PgslParserResultType {
+export class PgslParserResultNumericType extends PgslParserResultType {
     private readonly mNumberType: PgslParserResultNumberTypeType;
 
     /**
@@ -31,6 +31,7 @@ export class PgslParserResultNumberType extends PgslParserResultType {
 /**
  * Union type for distinguishing between floating-point and integer numeric types.
  * - 'float': Floating-point numbers (f32)
- * - 'integer': Signed or unsigned integers (i32, u32)
+ * - 'integer': Signed integers (i32)
+ * - 'unsigned-integer': Unsigned integers (u32)
  */
-export type PgslParserResultNumberTypeType = 'float' | 'integer';
+export type PgslParserResultNumberTypeType = 'float' | 'integer' | 'unsigned-integer';

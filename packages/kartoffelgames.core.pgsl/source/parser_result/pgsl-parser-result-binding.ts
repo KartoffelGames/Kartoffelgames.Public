@@ -80,7 +80,7 @@ export class PgslParserResultBinding {
             switch (pBinding.declarationType) {
                 case PgslDeclarationType.Uniform: return 'uniform';
                 case PgslDeclarationType.Storage: return 'storage';
-                default: return 'uniform'; // Fallback to uniform if unknown.
+                default: throw new Exception(`Unsupported binding declaration type in PgslValueTrace: ${pBinding.declarationType}`, this);
             }
         })();
 

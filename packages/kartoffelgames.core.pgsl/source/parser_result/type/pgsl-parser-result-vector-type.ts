@@ -1,3 +1,4 @@
+import { PgslParserResultNumericType } from "./pgsl-parser-result-numeric-type.ts";
 import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
 
 /**
@@ -33,7 +34,7 @@ export class PgslParserResultVectorType extends PgslParserResultType {
      * @param pDimension - The number of dimensions in the vector.
      * @param pAlignmentType - The alignment type (uniform, storage, or packed).
      */
-    public constructor(pElementType: PgslParserResultType, pDimension: number, pAlignmentType: PgslParserResultTypeAlignmentType) {
+    public constructor(pElementType: PgslParserResultNumericType, pDimension: number, pAlignmentType: PgslParserResultTypeAlignmentType) {
         super('vector', pAlignmentType);
         this.mElementType = pElementType;
         this.mDimension = pDimension;

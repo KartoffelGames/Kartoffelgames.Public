@@ -1,6 +1,11 @@
 import type { PgslValueTrace } from '../trace/pgsl-value-trace.ts';
 import { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
+import { PgslParserResultNumericType } from "./type/pgsl-parser-result-numeric-type.ts";
+import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
+import { PgslBooleanType } from "../type/pgsl-boolean-type.ts";
+import { PgslParserResultBooleanType } from "./type/pgsl-parser-result-boolean-type.ts";
+import { Exception } from "@kartoffelgames/core";
 
 /**
  * Represents a parameter result from PGSL parser with name and type information.
@@ -45,8 +50,24 @@ export class PgslParserResultParameter {
      * @returns The converted PgslParserResultType.
      */
     private convertType(pType: PgslType): PgslParserResultType {
-        // TODO: Implement type conversion logic
-        // This should match the conversion logic used in PgslParserResultBinding
-        throw new Error('Type conversion not yet implemented');
+        // Handle numeric types
+        if (pType instanceof PgslNumericType) {
+            switch (pType.numericTypeName) {
+                case PgslNumericType.typeName.float32:
+                    return new PgslParserResultNumericType('float', 'packed');
+                case PgslNumericType.typeName.signedInteger:
+                    return new PgslParserResultNumericType('integer', 'packed');
+                case PgslNumericType.typeName.unsignedInteger:
+                    return new PgslParserResultNumericType('unsigned-integer', 'packed');
+            }
+        }
+
+        // Handle boolean type
+        if (pType instanceof PgslBooleanType) {
+            return new PgslParserResultBooleanType('packed');
+        }
+
+        // Any other types are not supported and should be catched by the tracer.
+        throw new Exception(`Unsupported parameter type`, this);
     }
 }

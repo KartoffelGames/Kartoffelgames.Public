@@ -1,8 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
+import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
 import type { BasePgslSyntaxTree, BasePgslSyntaxTreeMeta } from '../syntax_tree/base-pgsl-syntax-tree.ts';
 import { PgslAccessModeEnumDeclaration } from '../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts';
+import { PgslInterpolateSamplingEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-sampling-enum-declaration.ts";
+import { PgslInterpolateTypeEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-type-enum-declaration.ts";
+import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts";
 import { PgslAliasDeclaration } from '../syntax_tree/declaration/pgsl-alias-declaration.ts';
+import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
 import { PgslEnumDeclaration } from '../syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { PgslFunctionDeclaration } from '../syntax_tree/declaration/pgsl-function-declaration.ts';
 import { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
@@ -25,10 +30,6 @@ import { PgslValueDecompositionExpression } from '../syntax_tree/expression/stor
 import { PgslVariableNameExpression } from '../syntax_tree/expression/storage/pgsl-variable-name-expression.ts';
 import { PgslUnaryExpression } from '../syntax_tree/expression/unary/pgsl-unary-expression.ts';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list.ts';
-
-import { PgslLexer } from './pgsl-lexer.ts';
-import { PgslToken } from './pgsl-token.enum.ts';
-import type { PgslDeclaration } from '../syntax_tree/declaration/pgsl-declaration.ts';
 import { PgslTypeDeclaration } from '../syntax_tree/general/pgsl-type-declaration.ts';
 import { PgslDocument } from '../syntax_tree/pgsl-document.ts';
 import type { BasePgslStatement } from '../syntax_tree/statement/base-pgsl-statement.ts';
@@ -48,10 +49,8 @@ import { PgslDiscardStatement } from '../syntax_tree/statement/single/pgsl-disca
 import { PgslReturnStatement } from '../syntax_tree/statement/single/pgsl-return-statement.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import type { PgslTranspilation, PgslTranspilationResult } from '../transpilation/pgsl-transpilation.ts';
-import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
-import { PgslInterpolateSamplingEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-sampling-enum-declaration.ts";
-import { PgslInterpolateTypeEnumDeclaration } from "../syntax_tree/buildin/pgsl-interpolate-type-enum-declaration.ts";
-import { PgslTexelFormatEnumDeclaration } from "../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts";
+import { PgslLexer } from './pgsl-lexer.ts';
+import { PgslToken } from './pgsl-token.enum.ts';
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
@@ -126,6 +125,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         return lDocument;
     }
 
+    /**
+     * Transpile Pgsl code text into target code with source map and meta information.
+     * 
+     * @param pCodeText - Pgsl code as text.
+     * @param pTranspiler - Transpiler instance.
+     * 
+     * @returns PgslParserResult containing transpiled code, source map and meta. 
+     */
     public transpile(pCodeText: string, pTranspiler: PgslTranspilation): PgslParserResult {
         // Parse document structure.
         const lDocument: PgslDocument = this.parse(pCodeText);
@@ -133,8 +140,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         // Create and execute document trace.
         const lTrace: PgslTrace = lDocument.trace();
 
-        // Start transpilation process.
-        const lTranspilationResult: PgslTranspilationResult = pTranspiler.transpile(lDocument, lTrace);
+        // Skip transpilation if there are incidents.
+        let lTranspilationResult: PgslTranspilationResult = { code: '', sourceMap: null };
+        if (lTrace.incidents.length === 0) {
+            // Start transpilation process.
+            lTranspilationResult = pTranspiler.transpile(lDocument, lTrace);
+        }
 
         // Build and return PgslParserResult.
         return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lTrace);

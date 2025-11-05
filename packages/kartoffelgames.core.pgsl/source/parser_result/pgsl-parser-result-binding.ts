@@ -18,6 +18,8 @@ import { PgslStructTrace } from "../trace/pgsl-struct-trace.ts";
 import { PgslStructPropertyTrace } from "../trace/pgsl-struct-property-trace.ts";
 import { PgslSamplerType } from "../type/pgsl-sampler-type.ts";
 import { PgslParserResultSamplerType } from "./type/pgsl-parser-result-sampler-type.ts";
+import { PgslTextureType } from "../type/pgsl-texture-type.ts";
+import { PgslParserResultTextureDimensionType, PgslParserResultTextureType } from "./type/pgsl-parser-result-texture-type.ts";
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
@@ -162,7 +164,59 @@ export class PgslParserResultBinding {
                 return new PgslParserResultArrayType(elementType, pType.length, lAlignmentType);
             }
 
-            // TODO: Texture
+            // Texture types.
+            case pType instanceof PgslTextureType: {
+                // Parse texture dimension based on PGSL texture type.
+                const lDimensionType: PgslParserResultTextureDimensionType = (() => { // TODO: Maybe move this to PgslTextureType as a method?
+                    switch (pType.textureType) {
+                        // 1D textures
+                        case PgslTextureType.typeName.Texture1d:
+                        case PgslTextureType.typeName.TextureStorage1d: {
+                            return '1d';
+                        }
+
+                        // 2D textures
+                        case PgslTextureType.typeName.Texture2d:
+                        case PgslTextureType.typeName.TextureMultisampled2d:
+                        case PgslTextureType.typeName.TextureExternal:
+                        case PgslTextureType.typeName.TextureDepth2d:
+                        case PgslTextureType.typeName.TextureDepthMultisampled2d:
+                        case PgslTextureType.typeName.TextureStorage2d: {
+                            return '2d';
+                        }
+
+                        // 2D array textures
+                        case PgslTextureType.typeName.Texture2dArray:
+                        case PgslTextureType.typeName.TextureDepth2dArray:
+                        case PgslTextureType.typeName.TextureStorage2dArray:{
+                            return '2d-array';
+                        }
+
+                        // 3D textures
+                        case PgslTextureType.typeName.Texture3d:
+                        case PgslTextureType.typeName.TextureStorage3d:{
+                            return '3d';
+                        }
+
+                        // Cube textures
+                        case PgslTextureType.typeName.TextureCube:
+                        case PgslTextureType.typeName.TextureDepthCube:{
+                            return 'cube';
+                        }
+
+                        // Cube array textures
+                        case PgslTextureType.typeName.TextureCubeArray:
+                        case PgslTextureType.typeName.TextureDepthCubeArray:{
+                            return 'cube-array';
+                        }
+                    }
+                })();
+
+                // Convert sampled type.
+                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pTrace) as PgslParserResultNumericType;
+
+                return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
+            }
 
             // Sampler type
             case pType instanceof PgslSamplerType: {
@@ -187,7 +241,7 @@ export class PgslParserResultBinding {
                     const lPropertyResult: PgslParserResultStructMember = {
                         name: lStructProperty.name,
                         type: this.convertType(lStructProperty.type, pTrace),
-                    }
+                    };
 
                     // Apply size override if present.
                     if (typeof lStructProperty.meta.size === 'number') {

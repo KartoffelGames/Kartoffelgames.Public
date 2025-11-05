@@ -282,6 +282,8 @@ export class PgslTextureType extends PgslType {
                 // Single parameter: sampled type for regular textures.
                 const lTypeDefinition: PgslTypeDeclaration = lActualParameterValue as PgslTypeDeclaration;
                 lTypeParameter.sampledType = lTypeDefinition.type;
+
+                // TODO: Change format based on sampled type for regular textures.
             } else {
                 // Two parameters: format and access mode strings for storage textures.
                 const lStringValueExpression: PgslStringValueExpression = lActualParameterValue as PgslStringValueExpression;
@@ -302,6 +304,8 @@ export class PgslTextureType extends PgslType {
                         pTrace.pushIncident(`Unknown access mode: "${lStringValueExpression.value}".`);
                     }
                 }
+
+                // TODO: sampled Type based on format for storage textures.
             }
         }
 

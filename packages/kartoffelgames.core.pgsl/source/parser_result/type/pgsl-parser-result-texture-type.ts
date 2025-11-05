@@ -1,3 +1,5 @@
+import { PgslTexelFormat } from "../../syntax_tree/buildin/pgsl-texel-format.enum.ts";
+import { PgslParserResultNumericType } from "./pgsl-parser-result-numeric-type.ts";
 import { PgslParserResultType } from './pgsl-parser-result-type.ts';
 
 /**
@@ -6,8 +8,8 @@ import { PgslParserResultType } from './pgsl-parser-result-type.ts';
  */
 export class PgslParserResultTextureType extends PgslParserResultType {
     private readonly mDimension: PgslParserResultTextureDimensionType;
-    private readonly mTextureType: PgslParserResultTextureDataType;
-    private readonly mTextureFormat: string;
+    private readonly mSampledType: PgslParserResultNumericType;
+    private readonly mTextureFormat: PgslTexelFormat;
 
     /**
      * Gets the texture dimension (1D, 2D, 3D, etc.).
@@ -19,12 +21,12 @@ export class PgslParserResultTextureType extends PgslParserResultType {
     }
 
     /**
-     * Gets the texture data type (float, integer, unsigned integer).
+     * Gets the texture sampled data type (float, integer, unsigned integer).
      *
-     * @returns The texture data type.
+     * @returns The texture sampled data type.
      */
-    public get textureType(): PgslParserResultTextureDataType {
-        return this.mTextureType;
+    public get sampledType(): PgslParserResultNumericType {
+        return this.mSampledType;
     }
 
     /**
@@ -32,7 +34,7 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      *
      * @returns The texture format string.
      */
-    public get textureFormat(): string {
+    public get textureFormat(): PgslTexelFormat {
         return this.mTextureFormat;
     }
 
@@ -40,16 +42,16 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      * Creates a new PGSL parser result texture type.
      *
      * @param pDimension - The texture dimension.
-     * @param pTextureType - The texture data type.
+     * @param pSampledType - The texture data type.
      * @param pTextureFormat - The texture format specification.
      */
-    public constructor(pDimension: PgslParserResultTextureDimensionType, pTextureType: PgslParserResultTextureDataType, pTextureFormat: string) {
+    public constructor(pDimension: PgslParserResultTextureDimensionType, pSampledType: PgslParserResultNumericType, pTextureFormat: PgslTexelFormat) {
         // Textures are always packed alignment.
         super('texture', 'packed');
 
         this.mDimension = pDimension;
-        this.mTextureType = pTextureType;
-        this.mTextureFormat = pTextureFormat; // TODO: set format based on an enum.
+        this.mSampledType = pSampledType;
+        this.mTextureFormat = pTextureFormat;
     }
 }
 

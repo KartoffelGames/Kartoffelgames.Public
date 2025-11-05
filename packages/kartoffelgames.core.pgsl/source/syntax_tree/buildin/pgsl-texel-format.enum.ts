@@ -1,3 +1,5 @@
+// TODO: Move enum out of buildin folder and let the declaration be seperate.
+
 /**
  * Texel format enum.
  */

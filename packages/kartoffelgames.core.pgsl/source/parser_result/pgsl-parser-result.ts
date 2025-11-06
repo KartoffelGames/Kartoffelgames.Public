@@ -101,7 +101,7 @@ export class PgslParserResult {
             }
 
             // Create a new parser result binding.
-            lBindings.push(new PgslParserResultBinding(lBinding));
+            lBindings.push(new PgslParserResultBinding(lBinding, pTrace));
         }
         return lBindings;
     }

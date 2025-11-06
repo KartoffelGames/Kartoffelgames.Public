@@ -47,11 +47,11 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
                     // Cast back to string, as lAccessMode can be outside of enum values.
                     switch (lValueTrace.accessMode) {
                         case PgslAccessMode.Read:
-                            return `var<storage, read>`;
+                            return `var<storage,read>`;
                         case PgslAccessMode.Write:
-                            return `var<storage, write>`;
+                            return `var<storage,write>`;
                         case PgslAccessMode.ReadWrite:
-                            return `var<storage, read_write>`;
+                            return `var<storage,read_write>`;
                     }
                 }
                 case PgslDeclarationType.Workgroup:
@@ -74,18 +74,17 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
                 return '';
             }
 
-            return `@group(${lValueTrace.bindingInformation.bindGroupIndex}) @binding(${lValueTrace.bindingInformation.bindLocationIndex})`;
+            return `@group(${lValueTrace.bindingInformation.bindGroupIndex})@binding(${lValueTrace.bindingInformation.bindLocationIndex})`;
         })();
 
         // Transpile declaration parts to fit spaces correctly.
         const lTypeDeclaration: string = pTranspile(pInstance.typeDeclaration);
-        const lAttributeString: string = lBindingAttribute.length > 0 ? `${lBindingAttribute} ` : '';
 
         // If no expression is given, return declaration without expression.
         if (!pInstance.expression) {
-            return `${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.name}:${lTypeDeclaration};`;
         } else {
-            return `${lAttributeString}${lDeclarationTypeString} ${pInstance.name}: ${lTypeDeclaration} = ${pTranspile(pInstance.expression)};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.name}:${lTypeDeclaration}=${pTranspile(pInstance.expression)};`;
         }
     }
 } 

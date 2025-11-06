@@ -4,165 +4,188 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslEnumDeclaration } from '../../../source/syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
+import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
 import { PgslAttributeList } from "../../../source/syntax_tree/general/pgsl-attribute-list.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslEnumDeclaration - Numeric Enums', async (pContext) => {
-    await pContext.step('Default - Integer enum', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestEnum';
-        const lFirstValueName: string = 'ValueOne';
-        const lFirstValueData: string = '1';
-        const lSecondValueName: string = 'ValueTwo';
-        const lSecondValueData: string = '2';
+Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
+    await pContext.step('Numeric enum', async (pContext) => {
+        await pContext.step('Integer enum', () => {
+            // Setup.
+            const lEnumName: string = 'TestEnum';
+            const lFirstValueName: string = 'ValueOne';
+            const lFirstValueData: string = '1';
+            const lSecondValueName: string = 'ValueTwo';
+            const lSecondValueData: string = '2';
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lFirstValueName} = ${lFirstValueData},
+                    ${lSecondValueName} = ${lSecondValueData}
+                }
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData},
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-        `;
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. Correct number of child nodes.
+            expect(lDocument.childNodes).toHaveLength(1);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Correct type of child node.
+            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
 
-        // Evaluation. Correct number of child nodes.
-        expect(lTranspilationResult.document.childNodes).toHaveLength(1);
+            // Evaluation. Correct structure.
+            expect(lDeclarationNode.name).toBe(lEnumName);
+        });
 
-        // Evaluation. Correct type of child node.
-        const lDeclarationNode: PgslEnumDeclaration = lTranspilationResult.document.childNodes[0] as PgslEnumDeclaration;
-        expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+        await pContext.step('Unsigned integer enum with suffix', () => {
+            // Setup.
+            const lEnumName: string = 'TestUnsignedEnum';
+            const lFirstValueName: string = 'ValueOne';
+            const lFirstValueData: string = '1u';
+            const lSecondValueName: string = 'ValueTwo';
+            const lSecondValueData: string = '2u';
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lFirstValueName} = ${lFirstValueData},
+                    ${lSecondValueName} = ${lSecondValueData}
+                }
+            `;
 
-        // Evaluation. Correct structure.
-        expect(lDeclarationNode.name).toBe(lEnumName);
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+            expect(lDeclarationNode.name).toBe(lEnumName);
+        });
     });
 
-    await pContext.step('Default - Unsigned integer enum with suffix', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestUnsignedEnum';
-        const lFirstValueName: string = 'ValueOne';
-        const lFirstValueData: string = '1u';
-        const lSecondValueName: string = 'ValueTwo';
-        const lSecondValueData: string = '2u';
+    await pContext.step('String Enums', async (pContext) => {
+        await pContext.step('String enum', () => {
+            // Setup.
+            const lEnumName: string = 'TestStringEnum';
+            const lFirstValueName: string = 'ValueOne';
+            const lFirstValueData: string = '"StringOne"';
+            const lSecondValueName: string = 'ValueTwo';
+            const lSecondValueData: string = '"StringTwo"';
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lFirstValueName} = ${lFirstValueData},
+                    ${lSecondValueName} = ${lSecondValueData}
+                }
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData},
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-        `;
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Correct structure.
-        const lDeclarationNode: PgslEnumDeclaration = lTranspilationResult.document.childNodes[0] as PgslEnumDeclaration;
-        expect(lDeclarationNode.name).toBe(lEnumName);
-    });
-
-    await pContext.step('Transpilation - Enum value usage in variable', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestEnum';
-        const lValueName: string = 'ValueOne';
-        const lValueData: string = '42';
-        const lVariableName: string = 'testVariable';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lValueName} = ${lValueData}
-            }
-            const ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lValueName};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the enum value.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: u32 = ${lValueData};`);
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+            expect(lDeclarationNode.name).toBe(lEnumName);
+        });
     });
 });
 
-Deno.test('PgslEnumDeclaration - String Enums', async (pContext) => {
-    await pContext.step('Default - String enum', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestStringEnum';
-        const lFirstValueName: string = 'ValueOne';
-        const lFirstValueData: string = '"StringOne"';
-        const lSecondValueName: string = 'ValueTwo';
-        const lSecondValueData: string = '"StringTwo"';
+Deno.test('PgslEnumDeclaration - Transpilation', async (pContext) => {
+    await pContext.step('Numeric enum', async (pContext) => {
+        await pContext.step('Enum value usage in variable', () => {
+            // Setup.
+            const lEnumName: string = 'TestEnum';
+            const lValueName: string = 'ValueOne';
+            const lValueData: string = '42';
+            const lVariableName: string = 'testVariable';
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lValueName} = ${lValueData}
+                }
+                const ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lValueName};
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData},
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-        `;
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Enum reference replaced with value.
+            expect(lTranspilationResult.source).toBe(`const ${lVariableName}:u32=${lValueData};`);
+        });
 
-        // Evaluation. Correct structure.
-        const lDeclarationNode: PgslEnumDeclaration = lTranspilationResult.document.childNodes[0] as PgslEnumDeclaration;
-        expect(lDeclarationNode.name).toBe(lEnumName);
+        await pContext.step('Multiple enum values', () => {
+            // Setup.
+            const lEnumName: string = 'TestEnum';
+            const lFirstValueName: string = 'ValueOne';
+            const lFirstValueData: string = '1';
+            const lSecondValueName: string = 'ValueTwo';
+            const lSecondValueData: string = '2';
+            const lFirstVariableName: string = 'testVariableOne';
+            const lSecondVariableName: string = 'testVariableTwo';
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lFirstValueName} = ${lFirstValueData},
+                    ${lSecondValueName} = ${lSecondValueData}
+                }
+                const ${lFirstVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lFirstValueName};
+                const ${lSecondVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lSecondValueName};
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Both enum references replaced with values.
+            expect(lTranspilationResult.source).toBe(
+                `const ${lFirstVariableName}:u32=${lFirstValueData};` +
+                `const ${lSecondVariableName}:u32=${lSecondValueData};`
+            );
+        });
     });
 
-    await pContext.step('Transpilation - String enum value usage', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestStringEnum';
-        const lValueNameOne: string = 'ValueOne';
-        const lValueNameTwo: string = 'ValueTwo';
-        const lValueDataOne: string = '"TestString"';
-        const lValueDataTwo: string = '"TestString2"';
-        const lVariableName: string = 'testVariable';
+    await pContext.step('String Enums', async (pContext) => {
+        await pContext.step('String enum value usage', () => {
+            // Setup. Code blocks.
+            const lEnumName: string = 'TestStringEnum';
+            const lValueNameOne: string = 'ValueOne';
+            const lValueNameTwo: string = 'ValueTwo';
+            const lValueDataOne: string = '"TestString"';
+            const lValueDataTwo: string = '"TestString2"';
+            const lVariableName: string = 'testVariable';
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lValueNameOne} = ${lValueDataOne},
-                ${lValueNameTwo} = ${lValueDataTwo}
-            }
-            [${PgslAttributeList.attributeNames.groupBinding}(${lEnumName}.${lValueNameOne}, ${lEnumName}.${lValueNameTwo})]
-            uniform ${lVariableName}: float;
-        `;
+            // Setup. Code text.
+            const lCodeText: string = `
+                enum ${lEnumName} {
+                    ${lValueNameOne} = ${lValueDataOne},
+                    ${lValueNameTwo} = ${lValueDataTwo}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}(${lEnumName}.${lValueNameOne}, ${lEnumName}.${lValueNameTwo})]
+                uniform ${lVariableName}: float;
+            `;
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Evaluation. Transpiled output uses the enum value.
-        expect(lTranspilationResult.source).toContain(`@group(0) @binding(0) var<uniform> ${lVariableName}: f32;`);
+            // Evaluation. Transpiled output uses the enum value.
+            expect(lTranspilationResult.source).toBe(`@group(0)@binding(0)var<uniform> ${lVariableName}:f32;`);
+        });
     });
 });
 
-Deno.test('PgslEnumDeclaration - Error Cases', async (pContext) => {
-    await pContext.step('Error - Duplicate value names', async () => {
-        // Setup. Code blocks.
+Deno.test('PgslEnumDeclaration - Error', async (pContext) => {
+    await pContext.step('Duplicate value names', () => {
+        // Setup.
         const lEnumName: string = 'TestEnum';
         const lDuplicateValueName: string = 'DuplicateValue';
         const lFirstValueData: string = '1';
         const lSecondValueData: string = '2';
-
-        // Setup. Code text.
         const lCodeText: string = `
             enum ${lEnumName} {
                 ${lDuplicateValueName} = ${lFirstValueData},
@@ -182,13 +205,11 @@ Deno.test('PgslEnumDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Invalid value type', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Invalid value type', () => {
+        // Setup.
         const lEnumName: string = 'TestEnum';
         const lValueName: string = 'InvalidValue';
         const lInvalidValueData: string = 'true';
-
-        // Setup. Code text.
         const lCodeText: string = `
             enum ${lEnumName} {
                 ${lValueName} = ${lInvalidValueData}
@@ -207,153 +228,13 @@ Deno.test('PgslEnumDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Mixed value types', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestMixedEnum';
-        const lFirstValueName: string = 'IntegerValue';
-        const lFirstValueData: string = '1';
-        const lSecondValueName: string = 'StringValue';
-        const lSecondValueData: string = '"TestString"';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData},
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention mixed types.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Enum "${lEnumName}" has mixed value types. Expected all values to be of the same type.`)
-        )).toBe(true);
-    });
-
-    await pContext.step('Error - Empty enum', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestEmptyEnum';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention no values.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Enum ${lEnumName} has no values`)
-        )).toBe(true);
-    });
-
-    await pContext.step('Error - Duplicate enum names', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestDuplicateEnum';
-        const lFirstValueName: string = 'ValueOne';
-        const lFirstValueData: string = '1';
-        const lSecondValueName: string = 'ValueTwo';
-        const lSecondValueData: string = '2';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData}
-            }
-            enum ${lEnumName} {
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention duplicate enum.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Enum "${lEnumName}" is already defined.`)
-        )).toBe(true);
-    });
-});
-
-Deno.test('PgslEnumDeclaration - Usage in Expressions', async (pContext) => {
-    await pContext.step('Enum value access', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestEnum';
-        const lValueName: string = 'TestValue';
-        const lValueData: string = '42';
-        const lVariableName: string = 'testVariable';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lValueName} = ${lValueData}
-            }
-            const ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lValueName};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Variable should use the enum value.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: u32 = ${lValueData};`);
-    });
-
-    await pContext.step('Multiple enum values', async () => {
-        // Setup. Code blocks.
-        const lEnumName: string = 'TestEnum';
-        const lFirstValueName: string = 'ValueOne';
-        const lFirstValueData: string = '1';
-        const lSecondValueName: string = 'ValueTwo';
-        const lSecondValueData: string = '2';
-        const lFirstVariableName: string = 'testVariableOne';
-        const lSecondVariableName: string = 'testVariableTwo';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            enum ${lEnumName} {
-                ${lFirstValueName} = ${lFirstValueData},
-                ${lSecondValueName} = ${lSecondValueData}
-            }
-            const ${lFirstVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lFirstValueName};
-            const ${lSecondVariableName}: ${PgslNumericType.typeName.unsignedInteger} = ${lEnumName}.${lSecondValueName};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Both variables should use their respective enum values.
-        expect(lTranspilationResult.source).toContain(`const ${lFirstVariableName}: u32 = ${lFirstValueData};`);
-        expect(lTranspilationResult.source).toContain(`const ${lSecondVariableName}: u32 = ${lSecondValueData};`);
-    });
-
-    await pContext.step('Error - Undefined enum value access', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Undefined enum value access', () => {
+        // Setup.
         const lEnumName: string = 'TestEnum';
         const lValueName: string = 'ExistingValue';
         const lValueData: string = '1';
         const lUndefinedValueName: string = 'UndefinedValue';
         const lVariableName: string = 'testVariable';
-
-        // Setup. Code text.
         const lCodeText: string = `
             enum ${lEnumName} {
                 ${lValueName} = ${lValueData}

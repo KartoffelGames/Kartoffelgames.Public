@@ -174,7 +174,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
 
         if (pType.length !== null) {
             // Fixed-size array
-            return `array<${lInnerTypeWgsl}, ${pType.length}>`;
+            return `array<${lInnerTypeWgsl},${pType.length}>`;
         } else {
             // Runtime-sized array
             return `array<${lInnerTypeWgsl}>`;
@@ -219,7 +219,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
         // Transpile the referenced type.
         const lReferencedTypeWgsl = this.processType(pType.referencedType, pDefinition, pTrace, pTranspile);
 
-        return `ptr<${lAddressSpace}, ${lReferencedTypeWgsl}>`;
+        return `ptr<${lAddressSpace},${lReferencedTypeWgsl}>`;
     }
 
     /**
@@ -310,7 +310,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
                 }
             })();
 
-            return `${lWgslTexture}<${lFormatWgsl}, ${lAccessMode}>`;
+            return `${lWgslTexture}<${lFormatWgsl},${lAccessMode}>`;
         }
 
         // For depth and external textures, no template parameters

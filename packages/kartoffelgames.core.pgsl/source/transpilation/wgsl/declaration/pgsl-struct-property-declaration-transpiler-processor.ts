@@ -58,7 +58,7 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
         if (typeof lPropertyTrace.meta.blendSrc !== 'undefined') {
             lResultParts.push(`@blend_src(${lPropertyTrace.meta.blendSrc})`);
         }
-        if (typeof lPropertyTrace.meta.locationIndex !== 'undefined') {
+        if (lPropertyTrace.meta.locationIndex !== -1) {
             lResultParts.push(`@location(${lPropertyTrace.meta.locationIndex})`);
         }
         if (typeof lPropertyTrace.meta.size !== 'undefined') {
@@ -88,8 +88,8 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
             lResultParts.push(`@interpolate(${lInterpolationTypeString}, ${lSamplingTypeString})`);
         }
 
-        lResultParts.push(`${pInstance.name}: ${lTypeTranspilation}`);
+        lResultParts.push(`${pInstance.name}:${lTypeTranspilation}`);
 
-        return lResultParts.join(' ');
+        return lResultParts.join('');
     }
 }

@@ -4,324 +4,312 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslAliasDeclaration } from '../../../source/syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
+import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslAliasDeclaration - Normal Types', async (pContext) => {
-    await pContext.step('Default - Float alias', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestFloatAlias';
-        const lAliasType: string = PgslNumericType.typeName.float32;
+Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
+    await pContext.step('Scalar Types', async (pContext) => {
+        await pContext.step('Float', () => {
+            // Setup.
+            const lAliasName: string = 'TestFloatAlias';
+            const lAliasType: string = PgslNumericType.typeName.float32;
+            const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
-        // Setup. Code text.
-        const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. Correct number of child nodes.
+            expect(lDocument.childNodes).toHaveLength(1);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Correct type of child node.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
 
-        // Evaluation. Correct number of child nodes.
-        expect(lTranspilationResult.document.childNodes).toHaveLength(1);
+            // Evaluation. Correct structure.
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
 
-        // Evaluation. Correct type of child node.
-        const lDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[0] as PgslAliasDeclaration;
-        expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+        await pContext.step('Integer', () => {
+            // Setup.
+            const lAliasName: string = 'TestIntegerAlias';
+            const lAliasType: string = PgslNumericType.typeName.signedInteger;
+            const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
-        // Evaluation. Correct structure.
-        expect(lDeclarationNode.name).toBe(lAliasName);
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
+
+        await pContext.step('Boolean', () => {
+            // Setup.
+            const lAliasName: string = 'TestBooleanAlias';
+            const lAliasType: string = 'bool';
+            const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
+
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
     });
 
-    await pContext.step('Default - Integer alias', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestIntegerAlias';
-        const lAliasType: string = PgslNumericType.typeName.signedInteger;
+    await pContext.step('Templated Types', async (pContext) => {
+        await pContext.step('Array', () => {
+            // Setup.
+            const lAliasName: string = 'TestArrayAlias';
+            const lAliasType: string = `Array<${PgslNumericType.typeName.float32}, 10>`;
+            const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
-        // Setup. Code text.
-        const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+        await pContext.step('Vector', () => {
+            // Setup.
+            const lAliasName: string = 'TestVectorAlias';
+            const lAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
+            const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
-        // Evaluation. Correct structure.
-        const lDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[0] as PgslAliasDeclaration;
-        expect(lDeclarationNode.name).toBe(lAliasName);
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
     });
 
-    await pContext.step('Transpilation - Float alias usage', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestFloatAlias';
-        const lAliasType: string = PgslNumericType.typeName.float32;
-        const lVariableName: string = 'testVariable';
-        const lVariableValue: string = '5.0';
+    await pContext.step('Complex Types', async (pContext) => {
+        await pContext.step('Struct', () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lAliasName: string = 'TestStructAlias';
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    propertyOne: f32
+                }
+                alias ${lAliasName} = ${lStructName};
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lAliasName} = ${lAliasType};
-            const ${lVariableName}: ${lAliasName} = ${lVariableValue};
-        `;
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. Correct number of child nodes.
+            expect(lDocument.childNodes).toHaveLength(2);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Correct structure.
+            const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[1] as PgslAliasDeclaration;
+            expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lDeclarationNode.name).toBe(lAliasName);
+        });
 
-        // Evaluation. Transpiled output uses the aliased type.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: f32 = ${lVariableValue};`);
-    });
+        await pContext.step('Alias', () => {
+            // Setup.
+            const lFirstAliasName: string = 'TestFloatAlias';
+            const lFirstAliasType: string = PgslNumericType.typeName.float32;
+            const lSecondAliasName: string = 'TestAliasedAlias';
+            const lCodeText: string = `
+                alias ${lFirstAliasName} = ${lFirstAliasType};
+                alias ${lSecondAliasName} = ${lFirstAliasName};
+            `;
 
-    await pContext.step('Transpilation - Integer alias usage', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestIntegerAlias';
-        const lAliasType: string = PgslNumericType.typeName.signedInteger;
-        const lVariableName: string = 'testVariable';
-        const lVariableValue: string = '42';
+            // Process.
+            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lAliasName} = ${lAliasType};
-            const ${lVariableName}: ${lAliasName} = ${lVariableValue};
-        `;
+            // Evaluation. Correct number of child nodes.
+            expect(lDocument.childNodes).toHaveLength(2);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the aliased type.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: i32 = ${lVariableValue};`);
-    });
-});
-
-Deno.test('PgslAliasDeclaration - Template Types', async (pContext) => {
-    await pContext.step('Default - Array alias', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestArrayAlias';
-        const lAliasType: string = `Array<${PgslNumericType.typeName.float32}, 10>`;
-
-        // Setup. Code text.
-        const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Correct structure.
-        const lDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[0] as PgslAliasDeclaration;
-        expect(lDeclarationNode.name).toBe(lAliasName);
-    });
-
-    await pContext.step('Default - Vector alias', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestVectorAlias';
-        const lAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
-
-        // Setup. Code text.
-        const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Correct structure.
-        const lDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[0] as PgslAliasDeclaration;
-        expect(lDeclarationNode.name).toBe(lAliasName);
-    });
-
-    await pContext.step('Transpilation - Array alias usage', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestArrayAlias';
-        const lAliasType: string = `Array<${PgslNumericType.typeName.float32}, 10>`;
-        const lVariableName: string = 'testVariable';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lAliasName} = ${lAliasType};
-            private ${lVariableName}: ${lAliasName};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the aliased type.
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: array<f32, 10>;`);
-    });
-
-    await pContext.step('Transpilation - Vector alias usage', async () => {
-        // Setup. Code blocks.
-        const lAliasName: string = 'TestVectorAlias';
-        const lAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
-        const lVariableName: string = 'testVariable';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lAliasName} = ${lAliasType};
-            private ${lVariableName}: ${lAliasName};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the aliased type.
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: vec3<f32>;`);
+            // Evaluation. Both declarations are correct type.
+            const lFirstDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
+            const lSecondDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[1] as PgslAliasDeclaration;
+            expect(lFirstDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lSecondDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
+            expect(lFirstDeclarationNode.name).toBe(lFirstAliasName);
+            expect(lSecondDeclarationNode.name).toBe(lSecondAliasName);
+        });
     });
 });
 
-Deno.test('PgslAliasDeclaration - Aliased Aliases', async (pContext) => {
-    await pContext.step('Default - Alias of normal type alias', async () => {
-        // Setup. Code blocks.
-        const lFirstAliasName: string = 'TestFloatAlias';
-        const lFirstAliasType: string = PgslNumericType.typeName.float32;
-        const lSecondAliasName: string = 'TestAliasedAlias';
+Deno.test('PgslAliasDeclaration - Transpilation', async (pContext) => {
+    await pContext.step('Scalar Types', async (pContext) => {
+        await pContext.step('Float', () => {
+            // Setup.
+            const lAliasName: string = 'TestFloatAlias';
+            const lAliasType: string = PgslNumericType.typeName.float32;
+            const lVariableName: string = 'testVariable';
+            const lVariableValue: string = '5.0';
+            const lCodeText: string = `
+                alias ${lAliasName} = ${lAliasType};
+                const ${lVariableName}: ${lAliasName} = ${lVariableValue};
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lFirstAliasName} = ${lFirstAliasType};
-            alias ${lSecondAliasName} = ${lFirstAliasName};
-        `;
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(`const ${lVariableName}:f32=${lVariableValue};`);
+        });
 
-        // Evaluation. Correct number of child nodes.
-        expect(lTranspilationResult.document.childNodes).toHaveLength(2);
+        await pContext.step('Integer', () => {
+            // Setup.
+            const lAliasName: string = 'TestIntegerAlias';
+            const lAliasType: string = PgslNumericType.typeName.signedInteger;
+            const lVariableName: string = 'testVariable';
+            const lVariableValue: string = '42';
+            const lCodeText: string = `
+                alias ${lAliasName} = ${lAliasType};
+                const ${lVariableName}: ${lAliasName} = ${lVariableValue};
+            `;
 
-        // Evaluation. Both declarations are correct type.
-        const lFirstDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[0] as PgslAliasDeclaration;
-        const lSecondDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[1] as PgslAliasDeclaration;
-        expect(lFirstDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
-        expect(lSecondDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
-        expect(lFirstDeclarationNode.name).toBe(lFirstAliasName);
-        expect(lSecondDeclarationNode.name).toBe(lSecondAliasName);
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(`const ${lVariableName}:i32=${lVariableValue};`);
+        });
+
+        await pContext.step('Boolean', () => {
+            // Setup.
+            const lAliasName: string = 'TestBooleanAlias';
+            const lAliasType: string = 'bool';
+            const lVariableName: string = 'testVariable';
+            const lVariableValue: string = 'true';
+            const lCodeText: string = `
+                alias ${lAliasName} = ${lAliasType};
+                const ${lVariableName}: ${lAliasName} = ${lVariableValue};
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(`const ${lVariableName}:bool=${lVariableValue};`);
+        });
     });
 
-    await pContext.step('Default - Alias of template type alias', async () => {
-        // Setup. Code blocks.
-        const lFirstAliasName: string = 'TestVectorAlias';
-        const lFirstAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
-        const lSecondAliasName: string = 'TestAliasedVectorAlias';
+    await pContext.step('Templated Types', async (pContext) => {
+        await pContext.step('Array', () => {
+            // Setup.
+            const lAliasName: string = 'TestArrayAlias';
+            const lAliasType: string = `Array<${PgslNumericType.typeName.float32}, 10>`;
+            const lVariableName: string = 'testVariable';
+            const lCodeText: string = `
+                alias ${lAliasName} = ${lAliasType};
+                private ${lVariableName}: ${lAliasName};
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lFirstAliasName} = ${lFirstAliasType};
-            alias ${lSecondAliasName} = ${lFirstAliasName};
-        `;
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(`var<private> ${lVariableName}:array<f32,10>;`);
+        });
 
-        // Evaluation. Correct structure.
-        const lSecondDeclarationNode: PgslAliasDeclaration = lTranspilationResult.document.childNodes[1] as PgslAliasDeclaration;
-        expect(lSecondDeclarationNode.name).toBe(lSecondAliasName);
+        await pContext.step('Vector', () => {
+            // Setup.
+            const lAliasName: string = 'TestVectorAlias';
+            const lAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
+            const lVariableName: string = 'testVariable';
+            const lCodeText: string = `
+                alias ${lAliasName} = ${lAliasType};
+                private ${lVariableName}: ${lAliasName};
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(`var<private> ${lVariableName}:vec3<f32>;`);
+        });
     });
 
-    await pContext.step('Transpilation - Aliased normal type alias usage', async () => {
-        // Setup. Code blocks.
-        const lFirstAliasName: string = 'TestFloatAlias';
-        const lFirstAliasType: string = PgslNumericType.typeName.float32;
-        const lSecondAliasName: string = 'TestAliasedAlias';
-        const lVariableName: string = 'testVariable';
-        const lVariableValue: string = '5.0';
+    await pContext.step('Complex Types', async (pContext) => {
+        await pContext.step('Struct', () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lAliasName: string = 'TestStructAlias';
+            const lVariableName: string = 'testVariable';
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    propertyOne: ${PgslNumericType.typeName.float32}
+                }
+                alias ${lAliasName} = ${lStructName};
+                private ${lVariableName}: ${lAliasName};
+            `;
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lFirstAliasName} = ${lFirstAliasType};
-            alias ${lSecondAliasName} = ${lFirstAliasName};
-            const ${lVariableName}: ${lSecondAliasName} = ${lVariableValue};
-        `;
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
+            // Evaluation. Transpiled output uses the aliased type.
+            expect(lTranspilationResult.source).toBe(
+                `struct ${lStructName}{propertyOne:f32}` +
+                `var<private> ${lVariableName}:${lStructName};`
+            );
+        });
 
-        // Evaluation. Transpiled output uses the final aliased type.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: f32 = ${lVariableValue};`);
-    });
+        await pContext.step('Alias', () => {
+            // Setup.
+            const lFirstAliasName: string = 'TestFloatAlias';
+            const lFirstAliasType: string = PgslNumericType.typeName.float32;
+            const lSecondAliasName: string = 'TestAliasedAlias';
+            const lVariableName: string = 'testVariable';
+            const lVariableValue: string = '5.0';
+            const lCodeText: string = `
+                alias ${lFirstAliasName} = ${lFirstAliasType};
+                alias ${lSecondAliasName} = ${lFirstAliasName};
+                const ${lVariableName}: ${lSecondAliasName} = ${lVariableValue};
+            `;
 
-    await pContext.step('Transpilation - Aliased template type alias usage', async () => {
-        // Setup. Code blocks.
-        const lFirstAliasName: string = 'TestVectorAlias';
-        const lFirstAliasType: string = `Vector3<${PgslNumericType.typeName.float32}>`;
-        const lSecondAliasName: string = 'TestAliasedVectorAlias';
-        const lVariableName: string = 'testVariable';
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lFirstAliasName} = ${lFirstAliasType};
-            alias ${lSecondAliasName} = ${lFirstAliasName};
-            private ${lVariableName}: ${lSecondAliasName};
-        `;
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
 
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the final aliased type.
-        expect(lTranspilationResult.source).toContain(`var<private> ${lVariableName}: vec3<f32>;`);
-    });
-
-    await pContext.step('Chain - Multiple aliased aliases', async () => {
-        // Setup. Code blocks.
-        const lFirstAliasName: string = 'TestFloatAlias';
-        const lFirstAliasType: string = PgslNumericType.typeName.float32;
-        const lSecondAliasName: string = 'TestSecondAlias';
-        const lThirdAliasName: string = 'TestThirdAlias';
-        const lVariableName: string = 'testVariable';
-        const lVariableValue: string = '5.0';
-
-        // Setup. Code text.
-        const lCodeText: string = `
-            alias ${lFirstAliasName} = ${lFirstAliasType};
-            alias ${lSecondAliasName} = ${lFirstAliasName};
-            alias ${lThirdAliasName} = ${lSecondAliasName};
-            const ${lVariableName}: ${lThirdAliasName} = ${lVariableValue};
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Transpiled output uses the final aliased type.
-        expect(lTranspilationResult.source).toContain(`const ${lVariableName}: f32 = ${lVariableValue};`);
+            // Evaluation. Transpiled output uses the final aliased type.
+            expect(lTranspilationResult.source).toBe(`const ${lVariableName}:f32=${lVariableValue};`);
+        });
     });
 });
 
-Deno.test('PgslAliasDeclaration - Error Cases', async (pContext) => {
-    await pContext.step('Error - Undefined type in alias', async () => {
-        // Setup. Code blocks.
+Deno.test('PgslAliasDeclaration - Error', async (pContext) => {
+    await pContext.step('Undefined type in alias', () => {
+        // Setup.
         const lAliasName: string = 'TestAlias';
         const lUndefinedTypeName: string = 'UndefinedType';
-
-        // Setup. Code text.
         const lCodeText: string = `alias ${lAliasName} = ${lUndefinedTypeName};`;
 
         // Process.
@@ -336,12 +324,10 @@ Deno.test('PgslAliasDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Circular alias reference', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Circular alias reference', () => {
+        // Setup.
         const lFirstAliasName: string = 'TestAliasOne';
         const lSecondAliasName: string = 'TestAliasTwo';
-
-        // Setup. Code text.
         const lCodeText: string = `
             alias ${lFirstAliasName} = ${lSecondAliasName};
             alias ${lSecondAliasName} = ${lFirstAliasName};
@@ -359,11 +345,9 @@ Deno.test('PgslAliasDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Self-referencing alias', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Self-referencing alias', () => {
+        // Setup.
         const lAliasName: string = 'TestSelfAlias';
-
-        // Setup. Code text.
         const lCodeText: string = `alias ${lAliasName} = ${lAliasName};`;
 
         // Process.
@@ -378,13 +362,11 @@ Deno.test('PgslAliasDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Invalid template parameters', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Invalid template Parameters', () => {
+        // Setup.
         const lAliasName: string = 'TestInvalidTemplateAlias';
         const lInvalidTemplateParameter: string = 'InvalidType';
         const lInvalidTemplateType: string = `Array<${lInvalidTemplateParameter}, NotANumber>`;
-
-        // Setup. Code text.
         const lCodeText: string = `alias ${lAliasName} = ${lInvalidTemplateType};`;
 
         // Process.
@@ -399,13 +381,11 @@ Deno.test('PgslAliasDeclaration - Error Cases', async (pContext) => {
         )).toBe(true);
     });
 
-    await pContext.step('Error - Duplicate alias names', async () => {
-        // Setup. Code blocks.
+    await pContext.step('Duplicate alias names', () => {
+        // Setup.
         const lAliasName: string = 'TestDuplicateAlias';
         const lFirstAliasType: string = PgslNumericType.typeName.float32;
         const lSecondAliasType: string = PgslNumericType.typeName.signedInteger;
-
-        // Setup. Code text.
         const lCodeText: string = `
             alias ${lAliasName} = ${lFirstAliasType};
             alias ${lAliasName} = ${lSecondAliasType};

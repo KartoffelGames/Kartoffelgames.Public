@@ -21,8 +21,8 @@ export class PgslStructDeclarationTranspilerProcessor implements IPgslTranspiler
      */
     public process(pInstance: PgslStructDeclaration, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile properties.
-        const lProperties: string = pInstance.properties.map((pProperty: PgslStructPropertyDeclaration) => pTranspile(pProperty)).join(',\n');
+        const lProperties: string = pInstance.properties.map((pProperty: PgslStructPropertyDeclaration) => pTranspile(pProperty)).join(',');
 
-        return `struct ${pInstance.name} {\n${lProperties}\n}\n`;
+        return `struct ${pInstance.name}{${lProperties}}`;
     }
 }

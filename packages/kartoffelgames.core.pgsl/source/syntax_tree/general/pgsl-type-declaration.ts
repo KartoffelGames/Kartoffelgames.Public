@@ -38,6 +38,27 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
     }
 
     /**
+     * Get the name of the type.
+     */
+    public get typeName(): string {
+        return this.mTypeName;
+    }
+
+    /**
+     * Check if the type is a pointer.
+     */
+    public get isPointer(): boolean {
+        return this.mIsPointer;
+    }
+
+    /**
+     * Get the template list.
+     */
+    public get templateList(): ReadonlyArray<BasePgslSyntaxTree> {
+        return this.mTemplate;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pMeta - Syntax tree meta data.

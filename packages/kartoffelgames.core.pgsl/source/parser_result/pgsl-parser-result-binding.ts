@@ -170,43 +170,43 @@ export class PgslParserResultBinding {
                 const lDimensionType: PgslParserResultTextureDimensionType = (() => { // TODO: Maybe move this to PgslTextureType as a method?
                     switch (pType.textureType) {
                         // 1D textures
-                        case PgslTextureType.typeName.Texture1d:
-                        case PgslTextureType.typeName.TextureStorage1d: {
+                        case PgslTextureType.typeName.texture1d:
+                        case PgslTextureType.typeName.textureStorage1d: {
                             return '1d';
                         }
 
                         // 2D textures
-                        case PgslTextureType.typeName.Texture2d:
-                        case PgslTextureType.typeName.TextureMultisampled2d:
-                        case PgslTextureType.typeName.TextureExternal:
-                        case PgslTextureType.typeName.TextureDepth2d:
-                        case PgslTextureType.typeName.TextureDepthMultisampled2d:
-                        case PgslTextureType.typeName.TextureStorage2d: {
+                        case PgslTextureType.typeName.texture2d:
+                        case PgslTextureType.typeName.textureMultisampled2d:
+                        case PgslTextureType.typeName.textureExternal:
+                        case PgslTextureType.typeName.textureDepth2d:
+                        case PgslTextureType.typeName.textureDepthMultisampled2d:
+                        case PgslTextureType.typeName.textureStorage2d: {
                             return '2d';
                         }
 
                         // 2D array textures
-                        case PgslTextureType.typeName.Texture2dArray:
-                        case PgslTextureType.typeName.TextureDepth2dArray:
-                        case PgslTextureType.typeName.TextureStorage2dArray:{
+                        case PgslTextureType.typeName.texture2dArray:
+                        case PgslTextureType.typeName.textureDepth2dArray:
+                        case PgslTextureType.typeName.textureStorage2dArray:{
                             return '2d-array';
                         }
 
                         // 3D textures
-                        case PgslTextureType.typeName.Texture3d:
-                        case PgslTextureType.typeName.TextureStorage3d:{
+                        case PgslTextureType.typeName.texture3d:
+                        case PgslTextureType.typeName.textureStorage3d:{
                             return '3d';
                         }
 
                         // Cube textures
-                        case PgslTextureType.typeName.TextureCube:
-                        case PgslTextureType.typeName.TextureDepthCube:{
+                        case PgslTextureType.typeName.textureCube:
+                        case PgslTextureType.typeName.textureDepthCube:{
                             return 'cube';
                         }
 
                         // Cube array textures
-                        case PgslTextureType.typeName.TextureCubeArray:
-                        case PgslTextureType.typeName.TextureDepthCubeArray:{
+                        case PgslTextureType.typeName.textureCubeArray:
+                        case PgslTextureType.typeName.textureDepthCubeArray:{
                             return 'cube-array';
                         }
                     }

@@ -36,29 +36,29 @@ export class PgslTextureType extends PgslType {
         const lMapping: Map<PgslTextureTypeName, Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression>> = new Map<PgslTextureTypeName, Array<typeof PgslTypeDeclaration | typeof PgslStringValueExpression>>();
 
         // Regular textures - require a sampled type parameter.
-        lMapping.set(PgslTextureType.typeName.Texture1d, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.Texture2d, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.Texture2dArray, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.Texture3d, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.TextureCube, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.TextureCubeArray, [PgslTypeDeclaration]);
-        lMapping.set(PgslTextureType.typeName.TextureMultisampled2d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.texture1d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.texture2d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.texture2dArray, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.texture3d, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.textureCube, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.textureCubeArray, [PgslTypeDeclaration]);
+        lMapping.set(PgslTextureType.typeName.textureMultisampled2d, [PgslTypeDeclaration]);
 
         // External texture - no parameters.
-        lMapping.set(PgslTextureType.typeName.TextureExternal, []);
+        lMapping.set(PgslTextureType.typeName.textureExternal, []);
 
         // Depth textures - no parameters.
-        lMapping.set(PgslTextureType.typeName.TextureDepth2d, []);
-        lMapping.set(PgslTextureType.typeName.TextureDepth2dArray, []);
-        lMapping.set(PgslTextureType.typeName.TextureDepthCube, []);
-        lMapping.set(PgslTextureType.typeName.TextureDepthCubeArray, []);
-        lMapping.set(PgslTextureType.typeName.TextureDepthMultisampled2d, []);
+        lMapping.set(PgslTextureType.typeName.textureDepth2d, []);
+        lMapping.set(PgslTextureType.typeName.textureDepth2dArray, []);
+        lMapping.set(PgslTextureType.typeName.textureDepthCube, []);
+        lMapping.set(PgslTextureType.typeName.textureDepthCubeArray, []);
+        lMapping.set(PgslTextureType.typeName.textureDepthMultisampled2d, []);
 
         // Storage textures - require format and access mode string parameters.
-        lMapping.set(PgslTextureType.typeName.TextureStorage1d, [PgslStringValueExpression, PgslStringValueExpression]);
-        lMapping.set(PgslTextureType.typeName.TextureStorage2d, [PgslStringValueExpression, PgslStringValueExpression]);
-        lMapping.set(PgslTextureType.typeName.TextureStorage2dArray, [PgslStringValueExpression, PgslStringValueExpression]);
-        lMapping.set(PgslTextureType.typeName.TextureStorage3d, [PgslStringValueExpression, PgslStringValueExpression]);
+        lMapping.set(PgslTextureType.typeName.textureStorage1d, [PgslStringValueExpression, PgslStringValueExpression]);
+        lMapping.set(PgslTextureType.typeName.textureStorage2d, [PgslStringValueExpression, PgslStringValueExpression]);
+        lMapping.set(PgslTextureType.typeName.textureStorage2dArray, [PgslStringValueExpression, PgslStringValueExpression]);
+        lMapping.set(PgslTextureType.typeName.textureStorage3d, [PgslStringValueExpression, PgslStringValueExpression]);
 
         return lMapping;
     })();
@@ -70,27 +70,27 @@ export class PgslTextureType extends PgslType {
     public static get typeName() {
         return {
             // Regular textures.
-            Texture1d: 'Texture1d',
-            Texture2d: 'Texture2d',
-            Texture2dArray: 'Texture2dArray',
-            Texture3d: 'Texture3d',
-            TextureCube: 'TextureCube',
-            TextureCubeArray: 'TextureCubeArray',
-            TextureMultisampled2d: 'TextureMultisampled2d',
-            TextureExternal: 'TextureExternal',
+            texture1d: 'Texture1d',
+            texture2d: 'Texture2d',
+            texture2dArray: 'Texture2dArray',
+            texture3d: 'Texture3d',
+            textureCube: 'TextureCube',
+            textureCubeArray: 'TextureCubeArray',
+            textureMultisampled2d: 'TextureMultisampled2d',
+            textureExternal: 'TextureExternal',
 
             // Depth textures.
-            TextureDepth2d: 'TextureDepth2d',
-            TextureDepth2dArray: 'TextureDepth2dArray',
-            TextureDepthCube: 'TextureDepthCube',
-            TextureDepthCubeArray: 'TextureDepthCubeArray',
-            TextureDepthMultisampled2d: 'TextureDepthMultisampled2d',
+            textureDepth2d: 'TextureDepth2d',
+            textureDepth2dArray: 'TextureDepth2dArray',
+            textureDepthCube: 'TextureDepthCube',
+            textureDepthCubeArray: 'TextureDepthCubeArray',
+            textureDepthMultisampled2d: 'TextureDepthMultisampled2d',
 
             // Storage textures.
-            TextureStorage1d: 'TextureStorage1d',
-            TextureStorage2d: 'TextureStorage2d',
-            TextureStorage2dArray: 'TextureStorage2dArray',
-            TextureStorage3d: 'TextureStorage3d'
+            textureStorage1d: 'TextureStorage1d',
+            textureStorage2d: 'TextureStorage2d',
+            textureStorage2dArray: 'TextureStorage2dArray',
+            textureStorage3d: 'TextureStorage3d'
         } as const;
     }
 
@@ -274,6 +274,7 @@ export class PgslTextureType extends PgslType {
             // Validate parameter type matches expected type.
             if (!(lActualParameterValue instanceof lExpectedParameterType)) {
                 pTrace.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be of type "${lExpectedParameterType.name}".`);
+                continue;
             }
 
             // Parse parameter based on expected count:

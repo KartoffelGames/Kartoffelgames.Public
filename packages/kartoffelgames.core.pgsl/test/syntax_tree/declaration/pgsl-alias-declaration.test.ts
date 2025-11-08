@@ -5,6 +5,7 @@ import { PgslAliasDeclaration } from '../../../source/syntax_tree/declaration/pg
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
 import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
+import { PgslTypeDeclaration } from "../../../source/syntax_tree/general/pgsl-type-declaration.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -29,6 +30,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
 
             // Evaluation. Correct structure.
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
 
         await pContext.step('Integer', () => {
@@ -44,6 +46,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
 
         await pContext.step('Boolean', () => {
@@ -59,6 +62,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
     });
 
@@ -76,6 +80,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
 
         await pContext.step('Vector', () => {
@@ -91,6 +96,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
     });
 
@@ -116,6 +122,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[1] as PgslAliasDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lDeclarationNode.name).toBe(lAliasName);
+            expect(lDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
 
         await pContext.step('Alias', () => {
@@ -140,7 +147,9 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             expect(lFirstDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lSecondDeclarationNode).toBeInstanceOf(PgslAliasDeclaration);
             expect(lFirstDeclarationNode.name).toBe(lFirstAliasName);
+            expect(lFirstDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
             expect(lSecondDeclarationNode.name).toBe(lSecondAliasName);
+            expect(lSecondDeclarationNode.typeDefinition).toBeInstanceOf(PgslTypeDeclaration);
         });
     });
 });

@@ -30,7 +30,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * Get type of definition.
      */
     public get type(): PgslType {
-        if (this.mResolvedType === null) {
+        if (this.mResolvedType === null) { // TODO: REMOVE THIS SHIT.
             throw new Exception(`Type definition not traced yet.`, this);
         }
 

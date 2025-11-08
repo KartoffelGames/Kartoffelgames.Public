@@ -21,6 +21,13 @@ export class PgslAliasDeclaration extends PgslDeclaration {
     }
 
     /**
+     * Aliased type definition.
+     */
+    public get typeDefinition(): PgslTypeDeclaration {
+        return this.mTypeDefinition;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pName - Alias name.

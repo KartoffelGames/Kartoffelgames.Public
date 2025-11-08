@@ -15,12 +15,30 @@ export class PgslParserResult {
     private readonly mIncidents: Array<PgslParserResultIncident>;
 
     /**
+     * Gets the list of bindings extracted from the PGSL source.
+     * 
+     * @returns A readonly array of PgslParserResultBinding instances.
+     */
+    public get bindings(): ReadonlyArray<PgslParserResultBinding> {
+        return this.mMeta.bindings;
+    }
+
+    /**
      * Gets the list of trace incidents encountered during parsing.
      * 
      * @returns A readonly array of PgslTraceIncident instances.
      */
     public get incidents(): ReadonlyArray<PgslParserResultIncident> {
         return this.mIncidents;
+    }
+
+    /**
+     * Gets the list of shader parameters extracted from the PGSL source.
+     * 
+     * @returns A readonly array of PgslParserResultParameter instances.
+     */
+    public get parameters(): ReadonlyArray<PgslParserResultParameter> {
+        return this.mMeta.parameters;
     }
 
     /**
@@ -66,7 +84,7 @@ export class PgslParserResult {
                 bindings: this.convertBindings(pTrace),
                 parameters: this.convertShaderParameter(pTrace),
                 // TODO: entry points
-            }
+            };
         }
     }
 

@@ -15,6 +15,10 @@ import { PgslArrayType } from '../../../source/type/pgsl-array-type.ts';
 import { PgslTextureType } from '../../../source/type/pgsl-texture-type.ts';
 import { PgslSamplerType } from '../../../source/type/pgsl-sampler-type.ts';
 import { PgslBooleanType } from "../../../source/type/pgsl-boolean-type.ts";
+import { PgslParserResultParameter } from "../../../source/parser_result/pgsl-parser-result-parameter.ts";
+import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
+import { PgslParserResultBooleanType } from "../../../source/parser_result/type/pgsl-parser-result-boolean-type.ts";
+import { PgslParserResultBinding } from "../../../source/parser_result/pgsl-parser-result-binding.ts";
 
 // TODO: Check PgslParserResult for registered bindings.
 
@@ -1178,7 +1182,136 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
     });
 });
 
-// TODO: PgslVariableDeclaration - Parser result
+Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
+    await pContext.step('Param', async (pContext) => {
+        await pContext.step('Numeric float', async () => {
+            // Setup.
+            const lVariableName: string = 'testParam';
+            const lCodeText: string = `param ${lVariableName}: ${PgslNumericType.typeName.float32} = 2.0;`;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of parameters.
+            expect(lTranspilationResult.parameters).toHaveLength(1);
+
+            // Validation. Check parameter details.
+            const lParameter: PgslParserResultParameter = lTranspilationResult.parameters[0];
+            expect(lParameter.name).toBe(lVariableName);
+            expect(lParameter.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check numeric type details.
+            const lParameterType: PgslParserResultNumericType = lParameter.type as PgslParserResultNumericType;
+            expect(lParameterType.type).toBe('numeric');
+            expect(lParameterType.alignmentType).toBe('packed');
+            expect(lParameterType.numberType).toBe('float');
+        });
+
+        await pContext.step('Numeric signed integer', async () => {
+            // Setup.
+            const lVariableName: string = 'testParam';
+            const lCodeText: string = `param ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 5;`;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of parameters.
+            expect(lTranspilationResult.parameters).toHaveLength(1);
+
+            // Validation. Check parameter details.
+            const lParameter: PgslParserResultParameter = lTranspilationResult.parameters[0];
+            expect(lParameter.name).toBe(lVariableName);
+            expect(lParameter.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check numeric type details.
+            const lParameterType: PgslParserResultNumericType = lParameter.type as PgslParserResultNumericType;
+            expect(lParameterType.type).toBe('numeric');
+            expect(lParameterType.alignmentType).toBe('packed');
+            expect(lParameterType.numberType).toBe('integer');
+        });
+
+        await pContext.step('Numeric unsigned integer', async () => {
+            // Setup.
+            const lVariableName: string = 'testParam';
+            const lCodeText: string = `param ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 10u;`;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of parameters.
+            expect(lTranspilationResult.parameters).toHaveLength(1);
+
+            // Validation. Check parameter details.
+            const lParameter: PgslParserResultParameter = lTranspilationResult.parameters[0];
+            expect(lParameter.name).toBe(lVariableName);
+            expect(lParameter.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check numeric type details.
+            const lParameterType: PgslParserResultNumericType = lParameter.type as PgslParserResultNumericType;
+            expect(lParameterType.type).toBe('numeric');
+            expect(lParameterType.alignmentType).toBe('packed');
+            expect(lParameterType.numberType).toBe('unsigned-integer');
+        });
+
+        await pContext.step('Boolean', async () => {
+            // Setup.
+            const lVariableName: string = 'testParam';
+            const lCodeText: string = `param ${lVariableName}: ${PgslBooleanType.typeName.boolean} = true;`;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of parameters.
+            expect(lTranspilationResult.parameters).toHaveLength(1);
+
+            // Validation. Check parameter details.
+            const lParameter: PgslParserResultParameter = lTranspilationResult.parameters[0];
+            expect(lParameter.name).toBe(lVariableName);
+            expect(lParameter.type).toBeInstanceOf(PgslParserResultBooleanType);
+
+            // Validation. Check numeric type details.
+            const lParameterType: PgslParserResultBooleanType = lParameter.type as PgslParserResultBooleanType;
+            expect(lParameterType.type).toBe('boolean');
+            expect(lParameterType.alignmentType).toBe('packed');
+        });
+    });
+
+    await pContext.step('Uniform', async (pContext) => {
+        await pContext.step('Numeric float', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultNumericType = lBinding.type as PgslParserResultNumericType;
+            expect(lUniformType.type).toBe('numeric');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.numberType).toBe('float');
+        });
+    });
+
+    await pContext.step('Storage', async () => {});
+});
 
 Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
     await pContext.step('Const', async (pContext) => {

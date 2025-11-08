@@ -12,7 +12,7 @@ import { PgslParserResultMatrixType } from "./type/pgsl-parser-result-matrix-typ
 import { PgslArrayType } from "../type/pgsl-array-type.ts";
 import { PgslParserResultArrayType } from "./type/pgsl-parser-result-array-type.ts";
 import { PgslStructType } from "../type/pgsl-struct-type.ts";
-import { PgslParserResultStructMember, PgslParserResultStructType } from "./type/pgsl-parser-result-struct-type.ts";
+import { PgslParserResultStructProperty, PgslParserResultStructType } from "./type/pgsl-parser-result-struct-type.ts";
 import { PgslTrace } from "../trace/pgsl-trace.ts";
 import { PgslStructTrace } from "../trace/pgsl-struct-trace.ts";
 import { PgslStructPropertyTrace } from "../trace/pgsl-struct-property-trace.ts";
@@ -231,14 +231,14 @@ export class PgslParserResultBinding {
                     throw new Exception(`Struct trace not found for struct: ${pType.structName}`, this);
                 }
 
-                const lPropertyArray: Array<PgslParserResultStructMember> = new Array<PgslParserResultStructMember>();
+                const lPropertyArray: Array<PgslParserResultStructProperty> = new Array<PgslParserResultStructProperty>();
 
                 // Convert property types.
                 for (const lStructPropertyDeclaration of lStruct.declaration.properties) {
                     const lStructProperty: PgslStructPropertyTrace = pTrace.getStructProperty(lStructPropertyDeclaration); // TODO: THIS SHIT NEEDS TO BE CLEANED UP ASAP!!!
 
                     // Create default property result.
-                    const lPropertyResult: PgslParserResultStructMember = {
+                    const lPropertyResult: PgslParserResultStructProperty = {
                         name: lStructProperty.name,
                         type: this.convertType(lStructProperty.type, pTrace),
                     };

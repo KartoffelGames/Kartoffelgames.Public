@@ -82,7 +82,7 @@ export class PgslMatrixType extends PgslType {
         this.mInnerType = pInnerType;
 
         // Get matrix dimensions.
-        [this.mRowCount, this.mColumnCount] = this.getMatrixDimensions(pMatrixType);
+        [this.mColumnCount, this.mRowCount] = this.getMatrixDimensions(pMatrixType);
 
         // Create underlying vector type based on matrix type.
         this.mVectorTypeDefinition = new PgslVectorType(pTrace, this.mColumnCount, pInnerType);
@@ -195,7 +195,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns The matrix dimensions as [rows, columns].
      */
-    private getMatrixDimensions(pMatrixType: PgslMatrixTypeName): [rows: number, columns: number] {
+    private getMatrixDimensions(pMatrixType: PgslMatrixTypeName): [columns: number, rows: number] {
         switch (pMatrixType) {
             case PgslMatrixType.typeName.matrix22: return [2, 2];
             case PgslMatrixType.typeName.matrix32: return [3, 2];

@@ -5,33 +5,33 @@ import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-
  * Handles structured data with multiple fields and provides member offset calculations following WGSL struct layout rules.
  */
 export class PgslParserResultStructType extends PgslParserResultType {
-    private readonly mMembers: Array<PgslParserResultStructMember>;
+    private readonly mProperties: Array<PgslParserResultStructProperty>;
 
     /**
-     * Gets the member fields of the struct.
+     * Gets the properties of the struct.
      *
-     * @returns Array of struct members.
+     * @returns Array of struct properties.
      */
-    public get members(): ReadonlyArray<PgslParserResultStructMember> {
-        return this.mMembers;
+    public get properties(): ReadonlyArray<PgslParserResultStructProperty> {
+        return this.mProperties;
     }
 
     /**
      * Creates a new PGSL parser result struct type.
      *
-     * @param pMembers - Array of struct member definitions.#
+     * @param pProperties - Array of struct property definitions.
      * @param pAlignmentType - The alignment type (uniform, storage, or packed).
      */
-    public constructor(pMembers: Array<PgslParserResultStructMember>, pAlignmentType: PgslParserResultTypeAlignmentType) {
+    public constructor(pProperties: Array<PgslParserResultStructProperty>, pAlignmentType: PgslParserResultTypeAlignmentType) {
         super('struct', pAlignmentType);
-        this.mMembers = [...pMembers];
+        this.mProperties = [...pProperties];
     }
 }
 
 /**
  * Represents a member field within a struct type.
  */
-export type PgslParserResultStructMember = {
+export type PgslParserResultStructProperty = {
     /**
      * The name of the struct member.
      */

@@ -19,6 +19,12 @@ import { PgslParserResultParameter } from "../../../source/parser_result/pgsl-pa
 import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
 import { PgslParserResultBooleanType } from "../../../source/parser_result/type/pgsl-parser-result-boolean-type.ts";
 import { PgslParserResultBinding } from "../../../source/parser_result/pgsl-parser-result-binding.ts";
+import { PgslParserResultVectorType } from "../../../source/parser_result/type/pgsl-parser-result-vector-type.ts";
+import { PgslParserResultMatrixType } from "../../../source/parser_result/type/pgsl-parser-result-matrix-type.ts";
+import { PgslParserResultArrayType } from "../../../source/parser_result/type/pgsl-parser-result-array-type.ts";
+import { PgslParserResultTextureType } from "../../../source/parser_result/type/pgsl-parser-result-texture-type.ts";
+import { PgslParserResultSamplerType } from "../../../source/parser_result/type/pgsl-parser-result-sampler-type.ts";
+import { PgslParserResultStructProperty, PgslParserResultStructType } from "../../../source/parser_result/type/pgsl-parser-result-struct-type.ts";
 
 // TODO: Check PgslParserResult for registered bindings.
 
@@ -1307,6 +1313,576 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             expect(lUniformType.type).toBe('numeric');
             expect(lUniformType.alignmentType).toBe('uniform');
             expect(lUniformType.numberType).toBe('float');
+        });
+
+        await pContext.step('Numeric signed integer', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.signedInteger};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultNumericType = lBinding.type as PgslParserResultNumericType;
+            expect(lUniformType.type).toBe('numeric');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.numberType).toBe('integer');
+        });
+
+        await pContext.step('Numeric unsigned integer', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultNumericType = lBinding.type as PgslParserResultNumericType;
+            expect(lUniformType.type).toBe('numeric');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.numberType).toBe('unsigned-integer');
+        });
+
+        await pContext.step('Vector', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultVectorType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultVectorType = lBinding.type as PgslParserResultVectorType;
+            expect(lUniformType.type).toBe('vector');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.dimension).toBe(3);
+            expect(lUniformType.elementType).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check element type details.
+            const lElementType: PgslParserResultNumericType = lUniformType.elementType as PgslParserResultNumericType;
+            expect(lElementType.type).toBe('numeric');
+            expect(lElementType.alignmentType).toBe('uniform');
+            expect(lElementType.numberType).toBe('float');
+        });
+
+        await pContext.step('Matrix', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}>;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultMatrixType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultMatrixType = lBinding.type as PgslParserResultMatrixType;
+            expect(lUniformType.type).toBe('matrix');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.columns).toBe(3);
+            expect(lUniformType.rows).toBe(2);
+            expect(lUniformType.elementType).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check element type details.
+            const lElementType: PgslParserResultNumericType = lUniformType.elementType as PgslParserResultNumericType;
+            expect(lElementType.type).toBe('numeric');
+            expect(lElementType.alignmentType).toBe('uniform');
+            expect(lElementType.numberType).toBe('float');
+        });
+
+        await pContext.step('Array', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32}, 10>;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultArrayType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultArrayType = lBinding.type as PgslParserResultArrayType;
+            expect(lUniformType.type).toBe('array');
+            expect(lUniformType.alignmentType).toBe('uniform');
+            expect(lUniformType.length).toBe(10);
+            expect(lUniformType.elementType).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check element type details.
+            const lElementType: PgslParserResultNumericType = lUniformType.elementType as PgslParserResultNumericType;
+            expect(lElementType.type).toBe('numeric');
+            expect(lElementType.alignmentType).toBe('uniform');
+            expect(lElementType.numberType).toBe('float');
+        });
+
+        await pContext.step('Texture', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslTextureType.typeName.texture2d}<${PgslNumericType.typeName.float32}>;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultTextureType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultTextureType = lBinding.type as PgslParserResultTextureType;
+            expect(lUniformType.type).toBe('texture');
+            expect(lUniformType.alignmentType).toBe('packed'); // Textures are always 'packed' aligned.
+            expect(lUniformType.dimension).toBe('2d');
+            expect(lUniformType.sampledType).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check sampled type details.
+            const lSampledType: PgslParserResultNumericType = lUniformType.sampledType;
+            expect(lSampledType.type).toBe('numeric');
+            expect(lSampledType.alignmentType).toBe('packed');
+            expect(lSampledType.numberType).toBe('float');
+        });
+
+        await pContext.step('Sampler none comparison', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslSamplerType.typeName.sampler};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultSamplerType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultSamplerType = lBinding.type as PgslParserResultSamplerType;
+            expect(lUniformType.type).toBe('sampler');
+            expect(lUniformType.alignmentType).toBe('packed'); // Samplers are always 'packed' aligned.
+            expect(lUniformType.isComparison).toBeFalsy();
+        });
+
+        await pContext.step('Sampler comparison', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${PgslSamplerType.typeName.samplerComparison};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultSamplerType);
+
+            // Validation. Check type details.
+            const lUniformType: PgslParserResultSamplerType = lBinding.type as PgslParserResultSamplerType;
+            expect(lUniformType.type).toBe('sampler');
+            expect(lUniformType.alignmentType).toBe('packed'); // Samplers are always 'packed' aligned.
+            expect(lUniformType.isComparison).toBeTruthy();
+        });
+
+        await pContext.step('Structure', async () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    property1: ${PgslNumericType.typeName.float32},
+                    property2: ${PgslNumericType.typeName.signedInteger}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${lStructName};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check structure type details.
+            const lStructType: PgslParserResultStructType = lBinding.type as PgslParserResultStructType;
+            expect(lStructType.type).toBe('struct');
+            expect(lStructType.alignmentType).toBe('uniform');
+            expect(lStructType.properties).toHaveLength(2);
+
+            // Validation. Check first property details.
+            const lProperty1: PgslParserResultStructProperty = lStructType.properties[0];
+            expect(lProperty1.name).toBe('property1');
+            expect(lProperty1.sizeOverride).toBeUndefined();
+            expect(lProperty1.alignmentOverride).toBeUndefined();
+            expect(lProperty1.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check first property type details.
+            const lProperty1Type: PgslParserResultNumericType = lProperty1.type as PgslParserResultNumericType;
+            expect(lProperty1Type.type).toBe('numeric');
+            expect(lProperty1Type.alignmentType).toBe('uniform');
+            expect(lProperty1Type.numberType).toBe('float');
+
+            // Validation. Check second property details.
+            const lProperty2: PgslParserResultStructProperty = lStructType.properties[1];
+            expect(lProperty2.name).toBe('property2');
+            expect(lProperty2.sizeOverride).toBeUndefined();
+            expect(lProperty2.alignmentOverride).toBeUndefined();
+            expect(lProperty2.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check second property type details.
+            const lProperty2Type: PgslParserResultNumericType = lProperty2.type as PgslParserResultNumericType;
+            expect(lProperty2Type.type).toBe('numeric');
+            expect(lProperty2Type.alignmentType).toBe('uniform');
+            expect(lProperty2Type.numberType).toBe('integer');
+        });
+
+        await pContext.step('Structure with size attribute', async () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lSizeValue: number = 256;
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    [${PgslAttributeList.attributeNames.size}(${lSizeValue})]
+                    property1: ${PgslNumericType.typeName.float32}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${lStructName};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check structure type details.
+            const lStructType: PgslParserResultStructType = lBinding.type as PgslParserResultStructType;
+            expect(lStructType.type).toBe('struct');
+            expect(lStructType.alignmentType).toBe('uniform');
+            expect(lStructType.properties).toHaveLength(1);
+
+            // Validation. Check first property details.
+            const lProperty1: PgslParserResultStructProperty = lStructType.properties[0];
+            expect(lProperty1.name).toBe('property1');
+            expect(lProperty1.sizeOverride).toBe(lSizeValue);
+            expect(lProperty1.alignmentOverride).toBeUndefined();
+            expect(lProperty1.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check first property type details.
+            const lProperty1Type: PgslParserResultNumericType = lProperty1.type as PgslParserResultNumericType;
+            expect(lProperty1Type.type).toBe('numeric');
+            expect(lProperty1Type.alignmentType).toBe('uniform');
+            expect(lProperty1Type.numberType).toBe('float');
+
+        });
+
+        await pContext.step('Structure with align attribute', async () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lAlignValue: number = 16;
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    [${PgslAttributeList.attributeNames.align}(${lAlignValue})]
+                    property1: ${PgslNumericType.typeName.float32}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${lStructName};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check structure type details.
+            const lStructType: PgslParserResultStructType = lBinding.type as PgslParserResultStructType;
+            expect(lStructType.type).toBe('struct');
+            expect(lStructType.alignmentType).toBe('uniform');
+            expect(lStructType.properties).toHaveLength(1);
+
+            // Validation. Check first property details.
+            const lProperty1: PgslParserResultStructProperty = lStructType.properties[0];
+            expect(lProperty1.name).toBe('property1');
+            expect(lProperty1.sizeOverride).toBeUndefined();
+            expect(lProperty1.alignmentOverride).toBe(lAlignValue);
+            expect(lProperty1.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check first property type details.
+            const lProperty1Type: PgslParserResultNumericType = lProperty1.type as PgslParserResultNumericType;
+            expect(lProperty1Type.type).toBe('numeric');
+            expect(lProperty1Type.alignmentType).toBe('uniform');
+            expect(lProperty1Type.numberType).toBe('float');
+        });
+
+        await pContext.step('Structure with size and align attribute', async () => {
+            // Setup.
+            const lStructName: string = 'TestStruct';
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lSizeValue: number = 256;
+            const lAlignValue: number = 16;
+            const lCodeText: string = `
+                struct ${lStructName} {
+                    [${PgslAttributeList.attributeNames.size}(${lSizeValue})]
+                    [${PgslAttributeList.attributeNames.align}(${lAlignValue})]
+                    property1: ${PgslNumericType.typeName.float32}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${lStructName};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check structure type details.
+            const lStructType: PgslParserResultStructType = lBinding.type as PgslParserResultStructType;
+            expect(lStructType.type).toBe('struct');
+            expect(lStructType.alignmentType).toBe('uniform');
+            expect(lStructType.properties).toHaveLength(1);
+
+            // Validation. Check first property details.
+            const lProperty1: PgslParserResultStructProperty = lStructType.properties[0];
+            expect(lProperty1.name).toBe('property1');
+            expect(lProperty1.sizeOverride).toBe(lSizeValue);
+            expect(lProperty1.alignmentOverride).toBe(lAlignValue);
+            expect(lProperty1.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check first property type details.
+            const lProperty1Type: PgslParserResultNumericType = lProperty1.type as PgslParserResultNumericType;
+            expect(lProperty1Type.type).toBe('numeric');
+            expect(lProperty1Type.alignmentType).toBe('uniform');
+            expect(lProperty1Type.numberType).toBe('float');
+        });
+
+        await pContext.step('Structure nested', async () => {
+            // Setup.
+            const lInnerStructName: string = 'InnerStruct';
+            const lOuterStructName: string = 'OuterStruct';
+            const lVariableName: string = 'testVariable';
+            const lGroupName: string = 'test_group';
+            const lLocationName: string = 'test_binding';
+            const lCodeText: string = `
+                struct ${lInnerStructName} {
+                    property2: ${PgslNumericType.typeName.float32}
+                }
+                struct ${lOuterStructName} {
+                    property1: ${lInnerStructName}
+                }
+                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                uniform ${lVariableName}: ${lOuterStructName};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Validation. Count of bindings.
+            expect(lTranspilationResult.bindings).toHaveLength(1);
+
+            // Validation. Check binding details.
+            const lBinding: PgslParserResultBinding = lTranspilationResult.bindings[0];
+            expect(lBinding.bindGroupName).toBe(lGroupName);
+            expect(lBinding.bindGroupIndex).toBe(0);
+            expect(lBinding.bindLocationName).toBe(lLocationName);
+            expect(lBinding.bindLocationIndex).toBe(0);
+            expect(lBinding.bindingType).toBe('uniform');
+            expect(lBinding.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check structure type details.
+            const lStructType: PgslParserResultStructType = lBinding.type as PgslParserResultStructType;
+            expect(lStructType.type).toBe('struct');
+            expect(lStructType.alignmentType).toBe('uniform');
+            expect(lStructType.properties).toHaveLength(1);
+
+            // Validation. Check first property details.
+            const lLevel1Property: PgslParserResultStructProperty = lStructType.properties[0];
+            expect(lLevel1Property.name).toBe('property1');
+            expect(lLevel1Property.sizeOverride).toBeUndefined()
+            expect(lLevel1Property.alignmentOverride).toBeUndefined()
+            expect(lLevel1Property.type).toBeInstanceOf(PgslParserResultStructType);
+
+            // Validation. Check first property type details.
+            const lLevel1PropertyType: PgslParserResultStructType = lLevel1Property.type as PgslParserResultStructType;
+            expect(lLevel1PropertyType.type).toBe('struct');
+            expect(lLevel1PropertyType.alignmentType).toBe('uniform');
+            expect(lLevel1PropertyType.properties).toHaveLength(1);
+
+            // Validation. Check inner property details.
+            const lLevel2Property: PgslParserResultStructProperty = lLevel1PropertyType.properties[0];
+            expect(lLevel2Property.name).toBe('property2');
+            expect(lLevel2Property.sizeOverride).toBeUndefined();
+            expect(lLevel2Property.alignmentOverride).toBeUndefined();
+            expect(lLevel2Property.type).toBeInstanceOf(PgslParserResultNumericType);
+
+            // Validation. Check inner property type details.
+            const lLevel2PropertyType: PgslParserResultNumericType = lLevel2Property.type as PgslParserResultNumericType;
+            expect(lLevel2PropertyType.type).toBe('numeric');
+            expect(lLevel2PropertyType.alignmentType).toBe('uniform');
+            expect(lLevel2PropertyType.numberType).toBe('float');
         });
     });
 

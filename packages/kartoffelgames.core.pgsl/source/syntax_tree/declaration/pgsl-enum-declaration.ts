@@ -25,6 +25,13 @@ export class PgslEnumDeclaration extends PgslDeclaration {
     }
 
     /**
+     * Enum values.
+     */
+    public get values(): ReadonlyPgslEnumDeclarationSyntaxTreeValues {
+        return this.mValues;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pName - Enum name.
@@ -112,3 +119,4 @@ export class PgslEnumDeclaration extends PgslDeclaration {
 }
 
 export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: PgslExpression; }>;
+export type ReadonlyPgslEnumDeclarationSyntaxTreeValues = ReadonlyArray<{ readonly name: string; readonly value: PgslExpression; }>;

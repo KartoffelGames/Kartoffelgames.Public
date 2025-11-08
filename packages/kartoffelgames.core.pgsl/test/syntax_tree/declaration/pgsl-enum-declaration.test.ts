@@ -6,6 +6,8 @@ import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpil
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
 import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
 import { PgslAttributeList } from "../../../source/syntax_tree/general/pgsl-attribute-list.ts";
+import { PgslLiteralValueExpression } from "../../../source/syntax_tree/expression/single_value/pgsl-literal-value-expression.ts";
+import { PgslStringValueExpression } from "../../../source/syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -36,8 +38,15 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
 
-            // Evaluation. Correct structure.
+            // Evaluation. Correct name.
             expect(lDeclarationNode.name).toBe(lEnumName);
+
+            // Evaluation. Enum values.
+            expect(lDeclarationNode.values).toHaveLength(2);
+            expect(lDeclarationNode.values[0].name).toBe(lFirstValueName);
+            expect(lDeclarationNode.values[0].value).toBeInstanceOf(PgslLiteralValueExpression);
+            expect(lDeclarationNode.values[1].name).toBe(lSecondValueName);
+            expect(lDeclarationNode.values[1].value).toBeInstanceOf(PgslLiteralValueExpression);
         });
 
         await pContext.step('Unsigned integer enum with suffix', () => {
@@ -61,6 +70,13 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
             expect(lDeclarationNode.name).toBe(lEnumName);
+
+            // Evaluation. Enum values.
+            expect(lDeclarationNode.values).toHaveLength(2);
+            expect(lDeclarationNode.values[0].name).toBe(lFirstValueName);
+            expect(lDeclarationNode.values[0].value).toBeInstanceOf(PgslLiteralValueExpression);
+            expect(lDeclarationNode.values[1].name).toBe(lSecondValueName);
+            expect(lDeclarationNode.values[1].value).toBeInstanceOf(PgslLiteralValueExpression);
         });
     });
 
@@ -86,6 +102,13 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
             expect(lDeclarationNode.name).toBe(lEnumName);
+
+            // Evaluation. Enum values.
+            expect(lDeclarationNode.values).toHaveLength(2);
+            expect(lDeclarationNode.values[0].name).toBe(lFirstValueName);
+            expect(lDeclarationNode.values[0].value).toBeInstanceOf(PgslStringValueExpression);
+            expect(lDeclarationNode.values[1].name).toBe(lSecondValueName);
+            expect(lDeclarationNode.values[1].value).toBeInstanceOf(PgslStringValueExpression);
         });
     });
 });

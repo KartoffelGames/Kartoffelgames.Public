@@ -67,7 +67,7 @@ export class PgslStringType extends PgslType {
             constructible: false,
             fixedFootprint: false,
             indexable: false,
-            concrete: false,
+            concrete: true,
             scalar: false,
             plain: false
         };

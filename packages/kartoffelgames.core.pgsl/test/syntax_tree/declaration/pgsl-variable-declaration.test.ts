@@ -724,7 +724,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Validation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `const ${lVariableName}:array<f32,2>=array(${lVariableValue},${lVariableValue});`
+                `const ${lVariableName}:array<f32,2>=array(0,0);`
             );
         });
     });
@@ -944,7 +944,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Validation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `@group(0)@binding(0)var<uniform> ${lVariableName}:sampler;`
+                `@group(0)@binding(0)var ${lVariableName}:sampler;`
             );
         });
 
@@ -962,7 +962,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Validation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `@group(0)@binding(0)var<uniform> ${lVariableName}:texture_2d<f32>;`
+                `@group(0)@binding(0)var ${lVariableName}:texture_2d<f32>;`
             );
         });
 

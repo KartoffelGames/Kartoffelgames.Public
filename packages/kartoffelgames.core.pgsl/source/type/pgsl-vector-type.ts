@@ -146,11 +146,11 @@ export class PgslVectorType extends PgslType {
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
-            scalar: false,
-            plain: true,
-            concrete: true,
 
             // Copy of inner type properties.
+            scalar: this.mInnerType.scalar,
+            plain: this.mInnerType.plain,
+            concrete: this.mInnerType.concrete,
             storable: this.mInnerType.storable,
             hostShareable: this.mInnerType.hostShareable,
             constructible: this.mInnerType.constructible,

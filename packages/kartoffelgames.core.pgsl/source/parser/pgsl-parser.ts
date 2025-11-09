@@ -60,19 +60,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     public constructor() {
         super(new PgslLexer());
 
-        // Create empty core graph reference.
-        const lCoreGraphs: PgslParserCoreGraphs = {
-            attributeList: null as any,
-            typeDeclaration: null as any,
-        };
-
         // Define expression graphs use the mime object of core graph for defining.
-        const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs(lCoreGraphs);
+        const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs();
 
         // Create actual core graphs and assign them to the mime object.
-        const lDefinedCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
-        lCoreGraphs.attributeList = lDefinedCoreGraphs.attributeList;
-        lCoreGraphs.typeDeclaration = lDefinedCoreGraphs.typeDeclaration;
+        const lCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
 
         const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lCoreGraphs, lExpressionGraphs);
 
@@ -295,7 +287,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
      * Define graphs only for resolving expressions.
      */
-    private defineExpressionGraphs(pCoreGraphs: PgslParserCoreGraphs): PgslParserExpressionGraphs {
+    private defineExpressionGraphs(): PgslParserExpressionGraphs {
         // lExpressionSyntaxTreeGraph
 
         /**
@@ -578,7 +570,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         const lNewExpressionGraph: Graph<PgslToken, object, PgslNewCallExpression> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordNew)
-                .required('type', pCoreGraphs.typeDeclaration)
+                .required('type', PgslToken.Identifier)
                 .required(PgslToken.ParenthesesStart)
                 .optional('parameters<-list', lExpressionListGraph)
                 .required(PgslToken.ParenthesesEnd);

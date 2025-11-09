@@ -220,9 +220,12 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                 break;
             }
             case PgslDeclarationType.Uniform: {
-                lMustNotHaveAnInitializer();
-                lMustBeConstructible();
-                lMustBeHostShareable();
+                // When its a texture or sampler, no other type restrictions apply.
+                if (!(lType instanceof PgslSamplerType) && !(lType instanceof PgslTextureType)) {
+                    lMustNotHaveAnInitializer();
+                    lMustBeConstructible();
+                    lMustBeHostShareable();
+                }
 
                 // Uniform require a [GroupBinding] attribute.
                 lAllowedAttributes([

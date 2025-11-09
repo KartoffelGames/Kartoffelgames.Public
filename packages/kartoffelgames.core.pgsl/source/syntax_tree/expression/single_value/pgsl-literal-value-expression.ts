@@ -29,7 +29,7 @@ export class PgslLiteralValueExpression extends PgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pTextValue: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pTextValue: string, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

@@ -64,14 +64,16 @@ export class PgslArrayType extends PgslType {
         this.mInnerType = pType;
         this.mLengthExpression = pLengthExpression;
 
+        // TODO: Inner type must be storable and have fixed footprint.
+
         // Read length expression as number.
         if (pLengthExpression) {
             const lExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(pLengthExpression);
-            if(!lExpressionTrace) {
+            if (!lExpressionTrace) {
                 throw new Error(`Length expression is not traced.`);
             }
 
-            if(typeof lExpressionTrace.constantValue === 'number') {
+            if (typeof lExpressionTrace.constantValue === 'number') {
                 this.mLength = lExpressionTrace.constantValue;
             } else {
                 pTrace.pushIncident(`Array length expression must be a constant integer.`, pLengthExpression);
@@ -133,8 +135,22 @@ export class PgslArrayType extends PgslType {
      * @returns Always false - arrays cannot be cast.
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
-        // An array is never implicit castable.
-        return this.equals(pTarget);
+        // Must be an array.
+        if (!(pTarget instanceof PgslArrayType)) {
+            return false;
+        }
+
+        // An array is never implicit with same length.
+        if (this.mLength !== pTarget.length) {
+            return false;
+        }
+
+        // Inner types must be implicit castable.
+        if (!this.mInnerType.isImplicitCastableInto(pTarget.innerType)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -150,7 +166,7 @@ export class PgslArrayType extends PgslType {
         // Validate length expression when set.
         if (this.mLengthExpression) {
             // Read expressions attachments.
-            const lLengthExpressionTrace: PgslExpressionTrace  = pTrace.getExpression(this.mLengthExpression);
+            const lLengthExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mLengthExpression);
 
             // Length expression must be constant.
             if (lLengthExpressionTrace.fixedState < PgslValueFixedState.Constant) {
@@ -169,7 +185,7 @@ export class PgslArrayType extends PgslType {
         }
 
         // Inner type must be fixed.
-        if( !this.mInnerType.fixedFootprint) {
+        if (!this.mInnerType.fixedFootprint) {
             pTrace.pushIncident(`Array inner type must have a fixed footprint.`);
         }
 
@@ -183,10 +199,10 @@ export class PgslArrayType extends PgslType {
             composite: false,
             indexable: true,
             plain: true,
-            concrete: true,
             scalar: false,
 
             // Copy of inner type attachment.
+            concrete: this.mInnerType.concrete,
             fixedFootprint: lIsFixed,
             constructible: lIsConstructible,
             storable: this.mInnerType.storable,

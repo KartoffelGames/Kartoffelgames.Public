@@ -7,6 +7,8 @@ import { PgslNumericType } from './pgsl-numeric-type.ts';
  * Matrix type definition.
  * Represents a matrix type with specific row and column dimensions and inner numeric type.
  * Matrices are composite types used for linear algebra operations in graphics programming.
+ * 
+ * MATRIXES ARE ALWAYS COLUMN MAJOR ORDERED.
  */
 export class PgslMatrixType extends PgslType {
     /**
@@ -172,15 +174,14 @@ export class PgslMatrixType extends PgslType {
         }
 
         return {
-            concrete: true,
-            scalar: false,
-            plain: true,
-
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
 
             // Copy of inner type properties.
+            concrete: this.innerType.concrete,
+            scalar: this.innerType.scalar,
+            plain: this.innerType.plain,
             storable: this.mInnerType.storable,
             hostShareable: this.mInnerType.hostShareable,
             constructible: this.mInnerType.constructible,

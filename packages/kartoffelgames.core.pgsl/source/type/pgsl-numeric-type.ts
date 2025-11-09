@@ -93,19 +93,18 @@ export class PgslNumericType extends PgslType {
         }
 
         switch (this.mNumericType) {
-            // An abstract float is castable into all numeric types.
-            case PgslNumericType.typeName.abstractFloat: {
+            // An abstract integer is castable into all numeric types.
+            case PgslNumericType.typeName.abstractInteger: {
                 return true;
             }
             
-            // An abstract int is only castable into integer types and abstract float.
-            case PgslNumericType.typeName.abstractInteger: {
+            // An abstract float is only castable into float types.
+            case PgslNumericType.typeName.abstractFloat: {
                 // List of all integer types.
                 const lIntegerTypes: Array<PgslNumericTypeName> = [
-                    PgslNumericType.typeName.abstractInteger,
                     PgslNumericType.typeName.abstractFloat,
-                    PgslNumericType.typeName.signedInteger,
-                    PgslNumericType.typeName.unsignedInteger
+                    PgslNumericType.typeName.float32,
+                    PgslNumericType.typeName.float16
                 ];
 
                 // Check if target type is an integer type.

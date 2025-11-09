@@ -123,9 +123,9 @@ export class PgslParserResultBinding {
      *
      * @returns The parser result type.
      */
-    private convertType(pType: PgslType, pTrace: PgslTrace): PgslParserResultType {
+    private convertType(pType: PgslType, pTrace: PgslTrace, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
         // Convert binding type to alignment type.
-        const lAlignmentType: PgslParserResultTypeAlignmentType = (() => {
+        const lAlignmentType: PgslParserResultTypeAlignmentType = pEnforceAlignmentType ?? (() => {
             switch (this.mBindingType) {
                 case 'uniform': return 'uniform';
                 case 'storage': return 'storage';
@@ -213,7 +213,7 @@ export class PgslParserResultBinding {
                 })();
 
                 // Convert sampled type.
-                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pTrace) as PgslParserResultNumericType;
+                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pTrace, 'packed') as PgslParserResultNumericType;
 
                 return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
             }

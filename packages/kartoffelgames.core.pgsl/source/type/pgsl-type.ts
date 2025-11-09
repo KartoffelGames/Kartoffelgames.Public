@@ -1,3 +1,4 @@
+import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 
 /**
@@ -218,3 +219,8 @@ export type PgslTypeProperties = {
      */
     plain: boolean;
 };
+
+/**
+ * Constructor type for PGSL types.
+ */
+export type PgslTypeConstructor = IAnyParameterConstructor<PgslType>;

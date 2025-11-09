@@ -97,7 +97,7 @@ export class PgslEnumType extends PgslType {
             indexable: false,
             storable: false,
             scalar: false,
-            concrete: false,
+            concrete: lEnum?.underlyingType.concrete ?? false,
             plain: false,
             hostShareable: false,
             constructible: false,

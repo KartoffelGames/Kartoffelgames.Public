@@ -205,7 +205,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
                 [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<AccessMode.ReadWrite, TexelFormat.Rgba8unorm>;
+                storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<TexelFormat.Rgba8unorm, AccessMode.ReadWrite>;
             `;
 
             // Execute.
@@ -807,7 +807,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
                 [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<AccessMode.Write, TexelFormat.Rgba8unorm>;
+                storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<TexelFormat.Rgba8unorm, AccessMode.Write>;
             `;
 
             // Execute.

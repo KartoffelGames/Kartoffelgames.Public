@@ -8,6 +8,11 @@ import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import type { PgslBlockStatement } from '../statement/execution/pgsl-block-statement.ts';
 import { PgslDeclaration } from './pgsl-declaration.ts';
 
+// TODO: Add support for multiple parameter sets and their return type.
+// TODO: Add support for generics.
+// TODO: Somehow there must be a disconnect between the pgsl function name and the wgsl function name without specifying it in the definition. 
+//       For now this is only used for built in functions.
+
 /**
  * PGSL syntax tree for a alias declaration.
  */

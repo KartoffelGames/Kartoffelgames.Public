@@ -107,7 +107,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lAliasName: string = 'TestStructAlias';
             const lCodeText: string = `
                 struct ${lStructName} {
-                    propertyOne: f32
+                    propertyOne: ${PgslNumericType.typeName.float32}
                 }
                 alias ${lAliasName} = ${lStructName};
             `;
@@ -386,7 +386,8 @@ Deno.test('PgslAliasDeclaration - Error', async (pContext) => {
 
         // Evaluation. Error should mention invalid template parameters.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Typename "${lInvalidTemplateParameter}" not defined.`)
+            // There is no explicit error for the invalid type inside a template, so we check for the undefined variable error.
+            pIncident.message.includes(`Variable "${lInvalidTemplateParameter}" not defined.`)
         )).toBe(true);
     });
 

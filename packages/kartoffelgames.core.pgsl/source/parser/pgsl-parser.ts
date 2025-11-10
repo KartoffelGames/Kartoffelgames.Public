@@ -51,14 +51,91 @@ import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import type { PgslTranspilation, PgslTranspilationResult } from '../transpilation/pgsl-transpilation.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
+import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
+import { PgslBooleanType } from "../type/pgsl-boolean-type.ts";
+import { PgslVectorType } from "../type/pgsl-vector-type.ts";
+import { PgslMatrixType } from "../type/pgsl-matrix-type.ts";
+import { PgslArrayType } from "../type/pgsl-array-type.ts";
+import { PgslBuildInType } from "../type/pgsl-build-in-type.ts";
+import { PgslSamplerType } from "../type/pgsl-sampler-type.ts";
+import { PgslTextureType } from "../type/pgsl-texture-type.ts";
 
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
+    private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
+        // Scalar types.
+        PgslNumericType.typeName.float16,
+        PgslNumericType.typeName.float32,
+        PgslNumericType.typeName.signedInteger,
+        PgslNumericType.typeName.unsignedInteger,
+        PgslBooleanType.typeName.boolean,
+
+        // Vector and matrix types.
+        PgslVectorType.typeName.vector2,
+        PgslVectorType.typeName.vector3,
+        PgslVectorType.typeName.vector4,
+        PgslMatrixType.typeName.matrix22,
+        PgslMatrixType.typeName.matrix23,
+        PgslMatrixType.typeName.matrix24,
+        PgslMatrixType.typeName.matrix32,
+        PgslMatrixType.typeName.matrix33,
+        PgslMatrixType.typeName.matrix34,
+        PgslMatrixType.typeName.matrix42,
+        PgslMatrixType.typeName.matrix43,
+        PgslMatrixType.typeName.matrix44,
+
+        // Array type.
+        PgslArrayType.typeName.array,
+
+        // Build in types.
+        PgslBuildInType.typeName.vertexIndex,
+        PgslBuildInType.typeName.instanceIndex,
+        PgslBuildInType.typeName.position,
+        PgslBuildInType.typeName.frontFacing,
+        PgslBuildInType.typeName.fragDepth,
+        PgslBuildInType.typeName.sampleIndex,
+        PgslBuildInType.typeName.sampleMask,
+        PgslBuildInType.typeName.localInvocationId,
+        PgslBuildInType.typeName.localInvocationIndex,
+        PgslBuildInType.typeName.globalInvocationId,
+        PgslBuildInType.typeName.workgroupId,
+        PgslBuildInType.typeName.numWorkgroups,
+        PgslBuildInType.typeName.clipDistances,
+
+        // Sampler types.
+        PgslSamplerType.typeName.sampler,
+        PgslSamplerType.typeName.samplerComparison,
+
+        // Texture types.
+        PgslTextureType.typeName.texture1d,
+        PgslTextureType.typeName.texture2d,
+        PgslTextureType.typeName.texture2dArray,
+        PgslTextureType.typeName.texture3d,
+        PgslTextureType.typeName.textureCube,
+        PgslTextureType.typeName.textureCubeArray,
+        PgslTextureType.typeName.textureMultisampled2d,
+        PgslTextureType.typeName.textureExternal,
+        PgslTextureType.typeName.textureDepth2d,
+        PgslTextureType.typeName.textureDepth2dArray,
+        PgslTextureType.typeName.textureDepthCube,
+        PgslTextureType.typeName.textureDepthCubeArray,
+        PgslTextureType.typeName.textureDepthMultisampled2d,
+        PgslTextureType.typeName.textureStorage1d,
+        PgslTextureType.typeName.textureStorage2d,
+        PgslTextureType.typeName.textureStorage2dArray,
+        PgslTextureType.typeName.textureStorage3d,
+    ]);
+
+    private mUserDefinedTypeNames: Set<string>;
+
     /**
      * Constructor.
      */
     public constructor() {
         super(new PgslLexer());
+
+        // Initialize user defined type name set.
+        this.mUserDefinedTypeNames = new Set<string>();
 
         // Define expression graphs use the mime object of core graph for defining.
         const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs();
@@ -104,6 +181,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             new PgslInterpolateTypeEnumDeclaration(),
             new PgslTexelFormatEnumDeclaration()
         ];
+
+        // Clear user defined type names.
+        this.mUserDefinedTypeNames = new Set<string>();
 
         // Parse document structure.
         const lDocument: PgslDocument = super.parse(pCodeText) as PgslDocument;
@@ -244,8 +324,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<BasePgslSyntaxTree>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
+                    pExpressionGraphs.expression,
                     lTypeDeclarationSyntaxTreeGraph as Graph<PgslToken, object, BasePgslSyntaxTree>,
-                    pExpressionGraphs.expression
                 ]).optional('list<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.Comma)
                     .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.
@@ -416,6 +496,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             return GraphNode.new<PgslToken>()
                 .required('name', PgslToken.Identifier);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpression => {
+            // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.
+            if (PgslParser.STATIC_TYPE_NAMES.has(pData.name) || this.mUserDefinedTypeNames.has(pData.name)) {
+                return Symbol(`Identifier '${pData.name}' recognized as a type.`) as any;
+            }
+
             return new PgslVariableNameExpression(pData.name, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
@@ -1084,6 +1169,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .required('type', pCoreGraphs.typeDeclaration)
                 .required(PgslToken.Semicolon);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclaration => {
+            // Save alias as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
             return new PgslAliasDeclaration(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });
 
@@ -1100,6 +1188,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .required(PgslToken.Colon)
                 .required('type', pCoreGraphs.typeDeclaration);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclaration => {
+            // Save struct as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
             // Create structure.
             return new PgslStructPropertyDeclaration(pData.name, pData.type, pData.attributes, this.createTokenBoundParameter(pStartToken, pEndToken));
         });

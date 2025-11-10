@@ -94,6 +94,20 @@ export class PgslTextureType extends PgslType {
         } as const;
     }
 
+    /**
+     * Checks if a texture type is a storage texture.
+     * 
+     * @param pTextureType - Texture type.
+     * 
+     * @returns True if the texture type is a storage texture, false otherwise.
+     */
+    public static isStorageTextureType(pTextureType: PgslTextureTypeName): boolean {
+        return pTextureType === PgslTextureType.typeName.textureStorage1d ||
+            pTextureType === PgslTextureType.typeName.textureStorage2d ||
+            pTextureType === PgslTextureType.typeName.textureStorage2dArray ||
+            pTextureType === PgslTextureType.typeName.textureStorage3d;
+    }
+
     private readonly mTemplateList: Array<PgslExpression | PgslTypeDeclaration>;
     private readonly mTextureType: PgslTextureTypeName;
     private readonly mAccess: PgslAccessMode;

@@ -210,7 +210,21 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             }
             case PgslDeclarationType.Storage: {
                 lMustNotHaveAnInitializer();
-                lMustBeHostShareable();
+
+                // When storage is a texture no host shareable restrictions apply.
+                switch (true) {
+                    case lType instanceof PgslTextureType: {
+                        // Must be a storage texture.
+                        if (!PgslTextureType.isStorageTextureType(lType.textureType)) {
+                            pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be a storage texture type.`, this);
+                        }
+                        break;
+                    }
+                    default: {
+                        // Only apply to plain types.
+                        lMustBeHostShareable();
+                    }
+                }
 
                 // Uniform require a [GroupBinding] attribute.
                 lAllowedAttributes([
@@ -221,11 +235,24 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             }
             case PgslDeclarationType.Uniform: {
                 // When its a texture or sampler, no other type restrictions apply.
-                if (!(lType instanceof PgslSamplerType) && !(lType instanceof PgslTextureType)) {
-                    lMustNotHaveAnInitializer();
-                    lMustBeConstructible();
-                    lMustBeHostShareable();
+                switch (true) {
+                    case lType instanceof PgslSamplerType: {
+                        break;
+                    }
+                    case lType instanceof PgslTextureType: {
+                        if (PgslTextureType.isStorageTextureType(lType.textureType)) {
+                            pTrace.pushIncident(`Storage textures are not allowed in uniform declarations.`, this);
+                        }
+                        break;
+                    }
+                    default: {
+                        // Only apply to plain types.
+                        lMustBeConstructible();
+                        lMustBeHostShareable();
+                    }
                 }
+
+                lMustNotHaveAnInitializer();
 
                 // Uniform require a [GroupBinding] attribute.
                 lAllowedAttributes([

@@ -13,6 +13,11 @@ import { PgslDeclaration } from './pgsl-declaration.ts';
 // TODO: Somehow there must be a disconnect between the pgsl function name and the wgsl function name without specifying it in the definition. 
 //       For now this is only used for built in functions.
 
+// TODO: Split into simple CST Tree that are simply ts-types
+// TODO: Any ast takes the right dst type as constructor parameter and validates/traces itself.
+// TODO: The parser-trace is obsolete as it is merged into the ask tree now.
+// TODO: The parser result still converts the ast into distinct/own types.
+
 /**
  * PGSL syntax tree for a alias declaration.
  */
@@ -20,8 +25,8 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     private readonly mBlock: PgslBlockStatement;
     private readonly mConstant: boolean;
     private readonly mName: string;
-    private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
-    private readonly mReturnType: PgslTypeDeclaration;
+    private readonly mHeader: Array<PgslFunctionDeclarationHeader>;
+    private readonly mGenericType: PgslTypeDeclaration | null;
 
     /**
      * Function block.
@@ -47,15 +52,15 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     /**
      * Function parameter list.
      */
-    public get parameter(): ReadonlyArray<PgslFunctionDeclarationParameter> {
-        return this.mParameter;
+    public get headers(): ReadonlyArray<PgslFunctionDeclarationHeader> {
+        return this.mHeader;
     }
 
     /**
-     * Function return type.
+     * Function generic type.
      */
-    public get returnType(): PgslTypeDeclaration {
-        return this.mReturnType;
+    public get genericType(): PgslTypeDeclaration | null {
+        return this.mGenericType;
     }
 
     /**
@@ -72,8 +77,8 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
         this.mConstant = pParameter.constant;
         this.mBlock = pParameter.block;
         this.mName = pParameter.name;
-        this.mParameter = pParameter.parameter;
-        this.mReturnType = pParameter.returnType;
+        this.mHeader = pParameter.header;
+        this.mGenericType = pParameter.genericType;
 
         // Add function child trees.
         this.appendChild(pParameter.block);
@@ -175,15 +180,42 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
     }
 }
 
-type PgslFunctionDeclarationParameter = {
-    readonly type: PgslTypeDeclaration;
+/**
+ * Function declaration parameter containing type and name.
+ */
+export type PgslFunctionDeclarationParameter = {
+    /**
+     * Function parameter type.
+     * When null, the function uses the defined generic type as parameter type.
+     */
+    readonly type: PgslTypeDeclaration | null;
+
+    /**
+     * Function parameter name.
+     */
     readonly name: string;
+};
+
+/**
+ * Function declaration header containing parameters and result type.
+ */
+export type PgslFunctionDeclarationHeader = {
+    /**
+     * Function parameter list.
+     */
+    parameter: Array<PgslFunctionDeclarationParameter>;
+
+    /**
+     * Function result type.
+     * When null, the function uses the defined generic type as result type.
+     */
+    resultType: PgslTypeDeclaration | null;
 };
 
 export type PgslFunctionDeclarationSyntaxTreeConstructorParameter = {
     name: string;
-    parameter: Array<PgslFunctionDeclarationParameter>;
-    returnType: PgslTypeDeclaration;
+    genericType: PgslTypeDeclaration | null;
+    header: Array<PgslFunctionDeclarationHeader>;
     block: PgslBlockStatement;
     constant: boolean;
 };

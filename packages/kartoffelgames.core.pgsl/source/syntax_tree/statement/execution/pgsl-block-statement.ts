@@ -2,7 +2,7 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 import { PgslBreakStatement } from '../single/pgsl-break-statement.ts';
 import { PgslContinueStatement } from '../single/pgsl-continue-statement.ts';
 import { PgslReturnStatement } from '../single/pgsl-return-statement.ts';
@@ -10,8 +10,8 @@ import { PgslReturnStatement } from '../single/pgsl-return-statement.ts';
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
  */
-export class PgslBlockStatement extends BasePgslStatement {
-    private readonly mStatementList: Array<BasePgslStatement>;
+export class PgslBlockStatement extends PgslStatement {
+    private readonly mStatementList: Array<PgslStatement>;
     private mReturnType: PgslType | null;
     private mIsContinuing: boolean | null;
     private mIsBreaking: boolean | null;
@@ -52,7 +52,7 @@ export class PgslBlockStatement extends BasePgslStatement {
     /**
      * Statements of block.
      */
-    public get statements(): Array<BasePgslStatement> {
+    public get statements(): Array<PgslStatement> {
         return this.mStatementList;
     }
 
@@ -62,7 +62,7 @@ export class PgslBlockStatement extends BasePgslStatement {
      * @param pStatements - Block statements.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pStatements: Array<BasePgslStatement>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pStatements: Array<PgslStatement>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

@@ -3,13 +3,13 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
 /**
  * PGSL structure for a while statement.
  */
-export class PgslWhileStatement extends BasePgslStatement {
+export class PgslWhileStatement extends PgslStatement {
     private readonly mBlock: PgslBlockStatement;
     private readonly mExpression: PgslExpression;
 

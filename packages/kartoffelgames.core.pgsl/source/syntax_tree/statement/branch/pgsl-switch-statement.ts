@@ -5,13 +5,13 @@ import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class PgslSwitchStatement extends BasePgslStatement {
+export class PgslSwitchStatement extends PgslStatement {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatement;
     private readonly mExpression: PgslExpression;

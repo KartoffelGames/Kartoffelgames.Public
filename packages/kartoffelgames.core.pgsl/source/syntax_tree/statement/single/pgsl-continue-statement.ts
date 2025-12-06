@@ -1,11 +1,11 @@
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
  * PGSL structure holding a continue statement.
  */
-export class PgslContinueStatement extends BasePgslStatement {
+export class PgslContinueStatement extends PgslStatement {
     /**
      * Constructor.
      * 

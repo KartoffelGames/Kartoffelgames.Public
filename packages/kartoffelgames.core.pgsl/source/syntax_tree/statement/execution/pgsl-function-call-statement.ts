@@ -2,12 +2,12 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import { PgslFunctionCallExpression } from '../../expression/single_value/pgsl-function-call-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
  * PGSL syntax tree of a function call statement with optional template list.
  */
-export class PgslFunctionCallStatement extends BasePgslStatement {
+export class PgslFunctionCallStatement extends PgslStatement {
     private readonly mFunctionExpression: PgslFunctionCallExpression;
 
     /**

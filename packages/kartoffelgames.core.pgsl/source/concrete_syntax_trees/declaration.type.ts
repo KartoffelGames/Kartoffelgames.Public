@@ -1,12 +1,12 @@
-import type { ExpressionCst } from "./expression.type.ts";
-import type { Cst, AttributeListDst, TypeDeclarationCst } from "./general.type.ts";
+import type { ExpressionCst, ExpressionCstType } from "./expression.type.ts";
+import type { AttributeListCst, Cst, TypeDeclarationCst } from "./general.type.ts";
 import type { BlockStatementCst } from "./statement.type.ts";
 
 /*
  * Core.
  */
-
-export type DeclarationCst = AliasDeclarationCst | EnumDeclarationCst | FunctionDeclarationCst | StructDeclarationCst | StructPropertyDeclarationCst | VariableDeclarationCst;
+export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionDeclarationHeader' | 'FunctionDeclarationParameter' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
+export type DeclarationCst<TDeclarationType extends DeclarationCstType> = Cst<TDeclarationType>;
 
 /*
  * Alias.
@@ -15,8 +15,8 @@ export type DeclarationCst = AliasDeclarationCst | EnumDeclarationCst | Function
 export type AliasDeclarationCst = {
     name: string;
     typeDefinition: TypeDeclarationCst;
-    attributeList: AttributeListDst;
-} & Cst<'AliasDeclaration'>;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'AliasDeclaration'>;
 
 /*
  * Enum.
@@ -25,13 +25,13 @@ export type AliasDeclarationCst = {
 export type EnumDeclarationCst = {
     name: string;
     values: Array<EnumDeclarationValueCst>;
-    attributeList: AttributeListDst;
-} & Cst<'EnumDeclaration'>;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'EnumDeclaration'>;
 
 export type EnumDeclarationValueCst = {
     name: string;
-    value: ExpressionCst;
-} & Cst<'EnumDeclarationValue'>;
+    value: ExpressionCst<ExpressionCstType>;
+} & DeclarationCst<'EnumDeclarationValue'>;
 
 /*
  * Function.
@@ -42,18 +42,18 @@ export type FunctionDeclarationCst = {
     headers: Array<FunctionDeclarationHeaderCst>;
     genericType: TypeDeclarationCst | null;
     block: BlockStatementCst;
-    attributeList: AttributeListDst;
-} & Cst<'FunctionDeclaration'>;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'FunctionDeclaration'>;
 
 export type FunctionDeclarationHeaderCst = {
     parameters: Array<FunctionDeclarationParameterCst>;
     returnType: TypeDeclarationCst;
-} & Cst<'FunctionDeclarationHeader'>;
+} & DeclarationCst<'FunctionDeclarationHeader'>;
 
 export type FunctionDeclarationParameterCst = {
     name: string;
-    type: TypeDeclarationCst;
-} & Cst<'FunctionDeclarationParameter'>;
+    typeDeclaration: TypeDeclarationCst;
+} & DeclarationCst<'FunctionDeclarationParameter'>;
 
 /*
  * Struct.
@@ -62,14 +62,14 @@ export type FunctionDeclarationParameterCst = {
 export type StructDeclarationCst = {
     name: string;
     properties: Array<StructPropertyDeclarationCst>;
-    attributeList: AttributeListDst;
-} & Cst<'StructDeclaration'>;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'StructDeclaration'>;
 
 export type StructPropertyDeclarationCst = {
     name: string;
     typeDefinition: TypeDeclarationCst;
-    attributeList: AttributeListDst;
-} & Cst<'StructPropertyDeclaration'>;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'StructPropertyDeclaration'>;
 
 /*
  * Variable.
@@ -79,6 +79,6 @@ export type VariableDeclarationCst = {
     name: string;
     declarationType: string;
     typeDeclaration: TypeDeclarationCst;
-    expression: ExpressionCst | null;
-    attributeList: AttributeListDst;
-} & Cst<'VariableDeclaration'>;
+    expression: ExpressionCst<ExpressionCstType> | null;
+    attributeList: AttributeListCst;
+} & DeclarationCst<'VariableDeclaration'>;

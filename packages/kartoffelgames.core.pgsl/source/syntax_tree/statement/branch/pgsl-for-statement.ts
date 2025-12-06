@@ -5,7 +5,7 @@ import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 import { PgslAssignmentStatement } from '../execution/pgsl-assignment-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 import { PgslFunctionCallStatement } from '../execution/pgsl-function-call-statement.ts';
@@ -15,11 +15,11 @@ import type { PgslVariableDeclarationStatement } from '../execution/pgsl-variabl
 /**
  * PGSL structure for a if statement with optional else block.
  */
-export class PgslForStatement extends BasePgslStatement {
+export class PgslForStatement extends PgslStatement {
     private readonly mBlock: PgslBlockStatement;
     private readonly mExpression: PgslExpression | null;
     private readonly mInit: PgslVariableDeclarationStatement | null;
-    private readonly mUpdate: BasePgslStatement | null;
+    private readonly mUpdate: PgslStatement | null;
 
     /**
      * Block.
@@ -45,7 +45,7 @@ export class PgslForStatement extends BasePgslStatement {
     /**
      * Assignment expression.
      */
-    public get update(): BasePgslStatement | null {
+    public get update(): PgslStatement | null {
         return this.mUpdate;
     }
 
@@ -139,6 +139,6 @@ export class PgslForStatement extends BasePgslStatement {
 type PgslForStatementSyntaxTreeConstructorParameter = {
     init: PgslVariableDeclarationStatement | null;
     expression: PgslExpression | null;
-    update: BasePgslStatement | null;
+    update: PgslStatement | null;
     block: PgslBlockStatement;
 };

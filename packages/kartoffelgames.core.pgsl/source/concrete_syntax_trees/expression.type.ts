@@ -3,85 +3,90 @@ import type { Cst } from "./general.type.ts";
 /*
  * Core.
  */
-
-export type ExpressionCst = ArithmeticExpressionCst | BinaryExpressionCst | ComparisonExpressionCst | LogicalExpressionCst | AddressOfExpressionCst | FunctionCallExpressionCst | LiteralExpressionCst | ParenthesizedExpressionCst | StringValueExpressionCst | IndexedValueExpressionCst | PointerExpressionCst | ValueDecompositionExpressionCst | VariableNameExpressionCst | UnaryExpressionCst;
+export type ExpressionCstType = 'ArithmeticExpression' | 'BinaryExpression' | 'ComparisonExpression' | 'LogicalExpression' | 'AddressOfExpression' | 'FunctionCallExpression' | 'NewExpression' | 'LiteralExpression' | 'ParenthesizedExpression' | 'StringValueExpression' | 'IndexedValueExpression' | 'PointerExpression' | 'ValueDecompositionExpression' | 'VariableNameExpression' | 'UnaryExpression';
+export type ExpressionCst<TExpressionType extends ExpressionCstType> = Cst<TExpressionType>;
 
 /*
  * Operations.
  */
 export type ArithmeticExpressionCst = {
-    left: ExpressionCst;
+    left: ExpressionCst<ExpressionCstType>;
     operator: string;
-    right: ExpressionCst;
-} & Cst<'ArithmeticExpression'>;
+    right: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'ArithmeticExpression'>;
 
 export type BinaryExpressionCst = {
-    left: ExpressionCst;
+    left: ExpressionCst<ExpressionCstType>;
     operator: string;
-    right: ExpressionCst;
-} & Cst<'BinaryExpression'>;
+    right: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'BinaryExpression'>;
 
 export type ComparisonExpressionCst = {
-    left: ExpressionCst;
+    left: ExpressionCst<ExpressionCstType>;
     operator: string;
-    right: ExpressionCst;
-} & Cst<'ComparisonExpression'>;
+    right: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'ComparisonExpression'>;
 
 export type LogicalExpressionCst = {
-    left: ExpressionCst;
+    left: ExpressionCst<ExpressionCstType>;
     operator: string;
-    right: ExpressionCst;
-} & Cst<'LogicalExpression'>;
+    right: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'LogicalExpression'>;
 
 /*
  * Single value.
  */
 export type AddressOfExpressionCst = {
-    expression: ExpressionCst;
-} & Cst<'AddressOfExpression'>;
+    expression: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'AddressOfExpression'>;
 
 export type FunctionCallExpressionCst = {
     functionName: string;
-    arguments: Array<ExpressionCst>;
-} & Cst<'FunctionCallExpression'>;
+    arguments: Array<ExpressionCst<ExpressionCstType>>;
+} & ExpressionCst<'FunctionCallExpression'>;
+
+export type NewExpressionCst = {
+    typeName: string;
+    arguments: Array<ExpressionCst<ExpressionCstType>>;
+} & ExpressionCst<'NewExpression'>;
 
 export type LiteralExpressionCst = {
     textValue: string;
-} & Cst<'LiteralExpression'>;
+} & ExpressionCst<'LiteralExpression'>;
 
 export type ParenthesizedExpressionCst = {
-    expression: ExpressionCst;
-} & Cst<'ParenthesizedExpression'>;
+    expression: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'ParenthesizedExpression'>;
 
 export type StringValueExpressionCst = {
     textValue: string;
-} & Cst<'StringValueExpression'>;
+} & ExpressionCst<'StringValueExpression'>;
 
 /*
  * Storage.
  */
 export type IndexedValueExpressionCst = {
-    value: ExpressionCst;
-    index: ExpressionCst;
-} & Cst<'IndexedValueExpression'>;
+    value: ExpressionCst<ExpressionCstType>;
+    index: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'IndexedValueExpression'>;
 
 export type PointerExpressionCst = {
-    expression: ExpressionCst;
-} & Cst<'PointerExpression'>;
+    expression: ExpressionCst<ExpressionCstType>;
+} & ExpressionCst<'PointerExpression'>;
 
 export type ValueDecompositionExpressionCst = {
-    value: ExpressionCst;
+    value: ExpressionCst<ExpressionCstType>;
     property: string;
-} & Cst<'ValueDecompositionExpression'>;
+} & ExpressionCst<'ValueDecompositionExpression'>;
 
 export type VariableNameExpressionCst = {
     variableName: string;
-} & Cst<'VariableNameExpression'>;
+} & ExpressionCst<'VariableNameExpression'>;
 
 /*
  * Unary.
  */
 export type UnaryExpressionCst = {
-    expression: ExpressionCst;
+    expression: ExpressionCst<ExpressionCstType>;
     operator: string;
-} & Cst<'UnaryExpression'>;
+} & ExpressionCst<'UnaryExpression'>;

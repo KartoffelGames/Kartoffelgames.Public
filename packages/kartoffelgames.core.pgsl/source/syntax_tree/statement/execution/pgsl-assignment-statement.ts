@@ -5,12 +5,12 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
  * PGSL structure holding a assignment statement.
  */
-export class PgslAssignmentStatement extends BasePgslStatement {
+export class PgslAssignmentStatement extends PgslStatement {
     private readonly mAssignmentName: string;
     private readonly mExpression: PgslExpression;
     private readonly mVariable: PgslExpression;

@@ -6,12 +6,12 @@ import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import type { PgslFunctionDeclaration } from '../../declaration/pgsl-function-declaration.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
  * PGSL structure holding a return statement with an optional expression.
  */
-export class PgslReturnStatement extends BasePgslStatement {
+export class PgslReturnStatement extends PgslStatement {
     private readonly mExpression: PgslExpression | null;
 
     /**

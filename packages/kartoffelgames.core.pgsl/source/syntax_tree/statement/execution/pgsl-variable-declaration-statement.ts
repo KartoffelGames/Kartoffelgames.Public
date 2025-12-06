@@ -10,11 +10,11 @@ import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
 import { PgslAccessMode } from '../../buildin/pgsl-access-mode.enum.ts';
 import type { PgslExpression } from '../../expression/pgsl-expression.ts';
 import type { PgslTypeDeclaration } from '../../general/pgsl-type-declaration.ts';
-import { BasePgslStatement } from '../base-pgsl-statement.ts';
+import { PgslStatement } from '../pgsl-statement.ts';
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class PgslVariableDeclarationStatement extends BasePgslStatement {
+export class PgslVariableDeclarationStatement extends PgslStatement {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: PgslExpression | null;
     private readonly mName: string;

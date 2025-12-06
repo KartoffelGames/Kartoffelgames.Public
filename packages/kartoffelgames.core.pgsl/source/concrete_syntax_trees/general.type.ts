@@ -1,5 +1,5 @@
-import type { DeclarationCst } from "./declaration.type.ts";
-import type { ExpressionCst } from "./expression.type.ts";
+import type { DeclarationCst, DeclarationCstType } from "./declaration.type.ts";
+import type { ExpressionCst, ExpressionCstType } from "./expression.type.ts";
 
 /**
  * Core
@@ -14,7 +14,7 @@ export type Cst<TType extends string> = {
  */
 
 export type DocumentCst = {
-    declarations: Array<DeclarationCst>;
+    declarations: Array<DeclarationCst<DeclarationCstType>>;
 } & Cst<'Document'>;
 
 /*
@@ -23,10 +23,10 @@ export type DocumentCst = {
 
 export type AttributeCst = {
     name: string;
-    parameters: Array<ExpressionCst>;
+    parameters: Array<ExpressionCst<ExpressionCstType>>;
 } & Cst<'Attribute'>;
 
-export type AttributeListDst = {
+export type AttributeListCst = {
     attributes: Array<AttributeCst>;
 } & Cst<'AttributeList'>;
 
@@ -36,6 +36,6 @@ export type AttributeListDst = {
 
 export type TypeDeclarationCst = {
     typeName: string;
-    template: Array<Cst<string>>,
+    template: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst>;
     isPointer: boolean;
 } & Cst<'TypeDeclaration'>;

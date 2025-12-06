@@ -13,49 +13,49 @@ export type ArithmeticExpressionCst = {
     left: ExpressionCst;
     operator: string;
     right: ExpressionCst;
-} & Cst;
+} & Cst<'ArithmeticExpression'>;
 
 export type BinaryExpressionCst = {
     left: ExpressionCst;
     operator: string;
     right: ExpressionCst;
-} & Cst;
+} & Cst<'BinaryExpression'>;
 
 export type ComparisonExpressionCst = {
     left: ExpressionCst;
     operator: string;
     right: ExpressionCst;
-} & Cst;
+} & Cst<'ComparisonExpression'>;
 
 export type LogicalExpressionCst = {
     left: ExpressionCst;
     operator: string;
     right: ExpressionCst;
-} & Cst;
+} & Cst<'LogicalExpression'>;
 
 /*
  * Single value.
  */
 export type AddressOfExpressionCst = {
     expression: ExpressionCst;
-} & Cst;
+} & Cst<'AddressOfExpression'>;
 
 export type FunctionCallExpressionCst = {
     functionName: string;
     arguments: Array<ExpressionCst>;
-} & Cst;
+} & Cst<'FunctionCallExpression'>;
 
 export type LiteralExpressionCst = {
     textValue: string;
-} & Cst;
+} & Cst<'LiteralExpression'>;
 
 export type ParenthesizedExpressionCst = {
     expression: ExpressionCst;
-} & Cst;
+} & Cst<'ParenthesizedExpression'>;
 
 export type StringValueExpressionCst = {
     textValue: string;
-} & Cst;
+} & Cst<'StringValueExpression'>;
 
 /*
  * Storage.
@@ -63,20 +63,20 @@ export type StringValueExpressionCst = {
 export type IndexedValueExpressionCst = {
     value: ExpressionCst;
     index: ExpressionCst;
-} & Cst;
+} & Cst<'IndexedValueExpression'>;
 
 export type PointerExpressionCst = {
     expression: ExpressionCst;
-} & Cst;
+} & Cst<'PointerExpression'>;
 
 export type ValueDecompositionExpressionCst = {
     value: ExpressionCst;
     property: string;
-} & Cst;
+} & Cst<'ValueDecompositionExpression'>;
 
 export type VariableNameExpressionCst = {
     variableName: string;
-} & Cst;
+} & Cst<'VariableNameExpression'>;
 
 /*
  * Unary.
@@ -84,4 +84,4 @@ export type VariableNameExpressionCst = {
 export type UnaryExpressionCst = {
     expression: ExpressionCst;
     operator: string;
-} & Cst;
+} & Cst<'UnaryExpression'>;

@@ -13,7 +13,7 @@ export type StatementCst = BlockStatementCst | IfStatementCst | WhileStatementCs
 
 export type BlockStatementCst = {
     statements: Array<StatementCst>;
-} & Cst;
+} & Cst<'BlockStatement'>;
 
 /*
  * Branch.
@@ -23,35 +23,35 @@ export type IfStatementCst = {
     expression: ExpressionCst;
     block: BlockStatementCst;
     else: IfStatementCst | BlockStatementCst | null;
-} & Cst;
+} & Cst<'IfStatement'>;
 
 export type WhileStatementCst = {
     expression: ExpressionCst;
     block: BlockStatementCst;
-} & Cst;
+} & Cst<'WhileStatement'>;
 
 export type DoWhileStatementCst = {
     expression: ExpressionCst;
     block: BlockStatementCst;
-} & Cst;
+} & Cst<'DoWhileStatement'>;
 
 export type ForStatementCst = {
     init: VariableDeclarationStatementCst | null;
     expression: ExpressionCst | null;
     update: StatementCst | null;
     block: BlockStatementCst;
-} & Cst;
+} & Cst<'ForStatement'>;
 
 export type SwitchStatementCst = {
     expression: ExpressionCst;
     cases: Array<SwitchCaseCst>;
     default: BlockStatementCst;
-} & Cst;
+} & Cst<'SwitchStatement'>;
 
 export type SwitchCaseCst = {
     expression: ExpressionCst;
     block: BlockStatementCst;
-} & Cst;
+} & Cst<'SwitchCase'>;
 
 /*
  * Execution.
@@ -62,23 +62,23 @@ export type VariableDeclarationStatementCst = {
     declarationType: string;
     typeDeclaration: TypeDeclarationCst;
     expression: ExpressionCst | null;
-} & Cst;
+} & Cst<'VariableDeclarationStatement'>;
 
 export type AssignmentStatementCst = {
     variable: ExpressionCst;
     assignment: string;
     expression: ExpressionCst;
-} & Cst;
+} & Cst<'AssignmentStatement'>;
 
 export type FunctionCallStatementCst = {
     functionName: string;
     arguments: Array<ExpressionCst>;
-} & Cst;
+} & Cst<'FunctionCallStatement'>;
 
 export type IncrementDecrementStatementCst = {
     operatorName: string;
     expression: ExpressionCst;
-} & Cst;
+} & Cst<'IncrementDecrementStatement'>;
 
 /*
  * Single.
@@ -86,13 +86,13 @@ export type IncrementDecrementStatementCst = {
 
 export type ReturnStatementCst = {
     expression: ExpressionCst | null;
-} & Cst;
+} & Cst<'ReturnStatement'>;
 
 export type BreakStatementCst = {
-} & Cst;
+} & Cst<'BreakStatement'>;
 
 export type ContinueStatementCst = {
-} & Cst;
+} & Cst<'ContinueStatement'>;
 
 export type DiscardStatementCst = {
-} & Cst;
+} & Cst<'DiscardStatement'>;

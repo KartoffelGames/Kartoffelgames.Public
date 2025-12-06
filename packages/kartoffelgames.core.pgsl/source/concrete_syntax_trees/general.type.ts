@@ -4,7 +4,8 @@ import type { ExpressionCst } from "./expression.type.ts";
 /**
  * Core
  */
-export type Cst = {
+export type Cst<TType extends string> = {
+    type: TType;
     range: [lineStart: number, columnStart: number, lineEnd: number, columnEnd: number];
 };
 
@@ -14,7 +15,7 @@ export type Cst = {
 
 export type DocumentCst = {
     declarations: Array<DeclarationCst>;
-} & Cst;
+} & Cst<'Document'>;
 
 /*
  * Attributes.
@@ -23,11 +24,11 @@ export type DocumentCst = {
 export type AttributeCst = {
     name: string;
     parameters: Array<ExpressionCst>;
-} & Cst;;
+} & Cst<'Attribute'>;
 
 export type AttributeListDst = {
     attributes: Array<AttributeCst>;
-} & Cst;
+} & Cst<'AttributeList'>;
 
 /*
  * Type declaration.
@@ -35,6 +36,6 @@ export type AttributeListDst = {
 
 export type TypeDeclarationCst = {
     typeName: string;
-    template: Array<Cst>,
+    template: Array<Cst<string>>,
     isPointer: boolean;
-} & Cst;
+} & Cst<'TypeDeclaration'>;

@@ -1,4 +1,4 @@
-import { PgslFunctionDeclaration } from '../../../syntax_tree/declaration/pgsl-function-declaration.ts';
+import { PgslFunctionDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 

@@ -1,4 +1,4 @@
-import { PgslNewCallExpression } from '../../../../syntax_tree/expression/single_value/pgsl-new-expression.ts';
+import { PgslNewCallExpression } from '../../../../abstract_syntax_tree/expression/single_value/pgsl-new-expression.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import { PgslArrayType } from "../../../../type/pgsl-array-type.ts";
 import { PgslBooleanType } from "../../../../type/pgsl-boolean-type.ts";

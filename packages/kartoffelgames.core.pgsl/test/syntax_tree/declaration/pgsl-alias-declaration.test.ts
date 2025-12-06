@@ -1,11 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslAliasDeclaration } from '../../../source/syntax_tree/declaration/pgsl-alias-declaration.ts';
+import { PgslAliasDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
-import { PgslTypeDeclaration } from "../../../source/syntax_tree/general/pgsl-type-declaration.ts";
+import { PgslDocument } from "../../../source/abstract_syntax_tree/pgsl-document.ts";
+import { PgslTypeDeclaration } from "../../../source/abstract_syntax_tree/general/pgsl-type-declaration.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

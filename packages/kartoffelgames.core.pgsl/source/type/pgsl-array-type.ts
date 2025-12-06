@@ -1,5 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';

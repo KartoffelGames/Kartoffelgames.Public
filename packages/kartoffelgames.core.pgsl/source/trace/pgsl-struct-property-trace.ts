@@ -1,6 +1,6 @@
 import { Exception } from '../../../kartoffelgames.core/source/exception/exception.ts';
-import type { PgslInterpolateSampling } from '../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
-import type { PgslInterpolateType } from '../syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
+import type { PgslInterpolateSampling } from '../abstract_syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
+import type { PgslInterpolateType } from '../abstract_syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
 
 // TODO: Calculate size and alignment based on type.

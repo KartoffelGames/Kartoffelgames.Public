@@ -1,13 +1,13 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslStructDeclaration } from '../../../source/syntax_tree/declaration/pgsl-struct-declaration.ts';
+import { PgslStructDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-struct-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslDocument } from "../../../source/syntax_tree/pgsl-document.ts";
-import { PgslAttributeList } from '../../../source/syntax_tree/general/pgsl-attribute-list.ts';
-import { PgslTypeDeclaration } from "../../../source/syntax_tree/general/pgsl-type-declaration.ts";
-import { PgslStructPropertyDeclaration } from "../../../source/syntax_tree/declaration/pgsl-struct-property-declaration.ts";
+import { PgslDocument } from "../../../source/abstract_syntax_tree/pgsl-document.ts";
+import { PgslAttributeList } from '../../../source/abstract_syntax_tree/general/pgsl-attribute-list.ts';
+import { PgslTypeDeclaration } from "../../../source/abstract_syntax_tree/general/pgsl-type-declaration.ts";
+import { PgslStructPropertyDeclaration } from "../../../source/abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

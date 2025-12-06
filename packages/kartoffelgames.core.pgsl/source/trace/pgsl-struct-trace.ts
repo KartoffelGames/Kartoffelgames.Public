@@ -1,4 +1,4 @@
-import type { PgslStructDeclaration } from '../syntax_tree/declaration/pgsl-struct-declaration.ts';
+import type { PgslStructDeclaration } from '../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts';
 
 // TODO: Dynamically calculate size and alignment based on type.
 

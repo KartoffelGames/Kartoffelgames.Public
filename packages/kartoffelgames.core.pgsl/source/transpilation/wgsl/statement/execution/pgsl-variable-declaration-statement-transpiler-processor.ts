@@ -1,4 +1,4 @@
-import { PgslVariableDeclarationStatement } from '../../../../syntax_tree/statement/execution/pgsl-variable-declaration-statement.ts';
+import { PgslVariableDeclarationStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-variable-declaration-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

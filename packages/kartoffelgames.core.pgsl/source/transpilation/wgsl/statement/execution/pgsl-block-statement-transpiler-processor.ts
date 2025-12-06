@@ -1,4 +1,4 @@
-import { PgslBlockStatement } from '../../../../syntax_tree/statement/execution/pgsl-block-statement.ts';
+import { PgslBlockStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-block-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

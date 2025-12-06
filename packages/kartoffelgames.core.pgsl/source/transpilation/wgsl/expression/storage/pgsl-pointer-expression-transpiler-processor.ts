@@ -1,4 +1,4 @@
-import { PgslPointerExpression } from '../../../../syntax_tree/expression/storage/pgsl-pointer-expression.ts';
+import { PgslPointerExpression } from '../../../../abstract_syntax_tree/expression/storage/pgsl-pointer-expression.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

@@ -1,6 +1,6 @@
-import { PgslInterpolateSampling } from '../../../syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
-import { PgslInterpolateType } from '../../../syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
-import { PgslStructPropertyDeclaration } from '../../../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import { PgslInterpolateSampling } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
+import { PgslInterpolateType } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
+import { PgslStructPropertyDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
 import type { PgslStructPropertyTrace } from '../../../trace/pgsl-struct-property-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBuildInType } from '../../../type/pgsl-build-in-type.ts';

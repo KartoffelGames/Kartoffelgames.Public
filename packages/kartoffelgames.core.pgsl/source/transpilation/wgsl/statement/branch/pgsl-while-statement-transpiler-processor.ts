@@ -1,4 +1,4 @@
-import { PgslWhileStatement } from '../../../../syntax_tree/statement/branch/pgsl-while-statement.ts';
+import { PgslWhileStatement } from '../../../../abstract_syntax_tree/statement/branch/pgsl-while-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

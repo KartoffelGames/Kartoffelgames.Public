@@ -1,4 +1,4 @@
-import { PgslComparisonExpression } from '../../../../syntax_tree/expression/operation/pgsl-comparison-expression.ts';
+import { PgslComparisonExpression } from '../../../../abstract_syntax_tree/expression/operation/pgsl-comparison-expression.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

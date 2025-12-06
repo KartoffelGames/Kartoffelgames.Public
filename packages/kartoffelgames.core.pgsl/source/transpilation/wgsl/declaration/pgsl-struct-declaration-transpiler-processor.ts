@@ -1,5 +1,5 @@
-import { PgslStructDeclaration } from '../../../syntax_tree/declaration/pgsl-struct-declaration.ts';
-import type { PgslStructPropertyDeclaration } from '../../../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import { PgslStructDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts';
+import type { PgslStructPropertyDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 

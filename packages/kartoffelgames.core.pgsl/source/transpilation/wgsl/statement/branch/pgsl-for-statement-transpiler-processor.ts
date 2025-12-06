@@ -1,4 +1,4 @@
-import { PgslForStatement } from '../../../../syntax_tree/statement/branch/pgsl-for-statement.ts';
+import { PgslForStatement } from '../../../../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

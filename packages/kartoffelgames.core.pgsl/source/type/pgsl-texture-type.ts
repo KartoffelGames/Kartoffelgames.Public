@@ -1,10 +1,10 @@
-import { PgslAccessModeEnumDeclaration } from '../syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts';
-import { PgslAccessMode } from '../syntax_tree/buildin/pgsl-access-mode.enum.ts';
-import { PgslTexelFormatEnumDeclaration } from '../syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts';
-import { PgslTexelFormat } from '../syntax_tree/buildin/pgsl-texel-format.enum.ts';
-import { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
-import { PgslStringValueExpression } from '../syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
-import { PgslTypeDeclaration } from '../syntax_tree/general/pgsl-type-declaration.ts';
+import { PgslAccessModeEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts';
+import { PgslAccessMode } from '../abstract_syntax_tree/buildin/pgsl-access-mode.enum.ts';
+import { PgslTexelFormatEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts';
+import { PgslTexelFormat } from '../abstract_syntax_tree/buildin/pgsl-texel-format.enum.ts';
+import { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import { PgslStringValueExpression } from '../abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
+import { PgslTypeDeclaration } from '../abstract_syntax_tree/general/pgsl-type-declaration.ts';
 import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';

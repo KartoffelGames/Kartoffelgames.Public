@@ -1,4 +1,4 @@
-import { PgslBinaryExpression } from '../../../../syntax_tree/expression/operation/pgsl-binary-expression.ts';
+import { PgslBinaryExpression } from '../../../../abstract_syntax_tree/expression/operation/pgsl-binary-expression.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

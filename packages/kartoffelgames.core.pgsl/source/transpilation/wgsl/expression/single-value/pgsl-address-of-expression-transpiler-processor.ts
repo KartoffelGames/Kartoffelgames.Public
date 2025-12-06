@@ -1,4 +1,4 @@
-import { PgslAddressOfExpression } from '../../../../syntax_tree/expression/single_value/pgsl-address-of-expression.ts';
+import { PgslAddressOfExpression } from '../../../../abstract_syntax_tree/expression/single_value/pgsl-address-of-expression.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

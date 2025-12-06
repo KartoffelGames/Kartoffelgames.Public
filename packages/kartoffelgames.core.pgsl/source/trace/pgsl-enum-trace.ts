@@ -1,4 +1,4 @@
-import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
 
 /**

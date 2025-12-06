@@ -1,7 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
-import type { BasePgslSyntaxTree } from '../syntax_tree/base-pgsl-syntax-tree.ts';
-import type { PgslStructPropertyDeclaration } from '../syntax_tree/declaration/pgsl-struct-property-declaration.ts';
-import type { PgslExpression } from '../syntax_tree/expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTree } from '../abstract_syntax_tree/base-pgsl-syntax-tree.ts';
+import type { PgslStructPropertyDeclaration } from '../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import type { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslAliasTrace } from './pgsl-alias-trace.ts';
 import type { PgslEnumTrace } from './pgsl-enum-trace.ts';
 import type { PgslExpressionTrace } from './pgsl-expression-trace.ts';

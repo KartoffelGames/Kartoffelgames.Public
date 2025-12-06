@@ -1,9 +1,9 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor } from "../../syntax_tree/base-pgsl-syntax-tree.ts";
-import { PgslEnumDeclaration } from "../../syntax_tree/declaration/pgsl-enum-declaration.ts";
-import { PgslFunctionDeclaration } from "../../syntax_tree/declaration/pgsl-function-declaration.ts";
-import { PgslStructDeclaration } from "../../syntax_tree/declaration/pgsl-struct-declaration.ts";
-import { PgslVariableDeclaration } from "../../syntax_tree/declaration/pgsl-variable-declaration.ts";
-import { PgslDocument } from '../../syntax_tree/pgsl-document.ts';
+import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/base-pgsl-syntax-tree.ts";
+import { PgslEnumDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-enum-declaration.ts";
+import { PgslFunctionDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts";
+import { PgslStructDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts";
+import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-variable-declaration.ts";
+import { PgslDocument } from '../../abstract_syntax_tree/pgsl-document.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
 

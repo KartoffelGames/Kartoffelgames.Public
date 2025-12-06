@@ -1,4 +1,4 @@
-import { PgslContinueStatement } from '../../../../syntax_tree/statement/single/pgsl-continue-statement.ts';
+import { PgslContinueStatement } from '../../../../abstract_syntax_tree/statement/single/pgsl-continue-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

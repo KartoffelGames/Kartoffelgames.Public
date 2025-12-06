@@ -1,4 +1,4 @@
-import { PgslIncrementDecrementStatement } from '../../../../syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
+import { PgslIncrementDecrementStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

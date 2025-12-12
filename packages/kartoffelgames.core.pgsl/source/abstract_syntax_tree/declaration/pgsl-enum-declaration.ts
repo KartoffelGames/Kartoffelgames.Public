@@ -5,10 +5,10 @@ import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../../type/pgsl-string-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../expression/pgsl-expression.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
-import { PgslDeclaration } from './pgsl-declaration.ts';
+import { PgslDeclaration } from './declaration-ast.ts';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -59,7 +59,7 @@ export class PgslEnumDeclaration extends PgslDeclaration {
         this.attributes.trace(pTrace);
 
         // Validate that the enum has no dublicate names.
-        const lPropertyList: Map<string, PgslExpression> = new Map<string, PgslExpression>();
+        const lPropertyList: Map<string, ExpressionAst> = new Map<string, ExpressionAst>();
 
         // Check if enum is already defined.
         if (pTrace.getEnum(this.mName)) {
@@ -118,5 +118,5 @@ export class PgslEnumDeclaration extends PgslDeclaration {
     }
 }
 
-export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: PgslExpression; }>;
-export type ReadonlyPgslEnumDeclarationSyntaxTreeValues = ReadonlyArray<{ readonly name: string; readonly value: PgslExpression; }>;
+export type PgslEnumDeclarationSyntaxTreeValues = Array<{ name: string; value: ExpressionAst; }>;
+export type ReadonlyPgslEnumDeclarationSyntaxTreeValues = ReadonlyArray<{ readonly name: string; readonly value: ExpressionAst; }>;

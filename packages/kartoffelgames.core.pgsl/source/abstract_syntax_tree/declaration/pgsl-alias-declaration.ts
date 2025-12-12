@@ -1,10 +1,10 @@
 import { PgslAliasTrace } from '../../trace/pgsl-alias-trace.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../abstract-syntax-tree.ts';
 import type { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
-import { PgslDeclaration } from './pgsl-declaration.ts';
+import { PgslDeclaration } from './declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.

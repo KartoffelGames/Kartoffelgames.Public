@@ -1,8 +1,8 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { BasePgslSyntaxTree } from '../abstract_syntax_tree/base-pgsl-syntax-tree.ts';
+import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 
-export interface IPgslTranspilerProcessor<TTarget extends BasePgslSyntaxTree> {
+export interface IPgslTranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
@@ -25,4 +25,4 @@ export interface IPgslTranspilerProcessor<TTarget extends BasePgslSyntaxTree> {
  * Function type for transpiling a child syntax tree node and returning the result as a string.
  * Provided to processors to allow recursive transpilation of child nodes.
  */
-export type PgslTranspilerProcessorTranspile = (pInstance: BasePgslSyntaxTree) => string;
+export type PgslTranspilerProcessorTranspile = (pInstance: AbstractSyntaxTree) => string;

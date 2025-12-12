@@ -3,8 +3,8 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
@@ -14,7 +14,7 @@ import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 export class PgslSwitchStatement extends PgslStatement {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatement;
-    private readonly mExpression: PgslExpression;
+    private readonly mExpression: ExpressionAst;
 
     /**
      * Switch cases.
@@ -33,7 +33,7 @@ export class PgslSwitchStatement extends PgslStatement {
     /**
      * Switch boolean expression reference.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
@@ -125,12 +125,12 @@ export class PgslSwitchStatement extends PgslStatement {
 }
 
 export type PgslSwitchStatementSwitchCase = {
-    readonly cases: Array<PgslExpression>,
+    readonly cases: Array<ExpressionAst>,
     readonly block: PgslBlockStatement;
 };
 
 export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
-    expression: PgslExpression,
+    expression: ExpressionAst,
     cases: Array<PgslSwitchStatementSwitchCase>;
     default: PgslBlockStatement;
 };

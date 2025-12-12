@@ -1,8 +1,8 @@
-import { PgslAccessModeEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-access-mode-enum-declaration.ts';
-import { PgslAccessMode } from '../abstract_syntax_tree/buildin/pgsl-access-mode.enum.ts';
-import { PgslTexelFormatEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-texel-format-enum-declaration.ts';
+import { PgslAccessModeEnum } from '../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
+import { PgslAccessMode } from '../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
+import { PgslTexelFormatEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-texel-format-enum.ts';
 import { PgslTexelFormat } from '../abstract_syntax_tree/buildin/pgsl-texel-format.enum.ts';
-import { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import { PgslStringValueExpression } from '../abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
 import { PgslTypeDeclaration } from '../abstract_syntax_tree/general/pgsl-type-declaration.ts';
 import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
@@ -110,7 +110,7 @@ export class PgslTextureType extends PgslType {
             pTextureType === PgslTextureType.typeName.textureStorage3d;
     }
 
-    private readonly mTemplateList: Array<PgslExpression | PgslTypeDeclaration>;
+    private readonly mTemplateList: Array<ExpressionAst | PgslTypeDeclaration>;
     private readonly mTextureType: PgslTextureTypeName;
     private readonly mAccess: PgslAccessMode;
     private readonly mFormat: PgslTexelFormat;
@@ -159,7 +159,7 @@ export class PgslTextureType extends PgslType {
      * @param pTextureType - The specific texture type variant.
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
-    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<PgslExpression | PgslTypeDeclaration>) {
+    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<ExpressionAst | PgslTypeDeclaration>) {
         super(pTrace);
 
         // Set data.
@@ -277,7 +277,7 @@ export class PgslTextureType extends PgslType {
 
         // Prepare type parameter with sensible defaults.
         const lTypeParameter: PgslTextureTypeParameter = {
-            access: PgslAccessMode.Read,
+            access: PgslAccessModeEnum.values.Read,
             format: PgslTexelFormat.Bgra8unorm,
             sampledType: new PgslNumericType(pTrace, PgslNumericType.typeName.float32)
         };
@@ -285,7 +285,7 @@ export class PgslTextureType extends PgslType {
         // Validate and parse each template parameter.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
             const lExpectedParameterType: 'type' | 'string' = lTextureTemplates[lTemplateIndex];
-            const lActualParameterValue: PgslTypeDeclaration | PgslExpression = this.mTemplateList[lTemplateIndex];
+            const lActualParameterValue: PgslTypeDeclaration | ExpressionAst = this.mTemplateList[lTemplateIndex];
 
             // Validate parameter type matches expected type.
             switch (lExpectedParameterType) {
@@ -297,7 +297,7 @@ export class PgslTextureType extends PgslType {
                     break;
                 }
                 case 'string': {
-                    if (!(lActualParameterValue instanceof PgslExpression)) {
+                    if (!(lActualParameterValue instanceof ExpressionAst)) {
                         pTrace.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a string value expression.`);
                         continue;
                     }
@@ -321,7 +321,7 @@ export class PgslTextureType extends PgslType {
                 // TODO: Change format based on sampled type for regular textures.
             } else {
                 // Two parameters: format and access mode strings for storage textures.
-                const lStringValueExpression: PgslExpression = lActualParameterValue as PgslExpression;
+                const lStringValueExpression: ExpressionAst = lActualParameterValue as ExpressionAst;
                 const lStringExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lStringValueExpression);
 
                 const lStringValue: string | number | null = lStringExpressionTrace.constantValue;
@@ -339,7 +339,7 @@ export class PgslTextureType extends PgslType {
                     }
                 } else {
                     // Second parameter: access mode.
-                    if (PgslAccessModeEnumDeclaration.containsValue(lStringValue)) {
+                    if (PgslAccessModeEnum.containsValue(lStringValue)) {
                         lTypeParameter.access = lStringValue;
                     } else {
                         pTrace.pushIncident(`Unknown access mode: "${lStringValue}".`);

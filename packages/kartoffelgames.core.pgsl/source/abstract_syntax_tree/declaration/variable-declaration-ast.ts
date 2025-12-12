@@ -1,25 +1,25 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { PgslAccessMode, PgslAccessModeEnum } from "../../buildin/pgsl-access-mode-enum.ts";
+import { VariableDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import { PgslValueTrace } from '../../trace/pgsl-value-trace.ts';
 import { PgslSamplerType } from '../../type/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../../type/pgsl-texture-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslAccessMode } from '../buildin/pgsl-access-mode.enum.ts';
-import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
+import type { ExpressionAst } from '../expression/pgsl-expression.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
-import { PgslDeclaration } from './pgsl-declaration.ts';
-
+import { AbstractSyntaxTreeValueData, IAbstractSyntaxTreeValue } from "../i-abstract-syntax-tree-value.interface.ts";
+import { DeclarationAst, DeclarationAstData } from './declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclaration extends PgslDeclaration {
+export class VariableDeclarationAst extends DeclarationAst<VariableDeclarationCst, VariableDeclarationAstData> implements IAbstractSyntaxTreeValue {
     /**
      * All possible declaration types.
      */
@@ -34,39 +34,6 @@ export class PgslVariableDeclaration extends PgslDeclaration {
         } as const;
     }
 
-    private readonly mDeclarationTypeName: string;
-    private readonly mExpression: PgslExpression | null;
-    private readonly mName: string;
-    private readonly mTypeDeclaration: PgslTypeDeclaration;
-
-    /**
-     * Declaration type.
-     */
-    public get declarationType(): PgslVariableDeclarationType {
-        return EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName) ?? PgslDeclarationType.Private;
-    }
-
-    /**
-     * Value initialization expression.
-     */
-    public get expression(): PgslExpression | null {
-        return this.mExpression;
-    }
-
-    /**
-     * Variable name.
-     */
-    public get name(): string {
-        return this.mName;
-    }
-
-    /**
-     * Type declaration.
-     */
-    public get typeDeclaration(): PgslTypeDeclaration {
-        return this.mTypeDeclaration;
-    }
-
     /**
      * Constructor.
      * 
@@ -74,44 +41,22 @@ export class PgslVariableDeclaration extends PgslDeclaration {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslVariableDeclarationConstructorParameter, pAttributes: PgslAttributeList, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pAttributes, pMeta);
-
-        // Set data.
-        this.mTypeDeclaration = pData.type;
-        this.mName = pData.name;
-        this.mDeclarationTypeName = pData.declarationType;
-        this.mExpression = pData.expression ?? null;
-
-        // Append child trees.
-        this.appendChild(this.mTypeDeclaration);
-        if (this.mExpression) {
-            this.appendChild(this.mExpression);
-        }
+    public constructor(pCst: VariableDeclarationCst, pContext: AbstractSyntaxTreeContext) {
+        super(pCst, pContext);
     }
 
     /**
      * Validate data of current structure.
      * https://www.w3.org/TR/WGSL/#var-and-value
      */
-    protected override onTrace(pTrace: PgslTrace): void {
-        // Trace attributes, type declaration and optional expression.
-        this.attributes.trace(pTrace);
-        this.mTypeDeclaration.trace(pTrace);
-        if (this.mExpression) {
-            this.mExpression.trace(pTrace);
-        }
-
-        // Check if variable with same name already exists in scope.
-        if (pTrace.getModuleValue(this.mName)) {
-            pTrace.pushIncident(`Variable with name "${this.mName}" already defined.`, this);
-            return;
-        }
+    protected override process(pContext: AbstractSyntaxTreeContext): VariableDeclarationAstData {
+        // Create attribute list.
+        const lAttributes: PgslAttributeList = new PgslAttributeList(this.cst.attributeList, this, pContext);
 
         // Try to parse declaration type.
-        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
+        let lDeclarationType: VariableDeclarationAstType | undefined = EnumUtil.cast(PgslDeclarationType, this.cst.declarationType);
         if (!lDeclarationType) {
-            pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this);
+            pContext.pushIncident(`Declaration type "${this.cst.declarationType}" can not be used for module scope variable declarations.`, this);
 
             // Set default declaration type to avoid further errors.
             // Private is a good default as it has the least restrictions.
@@ -123,49 +68,49 @@ export class PgslVariableDeclaration extends PgslDeclaration {
 
         // Read optional expression attachment.
         let lExpressionTrace: PgslExpressionTrace | null = null;
-        if (this.mExpression) {
-            lExpressionTrace = pTrace.getExpression(this.mExpression);
+        if (this.cst.expression) {
+            lExpressionTrace = pContext.getExpression(this.mExpression);
         }
 
         // A bunch of specific validation function to easy build a validation for each declaration type.
         const lMustBeConstructible = () => {
             if (!lType.constructible) {
-                pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be constructible.`, this);
+                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be constructible.`, this);
             }
         };
         const lMustBeScalar = () => {
             if (!lType.scalar) {
-                pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be a scalar type.`, this);
+                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a scalar type.`, this);
             }
         };
         const lMustHaveAnInitializer = () => {
-            if (!this.mExpression) {
-                pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" must have an initializer.`, this);
+            if (!this.cst.expression) {
+                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" must have an initializer.`, this);
             }
         };
         const lMustNotHaveAnInitializer = () => {
-            if (this.mExpression) {
-                pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" must not have an initializer.`, this);
+            if (this.cst.expression) {
+                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" must not have an initializer.`, this);
             }
         };
         const lMustBeHostShareable = () => {
             if (!lType.hostShareable) {
-                pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be host shareable.`, this);
+                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be host shareable.`, this);
             }
         };
         const lMustHaveFixedFootprint = () => {
             if (!lType.fixedFootprint) {
-                pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must have a fixed footprint.`, this);
+                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must have a fixed footprint.`, this);
             }
         };
         const lExpressionMustBeConst = () => {
             if (lExpressionTrace && lExpressionTrace.fixedState !== PgslValueFixedState.Constant) {
-                pTrace.pushIncident(`The expression of declaration type "${this.mDeclarationTypeName}" must be a constant expression.`, this);
+                pContext.pushIncident(`The expression of declaration type "${this.cst.declarationType}" must be a constant expression.`, this);
             }
         };
         const lMustBePlain = () => {
             if (!lType.plain) {
-                pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be a plain type.`, this);
+                pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a plain type.`, this);
                 return;
             }
         };
@@ -190,13 +135,13 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                     continue;
                 } else {
                     // Unknown attribute is present.
-                    pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" does not allow attribute "${lAttributeName}".`, this);
+                    pContext.pushIncident(`Declaration type "${this.cst.declarationType}" does not allow attribute "${lAttributeName}".`, this);
                 }
             }
 
             // Check if all required attributes are present.
             for (const lRequiredAttributeName of lRequiredAttributes) {
-                pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" requires attribute "${lRequiredAttributeName}".`, this);
+                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" requires attribute "${lRequiredAttributeName}".`, this);
             }
         };
 
@@ -216,7 +161,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                     case lType instanceof PgslTextureType: {
                         // Must be a storage texture.
                         if (!PgslTextureType.isStorageTextureType(lType.textureType)) {
-                            pTrace.pushIncident(`The type of declaration type "${this.mDeclarationTypeName}" must be a storage texture type.`, this);
+                            pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a storage texture type.`, this);
                         }
                         break;
                     }
@@ -241,7 +186,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                     }
                     case lType instanceof PgslTextureType: {
                         if (PgslTextureType.isStorageTextureType(lType.textureType)) {
-                            pTrace.pushIncident(`Storage textures are not allowed in uniform declarations.`, this);
+                            pContext.pushIncident(`Storage textures are not allowed in uniform declarations.`, this);
                         }
                         break;
                     }
@@ -281,14 +226,14 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             }
             default: {
                 // Unknown declaration type.
-                pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" can not be used for module scope variable declarations.`, this);
+                pContext.pushIncident(`Declaration type "${this.cst.declarationType}" can not be used for module scope variable declarations.`, this);
             }
         }
 
         // Validate if expression fits declaration type.
         if (lExpressionTrace && !lExpressionTrace.resolveType.isImplicitCastableInto(this.mTypeDeclaration.type)) {
             // Expression type is not castable into declaration type.
-            pTrace.pushIncident(`Initializing value has incompatible type.`, this);
+            pContext.pushIncident(`Initializing value has incompatible type.`, this);
         }
 
         // Determine fixed state based on declaration type.
@@ -307,26 +252,26 @@ export class PgslVariableDeclaration extends PgslDeclaration {
         const lAccessMode: PgslAccessMode = ((): PgslAccessMode => {
             // Default access mode is read.
             if (!this.attributes.hasAttribute(PgslAttributeList.attributeNames.accessMode)) {
-                return PgslAccessMode.Read;
+                return PgslAccessModeEnum.values.Read;
             }
 
             // Read attribute parameters access mode attribute must have one parameter.
-            const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.accessMode)!;
+            const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.accessMode)!;
             if (lAttributeParameter.length !== 1) {
-                return PgslAccessMode.Read;
+                return PgslAccessModeEnum.values.Read;
             }
 
             // Read expression trace.
-            const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lAttributeParameter[0]);
+            const lExpressionTrace: PgslExpressionTrace = pContext.getExpression(lAttributeParameter[0]);
 
             // Expression must have a constant value.
             if (typeof lExpressionTrace.constantValue !== 'string') {
-                return PgslAccessMode.Read;
+                return PgslAccessModeEnum.values.Read;
             }
 
             // If value is not part of enum, return default.
-            if (!Object.values(PgslAccessMode).includes(lExpressionTrace.constantValue as PgslAccessMode)) {
-                return PgslAccessMode.Read;
+            if (!PgslAccessModeEnum.containsValue(lExpressionTrace.constantValue)) {
+                return PgslAccessModeEnum.values.Read;
             }
 
             // Transpile attribute parameters. We assume the transpiled value is valid here as it was validated before.
@@ -352,7 +297,7 @@ export class PgslVariableDeclaration extends PgslDeclaration {
                     return PgslValueAddressSpace.Module;
             }
 
-            pTrace.pushIncident(`Unable to determine address space for declaration type "${this.mDeclarationTypeName}".`, this);
+            pContext.pushIncident(`Unable to determine address space for declaration type "${this.cst.declarationType}".`, this);
 
             return PgslValueAddressSpace.Module;
         })();
@@ -373,28 +318,28 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             }
 
             // Read attribute parameters group binding attribute must have one parameter.
-            const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.groupBinding)!;
+            const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.groupBinding)!;
             if (lAttributeParameter.length !== 2) {
                 return null;
             }
 
             // Read trace of group name parameter.
-            const lGroupNameExpression: PgslExpression = lAttributeParameter[0];
-            const lGroupNameExpressionTrace: PgslExpressionTrace | null = pTrace.getExpression(lGroupNameExpression);
+            const lGroupNameExpression: ExpressionAst = lAttributeParameter[0];
+            const lGroupNameExpressionTrace: PgslExpressionTrace | null = pContext.getExpression(lGroupNameExpression);
             if (!lGroupNameExpressionTrace) {
                 throw new Exception('Expression trace for group name is missing. This should never happen.', this);
             }
 
             // Read trace of location name parameter.
-            const lLocationNameExpression: PgslExpression = lAttributeParameter[1];
-            const lLocationNameExpressionTrace: PgslExpressionTrace | null = pTrace.getExpression(lLocationNameExpression);
+            const lLocationNameExpression: ExpressionAst = lAttributeParameter[1];
+            const lLocationNameExpressionTrace: PgslExpressionTrace | null = pContext.getExpression(lLocationNameExpression);
             if (!lLocationNameExpressionTrace) {
                 throw new Exception('Expression trace for location name is missing. This should never happen.', this);
             }
 
             // Both parameters must be a constant string.
             if (typeof lGroupNameExpressionTrace.constantValue !== 'string' || typeof lLocationNameExpressionTrace.constantValue !== 'string') {
-                pTrace.pushIncident(`Attribute "GroupBinding" must have two constant string parameters.`, this);
+                pContext.pushIncident(`Attribute "GroupBinding" must have two constant string parameters.`, this);
                 return null;
             }
 
@@ -404,25 +349,40 @@ export class PgslVariableDeclaration extends PgslDeclaration {
             };
         })();
 
-        // Register value trace.
-        pTrace.registerModuleValue(new PgslValueTrace({
+        // Check if variable with same name already exists in scope.
+        if (pContext.getValue(this.cst.name)) {
+            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        }
+
+        // Return built data.
+        return {
             fixedState: lFixedState,
             declarationType: lDeclarationType,
             addressSpace: lAddressSpace,
             type: lType,
-            name: this.mName,
+            name: this.cst.name,
             constantValue: lConstantValue,
             accessMode: lAccessMode,
             bindingInformation: lBindingInformation
-        }));
+        };
     }
 }
 
-export type PgslVariableDeclarationType = (typeof PgslVariableDeclaration.declarationType)[keyof typeof PgslVariableDeclaration.declarationType];
+export type VariableDeclarationAstType = (typeof VariableDeclarationAst.declarationType)[keyof typeof VariableDeclarationAst.declarationType];
 
-export type PgslVariableDeclarationConstructorParameter = {
-    declarationType: string;
-    name: string;
-    type: PgslTypeDeclaration;
-    expression?: PgslExpression;
-};
+export type VariableDeclarationAstData = {
+    /**
+     * Value initialization expression.
+     */
+    expression: ExpressionAst | null;
+
+    /**
+     * Type declaration.
+     */
+    typeDeclaration: PgslTypeDeclaration;
+
+    /**
+     * Binding information.
+     */
+    bindingInformation: { bindGroupName: string; bindLocationName: string; } | null;
+} & DeclarationAstData & AbstractSyntaxTreeValueData;

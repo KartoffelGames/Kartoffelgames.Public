@@ -5,18 +5,18 @@ import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
-export class PgslArithmeticExpression extends PgslExpression {
-    private readonly mLeftExpression: PgslExpression;
+export class PgslArithmeticExpression extends ExpressionAst {
+    private readonly mLeftExpression: ExpressionAst;
     private readonly mOperatorName: string;
-    private readonly mRightExpression: PgslExpression;
+    private readonly mRightExpression: ExpressionAst;
 
     /**
      * Left expression reference.
      */
-    public get leftExpression(): PgslExpression {
+    public get leftExpression(): ExpressionAst {
         return this.mLeftExpression;
     }
 
@@ -30,7 +30,7 @@ export class PgslArithmeticExpression extends PgslExpression {
     /**
      * Right expression reference.
      */
-    public get rightExpression(): PgslExpression {
+    public get rightExpression(): ExpressionAst {
         return this.mRightExpression;
     }
 
@@ -42,7 +42,7 @@ export class PgslArithmeticExpression extends PgslExpression {
      * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pLeft: PgslExpression, pOperator: string, pRight: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pLeft: ExpressionAst, pOperator: string, pRight: ExpressionAst, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

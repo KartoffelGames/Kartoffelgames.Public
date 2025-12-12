@@ -3,21 +3,21 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
  * PGSL structure holding a increment or decrement statement.
  */
 export class PgslIncrementDecrementStatement extends PgslStatement {
-    private readonly mExpression: PgslExpression;
+    private readonly mExpression: ExpressionAst;
     private readonly mOperatorName: string;
 
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
@@ -35,7 +35,7 @@ export class PgslIncrementDecrementStatement extends PgslStatement {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pOperator: string, pExpression: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pOperator: string, pExpression: ExpressionAst, pMeta: BasePgslSyntaxTreeMeta) {
         // Create and check if structure was loaded from cache. Skip additional processing by returning early.
         super(pMeta);
 

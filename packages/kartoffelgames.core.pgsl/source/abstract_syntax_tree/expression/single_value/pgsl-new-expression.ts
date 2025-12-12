@@ -9,14 +9,14 @@ import { PgslMatrixType } from "../../../type/pgsl-matrix-type.ts";
 import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
 import { PgslType, PgslTypeConstructor } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 import { PgslLiteralValueExpression } from "./pgsl-literal-value-expression.ts";
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
  */
-export class PgslNewCallExpression extends PgslExpression {
+export class PgslNewCallExpression extends ExpressionAst {
     private static callDefinition(pTypeName: string): Array<PgslNewExpressionCallDefinition> | null {
         switch (pTypeName) {
             // Array types.
@@ -24,9 +24,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 1, max: 100 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>): PgslType => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>): PgslType => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -48,9 +48,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 2, max: 2 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -65,9 +65,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 3, max: 3 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -79,7 +79,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslVectorType, PgslNumericType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[0]).resolveType as PgslVectorType;
 
@@ -93,7 +93,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslNumericType, PgslVectorType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[1]).resolveType as PgslVectorType;
 
@@ -105,9 +105,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 4, max: 4 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -121,7 +121,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 // Parameters with vector2. 
                 {
                     parameterTypes: [PgslVectorType, PgslNumericType, PgslNumericType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[0]).resolveType as PgslVectorType;
 
@@ -135,7 +135,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslNumericType, PgslVectorType, PgslNumericType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[1]).resolveType as PgslVectorType;
 
@@ -149,7 +149,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslNumericType, PgslNumericType, PgslVectorType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[2]).resolveType as PgslVectorType;
 
@@ -163,9 +163,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslVectorType, PgslVectorType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -184,7 +184,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 // Parameters with vector3.
                 {
                     parameterTypes: [PgslVectorType, PgslNumericType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[0]).resolveType as PgslVectorType;
 
@@ -198,7 +198,7 @@ export class PgslNewCallExpression extends PgslExpression {
                 },
                 {
                     parameterTypes: [PgslNumericType, PgslVectorType],
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Get element type vector parameter.
                         const lElementType: PgslVectorType = pTrace.getExpression(pParameterList[1]).resolveType as PgslVectorType;
 
@@ -217,9 +217,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 4, max: 4 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -232,9 +232,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 2, max: 2 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -254,9 +254,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 6, max: 6 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -269,9 +269,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 2, max: 2 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -291,9 +291,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 8, max: 8 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -306,9 +306,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 2, max: 2 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -328,9 +328,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 6, max: 6 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -343,9 +343,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 3, max: 3 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -365,9 +365,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 9, max: 9 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -380,9 +380,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 3, max: 3 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -402,9 +402,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 12, max: 12 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -417,9 +417,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 3, max: 3 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -439,9 +439,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 8, max: 8 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -454,9 +454,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 4, max: 4 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -476,9 +476,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 12, max: 12 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -491,9 +491,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 4, max: 4 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -513,9 +513,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslNumericType],
                     range: { min: 16, max: 16 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -528,9 +528,9 @@ export class PgslNewCallExpression extends PgslExpression {
                 {
                     allowedTypes: [PgslVectorType],
                     range: { min: 4, max: 4 },
-                    returnType: (pTrace: PgslTrace, pParameterList: Array<PgslExpression>) => {
+                    returnType: (pTrace: PgslTrace, pParameterList: Array<ExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: PgslExpression = pParameterList.find((pParam) => {
+                        const lConcreteTypeExpression: ExpressionAst = pParameterList.find((pParam) => {
                             return pTrace.getExpression(pParam).resolveType.concrete;
                         }) ?? pParameterList[0];
 
@@ -551,51 +551,51 @@ export class PgslNewCallExpression extends PgslExpression {
             case PgslBooleanType.typeName.boolean: return [
                 {
                     parameterTypes: [PgslBooleanType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslBooleanType(pTrace)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslBooleanType(pTrace)
                 },
                 {
                     parameterTypes: [PgslNumericType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslBooleanType(pTrace)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslBooleanType(pTrace)
                 }
             ];
             case PgslNumericType.typeName.float16: return [
                 {
                     parameterTypes: [PgslBooleanType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float16)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float16)
                 },
                 {
                     parameterTypes: [PgslNumericType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float16)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float16)
                 }
             ];
             case PgslNumericType.typeName.float32: return [
                 {
                     parameterTypes: [PgslBooleanType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float32)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float32)
                 },
                 {
                     parameterTypes: [PgslNumericType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float32)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.float32)
                 }
             ];
             case PgslNumericType.typeName.signedInteger: return [
                 {
                     parameterTypes: [PgslBooleanType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)
                 },
                 {
                     parameterTypes: [PgslNumericType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)
                 }
             ];
             case PgslNumericType.typeName.unsignedInteger: return [
                 {
                     parameterTypes: [PgslBooleanType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger)
                 },
                 {
                     parameterTypes: [PgslNumericType],
-                    returnType: (pTrace: PgslTrace, _pParameterList: Array<PgslExpression>) => new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger)
+                    returnType: (pTrace: PgslTrace, _pParameterList: Array<ExpressionAst>) => new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger)
                 }
             ];
         }
@@ -603,13 +603,13 @@ export class PgslNewCallExpression extends PgslExpression {
         return null;
     }
 
-    private readonly mParameterList: Array<PgslExpression>;
+    private readonly mParameterList: Array<ExpressionAst>;
     private readonly mTypeName: string;
 
     /**
      * Function parameter.
      */
-    public get parameter(): Array<PgslExpression> {
+    public get parameter(): Array<ExpressionAst> {
         return this.mParameterList;
     }
 
@@ -627,7 +627,7 @@ export class PgslNewCallExpression extends PgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pTypeName: string, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pTypeName: string, pParameterList: Array<ExpressionAst>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
@@ -780,11 +780,11 @@ type PgslNewExpressionCallDefinition = PgslNewExpressionFixedCallDefinition | Pg
 
 type PgslNewExpressionFixedCallDefinition = {
     parameterTypes: Array<PgslTypeConstructor>;
-    returnType: (pTrace: PgslTrace, pParameter: Array<PgslExpression>) => PgslType | null;
+    returnType: (pTrace: PgslTrace, pParameter: Array<ExpressionAst>) => PgslType | null;
 };
 
 type PgslNewExpressionDynamicCallDefinition = {
     allowedTypes: Array<PgslTypeConstructor>;
     range: { min: number; max: number; };
-    returnType: (pTrace: PgslTrace, pParameter: Array<PgslExpression>) => PgslType | null;
+    returnType: (pTrace: PgslTrace, pParameter: Array<ExpressionAst>) => PgslType | null;
 };

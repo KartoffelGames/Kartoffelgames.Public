@@ -1,5 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
@@ -39,7 +39,7 @@ export class PgslBuildInType extends PgslType {
 
     private readonly mBuildInType: PgslBuildInTypeName;
     private readonly mUnderlyingType: PgslType;
-    private readonly mTemplate: PgslExpression | null;
+    private readonly mTemplate: ExpressionAst | null;
 
     /**
      * Gets the built-in type variant name.
@@ -64,7 +64,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns The template expression or null if not applicable.
      */
-    public get template(): PgslExpression | null {
+    public get template(): ExpressionAst | null {
         return this.mTemplate;
     }
 
@@ -75,7 +75,7 @@ export class PgslBuildInType extends PgslType {
      * @param pType - The specific built-in type variant.
      * @param pTemplate - Optional template expression for parameterized types.
      */
-    public constructor(pTrace: PgslTrace, pType: PgslBuildInTypeName, pTemplate: PgslExpression | null) {
+    public constructor(pTrace: PgslTrace, pType: PgslBuildInTypeName, pTemplate: ExpressionAst | null) {
         super(pTrace);
 
         // Set data.
@@ -202,7 +202,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns The underlying PGSL type that represents this built-in type.
      */
-    private determinateAliasedType(pTrace: PgslTrace, pBuildInType: PgslBuildInTypeName, pTemplate: PgslExpression | null): PgslType {
+    private determinateAliasedType(pTrace: PgslTrace, pBuildInType: PgslBuildInTypeName, pTemplate: ExpressionAst | null): PgslType {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {
@@ -247,7 +247,7 @@ export class PgslBuildInType extends PgslType {
             }
             case PgslBuildInType.typeName.clipDistances: {
                 // ClipDistances is an array<f32, N> where N is determined by the template
-                const lLengthExpression = pTemplate instanceof PgslExpression ? pTemplate : null;
+                const lLengthExpression = pTemplate instanceof ExpressionAst ? pTemplate : null;
 
                 // Create a new float number type.
                 const lFloatType = new PgslNumericType(pTrace, PgslNumericType.typeName.float32);

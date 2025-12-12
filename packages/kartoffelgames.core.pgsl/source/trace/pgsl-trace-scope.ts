@@ -1,6 +1,6 @@
-import type { BasePgslSyntaxTree } from '../abstract_syntax_tree/base-pgsl-syntax-tree.ts';
+import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
 import type { PgslFunctionDeclaration } from '../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
-import type { PgslDocument } from '../abstract_syntax_tree/pgsl-document.ts';
+import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import type { PgslDoWhileStatement } from '../abstract_syntax_tree/statement/branch/pgsl-do-while-statement.ts';
 import type { PgslForStatement } from '../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
 import type { PgslSwitchStatement } from '../abstract_syntax_tree/statement/branch/pgsl-switch-statement.ts';
@@ -15,7 +15,7 @@ export class PgslTraceScope {
     private readonly mType: PgslSyntaxTreeTraceScopeType;
     private readonly mParent: PgslTraceScope | null;
     private readonly mValues: Map<string, PgslValueTrace>;
-    private readonly mOwner: BasePgslSyntaxTree;
+    private readonly mOwner: AbstractSyntaxTree;
 
     /**
      * Gets the type of this scope.
@@ -40,7 +40,7 @@ export class PgslTraceScope {
      * 
      * @returns The owning PGSL syntax tree.
      */
-    public get owner(): BasePgslSyntaxTree {
+    public get owner(): AbstractSyntaxTree {
         return this.mOwner;
     }
 
@@ -51,7 +51,7 @@ export class PgslTraceScope {
      * @param pType - Type of scope.
      * @param pParent - Parent scope, or null for root scope.
      */
-    public constructor(pType: PgslSyntaxTreeTraceScopeType, pOwner: BasePgslSyntaxTree, pParent: PgslTraceScope | null) {
+    public constructor(pType: PgslSyntaxTreeTraceScopeType, pOwner: AbstractSyntaxTree, pParent: PgslTraceScope | null) {
         this.mType = pType;
         this.mParent = pParent;
         this.mValues = new Map<string, PgslValueTrace>();
@@ -71,7 +71,7 @@ export class PgslTraceScope {
         }
 
         // If no parent scope exists, value cannot be found.
-        if(!this.mParent) {
+        if (!this.mParent) {
             return null;
         }
 
@@ -117,12 +117,12 @@ export class PgslTraceScope {
 
 }
 
-export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScopeType> = 
+export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScopeType> =
     T extends 'function' ? PgslFunctionDeclaration :
-    T extends 'global' ? PgslDocument:
+    T extends 'global' ? DocumentAst :
     T extends 'loop' ? (PgslDoWhileStatement | PgslForStatement | PgslWhileStatement) :
     T extends 'switch' ? PgslSwitchStatement :
-    T extends 'inherit' ? BasePgslSyntaxTree : never;
+    T extends 'inherit' ? AbstractSyntaxTree : never;
 
 /**
  * Type representing different kinds of scopes in PGSL syntax tree tracing.

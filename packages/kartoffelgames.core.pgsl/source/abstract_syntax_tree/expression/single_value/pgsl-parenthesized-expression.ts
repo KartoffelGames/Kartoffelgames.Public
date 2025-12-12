@@ -1,18 +1,18 @@
 import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a expression surrounded with parentheses.
  */
-export class PgslParenthesizedExpression extends PgslExpression {
-    private readonly mExpression: PgslExpression;
+export class PgslParenthesizedExpression extends ExpressionAst {
+    private readonly mExpression: ExpressionAst;
 
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
@@ -22,7 +22,7 @@ export class PgslParenthesizedExpression extends PgslExpression {
      * @param pExpression - Inner expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: ExpressionAst, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

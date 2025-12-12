@@ -1,7 +1,7 @@
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 import { PgslBreakStatement } from '../single/pgsl-break-statement.ts';
 import { PgslContinueStatement } from '../single/pgsl-continue-statement.ts';

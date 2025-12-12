@@ -6,20 +6,20 @@ import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
  */
-export class PgslUnaryExpression extends PgslExpression {
-    private readonly mExpression: PgslExpression;
+export class PgslUnaryExpression extends ExpressionAst {
+    private readonly mExpression: ExpressionAst;
     private readonly mOperator: string;
 
     /**
      * Get expression.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
@@ -37,7 +37,7 @@ export class PgslUnaryExpression extends PgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pExpression: PgslExpression, pOperator: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: ExpressionAst, pOperator: string, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

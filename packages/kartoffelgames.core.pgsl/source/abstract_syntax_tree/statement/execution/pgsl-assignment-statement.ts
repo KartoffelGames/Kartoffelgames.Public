@@ -3,8 +3,8 @@ import { PgslAssignment } from '../../../enum/pgsl-assignment.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 
 /**
@@ -12,8 +12,8 @@ import { PgslStatement } from '../pgsl-statement.ts';
  */
 export class PgslAssignmentStatement extends PgslStatement {
     private readonly mAssignmentName: string;
-    private readonly mExpression: PgslExpression;
-    private readonly mVariable: PgslExpression;
+    private readonly mExpression: ExpressionAst;
+    private readonly mVariable: ExpressionAst;
 
     /**
      * Assignment name.
@@ -25,14 +25,14 @@ export class PgslAssignmentStatement extends PgslStatement {
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
     /**
      * Expression reference.
      */
-    public get variable(): PgslExpression {
+    public get variable(): ExpressionAst {
         return this.mVariable;
     }
 
@@ -89,6 +89,6 @@ export class PgslAssignmentStatement extends PgslStatement {
 
 export type PgslAssignmentStatementSyntaxTreeConstructorParameter = {
     assignment: string;
-    variable: PgslExpression;
-    expression: PgslExpression;
+    variable: ExpressionAst;
+    expression: ExpressionAst;
 };

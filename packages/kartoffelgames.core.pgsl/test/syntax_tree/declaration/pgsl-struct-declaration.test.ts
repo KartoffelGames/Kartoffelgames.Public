@@ -4,7 +4,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslStructDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-struct-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslDocument } from "../../../source/abstract_syntax_tree/pgsl-document.ts";
+import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
 import { PgslAttributeList } from '../../../source/abstract_syntax_tree/general/pgsl-attribute-list.ts';
 import { PgslTypeDeclaration } from "../../../source/abstract_syntax_tree/general/pgsl-type-declaration.ts";
 import { PgslStructPropertyDeclaration } from "../../../source/abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts";
@@ -26,7 +26,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(1);
@@ -61,7 +61,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[0] as PgslStructDeclaration;
@@ -96,7 +96,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[0] as PgslStructDeclaration;
@@ -127,7 +127,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(2);
@@ -158,7 +158,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[1] as PgslStructDeclaration;
@@ -186,7 +186,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[0] as PgslStructDeclaration;
@@ -214,7 +214,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[0] as PgslStructDeclaration;
@@ -247,7 +247,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslStructDeclaration = lDocument.childNodes[0] as PgslStructDeclaration;
@@ -282,7 +282,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             expect(lDocument.childNodes).toHaveLength(2);
@@ -316,7 +316,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(2);
@@ -365,7 +365,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(3);

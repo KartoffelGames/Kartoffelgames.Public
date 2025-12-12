@@ -3,8 +3,8 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 import { PgslAssignmentStatement } from '../execution/pgsl-assignment-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
@@ -17,7 +17,7 @@ import type { PgslVariableDeclarationStatement } from '../execution/pgsl-variabl
  */
 export class PgslForStatement extends PgslStatement {
     private readonly mBlock: PgslBlockStatement;
-    private readonly mExpression: PgslExpression | null;
+    private readonly mExpression: ExpressionAst | null;
     private readonly mInit: PgslVariableDeclarationStatement | null;
     private readonly mUpdate: PgslStatement | null;
 
@@ -31,7 +31,7 @@ export class PgslForStatement extends PgslStatement {
     /**
      * Compare expression reference.
      */
-    public get expression(): PgslExpression | null {
+    public get expression(): ExpressionAst | null {
         return this.mExpression;
     }
 
@@ -138,7 +138,7 @@ export class PgslForStatement extends PgslStatement {
 
 type PgslForStatementSyntaxTreeConstructorParameter = {
     init: PgslVariableDeclarationStatement | null;
-    expression: PgslExpression | null;
+    expression: ExpressionAst | null;
     update: PgslStatement | null;
     block: PgslBlockStatement;
 };

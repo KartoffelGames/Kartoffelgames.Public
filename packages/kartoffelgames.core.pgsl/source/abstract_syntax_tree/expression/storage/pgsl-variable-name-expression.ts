@@ -6,13 +6,13 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding single variable name.
  */
-export class PgslVariableNameExpression extends PgslExpression {
+export class PgslVariableNameExpression extends ExpressionAst {
     private readonly mName: string;
 
     /**

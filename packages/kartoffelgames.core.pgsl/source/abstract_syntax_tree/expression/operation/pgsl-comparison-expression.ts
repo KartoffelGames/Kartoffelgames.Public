@@ -5,22 +5,22 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression, } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst, } from '../pgsl-expression.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 
 /**
  * PGSL structure for a comparison expression between two values.
  */
-export class PgslComparisonExpression extends PgslExpression {
-    private readonly mLeftExpression: PgslExpression;
+export class PgslComparisonExpression extends ExpressionAst {
+    private readonly mLeftExpression: ExpressionAst;
     private readonly mOperatorName: string;
-    private readonly mRightExpression: PgslExpression;
+    private readonly mRightExpression: ExpressionAst;
 
     /**
      * Left expression reference.
      */
-    public get leftExpression(): PgslExpression {
+    public get leftExpression(): ExpressionAst {
         return this.mLeftExpression;
     }
 
@@ -34,7 +34,7 @@ export class PgslComparisonExpression extends PgslExpression {
     /**
      * Right expression reference.
      */
-    public get rightExpression(): PgslExpression {
+    public get rightExpression(): ExpressionAst {
         return this.mRightExpression;
     }
 
@@ -46,7 +46,7 @@ export class PgslComparisonExpression extends PgslExpression {
      * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pLeft: PgslExpression, pOperator: string, pRight: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pLeft: ExpressionAst, pOperator: string, pRight: ExpressionAst, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

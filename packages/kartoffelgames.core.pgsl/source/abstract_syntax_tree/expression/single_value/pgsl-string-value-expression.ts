@@ -3,13 +3,13 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslStringType } from '../../../type/pgsl-string-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
-export class PgslStringValueExpression extends PgslExpression {
+export class PgslStringValueExpression extends ExpressionAst {
     private readonly mValue: string;
 
     /**

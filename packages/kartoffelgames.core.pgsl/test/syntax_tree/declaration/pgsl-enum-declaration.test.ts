@@ -4,7 +4,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslEnumDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-enum-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslDocument } from "../../../source/abstract_syntax_tree/pgsl-document.ts";
+import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
 import { PgslAttributeList } from "../../../source/abstract_syntax_tree/general/pgsl-attribute-list.ts";
 import { PgslLiteralValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-literal-value-expression.ts";
 import { PgslStringValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
@@ -29,7 +29,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(1);
@@ -64,7 +64,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
@@ -96,7 +96,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;

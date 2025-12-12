@@ -6,13 +6,13 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpression extends PgslExpression {
+export class PgslLiteralValueExpression extends ExpressionAst {
     private readonly mTextValue: string;
 
     /**

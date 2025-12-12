@@ -1,3 +1,4 @@
+import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
@@ -67,13 +68,13 @@ export class PgslParserResult {
      * @param pDocument - The PGSL document representation.
      * @param pTrace - The trace information for debugging.
      */
-    public constructor(pSource: string, pSourceMap: string | null, pTrace: PgslTrace) {
+    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst) {
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
         this.mIncidents = this.convertIncidents(pTrace);
 
         // Skip metadata extraction if there are incidents.
-        if (pTrace.incidents.length > 0) {
+        if (pDocument.data.incidents.length > 0) {
             // Set empty metadata on incidents.
             this.mMeta = {
                 bindings: [],
@@ -98,8 +99,8 @@ export class PgslParserResult {
     private convertIncidents(pTrace: PgslTrace): Array<PgslParserResultIncident> {
         return pTrace.incidents.map(incident => new PgslParserResultIncident(
             incident.message,
-            incident.syntaxTree?.meta.position.start.line ?? 0,
-            incident.syntaxTree?.meta.position.end.column ?? 0
+            incident.syntaxTree?.meta[0] ?? 0,
+            incident.syntaxTree?.meta[1] ?? 0
         ));
     }
 

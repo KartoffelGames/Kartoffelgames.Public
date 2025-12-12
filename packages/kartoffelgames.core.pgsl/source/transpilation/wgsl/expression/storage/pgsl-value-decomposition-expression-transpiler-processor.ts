@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import type { PgslExpression } from '../../../../abstract_syntax_tree/expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../../../../abstract_syntax_tree/expression/pgsl-expression.ts';
 import { PgslValueDecompositionExpression } from '../../../../abstract_syntax_tree/expression/storage/pgsl-value-decomposition-expression.ts';
 import type { PgslEnumTrace } from '../../../../trace/pgsl-enum-trace.ts';
 import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
@@ -36,7 +36,7 @@ export class PgslValueDecompositionExpressionTranspilerProcessor implements IPgs
             }
 
             // Read enum value. If not found, transpile as normal property value decomposition.
-            const lEnumValueExpression: PgslExpression | undefined = lPgslEnumTrace.values.get(pInstance.property); // Ensure property exists.
+            const lEnumValueExpression: ExpressionAst | undefined = lPgslEnumTrace.values.get(pInstance.property); // Ensure property exists.
             if (lEnumValueExpression) {
                 return pTranspile(lEnumValueExpression);
             }

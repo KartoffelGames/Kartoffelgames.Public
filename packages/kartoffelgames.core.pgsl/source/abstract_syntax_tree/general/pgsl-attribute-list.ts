@@ -5,17 +5,20 @@ import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../../type/pgsl-string-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import { BasePgslSyntaxTree, type PgslSyntaxTreeConstructor, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslDeclaration } from '../declaration/pgsl-declaration.ts';
+import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
+import type { DeclarationAst } from '../declaration/declaration-ast.ts';
 import { PgslFunctionDeclaration } from '../declaration/pgsl-function-declaration.ts';
 import { PgslStructPropertyDeclaration } from '../declaration/pgsl-struct-property-declaration.ts';
-import { PgslVariableDeclaration } from '../declaration/pgsl-variable-declaration.ts';
-import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import { ExpressionAst } from '../expression/pgsl-expression.ts';
+import { AttributeListCst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
+import { VariableDeclarationAst } from "../declaration/variable-declaration-ast.ts";
+import { ExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
 
 /**
  * Generic attribute list.
  */
-export class PgslAttributeList extends BasePgslSyntaxTree {
+export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, AttributeListAstData> {
     /**
      * All possible attribute names.
      */
@@ -43,15 +46,15 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
 
         // Function and declaration config.
         lAttributes.set(PgslAttributeList.attributeNames.groupBinding, {
-            enforcedParentType: PgslVariableDeclaration,
+            enforcedParentType: VariableDeclarationAst,
             parameterTypes: [
                 [{ values: [] }, { values: [] }]
             ]
         });
         lAttributes.set(PgslAttributeList.attributeNames.accessMode, {
-            enforcedParentType: PgslVariableDeclaration,
+            enforcedParentType: VariableDeclarationAst,
             parameterTypes: [
-                [{ values: ['read', 'write', 'read_write'] }]
+                [{ values: ['read', 'write', 'read_write'] }] // TODO: Read from enum.
             ]
         });
 
@@ -122,15 +125,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
         return lAttributes;
     })();
 
-    private readonly mAttributeDefinitionList: Dictionary<string, Array<PgslExpression>>;
-    private mAttachedDeclaration: PgslDeclaration | null;
-
-    /**
-     * All attribute names defined in this list.
-     */
-    public get attributeNames(): ReadonlyArray<string> {
-        return Array.from(this.mAttributeDefinitionList.keys());
-    }
+    private mAttachedDeclaration: DeclarationAst | null;
 
     /**
      * Constructor.
@@ -138,36 +133,11 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @param pMeta - Syntax tree meta data.
      * @param pAttributes - Attribute list.
      */
-    public constructor(pAttributes: Array<PgslAttributeListSyntaxTreeConstructorParameterAttribute>, pMeta?: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
+    public constructor(pCst: AttributeListCst, pAttachedDeclaration: DeclarationAst, pContext: AbstractSyntaxTreeContext) {
+        super(pCst, pContext);
 
         // Init empty attribute list.
-        this.mAttributeDefinitionList = new Dictionary<string, Array<PgslExpression>>();
-        this.mAttachedDeclaration = null;
-
-        // Convert and add each attribute to list.
-        for (const lAttribute of pAttributes) {
-            const lAttributeParameterList: Array<PgslExpression> = lAttribute.parameter ?? [];
-            // Add attribute to syntax tree.
-            this.appendChild(...lAttributeParameterList);
-
-            // Allow own attribute names but ignore it.
-            this.mAttributeDefinitionList.set(lAttribute.name, lAttributeParameterList);
-        }
-    }
-
-    /**
-     * Attach the attribute list to a declaration.
-     * 
-     * @param pDeclaration - Declaration to attach to.
-     */
-    public attachToDeclaration(pDeclaration: PgslDeclaration): void {
-        // Only attach once.
-        if (this.mAttachedDeclaration) {
-            throw new Exception(`Attribute list is already attached to a declaration.`, this);
-        }
-
-        this.mAttachedDeclaration = pDeclaration;
+        this.mAttachedDeclaration = pAttachedDeclaration;
     }
 
     /**
@@ -178,7 +148,7 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * @returns True when attribute is defined. 
      */
     public hasAttribute(pName: PgslAttributeName): boolean {
-        return this.mAttributeDefinitionList.has(pName);
+        return this.data.attributes.has(pName);
     }
 
     /**
@@ -188,9 +158,9 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
      * 
      * @returns all attribute parameters 
      */
-    public getAttributeParameter(pName: PgslAttributeName): Array<PgslExpression> {
+    public getAttributeParameter(pName: PgslAttributeName): Array<ExpressionAst> {
         // Try to read attribute parameters.
-        const lAttributeParameter: Array<PgslExpression> | undefined = this.mAttributeDefinitionList.get(pName);
+        const lAttributeParameter: Array<ExpressionAst> | undefined = this.data.attributes.get(pName);
         if (!lAttributeParameter) {
             throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
         }
@@ -201,28 +171,35 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
     /**
      * Validate data of current structure.
      */
-    protected override onTrace(pTrace: PgslTrace): void {
+    protected override process(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
+        // Create attribute list data.
+        const lAttributeListData: AttributeListAstData = {
+            attributes: new Map<PgslAttributeName, Array<ExpressionAst>>()
+        };
+
         // Must be attached to a declaration.
         if (!this.mAttachedDeclaration) {
-            pTrace.pushIncident(`Attribute list is not attached to a declaration.`, this);
-            return;
+            pContext.pushIncident(`Attribute list is not attached to a declaration.`, this);
+
+            // Return empty attribute list.
+            return lAttributeListData;
         }
 
         // Validate each attribute.
-        for (const [lAttributeName, lAttributeParameter] of this.mAttributeDefinitionList) {
+        for (const lAttributeCst of this.cst.attributes) {
             // Check if attribute has a definition.
-            if (!PgslAttributeList.mValidAttributes.has(lAttributeName as PgslAttributeName)) {
-                pTrace.pushIncident(`Attribute "${lAttributeName}" is not a valid attribute.`, this);
+            if (!PgslAttributeList.mValidAttributes.has(lAttributeCst.name as PgslAttributeName)) {
+                pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not a valid attribute.`, this);
                 continue;
             }
 
             // Read the attribute definition.
-            const lAttributeDefinition: AttributeDefinitionInformation = PgslAttributeList.mValidAttributes.get(lAttributeName as PgslAttributeName)!;
+            const lAttributeDefinition: AttributeDefinitionInformation = PgslAttributeList.mValidAttributes.get(lAttributeCst.name as PgslAttributeName)!;
 
             // Check if parent type is correct.
             if (lAttributeDefinition.enforcedParentType) {
                 if (!(this.mAttachedDeclaration instanceof lAttributeDefinition.enforcedParentType)) {
-                    pTrace.pushIncident(`Attribute "${lAttributeName}" is not attached to a valid parent type.`, this);
+                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not attached to a valid parent type.`, this);
                 }
             }
 
@@ -230,84 +207,95 @@ export class PgslAttributeList extends BasePgslSyntaxTree {
             let lParameterDefinition: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter> = new Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>();
             if (lAttributeDefinition.parameterTypes.length > 0) {
                 // Find a parameter definition that matches the given parameter count.
-                const lFoundParameterDefinition = lAttributeDefinition.parameterTypes.find(pEntry => pEntry.length === lAttributeParameter.length);
+                const lFoundParameterDefinition = lAttributeDefinition.parameterTypes.find(pEntry => pEntry.length === lAttributeCst.parameters.length);
                 if (!lFoundParameterDefinition) {
-                    pTrace.pushIncident(`Attribute "${lAttributeName}" has invalid number of parameters.`, this);
+                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" has invalid number of parameters.`, this);
                     continue;
                 }
                 lParameterDefinition = lFoundParameterDefinition ?? [];
             }
 
-            // Validate integrity of each parameter.
-            for (const lParameter of lAttributeParameter) {
-                lParameter.trace(pTrace);
-            }
-
-            // Validate parameter.
-            this.validateParameter(pTrace, lAttributeName, lAttributeParameter, lParameterDefinition);
+            // Create parameter ASTs and append with the attribute name.
+            const lValidatedParameters = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
+            lAttributeListData.attributes.set(lAttributeCst.name as PgslAttributeName, lValidatedParameters);
         }
+
+        return lAttributeListData;
     }
 
     /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
      * 
-     * @param pTrace - Validation trace to use.
+     * @param pContext - Validation trace to use.
      * @param pParameterSourceList - List of parameters to validate.
      * @param pValidationParameterList - List of parameter definitions to validate against.
      */
-    private validateParameter(pTrace: PgslTrace, pAttributeName: string, pParameterSourceList: Array<PgslExpression>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): void {
+    private validateParameter(pContext: AbstractSyntaxTreeContext, pAttributeName: string, pParameterSourceList: Array<ExpressionCst>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): Array<ExpressionAst> {
+        // Store validated parameters.
+        const lValidatedParameters: Array<ExpressionAst> = new Array<ExpressionAst>();
+        
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
-            // Read and get the trace of the actual attribute parameter.
-            const lActualAttributeParameter: PgslExpression = pParameterSourceList[lIndex];
-            const lActualAttributeParameterTrace: PgslExpressionTrace = pTrace.getExpression(lActualAttributeParameter);
-            const lActualAttributeParameterType: PgslType = lActualAttributeParameterTrace.resolveType;
+            // Create expression AST from parameter CST.
+            const lAttributeParameterAst: ExpressionAst | null = ExpressionAst.build(pParameterSourceList[lIndex], pContext);
+            if (!lAttributeParameterAst) {
+                pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} is not a valid expression.`, this);
+                continue;
+            }
+
+            // Store validated parameter.
+            lValidatedParameters.push(lAttributeParameterAst);
+
+            // Read and get the actual attribute parameter.
+            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.
                 // String parameter must be constants.
-                if (lActualAttributeParameterTrace.fixedState < PgslValueFixedState.Constant) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant expression.`, lActualAttributeParameter);
+                if (lAttributeParameterAst.data.fixedState < PgslValueFixedState.Constant) {
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant expression.`, lAttributeParameterAst);
                     continue;
                 }
 
                 // Not a string parameter.
                 if (!(lActualAttributeParameterType instanceof PgslStringType)) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a string.`, lActualAttributeParameter);
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a string.`, lAttributeParameterAst);
                     continue;
                 }
 
                 // Not a constant string parameter.
-                if (typeof lActualAttributeParameterTrace.constantValue !== 'string') {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant string.`, lActualAttributeParameter);
+                if (typeof lAttributeParameterAst.data.constantValue !== 'string') {
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a constant string.`, lAttributeParameterAst);
                     continue;
                 }
 
                 // Check if parameter value matches one of the expected values, if any are defined.
-                if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lActualAttributeParameterTrace.constantValue)) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has an invalid value.`, lActualAttributeParameter);
+                if (lExpectedTemplateType.values.length > 0 && !lExpectedTemplateType.values.includes(lAttributeParameterAst.data.constantValue)) {
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has an invalid value.`, lAttributeParameterAst);
                 }
             } else if ('type' in lExpectedTemplateType) { // Number
                 // Not a number parameter.
                 if (!(lActualAttributeParameterType instanceof PgslNumericType)) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a number.`, lActualAttributeParameter);
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be a number.`, lAttributeParameterAst);
                     continue;
                 }
 
                 // Check if parameter type matches expected type.
-                if (!lActualAttributeParameterType.isImplicitCastableInto(new PgslNumericType(pTrace, lExpectedTemplateType.type))) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lActualAttributeParameter);
+                if (!lActualAttributeParameterType.isImplicitCastableInto(new PgslNumericType(pContext, lExpectedTemplateType.type))) {
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} must be of type ${lExpectedTemplateType.type}.`, lAttributeParameterAst);
                 }
 
                 // Check fixed state is same or higher than expected.
-                if (lActualAttributeParameterTrace.fixedState < lExpectedTemplateType.state) {
-                    pTrace.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has the wrong fixed state.`, lActualAttributeParameter);
+                if (lAttributeParameterAst.data.fixedState < lExpectedTemplateType.state) {
+                    pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} has the wrong fixed state.`, lAttributeParameterAst);
                 }
             }
         }
+
+        return lValidatedParameters;
     }
 }
 
@@ -315,7 +303,7 @@ export type PgslAttributeName = typeof PgslAttributeList.attributeNames[keyof ty
 
 export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
     name: string,
-    parameter?: Array<PgslExpression>;
+    parameter?: Array<ExpressionAst>;
 };
 
 type AttributeDefinitionNumberParameter = {
@@ -331,7 +319,7 @@ type AttributeDefinitionInformation = {
     /**
      * Enforced parent type. If not set, any parent type is valid.
      */
-    enforcedParentType?: PgslSyntaxTreeConstructor;
+    enforcedParentType?: AbstractSyntaxTreeConstructor;
 
     /**
      * Name: Valid parameter types.
@@ -340,4 +328,8 @@ type AttributeDefinitionInformation = {
     parameterTypes: Array<
         Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>
     >;
+};
+
+type AttributeListAstData = {
+    attributes: Map<PgslAttributeName, Array<ExpressionAst>>;
 };

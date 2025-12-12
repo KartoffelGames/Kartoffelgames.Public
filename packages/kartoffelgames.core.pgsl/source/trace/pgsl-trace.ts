@@ -1,7 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
-import type { BasePgslSyntaxTree } from '../abstract_syntax_tree/base-pgsl-syntax-tree.ts';
+import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
 import type { PgslStructPropertyDeclaration } from '../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
-import type { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslAliasTrace } from './pgsl-alias-trace.ts';
 import type { PgslEnumTrace } from './pgsl-enum-trace.ts';
 import type { PgslExpressionTrace } from './pgsl-expression-trace.ts';
@@ -19,14 +19,14 @@ export class PgslTrace {
     private readonly mAliases: Map<string, PgslAliasTrace>;
     private readonly mBindingNameResolutions: PgslTraceBindingNameResolutions;
     private readonly mEnums: Map<string, PgslEnumTrace>;
-    private readonly mExpressions: Map<PgslExpression, PgslExpressionTrace>;
+    private readonly mExpressions: Map<ExpressionAst, PgslExpressionTrace>;
     private readonly mFunctions: Map<string, PgslFunctionTrace>;
     private readonly mIncidents: Array<PgslTraceIncident>;
     private readonly mLocationNameResolutions: PgslTraceLocationNameResolutions;
     private readonly mScopeList: Stack<PgslTraceScope>;
     private readonly mStructProperties: Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
-    private readonly mTreeScopes: Map<BasePgslSyntaxTree, PgslTraceScope>;
+    private readonly mTreeScopes: Map<AbstractSyntaxTree, PgslTraceScope>;
     private readonly mVariableDeclarations: Map<string, PgslValueTrace>;
 
     /**
@@ -71,14 +71,14 @@ export class PgslTrace {
             groupResolution: new Map<string, { index: number; locations: Map<string, number>; }>()
         };
         this.mEnums = new Map<string, PgslEnumTrace>();
-        this.mExpressions = new Map<PgslExpression, PgslExpressionTrace>();
+        this.mExpressions = new Map<ExpressionAst, PgslExpressionTrace>();
         this.mFunctions = new Map<string, PgslFunctionTrace>();
         this.mIncidents = new Array<PgslTraceIncident>();
         this.mLocationNameResolutions = new Map<string, Map<string, number>>();
         this.mScopeList = new Stack<PgslTraceScope>();
         this.mStructProperties = new Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>();
         this.mStructs = new Map<string, PgslStructTrace>();
-        this.mTreeScopes = new Map<BasePgslSyntaxTree, PgslTraceScope>();
+        this.mTreeScopes = new Map<AbstractSyntaxTree, PgslTraceScope>();
         this.mVariableDeclarations = new Map<string, PgslValueTrace>();
     }
 
@@ -113,7 +113,7 @@ export class PgslTrace {
      *
      * @throws {Error} When expression is not traced.
      */
-    public getExpression(pExpression: PgslExpression): PgslExpressionTrace {
+    public getExpression(pExpression: ExpressionAst): PgslExpressionTrace {
         if (!this.mExpressions.has(pExpression)) {
             throw new Error('Expression is not traced.');
         }
@@ -204,7 +204,7 @@ export class PgslTrace {
      *
      * @throws {Error} When the trace is sealed.
      */
-    public pushIncident(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree): void {
+    public pushIncident(pMessage: string, pSyntaxTree?: AbstractSyntaxTree): void {
         this.mIncidents.push(new PgslTraceIncident(pMessage, pSyntaxTree));
     }
 
@@ -236,7 +236,7 @@ export class PgslTrace {
      * @param pExpression - The expression to set the trace for.
      * @param pTrace - The expression trace information.
      */
-    public registerExpression(pExpression: PgslExpression, pTrace: PgslExpressionTrace): void {
+    public registerExpression(pExpression: ExpressionAst, pTrace: PgslExpressionTrace): void {
         this.mExpressions.set(pExpression, pTrace);
     }
 
@@ -310,7 +310,7 @@ export class PgslTrace {
      *
      * @throws {Error} When the tree is not traced.
      */
-    public scopeOf<T extends BasePgslSyntaxTree>(pTree: T): PgslTraceScope {
+    public scopeOf<T extends AbstractSyntaxTree>(pTree: T): PgslTraceScope {
         if (!this.mTreeScopes.has(pTree)) {
             throw new Error('Tree is not traced.');
         }
@@ -395,7 +395,7 @@ export class PgslTrace {
  */
 export class PgslTraceIncident {
     private readonly mMessage: string;
-    private readonly mSyntaxTree: BasePgslSyntaxTree | undefined;
+    private readonly mSyntaxTree: AbstractSyntaxTree | undefined;
 
     /**
      * Gets the message describing the incident.
@@ -411,7 +411,7 @@ export class PgslTraceIncident {
      *
      * @returns The associated syntax tree node or undefined if none.
      */
-    public get syntaxTree(): BasePgslSyntaxTree | undefined {
+    public get syntaxTree(): AbstractSyntaxTree | undefined {
         return this.mSyntaxTree;
     }
 
@@ -421,7 +421,7 @@ export class PgslTraceIncident {
      * @param pMessage - The message describing the incident.
      * @param pSyntaxTree - Optional syntax tree node associated with the incident.
      */
-    public constructor(pMessage: string, pSyntaxTree?: BasePgslSyntaxTree) {
+    public constructor(pMessage: string, pSyntaxTree?: AbstractSyntaxTree) {
         this.mMessage = pMessage;
         this.mSyntaxTree = pSyntaxTree;
     }

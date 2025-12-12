@@ -1,12 +1,12 @@
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import { PgslFunctionTrace, type PgslFunctionTraceEntryPoint } from '../../trace/pgsl-function-trace.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../expression/pgsl-expression.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
 import type { PgslBlockStatement } from '../statement/execution/pgsl-block-statement.ts';
-import { PgslDeclaration } from './pgsl-declaration.ts';
+import { PgslDeclaration } from './declaration-ast.ts';
 
 // TODO: Add support for multiple parameter sets and their return type.
 // TODO: Add support for generics.
@@ -124,7 +124,7 @@ export class PgslFunctionDeclaration extends PgslDeclaration {
                     return { stage: 'fragment' };
                 }
                 case this.attributes.hasAttribute(PgslAttributeList.attributeNames.compute): {
-                    const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.compute);
+                    const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.compute);
 
                     // Check parameter count.
                     if (lAttributeParameter.length !== 3) {

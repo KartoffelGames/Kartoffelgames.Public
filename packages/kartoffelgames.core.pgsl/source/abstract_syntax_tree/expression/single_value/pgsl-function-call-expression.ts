@@ -4,15 +4,15 @@ import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslFunctionTrace } from '../../../trace/pgsl-function-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpression extends PgslExpression {
+export class PgslFunctionCallExpression extends ExpressionAst {
     private readonly mName: string;
-    private readonly mParameterList: Array<PgslExpression>;
+    private readonly mParameterList: Array<ExpressionAst>;
 
     /**
      * Function name.
@@ -24,7 +24,7 @@ export class PgslFunctionCallExpression extends PgslExpression {
     /**
      * Function parameter.
      */
-    public get parameter(): Array<PgslExpression> {
+    public get parameter(): Array<ExpressionAst> {
         return this.mParameterList;
     }
 
@@ -35,7 +35,7 @@ export class PgslFunctionCallExpression extends PgslExpression {
      * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pName: string, pParameterList: Array<PgslExpression>, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pName: string, pParameterList: Array<ExpressionAst>, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
@@ -67,7 +67,7 @@ export class PgslFunctionCallExpression extends PgslExpression {
 
         // Validate function parameter.
         for (let lParameterIndex = 0; lParameterIndex < this.mParameterList.length; lParameterIndex++) {
-            const lParameterExpression: PgslExpression = this.mParameterList[lParameterIndex];
+            const lParameterExpression: ExpressionAst = this.mParameterList[lParameterIndex];
             const lParameterExpressionTrace: PgslExpressionTrace = pTrace.getExpression(lParameterExpression);
             const lFunctionParameterDeclaration = lFunctionDeclaration.parameters[lParameterIndex];
 

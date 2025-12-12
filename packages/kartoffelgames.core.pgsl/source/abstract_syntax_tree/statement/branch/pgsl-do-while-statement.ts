@@ -1,8 +1,8 @@
 import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
 
@@ -11,7 +11,7 @@ import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
  */
 export class PgslDoWhileStatement extends PgslStatement {
     private readonly mBlock: PgslBlockStatement;
-    private readonly mExpression: PgslExpression;
+    private readonly mExpression: ExpressionAst;
 
     /**
      * If block.
@@ -23,7 +23,7 @@ export class PgslDoWhileStatement extends PgslStatement {
     /**
      * If boolean expression reference.
      */
-    public get expression(): PgslExpression {
+    public get expression(): ExpressionAst {
         return this.mExpression;
     }
 
@@ -34,7 +34,7 @@ export class PgslDoWhileStatement extends PgslStatement {
      * @param pBlock - Looped block.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: PgslExpression, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: ExpressionAst, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

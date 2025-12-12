@@ -9,16 +9,16 @@ import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../../../type/pgsl-struct-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
 import type { PgslStructPropertyDeclaration } from '../../declaration/pgsl-struct-property-declaration.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
  */
-export class PgslValueDecompositionExpression extends PgslExpression {
+export class PgslValueDecompositionExpression extends ExpressionAst {
     private readonly mProperty: string;
-    private readonly mValue: PgslExpression;
+    private readonly mValue: ExpressionAst;
 
     /**
      * Index expression of variable index expression.
@@ -30,7 +30,7 @@ export class PgslValueDecompositionExpression extends PgslExpression {
     /**
      * Value reference.
      */
-    public get value(): PgslExpression {
+    public get value(): ExpressionAst {
         return this.mValue;
     }
 
@@ -41,7 +41,7 @@ export class PgslValueDecompositionExpression extends PgslExpression {
      * @param pProperty - Property of decompostion.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pValue: PgslExpression, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pValue: ExpressionAst, pProperty: string, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.
@@ -104,7 +104,7 @@ export class PgslValueDecompositionExpression extends PgslExpression {
                     }
 
                     // Read enum value by property name.
-                    const lEnumValue: PgslExpression | undefined = lEnumTrace.values.get(this.mProperty);
+                    const lEnumValue: ExpressionAst | undefined = lEnumTrace.values.get(this.mProperty);
                     if (!lEnumValue) {
                         pTrace.pushIncident(`Enum "${lEnumTrace.name}" does not contain a value for property "${this.mProperty}".`, this);
                         return null;

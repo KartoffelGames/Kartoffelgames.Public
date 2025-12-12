@@ -1,24 +1,24 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
 import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
-import { PgslExpression } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../pgsl-expression.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 
 /**
  * PGSL structure for a logical expression between two values.
  */
-export class PgslLogicalExpression extends PgslExpression {
-    private readonly mLeftExpression: PgslExpression;
+export class PgslLogicalExpression extends ExpressionAst {
+    private readonly mLeftExpression: ExpressionAst;
     private readonly mOperatorName: string;
-    private readonly mRightExpression: PgslExpression;
+    private readonly mRightExpression: ExpressionAst;
 
     /**
      * Left expression reference.
      */
-    public get leftExpression(): PgslExpression {
+    public get leftExpression(): ExpressionAst {
         return this.mLeftExpression;
     }
 
@@ -32,7 +32,7 @@ export class PgslLogicalExpression extends PgslExpression {
     /**
      * Right expression reference.
      */
-    public get rightExpression(): PgslExpression {
+    public get rightExpression(): ExpressionAst {
         return this.mRightExpression;
     }
 
@@ -44,7 +44,7 @@ export class PgslLogicalExpression extends PgslExpression {
      * @param pRight - Right expression.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pLeft: PgslExpression, pOperator: string, pRight: PgslExpression, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pLeft: ExpressionAst, pOperator: string, pRight: ExpressionAst, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

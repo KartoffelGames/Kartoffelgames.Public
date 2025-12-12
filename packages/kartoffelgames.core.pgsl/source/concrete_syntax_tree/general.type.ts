@@ -6,14 +6,17 @@ import type { ExpressionCst, ExpressionCstType } from "./expression.type.ts";
  */
 export type Cst<TType extends string> = {
     type: TType;
-    range: [lineStart: number, columnStart: number, lineEnd: number, columnEnd: number];
+    range: CstRange;
 };
+
+export type CstRange = [lineStart: number, columnStart: number, lineEnd: number, columnEnd: number];
 
 /*
  * Document.
  */
 
 export type DocumentCst = {
+    buildInDeclarations: Array<DeclarationCst<DeclarationCstType>>;
     declarations: Array<DeclarationCst<DeclarationCstType>>;
 } & Cst<'Document'>;
 

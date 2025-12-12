@@ -1,0 +1,69 @@
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import { Cst } from "../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTreeContext } from "./abstract-syntax-tree-context.ts";
+
+/**
+ * Base pgsl syntax tree object.
+ */
+export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>, TData extends object = {}> {
+    private readonly mMeta: AbstractSyntaxTreeMeta;
+    private readonly mData: TData;
+    private readonly mConcreteSyntaxTree: TCst;
+
+    /**
+     * Get concrete syntax tree node.
+     */
+    public get cst(): Readonly<TCst> {
+        return this.mConcreteSyntaxTree;
+    }
+
+    /**
+     * Get syntax tree data.
+     */
+    public get data(): Readonly<TData> {
+        return this.mData;
+    }
+
+    /**
+     * Get syntax tree meta.
+     */
+    public get meta(): Readonly<AbstractSyntaxTreeMeta> {
+        return this.mMeta;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pConcreteSyntaxTree - Concrete syntax tree node.
+     */
+    public constructor(pConcreteSyntaxTree: TCst, pContext: AbstractSyntaxTreeContext) {
+        // Save meta information.
+        this.mMeta = [
+            pConcreteSyntaxTree.range[0],
+            pConcreteSyntaxTree.range[1],
+            pConcreteSyntaxTree.range[2],
+            pConcreteSyntaxTree.range[3]
+        ];
+
+        this.mConcreteSyntaxTree = pConcreteSyntaxTree;
+
+        // Trace the syntax tree to build up data.
+        this.mData = this.process(pContext);
+    }
+
+    /**
+     * process the concrete syntax tree.
+     * Builds up the abstract structure of the syntax tree.
+     * 
+     * @param pContext - Processing context.
+     */
+    protected abstract process(pContext: AbstractSyntaxTreeContext): TData;
+}
+
+/**
+ * Type representing a constructor function for PGSL syntax tree nodes.
+ * Used as a key in the validation processor map to associate constructors with their corresponding validation logic.
+ */
+export type AbstractSyntaxTreeConstructor = IAnyParameterConstructor<AbstractSyntaxTree>;
+
+export type AbstractSyntaxTreeMeta = [lineStart: number, columnStart: number, lineEnd: number, columnEnd: number];

@@ -1,18 +1,18 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/base-pgsl-syntax-tree.ts";
+import { AbstractSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
 import { PgslEnumDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-enum-declaration.ts";
 import { PgslFunctionDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts";
 import { PgslStructDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts";
-import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-variable-declaration.ts";
-import { PgslDocument } from '../../abstract_syntax_tree/pgsl-document.ts';
+import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<PgslDocument> {
+export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<DocumentAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslDocument {
-        return PgslDocument;
+    public get target(): typeof DocumentAst {
+        return DocumentAst;
     }
 
     /**
@@ -22,12 +22,12 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
      * @param _pTrace - The syntax tree trace for context.
      * @param pSendResult - The function to call with transpilation results.
      */
-    public process(pInstance: PgslDocument, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: DocumentAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // List of transpileable child nodes.
         const lTranspileableChildren: Array<PgslSyntaxTreeConstructor> = [
             PgslFunctionDeclaration, PgslVariableDeclaration, PgslStructDeclaration
         ];
-        const lIsTranspileable = (pChild: BasePgslSyntaxTree): boolean => {
+        const lIsTranspileable = (pChild: AbstractSyntaxTree): boolean => {
             for (const lTranspileableChild of lTranspileableChildren) {
                 if (pChild instanceof lTranspileableChild) {
                     return true;

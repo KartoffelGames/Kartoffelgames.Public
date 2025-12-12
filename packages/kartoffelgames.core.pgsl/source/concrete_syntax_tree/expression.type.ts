@@ -4,7 +4,7 @@ import type { Cst } from "./general.type.ts";
  * Core.
  */
 export type ExpressionCstType = 'ArithmeticExpression' | 'BinaryExpression' | 'ComparisonExpression' | 'LogicalExpression' | 'AddressOfExpression' | 'FunctionCallExpression' | 'NewExpression' | 'LiteralExpression' | 'ParenthesizedExpression' | 'StringValueExpression' | 'IndexedValueExpression' | 'PointerExpression' | 'ValueDecompositionExpression' | 'VariableNameExpression' | 'UnaryExpression';
-export type ExpressionCst<TExpressionType extends ExpressionCstType> = Cst<TExpressionType>;
+export type ExpressionCst<TExpressionType extends ExpressionCstType = ExpressionCstType> = Cst<TExpressionType>;
 
 /*
  * Operations.

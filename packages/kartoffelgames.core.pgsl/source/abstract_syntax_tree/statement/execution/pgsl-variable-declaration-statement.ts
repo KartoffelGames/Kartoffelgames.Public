@@ -6,9 +6,9 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../base-pgsl-syntax-tree.ts';
-import { PgslAccessMode } from '../../buildin/pgsl-access-mode.enum.ts';
-import type { PgslExpression } from '../../expression/pgsl-expression.ts';
+import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
+import { PgslAccessMode } from '../../buildin/pgsl-access-mode-enum.ts';
+import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
 import type { PgslTypeDeclaration } from '../../general/pgsl-type-declaration.ts';
 import { PgslStatement } from '../pgsl-statement.ts';
 /**
@@ -16,7 +16,7 @@ import { PgslStatement } from '../pgsl-statement.ts';
  */
 export class PgslVariableDeclarationStatement extends PgslStatement {
     private readonly mDeclarationTypeName: string;
-    private readonly mExpression: PgslExpression | null;
+    private readonly mExpression: ExpressionAst | null;
     private readonly mName: string;
     private readonly mTypeDeclaration: PgslTypeDeclaration;
 
@@ -30,7 +30,7 @@ export class PgslVariableDeclarationStatement extends PgslStatement {
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpression | null {
+    public get expression(): ExpressionAst | null {
         return this.mExpression;
     }
 
@@ -157,5 +157,5 @@ export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
     declarationType: string;
     name: string;
     type: PgslTypeDeclaration;
-    expression: PgslExpression | null;
+    expression: ExpressionAst | null;
 };

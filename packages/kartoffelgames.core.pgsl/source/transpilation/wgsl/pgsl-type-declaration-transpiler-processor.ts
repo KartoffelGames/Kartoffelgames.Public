@@ -1,6 +1,6 @@
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
-import { PgslAccessMode } from '../../abstract_syntax_tree/buildin/pgsl-access-mode.enum.ts';
+import { PgslAccessMode } from '../../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
 import { PgslTexelFormat } from '../../abstract_syntax_tree/buildin/pgsl-texel-format.enum.ts';
 import { PgslTypeDeclaration } from '../../abstract_syntax_tree/general/pgsl-type-declaration.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';

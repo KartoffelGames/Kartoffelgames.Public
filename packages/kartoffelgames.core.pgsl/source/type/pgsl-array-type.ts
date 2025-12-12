@@ -1,5 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpression } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
@@ -22,7 +22,7 @@ export class PgslArrayType extends PgslType {
 
     private readonly mInnerType: PgslType;
     private readonly mLength: number | null;
-    private readonly mLengthExpression: PgslExpression | null;
+    private readonly mLengthExpression: ExpressionAst | null;
 
     /**
      * Gets the inner element type of the array.
@@ -47,7 +47,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns The length expression, or null for runtime-sized arrays.
      */
-    public get lengthExpression(): PgslExpression | null {
+    public get lengthExpression(): ExpressionAst | null {
         return this.mLengthExpression;
     }
 
@@ -58,7 +58,7 @@ export class PgslArrayType extends PgslType {
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
      */
-    public constructor(pTrace: PgslTrace, pType: PgslType, pLengthExpression: PgslExpression | null) {
+    public constructor(pTrace: PgslTrace, pType: PgslType, pLengthExpression: ExpressionAst | null) {
         super(pTrace);
 
         this.mInnerType = pType;

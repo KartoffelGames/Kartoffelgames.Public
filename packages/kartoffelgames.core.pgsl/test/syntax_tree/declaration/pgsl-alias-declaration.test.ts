@@ -4,7 +4,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslAliasDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-alias-declaration.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslDocument } from "../../../source/abstract_syntax_tree/pgsl-document.ts";
+import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
 import { PgslTypeDeclaration } from "../../../source/abstract_syntax_tree/general/pgsl-type-declaration.ts";
 
 // Create parser instance.
@@ -19,7 +19,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(1);
@@ -40,7 +40,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
@@ -56,7 +56,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
@@ -74,7 +74,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
@@ -90,7 +90,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `alias ${lAliasName} = ${lAliasType};`;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
             const lDeclarationNode: PgslAliasDeclaration = lDocument.childNodes[0] as PgslAliasDeclaration;
@@ -113,7 +113,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(2);
@@ -136,7 +136,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: PgslDocument = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct number of child nodes.
             expect(lDocument.childNodes).toHaveLength(2);

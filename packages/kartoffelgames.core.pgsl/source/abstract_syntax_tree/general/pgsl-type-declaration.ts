@@ -14,15 +14,15 @@ import { PgslTextureType } from '../../type/pgsl-texture-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../type/pgsl-void-type.ts';
-import { BasePgslSyntaxTree, type BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
-import { PgslExpression } from '../expression/pgsl-expression.ts';
+import { AbstractSyntaxTree, type BasePgslSyntaxTreeMeta } from '../abstract-syntax-tree.ts';
+import { ExpressionAst } from '../expression/pgsl-expression.ts';
 
 /**
  * PGSL base type definition.
  */
-export class PgslTypeDeclaration extends BasePgslSyntaxTree {
+export class PgslTypeDeclaration extends AbstractSyntaxTree {
     private readonly mTypeName: string;
-    private readonly mTemplate: Array<BasePgslSyntaxTree>;
+    private readonly mTemplate: Array<AbstractSyntaxTree>;
     private readonly mIsPointer: boolean;
     private mResolvedType: PgslType | null;
 
@@ -54,7 +54,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
     /**
      * Get the template list.
      */
-    public get templateList(): ReadonlyArray<BasePgslSyntaxTree> {
+    public get templateList(): ReadonlyArray<AbstractSyntaxTree> {
         return this.mTemplate;
     }
 
@@ -63,7 +63,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * 
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pTypeName: string, pTemplate: Array<BasePgslSyntaxTree>, pIsPointer: boolean, pMeta?: BasePgslSyntaxTreeMeta) {
+    public constructor(pTypeName: string, pTemplate: Array<AbstractSyntaxTree>, pIsPointer: boolean, pMeta?: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Add templates as children.
@@ -184,7 +184,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveAlias(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveAlias(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve alias
         const lAlias = pTrace.getAlias(pRawName);
         if (!lAlias) {
@@ -206,7 +206,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveArray(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveArray(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve array type.
         if (pRawName !== PgslArrayType.typeName.array) {
             return null;
@@ -223,7 +223,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
         }
 
         // First template needs to be a type.
-        const lTypeTemplate: BasePgslSyntaxTree | undefined = pRawTemplate[0];
+        const lTypeTemplate: AbstractSyntaxTree | undefined = pRawTemplate[0];
         if (!(lTypeTemplate instanceof PgslTypeDeclaration)) {
             pTrace.pushIncident(`First array template parameter must be a type.`, this);
 
@@ -232,10 +232,10 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
         }
 
         // Second length parameter.
-        let lLengthParameter: PgslExpression | null = null;
+        let lLengthParameter: ExpressionAst | null = null;
         if (pRawTemplate.length > 1) {
-            const lLengthTemplate: BasePgslSyntaxTree = pRawTemplate[1];
-            if (!(lLengthTemplate instanceof PgslExpression)) {
+            const lLengthTemplate: AbstractSyntaxTree = pRawTemplate[1];
+            if (!(lLengthTemplate instanceof ExpressionAst)) {
                 pTrace.pushIncident(`Array length template must be a expression.`, this);
             } else {
                 // Set optional length expression.
@@ -254,7 +254,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveBoolean(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveBoolean(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve boolean type.
         if (pRawName !== PgslBooleanType.typeName.boolean) {
             return null;
@@ -275,7 +275,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveBuildIn(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveBuildIn(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (!Object.values(PgslBuildInType.typeName).includes(pRawName as any)) {
             return null;
@@ -284,8 +284,8 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
         // Validate build in type with template.
         if (pRawTemplate.length > 1) {
             // Build in types support only a single expression parameter.
-            const lTemplateExpression: BasePgslSyntaxTree = pRawTemplate[0];
-            if (!(lTemplateExpression instanceof PgslExpression)) {
+            const lTemplateExpression: AbstractSyntaxTree = pRawTemplate[0];
+            if (!(lTemplateExpression instanceof ExpressionAst)) {
                 pTrace.pushIncident(`Array length template must be a expression.`, this);
                 return new PgslInvalidType(pTrace);
             }
@@ -305,7 +305,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveEnum(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveEnum(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve enum.
         const lEnum = pTrace.getEnum(pRawName);
         if (!lEnum) {
@@ -327,7 +327,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveMatrix(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveMatrix(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (!Object.values(PgslMatrixType.typeName).includes(pRawName as any)) {
             return null;
@@ -339,7 +339,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
         }
 
         // Validate template parameter.
-        const lInnerTypeDefinition: BasePgslSyntaxTree = pRawTemplate[0];
+        const lInnerTypeDefinition: AbstractSyntaxTree = pRawTemplate[0];
         if (!(lInnerTypeDefinition instanceof PgslTypeDeclaration)) {
             pTrace.pushIncident(`Matrix template parameter needs to be a type definition.`, this);
             return new PgslInvalidType(pTrace);
@@ -356,7 +356,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveNumeric(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveNumeric(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (!Object.values(PgslNumericType.typeName).includes(pRawName as any)) {
             return null;
@@ -378,7 +378,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolvePointer(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType {
+    private resolvePointer(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType {
         // Create a new type declaration without pointer.
         const lInnerTypeDeclaration: PgslTypeDeclaration = new PgslTypeDeclaration(pRawName, pRawTemplate, false);
         lInnerTypeDeclaration.trace(pTrace);
@@ -397,7 +397,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveSampler(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveSampler(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (pRawName !== PgslSamplerType.typeName.sampler && pRawName !== PgslSamplerType.typeName.samplerComparison) {
             return null;
@@ -419,7 +419,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveString(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveString(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve string type.
         if (pRawName !== PgslStringType.typeName.string) {
             return null;
@@ -443,7 +443,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveStruct(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveStruct(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve struct
         if (!pTrace.getStruct(pRawName)) {
             return null;
@@ -465,7 +465,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveTexture(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveTexture(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (!Object.values(PgslTextureType.typeName).includes(pRawName as any)) {
             return null;
@@ -473,13 +473,13 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
 
         // Validate texture templates, that they are eighter a PgslExpression or PgslTypeDeclaration.
         for (const lTemplate of pRawTemplate) {
-            if (!(lTemplate instanceof PgslExpression) && !(lTemplate instanceof PgslTypeDeclaration)) {
+            if (!(lTemplate instanceof ExpressionAst) && !(lTemplate instanceof PgslTypeDeclaration)) {
                 pTrace.pushIncident(`Texture template parameters must be either a type definition or an expression.`, this);
             }
         }
 
         // Build texture type definition.
-        return new PgslTextureType(pTrace, pRawName as any, pRawTemplate as Array<PgslTypeDeclaration | PgslExpression>);
+        return new PgslTextureType(pTrace, pRawName as any, pRawTemplate as Array<PgslTypeDeclaration | ExpressionAst>);
     }
 
     /**
@@ -489,7 +489,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveVector(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveVector(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Try to resolve type name.
         if (!Object.values(PgslVectorType.typeName).includes(pRawName as any)) {
             return null;
@@ -512,7 +512,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
             }
 
             // First template must to be a type definition.
-            const lVectorInnerTypeTemplate: BasePgslSyntaxTree = pRawTemplate[0];
+            const lVectorInnerTypeTemplate: AbstractSyntaxTree = pRawTemplate[0];
             if (!(lVectorInnerTypeTemplate instanceof PgslTypeDeclaration)) {
                 pTrace.pushIncident(`Vector template parameter needs to be a type definition.`, this);
                 return null;
@@ -537,7 +537,7 @@ export class PgslTypeDeclaration extends BasePgslSyntaxTree {
      * @param pRawTemplate - Type template.
      * @param pMeta - Type definition meta data.
      */
-    private resolveVoid(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<BasePgslSyntaxTree>): PgslType | null {
+    private resolveVoid(pTrace: PgslTrace, pRawName: string, pRawTemplate: Array<AbstractSyntaxTree>): PgslType | null {
         // Resolve void type.
         if (pRawName !== PgslVoidType.typeName.void) {
             return null;

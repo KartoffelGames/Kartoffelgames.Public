@@ -1,16 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../base-pgsl-syntax-tree.ts';
+import type { BasePgslSyntaxTreeMeta } from '../abstract-syntax-tree.ts';
 import { PgslAttributeList } from '../general/pgsl-attribute-list.ts';
 import type { PgslTypeDeclaration } from '../general/pgsl-type-declaration.ts';
-import { PgslDeclaration } from './pgsl-declaration.ts';
+import { PgslDeclaration } from './declaration-ast.ts';
 import type { PgslStructDeclaration } from './pgsl-struct-declaration.ts';
 import { PgslStructPropertyTrace, type PgslStructPropertyTraceConstructorParameter } from '../../trace/pgsl-struct-property-trace.ts';
-import type { PgslExpression } from '../expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../expression/pgsl-expression.ts';
 import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
-import { PgslInterpolateTypeEnumDeclaration } from '../buildin/pgsl-interpolate-type-enum-declaration.ts';
-import { PgslInterpolateSamplingEnumDeclaration } from '../buildin/pgsl-interpolate-sampling-enum-declaration.ts';
+import { PgslInterpolateTypeEnumDeclaration } from '../buildin/pgsl-interpolate-type-enum.ts';
+import { PgslInterpolateSamplingEnumDeclaration } from '../buildin/pgsl-interpolate-sampling-enum.ts';
 
 /**
  * PGSL syntax tree for a struct property declaration.
@@ -104,7 +104,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.location)) {
                 // Read attribute parameterk, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.location)!;
+                const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.location)!;
                 if (lAttributeParameter.length !== 1) {
                     pTrace.pushIncident(`Location attribute must have exactly one parameter.`, this);
                     return;
@@ -130,7 +130,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.size)) {
                 // Read attribute parameters, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.size)!;
+                const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.size)!;
                 if (lAttributeParameter.length !== 1) {
                     pTrace.pushIncident(`Size attribute must have exactly one parameter.`, this);
                     return;
@@ -160,7 +160,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.align)) {
                 // Read attribute parameters, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.align)!;
+                const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.align)!;
                 if (lAttributeParameter.length !== 1) {
                     pTrace.pushIncident(`Align attribute must have exactly one parameter.`, this);
                     return;
@@ -196,7 +196,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.blendSource)) {
                 // Read attribute parameters, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.blendSource)!;
+                const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.blendSource)!;
                 if (lAttributeParameter.length !== 1) {
                     pTrace.pushIncident(`Blend source attribute must have exactly one parameter.`, this);
                     return;
@@ -232,7 +232,7 @@ export class PgslStructPropertyDeclaration extends PgslDeclaration {
         (() => {
             if (this.attributes.hasAttribute(PgslAttributeList.attributeNames.interpolate)) {
                 // Read attribute parameters, add another incident if not valid.
-                const lAttributeParameter: Array<PgslExpression> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.interpolate)!;
+                const lAttributeParameter: Array<ExpressionAst> = this.attributes.getAttributeParameter(PgslAttributeList.attributeNames.interpolate)!;
                 if (lAttributeParameter.length !== 2) {
                     pTrace.pushIncident(`Interpolate attribute must have exactly two parameters.`, this);
                     return;

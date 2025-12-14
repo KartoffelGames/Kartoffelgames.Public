@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { ExpressionAst } from '../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
-import { PgslValueDecompositionExpression } from '../../../../abstract_syntax_tree/expression/storage/pgsl-value-decomposition-expression.ts';
+import { PgslValueDecompositionExpression } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import type { PgslEnumTrace } from '../../../../trace/pgsl-enum-trace.ts';
 import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';

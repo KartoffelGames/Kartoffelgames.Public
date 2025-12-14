@@ -1,4 +1,4 @@
-import { PgslNewCallExpression } from '../../../../abstract_syntax_tree/expression/single_value/pgsl-new-expression.ts';
+import { NewExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import { PgslArrayType } from "../../../../type/pgsl-array-type.ts";
 import { PgslBooleanType } from "../../../../type/pgsl-boolean-type.ts";
@@ -7,7 +7,7 @@ import { PgslNumericType } from "../../../../type/pgsl-numeric-type.ts";
 import { PgslVectorType } from "../../../../type/pgsl-vector-type.ts";
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslNewCallExpression> {
+export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspilerProcessor<NewExpressionAst> {
     /**
      * Converts PGSL type names into WGSL type names.
      * 
@@ -50,8 +50,8 @@ export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspiler
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslNewCallExpression {
-        return PgslNewCallExpression;
+    public get target(): typeof NewExpressionAst {
+        return NewExpressionAst;
     }
 
     /**
@@ -63,7 +63,7 @@ export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspiler
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslNewCallExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: NewExpressionAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         const lTypeNameConversion: string = PgslNewCallExpressionTranspilerProcessor.typeNameConversion(pInstance.typeName)
         // Simply transpile the type and parameters without the new part.
         return `${lTypeNameConversion}(${pInstance.parameter.map(pParam => pTranspile(pParam)).join(',')})`;

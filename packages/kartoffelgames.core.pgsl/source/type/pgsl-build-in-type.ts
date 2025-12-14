@@ -1,7 +1,6 @@
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';

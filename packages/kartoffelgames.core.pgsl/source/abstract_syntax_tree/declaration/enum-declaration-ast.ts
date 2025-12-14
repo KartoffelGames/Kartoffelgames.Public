@@ -21,19 +21,17 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         // Create attribute list.
         const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
 
-        const lProperties: EnumDeclarationAstPropertyDataList = [...this.processProperties(pContext).entries()
-            .map(([pName, pValue]) => {
-                return { name: pName, value: pValue };
-            })];
+        const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext);
 
         let lFirstPropertyType: PgslType;
 
         // Fallback to invalid type.
-        if (lProperties.length === 0) {
+        if (lProperties.size === 0) {
             pContext.pushIncident(`Enum ${this.cst.name} has no values`, this);
             lFirstPropertyType = new PgslInvalidType(pContext);
         } else {
-            lFirstPropertyType = lProperties[0].value.data.resolveType;
+            // Get first property type.
+            lFirstPropertyType = lProperties.values().next().value!.data.returnType;
         }
 
         // Check if enum is already defined.
@@ -59,11 +57,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         let lFirstPropertyType: PgslType | null = null;
         for (const lProperty of this.cst.values) {
             // Create expression ast.
-            const lExpressionAst: IExpressionAst | null = ExpressionAstBuilder.build(lProperty.value, pContext);
-            if(!lExpressionAst) {
-                pContext.pushIncident(`Invalid expression for enum value "${lProperty.name}" in enum "${this.cst.name}".`, this);
-                continue;
-            }
+            const lExpressionAst: IExpressionAst = ExpressionAstBuilder.build(lProperty.value, pContext);
 
             // Validate dublicates.
             if (lPropertyList.has(lProperty.name)) {
@@ -74,8 +68,8 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
-            const lIsString: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslStringType(pContext));
+            const lIsNumeric: boolean = lExpressionAst.data.returnType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
+            const lIsString: boolean = lExpressionAst.data.returnType.isImplicitCastableInto(new PgslStringType(pContext));
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {
@@ -84,11 +78,11 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
 
             // Init on first value.
             if (lFirstPropertyType === null) {
-                lFirstPropertyType = lExpressionAst.data.resolveType;
+                lFirstPropertyType = lExpressionAst.data.returnType;
             }
 
             // Property is the same type as the others.
-            if (!lExpressionAst.data.resolveType.equals(lFirstPropertyType)) {
+            if (!lExpressionAst.data.returnType.equals(lFirstPropertyType)) {
                 pContext.pushIncident(`Enum "${this.cst.name}" has mixed value types. Expected all values to be of the same type.`, this);
             }
         }
@@ -100,10 +94,8 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
     }
 }
 
-export type EnumDeclarationAstPropertyData = { readonly name: string; readonly value: IExpressionAst; };
-export type EnumDeclarationAstPropertyDataList = ReadonlyArray<EnumDeclarationAstPropertyData>;
 export type EnumDeclarationAstData = {
     name: string;
     underlyingType: PgslType;
-    values: EnumDeclarationAstPropertyDataList;
+    values: ReadonlyMap<string, IExpressionAst>;
 } & DeclarationAstData;

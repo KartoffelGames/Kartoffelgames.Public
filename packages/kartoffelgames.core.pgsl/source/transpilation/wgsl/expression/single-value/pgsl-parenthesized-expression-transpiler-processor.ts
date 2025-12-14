@@ -1,4 +1,4 @@
-import { PgslParenthesizedExpression } from '../../../../abstract_syntax_tree/expression/single_value/pgsl-parenthesized-expression.ts';
+import { PgslParenthesizedExpression } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

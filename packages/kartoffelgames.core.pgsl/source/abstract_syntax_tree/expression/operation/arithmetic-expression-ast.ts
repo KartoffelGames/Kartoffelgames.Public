@@ -34,32 +34,26 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.left, pContext);
-        if (!lLeftExpression) {
-            throw new Exception('Left expression could not be build.', this);
-        }
-        const lRightExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.right, pContext);
-        if (!lRightExpression) {
-            throw new Exception('Right expression could not be build.', this);
-        }
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left, pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
 
         // TODO: Also matrix calculations :(
         // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type or implicitly castable.
-        if (!lRightExpression.data.resolveType.isImplicitCastableInto(lLeftExpression.data.resolveType)) {
+        if (!lRightExpression.data.returnType.isImplicitCastableInto(lLeftExpression.data.returnType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
         // Validate vector inner values. 
-        if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
+        if (lLeftExpression.data.returnType instanceof PgslVectorType) {
             // Validate left side vector type. Right ist the same type.
-            if (!(lLeftExpression.data.resolveType.innerType instanceof PgslNumericType)) {
+            if (!(lLeftExpression.data.returnType.innerType instanceof PgslNumericType)) {
                 pContext.pushIncident('Left and right side of arithmetic expression must be a numeric vector value', this);
             }
         } else {
             // Validate left side type. Right ist the same type.
-            if (!(lLeftExpression.data.resolveType instanceof PgslNumericType)) {
+            if (!(lLeftExpression.data.returnType instanceof PgslNumericType)) {
                 pContext.pushIncident('Left and right side of arithmetic expression must be a numeric value', this);
             }
         }
@@ -73,7 +67,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            resolveType: lLeftExpression.data.resolveType,
+            returnType: lLeftExpression.data.returnType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

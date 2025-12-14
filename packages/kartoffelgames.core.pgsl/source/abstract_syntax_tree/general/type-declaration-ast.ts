@@ -458,11 +458,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 // Build type declaration template.
                 lTemplateAstList.push(new TypeDeclarationAst(lTemplate, pContext));
             } else {
-                const lTemplateExpression: IExpressionAst | null = ExpressionAstBuilder.build(lTemplate, pContext);
-                if (!lTemplateExpression) {
-                    pContext.pushIncident(`Texture template parameters must be either a type definition or an expression.`, this);
-                    continue;
-                }
+                const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate, pContext);
 
                 // Build expression template.
                 lTemplateAstList.push(lTemplateExpression);

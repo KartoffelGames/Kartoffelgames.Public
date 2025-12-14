@@ -239,17 +239,13 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
             // Create expression AST from parameter CST.
-            const lAttributeParameterAst: IExpressionAst | null = ExpressionAstBuilder.build(pParameterSourceList[lIndex], pContext);
-            if (!lAttributeParameterAst) {
-                pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} is not a valid expression.`, this);
-                continue;
-            }
+            const lAttributeParameterAst: IExpressionAst = ExpressionAstBuilder.build(pParameterSourceList[lIndex], pContext);
 
             // Store validated parameter.
             lValidatedParameters.push(lAttributeParameterAst);
 
             // Read and get the actual attribute parameter.
-            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.resolveType;
+            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.returnType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.

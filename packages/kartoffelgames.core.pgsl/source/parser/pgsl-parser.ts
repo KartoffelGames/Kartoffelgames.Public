@@ -5,7 +5,7 @@ import { AttributeListAst } from '../abstract_syntax_tree/general/attribute-list
 import { PgslInterpolateTypeEnum } from "../buildin/pgsl-interpolate-type-enum.ts";
 import { PgslTexelFormatEnum } from "../buildin/pgsl-texel-format-enum.ts";
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
-import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
+import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, StatementCstType, SwitchCaseCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../concrete_syntax_tree/statement.type.ts';
 import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
@@ -588,19 +588,19 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          * - "<LITERAL_BOOLEAN>"
          * ```
          */
-        const lLiteralValueExpressionGraph: Graph<PgslToken, object, LiteralExpressionCst> = Graph.define(() => {
+        const lLiteralValueExpressionGraph: Graph<PgslToken, object, LiteralValueExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('value', [
                     PgslToken.LiteralFloat,
                     PgslToken.LiteralInteger,
                     PgslToken.LiteralBoolean
                 ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): LiteralExpressionCst => {
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): LiteralValueExpressionCst => {
             return {
                 type: 'LiteralExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 textValue: pData.value
-            } satisfies LiteralExpressionCst;
+            } satisfies LiteralValueExpressionCst;
         });
 
         /**
@@ -692,7 +692,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'FunctionCallExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 functionName: pData.name,
-                arguments: pData.parameters ?? []
+                parameterList: pData.parameters ?? []
             } satisfies FunctionCallExpressionCst;
         });
 
@@ -716,7 +716,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'NewExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 typeName: pData.type,
-                arguments: pData.parameters ?? []
+                parameterList: pData.parameters ?? []
             } satisfies NewExpressionCst;
         });
 
@@ -1538,7 +1538,7 @@ type PgslParserCoreGraphs = {
 type PgslParserExpressionGraphs = {
     expression: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>>;
     expressionList: Graph<PgslToken, object, { list: Array<ExpressionCst<ExpressionCstType>>; }>;
-    literalExpression: Graph<PgslToken, object, LiteralExpressionCst>;
+    literalExpression: Graph<PgslToken, object, LiteralValueExpressionCst>;
     stringExpression: Graph<PgslToken, object, StringValueExpressionCst>;
 };
 

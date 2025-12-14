@@ -38,15 +38,15 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
 
             // Read the first function header return type, if it is null it is generic and can be anything.
             const lFunctionHeader: FunctionDeclarationAstDataDeclaration = lFunctionAst.data.declarations[0];
-            if (!lFunctionHeader.resultType) {
+            if (!lFunctionHeader.returnType) {
                 return;
             }
 
             // Determine the return type of the return statement.
-            const lReturnType: PgslType = lExpression?.data.resolveType ?? new PgslVoidType(pContext);
+            const lReturnType: PgslType = lExpression?.data.returnType ?? new PgslVoidType(pContext);
 
             // Validate that the return type matches the function declaration.
-            if (!lReturnType.isImplicitCastableInto(lFunctionHeader.resultType?.data.type)) {
+            if (!lReturnType.isImplicitCastableInto(lFunctionHeader.returnType?.data.type)) {
                 pContext.pushIncident(`Return type does not match function declaration.`, this);
             }
         })();

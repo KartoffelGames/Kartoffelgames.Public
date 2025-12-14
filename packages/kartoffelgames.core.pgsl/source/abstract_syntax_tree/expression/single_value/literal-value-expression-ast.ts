@@ -1,57 +1,38 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../i-expression-ast.interface.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { LiteralValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpression extends ExpressionAst {
-    private readonly mTextValue: string;
-
-    /**
-     * Value of literal.
-     */
-    public get value(): string {
-        return this.mTextValue;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pData - Initial data.
-     * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
-     */
-    public constructor(pTextValue: string, pMeta?: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
-
-        // Set data.
-        this.mTextValue = pTextValue;
-    }
-
+export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueExpressionCst, LiteralValueExpressionAstData> implements IExpressionAst {
     /**
      * Validate data of current structure.
      * 
-     * @param pTrace - Validation trace.
+     * @param pContext - Validation context.
      */
-    protected override onExpressionTrace(pTrace: PgslTrace): PgslExpressionTrace {
+    protected override process(pContext: AbstractSyntaxTreeContext): LiteralValueExpressionAstData {
         // Convert value.
-        const [lResolveType, lValue] = this.convertData(pTrace, this.mTextValue);
+        const [lResolveType, lValue] = this.convertData(pContext, this.cst.textValue);
 
-        return new PgslExpressionTrace({
+        return {
+            // Expression data.
+            textValue: this.cst.textValue,
+            
+            // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
-            resolveType: lResolveType,
+            returnType: lResolveType,
             constantValue: lValue,
             storageAddressSpace: PgslValueAddressSpace.Inherit
-        });
+        };
     }
 
     /**
@@ -63,13 +44,13 @@ export class PgslLiteralValueExpression extends ExpressionAst {
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pTrace: PgslTrace, pTextValue: string): [PgslType, number] {
+    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [PgslType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [new PgslBooleanType(pTrace), 1];
+            return [new PgslBooleanType(pContext), 1];
         }
         if (pTextValue === 'false') {
-            return [new PgslBooleanType(pTrace), 0];
+            return [new PgslBooleanType(pContext), 0];
         }
 
         // Might be a integer.
@@ -95,7 +76,7 @@ export class PgslLiteralValueExpression extends ExpressionAst {
                 }
             }
 
-            return [new PgslNumericType(pTrace, lSuffixType), lNumber];
+            return [new PgslNumericType(pContext, lSuffixType), lNumber];
         }
 
         // Might be a float.
@@ -141,9 +122,13 @@ export class PgslLiteralValueExpression extends ExpressionAst {
                 }
             }
 
-            return [new PgslNumericType(pTrace, lSuffixType), lNumber];
+            return [new PgslNumericType(pContext, lSuffixType), lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);
     }
 }
+
+export type LiteralValueExpressionAstData = {
+    textValue: string;
+} & ExpressionAstData;

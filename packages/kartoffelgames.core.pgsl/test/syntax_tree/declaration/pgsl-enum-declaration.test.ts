@@ -6,8 +6,8 @@ import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpil
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
 import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
 import { AttributeListAst } from "../../../source/abstract_syntax_tree/general/attribute-list-ast.ts";
-import { PgslLiteralValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-literal-value-expression.ts";
-import { PgslStringValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
+import { PgslLiteralValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts";
+import { PgslStringValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

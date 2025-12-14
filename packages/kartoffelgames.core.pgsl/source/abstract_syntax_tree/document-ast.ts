@@ -39,11 +39,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Build documents build-ins first.
             for (const lBuildInCst of this.cst.buildInDeclarations) {
                 // Try to build content node.
-                const lBuildInContent = DeclarationAstBuilder.build(lBuildInCst, pContext);
-                if (!lBuildInContent) {
-                    pContext.pushIncident(`Invalid build-in structure in document. Expected declaration but found '${lBuildInCst.type}'.`, this);
-                    continue;
-                }
+                const lBuildInContent: IDeclarationAst = DeclarationAstBuilder.build(lBuildInCst, pContext);
 
                 // Build in content can be ignored as it has no affect on the document structure and only on the validation process.
                 // lDocumentData.content.push(lBuildInContent);
@@ -52,13 +48,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Build all other child structures.
             for (const lChildCst of this.cst.declarations) {
                 // Try to build content node.
-                const lBuildInContent = DeclarationAstBuilder.build(lChildCst, pContext);
-                if (!lBuildInContent) {
-                    pContext.pushIncident(`Invalid child structure in document. Expected declaration but found '${lChildCst.type}'.`, this);
-                    continue;
-                }
-
-                lDocumentData.content.push(lBuildInContent);
+                lDocumentData.content.push(DeclarationAstBuilder.build(lChildCst, pContext));
             }
 
             // Collect all incidents from context.

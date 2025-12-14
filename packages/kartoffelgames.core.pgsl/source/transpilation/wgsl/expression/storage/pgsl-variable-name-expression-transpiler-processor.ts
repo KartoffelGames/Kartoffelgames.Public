@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslVariableNameExpression } from '../../../../abstract_syntax_tree/expression/storage/pgsl-variable-name-expression.ts';
+import { PgslVariableNameExpression } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
 import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';

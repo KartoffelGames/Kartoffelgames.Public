@@ -1,7 +1,7 @@
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
 import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { PgslFunctionCallExpression } from '../../expression/single_value/pgsl-function-call-expression.ts';
+import { PgslFunctionCallExpression } from '../../expression/single_value/function-call-expression-ast.ts';
 import { PgslStatement } from '../i-statement-ast.interface.ts';
 
 /**

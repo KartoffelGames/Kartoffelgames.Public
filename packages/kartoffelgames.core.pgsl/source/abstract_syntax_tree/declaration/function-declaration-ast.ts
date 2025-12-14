@@ -1,6 +1,5 @@
 import { FunctionDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { type PgslFunctionTraceEntryPoint } from '../../trace/pgsl-function-trace.ts';
 import { PgslType } from "../../type/pgsl-type.ts";
 import { PgslVoidType } from "../../type/pgsl-void-type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
@@ -70,14 +69,14 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 // Add declaration data.
                 lResultData.declarations.push({
                     parameter: lParameter,
-                    resultType: lReturnTypeDeclaration,
+                    returnType: lReturnTypeDeclaration,
                     block: lBlock
                 });
             }, this);
         }
 
         // Find entry point.
-        const lEntryPoint: PgslFunctionTraceEntryPoint | null = this.readEntryPoint(lAttributes, pContext);
+        const lEntryPoint: FunctionDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, pContext);
         if (lEntryPoint) {
             (<FunctionDeclarationAstData>lResultData).entryPoint = lEntryPoint;
         }
@@ -176,7 +175,7 @@ export type FunctionDeclarationAstDataDeclaration = {
      * Function result type.
      * When null, the function uses the defined generic type as result type.
      */
-    resultType: TypeDeclarationAst | null;
+    returnType: TypeDeclarationAst | null;
 
     /**
      * Function block.

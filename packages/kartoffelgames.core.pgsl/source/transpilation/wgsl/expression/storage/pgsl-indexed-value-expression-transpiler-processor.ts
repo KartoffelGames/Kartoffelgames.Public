@@ -1,4 +1,4 @@
-import { PgslIndexedValueExpression } from '../../../../abstract_syntax_tree/expression/storage/pgsl-indexed-value-expression.ts';
+import { PgslIndexedValueExpression } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

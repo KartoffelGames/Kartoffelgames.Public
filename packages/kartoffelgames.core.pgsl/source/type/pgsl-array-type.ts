@@ -1,7 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
 import type { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
-import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
@@ -173,7 +171,7 @@ export class PgslArrayType extends PgslType {
             }
 
             // Length expression must be an unsigned integer scalar.
-            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+            if (!this.mLengthExpression.data.returnType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
                 pContext.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }

@@ -3,7 +3,7 @@ import type { Cst } from "./general.type.ts";
 /*
  * Core.
  */
-export type ExpressionCstType = 'ArithmeticExpression' | 'BinaryExpression' | 'ComparisonExpression' | 'LogicalExpression' | 'AddressOfExpression' | 'FunctionCallExpression' | 'NewExpression' | 'LiteralExpression' | 'ParenthesizedExpression' | 'StringValueExpression' | 'IndexedValueExpression' | 'PointerExpression' | 'ValueDecompositionExpression' | 'VariableNameExpression' | 'UnaryExpression';
+export type ExpressionCstType = 'ArithmeticExpression' | 'BinaryExpression' | 'ComparisonExpression' | 'LogicalExpression' | 'AddressOfExpression' | 'FunctionCallExpression' | 'NewExpression' | 'LiteralValueExpression' | 'ParenthesizedExpression' | 'StringValueExpression' | 'IndexedValueExpression' | 'PointerExpression' | 'ValueDecompositionExpression' | 'VariableNameExpression' | 'UnaryExpression';
 export type ExpressionCst<TExpressionType extends ExpressionCstType = ExpressionCstType> = Cst<TExpressionType>;
 
 /*
@@ -42,17 +42,17 @@ export type AddressOfExpressionCst = {
 
 export type FunctionCallExpressionCst = {
     functionName: string;
-    arguments: Array<ExpressionCst<ExpressionCstType>>;
+    parameterList: Array<ExpressionCst<ExpressionCstType>>;
 } & ExpressionCst<'FunctionCallExpression'>;
 
 export type NewExpressionCst = {
     typeName: string;
-    arguments: Array<ExpressionCst<ExpressionCstType>>;
+    parameterList: Array<ExpressionCst<ExpressionCstType>>;
 } & ExpressionCst<'NewExpression'>;
 
-export type LiteralExpressionCst = {
+export type LiteralValueExpressionCst = {
     textValue: string;
-} & ExpressionCst<'LiteralExpression'>;
+} & ExpressionCst<'LiteralValueExpression'>;
 
 export type ParenthesizedExpressionCst = {
     expression: ExpressionCst<ExpressionCstType>;

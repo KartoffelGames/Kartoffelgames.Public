@@ -300,7 +300,7 @@ export class PgslTextureType extends PgslType {
                         continue;
                     }
                 
-                    if (!(lActualParameterValue.data.resolveType instanceof PgslStringType)) {
+                    if (!(lActualParameterValue.data.returnType instanceof PgslStringType)) {
                         pContext.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a string value expression.`);
                         continue
                     }

@@ -1,4 +1,4 @@
-import { PgslLiteralValueExpression } from '../../../../abstract_syntax_tree/expression/single_value/pgsl-literal-value-expression.ts';
+import { PgslLiteralValueExpression } from '../../../../abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

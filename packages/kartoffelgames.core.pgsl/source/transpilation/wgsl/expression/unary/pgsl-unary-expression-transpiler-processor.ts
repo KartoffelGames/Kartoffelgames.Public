@@ -1,4 +1,4 @@
-import { PgslUnaryExpression } from '../../../../abstract_syntax_tree/expression/unary/pgsl-unary-expression.ts';
+import { PgslUnaryExpression } from '../../../../abstract_syntax_tree/expression/unary/unary-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

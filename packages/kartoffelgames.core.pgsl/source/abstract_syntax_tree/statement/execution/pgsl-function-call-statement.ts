@@ -1,45 +1,39 @@
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { PgslFunctionCallExpression } from '../../expression/single_value/function-call-expression-ast.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
+import { FunctionCallExpressionCst } from "../../../concrete_syntax_tree/expression.type.ts";
+import type { FunctionCallStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL syntax tree of a function call statement with optional template list.
  */
-export class PgslFunctionCallStatement extends PgslStatement {
-    private readonly mFunctionExpression: PgslFunctionCallExpression;
-
-    /**
-     * Function expression of statement.
-     */
-    public get functionExpression(): PgslFunctionCallExpression {
-        return this.mFunctionExpression;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pMeta - Syntax tree meta data.
-     * @param pName - Function name.
-     * @param pParameterList - Function parameters.
-     */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pName: string, pParameterList: Array<ExpressionAst>) {
-        super(pMeta);
-
-        // Create and validate expression instead.
-        this.mFunctionExpression = new PgslFunctionCallExpression(pName, pParameterList, pMeta);
-
-        // Add function expression as child.
-        this.appendChild(this.mFunctionExpression);
-    }
-
+export class FunctionCallStatementAst extends AbstractSyntaxTree<FunctionCallStatementCst, FunctionCallStatementAstData> implements IStatementAst {
     /**
      * Validate data of current structure.
      * 
-     * @param pTrace - Validation trace.
+     * @param pContext - Validation context.
      */
-    protected override onTrace(pTrace: PgslTrace): void {
-        this.mFunctionExpression.trace(pTrace);
+    protected process(pContext: AbstractSyntaxTreeContext): FunctionCallStatementAstData {
+        // Build a function call expression cst.
+        const lFunctionCallCst: FunctionCallExpressionCst = {
+            type: 'FunctionCallExpression',
+            functionName: this.cst.functionName,
+            parameterList: this.cst.parameterList,
+            range: this.cst.range
+        }
+
+        // Build function call expression.
+        const lFunctionExpression: IExpressionAst = ExpressionAstBuilder.build(lFunctionCallCst, pContext);
+
+        return {
+            // Statement data.
+            functionExpression: lFunctionExpression
+        };
     }
 }
+
+export type FunctionCallStatementAstData = {
+    functionExpression: IExpressionAst;
+} & StatementAstData;

@@ -1,90 +1,57 @@
-import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { IfStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
-import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.
  */
-export class PgslIfStatement extends PgslStatement {
-    private readonly mBlock: BlockStatementAst;
-    private readonly mElse: PgslIfStatement | BlockStatementAst | null;
-    private readonly mExpression: ExpressionAst;
-
-    /**
-     * If block.
-     */
-    public get block(): BlockStatementAst {
-        return this.mBlock;
-    }
-
-    /**
-     * Else statement of if..
-     */
-    public get else(): PgslIfStatement | BlockStatementAst | null {
-        return this.mElse;
-    }
-
-    /**
-     * If boolean expression reference.
-     */
-    public get expression(): ExpressionAst {
-        return this.mExpression;
-    }
-    
-    /**
-     * Constructor.
-     * 
-     * @param pParameter - Parameters.
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pParameter: PgslIfStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
-
-        // Set data.
-        this.mExpression = pParameter.expression;
-        this.mBlock = pParameter.block;
-        this.mElse = pParameter.else;
-
-        // Set data as child trees.
-        this.appendChild(this.mExpression, this.mBlock);
-        if (this.mElse) {
-            this.appendChild(this.mElse);
-        }
-    }
-
+export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStatementAstData> implements IStatementAst {
     /**
      * Validate data of current structure.
      * 
-     * @param pTrace - Validation trace.
+     * @param pContext - Validation context.
      */
-    protected onTrace(pTrace: PgslTrace): void {
+    protected process(pContext: AbstractSyntaxTreeContext): IfStatementAstData {
         // Validate expression.
-        this.mExpression.trace(pTrace);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        if (!lExpression) {
+            throw new Error('Expression could not be build.');
+        }
 
         // Validate block.
-        this.mBlock.trace(pTrace);
+        const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
 
         // Validate else block.
-        if (this.mElse) {
-            this.mElse.trace(pTrace);
+        let lElse: BlockStatementAst | IfStatementAst | null = null;
+        if (this.cst.else) {
+            // Check if else is another if statement or a block
+            if (this.cst.else.type === 'IfStatement') {
+                lElse = new IfStatementAst(this.cst.else as any, pContext);
+            } else {
+                lElse = new BlockStatementAst(this.cst.else as any, pContext);
+            }
         }
-
-        // Read attachments of expression.
-        const lExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
 
         // Expression must be a boolean.
-        if (!lExpressionAttachment.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
-            pTrace.pushIncident('Expression of if must resolve into a boolean.', this.mExpression);
+        if (!lExpression.data.returnType.isImplicitCastableInto(new PgslBooleanType(pContext))) {
+            pContext.pushIncident('Expression of if must resolve into a boolean.', lExpression);
         }
+
+        return {
+            expression: lExpression,
+            block: lBlock,
+            else: lElse
+        };
     }
 }
 
-type PgslIfStatementSyntaxTreeConstructorParameter = {
-    expression: ExpressionAst,
+export type IfStatementAstData = {
+    expression: IExpressionAst;
     block: BlockStatementAst;
-    else: BlockStatementAst | PgslIfStatement | null;
-};
+    else: BlockStatementAst | IfStatementAst | null;
+} & StatementAstData;

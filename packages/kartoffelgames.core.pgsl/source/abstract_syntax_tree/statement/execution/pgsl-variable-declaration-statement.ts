@@ -2,106 +2,55 @@ import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
+import type { VariableDeclarationStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { PgslAccessMode } from '../../buildin/pgsl-access-mode-enum.ts';
-import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import type { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { PgslAccessModeEnum } from "../../../buildin/pgsl-access-mode-enum.ts";
+import { IValueStoreAst, ValueStoreAstData } from "../../i-value-store-ast.interface.ts";
+import { PgslType } from "../../../type/pgsl-type.ts";
+
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
-export class PgslVariableDeclarationStatement extends PgslStatement {
-    private readonly mDeclarationTypeName: string;
-    private readonly mExpression: ExpressionAst | null;
-    private readonly mName: string;
-    private readonly mTypeDeclaration: TypeDeclarationAst;
-
-    /**
-     * Declaration type name.
-     */
-    public get declarationType(): string {
-        return this.mDeclarationTypeName;
-    }
-
-    /**
-     * Expression reference.
-     */
-    public get expression(): ExpressionAst | null {
-        return this.mExpression;
-    }
-
-    /**
-     * Variable name.
-     */
-    public get name(): string {
-        return this.mName;
-    }
-
-    /**
-     * Variable type.
-     */
-    public get type(): TypeDeclarationAst {
-        return this.mTypeDeclaration;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pParameter - Constructor parameter data.
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pParameter: PgslVariableDeclarationStatementSyntaxTreeConstructorParameter, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
-
-        // Set data.
-        this.mDeclarationTypeName = pParameter.declarationType;
-        this.mName = pParameter.name;
-        this.mTypeDeclaration = pParameter.type;
-        this.mExpression = pParameter.expression ?? null;
-
-        // Add child trees.
-        this.appendChild(this.mTypeDeclaration);
-        if (this.mExpression) {
-            this.appendChild(this.mExpression);
-        }
-    }
-
+export class VariableDeclarationStatementAst extends AbstractSyntaxTree<VariableDeclarationStatementCst, VariableDeclarationStatementAstData> implements IStatementAst, IValueStoreAst {
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
      */
-    protected override onTrace(pTrace: PgslTrace): void {
-        // Validate type.
-        this.mTypeDeclaration.trace(pTrace);
+    protected process(pContext: AbstractSyntaxTreeContext): VariableDeclarationStatementAstData {
+        // Parse declaration type.
+        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.cst.declarationType);
+        if (!lDeclarationType) {
+            pContext.pushIncident(`Declaration type "${this.cst.declarationType}" not defined.`, this);
+
+            lDeclarationType = PgslDeclarationType.Var;
+        }
+
+        // Create type declaration.
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration, pContext);
+        const lType: PgslType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.
         let lFixedState: PgslValueFixedState = PgslValueFixedState.Variable;
         let lConstantValue: number | string | null = null;
+        let lExpression: IExpressionAst | null = null;
 
         // Read expression attachment when a expression is present.
-        if (this.mExpression) {
-            // Validate expression.
-            this.mExpression.trace(pTrace);
-
-            const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
-            lFixedState = lExpressionTrace.fixedState;
-            lConstantValue = lExpressionTrace.constantValue;
+        if (this.cst.expression) {
+            lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
+            lFixedState = lExpression.data.fixedState;
+            lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
-            if (!lExpressionTrace.resolveType.isImplicitCastableInto(this.mTypeDeclaration.type)) {
-                pTrace.pushIncident(`Expression values type can't be converted to variables type.`, this.mExpression);
+            if (!lExpression.data.returnType.isImplicitCastableInto(lType)) {
+                pContext.pushIncident(`Expression values type can't be converted to variables type.`, lExpression);
             }
-        }
-
-        // Parse declaration type.
-        let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.mDeclarationTypeName);
-        if (!lDeclarationType) {
-            pTrace.pushIncident(`Declaration type "${this.mDeclarationTypeName}" not defined.`, this);
-
-            lDeclarationType = PgslDeclarationType.Var;
         }
 
         // Create list of all bit operations.
@@ -112,50 +61,48 @@ export class PgslVariableDeclarationStatement extends PgslStatement {
 
         // Validate.
         if (!lDeclarationTypeList.includes(lDeclarationType)) {
-            pTrace.pushIncident(`Declaration type "${lDeclarationType}" can not be used for block variable declarations.`, this);
+            pContext.pushIncident(`Declaration type "${lDeclarationType}" can not be used for block variable declarations.`, this);
         }
 
         // Value validation does not apply to pointers.
-        if (!(this.mTypeDeclaration.type instanceof PgslPointerType)) {
+        if (!(lType instanceof PgslPointerType)) {
             // Type needs to be storable.
-            if (!this.mTypeDeclaration.type.storable) {
+            if (!lType.storable) {
                 throw new Exception(`Type is not storable or a pointer of it.`, this);
             }
 
             // Const declaration type needs to be constructible.
-            if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mTypeDeclaration.type.constructible) {
+            if (this.cst.declarationType === PgslDeclarationType.Const && !lType.constructible) {
                 throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
             }
         }
 
         // Validate const value need to have a initialization.
-        if (this.mDeclarationTypeName === PgslDeclarationType.Const && !this.mExpression) {
+        if (this.cst.declarationType === PgslDeclarationType.Const && !this.cst.expression) {
             throw new Exception(`Constants need a initializer value.`, this);
         }
 
-        // Push variable to current validation scope.
-        pTrace.currentScope.addValue(this.mName, new PgslValueTrace({
+        // Push variable to current scope.
+        pContext.addValue(this);
+
+        return {
+            // Statement data.
+            typeDeclaration: lTypeDeclaration,
+            expression: lExpression,
+
+            // Value store data.
             fixedState: lFixedState,
             declarationType: lDeclarationType,
             addressSpace: PgslValueAddressSpace.Function,
-            type: this.mTypeDeclaration.type,
-            name: this.mName,
+            type: lType,
+            name: this.cst.name,
             constantValue: typeof lConstantValue === 'number' ? lConstantValue : null,
-            accessMode: PgslAccessMode.ReadWrite,
-            bindingInformation: null
-        }));
+            accessMode: PgslAccessModeEnum.values.ReadWrite,
+        };
     }
 }
 
-export type PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = {
-    fixedState: PgslValueFixedState;
-    declarationType: PgslDeclarationType;
-    type: TypeDeclarationAst;
-};
-
-export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
-    declarationType: string;
-    name: string;
-    type: TypeDeclarationAst;
-    expression: ExpressionAst | null;
-};
+export type VariableDeclarationStatementAstData = {
+    typeDeclaration: TypeDeclarationAst;
+    expression: IExpressionAst | null;
+} & StatementAstData & ValueStoreAstData;

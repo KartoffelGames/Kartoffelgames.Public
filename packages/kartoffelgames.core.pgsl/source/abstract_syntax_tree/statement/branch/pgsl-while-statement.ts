@@ -1,70 +1,47 @@
-import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { WhileStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
-import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a while statement.
  */
-export class PgslWhileStatement extends PgslStatement {
-    private readonly mBlock: BlockStatementAst;
-    private readonly mExpression: ExpressionAst;
-
-    /**
-     * If block.
-     */
-    public get block(): BlockStatementAst {
-        return this.mBlock;
-    }
-
-    /**
-     * If boolean expression reference.
-     */
-    public get expression(): ExpressionAst {
-        return this.mExpression;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pExpression - While expression.
-     * @param pBlock - Branched
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pExpression: ExpressionAst, pBlock: BlockStatementAst, pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
-
-        // Set data.
-        this.mExpression = pExpression;
-        this.mBlock = pBlock;
-
-        // Add data as child tree.
-        this.appendChild(this.mExpression, this.mBlock);
-    }
-
+export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, WhileStatementAstData> implements IStatementAst {
     /**
      * Validate data of current structure.
      * 
-     * @param pTrace - Validation trace.
+     * @param pContext - Validation context.
      */
-    protected onTrace(pTrace: PgslTrace): void {
+    protected process(pContext: AbstractSyntaxTreeContext): WhileStatementAstData {
         // Trace expression.
-        this.mExpression.trace(pTrace);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        if (!lExpression) {
+            throw new Error('Expression could not be build.');
+        }
 
         // Trace block in own loop scope.
-        pTrace.newScope('loop', () => {
-            this.mBlock.trace(pTrace);
+        return pContext.pushScope('loop', () => {
+            // Create block statement.
+            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+
+            // Expression must be a boolean.
+            if (!lExpression.data.returnType.isImplicitCastableInto(new PgslBooleanType(pContext))) {
+                pContext.pushIncident('Expression of while loops must resolve into a boolean.', lExpression);
+            }
+
+            return {
+                expression: lExpression,
+                block: lBlock
+            } satisfies WhileStatementAstData;
         }, this);
-
-        // Read attachments of expression.
-        const lExpressionAttachment: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
-
-        // Expression must be a boolean.
-        if (!lExpressionAttachment.resolveType.isImplicitCastableInto(new PgslBooleanType(pTrace))) {
-            pTrace.pushIncident('Expression of while loops must resolve into a boolean.', this.mExpression);
-        }
     }
 }
+
+export type WhileStatementAstData = {
+    block: BlockStatementAst;
+    expression: IExpressionAst;
+} & StatementAstData;

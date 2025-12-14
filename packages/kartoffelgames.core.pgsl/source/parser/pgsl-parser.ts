@@ -1136,7 +1136,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return {
                 type: 'IncrementDecrementStatement',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                operatorName: pData.operator,
+                operator: pData.operator,
                 expression: pData.expression
             } satisfies IncrementDecrementStatementCst;
         });
@@ -1159,7 +1159,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'FunctionCallStatement',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 functionName: pData.name,
-                arguments: pData.parameters ?? []
+                parameterList: pData.parameters ?? []
             } satisfies FunctionCallStatementCst;
         });
 

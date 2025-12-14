@@ -1,27 +1,25 @@
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
+import type { ContinueStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure holding a continue statement.
  */
-export class PgslContinueStatement extends PgslStatement {
-    /**
-     * Constructor.
-     * 
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta) {
-        super(pMeta);
-    }
-
+export class ContinueStatementAst extends AbstractSyntaxTree<ContinueStatementCst, ContinueStatementAstData> implements IStatementAst {
     /**
      * Validate data of current structure.
+     * 
+     * @param pContext - Validation context.
      */
-    protected override onTrace(pTrace: PgslTrace): void {
+    protected process(pContext: AbstractSyntaxTreeContext): ContinueStatementAstData {
         // Only in Loops
-        if (!pTrace.currentScope.hasScope('loop')) {
-            pTrace.pushIncident('Continue statement can only be used within loops.', this);
+        if (!pContext.hasScope('loop')) {
+            pContext.pushIncident('Continue statement can only be used within loops.', this);
         }
+
+        return {};
     }
 }
+
+export type ContinueStatementAstData = Record<string, never> & StatementAstData;

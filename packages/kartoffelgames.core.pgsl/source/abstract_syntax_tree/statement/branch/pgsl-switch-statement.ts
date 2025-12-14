@@ -1,136 +1,106 @@
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import type { SwitchStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
-import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
-import { PgslStatement } from '../i-statement-ast.interface.ts';
-import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class PgslSwitchStatement extends PgslStatement {
-    private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
-    private readonly mDefault: BlockStatementAst;
-    private readonly mExpression: ExpressionAst;
-
+export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, SwitchStatementAstData> implements IStatementAst {
     /**
-     * Switch cases.
-     */
-    public get cases(): Array<PgslSwitchStatementSwitchCase> {
-        return [...this.mCases];
-    }
-
-    /**
-     * Default block.
-     */
-    public get default(): BlockStatementAst {
-        return this.mDefault;
-    }
-
-    /**
-     * Switch boolean expression reference.
-     */
-    public get expression(): ExpressionAst {
-        return this.mExpression;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param pMeta - Syntax tree meta data. 
-     * @param pParameter - Construction parameter.
-     */
-    public constructor(pMeta: BasePgslSyntaxTreeMeta, pParameter: PgslSwitchStatementSyntaxTreeConstructorParameter) {
-        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
-        super(pMeta);
-
-        // Set data.
-        this.mCases = pParameter.cases;
-        this.mExpression = pParameter.expression;
-        this.mDefault = pParameter.default;
-
-        // Add data as child tree.
-        this.appendChild(this.mExpression);
-        this.appendChild(this.mDefault);
-
-        // Add each case as 
-        for (const lCase of this.mCases) {
-            this.appendChild(lCase.block, ...lCase.cases);
-        }
-    }
-
-    /**
-     * Trace data of current structure.
+     * Validate data of current structure.
      * 
-     * @param pTrace - Current trace context.
+     * @param pContext - Validation context.
      */
-    protected override onTrace(pTrace: PgslTrace): void {
+    protected override process(pContext: AbstractSyntaxTreeContext): SwitchStatementAstData {
         // Trace expression.
-        this.mExpression.trace(pTrace);
-
-        // Read trace of expression.
-        const lExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mExpression);
-
-        const lCastableIntoInteger = (pType: PgslType) => {
-            return pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.signedInteger)) || pType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger));
-        };
-
-        // Expression resolve type must be a unsigned integer.
-        if (!lCastableIntoInteger(lExpressionTrace.resolveType)) {
-            pTrace.pushIncident('Switch expression must resolve into a unsigned integer.', this.mExpression);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        if (!lExpression) {
+            throw new Error('Expression could not be build.');
         }
 
-        const lSelectorValues: Set<number> = new Set<number>();
+        // Trace block in switch scope
+        return pContext.pushScope('switch', () => {
+            const lCastableIntoInteger = (pType: PgslType) => {
+                return pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger)) || pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
+            };
 
-        // Validate each case.
-        for (const lCase of this.mCases) {
-            // Validate case block.
-            lCase.block.trace(pTrace);
+            // Expression resolve type must be a unsigned integer.
+            if (!lCastableIntoInteger(lExpression.data.returnType)) {
+                pContext.pushIncident('Switch expression must resolve into a unsigned integer.', lExpression);
+            }
 
-            // Validate any case value.
-            for (const lCaseValue of lCase.cases) {
-                // Validate case value.
-                lCaseValue.trace(pTrace);
+            const lSelectorValues: Set<number> = new Set<number>();
+            const lCases: Array<SwitchStatementAstSwitchCase> = [];
 
-                // Read trace of case value.
-                const lCaseValueTrace: PgslExpressionTrace = pTrace.getExpression(lCaseValue);
+            // Validate each case.
+            for (const lCaseData of this.cst.cases) {
+                const lCaseExpressions: Array<IExpressionAst> = [];
 
-                // Check for duplicate case values.
-                if (typeof lCaseValueTrace.constantValue === 'number') {
-                    if (lSelectorValues.has(lCaseValueTrace.constantValue)) {
-                        pTrace.pushIncident('Duplicate case value found.', lCaseValue);
+                // Validate case block.
+                const lCaseBlock: BlockStatementAst = new BlockStatementAst(lCaseData.block, pContext);
+
+                // Validate any case value.
+                for (const lCaseValue of lCaseData.expressions) {
+                    // Validate case value.
+                    const lCaseValueAst: IExpressionAst | null = ExpressionAstBuilder.build(lCaseValue, pContext);
+                    if (!lCaseValueAst) {
+                        throw new Error('Case value expression could not be build.');
                     }
 
-                    lSelectorValues.add(lCaseValueTrace.constantValue);
+                    // Check for duplicate case values.
+                    if (typeof lCaseValueAst.data.constantValue === 'number') {
+                        if (lSelectorValues.has(lCaseValueAst.data.constantValue)) {
+                            pContext.pushIncident('Duplicate case value found.', lCaseValueAst);
+                        }
+
+                        lSelectorValues.add(lCaseValueAst.data.constantValue);
+                    }
+
+                    // Must be number type.
+                    if (!lCastableIntoInteger(lCaseValueAst.data.returnType)) {
+                        pContext.pushIncident('Case expression must be of a unsigned integer type.', lCaseValueAst);
+                    }
+
+                    // Cases must be constant.
+                    if (lCaseValueAst.data.fixedState !== PgslValueFixedState.Constant) {
+                        pContext.pushIncident('Case expression must be a constant.', lCaseValueAst);
+                    }
+
+                    lCaseExpressions.push(lCaseValueAst);
                 }
 
-                // Must be number type.
-                if (!lCastableIntoInteger(lCaseValueTrace.resolveType)) {
-                    pTrace.pushIncident('Case expression must be of a unsigned integer type.', lCaseValue);
-                }
-
-                // Cases must be constant.
-                if (lCaseValueTrace.fixedState !== PgslValueFixedState.Constant) {
-                    pTrace.pushIncident('Case expression must be a constant.', lCaseValue);
-                }
+                lCases.push({
+                    cases: lCaseExpressions,
+                    block: lCaseBlock
+                });
             }
-        }
 
-        // Trace default block.
-        this.mDefault.trace(pTrace);
+            // Trace default block.
+            const lDefault: BlockStatementAst = new BlockStatementAst(this.cst.default, pContext);
+
+            return {
+                expression: lExpression,
+                cases: lCases,
+                default: lDefault
+            };
+        }, this);
     }
 }
 
-export type PgslSwitchStatementSwitchCase = {
-    readonly cases: Array<ExpressionAst>,
+export type SwitchStatementAstSwitchCase = {
+    readonly cases: Array<IExpressionAst>;
     readonly block: BlockStatementAst;
 };
 
-export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
-    expression: ExpressionAst,
-    cases: Array<PgslSwitchStatementSwitchCase>;
+export type SwitchStatementAstData = {
+    expression: IExpressionAst;
+    cases: Array<SwitchStatementAstSwitchCase>;
     default: BlockStatementAst;
-};
+} & StatementAstData;

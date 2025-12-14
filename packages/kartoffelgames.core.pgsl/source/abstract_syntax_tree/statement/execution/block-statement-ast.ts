@@ -4,8 +4,8 @@ import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { PgslBreakStatement } from '../single/pgsl-break-statement.ts';
-import { PgslContinueStatement } from '../single/pgsl-continue-statement.ts';
+import { BreakStatementAst } from "../single/pgsl-break-statement.ts";
+import { ContinueStatementAst } from "../single/pgsl-continue-statement.ts";
 import { ReturnStatementAst } from '../single/return-statement-ast.ts';
 import { StatementAstBuilder } from "../statement-ast-builder.ts";
 
@@ -31,14 +31,10 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
             for (const lStatement of this.cst.statements) {
                 // Build statement.
-                const lStatementAst: IStatementAst | null = StatementAstBuilder.build(lStatement, pContext);
-                if (!lStatementAst) {
-                    pContext.pushIncident(`Failed to build statement AST node of type '${lStatement.type}'.`, this);
-                    continue;
-                }
+                const lStatementAst: IStatementAst = StatementAstBuilder.build(lStatement, pContext);
 
                 // Push statement to list.
-                lStatementData.statementList.push(lStatementAst!);
+                lStatementData.statementList.push(lStatementAst);
 
                 // Check for return statement.
                 if (lStatementAst instanceof ReturnStatementAst) {
@@ -53,13 +49,13 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                 }
 
                 // Check for continuing or breaking statements.
-                if (lStatementAst instanceof PgslContinueStatement) {
+                if (lStatementAst instanceof ContinueStatementAst) {
                     lStatementData.isContinuing = true;
                     continue;
                 }
 
                 // Check for breaking statements.
-                if (lStatementAst instanceof PgslBreakStatement) {
+                if (lStatementAst instanceof BreakStatementAst) {
                     lStatementData.isBreaking = true;
                     continue;
                 }

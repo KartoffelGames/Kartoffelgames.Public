@@ -72,11 +72,11 @@ export type AssignmentStatementCst = {
 
 export type FunctionCallStatementCst = {
     functionName: string;
-    arguments: Array<ExpressionCst<ExpressionCstType>>;
+    parameterList: Array<ExpressionCst<ExpressionCstType>>;
 } & StatementCst<'FunctionCallStatement'>;
 
 export type IncrementDecrementStatementCst = {
-    operatorName: string;
+    operator: string;
     expression: ExpressionCst<ExpressionCstType>
 } & StatementCst<'IncrementDecrementStatement'>;
 

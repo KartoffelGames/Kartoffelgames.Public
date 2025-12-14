@@ -1,22 +1,12 @@
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 
 /**
  * Abstract base class for all PGSL types.
  * Provides common functionality for type comparison, casting, and property management.
  */
 export abstract class PgslType {
-    private readonly mTrace: PgslTrace;
-    private mTypeProperties: PgslTypeProperties | null;
-
-    /**
-     * Gets the trace context associated with this type.
-     * 
-     * @returns The trace context for type analysis and validation.
-     */
-    protected get trace(): PgslTrace {
-        return this.mTrace;
-    }
+    private mTypeProperties: PgslTypeProperties;
 
     /**
      * Gets whether this type value is storable in a variable.
@@ -24,7 +14,7 @@ export abstract class PgslType {
      * @returns True if the value can be stored in a variable, false otherwise.
      */
     public get storable(): boolean {
-        return this.getTypeProperties().storable;
+        return this.mTypeProperties.storable;
     }
 
     /**
@@ -33,7 +23,7 @@ export abstract class PgslType {
      * @returns True if the type can be shared with the host, false otherwise.
      */
     public get hostShareable(): boolean {
-        return this.getTypeProperties().hostShareable;
+        return this.mTypeProperties.hostShareable;
     }
 
     /**
@@ -42,7 +32,7 @@ export abstract class PgslType {
      * @returns True if this is a composite type, false otherwise.
      */
     public get composite(): boolean {
-        return this.getTypeProperties().composite;
+        return this.mTypeProperties.composite;
     }
 
     /**
@@ -52,7 +42,7 @@ export abstract class PgslType {
      * @returns True if the type is constructible, false otherwise.
      */
     public get constructible(): boolean {
-        return this.getTypeProperties().constructible;
+        return this.mTypeProperties.constructible;
     }
 
     /**
@@ -61,7 +51,7 @@ export abstract class PgslType {
      * @returns True if the type has a fixed footprint, false otherwise.
      */
     public get fixedFootprint(): boolean {
-        return this.getTypeProperties().fixedFootprint;
+        return this.mTypeProperties.fixedFootprint;
     }
 
     /**
@@ -70,7 +60,7 @@ export abstract class PgslType {
      * @returns True if the type is indexable, false otherwise.
      */
     public get indexable(): boolean {
-        return this.getTypeProperties().indexable;
+        return this.mTypeProperties.indexable;
     }
 
     /**
@@ -80,7 +70,7 @@ export abstract class PgslType {
      * @returns True if the type is concrete, false otherwise.
      */
     public get concrete(): boolean {
-        return this.getTypeProperties().concrete;
+        return this.mTypeProperties.concrete;
     }
 
     /**
@@ -90,7 +80,7 @@ export abstract class PgslType {
      * @returns True if the type is scalar, false otherwise.
      */
     public get scalar(): boolean {
-        return this.getTypeProperties().scalar;
+        return this.mTypeProperties.scalar;
     }
 
     /**
@@ -100,17 +90,16 @@ export abstract class PgslType {
      * @returns True if the type is plain, false otherwise.
      */
     public get plain(): boolean {
-        return this.getTypeProperties().plain;
+        return this.mTypeProperties.plain;
     }
 
     /**
      * Creates a new PGSL type instance.
      * 
-     * @param pTrace - The trace context for type analysis and validation.
+     * @param pContext - The context of the type definition.
      */
-    public constructor(pTrace: PgslTrace) {
-        this.mTrace = pTrace;
-        this.mTypeProperties = null;
+    public constructor(pContext: AbstractSyntaxTreeContext) {
+        this.mTypeProperties = this.process(pContext);
     }
 
     /**
@@ -146,24 +135,11 @@ export abstract class PgslType {
      * Collects and returns the type properties for this type.
      * This method is called by derived classes to define the characteristics of their type.
      * 
-     * @param pTrace - The trace context for property collection.
+     * @param pContext - The context of the type definition.
      * 
      * @returns The type properties that define this type's characteristics.
      */
-    protected abstract onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties;
-
-    /**
-     * Gets the type properties, initializing them if necessary.
-     * This method ensures type properties are collected only once and cached for subsequent access.
-     * 
-     * @returns The type properties for this type.
-     */
-    private getTypeProperties(): PgslTypeProperties {
-        if (this.mTypeProperties === null) {
-            this.mTypeProperties = this.onTypePropertyCollection(this.mTrace);
-        }
-        return this.mTypeProperties;
-    }
+    protected abstract process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties;
 }
 
 /**

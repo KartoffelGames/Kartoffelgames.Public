@@ -10,8 +10,8 @@ import { PgslStructType } from '../../../type/pgsl-struct-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { PgslStructPropertyDeclaration } from '../../declaration/pgsl-struct-property-declaration.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import type { StructPropertyDeclarationAst } from '../../declaration/struct-property-declaration-ast.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
@@ -82,7 +82,7 @@ export class PgslValueDecompositionExpression extends ExpressionAst {
                     }
 
                     // Find property by name in its struct.
-                    const lProperty: PgslStructPropertyDeclaration | undefined = lStructTrace.declaration.properties.find((pProperty) => { return pProperty.name === this.mProperty; });
+                    const lProperty: StructPropertyDeclarationAst | undefined = lStructTrace.declaration.properties.find((pProperty) => { return pProperty.name === this.mProperty; });
                     if (!lProperty) {
                         pTrace.pushIncident(`Struct has no defined property "${this.mProperty}"`, this);
                         return null;

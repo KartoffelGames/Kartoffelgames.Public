@@ -10,7 +10,7 @@ import { PgslNumericType } from "../../../type/pgsl-numeric-type.ts";
 import { PgslType, PgslTypeConstructor } from '../../../type/pgsl-type.ts';
 import { PgslVectorType } from "../../../type/pgsl-vector-type.ts";
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 import { PgslLiteralValueExpression } from "./pgsl-literal-value-expression.ts";
 
 /**

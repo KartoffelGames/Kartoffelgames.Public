@@ -1,5 +1,5 @@
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import type { PgslFunctionDeclaration } from '../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
+import type { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import type { PgslDoWhileStatement } from '../abstract_syntax_tree/statement/branch/pgsl-do-while-statement.ts';
 import type { PgslForStatement } from '../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
@@ -118,7 +118,7 @@ export class PgslTraceScope {
 }
 
 export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScopeType> =
-    T extends 'function' ? PgslFunctionDeclaration :
+    T extends 'function' ? FunctionDeclarationAst :
     T extends 'global' ? DocumentAst :
     T extends 'loop' ? (PgslDoWhileStatement | PgslForStatement | PgslWhileStatement) :
     T extends 'switch' ? PgslSwitchStatement :

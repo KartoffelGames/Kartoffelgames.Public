@@ -1,5 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
@@ -162,7 +162,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns Type properties for array types.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Validate length expression when set.
         if (this.mLengthExpression) {
             // Read expressions attachments.

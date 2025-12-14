@@ -2,29 +2,29 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
-import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
+import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
 
 /**
  * PGSL structure for a if statement with optional else block.
  */
 export class PgslIfStatement extends PgslStatement {
-    private readonly mBlock: PgslBlockStatement;
-    private readonly mElse: PgslIfStatement | PgslBlockStatement | null;
+    private readonly mBlock: BlockStatementAst;
+    private readonly mElse: PgslIfStatement | BlockStatementAst | null;
     private readonly mExpression: ExpressionAst;
 
     /**
      * If block.
      */
-    public get block(): PgslBlockStatement {
+    public get block(): BlockStatementAst {
         return this.mBlock;
     }
 
     /**
      * Else statement of if..
      */
-    public get else(): PgslIfStatement | PgslBlockStatement | null {
+    public get else(): PgslIfStatement | BlockStatementAst | null {
         return this.mElse;
     }
 
@@ -85,6 +85,6 @@ export class PgslIfStatement extends PgslStatement {
 
 type PgslIfStatementSyntaxTreeConstructorParameter = {
     expression: ExpressionAst,
-    block: PgslBlockStatement;
-    else: PgslBlockStatement | PgslIfStatement | null;
+    block: BlockStatementAst;
+    else: BlockStatementAst | PgslIfStatement | null;
 };

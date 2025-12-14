@@ -1,17 +1,17 @@
 import { PgslInterpolateSampling } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
 import { PgslInterpolateType } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
-import { PgslStructPropertyDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
+import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
 import type { PgslStructPropertyTrace } from '../../../trace/pgsl-struct-property-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBuildInType } from '../../../type/pgsl-build-in-type.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslStructPropertyDeclaration> {
+export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<StructPropertyDeclarationAst> {
     /**
      * Returns the target type for this processor.
      */
-    public get target(): typeof PgslStructPropertyDeclaration {
-        return PgslStructPropertyDeclaration;
+    public get target(): typeof StructPropertyDeclarationAst {
+        return StructPropertyDeclarationAst;
     }
 
     /**
@@ -22,7 +22,7 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
      * @param pSendResult - Function to send the result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: PgslStructPropertyDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: StructPropertyDeclarationAst, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile property type.
         const lTypeTranspilation: string = pTranspile(pInstance.type);
 

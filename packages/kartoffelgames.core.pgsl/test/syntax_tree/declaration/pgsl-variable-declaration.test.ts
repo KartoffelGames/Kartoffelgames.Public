@@ -3,9 +3,9 @@ import { PgslDeclarationType } from '../../../source/enum/pgsl-declaration-type.
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslVariableDeclaration } from '../../../source/abstract_syntax_tree/declaration/variable-declaration-ast.ts';
-import { ExpressionAst } from '../../../source/abstract_syntax_tree/expression/pgsl-expression.ts';
-import { PgslTypeDeclaration } from '../../../source/abstract_syntax_tree/general/pgsl-type-declaration.ts';
-import { PgslAttributeList } from '../../../source/abstract_syntax_tree/general/pgsl-attribute-list.ts';
+import { ExpressionAst } from '../../../source/abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
+import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
@@ -50,7 +50,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
 
@@ -70,7 +70,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
 
@@ -90,7 +90,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
 
@@ -110,7 +110,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
     });
@@ -120,7 +120,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -133,7 +133,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -141,7 +141,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -154,7 +154,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -162,7 +162,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -175,7 +175,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -183,7 +183,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;
             `;
 
@@ -196,7 +196,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -204,7 +204,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<TexelFormat.Rgba8unorm, AccessMode.ReadWrite>;
             `;
 
@@ -217,7 +217,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -227,7 +227,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lGroupName: string = 'myGroup';
             const lBindingName: string = 'myBinding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -240,7 +240,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -248,8 +248,8 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.accessMode}(AccessMode.Read)]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -262,7 +262,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
     });
@@ -272,7 +272,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -285,7 +285,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -293,7 +293,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -306,7 +306,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -314,7 +314,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -327,7 +327,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -335,7 +335,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;
             `;
 
@@ -348,7 +348,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -356,7 +356,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslSamplerType.typeName.sampler};
             `;
 
@@ -369,7 +369,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -377,7 +377,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslTextureType.typeName.texture2d}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -390,7 +390,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -400,7 +400,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lGroupName: string = 'myGroup';
             const lBindingName: string = 'myBinding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -413,7 +413,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -421,8 +421,8 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.accessMode}(AccessMode.Read)]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -435,7 +435,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
     });
@@ -472,7 +472,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
 
@@ -490,7 +490,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -508,7 +508,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
 
@@ -526,7 +526,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
     });
@@ -544,7 +544,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDocument.childNodes).toHaveLength(1);
             const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
             expect(lDeclarationNode.name).toBe(lVariableName);
             expect(lDeclarationNode.expression).toBeNull();
@@ -562,7 +562,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDocument.childNodes).toHaveLength(1);
             const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
@@ -579,7 +579,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDocument.childNodes).toHaveLength(1);
             const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
             expect(lDeclarationNode.name).toBe(lVariableName);
             expect(lDeclarationNode.expression).toBeNull();
@@ -597,7 +597,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDocument.childNodes).toHaveLength(1);
             const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
             expect(lDeclarationNode.name).toBe(lVariableName);
             expect(lDeclarationNode.expression).toBeNull();
@@ -617,7 +617,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeNull();
         });
     });
@@ -638,7 +638,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
 
@@ -656,7 +656,7 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
             expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
             expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(PgslTypeDeclaration);
+            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
             expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
         });
     });
@@ -734,7 +734,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -752,7 +752,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -770,7 +770,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -788,7 +788,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;
             `;
 
@@ -806,7 +806,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage ${lVariableName}: ${PgslTextureType.typeName.textureStorage2d}<TexelFormat.Rgba8unorm, AccessMode.Write>;
             `;
 
@@ -823,7 +823,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             const lGroupName: string = '2';
             const lBindingName: string = '3';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -841,8 +841,8 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.accessMode}(AccessMode.ReadWrite)]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.accessMode}(AccessMode.ReadWrite)]
                 storage ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -862,7 +862,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -880,7 +880,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -898,7 +898,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -916,7 +916,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;
             `;
 
@@ -934,7 +934,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslSamplerType.typeName.sampler};
             `;
 
@@ -952,7 +952,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform ${lVariableName}: ${PgslTextureType.typeName.texture2d}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -972,7 +972,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             const lGroupName: string = '2';
             const lBindingName: string = '3';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lBindingName}")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -990,8 +990,8 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
             // Setup.
             const lVariableName: string = 'testVariable';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.accessMode}(AccessMode.Read)]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -1289,7 +1289,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
             `;
 
@@ -1321,7 +1321,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.signedInteger};
             `;
 
@@ -1353,7 +1353,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger};
             `;
 
@@ -1385,7 +1385,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -1424,7 +1424,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -1464,7 +1464,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32}, 10>;
             `;
 
@@ -1503,7 +1503,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslTextureType.typeName.texture2d}<${PgslNumericType.typeName.float32}>;
             `;
 
@@ -1542,7 +1542,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslSamplerType.typeName.sampler};
             `;
 
@@ -1574,7 +1574,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lGroupName: string = 'test_group';
             const lLocationName: string = 'test_binding';
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${PgslSamplerType.typeName.samplerComparison};
             `;
 
@@ -1611,7 +1611,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
                     property1: ${PgslNumericType.typeName.float32},
                     property2: ${PgslNumericType.typeName.signedInteger}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${lStructName};
             `;
 
@@ -1672,10 +1672,10 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lSizeValue: number = 256;
             const lCodeText: string = `
                 struct ${lStructName} {
-                    [${PgslAttributeList.attributeNames.size}(${lSizeValue})]
+                    [${AttributeListAst.attributeNames.size}(${lSizeValue})]
                     property1: ${PgslNumericType.typeName.float32}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${lStructName};
             `;
 
@@ -1724,10 +1724,10 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lAlignValue: number = 16;
             const lCodeText: string = `
                 struct ${lStructName} {
-                    [${PgslAttributeList.attributeNames.align}(${lAlignValue})]
+                    [${AttributeListAst.attributeNames.align}(${lAlignValue})]
                     property1: ${PgslNumericType.typeName.float32}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${lStructName};
             `;
 
@@ -1776,11 +1776,11 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             const lAlignValue: number = 16;
             const lCodeText: string = `
                 struct ${lStructName} {
-                    [${PgslAttributeList.attributeNames.size}(${lSizeValue})]
-                    [${PgslAttributeList.attributeNames.align}(${lAlignValue})]
+                    [${AttributeListAst.attributeNames.size}(${lSizeValue})]
+                    [${AttributeListAst.attributeNames.align}(${lAlignValue})]
                     property1: ${PgslNumericType.typeName.float32}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${lStructName};
             `;
 
@@ -1833,7 +1833,7 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
                 struct ${lOuterStructName} {
                     property1: ${lInnerStructName}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
+                [${AttributeListAst.attributeNames.groupBinding}("${lGroupName}", "${lLocationName}")]
                 uniform ${lVariableName}: ${lOuterStructName};
             `;
 
@@ -1953,7 +1953,7 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('Invalid Attribute', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.accessMode}(AccessMode.Read)]
+                [${AttributeListAst.attributeNames.accessMode}(AccessMode.Read)]
                 const testVariable: ${PgslNumericType.typeName.float32} = 5.0;
             `;
 
@@ -1972,7 +1972,7 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('With initializer', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage testVariable: ${PgslNumericType.typeName.float32} = 5.0;
             `;
 
@@ -1989,7 +1989,7 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('Sampler type', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 storage testVariable: ${PgslSamplerType.typeName.sampler};
             `;
 
@@ -2006,8 +2006,8 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('Invalid Attribute', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.vertex}()]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.vertex}()]
                 storage testVariable: ${PgslNumericType.typeName.float32};
             `;
 
@@ -2026,7 +2026,7 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('With initializer', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
                 uniform testVariable: ${PgslNumericType.typeName.float32} = 5.0;
             `;
 
@@ -2043,8 +2043,8 @@ Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
         await pContext.step('Invalid Attribute', async () => {
             // Setup.
             const lCodeText: string = `
-                [${PgslAttributeList.attributeNames.groupBinding}("test_group", "test_binding")]
-                [${PgslAttributeList.attributeNames.vertex}()]
+                [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
+                [${AttributeListAst.attributeNames.vertex}()]
                 uniform testVariable: ${PgslNumericType.typeName.float32};
             `;
 

@@ -1,24 +1,23 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { ExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
+import { AttributeListCst } from "../../concrete_syntax_tree/general.type.ts";
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../../type/pgsl-string-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
-import type { DeclarationAst } from '../declaration/declaration-ast.ts';
-import { PgslFunctionDeclaration } from '../declaration/pgsl-function-declaration.ts';
-import { PgslStructPropertyDeclaration } from '../declaration/pgsl-struct-property-declaration.ts';
-import { ExpressionAst } from '../expression/pgsl-expression.ts';
-import { AttributeListCst } from "../../concrete_syntax_tree/general.type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
+import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
+import { FunctionDeclarationAst } from '../declaration/pgsl-function-declaration.ts';
+import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from "../declaration/variable-declaration-ast.ts";
-import { ExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
+import { IDeclarationAst } from "../declaration/i-declaration-ast.interface.ts";
+import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
 
 /**
  * Generic attribute list.
  */
-export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, AttributeListAstData> {
+export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, AttributeListAstData> {
     /**
      * All possible attribute names.
      */
@@ -45,13 +44,13 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
         const lAttributes: Dictionary<PgslAttributeName, AttributeDefinitionInformation> = new Dictionary<PgslAttributeName, AttributeDefinitionInformation>();
 
         // Function and declaration config.
-        lAttributes.set(PgslAttributeList.attributeNames.groupBinding, {
+        lAttributes.set(AttributeListAst.attributeNames.groupBinding, {
             enforcedParentType: VariableDeclarationAst,
             parameterTypes: [
                 [{ values: [] }, { values: [] }]
             ]
         });
-        lAttributes.set(PgslAttributeList.attributeNames.accessMode, {
+        lAttributes.set(AttributeListAst.attributeNames.accessMode, {
             enforcedParentType: VariableDeclarationAst,
             parameterTypes: [
                 [{ values: ['read', 'write', 'read_write'] }] // TODO: Read from enum.
@@ -59,53 +58,53 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
         });
 
         // Struct type.
-        lAttributes.set(PgslAttributeList.attributeNames.align, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.align, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
                 [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
             ]
         });
-        lAttributes.set(PgslAttributeList.attributeNames.blendSource, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.blendSource, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
                 [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }] // Location output.
             ]
         });
-        lAttributes.set(PgslAttributeList.attributeNames.interpolate, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.interpolate, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
                 [{ values: ['perspective', 'linear', 'flat'] }],
                 [{ values: ['perspective', 'linear', 'flat'] }, { values: ['center', 'centroid', 'sample', 'first', 'either'] }]
             ]
         });
-        lAttributes.set(PgslAttributeList.attributeNames.invariant, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.invariant, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: []
         });
-        lAttributes.set(PgslAttributeList.attributeNames.location, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.location, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
                 [{ values: [] }]
             ]
         });
-        lAttributes.set(PgslAttributeList.attributeNames.size, {
-            enforcedParentType: PgslStructPropertyDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.size, {
+            enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
                 [{ type: PgslNumericType.typeName.unsignedInteger, state: PgslValueFixedState.Constant }]
             ]
         });
 
         // Entry points.
-        lAttributes.set(PgslAttributeList.attributeNames.vertex, {
-            enforcedParentType: PgslFunctionDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.vertex, {
+            enforcedParentType: FunctionDeclarationAst,
             parameterTypes: []
         });
-        lAttributes.set(PgslAttributeList.attributeNames.fragment, {
-            enforcedParentType: PgslFunctionDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.fragment, {
+            enforcedParentType: FunctionDeclarationAst,
             parameterTypes: []
         });
-        lAttributes.set(PgslAttributeList.attributeNames.compute, {
-            enforcedParentType: PgslFunctionDeclaration,
+        lAttributes.set(AttributeListAst.attributeNames.compute, {
+            enforcedParentType: FunctionDeclarationAst,
             parameterTypes: [ // Parameters for workgroup size.
                 [
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
@@ -125,7 +124,7 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
         return lAttributes;
     })();
 
-    private mAttachedDeclaration: DeclarationAst | null;
+    private mAttachedDeclaration: IDeclarationAst | null;
 
     /**
      * Constructor.
@@ -133,7 +132,7 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
      * @param pMeta - Syntax tree meta data.
      * @param pAttributes - Attribute list.
      */
-    public constructor(pCst: AttributeListCst, pAttachedDeclaration: DeclarationAst, pContext: AbstractSyntaxTreeContext) {
+    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst, pContext: AbstractSyntaxTreeContext) {
         super(pCst, pContext);
 
         // Init empty attribute list.
@@ -158,9 +157,9 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
      * 
      * @returns all attribute parameters 
      */
-    public getAttributeParameter(pName: PgslAttributeName): Array<ExpressionAst> {
+    public getAttributeParameter(pName: PgslAttributeName): Array<IExpressionAst> {
         // Try to read attribute parameters.
-        const lAttributeParameter: Array<ExpressionAst> | undefined = this.data.attributes.get(pName);
+        const lAttributeParameter: Array<IExpressionAst> | undefined = this.data.attributes.get(pName);
         if (!lAttributeParameter) {
             throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
         }
@@ -174,7 +173,7 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
     protected override process(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
         // Create attribute list data.
         const lAttributeListData: AttributeListAstData = {
-            attributes: new Map<PgslAttributeName, Array<ExpressionAst>>()
+            attributes: new Map<PgslAttributeName, Array<IExpressionAst>>()
         };
 
         // Must be attached to a declaration.
@@ -188,13 +187,13 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
         // Validate each attribute.
         for (const lAttributeCst of this.cst.attributes) {
             // Check if attribute has a definition.
-            if (!PgslAttributeList.mValidAttributes.has(lAttributeCst.name as PgslAttributeName)) {
+            if (!AttributeListAst.mValidAttributes.has(lAttributeCst.name as PgslAttributeName)) {
                 pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not a valid attribute.`, this);
                 continue;
             }
 
             // Read the attribute definition.
-            const lAttributeDefinition: AttributeDefinitionInformation = PgslAttributeList.mValidAttributes.get(lAttributeCst.name as PgslAttributeName)!;
+            const lAttributeDefinition: AttributeDefinitionInformation = AttributeListAst.mValidAttributes.get(lAttributeCst.name as PgslAttributeName)!;
 
             // Check if parent type is correct.
             if (lAttributeDefinition.enforcedParentType) {
@@ -231,16 +230,16 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
      * @param pParameterSourceList - List of parameters to validate.
      * @param pValidationParameterList - List of parameter definitions to validate against.
      */
-    private validateParameter(pContext: AbstractSyntaxTreeContext, pAttributeName: string, pParameterSourceList: Array<ExpressionCst>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): Array<ExpressionAst> {
+    private validateParameter(pContext: AbstractSyntaxTreeContext, pAttributeName: string, pParameterSourceList: Array<ExpressionCst>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): Array<IExpressionAst> {
         // Store validated parameters.
-        const lValidatedParameters: Array<ExpressionAst> = new Array<ExpressionAst>();
+        const lValidatedParameters: Array<IExpressionAst> = new Array<IExpressionAst>();
         
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
             // Create expression AST from parameter CST.
-            const lAttributeParameterAst: ExpressionAst | null = ExpressionAst.build(pParameterSourceList[lIndex], pContext);
+            const lAttributeParameterAst: IExpressionAst | null = ExpressionAstBuilder.build(pParameterSourceList[lIndex], pContext);
             if (!lAttributeParameterAst) {
                 pContext.pushIncident(`Attribute "${pAttributeName}" parameter ${lIndex} is not a valid expression.`, this);
                 continue;
@@ -299,11 +298,11 @@ export class PgslAttributeList extends AbstractSyntaxTree<AttributeListCst, Attr
     }
 }
 
-export type PgslAttributeName = typeof PgslAttributeList.attributeNames[keyof typeof PgslAttributeList.attributeNames];
+export type PgslAttributeName = typeof AttributeListAst.attributeNames[keyof typeof AttributeListAst.attributeNames];
 
 export type PgslAttributeListSyntaxTreeConstructorParameterAttribute = {
     name: string,
-    parameter?: Array<ExpressionAst>;
+    parameter?: Array<IExpressionAst>;
 };
 
 type AttributeDefinitionNumberParameter = {
@@ -331,5 +330,5 @@ type AttributeDefinitionInformation = {
 };
 
 type AttributeListAstData = {
-    attributes: Map<PgslAttributeName, Array<ExpressionAst>>;
+    attributes: Map<PgslAttributeName, Array<IExpressionAst>>;
 };

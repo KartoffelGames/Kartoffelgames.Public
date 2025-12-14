@@ -2,7 +2,7 @@ import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/s
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslAccessMode } from '../../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
 import { PgslTexelFormat } from '../../abstract_syntax_tree/buildin/pgsl-texel-format.enum.ts';
-import { PgslTypeDeclaration } from '../../abstract_syntax_tree/general/pgsl-type-declaration.ts';
+import { TypeDeclarationAst } from '../../abstract_syntax_tree/general/type-declaration-ast.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import { PgslArrayType } from '../../type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
@@ -23,7 +23,7 @@ import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from 
 /**
  * Function type for transpiling PGSL types to WGSL.
  */
-export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslTypeDeclaration> {
+export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<TypeDeclarationAst> {
     /**
      * Fallback WGSL type for invalid or unsupported types.
      */
@@ -37,8 +37,8 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
     /**
      * Gets the target type that this processor handles.
      */
-    public get target(): typeof PgslTypeDeclaration {
-        return PgslTypeDeclaration;
+    public get target(): typeof TypeDeclarationAst {
+        return TypeDeclarationAst;
     }
 
     /**
@@ -73,7 +73,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: PgslTypeDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: TypeDeclarationAst, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         return this.processType(pInstance.type, pInstance, pTrace, pTranspile);
     }
 
@@ -86,7 +86,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    private processType(pType: PgslType, pDefinition: PgslTypeDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private processType(pType: PgslType, pDefinition: TypeDeclarationAst, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Get the appropriate transpiler for the type.
         const lTranspiler = this.mTypeTranspilers.get(pType.constructor as IAnyParameterConstructor<PgslType>);
         if (!lTranspiler) {
@@ -115,7 +115,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL numeric type string.
      */
-    private transpileNumericType(pType: PgslNumericType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration): string {
+    private transpileNumericType(pType: PgslNumericType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst): string {
         switch (pType.numericTypeName) {
             case PgslNumericType.typeName.signedInteger: return 'i32';
             case PgslNumericType.typeName.unsignedInteger: return 'u32';
@@ -139,7 +139,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL vector type string.
      */
-    private transpileVectorType(pType: PgslVectorType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileVectorType(pType: PgslVectorType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         const lInnerTypeWgsl = this.processType(pType.innerType, pDefinition, pTrace, pTranspile);
         return `vec${pType.dimension}<${lInnerTypeWgsl}>`;
     }
@@ -154,7 +154,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL matrix type string.
      */
-    private transpileMatrixType(pType: PgslMatrixType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileMatrixType(pType: PgslMatrixType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         const lInnerTypeWgsl = this.processType(pType.innerType, pDefinition, pTrace, pTranspile);
         return `mat${pType.rowCount}x${pType.columnCount}<${lInnerTypeWgsl}>`;
     }
@@ -169,7 +169,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL array type string.
      */
-    private transpileArrayType(pType: PgslArrayType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileArrayType(pType: PgslArrayType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         const lInnerTypeWgsl = this.processType(pType.innerType, pDefinition, pTrace, pTranspile);
 
         if (pType.length !== null) {
@@ -202,7 +202,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL pointer type string.
      */
-    private transpilePointerType(pType: PgslPointerType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpilePointerType(pType: PgslPointerType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Convert address space.
         const lAddressSpace: string = (() => {
             switch (pType.assignedAddressSpace) {
@@ -232,7 +232,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL texture type string.
      */
-    private transpileTextureType(pType: PgslTextureType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileTextureType(pType: PgslTextureType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Texture mode where depth also counts as a external texture.
         type TextureMode = 'depth' | 'storage' | 'regular';
 
@@ -342,7 +342,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The WGSL representation of the underlying type.
      */
-    private transpileBuildInType(pType: PgslBuildInType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileBuildInType(pType: PgslBuildInType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Just transpile to the underlying type.
         return this.processType(pType.underlyingType, pDefinition, pTrace, pTranspile);
     }
@@ -356,7 +356,7 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns The fallback invalid type string.
      */
-    private transpileInvalidType(_pType: PgslType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration): string {
+    private transpileInvalidType(_pType: PgslType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst): string {
         pTrace.pushIncident('Invalid type encountered during transpilation', pDefinition);
         return PgslTypeDeclarationTranspilerProcessor.INVALID_TYPE;
     }
@@ -372,4 +372,4 @@ export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerPr
  * 
  * @returns The transpiled WGSL type string.
  */
-type PgslTypeTranspilerFunction<TType extends PgslType> = (pType: TType, pTrace: PgslTrace, pDefinition: PgslTypeDeclaration, pTranspile: PgslTranspilerProcessorTranspile) => string;
+type PgslTypeTranspilerFunction<TType extends PgslType> = (pType: TType, pTrace: PgslTrace, pDefinition: TypeDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile) => string;

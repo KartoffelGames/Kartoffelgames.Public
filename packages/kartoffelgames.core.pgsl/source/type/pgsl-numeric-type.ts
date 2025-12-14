@@ -1,3 +1,4 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
@@ -36,11 +37,11 @@ export class PgslNumericType extends PgslType {
     /**
      * Constructor for numeric type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The trace context for validation and error reporting.
      * @param pNumericType - The specific numeric type variant.
      */
-    public constructor(pTrace: PgslTrace, pNumericType: PgslNumericTypeName) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pNumericType: PgslNumericTypeName) {
+        super(pContext);
 
         // Set data.
         this.mNumericType = pNumericType;
@@ -123,11 +124,11 @@ export class PgslNumericType extends PgslType {
      * Numeric types are scalar, storable, and mostly host-shareable.
      * Abstract types are not concrete.
      * 
-     * @param _pTrace - Trace context (unused for numeric types).
+     * @param _pContext - Context (unused for numeric types).
      * 
      * @returns Type properties for numeric types.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // A concrete numeric type is any type that is not abstract.
         const lIsConcrete: boolean = this.mNumericType !== PgslNumericType.typeName.abstractFloat && this.mNumericType !== PgslNumericType.typeName.abstractInteger;
 

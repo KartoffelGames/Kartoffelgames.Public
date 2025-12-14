@@ -1,3 +1,4 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
@@ -42,16 +43,16 @@ export class PgslVectorType extends PgslType {
     /**
      * Constructor for vector type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
      * @param pInnerType - The inner element type of the vector.
      */
-    public constructor(pTrace: PgslTrace, pVectorDimension: number, pInnerType: PgslType) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pVectorDimension: number, pInnerType: PgslType) {
+        super(pContext);
 
         // Validate vector dimension.
         if (pVectorDimension < 2 || pVectorDimension > 4) {
-            pTrace.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
+            pContext.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
         }
 
         // Set data.
@@ -132,14 +133,14 @@ export class PgslVectorType extends PgslType {
      * Collect type properties for vector types.
      * Validates that the inner type is scalar and copies relevant properties.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Context for validation and error reporting.
      * 
      * @returns Type properties for vector types.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Must be scalar.
         if (!this.mInnerType.scalar) {
-            pTrace.pushIncident('Vector type must have a scalar inner type');
+            pContext.pushIncident('Vector type must have a scalar inner type');
         }
 
         return {

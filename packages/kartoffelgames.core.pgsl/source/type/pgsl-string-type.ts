@@ -1,3 +1,4 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
@@ -55,11 +56,11 @@ export class PgslStringType extends PgslType {
     /**
      * Collect type properties for string type.
      * 
-     * @param _pTrace - Trace context.
+     * @param _Context - Context.
      * 
      * @returns Type properties for string type.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_Context: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

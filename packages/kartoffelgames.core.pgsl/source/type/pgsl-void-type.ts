@@ -1,3 +1,4 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
@@ -55,11 +56,11 @@ export class PgslVoidType extends PgslType {
     /**
      * Collect type properties for void type.
      * 
-     * @param _pTrace - Trace context.
+     * @param _pContext - Context.
      * 
      * @returns Type properties for void type.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

@@ -7,11 +7,11 @@ import { PgslAccessMode } from "../buildin/pgsl-access-mode-enum.ts";
 /**
  * Interface representing a value storage in the abstract syntax tree.
  */
-export interface IAbstractSyntaxTreeValue {
-    readonly data: Readonly<AbstractSyntaxTreeValueData>
+export interface IValueStoreAst {
+    readonly data: Readonly<ValueStoreAstData>
 }
 
-export type AbstractSyntaxTreeValueData = {
+export type ValueStoreAstData = {
     /**
      * The fixed state of the value
      */

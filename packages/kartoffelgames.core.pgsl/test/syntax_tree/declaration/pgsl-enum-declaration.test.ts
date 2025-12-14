@@ -1,11 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslEnumDeclaration } from '../../../source/abstract_syntax_tree/declaration/pgsl-enum-declaration.ts';
+import { EnumDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/enum-declaration-ast.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
 import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
-import { PgslAttributeList } from "../../../source/abstract_syntax_tree/general/pgsl-attribute-list.ts";
+import { AttributeListAst } from "../../../source/abstract_syntax_tree/general/attribute-list-ast.ts";
 import { PgslLiteralValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-literal-value-expression.ts";
 import { PgslStringValueExpression } from "../../../source/abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts";
 
@@ -35,8 +35,8 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             expect(lDocument.childNodes).toHaveLength(1);
 
             // Evaluation. Correct type of child node.
-            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+            const lDeclarationNode: EnumDeclarationAst = lDocument.childNodes[0] as EnumDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(EnumDeclarationAst);
 
             // Evaluation. Correct name.
             expect(lDeclarationNode.name).toBe(lEnumName);
@@ -67,8 +67,8 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+            const lDeclarationNode: EnumDeclarationAst = lDocument.childNodes[0] as EnumDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(EnumDeclarationAst);
             expect(lDeclarationNode.name).toBe(lEnumName);
 
             // Evaluation. Enum values.
@@ -99,8 +99,8 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: PgslEnumDeclaration = lDocument.childNodes[0] as PgslEnumDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslEnumDeclaration);
+            const lDeclarationNode: EnumDeclarationAst = lDocument.childNodes[0] as EnumDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(EnumDeclarationAst);
             expect(lDeclarationNode.name).toBe(lEnumName);
 
             // Evaluation. Enum values.
@@ -186,7 +186,7 @@ Deno.test('PgslEnumDeclaration - Transpilation', async (pContext) => {
                     ${lValueNameOne} = ${lValueDataOne},
                     ${lValueNameTwo} = ${lValueDataTwo}
                 }
-                [${PgslAttributeList.attributeNames.groupBinding}(${lEnumName}.${lValueNameOne}, ${lEnumName}.${lValueNameTwo})]
+                [${AttributeListAst.attributeNames.groupBinding}(${lEnumName}.${lValueNameOne}, ${lEnumName}.${lValueNameTwo})]
                 uniform ${lVariableName}: float;
             `;
 

@@ -84,7 +84,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns Type properties aggregated from struct fields.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Read struct trace information.
         const lStruct: PgslStructTrace | undefined = pTrace.getStruct(this.mStructName);
 

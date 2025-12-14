@@ -167,7 +167,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns Type properties for matrix types.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Must be Float.
         if (this.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
             pTrace.pushIncident('Matrix type must be a Float32');

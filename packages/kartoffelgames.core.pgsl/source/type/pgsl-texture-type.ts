@@ -2,9 +2,9 @@ import { PgslAccessModeEnum } from '../abstract_syntax_tree/buildin/pgsl-access-
 import { PgslAccessMode } from '../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
 import { PgslTexelFormatEnumDeclaration } from '../abstract_syntax_tree/buildin/pgsl-texel-format-enum.ts';
 import { PgslTexelFormat } from '../abstract_syntax_tree/buildin/pgsl-texel-format.enum.ts';
-import { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { PgslStringValueExpression } from '../abstract_syntax_tree/expression/single_value/pgsl-string-value-expression.ts';
-import { PgslTypeDeclaration } from '../abstract_syntax_tree/general/pgsl-type-declaration.ts';
+import { TypeDeclarationAst } from '../abstract_syntax_tree/general/type-declaration-ast.ts';
 import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
@@ -110,7 +110,7 @@ export class PgslTextureType extends PgslType {
             pTextureType === PgslTextureType.typeName.textureStorage3d;
     }
 
-    private readonly mTemplateList: Array<ExpressionAst | PgslTypeDeclaration>;
+    private readonly mTemplateList: Array<ExpressionAst | TypeDeclarationAst>;
     private readonly mTextureType: PgslTextureTypeName;
     private readonly mAccess: PgslAccessMode;
     private readonly mFormat: PgslTexelFormat;
@@ -159,7 +159,7 @@ export class PgslTextureType extends PgslType {
      * @param pTextureType - The specific texture type variant.
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
-    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<ExpressionAst | PgslTypeDeclaration>) {
+    public constructor(pTrace: PgslTrace, pTextureType: PgslTextureTypeName, pTemplateList: Array<ExpressionAst | TypeDeclarationAst>) {
         super(pTrace);
 
         // Set data.
@@ -245,7 +245,7 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns Type properties defining texture characteristics.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pTrace: PgslTrace): PgslTypeProperties {
         return {
             composite: false,
             indexable: false,
@@ -285,12 +285,12 @@ export class PgslTextureType extends PgslType {
         // Validate and parse each template parameter.
         for (let lTemplateIndex: number = 0; lTemplateIndex < lTextureTemplates.length; lTemplateIndex++) {
             const lExpectedParameterType: 'type' | 'string' = lTextureTemplates[lTemplateIndex];
-            const lActualParameterValue: PgslTypeDeclaration | ExpressionAst = this.mTemplateList[lTemplateIndex];
+            const lActualParameterValue: TypeDeclarationAst | ExpressionAst = this.mTemplateList[lTemplateIndex];
 
             // Validate parameter type matches expected type.
             switch (lExpectedParameterType) {
                 case 'type': {
-                    if (!(lActualParameterValue instanceof PgslTypeDeclaration)) {
+                    if (!(lActualParameterValue instanceof TypeDeclarationAst)) {
                         pTrace.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a type declaration.`);
                         continue
                     }
@@ -315,7 +315,7 @@ export class PgslTextureType extends PgslType {
             // One parameter is always a type, two parameters are always strings.
             if (lTextureTemplates.length === 1) {
                 // Single parameter: sampled type for regular textures.
-                const lTypeDefinition: PgslTypeDeclaration = lActualParameterValue as PgslTypeDeclaration;
+                const lTypeDefinition: TypeDeclarationAst = lActualParameterValue as TypeDeclarationAst;
                 lTypeParameter.sampledType = lTypeDefinition.type;
 
                 // TODO: Change format based on sampled type for regular textures.

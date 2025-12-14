@@ -1,7 +1,8 @@
 import { DocumentCst } from "../concrete_syntax_tree/general.type.ts";
 import { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident } from "./abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
-import { DeclarationAst } from "./declaration/declaration-ast.ts";
+import { DeclarationAstBuilder } from "./declaration/declaration-ast-builder.ts";
+import { IDeclarationAst } from "./declaration/i-declaration-ast.interface.ts";
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     /**
@@ -16,14 +17,21 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         super(pCst, new AbstractSyntaxTreeContext());
     }
 
+    /**
+     * Process document data.
+     * 
+     * @param pContext - The syntax tree context.
+     * 
+     * @returns Processed document data.
+     */
     protected override process(pContext: AbstractSyntaxTreeContext): DocumentAstData {
         // Document is the only ast that create its own context object.
         pContext.setDocument(this);
 
         // Prepare data containers.
-        const lDocumentData: DocumentAstData = {
+        const lDocumentData = {
             incidents: new Array<AbstractSyntaxTreeIncident>(),
-            content: new Array<DeclarationAst>()
+            content: new Array<IDeclarationAst>()
         };
 
         // Push global scope for document processing.
@@ -31,7 +39,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Build documents build-ins first.
             for (const lBuildInCst of this.cst.buildInDeclarations) {
                 // Try to build content node.
-                const lBuildInContent = DeclarationAst.build(lBuildInCst, pContext);
+                const lBuildInContent = DeclarationAstBuilder.build(lBuildInCst, pContext);
                 if (!lBuildInContent) {
                     pContext.pushIncident(`Invalid build-in structure in document. Expected declaration but found '${lBuildInCst.type}'.`, this);
                     continue;
@@ -44,7 +52,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Build all other child structures.
             for (const lChildCst of this.cst.declarations) {
                 // Try to build content node.
-                const lBuildInContent = DeclarationAst.build(lChildCst, pContext);
+                const lBuildInContent = DeclarationAstBuilder.build(lChildCst, pContext);
                 if (!lBuildInContent) {
                     pContext.pushIncident(`Invalid child structure in document. Expected declaration but found '${lChildCst.type}'.`, this);
                     continue;
@@ -53,15 +61,16 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
                 lDocumentData.content.push(lBuildInContent);
             }
 
-            return lDocumentData;
+            // Collect all incidents from context.
+            lDocumentData.incidents.push(...pContext.incidents);
+
+            return lDocumentData satisfies DocumentAstData;
         }, this);
     }
 }
 
 type DocumentAstData = {
-    // TODO: seperate alias, enum, function, struct, variable declarations.
-
-    incidents: Array<AbstractSyntaxTreeIncident>;
-    content: Array<DeclarationAst>;
+    incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
+    content: ReadonlyArray<IDeclarationAst>;
 };
 

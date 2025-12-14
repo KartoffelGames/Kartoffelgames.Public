@@ -5,7 +5,7 @@ import type { Cst, TypeDeclarationCst } from "./general.type.ts";
  * Core.
  */
 export type StatementCstType = 'BlockStatement' | 'IfStatement' | 'WhileStatement' | 'DoWhileStatement' | 'ForStatement' | 'SwitchStatement' | 'SwitchCase' | 'VariableDeclarationStatement' | 'AssignmentStatement' | 'FunctionCallStatement' | 'IncrementDecrementStatement' | 'ReturnStatement' | 'BreakStatement' | 'ContinueStatement' | 'DiscardStatement';
-export type StatementCst<TStatementType extends StatementCstType> = Cst<TStatementType>;
+export type StatementCst<TStatementType extends StatementCstType = StatementCstType> = Cst<TStatementType>;
 
 /*
  * Block.

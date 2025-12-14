@@ -42,7 +42,8 @@ export type EnumDeclarationValueCst = {
 export type FunctionDeclarationCst = {
     name: string;
     headers: Array<FunctionDeclarationHeaderCst>;
-    genericType: TypeDeclarationCst | null;
+    isGeneric: boolean;
+    isConstant: boolean;
     block: BlockStatementCst;
     attributeList: AttributeListCst;
 } & DeclarationCst<'FunctionDeclaration'>;
@@ -69,7 +70,7 @@ export type StructDeclarationCst = {
 
 export type StructPropertyDeclarationCst = {
     name: string;
-    typeDefinition: TypeDeclarationCst;
+    typeDeclaration: TypeDeclarationCst;
     attributeList: AttributeListCst;
 } & DeclarationCst<'StructPropertyDeclaration'>;
 

@@ -1,7 +1,7 @@
 import { AbstractSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
-import { PgslEnumDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-enum-declaration.ts";
-import { PgslFunctionDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts";
-import { PgslStructDeclaration } from "../../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts";
+import { EnumDeclarationAst } from "../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
+import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts";
+import { StructDeclarationAst } from "../../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
 import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { PgslTrace } from '../../trace/pgsl-trace.ts';
@@ -25,7 +25,7 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
     public process(pInstance: DocumentAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // List of transpileable child nodes.
         const lTranspileableChildren: Array<PgslSyntaxTreeConstructor> = [
-            PgslFunctionDeclaration, PgslVariableDeclaration, PgslStructDeclaration
+            FunctionDeclarationAst, PgslVariableDeclaration, StructDeclarationAst
         ];
         const lIsTranspileable = (pChild: AbstractSyntaxTree): boolean => {
             for (const lTranspileableChild of lTranspileableChildren) {

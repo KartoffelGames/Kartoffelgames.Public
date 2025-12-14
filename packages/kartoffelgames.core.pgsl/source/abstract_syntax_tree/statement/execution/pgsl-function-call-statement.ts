@@ -1,8 +1,8 @@
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { PgslFunctionCallExpression } from '../../expression/single_value/pgsl-function-call-expression.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL syntax tree of a function call statement with optional template list.

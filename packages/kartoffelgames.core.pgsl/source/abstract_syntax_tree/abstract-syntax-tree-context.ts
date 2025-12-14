@@ -1,54 +1,78 @@
 import { Exception } from "@kartoffelgames/core";
 import type { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
-import type { PgslFunctionDeclaration } from './declaration/pgsl-function-declaration.ts';
+import type { FunctionDeclarationAst } from './declaration/pgsl-function-declaration.ts';
 import type { DocumentAst } from './document-ast.ts';
+import { IValueStoreAst } from "./i-value-store-ast.interface.ts";
 import type { PgslDoWhileStatement } from './statement/branch/pgsl-do-while-statement.ts';
 import type { PgslForStatement } from './statement/branch/pgsl-for-statement.ts';
 import type { PgslSwitchStatement } from './statement/branch/pgsl-switch-statement.ts';
 import type { PgslWhileStatement } from './statement/branch/pgsl-while-statement.ts';
-import { IAbstractSyntaxTreeValue } from "./i-abstract-syntax-tree-value.interface.ts";
+import { AliasDeclarationAst } from "./declaration/alias-declaration-ast.ts";
+import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
+import { EnumDeclarationAst } from "./declaration/enum-declaration-ast.ts";
 
 /**
- * Represents a scope within the PGSL syntax tree trace.
+ * Represents a syntax tree context for building abstract syntax trees.
  * Manages variable visibility, scope hierarchy, and value tracking within a specific scope context.
  */
 export class AbstractSyntaxTreeContext {
+    private readonly mAliases: Map<string, AliasDeclarationAst>;
+    private readonly mEnums: Map<string, EnumDeclarationAst>;
+    private readonly mFunctions: Map<string, FunctionDeclarationAst>;
+    private readonly mStructs: Map<string, StructDeclarationAst>;
     private mScope: AbstractSyntaxTreeScope | null;
     private mDocument: DocumentAst | null;
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
 
     /**
-     * Gets the list of incidents that have been recorded in this trace.
+     * Gets the document associated with this context.
      *
-     * @returns A readonly array of trace incidents.
+     * @returns The document AST node.
+     *
+     * @throws {Error} When no document is set for this context.
+     */
+    public get document(): DocumentAst {
+        if (!this.mDocument) {
+            throw new Exception(`No document is set for this context.`, this);
+        }
+
+        return this.mDocument;
+    }
+
+    /**
+     * Gets the list of incidents that have been recorded in this context.
+     *
+     * @returns A readonly array of context incidents.
      */
     public get incidents(): ReadonlyArray<AbstractSyntaxTreeIncident> {
         return this.mIncidents;
     }
 
     /**
-     * Pushes an incident to the trace for later analysis or reporting.
+     * Pushes an incident to the context for later analysis or reporting.
      *
      * @param pMessage - The message describing the incident.
      * @param pSyntaxTree - Optional syntax tree node associated with the incident.
      *
-     * @throws {Error} When the trace is sealed.
+     * @throws {Error} When the context is sealed.
      */
     public pushIncident(pMessage: string, pSyntaxTree?: AbstractSyntaxTree): void {
         this.mIncidents.push(new AbstractSyntaxTreeIncident(pMessage, pSyntaxTree));
     }
 
     /**
-     * Creates a new syntax tree trace scope.
-     * 
-     * @param pTrace - The parent trace instance.
-     * @param pType - Type of scope.
-     * @param pParent - Parent scope, or null for root scope.
+     * Creates a new syntax tree context scope.
      */
     public constructor() {
         this.mScope = null;
         this.mDocument = null;
         this.mIncidents = new Array<AbstractSyntaxTreeIncident>();
+
+        // Initialize declaration maps.
+        this.mAliases = new Map<string, AliasDeclarationAst>();
+        this.mEnums = new Map<string, EnumDeclarationAst>();
+        this.mFunctions = new Map<string, FunctionDeclarationAst>();
+        this.mStructs = new Map<string, StructDeclarationAst>();
     }
 
     /**
@@ -63,23 +87,16 @@ export class AbstractSyntaxTreeContext {
      * @param pOwner - The owner of the scope.
      * 
      * @returns The result of the scope action.
-     * 
-     * @throws {Exception} When the document is not set.
      */
-    public pushScope<T = void>(pType: PgslSyntaxTreeTraceScopeType, pScopeAction: () => T, pOwner: AbstractSyntaxTree): T {
-        if (!this.mDocument) {
-            throw new Exception(`Cannot create scope before document is set.`, this);
-        }
-
+    public pushScope<T = void>(pType: AbstractSyntaxTreeContextScopeType, pScopeAction: () => T, pOwner: AbstractSyntaxTree): T {
         // Save the current scope.
         const lLastScope: AbstractSyntaxTreeScope | null = this.mScope;
 
         // Replace current level with new scope.
         this.mScope = {
-            document: this.mDocument,
             type: pType,
             parent: lLastScope,
-            values: new Map<string, IAbstractSyntaxTreeValue>(),
+            values: new Map<string, IValueStoreAst>(),
             owner: pOwner
         };
 
@@ -105,11 +122,11 @@ export class AbstractSyntaxTreeContext {
 
     /**
      * Searches for a value in this scope and parent scopes.
-     * Returns the value trace if found, otherwise null.
+     * Returns the value store if found, otherwise null.
      * 
      * @param pName 
      */
-    public getValue(pName: string): IAbstractSyntaxTreeValue | null {
+    public getValue(pName: string): IValueStoreAst | null {
         if (!this.mScope) {
             return null;
         }
@@ -126,25 +143,69 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
+     * Gets an alias by name.
+     *
+     * @param pName - The name of the alias.
+     *
+     * @returns The alias if found, undefined otherwise.
+     */
+    public getAlias(pName: string): AliasDeclarationAst | undefined {
+        return this.mAliases.get(pName);
+    }
+
+    /**
+     * Gets an enum by name.
+     *
+     * @param pName - The name of the enum.
+     *
+     * @returns The enum if found, undefined otherwise.
+     */
+    public getEnum(pName: string): EnumDeclarationAst | undefined {
+        return this.mEnums.get(pName);
+    }
+
+    /**
+     * Gets a function by name.
+     *
+     * @param pName - The name of the function.
+     *
+     * @returns The function if found, undefined otherwise.
+     */
+    public getFunction(pName: string): FunctionDeclarationAst | undefined {
+        return this.mFunctions.get(pName);
+    }
+
+    /**
+     * Gets a struct by name.
+     *
+     * @param pName - The name of the struct.
+     *
+     * @returns The struct if found, undefined otherwise.
+     */
+    public getStruct(pName: string): StructDeclarationAst | undefined {
+        return this.mStructs.get(pName);
+    }
+
+    /**
      * Sets a value in this scope.
      * 
      * @param pName - The name of the value.
-     * @param pValue - The value trace to store.
+     * @param pValue - The value to store.
      * 
      * @throws Error if the value already exists in this scope.
      */
-    public addValue(pName: string, pValue: IAbstractSyntaxTreeValue): void {
+    public addValue(pValue: IValueStoreAst): void {
         // Ensure there is an active scope.
         if (!this.mScope) {
-            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
+            throw new Exception(`Cannot add value '${pValue.data.name}' because there is no active scope.`, this);
         }
 
         // Throw if value already exists in this scope.
-        if (this.mScope.values.has(pName)) {
-            throw new Error(`Value '${pName}' already exists in current scope.`);
+        if (this.mScope.values.has(pValue.data.name)) {
+            throw new Error(`Value '${pValue.data.name}' already exists in current scope.`);
         }
 
-        this.mScope.values.set(pName, pValue);
+        this.mScope.values.set(pValue.data.name, pValue);
     }
 
     /**
@@ -154,7 +215,7 @@ export class AbstractSyntaxTreeContext {
      * 
      * @returns True if the scope type matches, false otherwise.
      */
-    public hasScope<T extends PgslSyntaxTreeTraceScopeType>(pScopeType: T): PgslSyntaxTreeTraceScopeScopeOwner<T> | null {
+    public hasScope<T extends AbstractSyntaxTreeContextScopeType>(pScopeType: T): PgslSyntaxTreeTraceScopeScopeOwner<T> | null {
         if (!this.mScope) {
             return null;
         }
@@ -170,18 +231,53 @@ export class AbstractSyntaxTreeContext {
 
         return null;
     }
+
+    /**
+     * Sets an alias to the current scope.
+     *
+     * @param pAst - The alias information.
+     */
+    public registerAlias(pAst: AliasDeclarationAst): void {
+        this.mAliases.set(pAst.data.aliasName, pAst);
+    }
+
+    /**
+     * Sets an enum to the current scope.
+     *
+     * @param pAst - The enum information.
+     */
+    public registerEnum(pAst: EnumDeclarationAst): void {
+        this.mEnums.set(pAst.data.name, pAst);
+    }
+
+    /**
+     * Sets a function to the current scope.
+     *
+     * @param pAst - The function information.
+     */
+    public registerFunction(pAst: FunctionDeclarationAst): void {
+        this.mFunctions.set(pAst.name, pAst);
+    }
+
+    /**
+     * Sets a struct to the current scope.
+     *
+     * @param pAst - The struct information.
+     */
+    public registerStruct(pAst: StructDeclarationAst): void {
+        this.mStructs.set(pAst.name, pAst);
+    }
 }
 
 type AbstractSyntaxTreeScope = {
-    document: DocumentAst;
-    type: PgslSyntaxTreeTraceScopeType;
+    type: AbstractSyntaxTreeContextScopeType;
     parent: AbstractSyntaxTreeScope | null;
-    values: Map<string, IAbstractSyntaxTreeValue>;
+    values: Map<string, IValueStoreAst>;
     owner: AbstractSyntaxTree;
 };
 
-export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScopeType> =
-    T extends 'function' ? PgslFunctionDeclaration :
+export type PgslSyntaxTreeTraceScopeScopeOwner<T extends AbstractSyntaxTreeContextScopeType> =
+    T extends 'function' ? FunctionDeclarationAst :
     T extends 'global' ? DocumentAst :
     T extends 'loop' ? (PgslDoWhileStatement | PgslForStatement | PgslWhileStatement) :
     T extends 'switch' ? PgslSwitchStatement :
@@ -195,7 +291,7 @@ export type PgslSyntaxTreeTraceScopeScopeOwner<T extends PgslSyntaxTreeTraceScop
  * - `loop`: Loop body scope (for, while, etc.)
  * - `inherit`: Scope that inherits from parent without creating new variable binding level
  */
-export type PgslSyntaxTreeTraceScopeType = 'global' | 'function' | 'loop' | 'switch' | 'inherit';
+export type AbstractSyntaxTreeContextScopeType = 'global' | 'function' | 'loop' | 'switch' | 'inherit';
 
 /**
  * Represents an incident that occurred during syntax tree building.

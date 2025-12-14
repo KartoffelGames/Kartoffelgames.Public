@@ -4,7 +4,7 @@ import { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslStringType } from '../../../type/pgsl-string-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.

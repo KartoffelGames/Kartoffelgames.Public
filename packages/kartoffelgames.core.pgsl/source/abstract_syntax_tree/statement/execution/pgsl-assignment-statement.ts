@@ -4,8 +4,8 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure holding a assignment statement.

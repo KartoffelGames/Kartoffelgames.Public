@@ -83,7 +83,7 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns Type properties aggregated from enum fields.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Read enum trace information.
         const lEnum: PgslEnumTrace | undefined = pTrace.getEnum(this.mEnumName);
 

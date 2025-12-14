@@ -1,4 +1,4 @@
-import type { PgslStructDeclaration } from '../abstract_syntax_tree/declaration/pgsl-struct-declaration.ts';
+import type { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 
 // TODO: Dynamically calculate size and alignment based on type.
 
@@ -8,14 +8,14 @@ import type { PgslStructDeclaration } from '../abstract_syntax_tree/declaration/
  */
 export class PgslStructTrace {
     private readonly mName: string;
-    private readonly mStructDeclaration: PgslStructDeclaration;
+    private readonly mStructDeclaration: StructDeclarationAst;
 
     /**
      * Gets the struct declaration.
      * 
      * @returns The struct declaration as defined in source code.
      */
-    public get declaration(): PgslStructDeclaration {
+    public get declaration(): StructDeclarationAst {
         return this.mStructDeclaration;
     }
 
@@ -33,7 +33,7 @@ export class PgslStructTrace {
      * 
      * @param pConstructorData - The data needed to construct the struct trace.
      */
-    public constructor(pName: string, pStructDeclaration: PgslStructDeclaration) {
+    public constructor(pName: string, pStructDeclaration: StructDeclarationAst) {
         this.mName = pName;
         this.mStructDeclaration = pStructDeclaration;
     }

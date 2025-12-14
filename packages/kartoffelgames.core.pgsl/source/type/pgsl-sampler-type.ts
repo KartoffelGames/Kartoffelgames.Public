@@ -93,7 +93,7 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns Type properties for sampler types.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pTrace: PgslTrace): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

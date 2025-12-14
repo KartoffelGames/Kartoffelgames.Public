@@ -6,7 +6,7 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 export class PgslArithmeticExpression extends ExpressionAst {
     private readonly mLeftExpression: ExpressionAst;

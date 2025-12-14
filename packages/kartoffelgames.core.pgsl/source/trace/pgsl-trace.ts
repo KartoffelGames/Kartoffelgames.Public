@@ -1,7 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import type { PgslStructPropertyDeclaration } from '../abstract_syntax_tree/declaration/pgsl-struct-property-declaration.ts';
-import type { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import type { StructPropertyDeclarationAst } from '../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
+import type { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import type { PgslAliasTrace } from './pgsl-alias-trace.ts';
 import type { PgslEnumTrace } from './pgsl-enum-trace.ts';
 import type { PgslExpressionTrace } from './pgsl-expression-trace.ts';
@@ -24,7 +24,7 @@ export class PgslTrace {
     private readonly mIncidents: Array<PgslTraceIncident>;
     private readonly mLocationNameResolutions: PgslTraceLocationNameResolutions;
     private readonly mScopeList: Stack<PgslTraceScope>;
-    private readonly mStructProperties: Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>;
+    private readonly mStructProperties: Map<StructPropertyDeclarationAst, PgslStructPropertyTrace>;
     private readonly mStructs: Map<string, PgslStructTrace>;
     private readonly mTreeScopes: Map<AbstractSyntaxTree, PgslTraceScope>;
     private readonly mVariableDeclarations: Map<string, PgslValueTrace>;
@@ -76,7 +76,7 @@ export class PgslTrace {
         this.mIncidents = new Array<PgslTraceIncident>();
         this.mLocationNameResolutions = new Map<string, Map<string, number>>();
         this.mScopeList = new Stack<PgslTraceScope>();
-        this.mStructProperties = new Map<PgslStructPropertyDeclaration, PgslStructPropertyTrace>();
+        this.mStructProperties = new Map<StructPropertyDeclarationAst, PgslStructPropertyTrace>();
         this.mStructs = new Map<string, PgslStructTrace>();
         this.mTreeScopes = new Map<AbstractSyntaxTree, PgslTraceScope>();
         this.mVariableDeclarations = new Map<string, PgslValueTrace>();
@@ -163,7 +163,7 @@ export class PgslTrace {
      *
      * @throws {Error} When struct property is not traced.
      */
-    public getStructProperty(pProperty: PgslStructPropertyDeclaration): PgslStructPropertyTrace {
+    public getStructProperty(pProperty: StructPropertyDeclarationAst): PgslStructPropertyTrace {
         if (!this.mStructProperties.has(pProperty)) {
             throw new Error('Struct property is not traced.');
         }
@@ -289,7 +289,7 @@ export class PgslTrace {
      *
      * @throws {Error} When the trace is sealed.
      */
-    public registerStructProperty(pProperty: PgslStructPropertyDeclaration, pTrace: PgslStructPropertyTrace): void {
+    public registerStructProperty(pProperty: StructPropertyDeclarationAst, pTrace: PgslStructPropertyTrace): void {
         // Resolve location name to a location index.
         if (pTrace.meta.locationName) {
             const lLocationIndex: number = this.resolveLocation(pProperty.struct.name, pTrace.meta.locationName);

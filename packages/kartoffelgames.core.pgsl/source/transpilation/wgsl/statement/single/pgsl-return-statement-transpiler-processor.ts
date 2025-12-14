@@ -1,13 +1,13 @@
-import { PgslReturnStatement } from '../../../../abstract_syntax_tree/statement/single/pgsl-return-statement.ts';
+import { ReturnStatementAst } from '../../../../abstract_syntax_tree/statement/single/return-statement-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslReturnStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslReturnStatement> {
+export class PgslReturnStatementTranspilerProcessor implements IPgslTranspilerProcessor<ReturnStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslReturnStatement {
-        return PgslReturnStatement;
+    public get target(): typeof ReturnStatementAst {
+        return ReturnStatementAst;
     }
 
     /**
@@ -19,7 +19,7 @@ export class PgslReturnStatementTranspilerProcessor implements IPgslTranspilerPr
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslReturnStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: ReturnStatementAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         if (!pInstance.expression) {
             return `return;`;
         }

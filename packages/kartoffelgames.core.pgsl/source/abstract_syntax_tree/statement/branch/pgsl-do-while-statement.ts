@@ -2,21 +2,21 @@ import type { PgslExpressionTrace } from '../../../trace/pgsl-expression-trace.t
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
-import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
+import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
 
 /**
  * PGSL structure for a do while statement.
  */
 export class PgslDoWhileStatement extends PgslStatement {
-    private readonly mBlock: PgslBlockStatement;
+    private readonly mBlock: BlockStatementAst;
     private readonly mExpression: ExpressionAst;
 
     /**
      * If block.
      */
-    public get block(): PgslBlockStatement {
+    public get block(): BlockStatementAst {
         return this.mBlock;
     }
 
@@ -34,7 +34,7 @@ export class PgslDoWhileStatement extends PgslStatement {
      * @param pBlock - Looped block.
      * @param pMeta - Syntax tree meta data.
      */
-    public constructor(pExpression: ExpressionAst, pBlock: PgslBlockStatement, pMeta: BasePgslSyntaxTreeMeta) {
+    public constructor(pExpression: ExpressionAst, pBlock: BlockStatementAst, pMeta: BasePgslSyntaxTreeMeta) {
         super(pMeta);
 
         // Set data.

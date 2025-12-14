@@ -1,13 +1,13 @@
-import { PgslBlockStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-block-statement.ts';
+import { BlockStatementAst } from '../../../../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslBlockStatement> {
+export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerProcessor<BlockStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslBlockStatement {
-        return PgslBlockStatement;
+    public get target(): typeof BlockStatementAst {
+        return BlockStatementAst;
     }
 
     /**
@@ -19,7 +19,7 @@ export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerPro
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslBlockStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: BlockStatementAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile all statements.
         return `{\n${pInstance.statements.map(pStatement => pTranspile(pStatement)).join('\n')}\n}`;
     }

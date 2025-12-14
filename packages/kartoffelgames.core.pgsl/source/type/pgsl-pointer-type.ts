@@ -108,7 +108,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns Type properties for pointer types.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Only storable types can be referenced by pointers.
         if (!this.mReferencedType.storable) {
             pTrace.pushIncident('Referenced types of pointers need to be storable');

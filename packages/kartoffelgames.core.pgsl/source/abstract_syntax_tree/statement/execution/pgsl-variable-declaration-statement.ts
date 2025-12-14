@@ -8,9 +8,9 @@ import { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
 import { PgslAccessMode } from '../../buildin/pgsl-access-mode-enum.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
-import type { PgslTypeDeclaration } from '../../general/pgsl-type-declaration.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import type { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */
@@ -18,7 +18,7 @@ export class PgslVariableDeclarationStatement extends PgslStatement {
     private readonly mDeclarationTypeName: string;
     private readonly mExpression: ExpressionAst | null;
     private readonly mName: string;
-    private readonly mTypeDeclaration: PgslTypeDeclaration;
+    private readonly mTypeDeclaration: TypeDeclarationAst;
 
     /**
      * Declaration type name.
@@ -44,7 +44,7 @@ export class PgslVariableDeclarationStatement extends PgslStatement {
     /**
      * Variable type.
      */
-    public get type(): PgslTypeDeclaration {
+    public get type(): TypeDeclarationAst {
         return this.mTypeDeclaration;
     }
 
@@ -150,12 +150,12 @@ export class PgslVariableDeclarationStatement extends PgslStatement {
 export type PgslVariableDeclarationStatementSyntaxTreeValidationAttachment = {
     fixedState: PgslValueFixedState;
     declarationType: PgslDeclarationType;
-    type: PgslTypeDeclaration;
+    type: TypeDeclarationAst;
 };
 
 export type PgslVariableDeclarationStatementSyntaxTreeConstructorParameter = {
     declarationType: string;
     name: string;
-    type: PgslTypeDeclaration;
+    type: TypeDeclarationAst;
     expression: ExpressionAst | null;
 };

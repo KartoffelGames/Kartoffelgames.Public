@@ -1,4 +1,4 @@
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
@@ -47,11 +47,11 @@ export class PgslInvalidType extends PgslType {
      * Collect type properties for invalid types.
      * Invalid types have no useful properties and are marked as unusable.
      * 
-     * @param _pTrace - Trace context (unused for invalid types).
+     * @param _pContext - Context (unused for invalid types).
      * 
      * @returns Type properties indicating the type is completely unusable.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

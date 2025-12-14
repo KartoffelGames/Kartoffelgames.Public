@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import { PgslAttributeList } from '../abstract_syntax_tree/general/pgsl-attribute-list.ts';
+import { AttributeListAst } from '../abstract_syntax_tree/general/attribute-list-ast.ts';
 import { PgslInterpolateTypeEnum } from "../buildin/pgsl-interpolate-type-enum.ts";
 import { PgslTexelFormatEnum } from "../buildin/pgsl-texel-format-enum.ts";
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
@@ -276,7 +276,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         /**
          * Attribute list.
-         * Converts the internal attribute list into a {@link PgslAttributeList}
+         * Converts the internal attribute list into a {@link AttributeListAst}
          */
         const lAttributeListSyntaxTreeGraph = Graph.define(() => {
             return GraphNode.new<PgslToken>()
@@ -1297,7 +1297,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
-                typeDefinition: pData.type,
+                typeDeclaration: pData.type,
                 attributeList: pData.attributes
             } satisfies StructPropertyDeclarationCst;
         });
@@ -1471,11 +1471,12 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
             return {
                 type: 'FunctionDeclaration',
+                isConstant: false,
+                isGeneric: false,
                 buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 headers: [pData.header],
-                genericType: null,
                 block: pData.block,
                 attributeList: pData.attributes
             } satisfies FunctionDeclarationCst;

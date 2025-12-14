@@ -7,7 +7,7 @@ import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure holding single variable name.

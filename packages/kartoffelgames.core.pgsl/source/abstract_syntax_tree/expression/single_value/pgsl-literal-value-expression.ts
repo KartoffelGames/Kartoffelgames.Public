@@ -7,7 +7,7 @@ import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.

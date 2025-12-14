@@ -1,5 +1,5 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import { ExpressionAst } from '../abstract_syntax_tree/expression/pgsl-expression.ts';
+import { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
@@ -138,7 +138,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns Type properties copied from the underlying type.
      */
-    protected override onTypePropertyCollection(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pTrace: PgslTrace): PgslTypeProperties {
         // Only clip distance needs validation.
         if (this.mBuildInType === PgslBuildInType.typeName.clipDistances) {
             this.validateClipDistancesTemplate(pTrace);

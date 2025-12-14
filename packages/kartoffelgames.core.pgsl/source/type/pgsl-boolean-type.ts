@@ -59,7 +59,7 @@ export class PgslBooleanType extends PgslType {
      * 
      * @returns Type properties for boolean type.
      */
-    protected override onTypePropertyCollection(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pTrace: PgslTrace): PgslTypeProperties {
         return {
             storable: true,
             hostShareable: false,

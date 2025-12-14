@@ -4,16 +4,16 @@ import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../../type/pgsl-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAst } from '../../expression/pgsl-expression.ts';
-import { PgslStatement } from '../pgsl-statement.ts';
-import type { PgslBlockStatement } from '../execution/pgsl-block-statement.ts';
+import type { ExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import { PgslStatement } from '../i-statement-ast.interface.ts';
+import type { BlockStatementAst } from '../execution/block-statement-ast.ts';
 
 /**
  * PGSL structure for a switch statement with optional default block.
  */
 export class PgslSwitchStatement extends PgslStatement {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
-    private readonly mDefault: PgslBlockStatement;
+    private readonly mDefault: BlockStatementAst;
     private readonly mExpression: ExpressionAst;
 
     /**
@@ -26,7 +26,7 @@ export class PgslSwitchStatement extends PgslStatement {
     /**
      * Default block.
      */
-    public get default(): PgslBlockStatement {
+    public get default(): BlockStatementAst {
         return this.mDefault;
     }
 
@@ -126,11 +126,11 @@ export class PgslSwitchStatement extends PgslStatement {
 
 export type PgslSwitchStatementSwitchCase = {
     readonly cases: Array<ExpressionAst>,
-    readonly block: PgslBlockStatement;
+    readonly block: BlockStatementAst;
 };
 
 export type PgslSwitchStatementSyntaxTreeConstructorParameter = {
     expression: ExpressionAst,
     cases: Array<PgslSwitchStatementSwitchCase>;
-    default: PgslBlockStatement;
+    default: BlockStatementAst;
 };

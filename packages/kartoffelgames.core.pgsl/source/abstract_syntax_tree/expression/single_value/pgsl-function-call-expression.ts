@@ -5,7 +5,7 @@ import type { PgslFunctionTrace } from '../../../trace/pgsl-function-trace.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
 import type { BasePgslSyntaxTreeMeta } from '../../abstract-syntax-tree.ts';
-import { ExpressionAst } from '../pgsl-expression.ts';
+import { ExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.

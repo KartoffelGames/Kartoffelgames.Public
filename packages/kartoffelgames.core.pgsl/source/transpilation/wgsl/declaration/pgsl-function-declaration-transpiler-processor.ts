@@ -1,15 +1,15 @@
-import { PgslFunctionDeclaration } from '../../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
+import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
 import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslFunctionDeclaration> {
+export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<FunctionDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      *
      * @returns The constructor of the target class.
      */
-    public get target(): typeof PgslFunctionDeclaration {
-        return PgslFunctionDeclaration;
+    public get target(): typeof FunctionDeclarationAst {
+        return FunctionDeclarationAst;
     }
 
     /**
@@ -22,7 +22,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
      * 
      * @returns Transpiled string.
      */
-    public process(pInstance: PgslFunctionDeclaration, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: FunctionDeclarationAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile return type.
         const lReturnType: string = pTranspile(pInstance.returnType);
 

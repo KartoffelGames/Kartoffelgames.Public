@@ -1,5 +1,5 @@
-import type { PgslEnumTrace } from '../trace/pgsl-enum-trace.ts';
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
+import { EnumDeclarationAst } from "../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
@@ -22,11 +22,11 @@ export class PgslEnumType extends PgslType {
     /**
      * Constructor for enum type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pEnumName - The name of the enum type.
      */
-    public constructor(pTrace: PgslTrace, pEnumName: string) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pEnumName: string) {
+        super(pContext);
 
         // Set data.
         this.mEnumName = pEnumName;
@@ -79,16 +79,15 @@ export class PgslEnumType extends PgslType {
      * Collect type properties for enum types.
      * Validates that the enum exists and aggregates properties from all enum fields.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Context for validation and error reporting.
      * 
      * @returns Type properties aggregated from enum fields.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Read enum trace information.
-        const lEnum: PgslEnumTrace | undefined = pTrace.getEnum(this.mEnumName);
-
+        const lEnum: EnumDeclarationAst | undefined = pContext.getEnum(this.mEnumName);
         if (!lEnum) {
-            pTrace.pushIncident(`Name '${this.mEnumName}' does not resolve to a enum declaration.`);
+            pContext.pushIncident(`Name '${this.mEnumName}' does not resolve to a enum declaration.`);
         }
 
         return {
@@ -97,7 +96,7 @@ export class PgslEnumType extends PgslType {
             indexable: false,
             storable: false,
             scalar: false,
-            concrete: lEnum?.underlyingType.concrete ?? false,
+            concrete: lEnum?.data.underlyingType.concrete ?? false,
             plain: false,
             hostShareable: false,
             constructible: false,

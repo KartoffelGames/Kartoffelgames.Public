@@ -1,4 +1,4 @@
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
@@ -32,11 +32,11 @@ export class PgslSamplerType extends PgslType {
     /**
      * Constructor for sampler type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pComparison - Whether this is a comparison sampler.
      */
-    public constructor(pTrace: PgslTrace, pComparison: boolean) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pComparison: boolean) {
+        super(pContext);
 
         // Set data.
         this.mComparision = pComparison;
@@ -89,11 +89,11 @@ export class PgslSamplerType extends PgslType {
      * Collect type properties for sampler types.
      * Samplers have fixed footprints and are concrete but not storable or constructible.
      * 
-     * @param _pTrace - Trace context (unused for sampler properties).
+     * @param _pContext - Context (unused for sampler properties).
      * 
      * @returns Type properties for sampler types.
      */
-    protected override process(_pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

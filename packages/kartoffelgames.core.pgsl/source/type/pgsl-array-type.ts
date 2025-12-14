@@ -1,9 +1,10 @@
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import type { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 
 /**
  * Array type definition.
@@ -22,7 +23,7 @@ export class PgslArrayType extends PgslType {
 
     private readonly mInnerType: PgslType;
     private readonly mLength: number | null;
-    private readonly mLengthExpression: ExpressionAst | null;
+    private readonly mLengthExpression: IExpressionAst | null;
 
     /**
      * Gets the inner element type of the array.
@@ -47,36 +48,37 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns The length expression, or null for runtime-sized arrays.
      */
-    public get lengthExpression(): ExpressionAst | null {
+    public get lengthExpression(): IExpressionAst | null {
         return this.mLengthExpression;
     }
 
     /**
      * Constructor for array type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The trace context for validation and error reporting.
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
      */
-    public constructor(pTrace: PgslTrace, pType: PgslType, pLengthExpression: ExpressionAst | null) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pType: PgslType, pLengthExpression: IExpressionAst | null) {
+        super(pContext);
 
         this.mInnerType = pType;
         this.mLengthExpression = pLengthExpression;
 
-        // TODO: Inner type must be storable and have fixed footprint.
+        // Inner type must be storable and have fixed footprint.
+        if (!this.mInnerType.storable) {
+            pContext.pushIncident(`Array inner type must be storable.`);
+        }
+        if (!this.mInnerType.fixedFootprint) {
+            pContext.pushIncident(`Array inner type must have a fixed footprint.`);
+        }
 
         // Read length expression as number.
         if (pLengthExpression) {
-            const lExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(pLengthExpression);
-            if (!lExpressionTrace) {
-                throw new Error(`Length expression is not traced.`);
-            }
-
-            if (typeof lExpressionTrace.constantValue === 'number') {
-                this.mLength = lExpressionTrace.constantValue;
+            if (typeof pLengthExpression.data.constantValue === 'number') {
+                this.mLength = pLengthExpression.data.constantValue;
             } else {
-                pTrace.pushIncident(`Array length expression must be a constant integer.`, pLengthExpression);
+                pContext.pushIncident(`Array length expression must be a constant integer.`, pLengthExpression);
                 this.mLength = null;
             }
         } else {
@@ -158,35 +160,32 @@ export class PgslArrayType extends PgslType {
      * Validates length expressions and aggregates properties from the inner type.
      * Fixed-size arrays with constructible inner types are constructible.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Trace context for validation and error reporting.
      * 
      * @returns Type properties for array types.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Validate length expression when set.
         if (this.mLengthExpression) {
-            // Read expressions attachments.
-            const lLengthExpressionTrace: PgslExpressionTrace = pTrace.getExpression(this.mLengthExpression);
-
             // Length expression must be constant.
-            if (lLengthExpressionTrace.fixedState < PgslValueFixedState.Constant) {
-                pTrace.pushIncident(`Array length expression must be a constant expression.`, this.mLengthExpression);
+            if (this.mLengthExpression.data.fixedState < PgslValueFixedState.Constant) {
+                pContext.pushIncident(`Array length expression must be a constant expression.`, this.mLengthExpression);
             }
 
             // Length expression must be an unsigned integer scalar.
-            if (!lLengthExpressionTrace.resolveType.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))) {
-                pTrace.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
+            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+                pContext.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }
 
         // Inner type must be plain.
         if (!this.mInnerType.plain) {
-            pTrace.pushIncident(`Array inner type must be a plain type.`);
+            pContext.pushIncident(`Array inner type must be a plain type.`);
         }
 
         // Inner type must be fixed.
         if (!this.mInnerType.fixedFootprint) {
-            pTrace.pushIncident(`Array inner type must have a fixed footprint.`);
+            pContext.pushIncident(`Array inner type must have a fixed footprint.`);
         }
 
         // Is fixed when length expression is set and inner type is fixed.

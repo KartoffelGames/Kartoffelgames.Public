@@ -1,3 +1,5 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
+import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
 import type { PgslStructPropertyTrace } from '../trace/pgsl-struct-property-trace.ts';
 import type { PgslStructTrace } from '../trace/pgsl-struct-trace.ts';
 import type { PgslTrace } from '../trace/pgsl-trace.ts';
@@ -23,11 +25,11 @@ export class PgslStructType extends PgslType {
     /**
      * Constructor for struct type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pStructName - The name of the struct type.
      */
-    public constructor(pTrace: PgslTrace, pStructName: string) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pStructName: string) {
+        super(pContext);
 
         // Set data.
         this.mStructName = pStructName;
@@ -80,16 +82,16 @@ export class PgslStructType extends PgslType {
      * Collect type properties for struct types.
      * Validates that the struct exists and aggregates properties from all struct fields.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Trace context for validation and error reporting.
      * 
      * @returns Type properties aggregated from struct fields.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Read struct trace information.
-        const lStruct: PgslStructTrace | undefined = pTrace.getStruct(this.mStructName);
+        const lStruct: StructDeclarationAst | undefined = pContext.getStruct(this.mStructName);
 
         if (!lStruct) {
-            pTrace.pushIncident(`Name '${this.mStructName}' does not resolve to a struct declaration.`);
+            pContext.pushIncident(`Name '${this.mStructName}' does not resolve to a struct declaration.`);
 
             return {
                 // Default struct information.
@@ -114,17 +116,15 @@ export class PgslStructType extends PgslType {
             let lFixedFootprint = true;
 
             // Check all properties for their characteristics
-            for (const lPropertyDeclaration of lStruct.declaration.properties) {
-                const lPropertyTrace: PgslStructPropertyTrace = pTrace.getStructProperty(lPropertyDeclaration);
-
+            for (const lPropertyDeclaration of lStruct.data.properties) {
                 // Check if property is constructible
-                lConstructible &&= lPropertyTrace.type.constructible;
+                lConstructible &&= lPropertyDeclaration.data.typeDeclaration.data.type.constructible;
 
                 // Check if property is host shareable
-                lHostShareable &&= lPropertyTrace.type.hostShareable;
+                lHostShareable &&= lPropertyDeclaration.data.typeDeclaration.data.type.hostShareable;
 
                 // For fixed footprint: all properties must be fixed
-                lFixedFootprint &&= lPropertyTrace.type.fixedFootprint;
+                lFixedFootprint &&= lPropertyDeclaration.data.typeDeclaration.data.type.fixedFootprint;
             }
 
             return [lConstructible, lHostShareable, lFixedFootprint];

@@ -16,8 +16,8 @@ export type CstRange = [lineStart: number, columnStart: number, lineEnd: number,
  */
 
 export type DocumentCst = {
-    buildInDeclarations: Array<DeclarationCst<DeclarationCstType>>;
-    declarations: Array<DeclarationCst<DeclarationCstType>>;
+    buildInDeclarations: Array<DeclarationCst>;
+    declarations: Array<DeclarationCst>;
 } & Cst<'Document'>;
 
 /*
@@ -26,7 +26,7 @@ export type DocumentCst = {
 
 export type AttributeCst = {
     name: string;
-    parameters: Array<ExpressionCst<ExpressionCstType>>;
+    parameters: Array<ExpressionCst>;
 } & Cst<'Attribute'>;
 
 export type AttributeListCst = {
@@ -39,6 +39,6 @@ export type AttributeListCst = {
 
 export type TypeDeclarationCst = {
     typeName: string;
-    template: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst>;
+    template: Array<ExpressionCst | TypeDeclarationCst>;
     isPointer: boolean;
 } & Cst<'TypeDeclaration'>;

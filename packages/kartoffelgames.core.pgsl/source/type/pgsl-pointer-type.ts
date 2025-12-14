@@ -1,5 +1,5 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { PgslValueAddressSpace } from '../enum/pgsl-value-address-space.enum.ts';
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
@@ -34,11 +34,11 @@ export class PgslPointerType extends PgslType {
     /**
      * Constructor for pointer type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pReferenceType - The type that this pointer references.
      */
-    public constructor(pTrace: PgslTrace, pReferenceType: PgslType) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pReferenceType: PgslType) {
+        super(pContext);
 
         // Set data.
         this.mReferencedType = pReferenceType;
@@ -47,10 +47,16 @@ export class PgslPointerType extends PgslType {
         this.mAssignedAddressSpace = null;
     }
 
-    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace) {
+    /**
+     * Assign an address space to this pointer type.
+     * 
+     * @param pAddressSpace - Address space of pointer type.
+     * @param pContext - Context. 
+     */
+    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext) {
         // When a address space is already assigned and the new one is different, report an error.
         if (this.mAssignedAddressSpace !== null && this.mAssignedAddressSpace !== pAddressSpace) {
-            this.trace.pushIncident('Pointer address space is already assigned and cannot be changed');
+            pContext.pushIncident('Pointer address space is already assigned and cannot be changed');
             return;
         }
 
@@ -104,14 +110,14 @@ export class PgslPointerType extends PgslType {
      * Collect type properties for pointer types.
      * Validates that the referenced type is storable and defines pointer characteristics.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Trace context for validation and error reporting.
      * 
      * @returns Type properties for pointer types.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Only storable types can be referenced by pointers.
         if (!this.mReferencedType.storable) {
-            pTrace.pushIncident('Referenced types of pointers need to be storable');
+            pContext.pushIncident('Referenced types of pointers need to be storable');
         }
 
         return {

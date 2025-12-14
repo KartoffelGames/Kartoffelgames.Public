@@ -1,7 +1,7 @@
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
+import { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import { ExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import type { PgslExpressionTrace } from '../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
@@ -39,7 +39,7 @@ export class PgslBuildInType extends PgslType {
 
     private readonly mBuildInType: PgslBuildInTypeName;
     private readonly mUnderlyingType: PgslType;
-    private readonly mTemplate: ExpressionAst | null;
+    private readonly mTemplate: IExpressionAst | null;
 
     /**
      * Gets the built-in type variant name.
@@ -64,26 +64,26 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns The template expression or null if not applicable.
      */
-    public get template(): ExpressionAst | null {
+    public get template(): IExpressionAst | null {
         return this.mTemplate;
     }
 
     /**
      * Constructor for built-in type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The trace context for validation and error reporting.
      * @param pType - The specific built-in type variant.
      * @param pTemplate - Optional template expression for parameterized types.
      */
-    public constructor(pTrace: PgslTrace, pType: PgslBuildInTypeName, pTemplate: ExpressionAst | null) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
+        super(pContext);
 
         // Set data.
         this.mBuildInType = pType;
         this.mTemplate = pTemplate;
 
         // Determine the underlying type based on the built-in type.
-        this.mUnderlyingType = this.determinateAliasedType(pTrace, this.mBuildInType, pTemplate);
+        this.mUnderlyingType = this.determinateAliasedType(pContext, this.mBuildInType, pTemplate);
     }
 
     /**
@@ -134,14 +134,14 @@ export class PgslBuildInType extends PgslType {
      * Collect type properties for built-in types.
      * Validates template parameters and copies properties from the underlying type.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Context for validation and error reporting.
      * 
      * @returns Type properties copied from the underlying type.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Only clip distance needs validation.
         if (this.mBuildInType === PgslBuildInType.typeName.clipDistances) {
-            this.validateClipDistancesTemplate(pTrace);
+            this.validateClipDistancesTemplate(pContext);
         }
 
         // Underlying type.
@@ -165,30 +165,23 @@ export class PgslBuildInType extends PgslType {
      * Validates the template parameter for ClipDistances built-in type.
      * The template must be a constant unsigned integer expression.
      * 
-     * @param pTrace - Trace context for error reporting.
+     * @param pContext - Trace context for error reporting.
      */
-    private validateClipDistancesTemplate(pTrace: PgslTrace): void {
+    private validateClipDistancesTemplate(pContext: AbstractSyntaxTreeContext): void {
         // Template must be provided for ClipDistances.
         if (!this.mTemplate) {
-            pTrace.pushIncident(`Clip distance built-in template value must have a value expression.`);
-            return;
-        }
-
-        // Read trace from template expression.
-        const lLengthExpressionTrace: PgslExpressionTrace | undefined = pTrace.getExpression(this.mTemplate);
-        if (!lLengthExpressionTrace) {
-            pTrace.pushIncident(`Template expression of clip distance built-in type is not traced.`);
+            pContext.pushIncident(`Clip distance built-in template value must have a value expression.`);
             return;
         }
 
         // Template needs to be a constant.
-        if (lLengthExpressionTrace.fixedState < PgslValueFixedState.Constant) {
-            pTrace.pushIncident(`Clip distance built-in template value must be a constant.`);
+        if (this.mTemplate.data.fixedState < PgslValueFixedState.Constant) {
+            pContext.pushIncident(`Clip distance built-in template value must be a constant.`);
         }
 
         // Template needs to be a unsigned integer.
-        if (!this.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger))) {
-            pTrace.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
+        if (!this.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+            pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
         }
     }
 
@@ -196,68 +189,67 @@ export class PgslBuildInType extends PgslType {
      * Determines the underlying type for a given built-in type.
      * Maps each built-in type to its corresponding PGSL type representation.
      * 
-     * @param pTrace - Trace context for creating type instances.
+     * @param pContext - Context for creating type instances.
      * @param pBuildInType - The built-in type to map.
      * @param pTemplate - Template expression for parameterized types.
      * 
      * @returns The underlying PGSL type that represents this built-in type.
      */
-    private determinateAliasedType(pTrace: PgslTrace, pBuildInType: PgslBuildInTypeName, pTemplate: ExpressionAst | null): PgslType {
+    private determinateAliasedType(pContext: AbstractSyntaxTreeContext, pBuildInType: PgslBuildInTypeName, pTemplate: IExpressionAst | null): PgslType {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {
-                const lFloatType = new PgslNumericType(pTrace, PgslNumericType.typeName.float32);
-                return new PgslVectorType(pTrace, 4, lFloatType);
+                const lFloatType = new PgslNumericType(pContext, PgslNumericType.typeName.float32);
+                return new PgslVectorType(pContext, 4, lFloatType);
             }
             case PgslBuildInType.typeName.localInvocationId: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.globalInvocationId: {
-                const lUnsignedIntType = new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pTrace, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslVectorType(pContext, 3, lUnsignedIntType);
             }
             case PgslBuildInType.typeName.workgroupId: {
-                const lUnsignedIntType = new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pTrace, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslVectorType(pContext, 3, lUnsignedIntType);
             }
             case PgslBuildInType.typeName.numWorkgroups: {
-                const lUnsignedIntType = new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pTrace, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslVectorType(pContext, 3, lUnsignedIntType);
             }
             case PgslBuildInType.typeName.vertexIndex: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.instanceIndex: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.fragDepth: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.float32);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.float32);
             }
             case PgslBuildInType.typeName.sampleIndex: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.sampleMask: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.localInvocationIndex: {
-                return new PgslNumericType(pTrace, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
             }
             case PgslBuildInType.typeName.frontFacing: {
-                return new PgslBooleanType(pTrace);
+                return new PgslBooleanType(pContext);
             }
             case PgslBuildInType.typeName.clipDistances: {
                 // ClipDistances is an array<f32, N> where N is determined by the template
-                const lLengthExpression = pTemplate instanceof ExpressionAst ? pTemplate : null;
-
+                
                 // Create a new float number type.
-                const lFloatType = new PgslNumericType(pTrace, PgslNumericType.typeName.float32);
+                const lFloatType = new PgslNumericType(pContext, PgslNumericType.typeName.float32);
 
-                return new PgslArrayType(pTrace, lFloatType, lLengthExpression);
+                return new PgslArrayType(pContext, lFloatType, pTemplate);
             }
             default: {
                 // Unknown built-in type
-                pTrace.pushIncident(`Unknown built-in type: ${pBuildInType}`);
-                return new PgslInvalidType(pTrace);
+                pContext.pushIncident(`Unknown built-in type: ${pBuildInType}`);
+                return new PgslInvalidType(pContext);
             }
         }
     }

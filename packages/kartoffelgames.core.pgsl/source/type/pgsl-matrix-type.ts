@@ -2,6 +2,7 @@ import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 
 /**
  * Matrix type definition.
@@ -73,12 +74,12 @@ export class PgslMatrixType extends PgslType {
     /**
      * Constructor for matrix type.
      * 
-     * @param pTrace - The trace context for validation and error reporting.
+     * @param pContext - The context for validation and error reporting.
      * @param pMatrixType - The specific matrix dimension type.
      * @param pInnerType - The inner element type of the matrix.
      */
-    public constructor(pTrace: PgslTrace, pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
-        super(pTrace);
+    public constructor(pContext: AbstractSyntaxTreeContext, pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
+        super(pContext);
 
         // Set data.
         this.mInnerType = pInnerType;
@@ -87,7 +88,7 @@ export class PgslMatrixType extends PgslType {
         [this.mColumnCount, this.mRowCount] = this.getMatrixDimensions(pMatrixType);
 
         // Create underlying vector type based on matrix type.
-        this.mVectorTypeDefinition = new PgslVectorType(pTrace, this.mColumnCount, pInnerType);
+        this.mVectorTypeDefinition = new PgslVectorType(pContext, this.mColumnCount, pInnerType);
     }
 
     /**
@@ -163,14 +164,14 @@ export class PgslMatrixType extends PgslType {
      * Collect type properties for matrix types.
      * Validates that the inner type is appropriate for matrices and copies relevant properties.
      * 
-     * @param pTrace - Trace context for validation and error reporting.
+     * @param pContext - Trace context for validation and error reporting.
      * 
      * @returns Type properties for matrix types.
      */
-    protected override process(pTrace: PgslTrace): PgslTypeProperties {
+    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Must be Float.
-        if (this.isImplicitCastableInto(new PgslNumericType(pTrace, PgslNumericType.typeName.float32))) {
-            pTrace.pushIncident('Matrix type must be a Float32');
+        if (this.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.float32))) {
+            pContext.pushIncident('Matrix type must be a Float32');
         }
 
         return {

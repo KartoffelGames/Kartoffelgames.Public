@@ -1,5 +1,5 @@
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import type { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/pgsl-function-declaration.ts';
+import type { FunctionDeclarationAst } from '../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
 import type { PgslDoWhileStatement } from '../abstract_syntax_tree/statement/branch/pgsl-do-while-statement.ts';
 import type { PgslForStatement } from '../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';

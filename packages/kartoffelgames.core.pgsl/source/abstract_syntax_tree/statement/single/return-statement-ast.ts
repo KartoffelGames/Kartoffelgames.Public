@@ -3,7 +3,7 @@ import type { PgslType } from '../../../type/pgsl-type.ts';
 import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from "../../abstract-syntax-tree.ts";
-import { FunctionDeclarationAstDataDeclaration, FunctionDeclarationAst } from "../../declaration/pgsl-function-declaration.ts";
+import { FunctionDeclarationAstDataDeclaration, FunctionDeclarationAst } from "../../declaration/function-declaration-ast.ts";
 import { ExpressionAstBuilder } from "../../expression/expression-ast-builder.ts";
 import { IExpressionAst } from "../../expression/i-expression-ast.interface.ts";
 import { IStatementAst } from "../i-statement-ast.interface.ts";
@@ -32,12 +32,12 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
             }
 
             // Skip validation if there are multiple return types.
-            if (lFunctionAst.data.headers.length > 1) {
+            if (lFunctionAst.data.declarations.length > 1) {
                 return;
             }
 
             // Read the first function header return type, if it is null it is generic and can be anything.
-            const lFunctionHeader: FunctionDeclarationAstDataDeclaration = lFunctionAst.data.headers[0];
+            const lFunctionHeader: FunctionDeclarationAstDataDeclaration = lFunctionAst.data.declarations[0];
             if (!lFunctionHeader.resultType) {
                 return;
             }

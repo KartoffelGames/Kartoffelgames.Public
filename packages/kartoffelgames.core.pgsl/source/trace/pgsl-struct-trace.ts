@@ -1,6 +1,6 @@
 import type { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 
-// TODO: Dynamically calculate size and alignment based on type.
+
 
 /**
  * Trace information for PGSL struct declarations and usage.

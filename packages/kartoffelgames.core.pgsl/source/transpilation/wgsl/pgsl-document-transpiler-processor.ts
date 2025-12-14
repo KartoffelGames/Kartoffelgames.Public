@@ -1,6 +1,6 @@
 import { AbstractSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
 import { EnumDeclarationAst } from "../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
-import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/pgsl-function-declaration.ts";
+import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
 import { StructDeclarationAst } from "../../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
 import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';

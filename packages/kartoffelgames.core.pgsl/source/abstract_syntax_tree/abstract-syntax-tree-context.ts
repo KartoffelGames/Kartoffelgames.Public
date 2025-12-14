@@ -1,15 +1,15 @@
 import { Exception } from "@kartoffelgames/core";
 import type { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
-import type { FunctionDeclarationAst } from './declaration/pgsl-function-declaration.ts';
+import { AliasDeclarationAst } from "./declaration/alias-declaration-ast.ts";
+import { EnumDeclarationAst } from "./declaration/enum-declaration-ast.ts";
+import type { FunctionDeclarationAst } from './declaration/function-declaration-ast.ts';
+import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
 import type { DocumentAst } from './document-ast.ts';
 import { IValueStoreAst } from "./i-value-store-ast.interface.ts";
 import type { PgslDoWhileStatement } from './statement/branch/pgsl-do-while-statement.ts';
 import type { PgslForStatement } from './statement/branch/pgsl-for-statement.ts';
 import type { PgslSwitchStatement } from './statement/branch/pgsl-switch-statement.ts';
 import type { PgslWhileStatement } from './statement/branch/pgsl-while-statement.ts';
-import { AliasDeclarationAst } from "./declaration/alias-declaration-ast.ts";
-import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
-import { EnumDeclarationAst } from "./declaration/enum-declaration-ast.ts";
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.
@@ -256,7 +256,7 @@ export class AbstractSyntaxTreeContext {
      * @param pAst - The function information.
      */
     public registerFunction(pAst: FunctionDeclarationAst): void {
-        this.mFunctions.set(pAst.name, pAst);
+        this.mFunctions.set(pAst.data.name, pAst);
     }
 
     /**
@@ -265,7 +265,7 @@ export class AbstractSyntaxTreeContext {
      * @param pAst - The struct information.
      */
     public registerStruct(pAst: StructDeclarationAst): void {
-        this.mStructs.set(pAst.name, pAst);
+        this.mStructs.set(pAst.data.name, pAst);
     }
 }
 

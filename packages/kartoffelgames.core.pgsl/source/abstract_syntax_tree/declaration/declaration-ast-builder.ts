@@ -2,11 +2,14 @@ import { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionDeclar
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AliasDeclarationAst } from "./alias-declaration-ast.ts";
 import { EnumDeclarationAst } from "./enum-declaration-ast.ts";
+import { FunctionDeclarationAst } from "./function-declaration-ast.ts";
 import { IDeclarationAst } from "./i-declaration-ast.interface.ts";
-import { FunctionDeclarationAst } from "./pgsl-function-declaration.ts";
 import { StructDeclarationAst } from "./struct-declaration-ast.ts";
 import { VariableDeclarationAst } from "./variable-declaration-ast.ts";
 
+/**
+ * Abstract syntax tree builder for Declaration AST nodes.
+ */
 export abstract class DeclarationAstBuilder {
     /**
      * Build a declaration AST node from a concrete syntax tree node.

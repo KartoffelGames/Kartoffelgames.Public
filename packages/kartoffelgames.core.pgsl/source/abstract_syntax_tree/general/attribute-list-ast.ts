@@ -7,12 +7,12 @@ import { PgslStringType } from '../../type/pgsl-string-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
-import { FunctionDeclarationAst } from '../declaration/pgsl-function-declaration.ts';
+import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
+import { IDeclarationAst } from "../declaration/i-declaration-ast.interface.ts";
 import { StructPropertyDeclarationAst } from '../declaration/struct-property-declaration-ast.ts';
 import { VariableDeclarationAst } from "../declaration/variable-declaration-ast.ts";
-import { IDeclarationAst } from "../declaration/i-declaration-ast.interface.ts";
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
 import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
+import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
 
 /**
  * Generic attribute list.

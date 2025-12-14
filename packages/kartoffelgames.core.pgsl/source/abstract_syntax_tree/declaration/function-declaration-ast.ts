@@ -11,11 +11,6 @@ import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
 import { DeclarationAstData, IDeclarationAst } from "./i-declaration-ast.interface.ts";
 
-// TODO: Add support for multiple parameter sets and their return type.
-// TODO: Add support for generics.
-// TODO: Somehow there must be a disconnect between the pgsl function name and the wgsl function name without specifying it in the definition. 
-//       For now this is only used for built in functions.
-
 // TODO: Split into simple CST Tree that are simply ts-types
 // TODO: Any ast takes the right dst type as constructor parameter and validates/traces itself.
 // TODO: The parser-trace is obsolete as it is merged into the ask tree now.

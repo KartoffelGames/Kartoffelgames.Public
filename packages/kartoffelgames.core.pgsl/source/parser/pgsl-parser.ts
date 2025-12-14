@@ -597,7 +597,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 ]);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): LiteralValueExpressionCst => {
             return {
-                type: 'LiteralExpression',
+                type: 'LiteralValueExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 textValue: pData.value
             } satisfies LiteralValueExpressionCst;

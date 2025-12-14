@@ -1,4 +1,4 @@
-import { PgslArithmeticExpression } from '../../../../abstract_syntax_tree/expression/operation/pgsl-arithmetic-expression.ts';
+import { PgslArithmeticExpression } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
 import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 

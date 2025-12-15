@@ -1,7 +1,7 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-pgsl-transpiler-processor.interface.ts';
+import { PgslTranspilationMeta } from "./pgsl-transpilation-meta.ts";
 
 // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
 
@@ -40,13 +40,17 @@ export class PgslTranspilation {
 
         // Create callbacks.
         const lTranspile: PgslTranspilerProcessorTranspile = (pInstance: AbstractSyntaxTree): string => {
-            return this.transpile(pInstance, pTrace).code;
+            return this.transpile(pInstance).code;
         };
+
+        // Create transpilation meta object.
+        const lTranspilationMeta: PgslTranspilationMeta = new PgslTranspilationMeta(); 
 
         // Create result.
         return {
-            code: lProcessor.process(pInstance, pTrace, lTranspile),
-            sourceMap: null
+            code: lProcessor.process(pInstance, lTranspile, lTranspilationMeta),
+            sourceMap: null,
+            meta: lTranspilationMeta
         };
     }
 
@@ -76,4 +80,5 @@ type PgslSyntaxTreeConstructor = IAnyParameterConstructor<AbstractSyntaxTree>;
 export type PgslTranspilationResult = {
     code: string;
     sourceMap: null;
+    meta: PgslTranspilationMeta;
 };

@@ -1,10 +1,8 @@
-import { AbstractSyntaxTree, PgslSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
-import { EnumDeclarationAst } from "../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
+import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
 import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
 import { StructDeclarationAst } from "../../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
-import { PgslVariableDeclaration } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { VariableDeclarationAst } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import type { PgslTrace } from '../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<DocumentAst> {
@@ -22,10 +20,10 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
      * @param _pTrace - The syntax tree trace for context.
      * @param pSendResult - The function to call with transpilation results.
      */
-    public process(pInstance: DocumentAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: DocumentAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // List of transpileable child nodes.
-        const lTranspileableChildren: Array<PgslSyntaxTreeConstructor> = [
-            FunctionDeclarationAst, PgslVariableDeclaration, StructDeclarationAst
+        const lTranspileableChildren: Array<AbstractSyntaxTreeConstructor> = [
+            FunctionDeclarationAst, VariableDeclarationAst, StructDeclarationAst
         ];
         const lIsTranspileable = (pChild: AbstractSyntaxTree): boolean => {
             for (const lTranspileableChild of lTranspileableChildren) {
@@ -39,7 +37,7 @@ export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor
         let lResult: string = '';
 
         // Transpile the document by processing all child nodes.
-        for (const lChild of pInstance.childNodes) {
+        for (const lChild of pInstance.data.content) {
             // Ignore some declarations as their values gets inlined.
             if (!lIsTranspileable(lChild)) {
                 continue;

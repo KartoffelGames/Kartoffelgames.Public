@@ -66,7 +66,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         this.validateDeclaration(pContext, lAttributes, lDeclarationType, lType, lExpression);
 
         // Validate if expression fits declaration type.
-        if (lExpression && !lExpression.data.returnType.isImplicitCastableInto(lType)) {
+        if (lExpression && !lExpression.data.resolveType.isImplicitCastableInto(lType)) {
             // Expression type is not castable into declaration type.
             pContext.pushIncident(`Initializing value has incompatible type.`, this);
         }

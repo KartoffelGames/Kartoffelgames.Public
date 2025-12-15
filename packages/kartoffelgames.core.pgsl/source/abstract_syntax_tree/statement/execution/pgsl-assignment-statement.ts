@@ -41,7 +41,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
 
         // Validate that it has the same value.
-        if (!lExpression.data.returnType.isImplicitCastableInto(lVariable.data.returnType)) {
+        if (!lExpression.data.resolveType.isImplicitCastableInto(lVariable.data.resolveType)) {
             pContext.pushIncident(`Can't assign a different type to a variable`, lExpression);
         }
 

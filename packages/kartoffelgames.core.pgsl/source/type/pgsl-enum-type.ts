@@ -9,6 +9,16 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  */
 export class PgslEnumType extends PgslType {
     private readonly mEnumName: string;
+    private readonly mEnumDeclaration: EnumDeclarationAst | null;
+
+    /**
+     * Gets the enum declaration AST node associated with this enum type.
+     * 
+     * @returns The enum declaration AST node, or null if not found.
+     */
+    public get enumDeclaration(): EnumDeclarationAst | null {
+        return this.mEnumDeclaration;
+    }
 
     /**
      * Gets the name of the enum type.
@@ -30,6 +40,9 @@ export class PgslEnumType extends PgslType {
 
         // Set data.
         this.mEnumName = pEnumName;
+
+        // Read enum declaration.
+        this.mEnumDeclaration = pContext.getEnum(pEnumName) ?? null;
     }
 
     /**
@@ -85,8 +98,7 @@ export class PgslEnumType extends PgslType {
      */
     protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Read enum trace information.
-        const lEnum: EnumDeclarationAst | undefined = pContext.getEnum(this.mEnumName);
-        if (!lEnum) {
+        if (!this.mEnumDeclaration) {
             pContext.pushIncident(`Name '${this.mEnumName}' does not resolve to a enum declaration.`);
         }
 
@@ -96,7 +108,7 @@ export class PgslEnumType extends PgslType {
             indexable: false,
             storable: false,
             scalar: false,
-            concrete: lEnum?.data.underlyingType.concrete ?? false,
+            concrete: this.mEnumDeclaration?.data.underlyingType.concrete ?? false,
             plain: false,
             hostShareable: false,
             constructible: false,

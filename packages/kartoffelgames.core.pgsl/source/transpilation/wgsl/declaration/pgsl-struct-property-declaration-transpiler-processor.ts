@@ -1,10 +1,9 @@
-import { PgslInterpolateSampling } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-sampling.enum.ts';
-import { PgslInterpolateType } from '../../../abstract_syntax_tree/buildin/pgsl-interpolate-type.enum.ts';
 import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
-import type { PgslStructPropertyTrace } from '../../../trace/pgsl-struct-property-trace.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
+import { PgslInterpolateSamplingEnum } from "../../../buildin/pgsl-interpolate-sampling-enum.ts";
+import { PgslInterpolateTypeEnum } from "../../../buildin/pgsl-interpolate-type-enum.ts";
 import { PgslBuildInType } from '../../../type/pgsl-build-in-type.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
+import { PgslTranspilationMeta } from "../../pgsl-transpilation-meta.ts";
 
 export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<StructPropertyDeclarationAst> {
     /**
@@ -22,19 +21,16 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
      * @param pSendResult - Function to send the result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: StructPropertyDeclarationAst, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: StructPropertyDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: PgslTranspilationMeta): string {
         // Transpile property type.
-        const lTypeTranspilation: string = pTranspile(pInstance.type);
-
-        // Get the trace of the struct property.
-        const lPropertyTrace: PgslStructPropertyTrace = pTrace.getStructProperty(pInstance);
+        const lTypeTranspilation: string = pTranspile(pInstance.data.typeDeclaration);
 
         // Create result array.
         const lResultParts: Array<string> = new Array<string>();
 
         // Builtin types handling. Adding required attribute metadata.
-        if (pInstance.type.type instanceof PgslBuildInType) {
-            switch (pInstance.type.type.buildInType) {
+        if (pInstance.data.typeDeclaration.data.type instanceof PgslBuildInType) {
+            switch (pInstance.data.typeDeclaration.data.type.buildInType) {
                 case PgslBuildInType.typeName.vertexIndex: lResultParts.push(`@builtin(vertex_index)`); break;
                 case PgslBuildInType.typeName.instanceIndex: lResultParts.push(`@builtin(instance_index)`); break;
                 case PgslBuildInType.typeName.position: lResultParts.push(`@builtin(position)`); break;
@@ -52,43 +48,43 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
         }
 
         // Transpile attribute list based on set meta data.
-        if (typeof lPropertyTrace.meta.alignment !== 'undefined') {
-            lResultParts.push(`@align(${lPropertyTrace.meta.alignment})`);
+        if (typeof pInstance.data.meta.alignment !== 'undefined') {
+            lResultParts.push(`@align(${pInstance.data.meta.alignment})`);
         }
-        if (typeof lPropertyTrace.meta.blendSrc !== 'undefined') {
-            lResultParts.push(`@blend_src(${lPropertyTrace.meta.blendSrc})`);
+        if (typeof pInstance.data.meta.blendSrc !== 'undefined') {
+            lResultParts.push(`@blend_src(${pInstance.data.meta.blendSrc})`);
         }
-        if (lPropertyTrace.meta.locationIndex !== -1) {
-            lResultParts.push(`@location(${lPropertyTrace.meta.locationIndex})`);
+        if (pInstance.data.meta.locationIndex !== -1) {
+            lResultParts.push(`@location(${pInstance.data.meta.locationIndex})`);
         }
-        if (typeof lPropertyTrace.meta.size !== 'undefined') {
-            lResultParts.push(`@size(${lPropertyTrace.meta.size})`);
+        if (typeof pInstance.data.meta.size !== 'undefined') {
+            lResultParts.push(`@size(${pInstance.data.meta.size})`);
         }
-        if (typeof lPropertyTrace.meta.interpolation !== 'undefined') {
+        if (typeof pInstance.data.meta.interpolation !== 'undefined') {
             // Convert interpolation type to string.
             const lInterpolationTypeString: string = (() => {
-                switch (lPropertyTrace.meta.interpolation.type) {
-                    case PgslInterpolateType.Linear: return 'linear';
-                    case PgslInterpolateType.Flat: return 'flat';
-                    case PgslInterpolateType.Perspective: return 'perspective';
+                switch (pInstance.data.meta.interpolation.type) {
+                    case PgslInterpolateTypeEnum.values.Linear: return 'linear';
+                    case PgslInterpolateTypeEnum.values.Flat: return 'flat';
+                    case PgslInterpolateTypeEnum.values.Perspective: return 'perspective';
                 }
             })();
 
             // Convert sampling type to string.
             const lSamplingTypeString: string = (() => {
-                switch (lPropertyTrace.meta.interpolation.sampling) {
-                    case PgslInterpolateSampling.Center: return 'center';
-                    case PgslInterpolateSampling.Centroid: return 'centroid';
-                    case PgslInterpolateSampling.Either: return 'either';
-                    case PgslInterpolateSampling.First: return 'first';
-                    case PgslInterpolateSampling.Sample: return 'sample';
+                switch (pInstance.data.meta.interpolation.sampling) {
+                    case PgslInterpolateSamplingEnum.values.Center: return 'center';
+                    case PgslInterpolateSamplingEnum.values.Centroid: return 'centroid';
+                    case PgslInterpolateSamplingEnum.values.Either: return 'either';
+                    case PgslInterpolateSamplingEnum.values.First: return 'first';
+                    case PgslInterpolateSamplingEnum.values.Sample: return 'sample';
                 }
             })();
 
             lResultParts.push(`@interpolate(${lInterpolationTypeString}, ${lSamplingTypeString})`);
         }
 
-        lResultParts.push(`${pInstance.name}:${lTypeTranspilation}`);
+        lResultParts.push(`${pInstance.data.name}:${lTypeTranspilation}`);
 
         return lResultParts.join('');
     }

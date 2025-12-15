@@ -31,7 +31,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                returnType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Inherit
             };
@@ -79,7 +79,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             // Expression meta data.
             fixedState: lFixedState,
             isStorage: false,
-            returnType: lReturnType,
+            resolveType: lReturnType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };
@@ -111,7 +111,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
 
                 // Check if parameter type matches function declaration.
-                if (!lParameterExpression.data.returnType.isImplicitCastableInto(lFunctionParameterType)) {
+                if (!lParameterExpression.data.resolveType.isImplicitCastableInto(lFunctionParameterType)) {
                     pContext.pushIncident(`Parameter ${lParameterIndex} of function '${this.cst.functionName}' has invalid type.`, this);
                 }
             }

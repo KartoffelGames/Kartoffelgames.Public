@@ -26,34 +26,34 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index, pContext);
 
         // Value needs to be indexable.
-        if (!lValue.data.returnType.indexable) {
+        if (!lValue.data.resolveType.indexable) {
             pContext.pushIncident('Value of index expression needs to be a indexable composite value.', this);
         }
 
         // Value needs to be a unsigned numeric value.
-        if (!lIndex.data.returnType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+        if (!lIndex.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 
         const lResolveType: PgslType = (() => {
             switch (true) {
-                case lValue.data.returnType instanceof PgslArrayType: {
-                    return lValue.data.returnType.innerType;
+                case lValue.data.resolveType instanceof PgslArrayType: {
+                    return lValue.data.resolveType.innerType;
                 }
 
-                case lValue.data.returnType instanceof PgslVectorType: {
-                    return lValue.data.returnType.innerType;
+                case lValue.data.resolveType instanceof PgslVectorType: {
+                    return lValue.data.resolveType.innerType;
                 }
 
-                case lValue.data.returnType instanceof PgslMatrixType: {
-                    return lValue.data.returnType.vectorType;
+                case lValue.data.resolveType instanceof PgslMatrixType: {
+                    return lValue.data.resolveType.vectorType;
                 }
 
                 default: {
                     pContext.pushIncident('Type does not support a index signature', this);
 
                     // Somehow could have the same type.
-                    return lValue.data.returnType;
+                    return lValue.data.resolveType;
                 }
             }
         })();
@@ -66,7 +66,7 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: true,
-            returnType: lResolveType,
+            resolveType: lResolveType,
             constantValue: null,
             storageAddressSpace: lValue.data.storageAddressSpace
         };

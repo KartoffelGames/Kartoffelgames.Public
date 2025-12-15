@@ -22,11 +22,11 @@ export class PointerExpressionAst extends AbstractSyntaxTree<PointerExpressionCs
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
 
         // Value needs to be a pointer.
-        if (!(lExpression.data.returnType instanceof PgslPointerType)) {
+        if (!(lExpression.data.resolveType instanceof PgslPointerType)) {
             throw new Exception('Pointer of expression needs to be a pointer type.', this);
         }
 
-        const lResolveType: PgslType = lExpression.data.returnType.referencedType;
+        const lResolveType: PgslType = lExpression.data.resolveType.referencedType;
 
         return {
             // Expression data.
@@ -35,7 +35,7 @@ export class PointerExpressionAst extends AbstractSyntaxTree<PointerExpressionCs
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: true,
-            returnType: lResolveType,
+            resolveType: lResolveType,
             constantValue: lExpression.data.constantValue,
             storageAddressSpace: lExpression.data.storageAddressSpace
         };

@@ -31,7 +31,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             lFirstPropertyType = new PgslInvalidType(pContext);
         } else {
             // Get first property type.
-            lFirstPropertyType = lProperties.values().next().value!.data.returnType;
+            lFirstPropertyType = lProperties.values().next().value!.data.resolveType;
         }
 
         // Check if enum is already defined.
@@ -68,8 +68,8 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.returnType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
-            const lIsString: boolean = lExpressionAst.data.returnType.isImplicitCastableInto(new PgslStringType(pContext));
+            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
+            const lIsString: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslStringType(pContext));
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {
@@ -78,11 +78,11 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
 
             // Init on first value.
             if (lFirstPropertyType === null) {
-                lFirstPropertyType = lExpressionAst.data.returnType;
+                lFirstPropertyType = lExpressionAst.data.resolveType;
             }
 
             // Property is the same type as the others.
-            if (!lExpressionAst.data.returnType.equals(lFirstPropertyType)) {
+            if (!lExpressionAst.data.resolveType.equals(lFirstPropertyType)) {
                 pContext.pushIncident(`Enum "${this.cst.name}" has mixed value types. Expected all values to be of the same type.`, this);
             }
         }

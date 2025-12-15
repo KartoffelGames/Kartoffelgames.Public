@@ -1,5 +1,4 @@
 import { NewExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
 import { PgslArrayType } from "../../../../type/pgsl-array-type.ts";
 import { PgslBooleanType } from "../../../../type/pgsl-boolean-type.ts";
 import { PgslMatrixType } from "../../../../type/pgsl-matrix-type.ts";
@@ -58,14 +57,13 @@ export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspiler
      * Transpiles a PGSL new call expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: NewExpressionAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        const lTypeNameConversion: string = PgslNewCallExpressionTranspilerProcessor.typeNameConversion(pInstance.typeName)
+    public process(pInstance: NewExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+        const lTypeNameConversion: string = PgslNewCallExpressionTranspilerProcessor.typeNameConversion(pInstance.data.typeName)
         // Simply transpile the type and parameters without the new part.
-        return `${lTypeNameConversion}(${pInstance.parameter.map(pParam => pTranspile(pParam)).join(',')})`;
+        return `${lTypeNameConversion}(${pInstance.data.parameterList.map(pParam => pTranspile(pParam)).join(',')})`;
     }
 }

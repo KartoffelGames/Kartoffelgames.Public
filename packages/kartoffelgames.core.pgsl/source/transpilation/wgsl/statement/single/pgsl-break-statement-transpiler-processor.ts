@@ -12,12 +12,9 @@ export class PgslBreakStatementTranspilerProcessor implements IPgslTranspilerPro
     /**
      * Transpiles a PGSL break statement into WGSL code.
      * 
-     * @param _pInstance - Processor syntax tree instance.
-     * @param _pTranspile - Transpile function.
-     * 
      * @returns Transpiled WGSL code.
      */
-    public process(_pInstance: BreakStatementAst, _pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(): string {
         return `break;`;
     }
 }

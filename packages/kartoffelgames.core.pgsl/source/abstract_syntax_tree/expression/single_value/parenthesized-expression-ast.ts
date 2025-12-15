@@ -25,7 +25,7 @@ export class ParenthesizedExpressionAst extends AbstractSyntaxTree<Parenthesized
             // Expression meta data.
             fixedState: lExpression.data.fixedState,
             isStorage: lExpression.data.isStorage,
-            returnType: lExpression.data.returnType,
+            resolveType: lExpression.data.resolveType,
             constantValue: lExpression.data.constantValue,
             storageAddressSpace: lExpression.data.storageAddressSpace
         };

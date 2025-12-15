@@ -27,7 +27,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
         }
 
         // Read type attachment of variable.
-        const lVariableResolveType: PgslType = lVariable.data.returnType;
+        const lVariableResolveType: PgslType = lVariable.data.resolveType;
 
         // Type of expression needs to be storable.
         if (!lVariableResolveType.storable) {
@@ -43,7 +43,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
             // Expression meta data.
             fixedState: lVariable.data.fixedState,
             isStorage: false,
-            returnType: new PgslPointerType(pContext, lVariableResolveType),
+            resolveType: new PgslPointerType(pContext, lVariableResolveType),
             constantValue: null,
             storageAddressSpace: lVariable.data.storageAddressSpace
         };

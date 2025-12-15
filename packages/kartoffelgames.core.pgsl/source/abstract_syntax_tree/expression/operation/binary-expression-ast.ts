@@ -48,25 +48,25 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         let lRightValueType: PgslType;
 
         // Validate vectors differently.
-        if (lLeftExpression.data.returnType instanceof PgslVectorType) {
-            lLeftValueType = lLeftExpression.data.returnType.innerType;
+        if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
+            lLeftValueType = lLeftExpression.data.resolveType.innerType;
 
             // Left and right must be a vector.
-            if (lRightExpression.data.returnType instanceof PgslVectorType) {
-                lRightValueType = lRightExpression.data.returnType.innerType;
+            if (lRightExpression.data.resolveType instanceof PgslVectorType) {
+                lRightValueType = lRightExpression.data.resolveType.innerType;
 
                 // Validate that both vectors are of same size.
-                if (lLeftExpression.data.returnType.dimension !== lRightExpression.data.returnType.dimension) {
+                if (lLeftExpression.data.resolveType.dimension !== lRightExpression.data.resolveType.dimension) {
                     pContext.pushIncident('Left and right side of bit expression must be of the same vector size.', this);
                 }
             } else {
                 pContext.pushIncident('Left and right side of bit expression must be the a vector type.', this);
-                lRightValueType = lRightExpression.data.returnType;
+                lRightValueType = lRightExpression.data.resolveType;
             }
         } else {
             // Expression types are the processed types.
-            lLeftValueType = lLeftExpression.data.returnType;
-            lRightValueType = lRightExpression.data.returnType;
+            lLeftValueType = lLeftExpression.data.resolveType;
+            lRightValueType = lRightExpression.data.resolveType;
         }
 
         const lUnsignedInteger: PgslNumericType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
@@ -102,7 +102,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            returnType: lLeftExpression.data.returnType,
+            resolveType: lLeftExpression.data.resolveType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

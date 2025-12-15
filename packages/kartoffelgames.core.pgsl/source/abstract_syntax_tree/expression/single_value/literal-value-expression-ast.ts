@@ -29,7 +29,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
             // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
-            returnType: lResolveType,
+            resolveType: lResolveType,
             constantValue: lValue,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

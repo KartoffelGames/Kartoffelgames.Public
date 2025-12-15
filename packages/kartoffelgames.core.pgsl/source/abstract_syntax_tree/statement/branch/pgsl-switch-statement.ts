@@ -32,7 +32,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
             };
 
             // Expression resolve type must be a unsigned integer.
-            if (!lCastableIntoInteger(lExpression.data.returnType)) {
+            if (!lCastableIntoInteger(lExpression.data.resolveType)) {
                 pContext.pushIncident('Switch expression must resolve into a unsigned integer.', lExpression);
             }
 
@@ -64,7 +64,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
                     }
 
                     // Must be number type.
-                    if (!lCastableIntoInteger(lCaseValueAst.data.returnType)) {
+                    if (!lCastableIntoInteger(lCaseValueAst.data.resolveType)) {
                         pContext.pushIncident('Case expression must be of a unsigned integer type.', lCaseValueAst);
                     }
 

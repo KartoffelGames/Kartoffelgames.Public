@@ -29,7 +29,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
         const lPropertyName: string = this.cst.property;
 
         // Read attachment from resolve type.
-        const lExpressionType: PgslType = lValue.data.returnType;
+        const lExpressionType: PgslType = lValue.data.resolveType;
 
         // Must be compositeable.
         if (!lExpressionType.composite) {
@@ -78,7 +78,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                     }
 
                     return {
-                        type: lEnumValue.data.returnType,
+                        type: lEnumValue.data.resolveType,
                         fixedState: lEnumValue.data.fixedState,
                         constValue: lEnumValue.data.constantValue,
                         addressSpace: lEnumValue.data.storageAddressSpace,
@@ -136,7 +136,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                returnType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Function
             };
@@ -150,7 +150,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
             // Expression meta data.
             fixedState: lPropertyInformation.fixedState,
             isStorage: lPropertyInformation.isStorage,
-            returnType: lPropertyInformation.type,
+            resolveType: lPropertyInformation.type,
             constantValue: lPropertyInformation.constValue,
             storageAddressSpace: lPropertyInformation.addressSpace
         };

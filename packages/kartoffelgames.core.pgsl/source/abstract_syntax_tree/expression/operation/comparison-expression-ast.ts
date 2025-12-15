@@ -48,7 +48,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
 
         // Comparison needs to be the same type or implicitly castable.
-        if (!lRightExpression.data.returnType.isImplicitCastableInto(lLeftExpression.data.returnType)) {
+        if (!lRightExpression.data.resolveType.isImplicitCastableInto(lLeftExpression.data.resolveType)) {
             pContext.pushIncident(`Comparison can only be between values of the same type.`, this);
         }
 
@@ -56,10 +56,10 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         let lValueType: PgslType;
 
         // Validate vectors differently.
-        if (lLeftExpression.data.returnType instanceof PgslVectorType) {
-            lValueType = lLeftExpression.data.returnType.innerType;
+        if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
+            lValueType = lLeftExpression.data.resolveType.innerType;
         } else {
-            lValueType = lLeftExpression.data.returnType;
+            lValueType = lLeftExpression.data.resolveType;
         }
 
         // Both values need to be numeric or boolean.
@@ -77,8 +77,8 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
             const lBooleanDefinition: PgslBooleanType = new PgslBooleanType(pContext);
 
             // Wrap boolean into a vector when it is a vector expression.
-            if (lLeftExpression.data.returnType instanceof PgslVectorType) {
-                return new PgslVectorType(pContext, lLeftExpression.data.returnType.dimension, lBooleanDefinition);
+            if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
+                return new PgslVectorType(pContext, lLeftExpression.data.resolveType.dimension, lBooleanDefinition);
             }
 
             return lBooleanDefinition;
@@ -93,7 +93,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            returnType: lResolveType,
+            resolveType: lResolveType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

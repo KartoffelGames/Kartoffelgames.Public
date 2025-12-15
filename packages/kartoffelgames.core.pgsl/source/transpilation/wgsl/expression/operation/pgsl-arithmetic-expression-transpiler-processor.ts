@@ -1,25 +1,23 @@
-import { PgslArithmeticExpression } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { ArithmeticExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslArithmeticExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslArithmeticExpression> {
+export class PgslArithmeticExpressionTranspilerProcessor implements IPgslTranspilerProcessor<ArithmeticExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslArithmeticExpression {
-        return PgslArithmeticExpression;
+    public get target(): typeof ArithmeticExpressionAst {
+        return ArithmeticExpressionAst;
     }
 
     /**
      * Transpiles a PGSL arithmetic expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    process(pInstance: PgslArithmeticExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.leftExpression)} ${pInstance.operatorName} ${pTranspile(pInstance.rightExpression)}`;
+    process(pInstance: ArithmeticExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+        return `${pTranspile(pInstance.data.leftExpression)} ${pInstance.data.operator} ${pTranspile(pInstance.data.rightExpression)}`;
     }
 }

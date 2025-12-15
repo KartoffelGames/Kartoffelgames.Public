@@ -171,7 +171,7 @@ export class PgslArrayType extends PgslType {
             }
 
             // Length expression must be an unsigned integer scalar.
-            if (!this.mLengthExpression.data.returnType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
                 pContext.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }

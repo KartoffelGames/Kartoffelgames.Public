@@ -245,7 +245,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             lValidatedParameters.push(lAttributeParameterAst);
 
             // Read and get the actual attribute parameter.
-            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.returnType;
+            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.

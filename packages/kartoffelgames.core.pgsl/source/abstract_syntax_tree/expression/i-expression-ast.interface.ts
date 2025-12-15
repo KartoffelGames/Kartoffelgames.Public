@@ -16,7 +16,7 @@ export interface IExpressionAst extends AbstractSyntaxTree {
 export type ExpressionAstData = {
     fixedState: PgslValueFixedState;
     isStorage: boolean;
-    returnType: PgslType;
+    resolveType: PgslType;
     constantValue: number | string | null;
     storageAddressSpace: PgslValueAddressSpace;
 };

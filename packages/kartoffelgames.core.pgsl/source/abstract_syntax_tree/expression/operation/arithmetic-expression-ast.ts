@@ -41,19 +41,19 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type or implicitly castable.
-        if (!lRightExpression.data.returnType.isImplicitCastableInto(lLeftExpression.data.returnType)) {
+        if (!lRightExpression.data.resolveType.isImplicitCastableInto(lLeftExpression.data.resolveType)) {
             pContext.pushIncident('Left and right side of arithmetic expression must be the same type.', this);
         }
 
         // Validate vector inner values. 
-        if (lLeftExpression.data.returnType instanceof PgslVectorType) {
+        if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
             // Validate left side vector type. Right ist the same type.
-            if (!(lLeftExpression.data.returnType.innerType instanceof PgslNumericType)) {
+            if (!(lLeftExpression.data.resolveType.innerType instanceof PgslNumericType)) {
                 pContext.pushIncident('Left and right side of arithmetic expression must be a numeric vector value', this);
             }
         } else {
             // Validate left side type. Right ist the same type.
-            if (!(lLeftExpression.data.returnType instanceof PgslNumericType)) {
+            if (!(lLeftExpression.data.resolveType instanceof PgslNumericType)) {
                 pContext.pushIncident('Left and right side of arithmetic expression must be a numeric value', this);
             }
         }
@@ -61,13 +61,13 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         return {
             // Expression data.
             leftExpression: lLeftExpression,
-            operatorName: lOperator!,
+            operator: lOperator!,
             rightExpression: lRightExpression,
 
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            returnType: lLeftExpression.data.returnType,
+            resolveType: lLeftExpression.data.resolveType,
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };
@@ -76,6 +76,6 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
 
 export type ArithmeticExpressionAstData = {
     leftExpression: IExpressionAst;
-    operatorName: PgslOperator;
+    operator: PgslOperator;
     rightExpression: IExpressionAst;
 } & ExpressionAstData;

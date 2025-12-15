@@ -48,7 +48,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
-            if (!lExpression.data.returnType.isImplicitCastableInto(lType)) {
+            if (!lExpression.data.resolveType.isImplicitCastableInto(lType)) {
                 pContext.pushIncident(`Expression values type can't be converted to variables type.`, lExpression);
             }
         }

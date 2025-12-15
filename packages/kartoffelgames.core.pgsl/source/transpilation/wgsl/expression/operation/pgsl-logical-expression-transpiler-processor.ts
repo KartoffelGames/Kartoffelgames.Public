@@ -1,25 +1,23 @@
-import { PgslLogicalExpression } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { LogicalExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslLogicalExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslLogicalExpression> {
+export class PgslLogicalExpressionTranspilerProcessor implements IPgslTranspilerProcessor<LogicalExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslLogicalExpression {
-        return PgslLogicalExpression;
+    public get target(): typeof LogicalExpressionAst {
+        return LogicalExpressionAst;
     }
 
     /**
      * Transpiles a PGSL logical expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslLogicalExpression, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.leftExpression)} ${pInstance.operatorName} ${pTranspile(pInstance.rightExpression)}`;
+    public process(pInstance: LogicalExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+        return `${pTranspile(pInstance.data.leftExpression)} ${pInstance.data.operatorName} ${pTranspile(pInstance.data.rightExpression)}`;
     }
 }

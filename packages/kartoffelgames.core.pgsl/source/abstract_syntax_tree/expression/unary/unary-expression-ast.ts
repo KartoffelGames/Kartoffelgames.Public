@@ -36,10 +36,10 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         let lValueType: PgslType;
 
         // Validate vectors differently.
-        if (lExpression.data.returnType instanceof PgslVectorType) {
-            lValueType = lExpression.data.returnType.innerType;
+        if (lExpression.data.resolveType instanceof PgslVectorType) {
+            lValueType = lExpression.data.resolveType.innerType;
         } else {
-            lValueType = lExpression.data.returnType;
+            lValueType = lExpression.data.resolveType;
         }
 
         const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
@@ -62,7 +62,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
             return false;
         };
 
-        let lResolveType: PgslType = lExpression.data.returnType;
+        let lResolveType: PgslType = lExpression.data.resolveType;
 
         // Validate type for each.
         switch (lOperator) {
@@ -106,7 +106,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,
-            returnType: lResolveType,
+            resolveType: lResolveType,
             constantValue: lExpression.data.constantValue,
             storageAddressSpace: lExpression.data.storageAddressSpace
         };

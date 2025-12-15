@@ -28,11 +28,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>): PgslType => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         // Create length expression and trace it.
                         const lConstantLengthExpressionCst: LiteralValueExpressionCst = {
@@ -56,11 +56,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslVectorType(pContext, 2, lElementType);
                     }
@@ -73,11 +73,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslVectorType(pContext, 3, lElementType);
                     }
@@ -86,7 +86,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslVectorType, PgslNumericType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lElementType.dimension !== 2) {
@@ -100,7 +100,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslNumericType, PgslVectorType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
 
                         return new PgslVectorType(pContext, 3, lElementType.innerType);
                     }
@@ -113,11 +113,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslVectorType(pContext, 4, lElementType);
                     }
@@ -128,7 +128,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslVectorType, PgslNumericType, PgslNumericType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lElementType.dimension !== 2) {
@@ -142,7 +142,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslNumericType, PgslVectorType, PgslNumericType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lElementType.dimension !== 2) {
@@ -156,7 +156,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslNumericType, PgslNumericType, PgslVectorType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[2].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[2].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lElementType.dimension !== 2) {
@@ -171,11 +171,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lElementType.dimension !== 2) {
@@ -191,7 +191,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslVectorType, PgslNumericType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 3.
                         if (lElementType.dimension !== 3) {
@@ -205,7 +205,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     parameterTypes: [PgslNumericType, PgslVectorType],
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.returnType as PgslVectorType;
+                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 3.
                         if (lElementType.dimension !== 3) {
@@ -225,11 +225,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix22, lElementType);
                     }
@@ -240,11 +240,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lVectorType.dimension !== 2) {
@@ -262,11 +262,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix23, lElementType);
                     }
@@ -277,11 +277,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 3.
                         if (lVectorType.dimension !== 3) {
@@ -299,11 +299,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix24, lElementType);
                     }
@@ -314,11 +314,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 4.
                         if (lVectorType.dimension !== 4) {
@@ -336,11 +336,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix32, lElementType);
                     }
@@ -351,11 +351,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lVectorType.dimension !== 2) {
@@ -373,11 +373,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix33, lElementType);
                     }
@@ -388,11 +388,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 3.
                         if (lVectorType.dimension !== 3) {
@@ -410,11 +410,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix34, lElementType);
                     }
@@ -425,11 +425,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 4.
                         if (lVectorType.dimension !== 4) {
@@ -447,11 +447,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix42, lElementType);
                     }
@@ -462,11 +462,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 2.
                         if (lVectorType.dimension !== 2) {
@@ -484,11 +484,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix43, lElementType);
                     }
@@ -499,11 +499,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 3.
                         if (lVectorType.dimension !== 3) {
@@ -521,11 +521,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lElementType: PgslType = lConcreteTypeExpression.data.returnType;
+                        const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
                         return new PgslMatrixType(pContext, PgslMatrixType.typeName.matrix44, lElementType);
                     }
@@ -536,11 +536,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.returnType.concrete;
+                            return pParam.data.resolveType.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.returnType as PgslVectorType;
+                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
 
                         // Vector type must be of dimension 4.
                         if (lVectorType.dimension !== 4) {
@@ -626,7 +626,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 // Expression meta.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                returnType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Inherit,
             };
@@ -649,12 +649,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
 
                 // Must be constructable.
-                if (!lParameterExpression.data.returnType.constructible) {
+                if (!lParameterExpression.data.resolveType.constructible) {
                     pContext.pushIncident(`New expression type must be constructible.`, this);
                 }
 
                 // Must be fixed.
-                if (!lParameterExpression.data.returnType.fixedFootprint) {
+                if (!lParameterExpression.data.resolveType.fixedFootprint) {
                     pContext.pushIncident(`New expression type must be length fixed.`, this);
                 }
             }
@@ -675,7 +675,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     // Check parameter types. Any type must match exactly.
                     for (let lParameterIndex = 0; lParameterIndex < lDefinition.parameterTypes.length; lParameterIndex++) {
                         const lExpectedTypeConstructor: PgslTypeConstructor = lDefinition.parameterTypes[lParameterIndex];
-                        const lActualType: PgslType = lParameterExpressionList[lParameterIndex].data.returnType;
+                        const lActualType: PgslType = lParameterExpressionList[lParameterIndex].data.resolveType;
 
                         // Check type constructor and skip definition on mismatch.
                         if (!(lActualType instanceof lExpectedTypeConstructor)) {
@@ -698,7 +698,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         EXPECTED_TYPE_CHECK: for (const lExpectedTypeConstructor of lExpectedTypeConstructors) {
                             // Check parameter types. Any type must be in allowed types.
                             for (const lParameterExpression of lParameterExpressionList) {
-                                if (!(lParameterExpression.data.returnType instanceof lExpectedTypeConstructor)) {
+                                if (!(lParameterExpression.data.resolveType instanceof lExpectedTypeConstructor)) {
                                     continue EXPECTED_TYPE_CHECK;
                                 }
                             }
@@ -735,7 +735,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 // Expression meta.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                returnType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Inherit,
             };
@@ -749,7 +749,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             // Expression meta.
             fixedState: lFixedState,
             isStorage: false,
-            returnType: lResultType,
+            resolveType: lResultType,
             constantValue: null, // TODO: Maybe on simple convertions for f32, i32, etc.
             storageAddressSpace: PgslValueAddressSpace.Inherit,
         };

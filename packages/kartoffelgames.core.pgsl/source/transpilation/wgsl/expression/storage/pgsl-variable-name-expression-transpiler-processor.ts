@@ -1,36 +1,29 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslVariableNameExpression } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
-import type { PgslExpressionTrace } from '../../../../trace/pgsl-expression-trace.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { VariableNameExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 import { PgslEnumType } from '../../../../type/pgsl-enum-type.ts';
 
-export class PgslVariableNameExpressionTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableNameExpression> {
+export class PgslVariableNameExpressionTranspilerProcessor implements IPgslTranspilerProcessor<VariableNameExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslVariableNameExpression {
-        return PgslVariableNameExpression;
+    public get target(): typeof VariableNameExpressionAst {
+        return VariableNameExpressionAst;
     }
 
     /**
      * Transpiles a PGSL variable name expression into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param pTrace - Transpilation trace.
-     * @param _pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslVariableNameExpression, pTrace: PgslTrace, _pTranspile: PgslTranspilerProcessorTranspile): string {
-        // Read expression trace.
-        const lTrace: PgslExpressionTrace = pTrace.getExpression(pInstance);
-
+    public process(pInstance: VariableNameExpressionAst): string {
         // Throw when resolve type is an enum.
-        if (lTrace.resolveType instanceof PgslEnumType) {
-            throw new Exception(`Cannot transpile variable name expression for enum type "${lTrace.resolveType.enumName}".`, this);
+        if (pInstance.data.resolveType instanceof PgslEnumType) {
+            throw new Exception(`Cannot transpile variable name expression for enum type "${pInstance.data.resolveType.enumName}".`, this);
         }
 
-        return pInstance.variableName;
+        return pInstance.data.variableName;
     }
 }

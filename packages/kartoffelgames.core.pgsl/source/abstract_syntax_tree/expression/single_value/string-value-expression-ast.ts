@@ -23,7 +23,7 @@ export class StringValueExpressionAst extends AbstractSyntaxTree<StringValueExpr
             // Expression meta data.
             fixedState: PgslValueFixedState.Constant,
             isStorage: false,
-            returnType: new PgslStringType(pContext),
+            resolveType: new PgslStringType(pContext),
             constantValue: this.cst.textValue,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

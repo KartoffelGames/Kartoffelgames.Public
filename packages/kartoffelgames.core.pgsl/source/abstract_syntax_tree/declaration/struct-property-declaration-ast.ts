@@ -1,8 +1,6 @@
 import { PgslInterpolateSampling, PgslInterpolateSamplingEnum } from "../../buildin/pgsl-interpolate-sampling-enum.ts";
 import { PgslInterpolateType, PgslInterpolateTypeEnum } from "../../buildin/pgsl-interpolate-type-enum.ts";
 import { StructPropertyDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import type { PgslExpressionTrace } from '../../trace/pgsl-expression-trace.ts';
-import { type PgslStructPropertyTraceConstructorParameter } from '../../trace/pgsl-struct-property-trace.ts';
 import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
@@ -44,9 +42,9 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         };
     }
 
-    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): PgslStructPropertyTraceConstructorParameter['meta'] {
+    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): StructPropertyDeclarationAstData['meta'] {
         // Set property meta based on attributes.
-        const lMeta: PgslStructPropertyTraceConstructorParameter['meta'] = {};
+        const lMeta: StructPropertyDeclarationAstData['meta'] = {};
 
         // Check for location attribute.
         const lLocationName = this.getLocationName(pAttributes, pContext, pType);
@@ -237,7 +235,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      *
      * @returns The blend source or null if attribute not present or invalid.
      */
-    private getBlendSource(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: PgslStructPropertyTraceConstructorParameter['meta']): number | null {
+    private getBlendSource(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: StructPropertyDeclarationAstData['meta']): number | null {
         if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.blendSource)) {
             return null;
         }
@@ -282,7 +280,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      *
      * @returns The interpolation configuration or null if attribute not present or invalid.
      */
-    private getInterpolation(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: PgslStructPropertyTraceConstructorParameter['meta']): { type: PgslInterpolateType, sampling: PgslInterpolateSampling } | null {
+    private getInterpolation(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: StructPropertyDeclarationAstData['meta']): { type: PgslInterpolateType, sampling: PgslInterpolateSampling } | null {
         if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.interpolate)) {
             return null;
         }

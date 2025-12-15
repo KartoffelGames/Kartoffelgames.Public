@@ -1,5 +1,4 @@
 import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<FunctionDeclarationAst> {
@@ -22,7 +21,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
      * 
      * @returns Transpiled string.
      */
-    public process(pInstance: FunctionDeclarationAst, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: FunctionDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile return type.
         const lReturnType: string = pTranspile(pInstance.returnType);
 

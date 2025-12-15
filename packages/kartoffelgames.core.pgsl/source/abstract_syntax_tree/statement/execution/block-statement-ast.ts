@@ -44,7 +44,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                         continue;
                     }
 
-                    lStatementData.returnType = lStatementAst.data.expression.data.returnType;
+                    lStatementData.returnType = lStatementAst.data.expression.data.resolveType;
                     continue;
                 }
 

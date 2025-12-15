@@ -1,35 +1,33 @@
-import { PgslSwitchStatement } from '../../../../abstract_syntax_tree/statement/branch/pgsl-switch-statement.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/pgsl-switch-statement.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslSwitchStatement> {
+export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerProcessor<SwitchStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslSwitchStatement {
-        return PgslSwitchStatement;
+    public get target(): typeof SwitchStatementAst {
+        return SwitchStatementAst;
     }
 
     /**
      * Transpiles a PGSL switch statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslSwitchStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: SwitchStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Open switch.
-        let lResult: string = `switch (${pTranspile(pInstance.expression)}) {`;
+        let lResult: string = `switch (${pTranspile(pInstance.data.expression)}) {`;
 
         // Append each case.
-        for(const lCase of pInstance.cases) {
+        for(const lCase of pInstance.data.cases) {
             lResult += `case ${lCase.cases.map((pTree)=> {return pTranspile(pTree);}).join(', ')}: ${pTranspile(lCase.block)}`;
         }
 
         // Append default case.
-        lResult += `default: ${pTranspile(pInstance.default)}`;
+        lResult += `default: ${pTranspile(pInstance.data.default)}`;
 
         // Close switch.
         return lResult + '}';

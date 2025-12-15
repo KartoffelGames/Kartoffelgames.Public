@@ -1,25 +1,23 @@
-import { PgslFunctionCallStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-function-call-statement.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/pgsl-function-call-statement.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslFunctionCallStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslFunctionCallStatement> {
+export class PgslFunctionCallStatementTranspilerProcessor implements IPgslTranspilerProcessor<FunctionCallStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslFunctionCallStatement {
-        return PgslFunctionCallStatement;
+    public get target(): typeof FunctionCallStatementAst {
+        return FunctionCallStatementAst;
     }
 
     /**
      * Transpiles a PGSL function call statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslFunctionCallStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return pTranspile(pInstance.functionExpression) + ';';
+    public process(pInstance: FunctionCallStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+        return pTranspile(pInstance.data.functionExpression) + ';';
     }
 }

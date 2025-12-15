@@ -1,46 +1,44 @@
-import { PgslForStatement } from '../../../../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { ForStatementAst } from '../../../../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslForStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslForStatement> {
+export class PgslForStatementTranspilerProcessor implements IPgslTranspilerProcessor<ForStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslForStatement {
-        return PgslForStatement;
+    public get target(): typeof ForStatementAst {
+        return ForStatementAst;
     }
 
     /**
      * Transpiles a PGSL for statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslForStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: ForStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         let lResult: string = '';
 
         // Transpile init value when set.
-        if (pInstance.init) {
-            lResult += pTranspile(pInstance.init);
+        if (pInstance.data.init) {
+            lResult += pTranspile(pInstance.data.init);
         }
 
         // Create a loop.
         lResult += 'loop {';
 
         // When a expression is set define it as exit.
-        if (pInstance.expression) {
-            lResult += `if !(${pTranspile(pInstance.expression)}) { break; }`;
+        if (pInstance.data.expression) {
+            lResult += `if !(${pTranspile(pInstance.data.expression)}) { break; }`;
         }
 
         // Append the actual body.
-        lResult += pTranspile(pInstance.block);
+        lResult += pTranspile(pInstance.data.block);
 
         // Set the update expression when defined.
-        if (pInstance.update) {
-            lResult += `${pTranspile(pInstance.update)};`;
+        if (pInstance.data.update) {
+            lResult += `${pTranspile(pInstance.data.update)};`;
         }
 
         // And close the loop.

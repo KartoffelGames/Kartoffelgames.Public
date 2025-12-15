@@ -1,26 +1,24 @@
-import { PgslIncrementDecrementStatement } from '../../../../abstract_syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
-import type { PgslTrace } from '../../../../trace/pgsl-trace.ts';
+import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
-export class PgslIncrementDecrementStatementTranspilerProcessor implements IPgslTranspilerProcessor<PgslIncrementDecrementStatement> {
+export class PgslIncrementDecrementStatementTranspilerProcessor implements IPgslTranspilerProcessor<IncrementDecrementStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */
-    public get target(): typeof PgslIncrementDecrementStatement {
-        return PgslIncrementDecrementStatement;
+    public get target(): typeof IncrementDecrementStatementAst {
+        return IncrementDecrementStatementAst;
     }
 
     /**
      * Transpiles a PGSL increment/decrement statement into WGSL code.
      * 
      * @param pInstance - Processor syntax tree instance.
-     * @param _pTrace - Transpilation trace.
      * @param pTranspile - Transpile function.
      * 
      * @returns Transpiled WGSL code.
      */
-    public process(pInstance: PgslIncrementDecrementStatement, _pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: IncrementDecrementStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // TODO: Maybe the semicolon should be handled differently. Loops like the for loop dont need them.
-        return `${pTranspile(pInstance.expression)}${pInstance.operatorName};`;
+        return `${pTranspile(pInstance.data.expression)}${pInstance.data.operator};`;
     }
 }

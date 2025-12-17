@@ -3,8 +3,6 @@ import { IExpressionAst } from "../abstract_syntax_tree/expression/i-expression-
 import { TypeDeclarationAst } from '../abstract_syntax_tree/general/type-declaration-ast.ts';
 import { PgslAccessMode, PgslAccessModeEnum } from "../buildin/pgsl-access-mode-enum.ts";
 import { PgslTexelFormat, PgslTexelFormatEnum } from "../buildin/pgsl-texel-format-enum.ts";
-import { PgslExpressionTrace } from "../trace/pgsl-expression-trace.ts";
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from "./pgsl-string-type.ts";
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
@@ -300,7 +298,7 @@ export class PgslTextureType extends PgslType {
                         continue;
                     }
                 
-                    if (!(lActualParameterValue.data.returnType instanceof PgslStringType)) {
+                    if (!(lActualParameterValue.data.resolveType instanceof PgslStringType)) {
                         pContext.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a string value expression.`);
                         continue
                     }

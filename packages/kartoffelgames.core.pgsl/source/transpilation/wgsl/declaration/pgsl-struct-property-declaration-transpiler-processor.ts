@@ -54,8 +54,10 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
         if (typeof pInstance.data.meta.blendSrc !== 'undefined') {
             lResultParts.push(`@blend_src(${pInstance.data.meta.blendSrc})`);
         }
-        if (pInstance.data.meta.locationIndex !== -1) {
-            lResultParts.push(`@location(${pInstance.data.meta.locationIndex})`);
+        if (pInstance.data.meta.locationName) {
+            // Create new location index for this property.
+            const lLocationIndex: number = pTranspilationMeta.createLocationFor(pInstance.struct, pInstance);
+            lResultParts.push(`@location(${lLocationIndex})`);
         }
         if (typeof pInstance.data.meta.size !== 'undefined') {
             lResultParts.push(`@size(${pInstance.data.meta.size})`);

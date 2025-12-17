@@ -1,20 +1,19 @@
+import { VariableDeclarationAst } from "../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { PgslAccessModeEnum } from "../../../buildin/pgsl-access-mode-enum.ts";
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { PgslAccessMode } from '../../../abstract_syntax_tree/buildin/pgsl-access-mode-enum.ts';
-import { PgslVariableDeclaration } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
-import type { PgslTrace } from '../../../trace/pgsl-trace.ts';
-import type { PgslValueTrace } from '../../../trace/pgsl-value-trace.ts';
 import { PgslSamplerType } from '../../../type/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../../../type/pgsl-texture-type.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
+import { PgslTranspilationMeta, PgslTranspilationMetaBinding } from "../../pgsl-transpilation-meta.ts";
 
-export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<PgslVariableDeclaration> {
+export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<VariableDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      * 
      * @returns The constructor of the target class.
      */
-    public get target(): typeof PgslVariableDeclaration {
-        return PgslVariableDeclaration;
+    public get target(): typeof VariableDeclarationAst {
+        return VariableDeclarationAst;
     }
 
     /**
@@ -25,32 +24,26 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
      * @param pSendResult - The function to send the transpiled result.
      * @param pTranspile - The function to transpile expressions.
      */
-    public process(pInstance: PgslVariableDeclaration, pTrace: PgslTrace, pTranspile: PgslTranspilerProcessorTranspile): string {
-        // Read trace of declaration.
-        const lValueTrace: PgslValueTrace | undefined = pTrace.getModuleValue(pInstance.name);
-        if (!lValueTrace) {
-            throw new Error(`Variable declaration "${pInstance.name}" is missing trace information.`);
-        }
-
+    public process(pInstance: VariableDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: PgslTranspilationMeta): string {
         // Get type, resolving any aliases.
         const lDeclarationTypeString = ((): string => {
             // When the type is a texture or sampler, we ignore the declaration type and use var without address space.
-            if (lValueTrace.type instanceof PgslTextureType || lValueTrace.type instanceof PgslSamplerType) {
+            if (pInstance.data.type instanceof PgslTextureType || pInstance.data.type instanceof PgslSamplerType) {
                 return `var`;
             }
 
-            switch (lValueTrace.declarationType) {
+            switch (pInstance.data.declarationType) {
                 case PgslDeclarationType.Const:
                     return 'const';
                 case PgslDeclarationType.Storage: {
                     // Dependent on the access mode, set correct binding type.
                     // Cast back to string, as lAccessMode can be outside of enum values.
-                    switch (lValueTrace.accessMode) {
-                        case PgslAccessMode.Read:
+                    switch (pInstance.data.accessMode) {
+                        case PgslAccessModeEnum.values.Read:
                             return `var<storage,read>`;
-                        case PgslAccessMode.Write:
+                        case PgslAccessModeEnum.values.Write:
                             return `var<storage,write>`;
-                        case PgslAccessMode.ReadWrite:
+                        case PgslAccessModeEnum.values.ReadWrite:
                             return `var<storage,read_write>`;
                     }
                 }
@@ -70,21 +63,24 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
 
         // Transpile binding attribute.
         const lBindingAttribute: string = (() => {
-            if(!lValueTrace.bindingInformation) {
+            if(!pInstance.data.bindingInformation) {
                 return '';
             }
 
-            return `@group(${lValueTrace.bindingInformation.bindGroupIndex})@binding(${lValueTrace.bindingInformation.bindLocationIndex})`;
+            // Create binding information for this variable declaration.
+            const lValueTrace: PgslTranspilationMetaBinding = pTranspilationMeta.createBindingFor(pInstance);
+
+            return `@group(${lValueTrace.bindGroupIndex})@binding(${lValueTrace.bindingIndex})`;
         })();
 
         // Transpile declaration parts to fit spaces correctly.
-        const lTypeDeclaration: string = pTranspile(pInstance.typeDeclaration);
+        const lTypeDeclaration: string = pTranspile(pInstance.data.typeDeclaration);
 
         // If no expression is given, return declaration without expression.
-        if (!pInstance.expression) {
-            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.name}:${lTypeDeclaration};`;
+        if (!pInstance.data.expression) {
+            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration};`;
         } else {
-            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.name}:${lTypeDeclaration}=${pTranspile(pInstance.expression)};`;
+            return `${lBindingAttribute}${lDeclarationTypeString} ${pInstance.data.name}:${lTypeDeclaration}=${pTranspile(pInstance.data.expression)};`;
         }
     }
 } 

@@ -1,6 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import { PgslValueTrace } from "../trace/pgsl-value-trace.ts";
 import { PgslParserResultType, PgslParserResultTypeAlignmentType } from "./type/pgsl-parser-result-type.ts";
 import { PgslType } from "../type/pgsl-type.ts";
 import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
@@ -13,9 +12,6 @@ import { PgslArrayType } from "../type/pgsl-array-type.ts";
 import { PgslParserResultArrayType } from "./type/pgsl-parser-result-array-type.ts";
 import { PgslStructType } from "../type/pgsl-struct-type.ts";
 import { PgslParserResultStructProperty, PgslParserResultStructType } from "./type/pgsl-parser-result-struct-type.ts";
-import { PgslTrace } from "../trace/pgsl-trace.ts";
-import { PgslStructTrace } from "../trace/pgsl-struct-trace.ts";
-import { PgslStructPropertyTrace } from "../trace/pgsl-struct-property-trace.ts";
 import { PgslSamplerType } from "../type/pgsl-sampler-type.ts";
 import { PgslParserResultSamplerType } from "./type/pgsl-parser-result-sampler-type.ts";
 import { PgslTextureType } from "../type/pgsl-texture-type.ts";

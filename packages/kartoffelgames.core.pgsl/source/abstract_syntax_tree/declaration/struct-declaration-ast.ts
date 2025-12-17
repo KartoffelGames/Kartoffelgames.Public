@@ -25,11 +25,12 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
 
         // Save properties as map. Luck for us, properties are still kept in order like in a array.
         const lProperties: Map<string, StructPropertyDeclarationAst> = new Map<string, StructPropertyDeclarationAst>();
+        const lLocationNames: Set<string> = new Set<string>();
 
         // Validate properties.
         for (let lIndex: number = 0; lIndex < this.cst.properties.length; lIndex++) {
             // Read property.
-            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(this.cst.properties[lIndex], pContext);
+            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(this.cst.properties[lIndex], pContext, this);
 
             // Validate property name.
             if (lProperties.has(lProperty.data.name)) {
@@ -47,6 +48,15 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
                 if (!lProperty.data.typeDeclaration.data.type.fixedFootprint) {
                     pContext.pushIncident('Only the last property of a struct can have a variable length.', lProperty);
                 }
+            }
+
+            // Validate if property unique location attribute.
+            if (lProperty.data.meta.locationName) {
+                if (lLocationNames.has(lProperty.data.meta.locationName)) {
+                    pContext.pushIncident(`Location name '${lProperty.data.meta.locationName}' is already used in struct '${this.cst.name}'.`, lProperty);
+                }
+
+                lLocationNames.add(lProperty.data.meta.locationName);
             }
         }
 

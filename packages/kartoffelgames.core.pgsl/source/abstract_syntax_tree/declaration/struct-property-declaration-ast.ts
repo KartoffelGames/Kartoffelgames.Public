@@ -10,11 +10,33 @@ import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import { StructDeclarationAst } from "./struct-declaration-ast.ts";
 
 /**
  * PGSL syntax tree for a struct property declaration.
  */
 export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPropertyDeclarationCst, StructPropertyDeclarationAstData> implements IDeclarationAst {
+    private readonly mStruct: StructDeclarationAst;
+
+    /**
+     * Gets the struct this property belongs to.
+     */
+    public get struct(): StructDeclarationAst {
+        return this.mStruct;
+    }
+
+    /**
+     * Creates an instance of StructPropertyDeclarationAst.
+     * 
+     * @param pConcreteSyntaxTree - Concrete syntax tree node.
+     * @param pContext - Abstract syntax tree context.
+     * @param pStruct - The struct this property belongs to.
+     */
+    public constructor(pConcreteSyntaxTree: StructPropertyDeclarationCst, pContext: AbstractSyntaxTreeContext, pStruct: StructDeclarationAst) {
+        super(pConcreteSyntaxTree, pContext);
+        this.mStruct = pStruct;
+    }
+
     /**
      * Validate data of current structure.
      */
@@ -42,6 +64,15 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         };
     }
 
+    /**
+     * Get metadata for the struct property.
+     * 
+     * @param pAttributes - Attribute list.
+     * @param pContext - Build context.
+     * @param pType - Property type.
+     * 
+     * @returns Metadata for the struct property. 
+     */
     private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): StructPropertyDeclarationAstData['meta'] {
         // Set property meta based on attributes.
         const lMeta: StructPropertyDeclarationAstData['meta'] = {};
@@ -203,7 +234,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         }
 
         // Read expression trace.
-        const lAlignExpression: IExpressionAst = lAttributeParameter[0]
+        const lAlignExpression: IExpressionAst = lAttributeParameter[0];
 
         // Expression must have a constant value.
         if (typeof lAlignExpression.data.constantValue !== 'number') {
@@ -254,7 +285,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         }
 
         // Read expression trace.
-        const lBlendSourceExpression: IExpressionAst = lAttributeParameter[0]
+        const lBlendSourceExpression: IExpressionAst = lAttributeParameter[0];
 
         // Expression must have a constant value.
         if (typeof lBlendSourceExpression.data.constantValue !== 'number') {
@@ -280,7 +311,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      *
      * @returns The interpolation configuration or null if attribute not present or invalid.
      */
-    private getInterpolation(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: StructPropertyDeclarationAstData['meta']): { type: PgslInterpolateType, sampling: PgslInterpolateSampling } | null {
+    private getInterpolation(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pMeta: StructPropertyDeclarationAstData['meta']): { type: PgslInterpolateType, sampling: PgslInterpolateSampling; } | null {
         if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.interpolate)) {
             return null;
         }
@@ -299,8 +330,8 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         }
 
         // Read expression trace.
-        const lInterpolationTypeExpression: IExpressionAst = lAttributeParameter[0]
-        const lSamplingExpression: IExpressionAst = lAttributeParameter[1]
+        const lInterpolationTypeExpression: IExpressionAst = lAttributeParameter[0];
+        const lSamplingExpression: IExpressionAst = lAttributeParameter[1];
 
         // Both expressions must have a constant value.
         if (typeof lInterpolationTypeExpression.data.constantValue !== 'string') {

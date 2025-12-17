@@ -22,7 +22,7 @@ import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslInterpolateSamplingEnum } from "../buildin/pgsl-interpolate-sampling-enum.ts";
 import { PgslAccessModeEnum } from "../buildin/pgsl-access-mode-enum.ts";
-
+import { PgslTranspilationMeta } from "../transpilation/pgsl-transpilation-meta.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -185,10 +185,17 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lDocument: DocumentAst = this.parseAst(pCodeText);
 
         // Skip transpilation if there are incidents.
-        let lTranspilationResult: PgslTranspilationResult = { code: '', sourceMap: null };
+        let lTranspilationResult: PgslTranspilationResult;
         if (lDocument.data.incidents.length === 0) {
             // Start transpilation process.
             lTranspilationResult = pTranspiler.transpile(lDocument);
+        } else {
+            // Create empty result.
+            lTranspilationResult = {
+                code: '',
+                sourceMap: null,
+                meta: new PgslTranspilationMeta()
+            };
         }
 
         // Build and return PgslParserResult.

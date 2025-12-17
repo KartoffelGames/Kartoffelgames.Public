@@ -1,4 +1,5 @@
-import { FunctionDeclarationAst } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { Exception } from "@kartoffelgames/core";
+import { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<FunctionDeclarationAst> {
@@ -22,19 +23,33 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
      * @returns Transpiled string.
      */
     public process(pInstance: FunctionDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile): string {
+        if (pInstance.data.declarations.length !== 1) {
+            throw new Exception(`Unable to transpile function "${pInstance.data.name}" with ${pInstance.data.declarations.length} heads.`, this);
+        }
+
+        // Use first declaration only for transpilation.
+        const lSoleHeader: FunctionDeclarationAstDataDeclaration = pInstance.data.declarations[0];
+        if (!lSoleHeader.returnType) {
+            throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
+        }
+
         // Transpile return type.
-        const lReturnType: string = pTranspile(pInstance.returnType);
+        const lReturnType: string = pTranspile(lSoleHeader.returnType);
 
         // Transpile function parameter list.
-        const lParameterList: string = pInstance.parameter.map((pParameter) => {
+        const lParameterList: string = lSoleHeader.parameter.map((pParameter) => {
+            if (!pParameter.type) {
+                throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
+            }
+
             return ` ${pParameter.name}: ${pTranspile(pParameter.type)}`;
         }).join(', ');
 
         // Transpile attribute list.
-        let lResult: string = pTranspile(pInstance.attributes);
+        let lResult: string = pTranspile(pInstance.data.attributes);
 
         // Create function declaration head without return type.
-        lResult += `fn ${pInstance.name}(${lParameterList})`;
+        lResult += `fn ${pInstance.data.name}(${lParameterList})`;
 
         // Add return type when it is not void/empty.
         if (lReturnType !== '') {
@@ -42,7 +57,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
         }
 
         // Add function block.
-        lResult += pTranspile(pInstance.block);
+        lResult += pTranspile(lSoleHeader.block);
 
         return lResult;
     }

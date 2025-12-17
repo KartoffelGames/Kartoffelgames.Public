@@ -209,6 +209,11 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
             return null;
         }
 
+        // Check for already used bindings.
+        if (!pContext.registerBindingName(lGroupNameExpression.data.constantValue, lLocationNameExpression.data.constantValue)) {
+            pContext.pushIncident(`Binding name "${lLocationNameExpression.data.constantValue}" in group "${lGroupNameExpression.data.constantValue}" is already used.`, this);
+        }
+
         return {
             bindGroupName: lGroupNameExpression.data.constantValue,
             bindLocationName: lLocationNameExpression.data.constantValue

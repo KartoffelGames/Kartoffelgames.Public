@@ -1,14 +1,20 @@
+import { Exception } from "@kartoffelgames/core";
 import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
 import { StructPropertyDeclarationAst } from "../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts";
+import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 
 export class PgslTranspilationMeta {
-    private readonly structLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
+    private readonly mStructLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
+    private readonly mBindings: Map<VariableDeclarationAst, PgslTranspilationMetaBinding>;
+    private readonly mBindingNameResolutions: Map<string, PgslTranspilationMetaBindingNameResolutions>;
 
     /**
      * Creates a new transpilation meta instance.
      */
     public constructor() {
-        this.structLocations = new Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>();
+        this.mStructLocations = new Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>();
+        this.mBindings = new Map<VariableDeclarationAst, PgslTranspilationMetaBinding>();
+        this.mBindingNameResolutions = new Map<string, PgslTranspilationMetaBindingNameResolutions>();
     }
 
     /**
@@ -19,11 +25,27 @@ export class PgslTranspilationMeta {
      * @returns Mapping of struct properties to their locations. 
      */
     public locationsOf(pStruct: StructDeclarationAst): ReadonlyMap<StructPropertyDeclarationAst, number> {
-        const lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.structLocations.get(pStruct);
+        const lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.mStructLocations.get(pStruct);
         if (!lLocations) {
             return new Map<StructPropertyDeclarationAst, number>();
         }
         return lLocations;
+    }
+
+    /**
+     * Reads the binding information for a variable declaration.
+     * 
+     * @param pVariable - Variable declaration.
+     * 
+     * @returns Binding information or null if not found. 
+     */
+    public bindingOf(pVariable: VariableDeclarationAst): PgslTranspilationMetaBinding | null {
+        const lBinding: PgslTranspilationMetaBinding | undefined = this.mBindings.get(pVariable);
+        if (!lBinding) {
+            return null;
+        }
+
+        return lBinding;
     }
 
     /**
@@ -37,15 +59,15 @@ export class PgslTranspilationMeta {
      */
     public createLocationFor(pStruct: StructDeclarationAst, pProperty: StructPropertyDeclarationAst): number {
         // Get or create location map for struct.
-        let lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.structLocations.get(pStruct);
+        let lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.mStructLocations.get(pStruct);
         if (!lLocations) {
             lLocations = new Map<StructPropertyDeclarationAst, number>();
-            this.structLocations.set(pStruct, lLocations);
+            this.mStructLocations.set(pStruct, lLocations);
         }
 
         // Check if property already has a location, else create a new one.
         let lLocation: number | undefined = lLocations.get(pProperty);
-        if(typeof lLocation !== "number") {
+        if (typeof lLocation !== "number") {
             lLocation = lLocations.size;
             lLocations.set(pProperty, lLocation);
         }
@@ -53,4 +75,73 @@ export class PgslTranspilationMeta {
         return lLocation;
     }
 
+    /**
+     * Registers a module-level variable declaration.
+     *
+     * @param pValue - The value of the variable.
+     */
+    public createBindingFor(pValue: VariableDeclarationAst): PgslTranspilationMetaBinding {
+        if (!pValue.data.bindingInformation) {
+            throw new Exception(`Cannot create binding for variable declaration '${pValue.data.name}' without binding information.`, pValue);
+        }
+
+        // Create resolved bindings if value is a resource.
+        if (!this.mBindings.has(pValue)) {
+            const lBinding: PgslTranspilationMetaBinding = this.resolveBinding(pValue.data.bindingInformation.bindGroupName, pValue.data.bindingInformation.bindLocationName);
+            this.mBindings.set(pValue, lBinding);
+        }
+
+        return this.mBindings.get(pValue)!;
+    }
+
+    /**
+     * Resolves the binding for a given bind group and binding name.
+     *
+     * @param pBindGroupName - The name of the bind group.
+     * @param pBindingName - The name of the binding.
+     *
+     * @returns The resolved binding information.
+     */
+    private resolveBinding(pBindGroupName: string, pBindingName: string): PgslTranspilationMetaBinding {
+        // Create a new bind group index or read existing one.
+        let lBindGroupIndex: number | null = this.mBindingNameResolutions.get(pBindGroupName)?.index ?? null;
+        if (lBindGroupIndex === null) {
+            // Use the current size as new bind group index.
+            lBindGroupIndex = this.mBindingNameResolutions.size;
+
+            // Create a new entry for the bind group if it does not exist.
+            this.mBindingNameResolutions.set(pBindGroupName, {
+                index: lBindGroupIndex,
+                locations: new Map<string, number>(),
+            });
+        }
+
+        // Read the binding names map of the current bind group.
+        const lBindGroupLocations: Map<string, number> = this.mBindingNameResolutions.get(pBindGroupName)!.locations;
+
+        // Check if bindgroup binding exists and create if needed.
+        if (!lBindGroupLocations.has(pBindingName)) {
+            // Read the current bind group binding index of the current bind group and increment them by one.
+            const lNextBindGroupBindingIndex: number = lBindGroupLocations.size;
+
+            // Save the increment.
+            lBindGroupLocations.set(pBindingName, lNextBindGroupBindingIndex);
+        }
+
+        // Return the binding location.
+        return {
+            bindGroupIndex: lBindGroupIndex,
+            bindingIndex: lBindGroupLocations.get(pBindingName)!,
+        };
+    }
 }
+
+export type PgslTranspilationMetaBinding = {
+    readonly bindGroupIndex: number;
+    readonly bindingIndex: number;
+};
+
+export type PgslTranspilationMetaBindingNameResolutions = {
+    index: number;
+    locations: Map<string, number>;
+};

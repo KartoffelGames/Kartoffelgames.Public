@@ -6,10 +6,10 @@ import type { FunctionDeclarationAst } from './declaration/function-declaration-
 import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
 import type { DocumentAst } from './document-ast.ts';
 import { IValueStoreAst } from "./i-value-store-ast.interface.ts";
-import type { PgslDoWhileStatement } from './statement/branch/pgsl-do-while-statement.ts';
-import type { PgslForStatement } from './statement/branch/pgsl-for-statement.ts';
-import type { PgslSwitchStatement } from './statement/branch/pgsl-switch-statement.ts';
-import type { PgslWhileStatement } from './statement/branch/pgsl-while-statement.ts';
+import { DoWhileStatementAst } from "./statement/branch/pgsl-do-while-statement.ts";
+import { ForStatementAst } from "./statement/branch/pgsl-for-statement.ts";
+import { WhileStatementAst } from "./statement/branch/pgsl-while-statement.ts";
+import { SwitchStatementAst } from "./statement/branch/pgsl-switch-statement.ts";
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.
@@ -23,6 +23,7 @@ export class AbstractSyntaxTreeContext {
     private mScope: AbstractSyntaxTreeScope | null;
     private mDocument: DocumentAst | null;
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
+    private readonly mBindingNames: Map<string, Map<string, number>>;
 
     /**
      * Gets the document associated with this context.
@@ -73,6 +74,9 @@ export class AbstractSyntaxTreeContext {
         this.mEnums = new Map<string, EnumDeclarationAst>();
         this.mFunctions = new Map<string, FunctionDeclarationAst>();
         this.mStructs = new Map<string, StructDeclarationAst>();
+
+        // Initialize validation maps.
+        this.mBindingNames = new Map<string, Map<string, number>>();
     }
 
     /**
@@ -267,6 +271,33 @@ export class AbstractSyntaxTreeContext {
     public registerStruct(pAst: StructDeclarationAst): void {
         this.mStructs.set(pAst.data.name, pAst);
     }
+
+    /**
+     * Registers a binding name in the current context.
+     * Retuns true if the binding name was newly registered, false if it already existed.
+     * 
+     * @param pBindGroupName - The bind group name. 
+     * @param pBindingName - The binding name.
+     * 
+     * @returns True if the binding name was newly registered, false if it already existed.
+     */
+    public registerBindingName(pBindGroupName: string, pBindingName: string): boolean { 
+        // Create bind group map if it does not exist.
+        if (!this.mBindingNames.has(pBindGroupName)) {
+            this.mBindingNames.set(pBindGroupName, new Map<string, number>());
+        }
+
+        const lBindingMap: Map<string, number> = this.mBindingNames.get(pBindGroupName)!;
+
+        // Check if binding name already exists.
+        if (lBindingMap.has(pBindingName)) {
+            return false;
+        }
+
+        // Register new binding name.
+        lBindingMap.set(pBindingName, lBindingMap.size);
+        return true;
+    }
 }
 
 type AbstractSyntaxTreeScope = {
@@ -279,8 +310,8 @@ type AbstractSyntaxTreeScope = {
 export type PgslSyntaxTreeTraceScopeScopeOwner<T extends AbstractSyntaxTreeContextScopeType> =
     T extends 'function' ? FunctionDeclarationAst :
     T extends 'global' ? DocumentAst :
-    T extends 'loop' ? (PgslDoWhileStatement | PgslForStatement | PgslWhileStatement) :
-    T extends 'switch' ? PgslSwitchStatement :
+    T extends 'loop' ? (DoWhileStatementAst | ForStatementAst | WhileStatementAst) :
+    T extends 'switch' ? SwitchStatementAst :
     T extends 'inherit' ? AbstractSyntaxTree : never;
 
 /**

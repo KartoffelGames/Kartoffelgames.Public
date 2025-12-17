@@ -10,11 +10,6 @@ import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
 import { DeclarationAstData, IDeclarationAst } from "./i-declaration-ast.interface.ts";
 
-// TODO: Split into simple CST Tree that are simply ts-types
-// TODO: Any ast takes the right dst type as constructor parameter and validates/traces itself.
-// TODO: The parser-trace is obsolete as it is merged into the ask tree now.
-// TODO: The parser result still converts the ast into distinct/own types.
-
 /**
  * PGSL syntax tree for a alias declaration.
  */

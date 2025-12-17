@@ -1,37 +1,38 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PgslDeclarationType } from '../../../source/enum/pgsl-declaration-type.enum.ts';
-import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
-import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslVariableDeclaration } from '../../../source/abstract_syntax_tree/declaration/variable-declaration-ast.ts';
-import { ExpressionAst } from '../../../source/abstract_syntax_tree/expression/i-expression-ast.interface.ts';
-import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
-import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
+import { VariableDeclarationAst } from "../../../source/abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
-import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../../source/type/pgsl-vector-type.ts';
-import { PgslMatrixType } from '../../../source/type/pgsl-matrix-type.ts';
-import { PgslArrayType } from '../../../source/type/pgsl-array-type.ts';
-import { PgslTextureType } from '../../../source/type/pgsl-texture-type.ts';
-import { PgslSamplerType } from '../../../source/type/pgsl-sampler-type.ts';
-import { PgslBooleanType } from "../../../source/type/pgsl-boolean-type.ts";
-import { PgslParserResultParameter } from "../../../source/parser_result/pgsl-parser-result-parameter.ts";
-import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
-import { PgslParserResultBooleanType } from "../../../source/parser_result/type/pgsl-parser-result-boolean-type.ts";
+import { LiteralValueExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts";
+import { NewExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts";
+import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
+import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
+import { PgslDeclarationType } from '../../../source/enum/pgsl-declaration-type.enum.ts';
+import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslParserResultBinding } from "../../../source/parser_result/pgsl-parser-result-binding.ts";
-import { PgslParserResultVectorType } from "../../../source/parser_result/type/pgsl-parser-result-vector-type.ts";
-import { PgslParserResultMatrixType } from "../../../source/parser_result/type/pgsl-parser-result-matrix-type.ts";
+import { PgslParserResultParameter } from "../../../source/parser_result/pgsl-parser-result-parameter.ts";
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { PgslParserResultArrayType } from "../../../source/parser_result/type/pgsl-parser-result-array-type.ts";
-import { PgslParserResultTextureType } from "../../../source/parser_result/type/pgsl-parser-result-texture-type.ts";
+import { PgslParserResultBooleanType } from "../../../source/parser_result/type/pgsl-parser-result-boolean-type.ts";
+import { PgslParserResultMatrixType } from "../../../source/parser_result/type/pgsl-parser-result-matrix-type.ts";
+import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
 import { PgslParserResultSamplerType } from "../../../source/parser_result/type/pgsl-parser-result-sampler-type.ts";
 import { PgslParserResultStructProperty, PgslParserResultStructType } from "../../../source/parser_result/type/pgsl-parser-result-struct-type.ts";
+import { PgslParserResultTextureType } from "../../../source/parser_result/type/pgsl-parser-result-texture-type.ts";
+import { PgslParserResultVectorType } from "../../../source/parser_result/type/pgsl-parser-result-vector-type.ts";
+import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
+import { PgslArrayType } from '../../../source/type/pgsl-array-type.ts';
+import { PgslBooleanType } from "../../../source/type/pgsl-boolean-type.ts";
+import { PgslMatrixType } from '../../../source/type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
+import { PgslSamplerType } from '../../../source/type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../../source/type/pgsl-texture-type.ts';
+import { PgslVectorType } from '../../../source/type/pgsl-vector-type.ts';
 
 // TODO: Check PgslParserResult for registered bindings.
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
+Deno.test('VariableDeclarationAst - Parsing', async (pContext) => {
     await pContext.step('Const', async (pContext) => {
         await pContext.step('Numeric type', async () => {
             // Setup.
@@ -42,16 +43,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `${lDeclarationType} ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Const);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(LiteralValueExpressionAst);
         });
 
         await pContext.step('Vector type', async () => {
@@ -62,16 +63,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `const ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Const);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(NewExpressionAst);
         });
 
         await pContext.step('Matrix type', async () => {
@@ -82,16 +83,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `const ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Const);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(NewExpressionAst);
         });
 
         await pContext.step('Array type', async () => {
@@ -102,16 +103,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `const ${lVariableName}: ${lVariableType} = ${lVariableValue};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Const);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Const);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(NewExpressionAst);
         });
     });
 
@@ -125,16 +126,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Vector type', async () => {
@@ -146,16 +147,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Matrix type', async () => {
@@ -167,16 +168,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Array type', async () => {
@@ -188,16 +189,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Storage texture type', async () => {
@@ -209,16 +210,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('GroupBinding attribute', async () => {
@@ -232,16 +233,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('AccessMode attribute', async () => {
@@ -254,16 +255,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Storage);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Storage);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
     });
 
@@ -277,16 +278,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Vector type', async () => {
@@ -298,16 +299,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Matrix type', async () => {
@@ -319,16 +320,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Array type', async () => {
@@ -340,16 +341,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Sampler type', async () => {
@@ -361,16 +362,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Texture type', async () => {
@@ -382,16 +383,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('GroupBinding attribute', async () => {
@@ -405,16 +406,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('AccessMode attribute', async () => {
@@ -427,16 +428,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             `;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Uniform);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Uniform);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
     });
 
@@ -447,15 +448,15 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `workgroup ${lVariableName}: ${PgslNumericType.typeName.float32};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Workgroup);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Numeric type with initializer', async () => {
@@ -464,16 +465,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `workgroup ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Workgroup);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(LiteralValueExpressionAst);
         });
 
         await pContext.step('Vector type', async () => {
@@ -482,16 +483,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `workgroup ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Workgroup);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Matrix type', async () => {
@@ -500,16 +501,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `workgroup ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Workgroup);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Array type', async () => {
@@ -518,16 +519,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `workgroup ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Workgroup);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Workgroup);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
     });
 
@@ -538,16 +539,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `private ${lVariableName}: ${PgslNumericType.typeName.float32};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Private);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Numeric type with initializer', async () => {
@@ -556,15 +557,15 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `private ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Private);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(LiteralValueExpressionAst);
         });
 
         await pContext.step('Vector type', async () => {
@@ -573,16 +574,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `private ${lVariableName}: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Private);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Matrix type', async () => {
@@ -591,16 +592,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `private ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Private);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
 
         await pContext.step('Array type', async () => {
@@ -609,16 +610,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `private ${lVariableName}: ${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},10>;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Private);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeNull();
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Private);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeNull();
         });
     });
 
@@ -630,16 +631,16 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `param ${lVariableName}: ${PgslNumericType.typeName.float32} = ${lVariableValue};`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Param);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(LiteralValueExpressionAst);
         });
 
         await pContext.step('Boolean type', async () => {
@@ -648,21 +649,21 @@ Deno.test('PgslVariableDeclaration - Parsing', async (pContext) => {
             const lCodeText: string = `param ${lVariableName}: ${PgslBooleanType.typeName.boolean} = true;`;
 
             // Execute.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Validation.
-            expect(lDocument.childNodes).toHaveLength(1);
-            const lDeclarationNode: PgslVariableDeclaration = lDocument.childNodes[0] as PgslVariableDeclaration;
-            expect(lDeclarationNode).toBeInstanceOf(PgslVariableDeclaration);
-            expect(lDeclarationNode.declarationType).toBe(PgslDeclarationType.Param);
-            expect(lDeclarationNode.name).toBe(lVariableName);
-            expect(lDeclarationNode.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.expression).toBeInstanceOf(ExpressionAst as any);
+            expect(lDocument.data.content).toHaveLength(1);
+            const lDeclarationNode: VariableDeclarationAst = lDocument.data.content[0] as VariableDeclarationAst;
+            expect(lDeclarationNode).toBeInstanceOf(VariableDeclarationAst);
+            expect(lDeclarationNode.data.declarationType).toBe(PgslDeclarationType.Param);
+            expect(lDeclarationNode.data.name).toBe(lVariableName);
+            expect(lDeclarationNode.data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.expression).toBeInstanceOf(LiteralValueExpressionAst);
         });
     });
 });
 
-Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
+Deno.test('VariableDeclarationAst - Transpilation', async (pContext) => {
     await pContext.step('Const', async (pContext) => {
         await pContext.step('Numeric type', async () => {
             // Setup.
@@ -1188,7 +1189,7 @@ Deno.test('PgslVariableDeclaration - Transpilation', async (pContext) => {
     });
 });
 
-Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
+Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
     await pContext.step('Param', async (pContext) => {
         await pContext.step('Numeric float', async () => {
             // Setup.
@@ -1861,8 +1862,8 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
             // Validation. Check first property details.
             const lLevel1Property: PgslParserResultStructProperty = lStructType.properties[0];
             expect(lLevel1Property.name).toBe('property1');
-            expect(lLevel1Property.sizeOverride).toBeUndefined()
-            expect(lLevel1Property.alignmentOverride).toBeUndefined()
+            expect(lLevel1Property.sizeOverride).toBeUndefined();
+            expect(lLevel1Property.alignmentOverride).toBeUndefined();
             expect(lLevel1Property.type).toBeInstanceOf(PgslParserResultStructType);
 
             // Validation. Check first property type details.
@@ -1886,10 +1887,10 @@ Deno.test('PgslVariableDeclaration - Parser Result', async (pContext) => {
         });
     });
 
-    await pContext.step('Storage', async () => {});
+    await pContext.step('Storage', async () => { });
 });
 
-Deno.test('PgslVariableDeclaration - Error Cases', async (pContext) => {
+Deno.test('VariableDeclarationAst - Error Cases', async (pContext) => {
     await pContext.step('Const', async (pContext) => {
         await pContext.step('Texture type', async () => {
             // Setup.

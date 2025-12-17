@@ -199,7 +199,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         }
 
         // Build and return PgslParserResult.
-        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument);
+        return new PgslParserResult(lTranspilationResult.code, lTranspilationResult.sourceMap, lDocument, lTranspilationResult.meta);
     }
 
     /**

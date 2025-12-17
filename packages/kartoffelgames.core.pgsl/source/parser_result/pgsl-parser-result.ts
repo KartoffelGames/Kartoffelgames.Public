@@ -1,6 +1,7 @@
+import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
+import { PgslTranspilationMeta } from "../transpilation/pgsl-transpilation-meta.ts";
 import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
 import { PgslParserResultParameter } from "./pgsl-parser-result-parameter.ts";
 import { PgslParserResultIncident } from "./pgsl-parser-result.incident.ts";
@@ -68,10 +69,10 @@ export class PgslParserResult {
      * @param pDocument - The PGSL document representation.
      * @param pTrace - The trace information for debugging.
      */
-    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst) {
+    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst, pMeta: PgslTranspilationMeta) {
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
-        this.mIncidents = this.convertIncidents(pTrace);
+        this.mIncidents = this.convertIncidents(pDocument);
 
         // Skip metadata extraction if there are incidents.
         if (pDocument.data.incidents.length > 0) {
@@ -82,8 +83,8 @@ export class PgslParserResult {
             };
         } else {
             this.mMeta = {
-                bindings: this.convertBindings(pTrace),
-                parameters: this.convertShaderParameter(pTrace),
+                bindings: this.convertBindings(pDocument, pMeta),
+                parameters: this.convertShaderParameter(pDocument),
                 // TODO: entry points
             };
         }
@@ -96,8 +97,8 @@ export class PgslParserResult {
      * 
      * @returns An array of parser result incidents.
      */
-    private convertIncidents(pTrace: PgslTrace): Array<PgslParserResultIncident> {
-        return pTrace.incidents.map(incident => new PgslParserResultIncident(
+    private convertIncidents(pDocument: DocumentAst): Array<PgslParserResultIncident> {
+        return pDocument.data.incidents.map(incident => new PgslParserResultIncident(
             incident.message,
             incident.syntaxTree?.meta[0] ?? 0,
             incident.syntaxTree?.meta[1] ?? 0
@@ -111,16 +112,21 @@ export class PgslParserResult {
      * 
      * @returns Array of parser result bindings. 
      */
-    private convertBindings(pTrace: PgslTrace): Array<PgslParserResultBinding> {
+    private convertBindings(pDocument: DocumentAst, pMeta: PgslTranspilationMeta): Array<PgslParserResultBinding> {
         const lBindings: Array<PgslParserResultBinding> = [];
-        for (const lBinding of pTrace.valueDeclarations) {
+        for (const lValue of pDocument.data.content) {
+            // Skip none variable declarations.
+            if (!(lValue instanceof VariableDeclarationAst)) {
+                continue;
+            }
+
             // Skip non-binding values.
-            if (lBinding.bindingInformation === null) {
+            if (lValue.data.bindingInformation === null) {
                 continue;
             }
 
             // Create a new parser result binding.
-            lBindings.push(new PgslParserResultBinding(lBinding, pTrace));
+            lBindings.push(new PgslParserResultBinding(lValue, pDocument, pMeta));
         }
         return lBindings;
     }
@@ -132,11 +138,16 @@ export class PgslParserResult {
      * 
      * @returns Array of parser result parameters. 
      */
-    private convertShaderParameter(pTrace: PgslTrace): Array<PgslParserResultParameter> {
+    private convertShaderParameter(pDocument: DocumentAst): Array<PgslParserResultParameter> {
         const lParameters: Array<PgslParserResultParameter> = [];
-        for (const lValue of pTrace.valueDeclarations) {
+        for (const lValue of pDocument.data.content) {
+            // Skip none variable declarations.
+            if (!(lValue instanceof VariableDeclarationAst)) {
+                continue;
+            }
+
             // Skip non-parameter values.
-            if (lValue.declarationType !== PgslDeclarationType.Param) {
+            if (lValue.data.declarationType !== PgslDeclarationType.Param) {
                 continue;
             }
 

@@ -1,11 +1,11 @@
-import type { PgslValueTrace } from '../trace/pgsl-value-trace.ts';
-import { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
-import type { PgslType } from '../type/pgsl-type.ts';
-import { PgslParserResultNumericType } from "./type/pgsl-parser-result-numeric-type.ts";
-import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
-import { PgslBooleanType } from "../type/pgsl-boolean-type.ts";
-import { PgslParserResultBooleanType } from "./type/pgsl-parser-result-boolean-type.ts";
 import { Exception } from "@kartoffelgames/core";
+import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { PgslBooleanType } from "../type/pgsl-boolean-type.ts";
+import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
+import type { PgslType } from '../type/pgsl-type.ts';
+import { PgslParserResultBooleanType } from "./type/pgsl-parser-result-boolean-type.ts";
+import { PgslParserResultNumericType } from "./type/pgsl-parser-result-numeric-type.ts";
+import { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
 
 /**
  * Represents a parameter result from PGSL parser with name and type information.
@@ -35,11 +35,11 @@ export class PgslParserResultParameter {
     /**
      * Creates a new PGSL parser result parameter.
      *
-     * @param pValueTrace - The value trace containing parameter information.
+     * @param pValue - The variable declaration AST containing parameter information.
      */
-    public constructor(pValueTrace: PgslValueTrace) {
-        this.mName = pValueTrace.name;
-        this.mType = this.convertType(pValueTrace.type);
+    public constructor(pValue: VariableDeclarationAst) {
+        this.mName = pValue.data.name;
+        this.mType = this.convertType(pValue.data.type);
     }
 
     /**

@@ -16,6 +16,10 @@ import { PgslSamplerType } from "../type/pgsl-sampler-type.ts";
 import { PgslParserResultSamplerType } from "./type/pgsl-parser-result-sampler-type.ts";
 import { PgslTextureType } from "../type/pgsl-texture-type.ts";
 import { PgslParserResultTextureDimensionType, PgslParserResultTextureType } from "./type/pgsl-parser-result-texture-type.ts";
+import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { PgslTranspilationMeta, PgslTranspilationMetaBinding } from "../transpilation/pgsl-transpilation-meta.ts";
+import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
+import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
@@ -87,29 +91,35 @@ export class PgslParserResultBinding {
      *
      * @param pParameters - The constructor parameters containing all binding information.
      */
-    public constructor(pBinding: PgslValueTrace, pTrace: PgslTrace) {
+    public constructor(pValue: VariableDeclarationAst, pDocument: DocumentAst, pMeta: PgslTranspilationMeta) {
         // Convert binding type from trace.
         this.mBindingType = (() => {
-            switch (pBinding.declarationType) {
+            switch (pValue.data.declarationType) {
                 case PgslDeclarationType.Uniform: return 'uniform';
                 case PgslDeclarationType.Storage: return 'storage';
-                default: throw new Exception(`Unsupported binding declaration type in PgslValueTrace: ${pBinding.declarationType}`, this);
+                default: throw new Exception(`Unsupported binding declaration type in PgslValueTrace: ${pValue.data.declarationType}`, this);
             }
         })();
 
         // Check for null binding information.
-        if (pBinding.bindingInformation === null) {
+        if (pValue.data.bindingInformation === null) {
             throw new Exception('Binding information is null in PgslValueTrace.', this);
         }
 
+        // Read binding information incides from transpilation meta.
+        const lTranspilationBindings: PgslTranspilationMetaBinding | null = pMeta.bindingOf(pValue);
+        if (lTranspilationBindings === null) {
+            throw new Exception(`Binding information not found in transpilation meta for variable: ${pValue.data.name}`, this);
+        }
+
         // Set binding information.
-        this.mBindGroupName = pBinding.bindingInformation.bindGroupName;
-        this.mBindGroupIndex = pBinding.bindingInformation.bindGroupIndex;
-        this.mBindLocationName = pBinding.bindingInformation.bindLocationName;
-        this.mBindLocationIndex = pBinding.bindingInformation.bindLocationIndex;
+        this.mBindGroupName = pValue.data.bindingInformation.bindGroupName;
+        this.mBindGroupIndex = lTranspilationBindings.bindGroupIndex;
+        this.mBindLocationName = pValue.data.bindingInformation.bindLocationName;
+        this.mBindLocationIndex = lTranspilationBindings.bindingIndex;
 
         // Convert type.
-        this.mType = this.convertType(pBinding.type, pTrace);
+        this.mType = this.convertType(pValue.data.type, pDocument);
     }
 
     /**
@@ -119,7 +129,7 @@ export class PgslParserResultBinding {
      *
      * @returns The parser result type.
      */
-    private convertType(pType: PgslType, pTrace: PgslTrace, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
+    private convertType(pType: PgslType, pDocument: DocumentAst, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
         // Convert binding type to alignment type.
         const lAlignmentType: PgslParserResultTypeAlignmentType = pEnforceAlignmentType ?? (() => {
             switch (this.mBindingType) {
@@ -144,19 +154,19 @@ export class PgslParserResultBinding {
 
             // Vector types.
             case pType instanceof PgslVectorType: {
-                const elementType = this.convertType(pType.innerType, pTrace) as PgslParserResultNumericType;
+                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
                 return new PgslParserResultVectorType(elementType, pType.dimension, lAlignmentType);
             }
 
             // Matrix types.
             case pType instanceof PgslMatrixType: {
-                const elementType = this.convertType(pType.innerType, pTrace) as PgslParserResultNumericType;
+                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
                 return new PgslParserResultMatrixType(elementType, pType.rowCount, pType.columnCount, lAlignmentType);
             }
 
             // Array types.
             case pType instanceof PgslArrayType: {
-                const elementType = this.convertType(pType.innerType, pTrace) as PgslParserResultNumericType;
+                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
                 return new PgslParserResultArrayType(elementType, pType.length, lAlignmentType);
             }
 
@@ -184,32 +194,32 @@ export class PgslParserResultBinding {
                         // 2D array textures
                         case PgslTextureType.typeName.texture2dArray:
                         case PgslTextureType.typeName.textureDepth2dArray:
-                        case PgslTextureType.typeName.textureStorage2dArray:{
+                        case PgslTextureType.typeName.textureStorage2dArray: {
                             return '2d-array';
                         }
 
                         // 3D textures
                         case PgslTextureType.typeName.texture3d:
-                        case PgslTextureType.typeName.textureStorage3d:{
+                        case PgslTextureType.typeName.textureStorage3d: {
                             return '3d';
                         }
 
                         // Cube textures
                         case PgslTextureType.typeName.textureCube:
-                        case PgslTextureType.typeName.textureDepthCube:{
+                        case PgslTextureType.typeName.textureDepthCube: {
                             return 'cube';
                         }
 
                         // Cube array textures
                         case PgslTextureType.typeName.textureCubeArray:
-                        case PgslTextureType.typeName.textureDepthCubeArray:{
+                        case PgslTextureType.typeName.textureDepthCubeArray: {
                             return 'cube-array';
                         }
                     }
                 })();
 
                 // Convert sampled type.
-                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pTrace, 'packed') as PgslParserResultNumericType;
+                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pDocument, 'packed') as PgslParserResultNumericType;
 
                 return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
             }
@@ -222,7 +232,22 @@ export class PgslParserResultBinding {
 
             // Struct types.
             case pType instanceof PgslStructType: {
-                const lStruct: PgslStructTrace | undefined = pTrace.getStruct(pType.structName);
+                const lStruct: StructDeclarationAst | null = (() => {
+                    for (const lValue of pDocument.data.content) {
+                        if (!(lValue instanceof StructDeclarationAst)) {
+                            continue;
+                        }
+
+                        if (lValue.data.name !== pType.structName) {
+                            continue;
+                        }
+
+                        return lValue;
+                    }
+
+                    return null;
+                })();
+
                 if (!lStruct) {
                     throw new Exception(`Struct trace not found for struct: ${pType.structName}`, this);
                 }
@@ -230,23 +255,21 @@ export class PgslParserResultBinding {
                 const lPropertyArray: Array<PgslParserResultStructProperty> = new Array<PgslParserResultStructProperty>();
 
                 // Convert property types.
-                for (const lStructPropertyDeclaration of lStruct.declaration.properties) {
-                    const lStructProperty: PgslStructPropertyTrace = pTrace.getStructProperty(lStructPropertyDeclaration); // TODO: THIS SHIT NEEDS TO BE CLEANED UP ASAP!!!
-
+                for (const lStructProperty of lStruct.data.properties) {
                     // Create default property result.
                     const lPropertyResult: PgslParserResultStructProperty = {
-                        name: lStructProperty.name,
-                        type: this.convertType(lStructProperty.type, pTrace),
+                        name: lStructProperty.data.name,
+                        type: this.convertType(lStructProperty.data.typeDeclaration.data.type, pDocument),
                     };
 
                     // Apply size override if present.
-                    if (typeof lStructProperty.meta.size === 'number') {
-                        lPropertyResult.sizeOverride = lStructProperty.meta.size;
+                    if (typeof lStructProperty.data.meta.size === 'number') {
+                        lPropertyResult.sizeOverride = lStructProperty.data.meta.size;
                     }
 
                     // Apply alignment override if present.
-                    if (typeof lStructProperty.meta.alignment === 'number') {
-                        lPropertyResult.alignmentOverride = lStructProperty.meta.alignment;
+                    if (typeof lStructProperty.data.meta.alignment === 'number') {
+                        lPropertyResult.alignmentOverride = lStructProperty.data.meta.alignment;
                     }
 
                     // Add property result to array.

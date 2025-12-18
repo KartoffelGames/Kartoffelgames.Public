@@ -42,7 +42,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode.data.name).toBe(lEnumName);
 
             // Evaluation. Enum values.
-            expect(lDeclarationNode.data.values).toHaveLength(2);
+            expect(lDeclarationNode.data.values.size).toBe(2);
             expect(lDeclarationNode.data.values.get(lFirstValueName)).toBeInstanceOf(LiteralValueExpressionAst);
             expect(lDeclarationNode.data.values.get(lSecondValueName)).toBeInstanceOf(LiteralValueExpressionAst);
         });
@@ -70,7 +70,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
             expect(lDeclarationNode.data.name).toBe(lEnumName);
 
             // Evaluation. Enum values.
-            expect(lDeclarationNode.data.values).toHaveLength(2);
+            expect(lDeclarationNode.data.values.size).toBe(2);
             expect(lDeclarationNode.data.values.get(lFirstValueName)).toBeInstanceOf(LiteralValueExpressionAst);
             expect(lDeclarationNode.data.values.get(lSecondValueName)).toBeInstanceOf(LiteralValueExpressionAst);
         });

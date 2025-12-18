@@ -1,5 +1,4 @@
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
-import type { PgslTrace } from '../trace/pgsl-trace.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**

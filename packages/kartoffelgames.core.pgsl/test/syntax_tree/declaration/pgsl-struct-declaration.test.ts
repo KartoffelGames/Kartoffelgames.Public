@@ -26,24 +26,24 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct number of child nodes.
-            expect(lDocument.childNodes).toHaveLength(1);
+            expect(lDocument.data.content).toHaveLength(1);
 
             // Evaluation. Correct type of child node.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
 
             // Evaluation. Correct structure.
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Vector property', () => {
@@ -61,27 +61,27 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(3);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lVec2PropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[1].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[1].name).toBe(lVec3PropertyName);
-            expect(lDeclarationNode.properties[1].type).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.properties[2]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[2].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[2].name).toBe(lVec4PropertyName);
-            expect(lDeclarationNode.properties[2].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(3);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lVec2PropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[1].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[1].data.name).toBe(lVec3PropertyName);
+            expect(lDeclarationNode.data.properties[1].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties[2]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[2].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[2].data.name).toBe(lVec4PropertyName);
+            expect(lDeclarationNode.data.properties[2].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Array property', () => {
@@ -96,19 +96,19 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lArrayPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lArrayPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Struct property', () => {
@@ -127,22 +127,22 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct number of child nodes.
-            expect(lDocument.childNodes).toHaveLength(2);
+            expect(lDocument.data.content).toHaveLength(2);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[1] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[1] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lOuterStructName);
+            expect(lDeclarationNode.data.name).toBe(lOuterStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lNestedPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lNestedPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Alias property', () => {
@@ -158,19 +158,19 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[1] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[1] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
     });
 
@@ -186,19 +186,19 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lDynamicPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lDynamicPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Last property as dynamic array', () => {
@@ -214,23 +214,23 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(2);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lRegularPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[1].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[1].name).toBe(lDynamicPropertyName);
-            expect(lDeclarationNode.properties[1].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(2);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lRegularPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[1].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[1].data.name).toBe(lDynamicPropertyName);
+            expect(lDeclarationNode.data.properties[1].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Multiple static arrays with ending dynamic Array property', () => {
@@ -247,23 +247,23 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lStructName);
+            expect(lDeclarationNode.data.name).toBe(lStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(2);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lStaticArrayPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
-            expect(lDeclarationNode.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[1].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[1].name).toBe(lDynamicArrayPropertyName);
-            expect(lDeclarationNode.properties[1].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(2);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lStaticArrayPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties[1]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[1].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[1].data.name).toBe(lDynamicArrayPropertyName);
+            expect(lDeclarationNode.data.properties[1].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Valid dynamic array inside nested struct', () => {
@@ -282,20 +282,20 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct structure.
-            expect(lDocument.childNodes).toHaveLength(2);
-            const lDeclarationNode: StructDeclarationAst = lDocument.childNodes[1] as StructDeclarationAst;
+            expect(lDocument.data.content).toHaveLength(2);
+            const lDeclarationNode: StructDeclarationAst = lDocument.data.content[1] as StructDeclarationAst;
             expect(lDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lDeclarationNode.name).toBe(lOuterStructName);
+            expect(lDeclarationNode.data.name).toBe(lOuterStructName);
 
             // Evaluation. Correct properties.
-            expect(lDeclarationNode.properties).toHaveLength(1);
-            expect(lDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lDeclarationNode.properties[0].struct).toBe(lDeclarationNode);
-            expect(lDeclarationNode.properties[0].name).toBe(lNestedPropertyName);
-            expect(lDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lDeclarationNode.data.properties).toHaveLength(1);
+            expect(lDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lDeclarationNode.data.properties[0].struct).toBe(lDeclarationNode);
+            expect(lDeclarationNode.data.properties[0].data.name).toBe(lNestedPropertyName);
+            expect(lDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
     });
 
@@ -316,32 +316,32 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct number of child nodes.
-            expect(lDocument.childNodes).toHaveLength(2);
+            expect(lDocument.data.content).toHaveLength(2);
 
             // Evaluation. Both declarations are correct type.
-            const lInnerDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
-            const lOuterDeclarationNode: StructDeclarationAst = lDocument.childNodes[1] as StructDeclarationAst;
+            const lInnerDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
+            const lOuterDeclarationNode: StructDeclarationAst = lDocument.data.content[1] as StructDeclarationAst;
             expect(lInnerDeclarationNode).toBeInstanceOf(StructDeclarationAst);
             expect(lOuterDeclarationNode).toBeInstanceOf(StructDeclarationAst);
-            expect(lInnerDeclarationNode.name).toBe(lInnerStructName);
-            expect(lOuterDeclarationNode.name).toBe(lOuterStructName);
+            expect(lInnerDeclarationNode.data.name).toBe(lInnerStructName);
+            expect(lOuterDeclarationNode.data.name).toBe(lOuterStructName);
 
             // Evaluation. Inner struct properties.
-            expect(lInnerDeclarationNode.properties).toHaveLength(1);
-            expect(lInnerDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lInnerDeclarationNode.properties[0].struct).toBe(lInnerDeclarationNode);
-            expect(lInnerDeclarationNode.properties[0].name).toBe(lInnerPropertyName);
-            expect(lInnerDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lInnerDeclarationNode.data.properties).toHaveLength(1);
+            expect(lInnerDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lInnerDeclarationNode.data.properties[0].struct).toBe(lInnerDeclarationNode);
+            expect(lInnerDeclarationNode.data.properties[0].data.name).toBe(lInnerPropertyName);
+            expect(lInnerDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
 
             // Evaluation. Outer struct properties.
-            expect(lOuterDeclarationNode.properties).toHaveLength(1);
-            expect(lOuterDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lOuterDeclarationNode.properties[0].struct).toBe(lOuterDeclarationNode);
-            expect(lOuterDeclarationNode.properties[0].name).toBe(lNestedPropertyName);
-            expect(lOuterDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lOuterDeclarationNode.data.properties).toHaveLength(1);
+            expect(lOuterDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lOuterDeclarationNode.data.properties[0].struct).toBe(lOuterDeclarationNode);
+            expect(lOuterDeclarationNode.data.properties[0].data.name).toBe(lNestedPropertyName);
+            expect(lOuterDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
 
         await pContext.step('Three level', () => {
@@ -365,39 +365,39 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
             `;
 
             // Process.
-            const lDocument: DocumentAst = gPgslParser.parse(lCodeText);
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation. Correct number of child nodes.
-            expect(lDocument.childNodes).toHaveLength(3);
+            expect(lDocument.data.content).toHaveLength(3);
 
             // Evaluation. All declarations are correct type.
-            const lFirstDeclarationNode: StructDeclarationAst = lDocument.childNodes[0] as StructDeclarationAst;
-            const lSecondDeclarationNode: StructDeclarationAst = lDocument.childNodes[1] as StructDeclarationAst;
-            const lThirdDeclarationNode: StructDeclarationAst = lDocument.childNodes[2] as StructDeclarationAst;
-            expect(lFirstDeclarationNode.name).toBe(lFirstStructName);
-            expect(lSecondDeclarationNode.name).toBe(lSecondStructName);
-            expect(lThirdDeclarationNode.name).toBe(lThirdStructName);
+            const lFirstDeclarationNode: StructDeclarationAst = lDocument.data.content[0] as StructDeclarationAst;
+            const lSecondDeclarationNode: StructDeclarationAst = lDocument.data.content[1] as StructDeclarationAst;
+            const lThirdDeclarationNode: StructDeclarationAst = lDocument.data.content[2] as StructDeclarationAst;
+            expect(lFirstDeclarationNode.data.name).toBe(lFirstStructName);
+            expect(lSecondDeclarationNode.data.name).toBe(lSecondStructName);
+            expect(lThirdDeclarationNode.data.name).toBe(lThirdStructName);
 
             // Evaluation. First struct properties.
-            expect(lFirstDeclarationNode.properties).toHaveLength(1);
-            expect(lFirstDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lFirstDeclarationNode.properties[0].struct).toBe(lFirstDeclarationNode);
-            expect(lFirstDeclarationNode.properties[0].name).toBe(lFirstPropertyName);
-            expect(lFirstDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lFirstDeclarationNode.data.properties).toHaveLength(1);
+            expect(lFirstDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lFirstDeclarationNode.data.properties[0].struct).toBe(lFirstDeclarationNode);
+            expect(lFirstDeclarationNode.data.properties[0].data.name).toBe(lFirstPropertyName);
+            expect(lFirstDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
 
             // Evaluation. Second struct properties.
-            expect(lSecondDeclarationNode.properties).toHaveLength(1);
-            expect(lSecondDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lSecondDeclarationNode.properties[0].struct).toBe(lSecondDeclarationNode);
-            expect(lSecondDeclarationNode.properties[0].name).toBe(lSecondPropertyName);
-            expect(lSecondDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lSecondDeclarationNode.data.properties).toHaveLength(1);
+            expect(lSecondDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lSecondDeclarationNode.data.properties[0].struct).toBe(lSecondDeclarationNode);
+            expect(lSecondDeclarationNode.data.properties[0].data.name).toBe(lSecondPropertyName);
+            expect(lSecondDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
 
             // Evaluation. Third struct properties.
-            expect(lThirdDeclarationNode.properties).toHaveLength(1);
-            expect(lThirdDeclarationNode.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
-            expect(lThirdDeclarationNode.properties[0].struct).toBe(lThirdDeclarationNode);
-            expect(lThirdDeclarationNode.properties[0].name).toBe(lThirdPropertyName);
-            expect(lThirdDeclarationNode.properties[0].type).toBeInstanceOf(TypeDeclarationAst);
+            expect(lThirdDeclarationNode.data.properties).toHaveLength(1);
+            expect(lThirdDeclarationNode.data.properties[0]).toBeInstanceOf(StructPropertyDeclarationAst);
+            expect(lThirdDeclarationNode.data.properties[0].struct).toBe(lThirdDeclarationNode);
+            expect(lThirdDeclarationNode.data.properties[0].data.name).toBe(lThirdPropertyName);
+            expect(lThirdDeclarationNode.data.properties[0].data.typeDeclaration).toBeInstanceOf(TypeDeclarationAst);
         });
     });
 });

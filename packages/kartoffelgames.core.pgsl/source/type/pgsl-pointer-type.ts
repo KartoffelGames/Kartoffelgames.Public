@@ -45,6 +45,9 @@ export class PgslPointerType extends PgslType {
 
         // No address space assigned yet.
         this.mAssignedAddressSpace = null;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

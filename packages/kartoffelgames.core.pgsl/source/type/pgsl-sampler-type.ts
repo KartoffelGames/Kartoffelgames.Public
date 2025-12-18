@@ -40,6 +40,9 @@ export class PgslSamplerType extends PgslType {
 
         // Set data.
         this.mComparision = pComparison;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

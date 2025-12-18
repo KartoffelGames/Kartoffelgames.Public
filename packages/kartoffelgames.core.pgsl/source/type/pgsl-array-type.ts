@@ -82,6 +82,9 @@ export class PgslArrayType extends PgslType {
         } else {
             this.mLength = null;
         }
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

@@ -83,6 +83,9 @@ export class PgslBuildInType extends PgslType {
 
         // Determine the underlying type based on the built-in type.
         this.mUnderlyingType = this.determinateAliasedType(pContext, this.mBuildInType, pTemplate);
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

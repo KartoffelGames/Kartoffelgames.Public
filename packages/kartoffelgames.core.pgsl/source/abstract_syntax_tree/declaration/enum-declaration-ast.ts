@@ -40,7 +40,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         }
 
         // Register enum.
-        pContext.registerEnum(this);
+        pContext.registerEnum(this.cst.name,this);
 
         return {
             attributes: lAttributes,
@@ -88,7 +88,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         }
 
         // Register enum declaration.
-        pContext.registerEnum(this);
+        pContext.registerEnum(this.cst.name, this);
 
         return lPropertyList;
     }

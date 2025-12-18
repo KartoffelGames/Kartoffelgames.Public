@@ -1298,6 +1298,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1330,6 +1331,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1362,6 +1364,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1394,6 +1397,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1433,6 +1437,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1473,6 +1478,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1512,6 +1518,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1551,6 +1558,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1583,6 +1591,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1620,6 +1629,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1684,6 +1694,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1736,6 +1747,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1789,6 +1801,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.
@@ -1842,6 +1855,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
             // Validation. Count of bindings.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.bindings).toHaveLength(1);
 
             // Validation. Check binding details.

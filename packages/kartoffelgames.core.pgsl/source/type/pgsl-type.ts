@@ -6,7 +6,7 @@ import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-synt
  * Provides common functionality for type comparison, casting, and property management.
  */
 export abstract class PgslType {
-    private mTypeProperties: PgslTypeProperties;
+    private mTypeProperties: PgslTypeProperties | null;
 
     /**
      * Gets whether this type value is storable in a variable.
@@ -14,6 +14,10 @@ export abstract class PgslType {
      * @returns True if the value can be stored in a variable, false otherwise.
      */
     public get storable(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.storable;
     }
 
@@ -23,6 +27,10 @@ export abstract class PgslType {
      * @returns True if the type can be shared with the host, false otherwise.
      */
     public get hostShareable(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.hostShareable;
     }
 
@@ -32,6 +40,10 @@ export abstract class PgslType {
      * @returns True if this is a composite type, false otherwise.
      */
     public get composite(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.composite;
     }
 
@@ -42,6 +54,10 @@ export abstract class PgslType {
      * @returns True if the type is constructible, false otherwise.
      */
     public get constructible(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.constructible;
     }
 
@@ -51,6 +67,10 @@ export abstract class PgslType {
      * @returns True if the type has a fixed footprint, false otherwise.
      */
     public get fixedFootprint(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.fixedFootprint;
     }
 
@@ -60,6 +80,10 @@ export abstract class PgslType {
      * @returns True if the type is indexable, false otherwise.
      */
     public get indexable(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.indexable;
     }
 
@@ -70,6 +94,10 @@ export abstract class PgslType {
      * @returns True if the type is concrete, false otherwise.
      */
     public get concrete(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.concrete;
     }
 
@@ -80,6 +108,10 @@ export abstract class PgslType {
      * @returns True if the type is scalar, false otherwise.
      */
     public get scalar(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.scalar;
     }
 
@@ -90,15 +122,29 @@ export abstract class PgslType {
      * @returns True if the type is plain, false otherwise.
      */
     public get plain(): boolean {
+        if (this.mTypeProperties === null) {
+            throw new Error("Type properties not initialized.");
+        }
+
         return this.mTypeProperties.plain;
     }
 
     /**
      * Creates a new PGSL type instance.
      * 
+     * @param _pContext - The context of the type definition. Just to force the derived classes to use it.
+     */
+    public constructor(_pContext: AbstractSyntaxTreeContext) {
+        this.mTypeProperties = null;
+    }
+
+    /**
+     * Initializes the type properties by processing the provided context.
+     * Must be called by derived classes during their construction.
+     * 
      * @param pContext - The context of the type definition.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext) {
+    protected initType(pContext: AbstractSyntaxTreeContext): void {
         this.mTypeProperties = this.process(pContext);
     }
 

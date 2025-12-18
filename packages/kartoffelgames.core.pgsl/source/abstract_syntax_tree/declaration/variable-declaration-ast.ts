@@ -84,7 +84,9 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         }
 
         // Register variable in current scope.
-        pContext.addValue(this);
+        if(!pContext.addValue(this.cst.name, this)) {
+            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        }
 
         // Return built data.
         return {

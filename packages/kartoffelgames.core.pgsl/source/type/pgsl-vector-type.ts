@@ -57,6 +57,9 @@ export class PgslVectorType extends PgslType {
         // Set data.
         this.mInnerType = pInnerType;
         this.mVectorDimension = pVectorDimension;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

@@ -198,18 +198,20 @@ export class AbstractSyntaxTreeContext {
      * 
      * @throws Error if the value already exists in this scope.
      */
-    public addValue(pValue: IValueStoreAst): void {
+    public addValue(pName: string, pValue: IValueStoreAst): boolean {
         // Ensure there is an active scope.
         if (!this.mScope) {
-            throw new Exception(`Cannot add value '${pValue.data.name}' because there is no active scope.`, this);
+            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
         }
 
         // Throw if value already exists in this scope.
-        if (this.mScope.values.has(pValue.data.name)) {
-            throw new Error(`Value '${pValue.data.name}' already exists in current scope.`);
+        if (this.mScope.values.has(pName)) {
+            return false;
         }
 
-        this.mScope.values.set(pValue.data.name, pValue);
+        this.mScope.values.set(pName, pValue);
+
+        return true;
     }
 
     /**
@@ -240,36 +242,40 @@ export class AbstractSyntaxTreeContext {
      * Sets an alias to the current scope.
      *
      * @param pAst - The alias information.
+     * @param pName - The name of the alias.
      */
-    public registerAlias(pAst: AliasDeclarationAst): void {
-        this.mAliases.set(pAst.data.aliasName, pAst);
+    public registerAlias(pName: string, pAst: AliasDeclarationAst): void {
+        this.mAliases.set(pName, pAst);
     }
 
     /**
      * Sets an enum to the current scope.
      *
+     * @param pName - The name of the enum.
      * @param pAst - The enum information.
      */
-    public registerEnum(pAst: EnumDeclarationAst): void {
-        this.mEnums.set(pAst.data.name, pAst);
+    public registerEnum(pName: string, pAst: EnumDeclarationAst): void {
+        this.mEnums.set(pName, pAst);
     }
 
     /**
      * Sets a function to the current scope.
      *
      * @param pAst - The function information.
+     * @param pName - The name of the function.
      */
-    public registerFunction(pAst: FunctionDeclarationAst): void {
-        this.mFunctions.set(pAst.data.name, pAst);
+    public registerFunction(pName: string, pAst: FunctionDeclarationAst): void {
+        this.mFunctions.set(pName, pAst);
     }
 
     /**
      * Sets a struct to the current scope.
      *
      * @param pAst - The struct information.
+     * @param pName - The name of the struct.
      */
-    public registerStruct(pAst: StructDeclarationAst): void {
-        this.mStructs.set(pAst.data.name, pAst);
+    public registerStruct(pName: string, pAst: StructDeclarationAst): void {
+        this.mStructs.set(pName, pAst);
     }
 
     /**

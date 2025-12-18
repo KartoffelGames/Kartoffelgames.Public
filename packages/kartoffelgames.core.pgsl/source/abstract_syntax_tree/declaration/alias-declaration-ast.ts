@@ -40,7 +40,7 @@ export class AliasDeclarationAst extends AbstractSyntaxTree<AliasDeclarationCst,
         }
 
         // Set alias in context.
-        pContext.registerAlias(this);
+        pContext.registerAlias(this.cst.name, this);
 
         return {
             aliasName: this.cst.name,

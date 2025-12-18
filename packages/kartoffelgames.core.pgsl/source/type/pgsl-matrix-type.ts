@@ -88,6 +88,9 @@ export class PgslMatrixType extends PgslType {
 
         // Create underlying vector type based on matrix type.
         this.mVectorTypeDefinition = new PgslVectorType(pContext, this.mColumnCount, pInnerType);
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

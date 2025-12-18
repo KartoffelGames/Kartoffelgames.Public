@@ -83,7 +83,9 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Push variable to current scope.
-        pContext.addValue(this);
+        if(!pContext.addValue(this.cst.name, this)) {
+            pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
+        }
 
         return {
             // Statement data.

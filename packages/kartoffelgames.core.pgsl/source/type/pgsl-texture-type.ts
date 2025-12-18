@@ -167,6 +167,9 @@ export class PgslTextureType extends PgslType {
         this.mAccess = lTextureParameter.access;
         this.mFormat = lTextureParameter.format;
         this.mSampledType = lTextureParameter.sampledType;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

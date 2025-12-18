@@ -44,6 +44,9 @@ export class PgslNumericType extends PgslType {
 
         // Set data.
         this.mNumericType = pNumericType;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

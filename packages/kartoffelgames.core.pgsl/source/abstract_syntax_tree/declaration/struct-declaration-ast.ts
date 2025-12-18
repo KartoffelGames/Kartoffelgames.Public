@@ -66,7 +66,7 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
         }
 
         // Register struct to the current context.
-        pContext.registerStruct(this);
+        pContext.registerStruct(this.cst.name, this);
 
         return {
             attributes: lAttributes,

@@ -43,6 +43,9 @@ export class PgslEnumType extends PgslType {
 
         // Read enum declaration.
         this.mEnumDeclaration = pContext.getEnum(pEnumName) ?? null;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

@@ -30,6 +30,9 @@ export class PgslStructType extends PgslType {
 
         // Set data.
         this.mStructName = pStructName;
+
+        // Initialize type.
+        this.initType(pContext);
     }
 
     /**

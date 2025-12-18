@@ -18,6 +18,8 @@ import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
  * Generic attribute list.
  */
 export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, AttributeListAstData> {
+    private static mValidAttributes: Dictionary<PgslAttributeName, AttributeDefinitionInformation> | null = null;
+
     /**
      * All possible attribute names.
      */
@@ -38,9 +40,125 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     }
 
     /**
-     * All valid attributes.
+     * Get all valid attributes.
      */
-    private static readonly mValidAttributes: Dictionary<PgslAttributeName, AttributeDefinitionInformation> = (() => {
+    public static get validAttributes(): Dictionary<PgslAttributeName, AttributeDefinitionInformation> {
+        // Initialize cached attributes when they are not set.
+        if (AttributeListAst.mValidAttributes === null) {
+            throw new Exception(`Attribute definitions have not been initialized yet.`, AttributeListAst);
+        }
+        return AttributeListAst.mValidAttributes;
+    }
+
+    private mAttachedDeclaration: IDeclarationAst | null;
+
+    /**
+     * Constructor.
+     * 
+     * @param pMeta - Syntax tree meta data.
+     * @param pAttributes - Attribute list.
+     */
+    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst, pContext: AbstractSyntaxTreeContext) {
+        super(pCst, pContext);
+
+        // Init empty attribute list.
+        this.mAttachedDeclaration = pAttachedDeclaration;
+
+        // Initialize cached attributes when they are not set.
+        if (AttributeListAst.mValidAttributes === null) {
+            AttributeListAst.mValidAttributes = this.readAttributeDefintions();
+        }
+    }
+
+    /**
+     * Check if an attribute is defined.
+     * 
+     * @param pName - Attribute name.
+     * 
+     * @returns True when attribute is defined. 
+     */
+    public hasAttribute(pName: PgslAttributeName): boolean {
+        return this.data.attributes.has(pName);
+    }
+
+    /**
+     * Get all parameter of attributes by name.
+     * 
+     * @param pName - Attribute name.
+     * 
+     * @returns all attribute parameters 
+     */
+    public getAttributeParameter(pName: PgslAttributeName): Array<IExpressionAst> {
+        // Try to read attribute parameters.
+        const lAttributeParameter: Array<IExpressionAst> | undefined = this.data.attributes.get(pName);
+        if (!lAttributeParameter) {
+            throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
+        }
+
+        return lAttributeParameter;
+    }
+
+    /**
+     * Validate data of current structure.
+     */
+    protected override process(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
+        // Create attribute list data.
+        const lAttributeListData: AttributeListAstData = {
+            attributes: new Map<PgslAttributeName, Array<IExpressionAst>>()
+        };
+
+        // Must be attached to a declaration.
+        if (!this.mAttachedDeclaration) {
+            pContext.pushIncident(`Attribute list is not attached to a declaration.`, this);
+
+            // Return empty attribute list.
+            return lAttributeListData;
+        }
+
+        // Validate each attribute.
+        for (const lAttributeCst of this.cst.attributes) {
+            // Check if attribute has a definition.
+            if (!AttributeListAst.validAttributes.has(lAttributeCst.name as PgslAttributeName)) {
+                pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not a valid attribute.`, this);
+                continue;
+            }
+
+            // Read the attribute definition.
+            const lAttributeDefinition: AttributeDefinitionInformation = AttributeListAst.validAttributes.get(lAttributeCst.name as PgslAttributeName)!;
+
+            // Check if parent type is correct.
+            if (lAttributeDefinition.enforcedParentType) {
+                if (!(this.mAttachedDeclaration instanceof lAttributeDefinition.enforcedParentType)) {
+                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not attached to a valid parent type.`, this);
+                }
+            }
+
+            // Search for parameter definition that matches the given parameter count.
+            let lParameterDefinition: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter> = new Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>();
+            if (lAttributeDefinition.parameterTypes.length > 0) {
+                // Find a parameter definition that matches the given parameter count.
+                const lFoundParameterDefinition = lAttributeDefinition.parameterTypes.find(pEntry => pEntry.length === lAttributeCst.parameters.length);
+                if (!lFoundParameterDefinition) {
+                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" has invalid number of parameters.`, this);
+                    continue;
+                }
+                lParameterDefinition = lFoundParameterDefinition ?? [];
+            }
+
+            // Create parameter ASTs and append with the attribute name.
+            const lValidatedParameters = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
+            lAttributeListData.attributes.set(lAttributeCst.name as PgslAttributeName, lValidatedParameters);
+        }
+
+        return lAttributeListData;
+    }
+
+    /**
+     * Read all attribute definitions.
+     * 
+     * @returns Dictionary of all valid attributes.
+     */
+    private readAttributeDefintions(): Dictionary<PgslAttributeName, AttributeDefinitionInformation> {
         const lAttributes: Dictionary<PgslAttributeName, AttributeDefinitionInformation> = new Dictionary<PgslAttributeName, AttributeDefinitionInformation>();
 
         // Function and declaration config.
@@ -122,105 +240,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         });
 
         return lAttributes;
-    })();
-
-    private mAttachedDeclaration: IDeclarationAst | null;
-
-    /**
-     * Constructor.
-     * 
-     * @param pMeta - Syntax tree meta data.
-     * @param pAttributes - Attribute list.
-     */
-    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst, pContext: AbstractSyntaxTreeContext) {
-        super(pCst, pContext);
-
-        // Init empty attribute list.
-        this.mAttachedDeclaration = pAttachedDeclaration;
-    }
-
-    /**
-     * Check if an attribute is defined.
-     * 
-     * @param pName - Attribute name.
-     * 
-     * @returns True when attribute is defined. 
-     */
-    public hasAttribute(pName: PgslAttributeName): boolean {
-        return this.data.attributes.has(pName);
-    }
-
-    /**
-     * Get all parameter of attributes by name.
-     * 
-     * @param pName - Attribute name.
-     * 
-     * @returns all attribute parameters 
-     */
-    public getAttributeParameter(pName: PgslAttributeName): Array<IExpressionAst> {
-        // Try to read attribute parameters.
-        const lAttributeParameter: Array<IExpressionAst> | undefined = this.data.attributes.get(pName);
-        if (!lAttributeParameter) {
-            throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
-        }
-
-        return lAttributeParameter;
-    }
-
-    /**
-     * Validate data of current structure.
-     */
-    protected override process(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
-        // Create attribute list data.
-        const lAttributeListData: AttributeListAstData = {
-            attributes: new Map<PgslAttributeName, Array<IExpressionAst>>()
-        };
-
-        // Must be attached to a declaration.
-        if (!this.mAttachedDeclaration) {
-            pContext.pushIncident(`Attribute list is not attached to a declaration.`, this);
-
-            // Return empty attribute list.
-            return lAttributeListData;
-        }
-
-        // Validate each attribute.
-        for (const lAttributeCst of this.cst.attributes) {
-            // Check if attribute has a definition.
-            if (!AttributeListAst.mValidAttributes.has(lAttributeCst.name as PgslAttributeName)) {
-                pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not a valid attribute.`, this);
-                continue;
-            }
-
-            // Read the attribute definition.
-            const lAttributeDefinition: AttributeDefinitionInformation = AttributeListAst.mValidAttributes.get(lAttributeCst.name as PgslAttributeName)!;
-
-            // Check if parent type is correct.
-            if (lAttributeDefinition.enforcedParentType) {
-                if (!(this.mAttachedDeclaration instanceof lAttributeDefinition.enforcedParentType)) {
-                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" is not attached to a valid parent type.`, this);
-                }
-            }
-
-            // Search for parameter definition that matches the given parameter count.
-            let lParameterDefinition: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter> = new Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>();
-            if (lAttributeDefinition.parameterTypes.length > 0) {
-                // Find a parameter definition that matches the given parameter count.
-                const lFoundParameterDefinition = lAttributeDefinition.parameterTypes.find(pEntry => pEntry.length === lAttributeCst.parameters.length);
-                if (!lFoundParameterDefinition) {
-                    pContext.pushIncident(`Attribute "${lAttributeCst.name}" has invalid number of parameters.`, this);
-                    continue;
-                }
-                lParameterDefinition = lFoundParameterDefinition ?? [];
-            }
-
-            // Create parameter ASTs and append with the attribute name.
-            const lValidatedParameters = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
-            lAttributeListData.attributes.set(lAttributeCst.name as PgslAttributeName, lValidatedParameters);
-        }
-
-        return lAttributeListData;
-    }
+    };
 
     /**
      * Apply data to current structure.
@@ -233,7 +253,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     private validateParameter(pContext: AbstractSyntaxTreeContext, pAttributeName: string, pParameterSourceList: Array<ExpressionCst>, pValidationParameterList: Array<AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter>): Array<IExpressionAst> {
         // Store validated parameters.
         const lValidatedParameters: Array<IExpressionAst> = new Array<IExpressionAst>();
-        
+
         // Match every single template parameter.
         for (let lIndex = 0; lIndex < pValidationParameterList.length; lIndex++) {
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
